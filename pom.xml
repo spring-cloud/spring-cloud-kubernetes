@@ -94,7 +94,7 @@
     <modules>
         <module>spring-cloud-kubernetes-discovery</module>
         <module>spring-cloud-kubernetes-core</module>
-        <module>spring-cloud-kubernetes-all</module>
+        <module>spring-cloud-starter-kubernetes</module>
     </modules>
 
     <dependencyManagement>

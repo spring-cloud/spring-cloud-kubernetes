@@ -26,8 +26,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.fabric8</groupId>
-    <artifactId>spring-cloud-kubernetes-all</artifactId>
-    <name>Fabric8 :: Spring Cloud Kubernetes :: All</name>
+    <artifactId>spring-cloud-starter-kubernetes</artifactId>
+    <name>Fabric8 :: Spring Cloud Kubernetes :: Starter</name>
 
     <dependencies>
         <dependency>
