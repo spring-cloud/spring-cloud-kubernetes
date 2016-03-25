@@ -1,2 +1,5 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 io.fabric8.spring.cloud.kubernetes.KubernetesAutoConfiguration
+
+org.springframework.context.ApplicationContextInitializer=\
+io.fabric8.spring.cloud.kubernetes.profile.KubernetesApplicationContextInitializer

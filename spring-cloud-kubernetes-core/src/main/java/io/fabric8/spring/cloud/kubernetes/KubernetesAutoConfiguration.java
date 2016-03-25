@@ -80,9 +80,17 @@ public class KubernetesAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public KubernetesHealthIndicator kubernetesHealthIndicator(KubernetesClient client) {
-        return new KubernetesHealthIndicator(client);
+    StandardPodUtils kubernetesPodUtils(KubernetesClient client) {
+        return new StandardPodUtils(client);
     }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public KubernetesHealthIndicator kubernetesHealthIndicator(KubernetesClient client, StandardPodUtils podUtils) {
+        return new KubernetesHealthIndicator(client, podUtils);
+    }
+
+
 
     private static <D> D or(D dis, D dat) {
         if (dis != null) {
