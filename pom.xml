@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright (C) 2016 to the original authors.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>9</version>
+    </parent>
+
+    <groupId>io.fabric8</groupId>
+    <artifactId>spring-cloud-kubernetes-project</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Fabric8 :: Spring Cloud Kubernetes :: Project</name>
+
+    <url>http://fabric8.io/</url>
+    <inceptionYear>2016</inceptionYear>
+
+    <organization>
+        <name>Red Hat</name>
+        <url>http://redhat.com</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <!-- including A developer as it's required by the maven poms going into
+      central -->
+    <developers>
+        <developer>
+            <id>geeks</id>
+            <name>Fabric8 Development Team</name>
+            <organization>fabric8</organization>
+            <organizationUrl>http://fabric8.io/</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:fabric8io/kubeflix.git</connection>
+        <developerConnection>scm:git:git@github.com:fabric8io/kubeflix.git</developerConnection>
+        <url>http://github.com/fabric8io/kubeflix/</url>
+        <tag>${project.version}</tag>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>oss-sonatype-staging</id>
+            <name>Sonatype Staging Repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+    </distributionManagement>
+
+    <properties>
+        <!-- Dependency Versions -->
+        <kubernetes-client.version>1.3.74</kubernetes-client.version>
+        <lombok.version>1.16.8</lombok.version>
+
+        <spring-boot.version>1.3.3.RELEASE</spring-boot.version>
+        <spring-cloud.version>1.0.4.RELEASE</spring-cloud.version>
+        <spring-cloud-netflix.version>1.0.6.RELEASE</spring-cloud-netflix.version>
+
+        <!-- Maven Plugin Versions -->
+        <docker-maven-plugin.version>0.14.2</docker-maven-plugin.version>
+        <fabric8-maven-plugin.version>2.2.98</fabric8-maven-plugin.version>
+        <jetty-maven-plugin.version>9.3.7.v20160115</jetty-maven-plugin.version>
+        <maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
+        <maven-war-plugin.version>2.6</maven-war-plugin.version>
+    </properties>
+
+    <modules>
+        <module>spring-cloud-kubernetes-discovery</module>
+        <module>spring-cloud-kubernetes-core</module>
+        <module>spring-cloud-kubernetes-all</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Own dependencies -->
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>sping-cloud-kubernetes-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>sping-cloud-kubernetes-discovery</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>kubernetes-client</artifactId>
+                <version>${kubernetes-client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-actuator</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-autoconfigure</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-commons</artifactId>
+                <version>${spring-cloud.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-context</artifactId>
+                <version>${spring-cloud.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.16.8</version>
+                <scope>provided</scope>
+                <optional>true</optional>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <inherited>true</inherited>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <version>1.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>enforce-no-snapshots</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireReleaseDeps>
+                                            <message>No Snapshots Allowed!</message>
+                                        </requireReleaseDeps>
+                                    </rules>
+                                    <fail>false</fail>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.10.3</version>
+                        <configuration>
+                            <includeDependencySources>${javadoc.include.deps}</includeDependencySources>
+                            <dependencySourceIncludes>
+                                <dependencySourceInclude>${javadoc.source.includes}</dependencySourceInclude>
+                            </dependencySourceIncludes>
+                            <excludePackageNames>${javadoc.package.excludes}</excludePackageNames>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <additionalparam>${javadoc.opts}</additionalparam>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.4</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>${docker-maven-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>build</goal>
+                                    <goal>push</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>docker</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>${docker-maven-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>docker-build</id>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                            <execution>
+                                <id>docker-push</id>
+                                <goals>
+                                    <goal>push</goal>
+                                </goals>
+                                <phase>deploy</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>doclint-java8-disable</id>
+            <activation>
+                <jdk>[1.8,)</jdk>
+            </activation>
+            <properties>
+                <javadoc.opts>-Xdoclint:none</javadoc.opts>
+            </properties>
+        </profile>
+    </profiles>
+</project>
