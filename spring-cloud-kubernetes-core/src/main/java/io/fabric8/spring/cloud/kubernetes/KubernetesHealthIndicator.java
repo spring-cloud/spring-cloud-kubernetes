@@ -28,6 +28,7 @@ public class KubernetesHealthIndicator extends AbstractHealthIndicator {
 
     public KubernetesHealthIndicator(KubernetesClient client, PodUtils utils) {
         this.client = client;
+        this.utils = utils;
     }
 
     @Override
