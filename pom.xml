@@ -100,12 +100,12 @@
             <!-- Own dependencies -->
             <dependency>
                 <groupId>io.fabric8</groupId>
-                <artifactId>sping-cloud-kubernetes-core</artifactId>
+                <artifactId>spring-cloud-kubernetes-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.fabric8</groupId>
-                <artifactId>sping-cloud-kubernetes-discovery</artifactId>
+                <artifactId>spring-cloud-kubernetes-discovery</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
