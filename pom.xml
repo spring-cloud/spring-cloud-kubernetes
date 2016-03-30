@@ -86,9 +86,7 @@
         <!-- Maven Plugin Versions -->
         <docker-maven-plugin.version>0.14.2</docker-maven-plugin.version>
         <fabric8-maven-plugin.version>2.2.98</fabric8-maven-plugin.version>
-        <jetty-maven-plugin.version>9.3.7.v20160115</jetty-maven-plugin.version>
         <maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
-        <maven-war-plugin.version>2.6</maven-war-plugin.version>
     </properties>
 
     <modules>
