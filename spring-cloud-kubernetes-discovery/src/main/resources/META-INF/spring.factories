@@ -1,6 +1,3 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-io.fabric8.spring.cloud.discovery.KubernetesDiscoveryAutoConfiguration
-
 # Discovery Client Configuration
 org.springframework.cloud.client.discovery.EnableDiscoveryClient=\
-io.fabric8.spring.cloud.discovery.KubernetesDiscoveryClient
+io.fabric8.spring.cloud.discovery.KubernetesDiscoveryClientConfiguration

@@ -23,8 +23,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
-public class KubernetesDiscoveryAutoConfiguration {
+@ConditionalOnProperty(value = "spring.cloud.kubernetes.discovery.enabled", matchIfMissing = true)
+public class KubernetesDiscoveryClientConfiguration {
 
     @Bean
     public KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {

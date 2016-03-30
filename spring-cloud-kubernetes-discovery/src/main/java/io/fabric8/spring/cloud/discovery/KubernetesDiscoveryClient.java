@@ -30,9 +30,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
     private KubernetesClient client;
     private String localServiceId;
 
-    public KubernetesDiscoveryClient() {
-    }
-
     public KubernetesDiscoveryClient(KubernetesClient client, String localServiceId) {
         this.client = client;
         this.localServiceId = localServiceId;
