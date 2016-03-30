@@ -60,9 +60,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git@github.com:fabric8io/kubeflix.git</connection>
-        <developerConnection>scm:git:git@github.com:fabric8io/kubeflix.git</developerConnection>
-        <url>http://github.com/fabric8io/kubeflix/</url>
+        <connection>scm:git:git@github.com:fabric8io/spring-cloud-kubernetes.git</connection>
+        <developerConnection>scm:git:git@github.com:fabric8io/spring-cloud-kubernetes.git</developerConnection>
+        <url>http://github.com/fabric8io/spring-cloud-kubernetes/</url>
         <tag>${project.version}</tag>
     </scm>
 
