@@ -21,7 +21,7 @@
     <parent>
         <groupId>io.fabric8</groupId>
         <artifactId>spring-cloud-kubernetes-project</artifactId>
-        <version>0.0.2</version>
+        <version>0.0.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
