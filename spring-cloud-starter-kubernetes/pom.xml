@@ -39,6 +39,11 @@
             <groupId>io.fabric8</groupId>
             <artifactId>spring-cloud-kubernetes-discovery</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>spring-cloud-kubernetes-ribbon</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
