@@ -9,6 +9,7 @@ Spring Cloud integreation with Kubernetes
 -   DiscoveryClient implementation for Kubernetes
 -   Health Indicator for Pods
 -   Automatic activation of the "Kubernetes" profile when running inside Kubernetes.
+-   Ribbon discovery in Kubernetes.
 
 
 ### Building
