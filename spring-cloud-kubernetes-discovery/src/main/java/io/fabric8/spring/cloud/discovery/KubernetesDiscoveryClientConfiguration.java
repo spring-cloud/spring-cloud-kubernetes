@@ -31,11 +31,12 @@ public class KubernetesDiscoveryClientConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties properties) {
-        return new KubernetesDiscoveryClient(client, properties.getServiceName());
+        return new KubernetesDiscoveryClient(client, properties);
     }
 
     @Bean
     public KubernetesDiscoveryLifecycle kubernetesDiscoveryLifecycle(KubernetesClient client, KubernetesDiscoveryProperties properties) {
         return new KubernetesDiscoveryLifecycle(client, properties);
+
     }
 }
