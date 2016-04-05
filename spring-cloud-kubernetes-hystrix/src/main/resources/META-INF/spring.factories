@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+io.fabric8.spring.cloud.kubernetes.hystrix.HystrixFilterAutoConfiguration
