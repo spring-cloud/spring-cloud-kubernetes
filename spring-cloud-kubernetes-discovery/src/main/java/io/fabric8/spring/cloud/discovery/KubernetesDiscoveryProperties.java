@@ -16,12 +16,15 @@
 
 package io.fabric8.spring.cloud.discovery;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("spring.cloud.kubernetes.discovery")
 public class KubernetesDiscoveryProperties {
 
     private boolean enabled = true;
+
+    @Value("${spring.application.name:unknown}")
     private String serviceName = "unknown";
 
     public boolean isEnabled() {
