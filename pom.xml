@@ -81,6 +81,8 @@
 
         <spring-boot.version>1.3.3.RELEASE</spring-boot.version>
         <spring-cloud.version>1.0.4.RELEASE</spring-cloud.version>
+        <spring-cloud.version>1.0.4.RELEASE</spring-cloud.version>
+        <spring-cloud-sleuth.version>1.0.0.RC1</spring-cloud-sleuth.version>
         <spring-cloud-netflix.version>1.0.6.RELEASE</spring-cloud-netflix.version>
 
         <!-- Maven Plugin Versions -->
@@ -94,6 +96,7 @@
         <module>spring-cloud-kubernetes-core</module>
         <module>spring-cloud-starter-kubernetes</module>
         <module>spring-cloud-kubernetes-ribbon</module>
+        <module>spring-cloud-kubernetes-zipkin</module>
     </modules>
 
     <dependencyManagement>
@@ -127,6 +130,15 @@
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-netflix-dependencies</artifactId>
                 <version>${spring-cloud-netflix.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-sleuth-dependencies</artifactId>
+                <version>${spring-cloud-sleuth.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -307,4 +319,15 @@
             </properties>
         </profile>
     </profiles>
+
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/libs-milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
