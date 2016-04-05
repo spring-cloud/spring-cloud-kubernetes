@@ -22,8 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class KubernetesDiscoveryProperties {
 
     private boolean enabled = true;
-    private String serviceName;
-
+    private String serviceName = "unknown";
 
     public boolean isEnabled() {
         return enabled;
