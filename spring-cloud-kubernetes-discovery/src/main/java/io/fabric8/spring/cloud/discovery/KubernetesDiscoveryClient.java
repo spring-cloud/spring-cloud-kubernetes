@@ -73,7 +73,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
     @Override
     public List<ServiceInstance> getInstances(String serviceId) {
         Assert.notNull(serviceId, "[Assertion failed] - the object argument must be null");
-        return Optional.of(client.endpoints().withName(serviceId).get()).orElse(new Endpoints())
+        return Optional.ofNullable(client.endpoints().withName(serviceId).get()).orElse(new Endpoints())
                 .getSubsets()
                 .stream().map(s -> new KubernetesServiceInstance(serviceId, s.getPorts().iterator().next().getName(), s, false))
                 .collect(Collectors.toList());
