@@ -57,17 +57,18 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
     public ServiceInstance getLocalServiceInstance() {
         String serviceName = properties.getServiceName();
         String podName = System.getenv(HOSTNAME);
+        ServiceInstance defaultInstance = new DefaultServiceInstance(serviceName, "localhost", 8080, false);
 
         Endpoints endpoints = client.endpoints().withName(serviceName).get();
         if (Utils.isNullOrEmpty(podName) || endpoints == null) {
             //TODO: Fallback to something more meaningful.
-            return new DefaultServiceInstance(serviceName, "localhost", 8080, false);
+            return defaultInstance;
         }
         return endpoints.getSubsets()
                 .stream()
                 .filter(s -> s.getAddresses().iterator().next().getIp().equals(podName))
-                .map(s -> new KubernetesServiceInstance(serviceName, s.getPorts().iterator().next().getName(), s, false))
-                .findFirst().get();
+                .map(s -> (ServiceInstance) new KubernetesServiceInstance(serviceName, s.getPorts().iterator().next().getName(), s, false))
+                .findFirst().orElse(defaultInstance);
     }
 
     @Override
