@@ -101,6 +101,9 @@
         <module>spring-cloud-kubernetes-zipkin</module>
         <module>spring-cloud-kubernetes-compat</module>
         <module>spring-cloud-kubernetes-hystrix</module>
+        <module>spring-cloud-starter-kubernetes-netflix</module>
+        <module>spring-cloud-starter-kubernetes-zipkin</module>
+        <module>spring-cloud-starter-kubernetes-all</module>
     </modules>
 
     <dependencyManagement>

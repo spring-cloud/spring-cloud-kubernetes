@@ -39,21 +39,6 @@
             <groupId>io.fabric8</groupId>
             <artifactId>spring-cloud-kubernetes-discovery</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>spring-cloud-kubernetes-hystrix</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>spring-cloud-kubernetes-ribbon</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>spring-cloud-kubernetes-zipkin</artifactId>
-        </dependency>
     </dependencies>
 
 </project>
