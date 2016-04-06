@@ -61,14 +61,17 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
         Endpoints endpoints = client.endpoints().withName(serviceName).get();
         if (Utils.isNullOrEmpty(podName) || endpoints == null) {
-            //TODO: Fallback to something more meaningful.
             return defaultInstance;
         }
-        return endpoints.getSubsets()
-                .stream()
-                .filter(s -> s.getAddresses().iterator().next().getIp().equals(podName))
-                .map(s -> (ServiceInstance) new KubernetesServiceInstance(serviceName, s.getPorts().iterator().next().getName(), s, false))
-                .findFirst().orElse(defaultInstance);
+        try {
+            return endpoints.getSubsets()
+                    .stream()
+                    .filter(s -> s.getAddresses().get(0).getTargetRef().getName().equals(podName))
+                    .map(s -> (ServiceInstance) new KubernetesServiceInstance(serviceName, s.getPorts().iterator().next().getName(), s, false))
+                    .findFirst().orElse(defaultInstance);
+        } catch (Throwable t) {
+            return defaultInstance;
+        }
     }
 
     @Override
