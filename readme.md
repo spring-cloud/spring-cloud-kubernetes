@@ -1,7 +1,7 @@
 Spring Cloud Kubernetes
 -----------------------
 
-Spring Cloud integreation with Kubernetes
+Spring Cloud integration with Kubernetes
 
 ### Features
 
