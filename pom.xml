@@ -28,7 +28,7 @@
 
     <groupId>io.fabric8</groupId>
     <artifactId>spring-cloud-kubernetes-project</artifactId>
-    <version>0.0.7-SNAPSHOT</version>
+    <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Fabric8 :: Spring Cloud Kubernetes :: Project</name>
 
