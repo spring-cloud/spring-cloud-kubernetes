@@ -17,6 +17,8 @@
 
 package io.fabric8.spring.cloud.kubernetes.zipkin;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -29,6 +31,7 @@ import org.springframework.cloud.sleuth.zipkin.ZipkinProperties;
 import org.springframework.cloud.sleuth.zipkin.ZipkinSpanReporter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import zipkin.Span;
 
 import java.util.List;
 
@@ -38,6 +41,8 @@ import java.util.List;
 @AutoConfigureBefore(ZipkinAutoConfiguration.class)
 public class ZipkinKubernetesAutoConfiguration {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZipkinKubernetesAutoConfiguration.class);
+
     @Bean
     public ZipkinSpanReporter reporter(DiscoveryClient discoveryClient, KubernetesZipkinDiscoveryProperties discoveryProperties, SpanMetricReporter spanMetricReporter, ZipkinProperties zipkin) {
         String serviceName = discoveryProperties.getServiceName();
@@ -45,9 +50,20 @@ public class ZipkinKubernetesAutoConfiguration {
         String serviceUrl = services.stream()
                 .findFirst()
                 .map(s -> s.getUri().toString())
-                .orElseThrow(() -> new IllegalStateException("No ZipKin Query Api found with service id: [" + serviceName + "]."));
+                .orElse(null);
 
-        return new HttpZipkinSpanReporter(serviceUrl, zipkin.getFlushInterval(), zipkin.getCompression().isEnabled(), spanMetricReporter);
+        LOGGER.warn("No service with name: ["+serviceName+"] found. Falling back to NullZipkinSpanReporter.");
 
+        return serviceUrl == null || serviceUrl.isEmpty()
+                ? new NullZipkinSpanReporter()
+                : new HttpZipkinSpanReporter(serviceUrl, zipkin.getFlushInterval(), zipkin.getCompression().isEnabled(), spanMetricReporter);
+    }
+
+    static final class NullZipkinSpanReporter implements ZipkinSpanReporter {
+
+        @Override
+        public void report(Span span) {
+
+        }
     }
 }
