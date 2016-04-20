@@ -40,19 +40,12 @@ public class ConfigMapPropertySource extends MapPropertySource {
     private static final String PREFIX = "configmap";
     private static final String SEPARATOR = ".";
 
-    private final KubernetesClient client;
-    private final String name;
-    private final String namespace;
-
     public ConfigMapPropertySource(KubernetesClient client, String name) {
         this(client, name, null);
     }
 
     public ConfigMapPropertySource(KubernetesClient client, String name, String namespace) {
         super(getName(client, name, namespace), asObjectMap(getData(client, name, namespace)));
-        this.client = client;
-        this.name = name;
-        this.namespace = namespace;
     }
 
     private static String getName(KubernetesClient client, String name, String namespace) {
