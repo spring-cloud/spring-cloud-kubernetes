@@ -28,6 +28,7 @@ import org.springframework.core.env.PropertySource;
 public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 
     private static final String SPRING_APPLICATION_NAME = "spring.application.name";
+    private static final String FALLBACK_APPLICATION_NAME = "application";
 
     private final KubernetesClient client;
     private final ConfigMapConfigProperties properties;
@@ -41,7 +42,7 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
     public PropertySource<?> locate(Environment environment) {
         if (environment instanceof ConfigurableEnvironment) {
             ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
-            String appName = env.getProperty(SPRING_APPLICATION_NAME);
+            String appName = env.getProperty(SPRING_APPLICATION_NAME, FALLBACK_APPLICATION_NAME);
             String name = properties.getName() == null || properties.getName().isEmpty() ? appName : properties.getName();
             String namespace = properties.getNamespace();
             return new ConfigMapPropertySource(client, name, namespace);
