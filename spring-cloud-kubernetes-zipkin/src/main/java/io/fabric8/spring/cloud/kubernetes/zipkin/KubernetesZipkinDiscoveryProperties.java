@@ -24,6 +24,7 @@ public class KubernetesZipkinDiscoveryProperties {
 
     private boolean enabled = true;
     private String serviceName = "zipkin-query";
+    private String serviceNamespace;
 
 
     public boolean isEnabled() {
@@ -36,5 +37,17 @@ public class KubernetesZipkinDiscoveryProperties {
 
     public String getServiceName() {
         return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public String getServiceNamespace() {
+        return serviceNamespace;
+    }
+
+    public void setServiceNamespace(String serviceNamespace) {
+        this.serviceNamespace = serviceNamespace;
     }
 }

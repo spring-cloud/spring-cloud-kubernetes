@@ -17,13 +17,16 @@
 
 package io.fabric8.spring.cloud.kubernetes.zipkin;
 
+import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.utils.Utils;
+import io.fabric8.spring.cloud.discovery.KubernetesServiceInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.sleuth.metric.SpanMetricReporter;
 import org.springframework.cloud.sleuth.zipkin.HttpZipkinSpanReporter;
 import org.springframework.cloud.sleuth.zipkin.ZipkinAutoConfiguration;
@@ -31,9 +34,12 @@ import org.springframework.cloud.sleuth.zipkin.ZipkinProperties;
 import org.springframework.cloud.sleuth.zipkin.ZipkinSpanReporter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.Assert;
 import zipkin.Span;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableConfigurationProperties(KubernetesZipkinDiscoveryProperties.class)
@@ -44,19 +50,30 @@ public class ZipkinKubernetesAutoConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZipkinKubernetesAutoConfiguration.class);
 
     @Bean
-    public ZipkinSpanReporter reporter(DiscoveryClient discoveryClient, KubernetesZipkinDiscoveryProperties discoveryProperties, SpanMetricReporter spanMetricReporter, ZipkinProperties zipkin) {
+    public ZipkinSpanReporter reporter(KubernetesClient client, KubernetesZipkinDiscoveryProperties discoveryProperties, SpanMetricReporter spanMetricReporter, ZipkinProperties zipkin) {
         String serviceName = discoveryProperties.getServiceName();
-        List<ServiceInstance> services = discoveryClient.getInstances(serviceName);
+        String serviceNamespace = Utils.isNotNullOrEmpty(discoveryProperties.getServiceNamespace()) ? discoveryProperties.getServiceNamespace() : client.getNamespace();
+
+        List<ServiceInstance> services = getInstances(client, serviceName, serviceNamespace);
         String serviceUrl = services.stream()
                 .findFirst()
                 .map(s -> s.getUri().toString())
                 .orElse(null);
 
-        LOGGER.warn("No service with name: ["+serviceName+"] found. Falling back to NullZipkinSpanReporter.");
-
         return serviceUrl == null || serviceUrl.isEmpty()
                 ? new NullZipkinSpanReporter()
                 : new HttpZipkinSpanReporter(serviceUrl, zipkin.getFlushInterval(), zipkin.getCompression().isEnabled(), spanMetricReporter);
+    }
+
+    private static List<ServiceInstance> getInstances(KubernetesClient client, String name, String namespace) {
+        Assert.notNull(name, "[Assertion failed] - the service name must not be null");
+
+        return Optional.ofNullable(client.endpoints().inNamespace(namespace).withName(name).get())
+                .orElse(new Endpoints())
+                .getSubsets()
+                .stream()
+                .map(s -> new KubernetesServiceInstance(name, s.getPorts().iterator().next().getName(), s, false))
+                .collect(Collectors.toList());
     }
 
     static final class NullZipkinSpanReporter implements ZipkinSpanReporter {
