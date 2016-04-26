@@ -19,6 +19,8 @@ package io.fabric8.spring.cloud.kubernetes.config;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.io.ByteArrayResource;
@@ -33,6 +35,9 @@ import java.util.stream.Collectors;
 
 public class ConfigMapPropertySource extends MapPropertySource {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigMapPropertySource.class);
+
+    private static final String CONFIGMAP_PATH = "/configmaps";
     private static final String APPLICATION_YML = "application.yml";
     private static final String APPLICATION_YAML = "application.yaml";
     private static final String APPLICATION_PROPERTIES = "application.properties";
@@ -56,22 +61,26 @@ public class ConfigMapPropertySource extends MapPropertySource {
 
     private static Map<String, String> getData(KubernetesClient client, String name, String namespace) {
         Map<String, String> result = new HashMap<>();
-        ConfigMap map = namespace == null || namespace.isEmpty()
-                ? client.configMaps().withName(name).get()
-                : client.configMaps().inNamespace(namespace).withName(name).get();
+        try {
+            ConfigMap map = namespace == null || namespace.isEmpty()
+                    ? client.configMaps().withName(name).get()
+                    : client.configMaps().inNamespace(namespace).withName(name).get();
 
-        if (map != null) {
-            for (Map.Entry<String, String> entry : map.getData().entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                if (key.equals(APPLICATION_YAML) || key.equals(APPLICATION_YML)) {
-                    result.putAll(YAML_TO_PROPETIES.andThen(PROPERTIES_TO_MAP).apply(value));
-                } else if (key.equals(APPLICATION_PROPERTIES)) {
-                    result.putAll(KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(value));
-                } else {
-                    result.put(key, value);
+            if (map != null) {
+                for (Map.Entry<String, String> entry : map.getData().entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue();
+                    if (key.equals(APPLICATION_YAML) || key.equals(APPLICATION_YML)) {
+                        result.putAll(YAML_TO_PROPETIES.andThen(PROPERTIES_TO_MAP).apply(value));
+                    } else if (key.equals(APPLICATION_PROPERTIES)) {
+                        result.putAll(KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(value));
+                    } else {
+                        result.put(key, value);
+                    }
                 }
             }
+        } catch (Exception e) {
+            LOGGER.warn("Can't read configMap with name: [" + name + "] in namespace:[" + namespace + "]. Ignoring");
         }
         return result;
     }
