@@ -37,6 +37,7 @@ import spock.lang.Specification
         [
                 "spring.application.name=testapp",
                 "spring.cloud.kubernetes.client.namespace=testns",
+                "spring.cloud.kubernetes.client.trustCerts=true",
                 "spring.cloud.kubernetes.config.namespace=testns"
         ])
 @RibbonClient(name = "testapp", configuration = KubernetesRibbonClientConfiguration.class)

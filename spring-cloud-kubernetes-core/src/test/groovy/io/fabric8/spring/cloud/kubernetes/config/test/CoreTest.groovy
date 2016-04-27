@@ -33,6 +33,7 @@ import spock.lang.Specification
         [
                 "spring.application.name=testapp",
                 "spring.cloud.kubernetes.client.namespace=testns",
+                "spring.cloud.kubernetes.client.trustCerts=true",
                 "spring.cloud.kubernetes.config.namespace=testns"
 ])
 @EnableConfigurationProperties
@@ -79,8 +80,8 @@ class CoreTest extends Specification {
         expect:
             config.getMasterUrl().equals(mockClient.getConfiguration().getMasterUrl());
             config.getNamespace().equals("testns");
+            config.trustCerts
     }
-
 
     def "Kubernetes client bean should be present"() {
         expect:

@@ -6,10 +6,13 @@ Spring Cloud integration with Kubernetes
 ### Features
 
 -   Auto configuration for the Kubernetes client
+-   Externalize configuration to ConfigMap
 -   DiscoveryClient implementation for Kubernetes
 -   Health Indicator for Pods
--   Automatic activation of the "Kubernetes" profile when running inside Kubernetes.
--   Ribbon discovery in Kubernetes.
+-   Automatic activation of the "Kubernetes" profile when running inside Kubernetes
+-   Ribbon discovery in Kubernetes
+-   Zipkin discovery in Kubernetes
+-   ConfigMap / Archaius Bridge
 
 
 ### Building
@@ -29,3 +32,4 @@ The project provides a "starter" module, so you just need to add the following d
         <version>x.y.z</version>
     </dependency>
     
+## Configuring the     
