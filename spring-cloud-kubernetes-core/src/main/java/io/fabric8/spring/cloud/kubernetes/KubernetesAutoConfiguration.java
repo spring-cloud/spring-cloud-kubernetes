@@ -32,44 +32,37 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(KubernetesClientProperties.class)
 public class KubernetesAutoConfiguration {
 
-    @Autowired
-    private KubernetesClientProperties properties;
-
     @Bean
     @ConditionalOnMissingBean(Config.class)
-    public Config kubernetesClientConfig() {
+    public Config kubernetesClientConfig(KubernetesClientProperties kubernetesClientProperties) {
         Config base = new Config();
-        Config properites = new ConfigBuilder(base)
+        Config properties = new ConfigBuilder(base)
                 //Only set values that have been explicitly specified
-                .withMasterUrl(or(properties.getMasterUrl(), base.getMasterUrl()))
-                .withMasterUrl(or(properties.getApiVersion(), base.getApiVersion()))
-                .withMasterUrl(or(properties.getApiVersion(), base.getMasterUrl()))
-                .withUsername(or(properties.getUsername(), base.getUsername()))
-                .withPassword(or(properties.getPassword(), base.getPassword()))
+                .withMasterUrl(or(kubernetesClientProperties.getMasterUrl(), base.getMasterUrl()))
+                .withApiVersion(or(kubernetesClientProperties.getApiVersion(), base.getApiVersion()))
+                .withNamespace(or(kubernetesClientProperties.getNamespace(), base.getNamespace()))
+                .withUsername(or(kubernetesClientProperties.getUsername(), base.getUsername()))
+                .withPassword(or(kubernetesClientProperties.getPassword(), base.getPassword()))
 
-                .withCaCertFile(or(properties.getCaCertFile(), base.getCaCertFile()))
-                .withCaCertData(or(properties.getCaCertData(), base.getCaCertData()))
+                .withCaCertFile(or(kubernetesClientProperties.getCaCertFile(), base.getCaCertFile()))
+                .withCaCertData(or(kubernetesClientProperties.getCaCertData(), base.getCaCertData()))
 
-                .withClientKeyFile(or(properties.getClientKeyFile(), base.getClientKeyFile()))
-                .withClientKeyData(or(properties.getClientKeyData(), base.getClientKeyData()))
+                .withClientKeyFile(or(kubernetesClientProperties.getClientKeyFile(), base.getClientKeyFile()))
+                .withClientKeyData(or(kubernetesClientProperties.getClientKeyData(), base.getClientKeyData()))
 
-                .withClientCertFile(or(properties.getClientCertFile(), base.getClientCertFile()))
-                .withClientCertData(or(properties.getClientCertData(), base.getClientCertData()))
+                .withClientCertFile(or(kubernetesClientProperties.getClientCertFile(), base.getClientCertFile()))
+                .withClientCertData(or(kubernetesClientProperties.getClientCertData(), base.getClientCertData()))
 
                 //No magic is done for the properties below so we leave them as is.
-                .withClientKeyAlgo(or(properties.getClientKeyAlgo(), base.getClientKeyAlgo()))
-                .withClientKeyPassphrase(or(properties.getClientKeyPassphrase(), base.getClientKeyPassphrase()))
-                .withConnectionTimeout(or(properties.getConnectionTimeout(), base.getConnectionTimeout()))
-                .withRequestTimeout(or(properties.getRequestTimeout(), base.getRequestTimeout()))
-                .withRollingTimeout(or(properties.getRollingTimeout(), base.getRollingTimeout()))
-                .withTrustCerts(or(properties.isTrustCerts(), base.isTrustCerts()))
+                .withClientKeyAlgo(or(kubernetesClientProperties.getClientKeyAlgo(), base.getClientKeyAlgo()))
+                .withClientKeyPassphrase(or(kubernetesClientProperties.getClientKeyPassphrase(), base.getClientKeyPassphrase()))
+                .withConnectionTimeout(or(kubernetesClientProperties.getConnectionTimeout(), base.getConnectionTimeout()))
+                .withRequestTimeout(or(kubernetesClientProperties.getRequestTimeout(), base.getRequestTimeout()))
+                .withRollingTimeout(or(kubernetesClientProperties.getRollingTimeout(), base.getRollingTimeout()))
+                .withTrustCerts(or(kubernetesClientProperties.isTrustCerts(), base.isTrustCerts()))
                 .build();
 
-        if (!base.equals(properites)) {
-            System.out.println("Objects different");
-        }
-
-        return properites;
+        return properties;
     }
 
     @Bean
@@ -89,8 +82,6 @@ public class KubernetesAutoConfiguration {
     public KubernetesHealthIndicator kubernetesHealthIndicator(KubernetesClient client, StandardPodUtils podUtils) {
         return new KubernetesHealthIndicator(client, podUtils);
     }
-
-
 
     private static <D> D or(D dis, D dat) {
         if (dis != null) {

@@ -42,83 +42,163 @@ public class KubernetesClientProperties {
     private Long rollingTimeout;
     private Integer loggingInterval;
 
+    public String getClientCertData() {
+        return clientCertData;
+    }
+
+    public void setClientCertData(String clientCertData) {
+        this.clientCertData = clientCertData;
+    }
+
     public Boolean isTrustCerts() {
         return trustCerts;
+    }
+
+    public void setTrustCerts(Boolean trustCerts) {
+        this.trustCerts = trustCerts;
     }
 
     public String getMasterUrl() {
         return masterUrl;
     }
 
+    public void setMasterUrl(String masterUrl) {
+        this.masterUrl = masterUrl;
+    }
+
     public String getApiVersion() {
         return apiVersion;
+    }
+
+    public void setApiVersion(String apiVersion) {
+        this.apiVersion = apiVersion;
     }
 
     public String getNamespace() {
         return namespace;
     }
 
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
     public String getCaCertFile() {
         return caCertFile;
+    }
+
+    public void setCaCertFile(String caCertFile) {
+        this.caCertFile = caCertFile;
     }
 
     public String getCaCertData() {
         return caCertData;
     }
 
+    public void setCaCertData(String caCertData) {
+        this.caCertData = caCertData;
+    }
+
     public String getClientCertFile() {
         return clientCertFile;
     }
 
-    public String getClientCertData() {
-        return clientCertData;
+    public void setClientCertFile(String clientCertFile) {
+        this.clientCertFile = clientCertFile;
     }
 
     public String getClientKeyFile() {
         return clientKeyFile;
     }
 
+    public void setClientKeyFile(String clientKeyFile) {
+        this.clientKeyFile = clientKeyFile;
+    }
+
     public String getClientKeyData() {
         return clientKeyData;
+    }
+
+    public void setClientKeyData(String clientKeyData) {
+        this.clientKeyData = clientKeyData;
     }
 
     public String getClientKeyAlgo() {
         return clientKeyAlgo;
     }
 
+    public void setClientKeyAlgo(String clientKeyAlgo) {
+        this.clientKeyAlgo = clientKeyAlgo;
+    }
+
     public String getClientKeyPassphrase() {
         return clientKeyPassphrase;
+    }
+
+    public void setClientKeyPassphrase(String clientKeyPassphrase) {
+        this.clientKeyPassphrase = clientKeyPassphrase;
     }
 
     public String getUsername() {
         return username;
     }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     public String getPassword() {
         return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public Integer getWatchReconnectInterval() {
         return watchReconnectInterval;
     }
 
+    public void setWatchReconnectInterval(Integer watchReconnectInterval) {
+        this.watchReconnectInterval = watchReconnectInterval;
+    }
+
     public Integer getWatchReconnectLimit() {
         return watchReconnectLimit;
+    }
+
+    public void setWatchReconnectLimit(Integer watchReconnectLimit) {
+        this.watchReconnectLimit = watchReconnectLimit;
     }
 
     public Integer getConnectionTimeout() {
         return connectionTimeout;
     }
 
+    public void setConnectionTimeout(Integer connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
+
     public Integer getRequestTimeout() {
         return requestTimeout;
+    }
+
+    public void setRequestTimeout(Integer requestTimeout) {
+        this.requestTimeout = requestTimeout;
     }
 
     public Long getRollingTimeout() {
         return rollingTimeout;
     }
 
+    public void setRollingTimeout(Long rollingTimeout) {
+        this.rollingTimeout = rollingTimeout;
+    }
+
     public Integer getLoggingInterval() {
         return loggingInterval;
+    }
+
+    public void setLoggingInterval(Integer loggingInterval) {
+        this.loggingInterval = loggingInterval;
     }
 }
