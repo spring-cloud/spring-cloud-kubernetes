@@ -18,26 +18,11 @@
 package io.fabric8.spring.cloud.kubernetes.ribbon;
 
 import com.netflix.client.config.IClientConfig;
-import com.netflix.config.ConfigurationManager;
-import com.netflix.loadbalancer.IPing;
-import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ServerList;
-import com.netflix.loadbalancer.ServerListFilter;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.spring.cloud.discovery.KubernetesDiscoveryProperties;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.annotation.PostConstruct;
-
-import com.netflix.config.DynamicPropertyFactory;
-import com.netflix.config.DynamicStringProperty;
-
-import static com.netflix.client.config.CommonClientConfigKey.DeploymentContextBasedVipAddresses;
-import static com.netflix.client.config.CommonClientConfigKey.EnableZoneAffinity;
 
 @Configuration
 public class KubernetesRibbonClientConfiguration {
@@ -52,5 +37,4 @@ public class KubernetesRibbonClientConfiguration {
         serverList.initWithNiwsConfig(config);
         return serverList;
     }
-
 }
