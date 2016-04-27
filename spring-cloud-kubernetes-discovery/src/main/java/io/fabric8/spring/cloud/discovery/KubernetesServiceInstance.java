@@ -22,6 +22,9 @@ import org.springframework.cloud.client.ServiceInstance;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static io.fabric8.kubernetes.client.utils.Utils.isNotNullOrEmpty;
 import static io.fabric8.kubernetes.client.utils.Utils.isNullOrEmpty;
@@ -94,5 +97,9 @@ public class KubernetesServiceInstance implements ServiceInstance {
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Map<String, String> getMetadata() {
+        return Collections.EMPTY_MAP;
     }
 }
