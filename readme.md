@@ -25,7 +25,7 @@ The project provides a "starter" module, so you just need to add the following d
     
     <dependency>
         <groupId>io.fabric8</groupId>
-        <artifactId>spring-cloud-start-kubernetes</artifactId>
+        <artifactId>spring-cloud-starter-kubernetes</artifactId>
         <version>x.y.z</version>
     </dependency>
     
