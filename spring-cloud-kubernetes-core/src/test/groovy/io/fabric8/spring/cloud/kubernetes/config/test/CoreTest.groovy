@@ -39,21 +39,21 @@ import spock.lang.Specification
 @EnableConfigurationProperties
 class CoreTest extends Specification {
 
-    private static KubernetesMockServer mockServer = new KubernetesMockServer();
-    private static KubernetesClient mockClient;
+    private static KubernetesMockServer mockServer = new KubernetesMockServer()
+    private static KubernetesClient mockClient
 
     @Autowired
-    Environment environment;
+    Environment environment
 
     @Autowired(required = false)
-    Config config;
+    Config config
 
     @Autowired(required = false)
-    KubernetesClient client;
+    KubernetesClient client
 
     def setupSpec() {
-        mockServer.init();
-        mockClient = mockServer.createClient();
+        mockServer.init()
+        mockClient = mockServer.createClient()
 
         //Setup configmap data
         Map<String, String> data = new HashMap<>();
@@ -63,8 +63,10 @@ class CoreTest extends Specification {
                 .build()).always()
 
         //Configure the kubernetes master url to point to the mock server
-        System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
-
+        System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl())
+        System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true")
+        System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false")
+        System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false")
     }
 
     def cleanupSpec() {

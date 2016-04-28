@@ -19,12 +19,15 @@ package io.fabric8.spring.cloud.kubernetes;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Paths;
 import java.util.function.Supplier;
 
 public class StandardPodUtils implements PodUtils {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(StandardPodUtils.class);
     public static final String HOSTNAME = "HOSTNAME";
 
     private final KubernetesClient client;
@@ -48,9 +51,14 @@ public class StandardPodUtils implements PodUtils {
     }
 
     private synchronized Pod internalGetPod() {
-        if (isServiceAccountFound() && isHostNameEnvVarPresent()) {
-            return client.pods().withName(hostName).get();
-        } else {
+        try {
+            if (isServiceAccountFound() && isHostNameEnvVarPresent()) {
+                return client.pods().withName(hostName).get();
+            } else {
+                return null;
+            }
+        } catch (Throwable t) {
+            LOGGER.warn("Failed to get pod with name:[" + hostName + "]. Ignoring.");
             return null;
         }
     }
