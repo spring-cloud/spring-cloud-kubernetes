@@ -45,7 +45,7 @@ public @interface ArchaiusConfigMapSource {
     String name() default "";
 
     /**
-     * The namespacex of the {@link io.fabric8.kubernetes.api.model.ConfigMap}.
+     * The namespace of the {@link io.fabric8.kubernetes.api.model.ConfigMap}.
      */
     String namespace() default "";
 }
