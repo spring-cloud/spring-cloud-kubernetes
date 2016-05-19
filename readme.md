@@ -51,7 +51,7 @@ The ConfigMap PropertySource when enabled will lookup Kubernetes for a ConfigMap
 
 Example:
 
-Let's assume that we have an spring boot application named ``demo`` that uses properties to read its thread pool configuration.
+Let's assume that we have a spring boot application named ``demo`` that uses properties to read its thread pool configuration.
 
 - pool.size.core
 - pool.size.maximum
@@ -61,7 +61,7 @@ This can be externalized to config map in yaml format:
     kind: ConfigMap
     apiVersion: v1
     metadata:
-      name: turbine-server
+      name: demo
     data:
       pool.size.core: 1
       pool.size.max: 16
@@ -69,7 +69,10 @@ This can be externalized to config map in yaml format:
 
 Individual properties work fine for most cases but sometimes we yaml is more convinient. In this case we will use a single property named ``application.yaml`` and embed our yaml inside it:
  
+    kind: ConfigMap
     apiVersion: v1
+    metadata:
+      name: demo
     data:
       application.yaml: |-
         pool:
