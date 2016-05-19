@@ -5,8 +5,8 @@ Spring Cloud integration with Kubernetes
 
 ### Features
 
--   [DiscoveryClient for Kubernetes](#discoveryClient-for-kubernetes)
--   [KubernetesClient autoconfiguration](#kubernetes-autoconfiguration)
+-   [DiscoveryClient for Kubernetes](#discoveryclient-for-kubernetes)
+-   [KubernetesClient autoconfiguration](#kubernetesclient-autoconfiguration)
 -   [ConfigMap PropertySource](#configmap-propertysource)
 -   [Pod Health Indicator](#pod-health-indicator)
 -   [Transparency](#transparency) *(its transparent wether the code runs in or outside of Kubernetes)* 
@@ -142,7 +142,7 @@ Examples of application that are using Zipkin discovery in Kubernetes:
 - [iPaas Quickstarts - Spring Boot - Ribbon](https://github.com/fabric8io/ipaas-quickstarts/tree/master/quickstart/spring-boot/ribbon)
 - [Kubeflix - LoanBroker - Bank](https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank) 
 
-#### ConfigMap / Archaius Bridge
+#### ConfigMap Archaius Bridge
 
 Section [ConfigMap PropertySource](#configmap-propertysource) provides a brief explanation on how to configure spring boot application via ConfigMap.
 This approach will aid in creating the configuration properties objects that will be passed in our application. If our application is using Archaius it will be indirectly benefited by it.
