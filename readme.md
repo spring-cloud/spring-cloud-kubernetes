@@ -115,7 +115,7 @@ This allows the user to customize the configuration that will be applied in and 
 
 ### Ribbon discovery in Kubernetes
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes-netflix?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes-netflix/)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes-netflix/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes-netflix/)
 [![Javadocs](http://www.javadoc.io/badge/io.fabric8/spring-cloud-starter-kubernetes-netflix.svg?color=blue)](http://www.javadoc.io/doc/io.fabric8/spring-cloud-starter-kubernetes-netflix)
 [![Dependency Status](https://www.versioneye.com/java/io.fabric8:spring-cloud-starter-kubernetes-netflix/badge?style=flat)](https://www.versioneye.com/java/io.fabric8:spring-cloud-starter-kubernetes-netflix/)
 
@@ -170,9 +170,9 @@ Examples of application that are using Zipkin discovery in Kubernetes:
 
 ### ConfigMap Archaius Bridge
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes-archaius/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes-archaius/)
-[![Javadocs](http://www.javadoc.io/badge/io.fabric8/spring-cloud-starter-kubernetes-archaius.svg?color=blue)](http://www.javadoc.io/doc/io.fabric8/spring-cloud-starter-kubernetes-archaius)
-[![Dependency Status](https://www.versioneye.com/java/io.fabric8:spring-cloud-starter-kubernetes-archaius/badge?style=flat)](https://www.versioneye.com/java/io.fabric8:spring-cloud-starter-kubernetes-archaius/)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-kubernetes-archaius/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-kubernetes-archaius/)
+[![Javadocs](http://www.javadoc.io/badge/io.fabric8/spring-cloud-kubernetes-archaius.svg?color=blue)](http://www.javadoc.io/doc/io.fabric8/spring-cloud-kubernetes-archaius)
+[![Dependency Status](https://www.versioneye.com/java/io.fabric8:spring-cloud-kubernetes-archaius/badge?style=flat)](https://www.versioneye.com/java/io.fabric8:spring-cloud-kubernetes-archaius/)
 
 Section [ConfigMap PropertySource](#configmap-propertysource) provides a brief explanation on how to configure spring boot application via ConfigMap.
 This approach will aid in creating the configuration properties objects that will be passed in our application. If our application is using Archaius it will indirectly benefit by it.
