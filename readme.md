@@ -2,6 +2,8 @@
 
 [Spring Cloud](http://projects.spring.io/spring-cloud/) integration with [Kubernetes](http://kubernetes.io/)
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes/) ![Apache 2](http://img.shields.io/badge/license-Apache%202-red.svg)
+
 ### Features
 
 -   [DiscoveryClient for Kubernetes](#discoveryclient-for-kubernetes)
