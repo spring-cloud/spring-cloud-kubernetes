@@ -1,6 +1,6 @@
 ## Spring Cloud Kubernetes
 
-Spring Cloud integration with Kubernetes
+[Spring Cloud](http://projects.spring.io/spring-cloud/) integration with [Kubernetes](http://kubernetes.io/)
 
 ### Features
 
