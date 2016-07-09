@@ -306,6 +306,8 @@
 
                                 <!-- Spring -->
                                 <include>org.springframework:*</include>
+                                <include>org.springframework.boot:*</include>
+                                <include>org.springframework.cloud:*</include>
                                 <!-- Netflix -->
                                 <include>com.netflix:*</include>
                                 <!-- Common Transitives -->
@@ -338,6 +340,20 @@
             </executions>
         </plugin>
         </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>io.fabric8</groupId>
+                    <artifactId>docker-maven-plugin</artifactId>
+                    <version>${docker-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>io.fabric8</groupId>
+                    <artifactId>fabric8-maven-plugin</artifactId>
+                    <version>${fabric8-maven-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
     <profiles>
