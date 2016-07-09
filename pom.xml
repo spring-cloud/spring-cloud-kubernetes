@@ -92,6 +92,7 @@
         <fabric8-maven-plugin.version>2.2.103</fabric8-maven-plugin.version>
         <maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
         <gmavenplus-plugin.version>1.2</gmavenplus-plugin.version>
+        <sundrio-plugin.vesion>0.3.4</sundrio-plugin.vesion>
     </properties>
 
     <modules>
@@ -267,6 +268,75 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+            <groupId>io.sundr</groupId>
+            <artifactId>sundr-maven-plugin</artifactId>
+            <version>${sundrio-plugin.vesion}</version>
+            <configuration>
+                <boms>
+                    <bom>
+                        <artifactId>spring-cloud-kubernetes-bom</artifactId>
+                        <name>Fabric8 :: Spring Cloud Kubernetes :: Bom</name>
+                        <dependencies>
+                            <includes>
+                                <include>io.fabric8:kubernetes-*</include>
+                                <include>io.fabric8:openshift-*</include>
+                            </includes>
+                        </dependencies>
+                        <plugins>
+                            <includes>
+                                <include>io.fabric8:*</include>
+                            </includes>
+                        </plugins>
+                        <properties>
+                            <skipStagingRepositoryClose>true</skipStagingRepositoryClose>
+                        </properties>
+                        <inheritPluginManagement>true</inheritPluginManagement>
+                    </bom>
+                    <bom>
+                        <artifactId>spring-cloud-kubernetes-bom-with-platform-deps</artifactId>
+                        <name>Fabric8 :: Spring Cloud Kubernetes :: Bom with Platform Dependencies</name>
+                        <dependencies>
+                            <includes>
+                                <!-- Kubernetes Client -->
+                                <include>io.fabric8:kubernetes-*</include>
+                                <include>io.fabric8:openshift-*</include>
+                                <include>com.squareup.okhttp:*</include>
+                                <include>com.squareup.okio:*</include>
+
+                                <!-- Spring -->
+                                <include>org.springframework:*</include>
+                                <!-- Netflix -->
+                                <include>com.netflix:*</include>
+                                <!-- Common Transitives -->
+                                <include>io.reactivex:*</include>
+                                <include>io.zipkin.java:*</include>
+                                <include>io.netty:*</include>
+                                <include>com.google.guava:*</include>
+                                <include>commons-*:*</include>
+                            </includes>
+                        </dependencies>
+                        <plugins>
+                            <includes>
+                                <include>io.fabric8:*</include>
+                            </includes>
+                        </plugins>
+                        <properties>
+                            <skipStagingRepositoryClose>true</skipStagingRepositoryClose>
+                        </properties>
+                        <inheritDependencyManagement>true</inheritDependencyManagement>
+                        <inheritPluginManagement>true</inheritPluginManagement>
+                    </bom>
+                </boms>
+            </configuration>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>generate-bom</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
         </plugins>
     </build>
 
