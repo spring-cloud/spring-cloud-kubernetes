@@ -20,6 +20,8 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -31,6 +33,8 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
 @EnableConfigurationProperties(KubernetesClientProperties.class)
 public class KubernetesAutoConfiguration {
+
+    private static final Log LOG = LogFactory.getLog(KubernetesClientProperties.class);
 
     @Bean
     @ConditionalOnMissingBean(Config.class)
@@ -62,6 +66,9 @@ public class KubernetesAutoConfiguration {
                 .withTrustCerts(or(kubernetesClientProperties.isTrustCerts(), base.isTrustCerts()))
                 .build();
 
+        if (properties.getNamespace() == null || properties.getNamespace().isEmpty()) {
+            LOG.warn("No namespace has been detected. Please specify KUBERNETES_NAMESPACE env var, or use a later kubernetes version (1.3 or later)");
+        }
         return properties;
     }
 

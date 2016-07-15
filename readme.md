@@ -183,6 +183,17 @@ An alternative approach that provides more direct Archaius support without getti
 This module allows you to annotate your application with the `@ArchaiusConfigMapSource` and archaius will automatically use the configmap as a watched source *(get notification on changes)*.
 
 ---
+### Troubleshooting
+
+Most of the components provided in this project need to know the namespace. For Kubernetes (1.3+) the namespace is made available to pod as part of the service account secret and automatically detected by the client.
+For earlier version it needs to be specified as an env var to the pod. A quick way to do this is:
+
+      env:
+      - name: "KUBERNETES_NAMESPACE"
+        valueFrom:
+          fieldRef:
+            fieldPath: "metadata.namespace"
+                        
 ### Building
 
 You can just use maven to build it from sources:

@@ -38,6 +38,7 @@ public class KubernetesHealthIndicator extends AbstractHealthIndicator {
             if (current != null) {
                 builder.up()
                         .withDetail("inside", true)
+                        .withDetail("namespace", current.getMetadata().getNamespace())
                         .withDetail("podName", current.getMetadata().getName())
                         .withDetail("podIp", current.getStatus().getPodIP())
                         .withDetail("serviceAccount", current.getSpec().getServiceAccountName())
