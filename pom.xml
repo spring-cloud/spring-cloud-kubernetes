@@ -298,6 +298,7 @@
                             <name>Fabric8 :: Spring Cloud Kubernetes :: Bom with Platform Dependencies</name>
                             <dependencies>
                                 <includes>
+                                    <include>javax.*:*</include>
                                     <!-- Kubernetes Client -->
                                     <include>io.fabric8:kubernetes-*</include>
                                     <include>io.fabric8:openshift-*</include>
@@ -321,6 +322,7 @@
                             <plugins>
                                 <includes>
                                     <include>io.fabric8:*</include>
+                                    <include>org.springframework.boot:*</include>
                                 </includes>
                             </plugins>
                             <properties>
@@ -351,6 +353,11 @@
                     <groupId>io.fabric8</groupId>
                     <artifactId>fabric8-maven-plugin</artifactId>
                     <version>${fabric8-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
