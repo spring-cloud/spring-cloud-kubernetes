@@ -16,14 +16,22 @@
  */
 
 package io.fabric8.spring.cloud.kubernetes.ribbon.test
-
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.cloud.client.loadbalancer.LoadBalanced
+import org.springframework.context.annotation.Bean
+import org.springframework.web.client.RestTemplate
 
 @SpringBootApplication
 class TestApplication {
 
     def main(String[] args) {
         SpringApplication.run(TestApplication.class, args);
+    }
+
+    @LoadBalanced
+    @Bean
+    def RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }
