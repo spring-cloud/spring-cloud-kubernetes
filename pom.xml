@@ -87,8 +87,6 @@
         <junit.version>4.12</junit.version>
 
         <!-- Maven Plugin Versions -->
-        <docker-maven-plugin.version>0.14.2</docker-maven-plugin.version>
-        <fabric8-maven-plugin.version>2.2.103</fabric8-maven-plugin.version>
         <maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
         <gmavenplus-plugin.version>1.2</gmavenplus-plugin.version>
         <sundrio-plugin.vesion>0.3.4</sundrio-plugin.vesion>
@@ -333,16 +331,6 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>io.fabric8</groupId>
-                    <artifactId>docker-maven-plugin</artifactId>
-                    <version>${docker-maven-plugin.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>io.fabric8</groupId>
-                    <artifactId>fabric8-maven-plugin</artifactId>
-                    <version>${fabric8-maven-plugin.version}</version>
-                </plugin>
-                <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
                     <version>${spring-boot.version}</version>
@@ -426,56 +414,13 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <version>${docker-maven-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>build</goal>
-                                    <goal>push</goal>
-                                </goals>
-                                <phase>package</phase>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>docker</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <version>${docker-maven-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>docker-build</id>
-                                <goals>
-                                    <goal>build</goal>
-                                </goals>
-                                <phase>package</phase>
-                            </execution>
-                            <execution>
-                                <id>docker-push</id>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                                <phase>deploy</phase>
-                            </execution>
-                        </executions>
-                    </plugin>
                 </plugins>
             </build>
         </profile>
         <profile>
             <id>snapshot</id>
             <properties>
-                <spring-cloud.version>1.1.0.BUILD-SNAPSHOT</spring-cloud.version>
-                <spring-cloud-netflix.version>1.1.0.BUILD-SNAPSHOT</spring-cloud-netflix.version>
+                <spring-cloud.version>Brixton.BUILD-SNAPSHOT</spring-cloud.version>
             </properties>
         </profile>
         <profile>
