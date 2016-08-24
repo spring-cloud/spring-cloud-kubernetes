@@ -185,6 +185,7 @@ This module allows you to annotate your application with the `@ArchaiusConfigMap
 ---
 ### Troubleshooting
 
+#### Namespace
 Most of the components provided in this project need to know the namespace. For Kubernetes (1.3+) the namespace is made available to pod as part of the service account secret and automatically detected by the client.
 For earlier version it needs to be specified as an env var to the pod. A quick way to do this is:
 
@@ -193,6 +194,14 @@ For earlier version it needs to be specified as an env var to the pod. A quick w
         valueFrom:
           fieldRef:
             fieldPath: "metadata.namespace"
+            
+            
+#### Service Account
+For distros of Kubernetes that support more fine-grained role-based access within the cluster, you need to make sure a pod that runs with spring-cloud-kubernetes has access to the Kubernetes API. For example, OpenShift has very comprehensive security measures that are on by default (typically) in a shared cluster. For any service accounts you assign to a deployment/pod, you need to make sure it has the correct roles. For example, you can add `cluster-view` permissions to your `default` service account depending on the project you're in:
+
+```             
+oc policy add-role-to-user cluster-view system:serviceaccount:<project/namespace>:default
+```             
                         
 ### Building
 

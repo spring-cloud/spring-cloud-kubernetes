@@ -58,7 +58,7 @@ public class StandardPodUtils implements PodUtils {
                 return null;
             }
         } catch (Throwable t) {
-            LOGGER.warn("Failed to get pod with name:[" + hostName + "]. Ignoring.");
+            LOGGER.warn("Failed to get pod with name:[" + hostName + "]. You should look into this if things aren't working as you expect. Are you missing serviceaccount permissions?", t);
             return null;
         }
     }
