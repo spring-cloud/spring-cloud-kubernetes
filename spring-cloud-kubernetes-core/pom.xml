@@ -82,7 +82,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.squareup.okhttp</groupId>
+            <groupId>io.fabric8</groupId>
             <artifactId>mockwebserver</artifactId>
             <scope>test</scope>
         </dependency>
