@@ -39,11 +39,10 @@ public class KubernetesDiscoveryLifecycle extends AbstractDiscoveryLifecycle {
         if (!isEnabled()) {
             return;
         }
-        if (!isRunning()) {
+        if (running.compareAndSet(false, true)) {
             register();
             getContext().publishEvent(new InstanceRegisteredEvent<>(this,
                     getConfiguration()));
-            running.compareAndSet(false, true);
         }
     }
 
