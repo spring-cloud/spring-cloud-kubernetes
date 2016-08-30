@@ -45,7 +45,6 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-context</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <dependency>
