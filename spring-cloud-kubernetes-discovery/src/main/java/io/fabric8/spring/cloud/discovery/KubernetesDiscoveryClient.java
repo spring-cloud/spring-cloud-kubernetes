@@ -67,7 +67,10 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
             return endpoints.getSubsets()
                     .stream()
                     .filter(s -> s.getAddresses().get(0).getTargetRef().getName().equals(podName))
-                    .map(s -> (ServiceInstance) new KubernetesServiceInstance(serviceName, s.getPorts().iterator().next().getName(), s, false))
+                    .map(s -> (ServiceInstance) new KubernetesServiceInstance(serviceName,
+                            s.getAddresses().stream().findFirst().orElseThrow(IllegalStateException::new),
+                            s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
+                            false))
                     .findFirst().orElse(defaultInstance);
         } catch (Throwable t) {
             return defaultInstance;
@@ -79,7 +82,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
         Assert.notNull(serviceId, "[Assertion failed] - the object argument must be null");
         return Optional.ofNullable(client.endpoints().withName(serviceId).get()).orElse(new Endpoints())
                 .getSubsets()
-                .stream().map(s -> new KubernetesServiceInstance(serviceId, s.getPorts().iterator().next().getName(), s, false))
+                .stream()
+                .flatMap(s -> s.getAddresses().stream().map(a -> (ServiceInstance) new KubernetesServiceInstance(serviceId, a ,s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new), false)))
                 .collect(Collectors.toList());
 
     }

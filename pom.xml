@@ -89,6 +89,7 @@
 
         <!-- Maven Plugin Versions -->
         <maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
         <gmavenplus-plugin.version>1.2</gmavenplus-plugin.version>
         <sundrio-plugin.vesion>0.3.4</sundrio-plugin.vesion>
     </properties>
@@ -261,6 +262,16 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <inherited>true</inherited>
+                <configuration>
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>io.sundr</groupId>

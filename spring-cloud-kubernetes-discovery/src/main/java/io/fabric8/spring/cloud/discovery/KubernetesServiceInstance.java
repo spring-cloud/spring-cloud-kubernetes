@@ -16,14 +16,13 @@
 
 package io.fabric8.spring.cloud.discovery;
 
+import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointPort;
-import io.fabric8.kubernetes.api.model.EndpointSubset;
 import org.springframework.cloud.client.ServiceInstance;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import static io.fabric8.kubernetes.client.utils.Utils.isNotNullOrEmpty;
@@ -36,14 +35,14 @@ public class KubernetesServiceInstance implements ServiceInstance {
     private static final String COLN = ":";
 
     private final String serviceId;
-    private final String portName;
-    private final EndpointSubset subset;
+    private final EndpointAddress endpointAddress;
+    private final EndpointPort endpointPort;
     private final Boolean secure;
 
-    public KubernetesServiceInstance(String serviceId, String portName, EndpointSubset subset, Boolean secure) {
+    public KubernetesServiceInstance(String serviceId, EndpointAddress endpointAddress, EndpointPort endpointPort, Boolean secure) {
         this.serviceId = serviceId;
-        this.portName = portName;
-        this.subset = subset;
+        this.endpointAddress = endpointAddress;
+        this.endpointPort = endpointPort;
         this.secure = secure;
     }
 
@@ -54,26 +53,12 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
     @Override
     public String getHost() {
-        if (subset.getAddresses().isEmpty()) {
-            throw new IllegalStateException("Endpoint subset has no addresses.");
-        }
-        return subset.getAddresses().get(0).getIp();
+        return endpointAddress.getIp();
     }
 
     @Override
     public int getPort() {
-        if (subset.getPorts().isEmpty()) {
-            throw new IllegalStateException("Endpoint subset has no ports.");
-        } else if (isNullOrEmpty(portName) && subset.getPorts().size() == 1) {
-            return subset.getPorts().get(0).getPort();
-        } else if (isNotNullOrEmpty(portName)) {
-            for (EndpointPort port : subset.getPorts()) {
-                if (portName.endsWith(port.getName())) {
-                    return port.getPort();
-                }
-            }
-        }
-        throw new IllegalStateException("Endpoint subset has no matching ports.");
+        return endpointPort.getPort();
     }
 
     @Override

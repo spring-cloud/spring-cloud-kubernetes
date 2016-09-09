@@ -72,7 +72,7 @@ public class ZipkinKubernetesAutoConfiguration {
                 .orElse(new Endpoints())
                 .getSubsets()
                 .stream()
-                .map(s -> new KubernetesServiceInstance(name, s.getPorts().iterator().next().getName(), s, false))
+                .flatMap(s -> s.getAddresses().stream().map(a -> (ServiceInstance) new KubernetesServiceInstance(name, a ,s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new), false)))
                 .collect(Collectors.toList());
     }
 
