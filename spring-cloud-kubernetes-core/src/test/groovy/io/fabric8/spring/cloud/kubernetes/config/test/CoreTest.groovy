@@ -17,6 +17,7 @@
 
 package io.fabric8.spring.cloud.kubernetes.config.test
 
+import io.fabric8.kubernetes.api.model.SecretBuilder
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder
 import io.fabric8.kubernetes.client.Config
 import io.fabric8.kubernetes.client.KubernetesClient
@@ -27,14 +28,15 @@ import org.springframework.boot.test.IntegrationTest
 import org.springframework.boot.test.SpringApplicationConfiguration
 import org.springframework.core.env.Environment
 import spock.lang.Specification
+import groovy.util.logging.Slf4j
 
+@Slf4j
 @SpringApplicationConfiguration(TestApplication.class)
-@IntegrationTest(
-        [
-                "spring.application.name=testapp",
-                "spring.cloud.kubernetes.client.namespace=testns",
-                "spring.cloud.kubernetes.client.trustCerts=true",
-                "spring.cloud.kubernetes.config.namespace=testns"
+@IntegrationTest([
+    "spring.application.name=testapp",
+    "spring.cloud.kubernetes.client.namespace=testns",
+    "spring.cloud.kubernetes.client.trustCerts=true",
+    "spring.cloud.kubernetes.config.namespace=testns"
 ])
 @EnableConfigurationProperties
 class CoreTest extends Specification {
@@ -55,12 +57,26 @@ class CoreTest extends Specification {
         mockServer.init()
         mockClient = mockServer.createClient()
 
-        //Setup configmap data
-        Map<String, String> data = new HashMap<>();
-        data.put("spring.kubernetes.test.value", "value1")
-        mockServer.expect().get().withPath("/api/v1/namespaces/testns/configmaps/testapp").andReturn(200, new ConfigMapBuilder()
-                .withData(data)
-                .build()).always()
+        mockServer.expect().get()
+             .withPath("/api/v1/namespaces/testns/configmaps/testapp")
+             .andReturn(
+                 200,
+                 new ConfigMapBuilder()
+                    .withData([
+                        'spring.kubernetes.test.value': 'value1'])
+                    .build())
+             .always()
+        mockServer.expect().get()
+            .withPath("/api/v1/namespaces/testns/secrets/testapp")
+            .andReturn(
+                200,
+                new SecretBuilder()
+                    .withData([
+                        'amq.pwd': 'MWYyZDFlMmU2N2Rm',
+                        'amq.usr': 'YWRtaW4K'
+                    ])
+                    .build())
+            .always()
 
         //Configure the kubernetes master url to point to the mock server
         System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl())
@@ -80,8 +96,8 @@ class CoreTest extends Specification {
 
     def "Kubernetes client config bean should be configurable via system properties"() {
         expect:
-            config.getMasterUrl().equals(mockClient.getConfiguration().getMasterUrl());
-            config.getNamespace().equals("testns");
+            config.getMasterUrl().equals(mockClient.getConfiguration().getMasterUrl())
+            config.getNamespace().equals("testns")
             config.trustCerts
     }
 
@@ -92,12 +108,17 @@ class CoreTest extends Specification {
 
     def "Kubernetes client should be configured from system properties"() {
         expect:
-            client.getConfiguration().getMasterUrl().equals(mockClient.getConfiguration().getMasterUrl());
+            client.getConfiguration().getMasterUrl().equals(mockClient.getConfiguration().getMasterUrl())
     }
-
 
     def "properties should be read from config map"() {
         expect:
-            environment.getProperty("spring.kubernetes.test.value").equals("value1");
+            environment.getProperty("spring.kubernetes.test.value").equals("value1")
+    }
+
+    def "properties should be read from secrets"() {
+        expect:
+            environment.getProperty("amq.pwd").equals("1f2d1e2e67df")
+            environment.getProperty("amq.usr").equals('admin');
     }
 }

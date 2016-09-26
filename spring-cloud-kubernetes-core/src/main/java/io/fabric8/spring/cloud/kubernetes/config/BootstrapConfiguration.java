@@ -18,6 +18,7 @@
 package io.fabric8.spring.cloud.kubernetes.config;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.spring.cloud.kubernetes.KubernetesAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,12 +31,12 @@ import org.springframework.context.annotation.Import;
 
 @Configuration
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
-@ConditionalOnClass(ConfigMap.class)
-public class ConfigMapBootstrapConfiguration {
+@ConditionalOnClass({ ConfigMap.class, Secret.class })
+public class BootstrapConfiguration {
 
     @Configuration
-    @EnableConfigurationProperties(ConfigMapConfigProperties.class)
     @Import(KubernetesAutoConfiguration.class)
+    @EnableConfigurationProperties({ ConfigMapConfigProperties.class, SecretsConfigProperties.class })
     @ConditionalOnProperty(name = "spring.cloud.kubernetes.config.enabled", matchIfMissing = true)
     protected static class KubernetesPropertySourceConfiguration {
         @Autowired
@@ -44,6 +45,11 @@ public class ConfigMapBootstrapConfiguration {
         @Bean
         public ConfigMapPropertySourceLocator configMapPropertySourceLocator(ConfigMapConfigProperties properties) {
             return new ConfigMapPropertySourceLocator(client, properties);
+        }
+
+        @Bean
+        public SecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties) {
+            return new SecretsPropertySourceLocator(client, properties);
         }
     }
 }

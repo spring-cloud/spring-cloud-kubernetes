@@ -17,14 +17,6 @@
 
 package io.fabric8.spring.cloud.kubernetes.config;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
-import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.io.ByteArrayResource;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -33,17 +25,22 @@ import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class ConfigMapPropertySource extends MapPropertySource {
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.io.ByteArrayResource;
 
+public class ConfigMapPropertySource extends MapPropertySource {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigMapPropertySource.class);
 
-    private static final String CONFIGMAP_PATH = "/configmaps";
     private static final String APPLICATION_YML = "application.yml";
     private static final String APPLICATION_YAML = "application.yaml";
     private static final String APPLICATION_PROPERTIES = "application.properties";
 
     private static final String PREFIX = "configmap";
-    private static final String SEPARATOR = ".";
 
     public ConfigMapPropertySource(KubernetesClient client, String name) {
         this(client, name, null);
@@ -54,9 +51,13 @@ public class ConfigMapPropertySource extends MapPropertySource {
     }
 
     private static String getName(KubernetesClient client, String name, String namespace) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(PREFIX).append(SEPARATOR).append(name).append(SEPARATOR).append(namespace == null || namespace.isEmpty() ? client.getNamespace() : namespace);
-        return sb.toString();
+        return new StringBuilder()
+            .append(PREFIX)
+            .append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR)
+            .append(name)
+            .append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR)
+            .append(namespace == null || namespace.isEmpty() ? client.getNamespace() : namespace)
+            .toString();
     }
 
     private static Map<String, String> getData(KubernetesClient client, String name, String namespace) {

@@ -24,25 +24,20 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 
-@Order(0)
-public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
+@Order(1)
+public class SecretsPropertySourceLocator implements PropertySourceLocator {
     private final KubernetesClient client;
-    private final ConfigMapConfigProperties properties;
+    private final SecretsConfigProperties properties;
 
-    public ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties) {
+    public SecretsPropertySourceLocator(KubernetesClient client, SecretsConfigProperties properties) {
         this.client = client;
         this.properties = properties;
     }
 
     @Override
     public PropertySource<?> locate(Environment environment) {
-        if (environment instanceof ConfigurableEnvironment) {
-            ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
-            String appName = env.getProperty(Constants.SPRING_APPLICATION_NAME, Constants.FALLBACK_APPLICATION_NAME);
-            String name = properties.getName() == null || properties.getName().isEmpty() ? appName : properties.getName();
-            String namespace = properties.getNamespace();
-            return new ConfigMapPropertySource(client, name, namespace);
-        }
-        return null;
+        return environment instanceof ConfigurableEnvironment
+            ? new SecretsPropertySource(client, environment, properties)
+            : null;
     }
 }
