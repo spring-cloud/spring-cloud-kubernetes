@@ -8,9 +8,11 @@
 
 -   [DiscoveryClient for Kubernetes](#discoveryclient-for-kubernetes)
 -   [KubernetesClient autoconfiguration](#kubernetesclient-autoconfiguration)
--   [ConfigMap PropertySource](#configmap-propertysource)
+-   [PropertySource](#kubernetes-propertysource)
+  -   [ConfigMap PropertySource](#configmap-propertysource)
+  -   [Secrets PropertySource](#secrets-propertysource)
 -   [Pod Health Indicator](#pod-health-indicator)
--   [Transparency](#transparency) *(its transparent wether the code runs in or outside of Kubernetes)* 
+-   [Transparency](#transparency) *(its transparent wether the code runs in or outside of Kubernetes)*
 -   [Kubernetes Profile Autoconfiguration](#kubernetes-profile-autoconfiguration)
 -   [Ribbon discovery in Kubernetes](#ribbon-discovery-in-kubernetes)
 -   [Zipkin discovery in Kubernetes](#zipkin-discovery-in-kubernetes)
@@ -24,7 +26,7 @@
 [![Dependency Status](https://www.versioneye.com/java/io.fabric8:spring-cloud-starter-kubernetes/badge?style=flat)](https://www.versioneye.com/java/io.fabric8:spring-cloud-starter-kubernetes/)
 
 
-This project provides an implementation of [Discovery Client](https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java) for [Kubernetes](http://kubernetes.io). This allows you to query Kubernetes endpoints *(see [services](http://kubernetes.io/docs/user-guide/services/))* by name. 
+This project provides an implementation of [Discovery Client](https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java) for [Kubernetes](http://kubernetes.io). This allows you to query Kubernetes endpoints *(see [services](http://kubernetes.io/docs/user-guide/services/))* by name.
 This is something that you get for free just by adding the following dependency inside your project:
 
 ```xml
@@ -50,9 +52,12 @@ spring.cloud.kubernetes.discovery.enabled=false
 
 Some spring cloud components use the `DiscoveryClient` in order obtain info about the local service instance. For this to work you need to align the service name with `spring.application.name`.
 
-#### ConfigMap PropertySource
+### Kubernetes PropertySource
 
 The most common approach to configure your spring boot application is to edit the `application.yaml` file. Often the user may override properties by specifying system properties or env variables.
+
+#### ConfigMap PropertySource
+
 Kubernetes has the notion of [ConfigMap](http://kubernetes.io/docs/user-guide/configmap/) for passing configuration to the application. This project provides integration with `ConfigMap` to make config maps accessible by spring boot.
 
 The `ConfigMap` `PropertySource` when enabled will lookup Kubernetes for a `ConfigMap` named after the application (see `spring.application.name`). If the map is found it will read its data and do the following:
@@ -81,7 +86,7 @@ data:
 ```    
 
 Individual properties work fine for most cases but sometimes we yaml is more convinient. In this case we will use a single property named `application.yaml` and embed our yaml inside it:
- 
+
  ```yaml
 kind: ConfigMap
 apiVersion: v1
@@ -93,9 +98,78 @@ data:
       size:
         core: 1
         max:16
-``` 
+```
 
-#### Pod Health Indicator
+#### Secrets PropertySource
+
+Kubernetes has the notion of [Secrets](http://kubernetes.io/docs/user-guide/secrets/) for storing sensitive data such as password, OAuth tokens, etc. This project provides integration with `Secrets` to make secrets accessible by spring boot.
+
+The `Secrets` `PropertySource` when enabled will lookup Kubernetes for `Secrets` named after the application (see `spring.application.name`) or matching some labels. If the secrets are found theirs data is made available to the application.
+
+Example:
+
+Let's assume that we have a spring boot application named ``demo`` that uses properties to read its ActiveMQ and PostreSQL configuration.
+
+- `amq.username`
+- `amq.password`
+- `pg.username`
+- `pg.password`
+
+This can be externalized to Secrets in yaml format:
+
+- ActiveMQ
+    ```yaml
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: activemq-secrets
+      labels:
+        broker: activemq
+    type: Opaque
+    data:
+      amq.username: bXl1c2VyCg==
+      amq.password: MWYyZDFlMmU2N2Rm
+    ```    
+
+- PostreSQL
+    ```yaml
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: postgres-secrets
+      labels:
+        db: postgres
+    type: Opaque
+    data:
+      amq.username: dXNlcgo=
+      amq.password: cGdhZG1pbgo=
+    ```    
+
+You can select the Secrets to consume by defining a list of labels:
+```
+-Dspring.cloud.kubernetes.secrets.labels.broker=activemq
+-Dspring.cloud.kubernetes.secrets.labels.db=postgres
+```
+
+If you have a single secret you can look it up by its name, i.e:
+```
+-Dspring.cloud.kubernetes.secrets.name=postgres-secrets
+```
+
+Properties:
+
+| Name                                     | Type    | Default                    | Description
+| ---                                      | ---     | ---                        | ---
+| spring.cloud.kubernetes.secrets.enabled  | Boolean | true                       | Enable Secrets PropertySource
+| spring.cloud.kubernetes.secrets.name     | String  | ${spring.application.name} | Sets the name of the secret to lookup
+| spring.cloud.kubernetes.secrets.labels   | Map     | null                       | Sets the labels used to lookup secrets
+
+Note:
+- If labels are set, name is discarded.
+- The property spring.cloud.kubernetes.secrets.labels behave as defined by [Map-based binding]( https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding)
+
+
+### Pod Health Indicator
 
 Spring Boot uses [HealthIndicator](https://github.com/spring-projects/spring-boot/blob/master/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/HealthIndicator.java) to expose info about the health of an application.
 That makes it really useful for exposing health related information to the user and are also a good fit for use as [readiness probes](http://kubernetes.io/docs/user-guide/production-pods/#liveness-and-readiness-probes-aka-health-checks).
@@ -106,13 +180,13 @@ The Kubernetes health indicator which is part of the core modules exposes the fo
 - visible services
 - flag that indicates if app is internal or external to Kubernetes
 
-#### Transparency 
+### Transparency
 
 All of the features described above will work equally fine regardless of wether our application is inside Kubernetes or not. This is really helpful for development and troubleshooting.
 
-#### Kubernetes Profile Autoconfiguration
+### Kubernetes Profile Autoconfiguration
 
-When the application is run inside Kubernetes a profile named `kubernetes` will automatically get activated. 
+When the application is run inside Kubernetes a profile named `kubernetes` will automatically get activated.
 This allows the user to customize the configuration that will be applied in and out of kubernetes *(e.g. different dev and prod configuration)*.
 
 ### Ribbon discovery in Kubernetes
@@ -142,7 +216,7 @@ If the endpoint contains multiple ports, the first port will be used. To fine tu
 Examples that are using this module for ribbon discovery are:
 
 - [iPaas Quickstarts - Spring Boot - Ribbon](https://github.com/fabric8io/ipaas-quickstarts/tree/master/quickstart/spring-boot/ribbon)
-- [Kubeflix - LoanBroker - Bank](https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank) 
+- [Kubeflix - LoanBroker - Bank](https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank)
 
 
 ### Zipkin discovery in Kubernetes
@@ -168,7 +242,7 @@ This works as an extension of [spring-cloud-sleuth-zipkin](https://github.com/sp
 Examples of application that are using Zipkin discovery in Kubernetes:
 
 - [iPaas Quickstarts - Spring Boot - Ribbon](https://github.com/fabric8io/ipaas-quickstarts/tree/master/quickstart/spring-boot/ribbon)
-- [Kubeflix - LoanBroker - Bank](https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank) 
+- [Kubeflix - LoanBroker - Bank](https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank)
 
 ### ConfigMap Archaius Bridge
 
@@ -178,7 +252,7 @@ Examples of application that are using Zipkin discovery in Kubernetes:
 
 Section [ConfigMap PropertySource](#configmap-propertysource) provides a brief explanation on how to configure spring boot application via ConfigMap.
 This approach will aid in creating the configuration properties objects that will be passed in our application. If our application is using Archaius it will indirectly benefit by it.
-An alternative approach that provides more direct Archaius support without getting in the way of spring configuration properties by using [spring-cloud-kubernetes-archaius](spring-cloud-kubernetes-archaius/pom.xml) that is part of the Netflix starter. 
+An alternative approach that provides more direct Archaius support without getting in the way of spring configuration properties by using [spring-cloud-kubernetes-archaius](spring-cloud-kubernetes-archaius/pom.xml) that is part of the Netflix starter.
 
 This module allows you to annotate your application with the `@ArchaiusConfigMapSource` and archaius will automatically use the configmap as a watched source *(get notification on changes)*.
 
@@ -194,15 +268,15 @@ For earlier version it needs to be specified as an env var to the pod. A quick w
         valueFrom:
           fieldRef:
             fieldPath: "metadata.namespace"
-            
-            
+
+
 #### Service Account
 For distros of Kubernetes that support more fine-grained role-based access within the cluster, you need to make sure a pod that runs with spring-cloud-kubernetes has access to the Kubernetes API. For example, OpenShift has very comprehensive security measures that are on by default (typically) in a shared cluster. For any service accounts you assign to a deployment/pod, you need to make sure it has the correct roles. For example, you can add `cluster-view` permissions to your `default` service account depending on the project you're in:
 
 ```             
 oc policy add-role-to-user cluster-view system:serviceaccount:<project/namespace>:default
 ```             
-                        
+
 ### Building
 
 You can just use maven to build it from sources:
@@ -210,7 +284,7 @@ You can just use maven to build it from sources:
 ```
 mvn clean install
 ```    
-    
+
 ### Usage
 
 The project provides a "starter" module, so you just need to add the following dependency in your project.
