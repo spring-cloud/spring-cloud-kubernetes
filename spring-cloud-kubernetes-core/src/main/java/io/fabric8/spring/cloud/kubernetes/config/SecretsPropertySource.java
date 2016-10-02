@@ -90,7 +90,7 @@ public class SecretsPropertySource extends MapPropertySource {
             }
         } catch (Exception e) {
             LOGGER.warn("Can't read secret with name: [{}] or labels [{}] in namespace:[{}]. Ignoring",
-                config.getName(),
+                name,
                 config.getLabels(),
                 namespace,
                 e);
@@ -105,8 +105,12 @@ public class SecretsPropertySource extends MapPropertySource {
     private static String getApplicationName(Environment env, SecretsConfigProperties config) {
         String name = config.getName();
         if (StringUtils.isEmpty(name)) {
-            name = env.getProperty(
+            LOGGER.debug("Secret name has not been set, taking it from property/env {} (default={})", 
                 Constants.SPRING_APPLICATION_NAME,
+                Constants.FALLBACK_APPLICATION_NAME);
+
+            name = env.getProperty(
+                Constants.SPRING_APPLICATION_NAME, 
                 Constants.FALLBACK_APPLICATION_NAME);
         }
 
@@ -116,6 +120,9 @@ public class SecretsPropertySource extends MapPropertySource {
     private static String getApplicationNamespace(KubernetesClient client, SecretsConfigProperties config) {
         String namespace = config.getNamespace();
         if (StringUtils.isEmpty(namespace)) {
+            LOGGER.debug("Secret namespace has not been set, taking it from client (ns={})",
+                client.getNamespace());
+                
             namespace = client.getNamespace();
         }
 
