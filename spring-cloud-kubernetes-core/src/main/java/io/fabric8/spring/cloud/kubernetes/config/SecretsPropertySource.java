@@ -16,6 +16,10 @@
  */
 package io.fabric8.spring.cloud.kubernetes.config;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,17 +50,18 @@ public class SecretsPropertySource extends MapPropertySource {
             .append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR)
             .append(getApplicationName(env,config))
             .append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR)
-            .append(getApplicationNamespace(client, config))
+            .append(getApplicationNamespace(client, env, config))
             .toString();
     }
 
     private static Map<String, Object> getSourceData(KubernetesClient client, Environment env, SecretsConfigProperties config) {
         String name = getApplicationName(env, config);
-        String namespace = getApplicationNamespace(client, config);
-
+        String namespace = getApplicationNamespace(client, env, config);
         Map<String, Object> result = new HashMap<>();
-        try {
-            if (config.getLabels().isEmpty()) {
+
+        if (config.isEnableApi()) {
+            try {
+                // Read for secrets api (named)
                 if (StringUtils.isEmpty(namespace)) {
                     putAll(
                         client.secrets()
@@ -71,30 +76,40 @@ public class SecretsPropertySource extends MapPropertySource {
                             .get(),
                         result);
                 }
-            } else {
-                if (StringUtils.isEmpty(namespace)) {
-                    client.secrets()
-                        .withLabels(config.getLabels())
-                        .list()
-                        .getItems()
-                        .forEach(s -> putAll(s, result));
-                } else {
-                    client.secrets()
-                        .inNamespace(namespace)
-                        .withLabels(config.getLabels())
-                        .list()
-                        .getItems()
-                        .forEach(s -> putAll(s, result));
 
+                // Read for secrets api (label)
+                if (!config.getLabels().isEmpty()) {
+                    if (StringUtils.isEmpty(namespace)) {
+                        client.secrets()
+                            .withLabels(config.getLabels())
+                            .list()
+                            .getItems()
+                            .forEach(s -> putAll(s, result));
+                    } else {
+                        client.secrets()
+                            .inNamespace(namespace)
+                            .withLabels(config.getLabels())
+                            .list()
+                            .getItems()
+                            .forEach(s -> putAll(s, result));
+                    }
                 }
+            } catch (Exception e) {
+                LOGGER.warn("Can't read secret with name: [{}] or labels [{}] in namespace:[{}] (cause: {}). Ignoring",
+                    name,
+                    config.getLabels(),
+                    namespace,
+                    e.getMessage());
             }
-        } catch (Exception e) {
-            LOGGER.warn("Can't read secret with name: [{}] or labels [{}] in namespace:[{}]. Ignoring",
-                name,
-                config.getLabels(),
-                namespace,
-                e);
         }
+
+        // read for secrets mount
+        config.getPaths()
+            .stream()
+            .map(Paths::get)
+            .filter(Files::exists)
+            .forEach(p -> putAll(p, result));
+
         return result;
     }
 
@@ -117,7 +132,7 @@ public class SecretsPropertySource extends MapPropertySource {
         return name;
     }
 
-    private static String getApplicationNamespace(KubernetesClient client, SecretsConfigProperties config) {
+    private static String getApplicationNamespace(KubernetesClient client, Environment env, SecretsConfigProperties config) {
         String namespace = config.getNamespace();
         if (StringUtils.isEmpty(namespace)) {
             LOGGER.debug("Secret namespace has not been set, taking it from client (ns={})",
@@ -135,6 +150,26 @@ public class SecretsPropertySource extends MapPropertySource {
                 k,
                 new String(Base64.getDecoder().decode(v)).trim())
             );
+        }
+    }
+
+    private static void putAll(Path path, Map<String, Object> result) {
+        try {
+            Files.walk(path)
+                .filter(Files::isRegularFile)
+                .forEach(p -> readFile(p, result));
+        } catch (IOException e) {
+            LOGGER.warn("", e);
+        }
+    }
+
+    private static void readFile(Path path, Map<String, Object> result) {
+        try {
+            result.put(
+                path.getFileName().toString(),
+                new String(Files.readAllBytes(path)).trim());
+        } catch (IOException e) {
+            LOGGER.warn("", e);
         }
     }
 }

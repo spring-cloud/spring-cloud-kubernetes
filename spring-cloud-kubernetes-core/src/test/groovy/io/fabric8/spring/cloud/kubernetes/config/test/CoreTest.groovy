@@ -36,7 +36,8 @@ import groovy.util.logging.Slf4j
     "spring.application.name=testapp",
     "spring.cloud.kubernetes.client.namespace=testns",
     "spring.cloud.kubernetes.client.trustCerts=true",
-    "spring.cloud.kubernetes.config.namespace=testns"
+    "spring.cloud.kubernetes.config.namespace=testns",
+    "spring.cloud.kubernetes.secrets.enableApi=true"
 ])
 @EnableConfigurationProperties
 class CoreTest extends Specification {

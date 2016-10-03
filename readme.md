@@ -100,11 +100,21 @@ data:
         max:16
 ```
 
+Notes:
+- To access ConfigMaps on OpenShift the service account needs at least view permissions i.e.:
+    
+    ```oc policy add-role-to-user view system:serviceaccount:$(oc project -q):default -n $(oc project -q)```
+
 #### Secrets PropertySource
 
 Kubernetes has the notion of [Secrets](http://kubernetes.io/docs/user-guide/secrets/) for storing sensitive data such as password, OAuth tokens, etc. This project provides integration with `Secrets` to make secrets accessible by spring boot.
 
-The `Secrets` `PropertySource` when enabled will lookup Kubernetes for `Secrets` named after the application (see `spring.application.name`) or matching some labels. If the secrets are found theirs data is made available to the application.
+The `Secrets` `PropertySource` when enabled will lookup Kubernetes for `Secrets` from the following sources:
+- named after the application (see `spring.application.name`) 
+- matching some labels
+- reading recursively from secrets mounts
+
+If the secrets are found theirs data is made available to the application.
 
 Example:
 
@@ -145,29 +155,45 @@ This can be externalized to Secrets in yaml format:
       amq.password: cGdhZG1pbgo=
     ```    
 
-You can select the Secrets to consume by defining a list of labels:
-```
--Dspring.cloud.kubernetes.secrets.labels.broker=activemq
--Dspring.cloud.kubernetes.secrets.labels.db=postgres
-```
+You can select the Secrets to consume in a number of ways:
 
-If you have a single secret you can look it up by its name, i.e:
-```
--Dspring.cloud.kubernetes.secrets.name=postgres-secrets
-```
+1. By defining a list of labels:
+    ```
+    -Dspring.cloud.kubernetes.secrets.labels.broker=activemq
+    -Dspring.cloud.kubernetes.secrets.labels.db=postgres
+    ```
+
+2. By setting a named secret:
+    ```
+    -Dspring.cloud.kubernetes.secrets.name=postgres-secrets
+    ```
+
+3. By listing the directories were secrets are mapped:
+    ```
+    -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/activemq,etc/secrets/postgres
+    ```
+    
+    If you have all the secrets mapped to a common root, you can set them like:
+
+    ```
+    -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets
+    ```
+
 
 Properties:
 
-| Name                                     | Type    | Default                    | Description
-| ---                                      | ---     | ---                        | ---
-| spring.cloud.kubernetes.secrets.enabled  | Boolean | true                       | Enable Secrets PropertySource
-| spring.cloud.kubernetes.secrets.name     | String  | ${spring.application.name} | Sets the name of the secret to lookup
-| spring.cloud.kubernetes.secrets.labels   | Map     | null                       | Sets the labels used to lookup secrets
+| Name                                      | Type    | Default                    | Description
+| ---                                       | ---     | ---                        | ---
+| spring.cloud.kubernetes.secrets.enabled   | Boolean | true                       | Enable Secrets PropertySource
+| spring.cloud.kubernetes.secrets.name      | String  | ${spring.application.name} | Sets the name of the secret to lookup
+| spring.cloud.kubernetes.secrets.labels    | Map     | null                       | Sets the labels used to lookup secrets
+| spring.cloud.kubernetes.secrets.paths     | List    | null                       | Sets the paths were secrets are mounted
+| spring.cloud.kubernetes.secrets.enableApi | Boolean | false                      | Enable/Disable consuming secrets via APIs
 
-Note:
-- If labels are set, name is discarded.
-- The property spring.cloud.kubernetes.secrets.labels behave as defined by [Map-based binding]( https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding)
-
+Notes:
+- The property spring.cloud.kubernetes.secrets.labels behave as defined by [Map-based binding](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding)
+- The property spring.cloud.kubernetes.secrets.paths behave as defined by [Collection-based binding](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#collection-based-binding)
+- Access to secrets via API may be restricted, the preferred way is to mount secret to the POD
 
 ### Pod Health Indicator
 

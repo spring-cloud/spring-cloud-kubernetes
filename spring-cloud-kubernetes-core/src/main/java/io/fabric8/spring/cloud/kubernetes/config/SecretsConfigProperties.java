@@ -17,17 +17,22 @@
 package io.fabric8.spring.cloud.kubernetes.config;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.env.Environment;
 
 @ConfigurationProperties("spring.cloud.kubernetes.secrets")
 public class SecretsConfigProperties {
 
     private boolean enabled = true;
+    private boolean enableApi = false;
     private String name;
     private String namespace;
     private Map<String, String> labels = new HashMap<>();
+    private List<String> paths = new LinkedList<>();
 
     public boolean isEnabled() {
         return enabled;
@@ -37,7 +42,19 @@ public class SecretsConfigProperties {
         this.enabled = enabled;
     }
 
+    public boolean isEnableApi() {
+        return enableApi;
+    }
+
+    public void setEnableApi(boolean enableApi) {
+        this.enableApi = enableApi;
+    }
+
     public String getName() {
+        return name;
+    }
+
+    public String getName(Environment env) {
         return name;
     }
 
@@ -53,7 +70,19 @@ public class SecretsConfigProperties {
         this.namespace = namespace;
     }
 
+    public void setLabels(Map<String, String> labels) {
+        this.labels = labels;
+    }
+
     public Map<String, String> getLabels() {
         return labels;
+    }
+
+    public void setPaths(List<String> paths) {
+        this.paths = paths;
+    }
+
+    public List<String> getPaths() {
+        return paths;
     }
 }
