@@ -23,7 +23,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class KubernetesZipkinDiscoveryProperties {
 
     private boolean enabled = true;
-    private String serviceName = "zipkin-query";
+    private String serviceName = "zipkin";
     private String serviceNamespace;
 
 
