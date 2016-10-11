@@ -100,9 +100,9 @@ data:
         max:16
 ```
 
-Notes:
+**Notes:**
 - To access ConfigMaps on OpenShift the service account needs at least view permissions i.e.:
-    
+
     ```oc policy add-role-to-user view system:serviceaccount:$(oc project -q):default -n $(oc project -q)```
 
 #### Secrets PropertySource
@@ -110,13 +110,15 @@ Notes:
 Kubernetes has the notion of [Secrets](http://kubernetes.io/docs/user-guide/secrets/) for storing sensitive data such as password, OAuth tokens, etc. This project provides integration with `Secrets` to make secrets accessible by spring boot.
 
 The `Secrets` `PropertySource` when enabled will lookup Kubernetes for `Secrets` from the following sources:
-- named after the application (see `spring.application.name`) 
-- matching some labels
-- reading recursively from secrets mounts
+1. reading recursively from secrets mounts
+2. named after the application (see `spring.application.name`)
+3. matching some labels
+
+Please note that by default, consuming Secrets via API (points 2 and 3 above) **is not enabled**.
 
 If the secrets are found theirs data is made available to the application.
 
-Example:
+**Example:**
 
 Let's assume that we have a spring boot application named ``demo`` that uses properties to read its ActiveMQ and PostreSQL configuration.
 
@@ -127,7 +129,7 @@ Let's assume that we have a spring boot application named ``demo`` that uses pro
 
 This can be externalized to Secrets in yaml format:
 
-- ActiveMQ
+- **ActiveMQ**
     ```yaml
     apiVersion: v1
     kind: Secret
@@ -141,7 +143,7 @@ This can be externalized to Secrets in yaml format:
       amq.password: MWYyZDFlMmU2N2Rm
     ```    
 
-- PostreSQL
+- **PostreSQL**
     ```yaml
     apiVersion: v1
     kind: Secret
@@ -155,12 +157,17 @@ This can be externalized to Secrets in yaml format:
       amq.password: cGdhZG1pbgo=
     ```    
 
-You can select the Secrets to consume in a number of ways:
+You can select the Secrets to consume in a number of ways:    
 
-1. By defining a list of labels:
+1. By listing the directories were secrets are mapped:
     ```
-    -Dspring.cloud.kubernetes.secrets.labels.broker=activemq
-    -Dspring.cloud.kubernetes.secrets.labels.db=postgres
+    -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/activemq,etc/secrets/postgres
+    ```
+
+    If you have all the secrets mapped to a common root, you can set them like:
+
+    ```
+    -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets
     ```
 
 2. By setting a named secret:
@@ -168,32 +175,26 @@ You can select the Secrets to consume in a number of ways:
     -Dspring.cloud.kubernetes.secrets.name=postgres-secrets
     ```
 
-3. By listing the directories were secrets are mapped:
+3. By defining a list of labels:
     ```
-    -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/activemq,etc/secrets/postgres
-    ```
-    
-    If you have all the secrets mapped to a common root, you can set them like:
-
-    ```
-    -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets
+    -Dspring.cloud.kubernetes.secrets.labels.broker=activemq
+    -Dspring.cloud.kubernetes.secrets.labels.db=postgres
     ```
 
-
-Properties:
+**Properties:**
 
 | Name                                      | Type    | Default                    | Description
 | ---                                       | ---     | ---                        | ---
 | spring.cloud.kubernetes.secrets.enabled   | Boolean | true                       | Enable Secrets PropertySource
 | spring.cloud.kubernetes.secrets.name      | String  | ${spring.application.name} | Sets the name of the secret to lookup
 | spring.cloud.kubernetes.secrets.labels    | Map     | null                       | Sets the labels used to lookup secrets
-| spring.cloud.kubernetes.secrets.paths     | List    | null                       | Sets the paths were secrets are mounted
-| spring.cloud.kubernetes.secrets.enableApi | Boolean | false                      | Enable/Disable consuming secrets via APIs
+| spring.cloud.kubernetes.secrets.paths     | List    | null                       | Sets the paths were secrets are mounted /example 1)
+| spring.cloud.kubernetes.secrets.enableApi | Boolean | false                      | Enable/Disable consuming secrets via APIs (examples 2 and 3)
 
-Notes:
-- The property spring.cloud.kubernetes.secrets.labels behave as defined by [Map-based binding](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding)
-- The property spring.cloud.kubernetes.secrets.paths behave as defined by [Collection-based binding](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#collection-based-binding)
-- Access to secrets via API may be restricted, the preferred way is to mount secret to the POD
+**Notes:**
+- The property spring.cloud.kubernetes.secrets.labels behave as defined by [Map-based binding](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding).
+- The property spring.cloud.kubernetes.secrets.paths behave as defined by [Collection-based binding](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#collection-based-binding).
+- Access to secrets via API may be restricted for security reasons, the preferred way is to mount secret to the POD.
 
 ### Pod Health Indicator
 
