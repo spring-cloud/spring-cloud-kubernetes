@@ -1,17 +1,9 @@
 package io.fabric8.spring.cloud.kubernetes.reload;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import javax.annotation.PreDestroy;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.spring.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
 import io.fabric8.spring.cloud.kubernetes.config.SecretsPropertySourceLocator;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -23,10 +15,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.stereotype.Component;
 
 /**
  * Definition of beans needed for the automatic reload of configuration.
@@ -62,12 +52,12 @@ public class ConfigReloadAutoConfiguration {
          */
         @Bean
         @ConditionalOnMissingBean
-        public ConfigurationChangeDetector propertyChangeWatcher(ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy, EventWatcher eventWatcher) {
+        public ConfigurationChangeDetector propertyChangeWatcher(ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy) {
             switch (properties.getMode()) {
             case POLLING:
                 return new PollingConfigurationChangeDetector(environment, properties, kubernetesClient, strategy, configMapPropertySourceLocator, secretsPropertySourceLocator);
             case EVENT:
-                return new EventBasedConfigurationChangeDetector(environment, properties, kubernetesClient, strategy, configMapPropertySourceLocator, secretsPropertySourceLocator, eventWatcher);
+                return new EventBasedConfigurationChangeDetector(environment, properties, kubernetesClient, strategy, configMapPropertySourceLocator, secretsPropertySourceLocator);
             }
             throw new IllegalStateException("Unsupported configuration reload mode: " + properties.getMode());
         }
@@ -89,49 +79,6 @@ public class ConfigReloadAutoConfiguration {
             throw new IllegalStateException("Unsupported configuration update strategy: " + properties.getStrategy());
         }
 
-
-        /**
-         * Manages watches asynchronously and clean them up on context close.
-         */
-        @Component
-        public static class DefaultEventWatcher implements EventWatcher {
-            private Logger log = LoggerFactory.getLogger(getClass());
-
-            private KubernetesClient kubernetesClient;
-
-            private Map<String, Watch> watches;
-
-            @Autowired
-            public DefaultEventWatcher(KubernetesClient kubernetesClient) {
-                this.kubernetesClient = kubernetesClient;
-                this.watches = new ConcurrentHashMap<>();
-            }
-
-            @Async
-            public void addWatch(String name, Function<KubernetesClient, Watch> watch) {
-                if (watches.containsKey(name)) {
-                    throw new IllegalArgumentException("Watch already present: " + name);
-                }
-
-                watches.put(name, watch.apply(kubernetesClient));
-                log.info("Added new Kubernetes watch: {}", name);
-            }
-
-            @PreDestroy
-            public void unwatch() {
-                if (this.watches != null) {
-                    for (Watch watch : this.watches.values()) {
-                        try {
-                            watch.close();
-
-                        } catch (Exception e) {
-                            log.error("Error while closing the watch connection", e);
-                        }
-                    }
-                }
-            }
-
-        }
     }
 
 }

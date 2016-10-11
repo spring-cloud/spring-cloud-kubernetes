@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.PreDestroy;
 
-import io.fabric8.kubernetes.client.Client;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.slf4j.Logger;
@@ -40,9 +39,7 @@ public abstract class ConfigurationChangeDetector {
     @PreDestroy
     public void shutdown() {
         // Ensure the kubernetes client is cleaned up from spare threads when shutting down
-        if (kubernetesClient instanceof Client) {
-            ((Client) kubernetesClient).close();
-        }
+        kubernetesClient.close();
     }
 
     public void reloadProperties() {

@@ -16,7 +16,7 @@ oc policy add-role-to-user view --serviceaccount=default
 You can deploy the application using the fabric8 maven plugin:
 
 ```
-mvn clean install fabric8:deploy
+mvn clean install fabric8:build fabric8:deploy
 ```
 
 ### Changing the configuration
