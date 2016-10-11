@@ -1,5 +1,6 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-io.fabric8.spring.cloud.kubernetes.KubernetesAutoConfiguration
+io.fabric8.spring.cloud.kubernetes.KubernetesAutoConfiguration,\
+io.fabric8.spring.cloud.kubernetes.reload.ConfigReloadAutoConfiguration
 
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
 io.fabric8.spring.cloud.kubernetes.config.BootstrapConfiguration

@@ -22,6 +22,7 @@ import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 
 @Order(0)
@@ -35,7 +36,7 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
     }
 
     @Override
-    public PropertySource<?> locate(Environment environment) {
+    public MapPropertySource locate(Environment environment) {
         if (environment instanceof ConfigurableEnvironment) {
             ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
             String appName = env.getProperty(Constants.SPRING_APPLICATION_NAME, Constants.FALLBACK_APPLICATION_NAME);

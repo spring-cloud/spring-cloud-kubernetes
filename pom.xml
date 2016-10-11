@@ -106,6 +106,7 @@
         <module>spring-cloud-starter-kubernetes-netflix</module>
         <module>spring-cloud-starter-kubernetes-zipkin</module>
         <module>spring-cloud-starter-kubernetes-all</module>
+        <module>example</module>
     </modules>
 
     <dependencyManagement>

@@ -22,6 +22,7 @@ import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 
 @Order(1)
@@ -35,7 +36,7 @@ public class SecretsPropertySourceLocator implements PropertySourceLocator {
     }
 
     @Override
-    public PropertySource<?> locate(Environment environment) {
+    public MapPropertySource locate(Environment environment) {
         return environment instanceof ConfigurableEnvironment
             ? new SecretsPropertySource(client, environment, properties)
             : null;

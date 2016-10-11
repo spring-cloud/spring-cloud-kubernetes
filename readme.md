@@ -64,7 +64,7 @@ The `ConfigMap` `PropertySource` when enabled will lookup Kubernetes for a `Conf
 
 - apply individual configuration properties.
 - apply as yaml the content of any property named `application.yaml`
-- apple as properties file the content of any property named `application.properties`
+- apply as properties file the content of any property named `application.properties`
 
 Example:
 
@@ -195,6 +195,27 @@ You can select the Secrets to consume in a number of ways:
 - The property spring.cloud.kubernetes.secrets.labels behave as defined by [Map-based binding](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding).
 - The property spring.cloud.kubernetes.secrets.paths behave as defined by [Collection-based binding](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#collection-based-binding).
 - Access to secrets via API may be restricted for security reasons, the preferred way is to mount secret to the POD.
+
+#### PropertySource Reload
+
+Some applications may need to detect changes on external property sources and update their internal status to reflect the new configuration.
+The reload feature of Spring Cloud Kubernetes is able to trigger an application reload when its related ConfigMap or Secret change.
+
+This feature is disabled by default and can be enabled using the configuration property `spring.cloud.kubernetes.reload.enabled=true`
+ (eg. in the *application.properties* file).
+
+The following levels of reload are supported (property `spring.cloud.kubernetes.reload.strategy`):
+- **refresh (default)**: only spring beans annotated with `@ConfigurationProperties` or `@RefreshScope` are reloaded. 
+This reload level leverages the refresh feature of Spring Cloud Context.
+- **restart_context**: the whole Spring _ApplicationContext_ is gracefully restarted. Beans are recreated with the new configuration.
+- **shutdown**: the Spring _ApplicationContext_ is shut down to activate a restart of the container.
+ When using this level, make sure that the lifecycle of all non-daemon threads is bound to the ApplicationContext 
+ and that a replication controller or replica set is configured to restart the pod.
+
+Example:
+
+Assuming that the reload feature is enabled with default settings, the following bean will be refreshed
+ 
 
 ### Pod Health Indicator
 
