@@ -80,6 +80,7 @@
         <kubernetes-client.version>1.4.14</kubernetes-client.version>
         <mockwebserver.version>0.0.4</mockwebserver.version>
         <lombok.version>1.16.8</lombok.version>
+        <hibernate-validator.version>5.2.4.Final</hibernate-validator.version>
         <servlet-api.version>2.5</servlet-api.version>
         <spock-spring.version>1.0-groovy-2.3</spock-spring.version>
         <spring-boot.version>1.4.1.RELEASE</spring-boot.version>
@@ -90,6 +91,7 @@
         <!-- Maven Plugin Versions -->
         <maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
+        <fabric8.maven.plugin.version>3.1.69</fabric8.maven.plugin.version>
         <gmavenplus-plugin.version>1.2</gmavenplus-plugin.version>
         <sundrio-plugin.vesion>0.3.4</sundrio-plugin.vesion>
     </properties>
@@ -106,7 +108,7 @@
         <module>spring-cloud-starter-kubernetes-netflix</module>
         <module>spring-cloud-starter-kubernetes-zipkin</module>
         <module>spring-cloud-starter-kubernetes-all</module>
-        <module>example</module>
+        <module>spring-cloud-kubernetes-examples</module>
     </modules>
 
     <dependencyManagement>

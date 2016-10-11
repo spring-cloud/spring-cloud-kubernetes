@@ -11,6 +11,7 @@
 -   [PropertySource](#kubernetes-propertysource)
   -   [ConfigMap PropertySource](#configmap-propertysource)
   -   [Secrets PropertySource](#secrets-propertysource)
+  -   [PropertySource Reload](#propertysource-reload)
 -   [Pod Health Indicator](#pod-health-indicator)
 -   [Transparency](#transparency) *(its transparent wether the code runs in or outside of Kubernetes)*
 -   [Kubernetes Profile Autoconfiguration](#kubernetes-profile-autoconfiguration)
@@ -199,13 +200,13 @@ You can select the Secrets to consume in a number of ways:
 #### PropertySource Reload
 
 Some applications may need to detect changes on external property sources and update their internal status to reflect the new configuration.
-The reload feature of Spring Cloud Kubernetes is able to trigger an application reload when its related ConfigMap or Secret change.
+The reload feature of Spring Cloud Kubernetes is able to trigger an application reload when a related ConfigMap or Secret change.
 
 This feature is disabled by default and can be enabled using the configuration property `spring.cloud.kubernetes.reload.enabled=true`
  (eg. in the *application.properties* file).
 
 The following levels of reload are supported (property `spring.cloud.kubernetes.reload.strategy`):
-- **refresh (default)**: only spring beans annotated with `@ConfigurationProperties` or `@RefreshScope` are reloaded. 
+- **refresh (default)**: only configuration beans annotated with `@ConfigurationProperties` or `@RefreshScope` are reloaded. 
 This reload level leverages the refresh feature of Spring Cloud Context.
 - **restart_context**: the whole Spring _ApplicationContext_ is gracefully restarted. Beans are recreated with the new configuration.
 - **shutdown**: the Spring _ApplicationContext_ is shut down to activate a restart of the container.
@@ -214,8 +215,78 @@ This reload level leverages the refresh feature of Spring Cloud Context.
 
 Example:
 
-Assuming that the reload feature is enabled with default settings, the following bean will be refreshed
+Assuming that the reload feature is enabled with default settings (*refresh* mode), the following bean will be refreshed when the config map changes:
  
+```java
+@Configuration
+@ConfigurationProperties(prefix = "bean")
+public class MyConfig {
+
+    private String message = "a message that can be changed live";
+
+    // getter and setters
+
+}
+```
+
+A way to see that changes effectively happen is creating another bean that prints the message periodically.
+
+```java
+@Component
+public class MyBean {
+
+    @Autowired
+    private MyConfig config;
+
+    @Scheduled(fixedDelay = 5000)
+    public void hello() {
+        System.out.println("The message is: " + config.getMessage());
+    }
+}
+```
+
+The message printed by the application can be changed using a config map like the following one:
+
+```yml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reload-example
+data:
+  application.properties: |-
+    bean.message=Hello World!
+```
+
+Any change to the property named `bean.message` in the Config Map associated to the pod will be reflected in the output of the program 
+(more details [here](#configmap-propertysource) about how to associate a Config Map to a pod).
+
+The full example is available in [spring-cloud-kubernetes-reload-example](spring-cloud-kubernetes-examples/spring-cloud-kubernetes-reload-example). 
+
+The reload feature supports two operating modes:
+- **event (default)**: watches for changes in config maps or secrets using the Kubernetes API (web socket). 
+Any event will produce a re-check on the configuration and a reload in case of changes. 
+The `view` role on the service account is required in order to listen for config map changes. A higher level role (eg. `edit`) is required for secrets 
+(secrets are not monitored by default).
+- **polling**: re-creates the configuration periodically from config maps and secrets to see if it has changed.
+The polling period can be configured using the property `spring.cloud.kubernetes.reload.period` and defaults to *15 seconds*.
+It requires the same role as the monitored property source. 
+This means, for example, that using polling on file mounted secret sources does not require particular privileges.
+
+Properties:
+
+| Name                                                   | Type    | Default                    | Description
+| ---                                                    | ---     | ---                        | ---
+| spring.cloud.kubernetes.reload.enabled                 | Boolean | false                      | Enables monitoring of property sources and configuration reload
+| spring.cloud.kubernetes.reload.monitoring-config-maps  | Boolean | true                       | Allow monitoring changes in config maps
+| spring.cloud.kubernetes.reload.monitoring-secrets      | Boolean | false                      | Allow monitoring changes in secrets
+| spring.cloud.kubernetes.reload.strategy                | Enum    | refresh                    | The strategy to use when firing a reload (*refresh*, *restart_context*, *shutdown*)
+| spring.cloud.kubernetes.reload.mode                    | Enum    | event                      | Specifies how to listen for changes in property sources (*event*, *polling*)
+| spring.cloud.kubernetes.reload.period                  | Long    | 15000                      | The period in milliseconds for verifying changes when using the *polling* strategy
+
+Notes:
+- Properties under *spring.cloud.kubernetes.reload.** should not be used in config maps or secrets: changing such properties at runtime may lead to unexpected results;
+- Deleting a property or the whole config map does not restore the original state of the beans when using the *refresh* level.
+
 
 ### Pod Health Indicator
 
