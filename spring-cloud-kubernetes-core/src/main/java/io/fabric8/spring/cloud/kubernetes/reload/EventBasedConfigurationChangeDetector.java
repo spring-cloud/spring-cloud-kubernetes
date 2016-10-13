@@ -61,40 +61,54 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 
     @PostConstruct
     public void watch() {
+        boolean activated = false;
 
         if (properties.isMonitoringConfigMaps()) {
-            String name = "config-maps-watch";
-            watches.put(name, kubernetesClient.configMaps()
-                    .watch(new Watcher<ConfigMap>() {
-                        @Override
-                        public void eventReceived(Action action, ConfigMap configMap) {
-                            onEvent(configMap);
-                        }
+            try {
+                String name = "config-maps-watch";
+                watches.put(name, kubernetesClient.configMaps()
+                        .watch(new Watcher<ConfigMap>() {
+                            @Override
+                            public void eventReceived(Action action, ConfigMap configMap) {
+                                onEvent(configMap);
+                            }
 
-                        @Override
-                        public void onClose(KubernetesClientException e) {
-                        }
-                    }));
-            log.info("Added new Kubernetes watch: {}", name);
+                            @Override
+                            public void onClose(KubernetesClientException e) {
+                            }
+                        }));
+                activated = true;
+                log.info("Added new Kubernetes watch: {}", name);
+            } catch (Exception e) {
+                log.error("Error while establishing a connection to watch config maps: configuration may remain stale", e);
+            }
         }
 
         if (properties.isMonitoringSecrets()) {
-            String name = "secrets-watch";
-            watches.put(name, kubernetesClient.secrets()
-                    .watch(new Watcher<Secret>() {
-                        @Override
-                        public void eventReceived(Action action, Secret secret) {
-                            onEvent(secret);
-                        }
+            try {
+                activated = false;
+                String name = "secrets-watch";
+                watches.put(name, kubernetesClient.secrets()
+                        .watch(new Watcher<Secret>() {
+                            @Override
+                            public void eventReceived(Action action, Secret secret) {
+                                onEvent(secret);
+                            }
 
-                        @Override
-                        public void onClose(KubernetesClientException e) {
-                        }
-                    }));
-            log.info("Added new Kubernetes watch: {}", name);
+                            @Override
+                            public void onClose(KubernetesClientException e) {
+                            }
+                        }));
+                activated = true;
+                log.info("Added new Kubernetes watch: {}", name);
+            } catch (Exception e) {
+                log.error("Error while establishing a connection to watch secrets: configuration may remain stale", e);
+            }
         }
 
-        log.info("Kubernetes polling configuration change detector activated");
+        if (activated) {
+            log.info("Kubernetes event-based configuration change detector activated");
+        }
     }
 
     @PreDestroy
