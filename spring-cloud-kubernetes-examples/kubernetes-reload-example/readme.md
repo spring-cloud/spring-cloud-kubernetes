@@ -36,7 +36,7 @@ data:
 
 A sample config map is provided with this example in the *config-map.yml* file.
 
-To deploy the config map, just run the following command on Openshift (just replace `oc` with `kubectl` if your using plain Kubernetes):
+To deploy the config map, just run the following command on Openshift (just replace `oc` with `kubectl` if you are using plain Kubernetes):
 
 ```
 oc create -f config-map.yml
