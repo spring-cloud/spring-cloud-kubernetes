@@ -79,7 +79,7 @@
         <commons-logging.version>1.2</commons-logging.version>
         <kubernetes-client.version>1.4.14</kubernetes-client.version>
         <mockwebserver.version>0.0.4</mockwebserver.version>
-        <lombok.version>1.16.8</lombok.version>
+        <lombok.version>1.16.10</lombok.version>
         <hibernate-validator.version>5.2.4.Final</hibernate-validator.version>
         <servlet-api.version>2.5</servlet-api.version>
         <spock-spring.version>1.0-groovy-2.3</spock-spring.version>
