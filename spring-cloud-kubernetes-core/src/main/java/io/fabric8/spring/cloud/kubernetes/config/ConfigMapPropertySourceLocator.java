@@ -23,7 +23,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.env.PropertySource;
+import static io.fabric8.spring.cloud.kubernetes.config.ConfigUtils.*;
 
 @Order(0)
 public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
@@ -39,9 +39,8 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
     public MapPropertySource locate(Environment environment) {
         if (environment instanceof ConfigurableEnvironment) {
             ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
-            String appName = env.getProperty(Constants.SPRING_APPLICATION_NAME, Constants.FALLBACK_APPLICATION_NAME);
-            String name = properties.getName() == null || properties.getName().isEmpty() ? appName : properties.getName();
-            String namespace = properties.getNamespace();
+            String name = getApplicationName(environment, properties);
+            String namespace = getApplicationNamespace(client, env, properties);
             return new ConfigMapPropertySource(client, name, namespace);
         }
         return null;

@@ -22,25 +22,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.core.env.Environment;
 
 @ConfigurationProperties("spring.cloud.kubernetes.secrets")
-public class SecretsConfigProperties {
+public class SecretsConfigProperties extends AbstractConfigProperties {
 
-    private boolean enabled = true;
+    private static final String TARGET = "Secret";
+
     private boolean enableApi = false;
-    private String name;
-    private String namespace;
     private Map<String, String> labels = new HashMap<>();
     private List<String> paths = new LinkedList<>();
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
 
     public boolean isEnableApi() {
         return enableApi;
@@ -48,26 +39,6 @@ public class SecretsConfigProperties {
 
     public void setEnableApi(boolean enableApi) {
         this.enableApi = enableApi;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getName(Environment env) {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getNamespace() {
-        return namespace;
-    }
-
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
     }
 
     public void setLabels(Map<String, String> labels) {
@@ -84,5 +55,10 @@ public class SecretsConfigProperties {
 
     public List<String> getPaths() {
         return paths;
+    }
+
+    @Override
+    public String getConfigurationTarget() {
+        return TARGET;
     }
 }

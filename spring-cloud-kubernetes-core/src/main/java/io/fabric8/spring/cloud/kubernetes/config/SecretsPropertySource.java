@@ -32,6 +32,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.StringUtils;
 
+import static io.fabric8.spring.cloud.kubernetes.config.ConfigUtils.*;
+
 public class SecretsPropertySource extends MapPropertySource {
     private static final Logger LOGGER = LoggerFactory.getLogger(SecretsPropertySource.class);
 
@@ -116,34 +118,6 @@ public class SecretsPropertySource extends MapPropertySource {
     // *****************************
     // Helpers
     // *****************************
-
-    private static String getApplicationName(Environment env, SecretsConfigProperties config) {
-        String name = config.getName();
-        if (StringUtils.isEmpty(name)) {
-            LOGGER.debug("Secret name has not been set, taking it from property/env {} (default={})", 
-                Constants.SPRING_APPLICATION_NAME,
-                Constants.FALLBACK_APPLICATION_NAME);
-
-            name = env.getProperty(
-                Constants.SPRING_APPLICATION_NAME, 
-                Constants.FALLBACK_APPLICATION_NAME);
-        }
-
-        return name;
-    }
-
-    private static String getApplicationNamespace(KubernetesClient client, Environment env, SecretsConfigProperties config) {
-        String namespace = config.getNamespace();
-        if (StringUtils.isEmpty(namespace)) {
-            LOGGER.debug("Secret namespace has not been set, taking it from client (ns={})",
-                client.getNamespace());
-                
-            namespace = client.getNamespace();
-        }
-
-        return namespace;
-    }
-
     private static void putAll(Secret secret, Map<String, Object> result) {
         if (secret != null && secret.getData() != null) {
             secret.getData().forEach((k, v) -> result.put(
