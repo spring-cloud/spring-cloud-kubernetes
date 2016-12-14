@@ -14,7 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-node{
+@Library('github.com/rawlingsj/fabric8-pipeline-library@master')
+def dummy
+mavenNode {
   ws{
     checkout scm
     sh "git remote set-url origin git@github.com:fabric8io/spring-cloud-kubernetes.git"
