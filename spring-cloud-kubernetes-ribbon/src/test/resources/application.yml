@@ -1,0 +1,4 @@
+testapp:
+  ribbon:
+    eureka:
+      enabled: false
