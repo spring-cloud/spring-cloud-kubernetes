@@ -14,21 +14,18 @@
  * limitations under the License.
  *
  */
-package org.springframework.cloud.kubernetes.examples;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
+package org.springframework.cloud.kubernetes.config;
 
-/**
- *
- */
-@SpringBootApplication
-@EnableScheduling
-public class App {
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-    public static void main(String[] args) {
-        SpringApplication.run(App.class, args);
+@ConfigurationProperties("spring.cloud.kubernetes.config")
+public class ConfigMapConfigProperties extends AbstractConfigProperties {
+
+    private static final String TARGET = "Config Map";
+
+    @Override
+    public String getConfigurationTarget() {
+        return TARGET;
     }
-
 }

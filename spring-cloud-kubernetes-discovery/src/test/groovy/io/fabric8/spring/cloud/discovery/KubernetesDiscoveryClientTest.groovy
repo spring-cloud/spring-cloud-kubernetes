@@ -1,4 +1,4 @@
-package io.fabric8.spring.cloud.discovery
+package org.springframework.cloud.kubernetes.discovery
 
 import io.fabric8.kubernetes.api.model.EndpointsBuilder
 import io.fabric8.kubernetes.client.Config

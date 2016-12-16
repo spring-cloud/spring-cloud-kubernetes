@@ -15,7 +15,7 @@
  *
  */
 
-package io.fabric8.spring.cloud.kubernetes.config.test
+package org.springframework.cloud.kubernetes.config.test
 
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication

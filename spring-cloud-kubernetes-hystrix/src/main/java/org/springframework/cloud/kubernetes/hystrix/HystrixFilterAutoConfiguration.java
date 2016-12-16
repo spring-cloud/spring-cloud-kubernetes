@@ -14,23 +14,22 @@
  * limitations under the License.
  *
  */
-package org.springframework.cloud.kubernetes.examples;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+package org.springframework.cloud.kubernetes.hystrix;
+
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "bean")
-public class MyConfig {
+@ConditionalOnProperty(value = "spring.sleuth.hystrix.strategy.enabled", matchIfMissing = true)
+@ConditionalOnClass(HystrixCommand.class)
+public class HystrixFilterAutoConfiguration {
 
-    private String message = "a message that can be changed live";
-
-    public String getMessage() {
-        return message;
+    @Bean
+    HystrixRequestContextServletFilter hystrixRequestContextServletFilter() {
+        return new HystrixRequestContextServletFilter();
     }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
 }

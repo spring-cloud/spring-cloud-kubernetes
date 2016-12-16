@@ -15,13 +15,13 @@
  *
  */
 
-package io.fabric8.spring.cloud.kubernetes.ribbon.test
+package org.springframework.cloud.kubernetes.ribbon.test
 
 import io.fabric8.kubernetes.api.model.EndpointsBuilder
 import io.fabric8.kubernetes.client.Config
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.server.mock.KubernetesMockServer
-import io.fabric8.spring.cloud.kubernetes.ribbon.KubernetesRibbonClientConfiguration
+import org.springframework.cloud.kubernetes.ribbon.KubernetesRibbonClientConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.IntegrationTest

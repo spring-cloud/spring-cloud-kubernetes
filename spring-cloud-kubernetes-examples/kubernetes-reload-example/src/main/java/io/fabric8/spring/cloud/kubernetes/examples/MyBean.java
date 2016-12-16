@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-package io.fabric8.spring.cloud.kubernetes.examples;
+package org.springframework.cloud.kubernetes.examples;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;

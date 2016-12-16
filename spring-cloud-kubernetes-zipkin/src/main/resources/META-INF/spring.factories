@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-io.fabric8.spring.cloud.kubernetes.zipkin.ZipkinKubernetesAutoConfiguration
+org.springframework.cloud.kubernetes.zipkin.ZipkinKubernetesAutoConfiguration

@@ -14,21 +14,13 @@
  * limitations under the License.
  *
  */
-package org.springframework.cloud.kubernetes.examples;
+package org.springframework.cloud.kubernetes.config;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
+final class Constants {
+    static final String SPRING_APPLICATION_NAME = "spring.application.name";
+    static final String FALLBACK_APPLICATION_NAME = "application";
+    static final String PROPERTY_SOURCE_NAME_SEPARATOR = ".";
 
-/**
- *
- */
-@SpringBootApplication
-@EnableScheduling
-public class App {
-
-    public static void main(String[] args) {
-        SpringApplication.run(App.class, args);
+    private Constants() {
     }
-
 }
