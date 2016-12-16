@@ -26,18 +26,18 @@
         <version>9</version>
     </parent>
 
-    <groupId>io.fabric8</groupId>
-    <artifactId>spring-cloud-kubernetes-project</artifactId>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-kubernetes</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Fabric8 :: Spring Cloud Kubernetes :: Project</name>
+    <name>Spring Cloud Kubernetes</name>
 
-    <url>http://fabric8.io/</url>
+    <url>http://cloud.spring.io</url>
     <inceptionYear>2016</inceptionYear>
 
     <organization>
-        <name>Red Hat</name>
-        <url>http://redhat.com</url>
+        <name>Pivotal Software, Inc.</name>
+        <url>http://www.spring.io</url>
     </organization>
 
     <licenses>
@@ -48,31 +48,12 @@
         </license>
     </licenses>
 
-    <!-- including A developer as it's required by the maven poms going into
-      central -->
-    <developers>
-        <developer>
-            <id>geeks</id>
-            <name>Fabric8 Development Team</name>
-            <organization>fabric8</organization>
-            <organizationUrl>http://fabric8.io/</organizationUrl>
-        </developer>
-    </developers>
-
     <scm>
-        <connection>scm:git:git@github.com:fabric8io/spring-cloud-kubernetes.git</connection>
-        <developerConnection>scm:git:git@github.com:fabric8io/spring-cloud-kubernetes.git</developerConnection>
-        <url>http://github.com/fabric8io/spring-cloud-kubernetes/</url>
-        <tag>${project.version}</tag>
+        <url>https://github.com/spring-cloud-incubator/spring-cloud-kubernetes</url>
+        <connection>scm:git:git://github.com/spring-cloud-incubator/spring-cloud-kubernetes.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/spring-cloud-incubator/spring-cloud-kubernetes.git</developerConnection>
+        <tag>HEAD</tag>
     </scm>
-
-    <distributionManagement>
-        <repository>
-            <id>oss-sonatype-staging</id>
-            <name>Sonatype Staging Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-        </repository>
-    </distributionManagement>
 
     <properties>
         <!-- Dependency Versions -->
@@ -142,37 +123,37 @@
 
             <!-- Own dependencies -->
             <dependency>
-                <groupId>io.fabric8</groupId>
+                <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-kubernetes-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>io.fabric8</groupId>
+                <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-kubernetes-archaius</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>io.fabric8</groupId>
+                <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-kubernetes-discovery</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>io.fabric8</groupId>
+                <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-kubernetes-hystrix</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>io.fabric8</groupId>
+                <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-kubernetes-ribbon</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>io.fabric8</groupId>
+                <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-kubernetes-zipkin</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -285,7 +266,7 @@
                     <boms>
                         <bom>
                             <artifactId>spring-cloud-kubernetes-bom</artifactId>
-                            <name>Fabric8 :: Spring Cloud Kubernetes :: Bom</name>
+                            <name>Spring Cloud Kubernetes :: Bom</name>
                             <dependencies>
                                 <includes>
                                     <include>io.fabric8:kubernetes-*</include>
@@ -304,7 +285,7 @@
                         </bom>
                         <bom>
                             <artifactId>spring-cloud-kubernetes-bom-with-platform-deps</artifactId>
-                            <name>Fabric8 :: Spring Cloud Kubernetes :: Bom with Platform Dependencies</name>
+                            <name>Spring Cloud Kubernetes :: Bom with Platform Dependencies</name>
                             <dependencies>
                                 <includes>
                                     <include>javax.*:*</include>

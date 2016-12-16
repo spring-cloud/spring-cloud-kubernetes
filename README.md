@@ -2,7 +2,7 @@
 
 [Spring Cloud](http://projects.spring.io/spring-cloud/) integration with [Kubernetes](http://kubernetes.io/)
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes/) ![Apache 2](http://img.shields.io/badge/license-Apache%202-red.svg)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes/) ![Apache 2](http://img.shields.io/badge/license-Apache%202-red.svg)
 
 ### Features
 
@@ -22,9 +22,9 @@
 ---
 ### DiscoveryClient for Kubernetes
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes/)
-[![Javadocs](http://www.javadoc.io/badge/io.fabric8/spring-cloud-starter-kubernetes.svg?color=blue)](http://www.javadoc.io/doc/io.fabric8/spring-cloud-starter-kubernetes)
-[![Dependency Status](https://www.versioneye.com/java/io.fabric8:spring-cloud-starter-kubernetes/badge?style=flat)](https://www.versioneye.com/java/io.fabric8:spring-cloud-starter-kubernetes/)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes/)
+[![Javadocs](http://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-starter-kubernetes.svg?color=blue)](http://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-starter-kubernetes)
+[![Dependency Status](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes/badge?style=flat)](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes/)
 
 
 This project provides an implementation of [Discovery Client](https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java) for [Kubernetes](http://kubernetes.io). This allows you to query Kubernetes endpoints *(see [services](http://kubernetes.io/docs/user-guide/services/))* by name.
@@ -32,7 +32,7 @@ This is something that you get for free just by adding the following dependency 
 
 ```xml
 <dependency>
-    <groupId>io.fabric8</groupId>
+    <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes</artifactId>
     <version>${latest.version></version>
 </dependency>
@@ -310,15 +310,15 @@ This allows the user to customize the configuration that will be applied in and 
 
 ### Ribbon discovery in Kubernetes
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes-netflix/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes-netflix/)
-[![Javadocs](http://www.javadoc.io/badge/io.fabric8/spring-cloud-starter-kubernetes-netflix.svg?color=blue)](http://www.javadoc.io/doc/io.fabric8/spring-cloud-starter-kubernetes-netflix)
-[![Dependency Status](https://www.versioneye.com/java/io.fabric8:spring-cloud-starter-kubernetes-netflix/badge?style=flat)](https://www.versioneye.com/java/io.fabric8:spring-cloud-starter-kubernetes-netflix/)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes-netflix/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes-netflix/)
+[![Javadocs](http://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-starter-kubernetes-netflix.svg?color=blue)](http://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-starter-kubernetes-netflix)
+[![Dependency Status](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-netflix/badge?style=flat)](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-netflix/)
 
 A Kubernetes based `ServerList` for Ribbon has been implemented. The implementation is part of the [spring-cloud-kubernetes-ribbon](spring-cloud-kubernetes-ribbon/pom.xml) module and you can use it by adding:
 
 ```xml
 <dependency>
-    <groupId>io.fabric8</groupId>
+    <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-netflix</artifactId>
     <version>${latest.version></version>
 </dependency>
@@ -340,9 +340,9 @@ Examples that are using this module for ribbon discovery are:
 
 ### Zipkin discovery in Kubernetes
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes-zipkin/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-starter-kubernetes-zipkin/)
-[![Javadocs](http://www.javadoc.io/badge/io.fabric8/spring-cloud-starter-kubernetes-zipkin.svg?color=blue)](http://www.javadoc.io/doc/io.fabric8/spring-cloud-starter-kubernetes-zipkin)
-[![Dependency Status](https://www.versioneye.com/java/io.fabric8:spring-cloud-starter-kubernetes-zipkin/badge?style=flat)](https://www.versioneye.com/java/io.fabric8:spring-cloud-starter-kubernetes-zipkin/)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes-zipkin/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes-zipkin/)
+[![Javadocs](http://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-starter-kubernetes-zipkin.svg?color=blue)](http://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-starter-kubernetes-zipkin)
+[![Dependency Status](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-zipkin/badge?style=flat)](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-zipkin/)
 
 [Zipkin](https://github.com/openzipkin/zipkin) is a distributed tracing system and it is also supported by [Sleuth](https://github.com/spring-cloud/spring-cloud-sleuth).
 
@@ -350,7 +350,7 @@ Discovery of the services required by Zipkin (e.g. `zipkin-query`) is provided b
 
 ```xml
 <dependency>
-    <groupId>io.fabric8</groupId>
+    <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-zipkin</artifactId>
     <version>${latest.version></version>
 </dependency>
@@ -365,9 +365,9 @@ Examples of application that are using Zipkin discovery in Kubernetes:
 
 ### ConfigMap Archaius Bridge
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-kubernetes-archaius/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/io.fabric8/spring-cloud-kubernetes-archaius/)
-[![Javadocs](http://www.javadoc.io/badge/io.fabric8/spring-cloud-kubernetes-archaius.svg?color=blue)](http://www.javadoc.io/doc/io.fabric8/spring-cloud-kubernetes-archaius)
-[![Dependency Status](https://www.versioneye.com/java/io.fabric8:spring-cloud-kubernetes-archaius/badge?style=flat)](https://www.versioneye.com/java/io.fabric8:spring-cloud-kubernetes-archaius/)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-kubernetes-archaius/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-kubernetes-archaius/)
+[![Javadocs](http://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-kubernetes-archaius.svg?color=blue)](http://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-kubernetes-archaius)
+[![Dependency Status](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-kubernetes-archaius/badge?style=flat)](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-kubernetes-archaius/)
 
 Section [ConfigMap PropertySource](#configmap-propertysource) provides a brief explanation on how to configure spring boot application via ConfigMap.
 This approach will aid in creating the configuration properties objects that will be passed in our application. If our application is using Archaius it will indirectly benefit by it.
@@ -410,7 +410,7 @@ The project provides a "starter" module, so you just need to add the following d
 
 ```xml
 <dependency>
-    <groupId>io.fabric8</groupId>
+    <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes</artifactId>
     <version>x.y.z</version>
 </dependency>

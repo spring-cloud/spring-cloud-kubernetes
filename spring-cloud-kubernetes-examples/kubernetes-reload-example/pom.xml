@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>spring-cloud-kubernetes-examples</artifactId>
-        <groupId>io.fabric8</groupId>
+        <groupId>org.springframework.cloud</groupId>
         <version>0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>kubernetes-reload-example</artifactId>
 
-    <name>Fabric8 :: Spring Cloud Kubernetes :: Examples :: Reload</name>
+    <name>Spring Cloud Kubernetes :: Examples :: Reload</name>
     <description>Example demostrating how to use the configuration reload feature.</description>
 
     <dependencyManagement>
@@ -28,7 +28,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.fabric8</groupId>
+            <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-kubernetes-core</artifactId>
             <version>${project.version}</version>
         </dependency>
