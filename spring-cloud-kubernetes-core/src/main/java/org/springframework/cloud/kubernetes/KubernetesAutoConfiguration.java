@@ -18,6 +18,8 @@ package org.springframework.cloud.kubernetes;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -80,14 +82,18 @@ public class KubernetesAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    StandardPodUtils kubernetesPodUtils(KubernetesClient client) {
+    public StandardPodUtils kubernetesPodUtils(KubernetesClient client) {
         return new StandardPodUtils(client);
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public KubernetesHealthIndicator kubernetesHealthIndicator(KubernetesClient client, StandardPodUtils podUtils) {
-        return new KubernetesHealthIndicator(client, podUtils);
+    @Configuration
+    @ConditionalOnClass(HealthIndicator.class)
+    protected static class KubernetesActuatorConfiguration {
+        @Bean
+        @ConditionalOnMissingBean
+        public KubernetesHealthIndicator kubernetesHealthIndicator(PodUtils podUtils) {
+            return new KubernetesHealthIndicator(podUtils);
+        }
     }
 
     private static <D> D or(D dis, D dat) {

@@ -16,18 +16,16 @@
 
 package org.springframework.cloud.kubernetes;
 
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 
+import io.fabric8.kubernetes.api.model.Pod;
+
 public class KubernetesHealthIndicator extends AbstractHealthIndicator {
 
-    private KubernetesClient client;
     private PodUtils utils;
 
-    public KubernetesHealthIndicator(KubernetesClient client, PodUtils utils) {
-        this.client = client;
+    public KubernetesHealthIndicator(PodUtils utils) {
         this.utils = utils;
     }
 
