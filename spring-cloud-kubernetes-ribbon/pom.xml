@@ -95,7 +95,6 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <dependency>

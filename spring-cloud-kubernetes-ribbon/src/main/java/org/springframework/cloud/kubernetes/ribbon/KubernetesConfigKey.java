@@ -17,9 +17,6 @@
 
 package org.springframework.cloud.kubernetes.ribbon;
 
-import com.google.common.reflect.TypeToken;
-import com.netflix.client.config.IClientConfigKey;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
@@ -27,7 +24,10 @@ import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import org.springframework.util.Assert;
+
+import com.google.common.reflect.TypeToken;
+import com.netflix.client.config.IClientConfigKey;
 
 public abstract class KubernetesConfigKey<T> implements IClientConfigKey<T> {
 
@@ -90,8 +90,8 @@ public abstract class KubernetesConfigKey<T> implements IClientConfigKey<T> {
     protected KubernetesConfigKey(String configKey) {
         this.configKey = configKey;
         Type superclass = getClass().getGenericSuperclass();
-        checkArgument(superclass instanceof ParameterizedType,
-                "%s isn't parameterized", superclass);
+        Assert.isTrue(superclass instanceof ParameterizedType,
+                superclass + " isn't parameterized");
         Type runtimeType = ((ParameterizedType) superclass).getActualTypeArguments()[0];
         type = (Class<T>) TypeToken.of(runtimeType).getRawType();
     }
