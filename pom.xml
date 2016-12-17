@@ -66,7 +66,7 @@
         <servlet-api.version>2.5</servlet-api.version>
         <spock-spring.version>1.0-groovy-2.3</spock-spring.version>
         <spring-boot.version>1.4.1.RELEASE</spring-boot.version>
-        <spring-cloud.version>Brixton.SR6</spring-cloud.version>
+        <spring-cloud.version>Camden.SR3</spring-cloud.version>
         <spring.version>4.3.3.RELEASE</spring.version>
         <junit.version>4.12</junit.version>
 
@@ -426,7 +426,7 @@
         <profile>
             <id>snapshot</id>
             <properties>
-                <spring-cloud.version>Brixton.BUILD-SNAPSHOT</spring-cloud.version>
+                <spring-cloud.version>Camden.BUILD-SNAPSHOT</spring-cloud.version>
             </properties>
         </profile>
         <profile>
