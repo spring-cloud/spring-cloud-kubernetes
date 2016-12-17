@@ -7,6 +7,9 @@ import org.springframework.util.StringUtils;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 
+import static org.springframework.cloud.kubernetes.config.Constants.FALLBACK_APPLICATION_NAME;
+import static org.springframework.cloud.kubernetes.config.Constants.SPRING_APPLICATION_NAME;
+
 public class ConfigUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SecretsPropertySource.class);
@@ -14,13 +17,11 @@ public class ConfigUtils {
     public static <C extends AbstractConfigProperties> String getApplicationName(Environment env, C config) {
         String name = config.getName();
         if (StringUtils.isEmpty(name)) {
+        	//TODO: use relaxed binding
             LOGGER.debug(config.getConfigurationTarget() + " name has not been set, taking it from property/env {} (default={})",
-                    Constants.SPRING_APPLICATION_NAME,
-                    Constants.FALLBACK_APPLICATION_NAME);
+                    SPRING_APPLICATION_NAME, FALLBACK_APPLICATION_NAME);
 
-            name = env.getProperty(
-                    Constants.SPRING_APPLICATION_NAME,
-                    Constants.FALLBACK_APPLICATION_NAME);
+            name = env.getProperty(SPRING_APPLICATION_NAME, FALLBACK_APPLICATION_NAME);
         }
 
         return name;
