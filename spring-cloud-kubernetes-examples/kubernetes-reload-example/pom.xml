@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>kubernetes-reload-example</artifactId>
+    <artifactId>spring-cloud-kubernetes-example-reload</artifactId>
 
     <name>Spring Cloud Kubernetes :: Examples :: Reload</name>
     <description>Example demostrating how to use the configuration reload feature.</description>
@@ -25,6 +25,10 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <properties>
+        <hibernate-validator.version>5.2.4.Final</hibernate-validator.version>
+    </properties>
 
     <dependencies>
         <dependency>
