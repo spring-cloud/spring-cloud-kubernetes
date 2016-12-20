@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.kubernetes.config.test
+package org.springframework.cloud.kubernetes.config
 
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication

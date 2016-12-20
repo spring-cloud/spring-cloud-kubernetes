@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-package org.springframework.cloud.kubernetes.reload;
+package org.springframework.cloud.kubernetes.config.reload;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;

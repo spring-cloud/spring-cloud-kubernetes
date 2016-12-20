@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.kubernetes.config.test
+package org.springframework.cloud.kubernetes.config
 
 import io.fabric8.kubernetes.api.model.SecretBuilder
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder

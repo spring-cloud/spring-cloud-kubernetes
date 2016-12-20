@@ -1,9 +1,5 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.kubernetes.KubernetesAutoConfiguration,\
-org.springframework.cloud.kubernetes.reload.ConfigReloadAutoConfiguration
-
-org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-org.springframework.cloud.kubernetes.config.BootstrapConfiguration
+org.springframework.cloud.kubernetes.KubernetesAutoConfiguration\
 
 org.springframework.context.ApplicationContextInitializer=\
 org.springframework.cloud.kubernetes.profile.KubernetesApplicationContextInitializer
