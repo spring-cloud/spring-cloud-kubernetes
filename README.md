@@ -260,7 +260,7 @@ data:
 Any change to the property named `bean.message` in the Config Map associated to the pod will be reflected in the output of the program 
 (more details [here](#configmap-propertysource) about how to associate a Config Map to a pod).
 
-The full example is available in [spring-cloud-kubernetes-reload-example](spring-cloud-kubernetes-examples/spring-cloud-kubernetes-reload-example). 
+The full example is available in [spring-cloud-kubernetes-reload-example](spring-cloud-kubernetes-examples/kubernetes-reload-example). 
 
 The reload feature supports two operating modes:
 - **event (default)**: watches for changes in config maps or secrets using the Kubernetes API (web socket). 
