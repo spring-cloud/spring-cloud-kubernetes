@@ -81,6 +81,7 @@
         <module>spring-cloud-kubernetes-hystrix</module>
         <module>spring-cloud-kubernetes-archaius</module>
         <module>spring-cloud-starter-kubernetes</module>
+        <module>spring-cloud-starter-kubernetes-config</module>
         <module>spring-cloud-starter-kubernetes-netflix</module>
         <module>spring-cloud-starter-kubernetes-zipkin</module>
         <module>spring-cloud-starter-kubernetes-all</module>
