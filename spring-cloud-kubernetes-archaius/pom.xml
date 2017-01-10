@@ -17,39 +17,39 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>spring-cloud-kubernetes</artifactId>
-        <groupId>org.springframework.cloud</groupId>
-        <version>0.2.0.BUILD-SNAPSHOT</version>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>spring-cloud-kubernetes</artifactId>
+		<groupId>org.springframework.cloud</groupId>
+		<version>0.2.0.BUILD-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-kubernetes-archaius</artifactId>
-    <name>Spring Cloud Kubernetes :: Archaius</name>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-kubernetes-archaius</artifactId>
+	<name>Spring Cloud Kubernetes :: Archaius</name>
 
-    <dependencies>
+	<dependencies>
 
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>kubernetes-client</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>io.fabric8</groupId>
+			<artifactId>kubernetes-client</artifactId>
+		</dependency>
 
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-archaius</artifactId>
-            <optional>true</optional>
-        </dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-archaius</artifactId>
+			<optional>true</optional>
+		</dependency>
 
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+			<optional>true</optional>
+		</dependency>
 
-    </dependencies>
+	</dependencies>
 
 </project>

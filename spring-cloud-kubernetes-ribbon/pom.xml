@@ -17,115 +17,115 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>spring-cloud-kubernetes</artifactId>
-        <groupId>org.springframework.cloud</groupId>
-        <version>0.2.0.BUILD-SNAPSHOT</version>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>spring-cloud-kubernetes</artifactId>
+		<groupId>org.springframework.cloud</groupId>
+		<version>0.2.0.BUILD-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-kubernetes-ribbon</artifactId>
-    <name>Spring Cloud Kubernetes :: Ribbon</name>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-kubernetes-ribbon</artifactId>
+	<name>Spring Cloud Kubernetes :: Ribbon</name>
 
-    <dependencies>
+	<dependencies>
 
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-kubernetes-discovery</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-kubernetes-discovery</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-            <optional>true</optional>
-        </dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-autoconfigure</artifactId>
+			<optional>true</optional>
+		</dependency>
 
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-commons</artifactId>
-            <optional>true</optional>
-        </dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-commons</artifactId>
+			<optional>true</optional>
+		</dependency>
 
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-context</artifactId>
-            <optional>true</optional>
-        </dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-context</artifactId>
+			<optional>true</optional>
+		</dependency>
 
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-netflix-core</artifactId>
-            <optional>true</optional>
-        </dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-netflix-core</artifactId>
+			<optional>true</optional>
+		</dependency>
 
-        <dependency>
-            <groupId>com.netflix.archaius</groupId>
-            <artifactId>archaius-core</artifactId>
-            <optional>true</optional>
-        </dependency>
+		<dependency>
+			<groupId>com.netflix.archaius</groupId>
+			<artifactId>archaius-core</artifactId>
+			<optional>true</optional>
+		</dependency>
 
-        <dependency>
-            <groupId>com.netflix.ribbon</groupId>
-            <artifactId>ribbon</artifactId>
-            <optional>true</optional>
-        </dependency>
+		<dependency>
+			<groupId>com.netflix.ribbon</groupId>
+			<artifactId>ribbon</artifactId>
+			<optional>true</optional>
+		</dependency>
 
-        <dependency>
-            <groupId>com.netflix.ribbon</groupId>
-            <artifactId>ribbon-core</artifactId>
-            <optional>true</optional>
-        </dependency>
+		<dependency>
+			<groupId>com.netflix.ribbon</groupId>
+			<artifactId>ribbon-core</artifactId>
+			<optional>true</optional>
+		</dependency>
 
-        <dependency>
-            <groupId>com.netflix.ribbon</groupId>
-            <artifactId>ribbon-httpclient</artifactId>
-            <optional>true</optional>
-        </dependency>
+		<dependency>
+			<groupId>com.netflix.ribbon</groupId>
+			<artifactId>ribbon-httpclient</artifactId>
+			<optional>true</optional>
+		</dependency>
 
-        <dependency>
-            <groupId>com.netflix.ribbon</groupId>
-            <artifactId>ribbon-loadbalancer</artifactId>
-            <optional>true</optional>
-        </dependency>
+		<dependency>
+			<groupId>com.netflix.ribbon</groupId>
+			<artifactId>ribbon-loadbalancer</artifactId>
+			<optional>true</optional>
+		</dependency>
 
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<scope>test</scope>
+		</dependency>
 
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>kubernetes-client</artifactId>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>io.fabric8</groupId>
+			<artifactId>kubernetes-client</artifactId>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
 
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>mockwebserver</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.spockframework</groupId>
-            <artifactId>spock-spring</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>io.fabric8</groupId>
+			<artifactId>mockwebserver</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.spockframework</groupId>
+			<artifactId>spock-spring</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
 </project>

@@ -17,41 +17,41 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>spring-cloud-kubernetes</artifactId>
-        <groupId>org.springframework.cloud</groupId>
-        <version>0.2.0.BUILD-SNAPSHOT</version>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>spring-cloud-kubernetes</artifactId>
+		<groupId>org.springframework.cloud</groupId>
+		<version>0.2.0.BUILD-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-kubernetes-hystrix</artifactId>
-    <name>Spring Cloud Kubernetes :: Hystrix</name>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-kubernetes-hystrix</artifactId>
+	<name>Spring Cloud Kubernetes :: Hystrix</name>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.netflix.hystrix</groupId>
-            <artifactId>hystrix-core</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.netflix.hystrix</groupId>
-            <artifactId>hystrix-javanica</artifactId>
-            <optional>true</optional>
-        </dependency>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.netflix.hystrix</groupId>
+			<artifactId>hystrix-core</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.netflix.hystrix</groupId>
+			<artifactId>hystrix-javanica</artifactId>
+			<optional>true</optional>
+		</dependency>
 
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter</artifactId>
-            <optional>true</optional>
-        </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter</artifactId>
+			<optional>true</optional>
+		</dependency>
+	</dependencies>
 
 </project>

@@ -6,7 +6,7 @@
 		<artifactId>spring-cloud-dependencies-parent</artifactId>
 		<groupId>org.springframework.cloud</groupId>
 		<version>1.2.2.BUILD-SNAPSHOT</version>
-        <relativePath/>
+		<relativePath/>
 	</parent>
 	<artifactId>spring-cloud-kubernetes-dependencies</artifactId>
 	<version>0.2.0.BUILD-SNAPSHOT</version>
@@ -35,11 +35,11 @@
 				<version>${project.version}</version>
 			</dependency>
 
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-kubernetes-config</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-kubernetes-config</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
@@ -72,36 +72,36 @@
 			</dependency>
 
 
-            <!-- Own dependencies - Starters -->
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-starter-kubernetes</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+			<!-- Own dependencies - Starters -->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-kubernetes</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-starter-kubernetes-config</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-kubernetes-config</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-starter-kubernetes-netflix</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-kubernetes-netflix</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-starter-kubernetes-zipkin</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-kubernetes-zipkin</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-starter-kubernetes-all</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-kubernetes-all</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
 			<!-- Testing Dependencies -->
 			<dependency>
