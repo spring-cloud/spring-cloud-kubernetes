@@ -17,7 +17,6 @@
 
 package org.springframework.cloud.kubernetes.archaius;
 
-import com.google.common.base.Strings;
 import com.netflix.config.WatchedConfigurationSource;
 import com.netflix.config.WatchedUpdateListener;
 import com.netflix.config.WatchedUpdateResult;
@@ -26,8 +25,10 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.StringUtils;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -72,14 +73,14 @@ public class ArchaiusConfigMapSourceConfiguration implements InitializingBean, D
 
 
     public void start() {
-        ConfigMap map = Strings.isNullOrEmpty(namespace)
+        ConfigMap map = StringUtils.isEmpty(namespace)
                 ? client.configMaps().withName(name).get()
                 : client.configMaps().inNamespace(namespace).withName(name).get();
 
         if (map != null) {
             currentData.set(asObjectMap(map.getData()));
         }
-        watch = Strings.isNullOrEmpty(namespace)
+        watch = StringUtils.isEmpty(namespace)
                 ? client.configMaps().withName(name).watch(watcher)
                 : client.configMaps().inNamespace(namespace).withName(namespace).watch(watcher);
         started.set(true);
