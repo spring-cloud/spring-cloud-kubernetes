@@ -27,14 +27,15 @@ import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.io.ByteArrayResource;
 
 public class ConfigMapPropertySource extends MapPropertySource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigMapPropertySource.class);
+    private static final Log LOG = LogFactory.getLog(ConfigMapPropertySource.class);
 
     private static final String APPLICATION_YML = "application.yml";
     private static final String APPLICATION_YAML = "application.yaml";
@@ -81,7 +82,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
                 }
             }
         } catch (Exception e) {
-            LOGGER.warn("Can't read configMap with name: [" + name + "] in namespace:[" + namespace + "]. Ignoring");
+            LOG.warn("Can't read configMap with name: [" + name + "] in namespace:[" + namespace + "]. Ignoring");
         }
         return result;
     }

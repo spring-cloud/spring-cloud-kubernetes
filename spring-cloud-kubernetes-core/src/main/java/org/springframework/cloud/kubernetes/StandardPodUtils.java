@@ -19,15 +19,16 @@ package org.springframework.cloud.kubernetes;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.nio.file.Paths;
 import java.util.function.Supplier;
 
 public class StandardPodUtils implements PodUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StandardPodUtils.class);
+    private static final Log LOG = LogFactory.getLog(StandardPodUtils.class);
     public static final String HOSTNAME = "HOSTNAME";
 
     private final KubernetesClient client;
@@ -58,7 +59,7 @@ public class StandardPodUtils implements PodUtils {
                 return null;
             }
         } catch (Throwable t) {
-            LOGGER.warn("Failed to get pod with name:[" + hostName + "]. You should look into this if things aren't working as you expect. Are you missing serviceaccount permissions?", t);
+            LOG.warn("Failed to get pod with name:[" + hostName + "]. You should look into this if things aren't working as you expect. Are you missing serviceaccount permissions?", t);
             return null;
         }
     }

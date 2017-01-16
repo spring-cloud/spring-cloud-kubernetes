@@ -21,24 +21,26 @@ import com.netflix.client.config.IClientConfig;
 import com.netflix.loadbalancer.AbstractServerList;
 import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ServerList;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class KubernetesServerList extends AbstractServerList<Server> implements ServerList<Server> {
 
     private static final int FIRST = 0;
-    private static final Logger LOG = LoggerFactory.getLogger(KubernetesServerList.class);
+    private static final Log LOG = LogFactory.getLog(KubernetesServerList.class);
 
     private final KubernetesClient client;
 

@@ -23,8 +23,8 @@ import javax.annotation.PreDestroy;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
@@ -35,7 +35,7 @@ import org.springframework.core.env.PropertySource;
  */
 public abstract class ConfigurationChangeDetector {
 
-    protected Logger log = LoggerFactory.getLogger(getClass());
+    protected Log log = LogFactory.getLog(getClass());
 
     protected ConfigurableEnvironment environment;
 

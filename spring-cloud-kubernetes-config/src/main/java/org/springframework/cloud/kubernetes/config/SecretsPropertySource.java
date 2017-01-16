@@ -26,8 +26,9 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.StringUtils;
@@ -35,7 +36,7 @@ import org.springframework.util.StringUtils;
 import static org.springframework.cloud.kubernetes.config.ConfigUtils.*;
 
 public class SecretsPropertySource extends MapPropertySource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SecretsPropertySource.class);
+    private static final Log LOG = LogFactory.getLog(SecretsPropertySource.class);
 
     private static final String PREFIX = "secrets";
 
@@ -97,11 +98,10 @@ public class SecretsPropertySource extends MapPropertySource {
                     }
                 }
             } catch (Exception e) {
-                LOGGER.warn("Can't read secret with name: [{}] or labels [{}] in namespace:[{}] (cause: {}). Ignoring",
-                    name,
-                    config.getLabels(),
-                    namespace,
-                    e.getMessage());
+                LOG.warn("Can't read secret with name: [" + name +
+                        "] or labels [" + config.getLabels() +
+                        "] in namespace:[" + namespace +
+                        "] (cause: " + e.getMessage() + "). Ignoring");
             }
         }
 
@@ -133,7 +133,7 @@ public class SecretsPropertySource extends MapPropertySource {
                 .filter(Files::isRegularFile)
                 .forEach(p -> readFile(p, result));
         } catch (IOException e) {
-            LOGGER.warn("", e);
+            LOG.warn("", e);
         }
     }
 
@@ -143,7 +143,7 @@ public class SecretsPropertySource extends MapPropertySource {
                 path.getFileName().toString(),
                 new String(Files.readAllBytes(path)).trim());
         } catch (IOException e) {
-            LOGGER.warn("", e);
+            LOG.warn("", e);
         }
     }
 }

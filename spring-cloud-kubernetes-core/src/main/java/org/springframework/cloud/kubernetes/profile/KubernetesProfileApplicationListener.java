@@ -17,9 +17,10 @@
 package org.springframework.cloud.kubernetes.profile;
 
 import io.fabric8.kubernetes.api.model.Pod;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.PodUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.Ordered;
@@ -28,7 +29,7 @@ import org.springframework.core.env.Environment;
 
 public class KubernetesProfileApplicationListener implements ApplicationListener<ApplicationEnvironmentPreparedEvent>, Ordered {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(KubernetesProfileApplicationListener.class);
+    private static final Log LOG = LogFactory.getLog(KubernetesProfileApplicationListener.class);
 
     private static final String KUBERNETES_PROFILE = "kubernetes";
     private static final int OFFSET = 1;
@@ -55,14 +56,18 @@ public class KubernetesProfileApplicationListener implements ApplicationListener
 
         if (utils.isInsideKubernetes()) {
             if (hasKubernetesProfile(environment)) {
-                LOGGER.debug("'kubernetes' already in list of active profiles");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("'kubernetes' already in list of active profiles");
+                }
             } else {
-                LOGGER.debug("Adding 'kubernetes' to list of active profiles");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Adding 'kubernetes' to list of active profiles");
+                }
                 environment.addActiveProfile(KUBERNETES_PROFILE);
             }
         } else {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.warn("Not running inside kubernetes. Skipping 'kuberntes' profile activation.");
+            if (LOG.isDebugEnabled()) {
+                LOG.warn("Not running inside kubernetes. Skipping 'kuberntes' profile activation.");
             }
         }
     }

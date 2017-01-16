@@ -78,7 +78,7 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
                             }
                         }));
                 activated = true;
-                log.info("Added new Kubernetes watch: {}", name);
+                log.info("Added new Kubernetes watch: "+name);
             } catch (Exception e) {
                 log.error("Error while establishing a connection to watch config maps: configuration may remain stale", e);
             }
@@ -100,7 +100,7 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
                             }
                         }));
                 activated = true;
-                log.info("Added new Kubernetes watch: {}", name);
+                log.info("Added new Kubernetes watch: " + name);
             } catch (Exception e) {
                 log.error("Error while establishing a connection to watch secrets: configuration may remain stale", e);
             }
@@ -116,7 +116,7 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
         if (this.watches != null) {
             for (Map.Entry<String, Watch> entry : this.watches.entrySet()) {
                 try {
-                    log.debug("Closing the watch {}", entry.getKey());
+                    log.debug("Closing the watch "+ entry.getKey());
                     entry.getValue().close();
 
                 } catch (Exception e) {
