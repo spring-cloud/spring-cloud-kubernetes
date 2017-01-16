@@ -26,7 +26,6 @@ import java.util.Set;
 
 import org.springframework.util.Assert;
 
-import com.google.common.reflect.TypeToken;
 import com.netflix.client.config.IClientConfigKey;
 
 public abstract class KubernetesConfigKey<T> implements IClientConfigKey<T> {
@@ -93,7 +92,7 @@ public abstract class KubernetesConfigKey<T> implements IClientConfigKey<T> {
         Assert.isTrue(superclass instanceof ParameterizedType,
                 superclass + " isn't parameterized");
         Type runtimeType = ((ParameterizedType) superclass).getActualTypeArguments()[0];
-        type = (Class<T>) TypeToken.of(runtimeType).getRawType();
+        type = (Class<T>) Types.rawType(runtimeType);
     }
 
     @Override

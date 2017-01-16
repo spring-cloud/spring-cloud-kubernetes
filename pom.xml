@@ -209,7 +209,6 @@
 									<include>io.reactivex:*</include>
 									<include>io.zipkin.java:*</include>
 									<include>io.netty:*</include>
-									<include>com.google.guava:*</include>
 									<include>commons-*:*</include>
 								</includes>
 							</dependencies>
