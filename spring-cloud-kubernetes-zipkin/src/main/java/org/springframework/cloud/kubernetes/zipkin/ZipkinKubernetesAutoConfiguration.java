@@ -21,8 +21,6 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Utils;
 import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -47,7 +45,6 @@ import java.util.stream.Collectors;
 @AutoConfigureBefore(ZipkinAutoConfiguration.class)
 public class ZipkinKubernetesAutoConfiguration {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZipkinKubernetesAutoConfiguration.class);
 
     @Bean
     public ZipkinSpanReporter reporter(KubernetesClient client, KubernetesZipkinDiscoveryProperties discoveryProperties, SpanMetricReporter spanMetricReporter, ZipkinProperties zipkin) {
