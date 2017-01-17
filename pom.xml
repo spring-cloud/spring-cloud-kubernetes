@@ -69,7 +69,6 @@
 		<maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
 		<fabric8.maven.plugin.version>3.1.69</fabric8.maven.plugin.version>
 		<gmavenplus-plugin.version>1.2</gmavenplus-plugin.version>
-		<sundrio-plugin.vesion>0.3.4</sundrio-plugin.vesion>
 	</properties>
 
 	<modules>
@@ -161,79 +160,6 @@
 					<forkCount>1</forkCount>
 					<reuseForks>false</reuseForks>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>io.sundr</groupId>
-				<artifactId>sundr-maven-plugin</artifactId>
-				<version>${sundrio-plugin.vesion}</version>
-				<configuration>
-					<boms>
-						<bom>
-							<artifactId>spring-cloud-kubernetes-bom</artifactId>
-							<name>Spring Cloud Kubernetes :: Bom</name>
-							<dependencies>
-								<includes>
-									<include>io.fabric8:kubernetes-*</include>
-									<include>io.fabric8:openshift-*</include>
-								</includes>
-							</dependencies>
-							<plugins>
-								<includes>
-									<include>org.springframework.cloud.kubernetes:*</include>
-								</includes>
-							</plugins>
-							<properties>
-								<skipStagingRepositoryClose>true</skipStagingRepositoryClose>
-							</properties>
-							<inheritPluginManagement>true</inheritPluginManagement>
-						</bom>
-						<bom>
-							<artifactId>spring-cloud-kubernetes-bom-with-platform-deps</artifactId>
-							<name>Spring Cloud Kubernetes :: Bom with Platform Dependencies</name>
-							<dependencies>
-								<includes>
-									<include>javax.*:*</include>
-									<!-- Kubernetes Client -->
-									<include>io.fabric8:kubernetes-*</include>
-									<include>io.fabric8:openshift-*</include>
-									<include>com.squareup.okhttp:*</include>
-									<include>com.squareup.okio:*</include>
-
-									<!-- Spring -->
-									<include>org.springframework:*</include>
-									<include>org.springframework.boot:*</include>
-									<include>org.springframework.cloud:*</include>
-									<!-- Netflix -->
-									<include>com.netflix:*</include>
-									<!-- Common Transitives -->
-									<include>io.reactivex:*</include>
-									<include>io.zipkin.java:*</include>
-									<include>io.netty:*</include>
-									<include>commons-*:*</include>
-								</includes>
-							</dependencies>
-							<plugins>
-								<includes>
-									<include>io.fabric8:*</include>
-									<include>org.springframework.boot:*</include>
-								</includes>
-							</plugins>
-							<properties>
-								<skipStagingRepositoryClose>true</skipStagingRepositoryClose>
-							</properties>
-							<inheritDependencyManagement>true</inheritDependencyManagement>
-							<inheritPluginManagement>true</inheritPluginManagement>
-						</bom>
-					</boms>
-				</configuration>
-				<executions>
-					<execution>
-						<!--<goals> TODO: NPE
-							<goal>generate-bom</goal>
-						</goals>-->
-						<phase>none</phase>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 		<pluginManagement>
