@@ -36,6 +36,10 @@ public class StandardPodUtils implements PodUtils {
     private Supplier<Pod> current;
 
     public StandardPodUtils(KubernetesClient client) {
+        if (client == null) {
+            throw new IllegalArgumentException("Must provide an instance of KubernetesClient");
+        }
+
         this.client = client;
         this.hostName = System.getenv(HOSTNAME);
         this.current = LazilyInstantiate.using(() -> internalGetPod());
