@@ -14,8 +14,8 @@
 	<name>Spring Cloud Kubernetes :: Dependencies</name>
 	<description>Spring Cloud Kubernetes Dependencies</description>
 	<properties>
-		<kubernetes-client.version>1.4.14</kubernetes-client.version>
-		<mockwebserver.version>0.0.4</mockwebserver.version>
+		<kubernetes-client.version>2.2.0</kubernetes-client.version>
+		<mockwebserver.version>0.0.12</mockwebserver.version>
 		<spock-spring.version>1.0-groovy-2.3</spock-spring.version>
 	</properties>
 	<dependencyManagement>
