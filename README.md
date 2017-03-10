@@ -378,6 +378,12 @@ This module allows you to annotate your application with the `@ArchaiusConfigMap
 ---
 ### Troubleshooting
 
+#### Version and compatibility
+
+The current version of Spring Cloud Kubernetes is using version 2.2.x of the [Fabric8 Kubernetes Client](https://github.com/fabric8io/kubernetes-client) and is expected to work with version 1.x of [Kubernetes](https://github.com/kubernetes/kubernetes) and 1.x of [Openshift](https://github.com/openshift/origin).
+Note, that [Kubernetes](https://github.com/kubernetes/kubernetes) and [Openshift](https://github.com/openshift/origin) are for the most part backwards compatible so, its expected that this framework is compatible with both the latest and earlier versions.
+
+
 #### Namespace
 Most of the components provided in this project need to know the namespace. For Kubernetes (1.3+) the namespace is made available to pod as part of the service account secret and automatically detected by the client.
 For earlier version it needs to be specified as an env var to the pod. A quick way to do this is:
