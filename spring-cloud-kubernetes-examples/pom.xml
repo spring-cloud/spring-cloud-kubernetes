@@ -17,6 +17,7 @@
 
 	<modules>
 		<module>kubernetes-reload-example</module>
+		<module>kubernetes-hello-world-example</module>
 	</modules>
 
 
