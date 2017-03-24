@@ -29,7 +29,7 @@ public class LazilyInstantiate<T> implements Supplier<T> {
         return current.get();
     }
 
-    private LazilyInstantiate(Supplier supplier) {
+    private LazilyInstantiate(Supplier<T> supplier) {
         this.supplier = supplier;
         this.current = () -> swapper();
     }
