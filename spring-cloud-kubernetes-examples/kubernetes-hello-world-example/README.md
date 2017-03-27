@@ -20,16 +20,18 @@ When the client is installed on your machine, you can start kubernetes using thi
 minikube start
 ```
 
-Next, you can play with this Spring Boot application in the cloud using the following maven command to deploy:
+Next, you can play with this Spring Boot application in the cloud using the following maven command to deploy it:
 ```
 mvn clean package fabric8:deploy
-```     
-When the application has been deployed, you can access its service or endpoint:
+```  
+   
+When the application has been deployed, you can access its service or endpoint url using this command:
 ```   
-minikube service kubernetes-hello-world
+minikube service kubernetes-hello-world --url
 ```
   
-And next you can curl the endpoint
+And next you can curl the endpoint using the url returned by the previous command
+
 ``` 
 curl http://IP_OR_HOSTNAME/
 ```
@@ -43,4 +45,6 @@ When the service becomes available, the unit test which is a HTTP Client will ca
 
 To play with the integration test, execute the following maven command:     
 
+``` 
 mvn clean install -Pintegration
+```
