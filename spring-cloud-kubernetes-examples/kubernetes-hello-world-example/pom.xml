@@ -12,7 +12,9 @@
 	<groupId>org.springframework.cloud</groupId>
 	<artifactId>kubernetes-hello-world</artifactId>
 	<name>Spring Cloud Kubernetes :: Examples :: Hello World</name>
-	<description>A simple example that demonstrates how to build and test a basic spring cloud kubernetes app</description>
+	<description>A simple example that demonstrates how to build and test a basic spring
+		cloud kubernetes app
+	</description>
 
 	<dependencyManagement>
 		<dependencies>
@@ -113,7 +115,7 @@
 						<id>fmp</id>
 						<goals>
 							<goal>resource</goal>
-							<goal>helm</goal>
+							<goal>build</goal>
 						</goals>
 					</execution>
 				</executions>
@@ -122,6 +124,27 @@
 	</build>
 
 	<profiles>
+		<profile>
+			<id>kubernetes</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>fabric8-maven-plugin</artifactId>
+						<version>${fabric8.maven.plugin.version}</version>
+						<executions>
+							<execution>
+								<id>fmp</id>
+								<goals>
+									<goal>resource</goal>
+									<goal>build</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 		<profile>
 			<id>release</id>
 			<build>
