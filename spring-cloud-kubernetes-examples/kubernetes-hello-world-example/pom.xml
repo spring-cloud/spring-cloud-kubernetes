@@ -115,7 +115,6 @@
 						<id>fmp</id>
 						<goals>
 							<goal>resource</goal>
-							<goal>build</goal>
 						</goals>
 					</execution>
 				</executions>
