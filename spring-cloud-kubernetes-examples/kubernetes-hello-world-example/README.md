@@ -22,7 +22,7 @@ minikube start
 
 Next, you can play with this Spring Boot application in the cloud using the following maven command to deploy it:
 ```
-mvn clean package fabric8:deploy
+mvn clean package fabric8:deploy -Pkubernetes
 ```  
    
 When the application has been deployed, you can access its service or endpoint url using this command:
