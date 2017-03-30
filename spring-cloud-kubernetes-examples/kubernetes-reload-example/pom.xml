@@ -123,6 +123,15 @@
 								</goals>
 							</execution>
 						</executions>
+						<configuration>
+							<enricher>
+								<config>
+									<fmp-service>
+										<type>NodePort</type>
+									</fmp-service>
+								</config>
+							</enricher>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>
