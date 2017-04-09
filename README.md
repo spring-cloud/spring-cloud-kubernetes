@@ -334,7 +334,7 @@ If the endpoint contains multiple ports, the first port will be used. To fine tu
 
 Examples that are using this module for ribbon discovery are:
 
-- [iPaas Quickstarts - Spring Boot - Ribbon](https://github.com/fabric8io/ipaas-quickstarts/tree/master/quickstart/spring-boot/ribbon)
+- [fabric8-quickstarts - Spring Boot - Ribbon](https://github.com/fabric8-quickstarts/spring-boot-ribbon)
 - [Kubeflix - LoanBroker - Bank](https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank)
 
 
@@ -360,7 +360,7 @@ This works as an extension of [spring-cloud-sleuth-zipkin](https://github.com/sp
 
 Examples of application that are using Zipkin discovery in Kubernetes:
 
-- [iPaas Quickstarts - Spring Boot - Ribbon](https://github.com/fabric8io/ipaas-quickstarts/tree/master/quickstart/spring-boot/ribbon)
+- [fabric8-quickstarts - Spring Boot - Ribbon](https://github.com/fabric8-quickstarts/spring-boot-ribbon)
 - [Kubeflix - LoanBroker - Bank](https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank)
 
 ### ConfigMap Archaius Bridge
