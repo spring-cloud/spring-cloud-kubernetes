@@ -123,6 +123,18 @@
 								</goals>
 							</execution>
 						</executions>
+						<configuration>
+							<enricher>
+								<config>
+									<fmp-controller>
+										<name>spring-cloud-reload</name>
+								    </fmp-controller>
+									<fmp-service>
+										<name>spring-cloud-reload</name>
+									</fmp-service>
+								</config>
+							</enricher>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>
