@@ -146,6 +146,7 @@
 								    </fmp-controller>
 									<fmp-service>
 										<name>spring-cloud-reload</name>
+										<type>NodePort</type>
 									</fmp-service>
 								</config>
 							</enricher>
