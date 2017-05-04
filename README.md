@@ -144,7 +144,7 @@ This can be externalized to Secrets in yaml format:
       amq.password: MWYyZDFlMmU2N2Rm
     ```    
 
-- **PostreSQL**
+- **PostgreSQL**
     ```yaml
     apiVersion: v1
     kind: Secret
@@ -154,8 +154,8 @@ This can be externalized to Secrets in yaml format:
         db: postgres
     type: Opaque
     data:
-      amq.username: dXNlcgo=
-      amq.password: cGdhZG1pbgo=
+      pg.username: dXNlcgo=
+      pg.password: cGdhZG1pbgo=
     ```    
 
 You can select the Secrets to consume in a number of ways:    
