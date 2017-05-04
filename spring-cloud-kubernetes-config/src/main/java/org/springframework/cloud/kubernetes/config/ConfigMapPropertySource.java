@@ -82,7 +82,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
                 }
             }
         } catch (Exception e) {
-            LOG.warn("Can't read configMap with name: [" + name + "] in namespace:[" + namespace + "]. Ignoring");
+            LOG.warn("Can't read configMap with name: [" + name + "] in namespace:[" + namespace + "]. Ignoring", e);
         }
         return result;
     }
