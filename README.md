@@ -86,7 +86,7 @@ data:
   pool.size.max: 16
 ```    
 
-Individual properties work fine for most cases but sometimes we yaml is more convinient. In this case we will use a single property named `application.yaml` and embed our yaml inside it:
+Individual properties work fine for most cases but sometimes yaml is more convinient. In this case we will use a single property named `application.yaml` and embed our yaml inside it:
 
  ```yaml
 kind: ConfigMap
