@@ -5,7 +5,8 @@ As the Ribbon Kubernetes client is configured within this example, it will fetch
 
 ### Running the example
 
-The project can be deployed on the Kubernetes or OpenShift platform using the [Minishift](https://github.com/minishift/minishift) or [Minikube](https://kubernetes.io/docs/getting-started-guides/minikube/) tool.
+This project example runs on ALL the Kubernetes or OpenShift environments, but for development purposes you can use [Minishift - OpenShift](https://github.com/minishift/minishift) or [Minikube - Kubernetes](https://kubernetes.io/docs/getting-started-guides/minikube/) tool
+to install the platform locally within a virtual machine managed by VirtualBox, Xhyve or KVM, with no fuss.
 
 ### Build/Deploy using Minikube
 
