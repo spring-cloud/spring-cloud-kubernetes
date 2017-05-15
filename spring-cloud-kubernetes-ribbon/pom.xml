@@ -120,6 +120,7 @@
 		<dependency>
 			<groupId>io.fabric8</groupId>
 			<artifactId>mockwebserver</artifactId>
+			<version>0.0.13</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
