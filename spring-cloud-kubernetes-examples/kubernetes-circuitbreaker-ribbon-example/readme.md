@@ -73,7 +73,7 @@ Hello from name-service-1-0ss0r!
 ```
 
 As Ribbon will question the Kubernetes API to get, base on the `name-service` name, the list of IP Addresses assigned to the service as endpoints,
-you should see that you will get a reponse from one of the 2 pods running
+you should see that you will get a response from one of the 2 pods running
 
 ```
 kc get endpoints/name-service
