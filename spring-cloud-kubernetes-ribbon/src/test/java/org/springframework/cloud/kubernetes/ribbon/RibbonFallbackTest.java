@@ -25,6 +25,8 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.server.mock.KubernetesServer;
 import io.fabric8.mockwebserver.DefaultMockServer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -65,6 +67,9 @@ public class RibbonFallbackTest {
 
 	public static KubernetesClient mockClient;
 
+	private static final Log LOG = LogFactory.getLog(RibbonFallbackTest.class);
+
+
 	@Autowired
 	RestTemplate restTemplate;
 
@@ -92,6 +97,7 @@ public class RibbonFallbackTest {
 		mockEndpoint.expect().get().withPath("/greeting").andReturn(200, "Hello from A").once();
 		String response = restTemplate.getForObject("http://testapp/greeting", String.class);
 		Assert.assertEquals("Hello from A",response);
+		LOG.debug(">>>>>>>>>> TEST 1 <<<<<<<<<<<<<");
 	}
 
 	@Test
@@ -104,6 +110,7 @@ public class RibbonFallbackTest {
 		catch (Exception e) {
 			// No endpoint is available anymore and Ribbon list is empty
 			Assert.assertEquals("No instances available for testapp",e.getMessage());
+			LOG.debug(">>>>>>>>>> TEST 2 <<<<<<<<<<<<<");
 		}
 	}
 
@@ -117,6 +124,7 @@ public class RibbonFallbackTest {
 		mockEndpoint.expect().get().withPath("/greeting").andReturn(200, "Hello from A").once();
 		String response = restTemplate.getForObject("http://testapp/greeting", String.class);
 		Assert.assertEquals("Hello from A",response);
+		LOG.debug(">>>>>>>>>> TEST 3 <<<<<<<<<<<<<");
 	}
 
 	public static Endpoints newEndpoint(String name, String namespace, DefaultMockServer mockServer) {
