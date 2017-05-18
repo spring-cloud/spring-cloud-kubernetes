@@ -71,6 +71,11 @@
 			<artifactId>arquillian-cube-kubernetes</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.arquillian.cube</groupId>
+			<artifactId>arquillian-cube-openshift</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 	</dependencies>
 
@@ -188,7 +193,6 @@
 								<id>fmp</id>
 								<goals>
 									<goal>resource</goal>
-									<goal>helm</goal>
 									<goal>build</goal>
 								</goals>
 							</execution>
