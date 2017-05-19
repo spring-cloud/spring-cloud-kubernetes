@@ -4,6 +4,10 @@
 			xsi:schemaLocation="http://jboss.org/schema/arquillian
     http://jboss.org/schema/arquillian/arquillian_1_0.xsd">
 
-	<extension qualifier="kubernetes">
+	<extension qualifier="openshift">
+		<property name="namespace.use.existing">it</property>
+		<!-- <property name="wait.timeout">600000</property>-->
+		<property name="env.config.resource.name">openshift.yml</property>
+		<property name="namespace.cleanup.enabled">true</property>
 	</extension>
 </arquillian>
