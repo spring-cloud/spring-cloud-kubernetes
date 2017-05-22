@@ -11,9 +11,7 @@ backend:
       enabled: false
     client:
        enabled: true
-    # We will use Spring Cloud Kubernetes Ribbon to retrieve the list of the servers
-    # listOfServers: backend:8080
-    ServerListRefreshInterval: 15000
+    ServerListRefreshInterval: 5000
 
-hystrix.command.BackendCall.execution.isolation.thread.timeoutInMilliseconds: 30000
+hystrix.command.BackendCall.execution.isolation.thread.timeoutInMilliseconds: 5000
 hystrix.threadpool.BackendCallThread.coreSize: 5
