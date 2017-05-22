@@ -26,6 +26,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.sleuth.metric.SpanMetricReporter;
+import org.springframework.cloud.sleuth.zipkin.DefaultZipkinRestTemplateCustomizer;
 import org.springframework.cloud.sleuth.zipkin.HttpZipkinSpanReporter;
 import org.springframework.cloud.sleuth.zipkin.ZipkinAutoConfiguration;
 import org.springframework.cloud.sleuth.zipkin.ZipkinProperties;
@@ -33,6 +34,7 @@ import org.springframework.cloud.sleuth.zipkin.ZipkinSpanReporter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
+import org.springframework.web.client.RestTemplate;
 import zipkin.Span;
 
 import java.util.List;
@@ -59,7 +61,7 @@ public class ZipkinKubernetesAutoConfiguration {
 
         return serviceUrl == null || serviceUrl.isEmpty()
                 ? new NullZipkinSpanReporter()
-                : new HttpZipkinSpanReporter(serviceUrl, zipkin.getFlushInterval(), zipkin.getCompression().isEnabled(), spanMetricReporter);
+                : new HttpZipkinSpanReporter(restTemplateWithCompression(), serviceUrl, zipkin.getFlushInterval(), spanMetricReporter);
     }
 
     private static List<ServiceInstance> getInstances(KubernetesClient client, String name, String namespace) {
@@ -80,4 +82,16 @@ public class ZipkinKubernetesAutoConfiguration {
 
         }
     }
+
+	private RestTemplate restTemplateWithCompression() {
+		ZipkinProperties zipkinProperties = new ZipkinProperties();
+		zipkinProperties.getCompression().setEnabled(true);
+		return restTemplate(zipkinProperties);
+	}
+
+	private RestTemplate restTemplate(ZipkinProperties zipkinProperties) {
+		RestTemplate restTemplate = new RestTemplate();
+		new DefaultZipkinRestTemplateCustomizer(zipkinProperties).customize(restTemplate);
+		return restTemplate;
+	}
 }
