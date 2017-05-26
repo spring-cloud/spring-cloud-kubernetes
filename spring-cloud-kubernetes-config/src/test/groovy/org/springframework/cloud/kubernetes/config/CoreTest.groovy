@@ -24,20 +24,20 @@ import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.server.mock.KubernetesMockServer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.test.IntegrationTest
-import org.springframework.boot.test.SpringApplicationConfiguration
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
+import org.springframework.test.context.ContextConfiguration
 import spock.lang.Specification
 import groovy.util.logging.Slf4j
 
 @Slf4j
-@SpringApplicationConfiguration(TestApplication.class)
-@IntegrationTest([
-    "spring.application.name=testapp",
-    "spring.cloud.kubernetes.client.namespace=testns",
-    "spring.cloud.kubernetes.client.trustCerts=true",
-    "spring.cloud.kubernetes.config.namespace=testns",
-    "spring.cloud.kubernetes.secrets.enableApi=true"
+@ContextConfiguration(classes=[TestApplication.class])
+@SpringBootTest(properties=[
+	"spring.application.name=testapp",
+	"spring.cloud.kubernetes.client.namespace=testns",
+	"spring.cloud.kubernetes.client.trustCerts=true",
+	"spring.cloud.kubernetes.config.namespace=testns",
+	"spring.cloud.kubernetes.secrets.enableApi=true"
 ])
 @EnableConfigurationProperties
 class CoreTest extends Specification {
