@@ -21,19 +21,19 @@ import io.fabric8.kubernetes.api.model.EndpointsBuilder
 import io.fabric8.kubernetes.client.Config
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.server.mock.KubernetesMockServer
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cloud.kubernetes.ribbon.KubernetesRibbonClientConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.test.IntegrationTest
-import org.springframework.boot.test.SpringApplicationConfiguration
 import org.springframework.cloud.client.loadbalancer.LoadBalancerInterceptor
 import org.springframework.cloud.netflix.ribbon.RibbonClient
+import org.springframework.test.context.ContextConfiguration
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
 
 @EnableAutoConfiguration
-@SpringApplicationConfiguration(TestApplication.class)
-@IntegrationTest(
+@ContextConfiguration(classes=[TestApplication.class])
+@SpringBootTest(properties=
         [
                 "spring.application.name=testapp",
                 "spring.cloud.kubernetes.client.namespace=testns",
