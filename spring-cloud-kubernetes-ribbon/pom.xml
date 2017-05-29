@@ -30,6 +30,11 @@
 	<artifactId>spring-cloud-kubernetes-ribbon</artifactId>
 	<name>Spring Cloud Kubernetes :: Ribbon</name>
 
+	<properties>
+		<!-- Value calculated for Circleci -->
+		<service.occurence>5</service.occurence>
+	</properties>
+
 	<dependencies>
 
 		<dependency>
@@ -120,7 +125,6 @@
 		<dependency>
 			<groupId>io.fabric8</groupId>
 			<artifactId>mockwebserver</artifactId>
-			<version>0.0.13</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -129,5 +133,20 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>-Dservice</argLine>
+					<systemPropertyVariables>
+						<service.occurence>${service.occurence}</service.occurence>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>

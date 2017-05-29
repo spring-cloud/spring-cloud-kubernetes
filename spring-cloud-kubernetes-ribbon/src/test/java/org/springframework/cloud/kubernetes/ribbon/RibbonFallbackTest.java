@@ -31,6 +31,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -61,6 +62,9 @@ public class RibbonFallbackTest {
 	public static KubernetesClient mockClient;
 
 	private static final Log LOG = LogFactory.getLog(RibbonFallbackTest.class);
+
+	@Value("${service.occurence}")
+	private int SERVICE_OCCURENCE;
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -93,7 +97,7 @@ public class RibbonFallbackTest {
 		// to be sure that Ribbon will get the mockendpoint to access it for the call
 		mockServer.expect().get()
 			.withPath("/api/v1/namespaces/testns/endpoints/testapp")
-			.andReturn(200, newEndpoint("testapp-a","testns", mockEndpoint)).times(5);
+			.andReturn(200, newEndpoint("testapp-a","testns", mockEndpoint)).times(SERVICE_OCCURENCE);
 
 		mockEndpoint.expect().get().withPath("/greeting").andReturn(200, "Hello from A").once();
 		String response = restTemplate.getForObject("http://testapp/greeting", String.class);
