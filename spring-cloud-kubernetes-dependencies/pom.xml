@@ -20,6 +20,9 @@
 		<mockwebserver.version>0.0.12</mockwebserver.version>
 		<restassured.version>3.0.2</restassured.version>
 		<spock-spring.version>1.0-groovy-2.3</spock-spring.version>
+		<version.jaeger>0.19.0</version.jaeger>
+		<io.opentracing.version>0.22.0</io.opentracing.version>
+		<io.opentracing.contrib.spring.autoconfigure.version>0.0.4</io.opentracing.contrib.spring.autoconfigure.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -74,6 +77,11 @@
 				<version>${project.version}</version>
 			</dependency>
 
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-kubernetes-jaeger</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
 			<!-- Own dependencies - Starters -->
 			<dependency>
@@ -105,6 +113,27 @@
 				<artifactId>spring-cloud-starter-kubernetes-all</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+
+			<!-- OpenTracing -->
+			<dependency>
+				<groupId>io.opentracing</groupId>
+				<artifactId>opentracing-noop</artifactId>
+				<version>${io.opentracing.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.opentracing.contrib</groupId>
+				<artifactId>opentracing-spring-web-autoconfigure</artifactId>
+				<version>${io.opentracing.contrib.spring.autoconfigure.version}</version>
+			</dependency>
+
+			<!-- OpenTracing implementation - Jaeger -->
+			<dependency>
+				<groupId>com.uber.jaeger</groupId>
+				<artifactId>jaeger-core</artifactId>
+				<version>${version.jaeger}</version>
+			</dependency>
+
 
 			<!-- Testing Dependencies -->
 			<dependency>
@@ -159,6 +188,8 @@
 				<artifactId>spock-spring</artifactId>
 				<version>${spock-spring.version}</version>
 			</dependency>
+
+
 		</dependencies>
 	</dependencyManagement>
 	<profiles>
