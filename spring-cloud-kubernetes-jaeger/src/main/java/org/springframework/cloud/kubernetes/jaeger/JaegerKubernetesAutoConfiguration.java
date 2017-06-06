@@ -17,13 +17,24 @@
 
 package org.springframework.cloud.kubernetes.jaeger;
 
-import java.net.InetAddress;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.uber.jaeger.metrics.Metrics;
+import com.uber.jaeger.metrics.NullStatsReporter;
+import com.uber.jaeger.metrics.StatsFactoryImpl;
+import com.uber.jaeger.reporters.RemoteReporter;
+import com.uber.jaeger.samplers.ProbabilisticSampler;
+import com.uber.jaeger.senders.Sender;
+import com.uber.jaeger.senders.UdpSender;
+import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.utils.Utils;
+import io.opentracing.NoopTracerFactory;
+import io.opentracing.Tracer;
+import io.opentracing.contrib.spring.web.autoconfig.TracerAutoConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -33,21 +44,6 @@ import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
-
-import com.uber.jaeger.metrics.Metrics;
-import com.uber.jaeger.metrics.NullStatsReporter;
-import com.uber.jaeger.metrics.StatsFactoryImpl;
-import com.uber.jaeger.reporters.RemoteReporter;
-import com.uber.jaeger.samplers.ProbabilisticSampler;
-import com.uber.jaeger.senders.Sender;
-import com.uber.jaeger.senders.UdpSender;
-
-import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.utils.Utils;
-import io.opentracing.NoopTracerFactory;
-import io.opentracing.Tracer;
-import io.opentracing.contrib.spring.web.autoconfig.TracerAutoConfiguration;
 
 @Configuration
 @AutoConfigureBefore(TracerAutoConfiguration.class)
