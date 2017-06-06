@@ -21,19 +21,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.uber.jaeger.metrics.Metrics;
-import com.uber.jaeger.metrics.NullStatsReporter;
-import com.uber.jaeger.metrics.StatsFactoryImpl;
-import com.uber.jaeger.reporters.RemoteReporter;
-import com.uber.jaeger.samplers.ProbabilisticSampler;
-import com.uber.jaeger.senders.Sender;
-import com.uber.jaeger.senders.UdpSender;
-import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.utils.Utils;
-import io.opentracing.Tracer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
@@ -41,33 +31,30 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
+import com.uber.jaeger.metrics.Metrics;
+import com.uber.jaeger.metrics.NullStatsReporter;
+import com.uber.jaeger.metrics.StatsFactoryImpl;
+import com.uber.jaeger.reporters.RemoteReporter;
+import com.uber.jaeger.samplers.ProbabilisticSampler;
+import com.uber.jaeger.senders.Sender;
+import com.uber.jaeger.senders.UdpSender;
+
+import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.utils.Utils;
+import io.opentracing.NoopTracerFactory;
+import io.opentracing.Tracer;
+import io.opentracing.contrib.spring.web.autoconfig.TracerAutoConfiguration;
+
 @Configuration
+@AutoConfigureBefore(TracerAutoConfiguration.class)
 @EnableConfigurationProperties(KubernetesJaegerDiscoveryProperties.class)
 public class JaegerKubernetesAutoConfiguration {
 
-	@Autowired
-	private Tracer noopTracer;
-
-	// TODO - Check how we can return noopTracer and avoid
-	/**
-	 * ***************************
-	 APPLICATION FAILED TO START
-	 ***************************
-
-	 Description:
-
-	 Parameter 0 of method tracingFilter in io.opentracing.contrib.spring.web.autoconfig.ServerTracingAutoConfiguration required a single bean, but 2 were found:
-	 - noopTracer: defined by method 'noopTracer' in class path resource [io/opentracing/contrib/spring/web/autoconfig/TracerAutoConfiguration.class]
-	 - reporter: defined by method 'reporter' in class path resource [org/springframework/cloud/kubernetes/jaeger/JaegerKubernetesAutoConfiguration.class]
-
-
-	 Action:
-
-	 Consider marking one of the beans as @Primary, updating the consumer to accept multiple beans, or using @Qualifier to identify the bean that should be consumed
-	 */
+	private static final Log LOG = LogFactory.getLog(JaegerKubernetesAutoConfiguration.class);
 
     @Bean
-    public Tracer reporter(KubernetesClient client, KubernetesJaegerDiscoveryProperties discoveryProperties) {
+    public Tracer tracer(KubernetesClient client, KubernetesJaegerDiscoveryProperties discoveryProperties) {
 
     	String serviceName = discoveryProperties.getServiceName();
     	String traceServerName = discoveryProperties.getTracerServerName();
@@ -79,9 +66,12 @@ public class JaegerKubernetesAutoConfiguration {
                 .map(s -> s.getUri().toString())
                 .orElse(null);
 
-        return serviceUrl == null || serviceUrl.isEmpty()
-                ? noopTracer
-                : jaegerTracer(serviceUrl, serviceName);
+        if (serviceUrl == null || serviceUrl.isEmpty()) {
+			LOG.info("Jaeger k8s starter creating Noop Tracer");
+            return NoopTracerFactory.create();
+        }
+
+        return  jaegerTracer(serviceUrl, serviceName);
     }
 
     private static List<ServiceInstance> getInstances(KubernetesClient client, String name, String namespace) {
