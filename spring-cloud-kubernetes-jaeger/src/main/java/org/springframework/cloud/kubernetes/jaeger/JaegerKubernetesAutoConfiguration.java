@@ -17,6 +17,9 @@
 
 package org.springframework.cloud.kubernetes.jaeger;
 
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -54,7 +57,7 @@ public class JaegerKubernetesAutoConfiguration {
 	private static final Log LOG = LogFactory.getLog(JaegerKubernetesAutoConfiguration.class);
 
     @Bean
-    public Tracer tracer(KubernetesClient client, KubernetesJaegerDiscoveryProperties discoveryProperties) {
+    public Tracer tracer(KubernetesClient client, KubernetesJaegerDiscoveryProperties discoveryProperties) throws Exception {
 
     	String serviceName = discoveryProperties.getServiceName();
     	String traceServerName = discoveryProperties.getTracerServerName();
@@ -85,8 +88,9 @@ public class JaegerKubernetesAutoConfiguration {
                 .collect(Collectors.toList());
     }
 
-	private Tracer jaegerTracer(String url, String serviceName) {
-		Sender sender = new UdpSender(url, 0, 0);
+	private Tracer jaegerTracer(String serviceURL, String serviceName) throws Exception {
+		URL url = new URL(serviceURL);
+		Sender sender = new UdpSender(url.getHost(), url.getPort(), 0);
 		return new com.uber.jaeger.Tracer.Builder(serviceName,
 			new RemoteReporter(sender, 100, 50,
 				new Metrics(new StatsFactoryImpl(new NullStatsReporter()))),
