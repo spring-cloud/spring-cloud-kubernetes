@@ -1,30 +1,32 @@
 ## Kubernetes Zipkin Example
 
-This project demonstrates how a Spring Boot application generating statistics as Spring Cloud Sleuth Spans/traces can send them to a ZipKin server deployed in Kubernetes without the need to
-configure the baseUrl of the ZipKin server deployed as the server will be discovered. The spans/traces generated can be viewed within the zipkin dashboard under the `serviceName=sleuth-zipkin`
+This project demonstrates how a Spring Boot application generating statistics as Spring Cloud Sleuth Spans/Traces can send them to a ZipKin server deployed in Kubernetes without the need to
+configure the baseUrl of the ZipKin server deployed as the server will be discovered. The spans/traces generated can be viewed within the Zipkin dashboard under the `serviceName=sleuth-zipkin`
 
-The Zipkin server is deployed according to the steps described within the Minishift or Minikube section.
+The Zipkin server is deployed according to the steps described within the `Minishift` or `Minikube` section.
 
-The project exposes under the `TraceController` different endpoints that you can play with in order to generate traces in sync/async way, to associate a trace with a Span
-...
+The project exposes under the `TraceController` 2 endpoints `/` and `/hi` that you can play with in order to generate traces. When you call the root endpoint `/`, then
+it will issue a call against the second endpoint `/hi` and you will receive `/hi/hello` as response. If you look to the Zipkin dashboard, you will be able to get 2 traces recorded.
 
-Here is an example of such implementation
 
 ```
-@RequestMapping("/traced")
-public String traced() throws InterruptedException {
-	Span span = this.tracer.createSpan("http:customTraceEndpoint",
-			new AlwaysSampler());
-	int millis = this.random.nextInt(1000);
-	log.info(String.format("Sleeping for [%d] millis", millis));
-	Thread.sleep(millis);
-	this.tracer.addTag("random-sleep-millis", String.valueOf(millis));
+	@RequestMapping("/")
+	public String say() throws InterruptedException {
+		Thread.sleep(this.random.nextInt(1000));
+		log.info("Home");
+		String s = this.restTemplate.getForObject("http://localhost:" + this.port
+				+ "/hi", String.class);
+		return "hi/" + s;
+	}
 
-	String s = this.restTemplate.getForObject("http://localhost:" + this.port
-			+ "/call", String.class);
-	this.tracer.close(span);
-	return "traced/" + s;
-}
+	@RequestMapping("/hi")
+	public String hi() throws InterruptedException {
+		log.info("hi");
+		int millis = this.random.nextInt(1000);
+		Thread.sleep(millis);
+		this.tracer.addTag("random-sleep-millis", String.valueOf(millis));
+		return "hello";
+	}
 ```
 
 ### Running the example
@@ -90,9 +92,7 @@ like also the endpoint to call to generate traces
 ```
 export ENDPOINT=$(minikube service kubernetes-zipkin --url)
 curl $ENDPOINT
-curl $ENDPOINT/call
-curl $ENDPOINT/traced
-curl $ENDPOINT/async
+curl $ENDPOINT/hi
 ```
 
 ### Build/Deploy using Minishift
@@ -106,7 +106,7 @@ we will install the circuit breaker and load balancing application
 oc new-project zipkin
 ```
 
-When using OpenShift, you must assign the `view` role to the *default* service account in the current project in orde to allow our Java Kubernetes Api to access
+When using OpenShift, you must assign the `view` role to the *default* service account in the current project in order to allow our Java Kubernetes Api to access
 the API Server :
 
 ```
@@ -140,18 +140,16 @@ like also to deploy the application on the OpenShift platform in one maven line 
 mvn clean install fabric8:deploy -Pkubernetes
 ```
 
-You can find the address of the zipkin server to be opened within your browser using this command
+You can find the address of the Zipkin server to be opened within your browser using this command
 
 ```
-minishift openshift service zipkin --url -n zipkin
+oc get route/zipkin --template='{{.spec.host}}'
 ```
 
 like also the endpoint to call to generate traces
 
 ```
-export ENDPOINT=$(minishift openshift service kubernetes-zipkin --url -n zipkin)
+export ENDPOINT=$(oc get route/kubernetes-zipkin --template='{{.spec.host}}')
 curl $ENDPOINT
-curl $ENDPOINT/call
-curl $ENDPOINT/traced
-curl $ENDPOINT/async
+curl $ENDPOINT/hi
 ```
