@@ -41,7 +41,7 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
             ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
             String name = getApplicationName(environment, properties);
             String namespace = getApplicationNamespace(client, env, properties);
-            return new ConfigMapPropertySource(client, name, namespace);
+            return new ConfigMapopertySource(client, name, namespace, env.getActiveProfiles());
         }
         return null;
     }
