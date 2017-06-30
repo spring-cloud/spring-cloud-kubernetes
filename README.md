@@ -42,49 +42,58 @@ This is something that you get for free just by adding the following dependency 
 </dependency>
 ```
 
-Then you can inject the client in your cloud simply by:
+Then you can inject the client in your code simply by:
 
 ```java
 @Autowire
 private DiscoveryClient discoveryClient;
 ```
 
-If for any reason you need to disable the `DiscoveryClient` you can simply set the following property:
+If for any reason you need to disable the `DiscoveryClient` you can simply set the following property in `application
+.properties`:
 
 ```
 spring.cloud.kubernetes.discovery.enabled=false
 ```
 
-Some spring cloud components use the `DiscoveryClient` in order obtain info about the local service instance. For this to work you need to align the service name with `spring.application.name`.
+// TODO: make clearer with an example and details on how to align service and application name
+Some Spring Cloud components use the `DiscoveryClient` in order to obtain info about the local service instance. For 
+this to work you need to align the service name with the `spring.application.name` property.
 
 ### Kubernetes PropertySource
 
-The most common approach to configure your spring boot application is to create an `application.properties|yaml` or an `application-profile.properties|yaml` file containing keys able to customize your application or the 
-Spring Boot starters. Often the user may override properties by specifying system properties or env variables.
+The most common approach to configure your Spring Boot application is to create an `application.properties|yaml` or 
+an `application-profile.properties|yaml` file containing key-value pairs providing customization values to your 
+application or Spring Boot starters. Users may override these properties by specifying system properties or environment 
+variables.
 
 #### ConfigMap PropertySource
 
-Kubernetes, to externalize the parameters, proposes a resource named [ConfigMap](http://kubernetes.io/docs/user-guide/configmap/) for passing such keys or to embed an `application.properties|yaml` file containing the keys
-to the application. The `Spring Cloud Kubernetes Config` project provides an integration of the `ConfigMap` to make the Config Maps accessible during the bootstrapping of the application or to hot reload beans, spring context
-if a change is observed within a `ConfigMap`.
+Kubernetes provides a resource named [ConfigMap](http://kubernetes.io/docs/user-guide/configmap/) to externalize the 
+parameters to pass to your application in the form of key-value pairs or embedded `application.properties|yaml` files.
+The [Spring Cloud Kubernetes Config](./spring-cloud-kubernetes-config) project makes Kubernetes `ConfigMap`s available 
+during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on 
+observed `ConfigMap`s.
 
-The `ConfigMapPropertySource` when called will lookup Kubernetes for a `ConfigMap` named after the name of the application (see `spring.application.name`) or yours name if you have
-defined within the `bootstrap.properties` file the following key `spring.cloud.kubernetes.config.name`.
+`ConfigMapPropertySource` will search for a Kubernetes `ConfigMap` which `metadata.name` is either the name of 
+your Spring application (as defined by its `spring.application.name` property) or a custom name defined within the
+`bootstrap.properties` file under the following key `spring.cloud.kubernetes.config.name`.
 
-If the map is found it will read its data and do the following:
+If such a `ConfigMap` is found, it will be processed as follows:
 
 - apply individual configuration properties.
-- apply as yaml the content of any property named `application.yaml`
+- apply as `yaml` the content of any property named `application.yaml`
 - apply as properties file the content of any property named `application.properties`
 
 Example:
 
-Let's assume that we have a spring boot application named ``demo`` that uses properties to read its thread pool configuration.
+Let's assume that we have a Spring Boot application named ``demo`` that uses properties to read its thread pool 
+configuration.
 
 - `pool.size.core`
 - `pool.size.maximum`
 
-This can be externalized to config map in yaml format:
+This can be externalized to config map in `yaml` format:
 
 ```yaml
 kind: ConfigMap
@@ -96,7 +105,8 @@ data:
   pool.size.max: 16
 ```    
 
-Individual properties work fine for most cases but sometimes we yaml is more convenient. In this case we will use a single property named `application.yaml` and embed our yaml inside it:
+Individual properties work fine for most cases but sometimes embedded `yaml` is more convenient. In this case we will 
+use a single property named `application.yaml` to embed our `yaml`:
 
  ```yaml
 kind: ConfigMap
@@ -111,8 +121,9 @@ data:
         max:16
 ```
 
-As a Spring Boot application supports to be configured using some defined `profiles`, you can also define your profiles using an `application.properties|yaml` file
-where the different profiles are defined as such:
+Spring Boot applications can also be configured differently depending on active profiles and it is possible to 
+provide different property values for different profiles using an `application.properties|yaml` property, specifying 
+profile-specific values each in their own document (indicated by the `---` sequence) as follows:
  
 ```yaml
 kind: ConfigMap
@@ -135,11 +146,9 @@ data:
       message: Say Hello to the Ops
 ```
 
-To tell to Spring Boot which `profile` should be enabled at boot strap, a system property can be passed to the java instruction command
-line responsible to launch Spring Boot using an env variable that you will define with the OpenShift `DeploymentConfig` or Kubernetes `ReplicationConfig`
-resource file.
-
-Example :
+To tell to Spring Boot which `profile` should be enabled at bootstrap, a system property can be passed to the Java 
+command launching your Spring Boot application using an env variable that you will define with the OpenShift 
+`DeploymentConfig` or Kubernetes `ReplicationConfig` resource file as follows:
 
 ```yaml
   env:
@@ -148,7 +157,7 @@ Example :
 ```
 
 **Notes:**
-- To access ConfigMaps on OpenShift the service account needs at least view permissions i.e.:
+- To access `ConfigMap`s on OpenShift the service account needs at least view permissions i.e.:
 
     ```oc policy add-role-to-user view system:serviceaccount:$(oc project -q):default -n $(oc project -q)```
     
@@ -157,8 +166,8 @@ Example :
 | Name                                     | Type    | Default                    | Description
 | ---                                      | ---     | ---                        | ---
 | spring.cloud.kubernetes.config.enabled   | Boolean | true                       | Enable Secrets PropertySource
-| spring.cloud.kubernetes.config.name      | String  | ${spring.application.name} | Sets the name of Config Map to lookup
-| spring.cloud.kubernetes.config.namespace | String  | Client namespace           | Sets the kubernetes namespace where to lookup
+| spring.cloud.kubernetes.config.name      | String  | ${spring.application.name} | Sets the name of ConfigMap to lookup
+| spring.cloud.kubernetes.config.namespace | String  | Client namespace           | Sets the Kubernetes namespace where to lookup
     
 
 #### Secrets PropertySource
