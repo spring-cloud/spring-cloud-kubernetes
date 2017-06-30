@@ -142,9 +142,18 @@ resource file.
 Example :
 
 ```yaml
-  env:
-  - name: "JAVA_OPTIONS"
-    value: -Dspring.profile.active=developer
+apiVersion: v1
+kind: DeploymentConfig
+spec:
+  replicas: 1
+  ...
+    spec:
+      containers:
+      - env:
+        - name: JAVA_APP_DIR
+          value: /deployments
+	    - name: JAVA_OPTIONS
+          value: -Dspring.profile.active=developer
 ```
 
 **Notes:**
