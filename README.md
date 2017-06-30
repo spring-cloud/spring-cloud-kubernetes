@@ -360,15 +360,16 @@ Notes:
 Spring Boot uses [HealthIndicator](https://github.com/spring-projects/spring-boot/blob/master/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/HealthIndicator.java) to expose info about the health of an application.
 That makes it really useful for exposing health related information to the user and are also a good fit for use as [readiness probes](http://kubernetes.io/docs/user-guide/production-pods/#liveness-and-readiness-probes-aka-health-checks).
 
-The Kubernetes health indicator which is part of the core modules exposes the following info:
+The Kubernetes health indicator which is part of the core module exposes the following info:
 
-- pod name
-- visible services
-- flag that indicates if app is internal or external to Kubernetes
+- pod name, ip address, namespace, service account, node name amd its ip address
+- flag that indicates if the Spring Boot application is internal or external to Kubernetes
 
 ### Transparency
 
-All of the features described above will work equally fine regardless of wether our application is inside Kubernetes or not. This is really helpful for development and troubleshooting.
+All of the features described above will work equally fine regardless of whether our application is running inside Kubernetes or not. This is really helpful for development and troubleshooting.
+From a development point of view, this is really helpful as you can start your Spring Boot application and debug one of the modules part of this project. It is not required to deploy it in Kubernetes
+as the code of the project relies on the [Fabric8 Kubernetes Java client]() which uses `http` protocol to communicate with the Kubernetes Api Server.  
 
 ### Kubernetes Profile Autoconfiguration
 
