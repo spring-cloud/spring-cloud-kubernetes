@@ -378,7 +378,7 @@ The Kubernetes health indicator which is part of the core module exposes the fol
 
 All of the features described above will work equally fine regardless of whether our application is running inside Kubernetes or not. This is really helpful for development and troubleshooting.
 From a development point of view, this is really helpful as you can start your Spring Boot application and debug one of the modules part of this project. It is not required to deploy it in Kubernetes
-as the code of the project relies on the [Fabric8 Kubernetes Java client]() which uses `http` protocol to communicate with the Kubernetes Api Server.  
+as the code of the project relies on the [Fabric8 Kubernetes Java client](https://github.com/fabric8io/kubernetes-client) which is a fluent DSL able to communicate using `http` protocol to the REST Api of Kubernetes Server.  
 
 ### Kubernetes Profile Autoconfiguration
 
