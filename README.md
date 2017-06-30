@@ -28,6 +28,10 @@
 
 
 This project provides an implementation of [Discovery Client](https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java) for [Kubernetes](http://kubernetes.io). This allows you to query Kubernetes endpoints *(see [services](http://kubernetes.io/docs/user-guide/services/))* by name.
+A service is typically exposed by the Kubernetes API server as a collection of endpoints which represent `http`, `https` addresses that a client can
+access from a Spring Boot application running as a pod. This discovery feature is also used by the Spring Cloud Kubernetes Ribbon or Zipkin projects
+to fetch respectively the list of the endpoints defined for an application to be load balanced or the Zipkin servers available to send the traces or spans.
+
 This is something that you get for free just by adding the following dependency inside your project:
 
 ```xml
@@ -55,13 +59,19 @@ Some spring cloud components use the `DiscoveryClient` in order obtain info abou
 
 ### Kubernetes PropertySource
 
-The most common approach to configure your spring boot application is to edit the `application.yaml` file. Often the user may override properties by specifying system properties or env variables.
+The most common approach to configure your spring boot application is to create an `application.properties|yaml` or an `application-profile.properties|yaml` file containing keys able to customize your application or the 
+Spring Boot starters. Often the user may override properties by specifying system properties or env variables.
 
 #### ConfigMap PropertySource
 
-Kubernetes has the notion of [ConfigMap](http://kubernetes.io/docs/user-guide/configmap/) for passing configuration to the application. This project provides integration with `ConfigMap` to make config maps accessible by spring boot.
+Kubernetes, to externalize the parameters, proposes a resource named [ConfigMap](http://kubernetes.io/docs/user-guide/configmap/) for passing such keys or to embed an `application.properties|yaml` file containing the keys
+to the application. The `Spring Cloud Kubernetes Config` project provides an integration of the `ConfigMap` to make the Config Maps accessible during the bootstrapping of the application or to hot reload beans, spring context
+if a change is observed within a `ConfigMap`.
 
-The `ConfigMap` `PropertySource` when enabled will lookup Kubernetes for a `ConfigMap` named after the application (see `spring.application.name`). If the map is found it will read its data and do the following:
+The `ConfigMapPropertySource` when called will lookup Kubernetes for a `ConfigMap` named after the name of the application (see `spring.application.name`) or yours name if you have
+defined within the `bootstrap.properties` file the following key `spring.cloud.kubernetes.config.name`.
+
+If the map is found it will read its data and do the following:
 
 - apply individual configuration properties.
 - apply as yaml the content of any property named `application.yaml`
@@ -86,7 +96,7 @@ data:
   pool.size.max: 16
 ```    
 
-Individual properties work fine for most cases but sometimes we yaml is more convinient. In this case we will use a single property named `application.yaml` and embed our yaml inside it:
+Individual properties work fine for most cases but sometimes we yaml is more convenient. In this case we will use a single property named `application.yaml` and embed our yaml inside it:
 
  ```yaml
 kind: ConfigMap
@@ -101,10 +111,55 @@ data:
         max:16
 ```
 
+As a Spring Boot application supports to be configured using some defined `profiles`, you can also define your profiles using an `application.properties|yaml` file
+where the different profiles are defined as such:
+ 
+```yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello to the World
+    ---
+    spring:
+      profiles: development
+    greeting:
+      message: Say Hello to the Developers
+    ---
+    spring:
+      profiles: production
+    greeting:
+      message: Say Hello to the Ops
+```
+
+To tell to Spring Boot which `profile` should be enabled at boot strap, a system property can be passed to the java instruction command
+line responsible to launch Spring Boot using an env variable that you will define with the OpenShift `DeploymentConfig` or Kubernetes `ReplicationConfig`
+resource file.
+
+Example :
+
+```yaml
+  env:
+  - name: "JAVA_OPTIONS"
+    value: -Dspring.profile.active=developer
+```
+
 **Notes:**
 - To access ConfigMaps on OpenShift the service account needs at least view permissions i.e.:
 
     ```oc policy add-role-to-user view system:serviceaccount:$(oc project -q):default -n $(oc project -q)```
+    
+**Properties:**
+
+| Name                                     | Type    | Default                    | Description
+| ---                                      | ---     | ---                        | ---
+| spring.cloud.kubernetes.config.enabled   | Boolean | true                       | Enable Secrets PropertySource
+| spring.cloud.kubernetes.config.name      | String  | ${spring.application.name} | Sets the name of Config Map to lookup
+| spring.cloud.kubernetes.config.namespace | String  | Client namespace           | Sets the kubernetes namespace where to lookup
+    
 
 #### Secrets PropertySource
 
@@ -121,7 +176,7 @@ If the secrets are found theirs data is made available to the application.
 
 **Example:**
 
-Let's assume that we have a spring boot application named ``demo`` that uses properties to read its ActiveMQ and PostreSQL configuration.
+Let's assume that we have a spring boot application named ``demo`` that uses properties to read its ActiveMQ Message broker and PosgreSQL Database configuration.
 
 - `amq.username`
 - `amq.password`
@@ -144,25 +199,27 @@ This can be externalized to Secrets in yaml format:
       amq.password: MWYyZDFlMmU2N2Rm
     ```    
 
-- **PostreSQL**
+- **PosgreSQL**
     ```yaml
     apiVersion: v1
     kind: Secret
     metadata:
-      name: postgres-secrets
+      name: posgresql-secrets
       labels:
-        db: postgres
+        db: posgresql
     type: Opaque
     data:
       amq.username: dXNlcgo=
       amq.password: cGdhZG1pbgo=
     ```    
+**NOTE**
+The data are converted from clear text format to base64 when a secret is created.
 
 You can select the Secrets to consume in a number of ways:    
 
 1. By listing the directories were secrets are mapped:
     ```
-    -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/activemq,etc/secrets/postgres
+    -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/activemq,etc/secrets/posgresql
     ```
 
     If you have all the secrets mapped to a common root, you can set them like:
@@ -173,13 +230,13 @@ You can select the Secrets to consume in a number of ways:
 
 2. By setting a named secret:
     ```
-    -Dspring.cloud.kubernetes.secrets.name=postgres-secrets
+    -Dspring.cloud.kubernetes.secrets.name=posgresql-secrets
     ```
 
 3. By defining a list of labels:
     ```
     -Dspring.cloud.kubernetes.secrets.labels.broker=activemq
-    -Dspring.cloud.kubernetes.secrets.labels.db=postgres
+    -Dspring.cloud.kubernetes.secrets.labels.db=posgresql
     ```
 
 **Properties:**
@@ -188,6 +245,7 @@ You can select the Secrets to consume in a number of ways:
 | ---                                       | ---     | ---                        | ---
 | spring.cloud.kubernetes.secrets.enabled   | Boolean | true                       | Enable Secrets PropertySource
 | spring.cloud.kubernetes.secrets.name      | String  | ${spring.application.name} | Sets the name of the secret to lookup
+| spring.cloud.kubernetes.secrets.namespace | String  | Client namespace           | Sets the kubernetes namespace where to lookup
 | spring.cloud.kubernetes.secrets.labels    | Map     | null                       | Sets the labels used to lookup secrets
 | spring.cloud.kubernetes.secrets.paths     | List    | null                       | Sets the paths were secrets are mounted /example 1)
 | spring.cloud.kubernetes.secrets.enableApi | Boolean | false                      | Enable/Disable consuming secrets via APIs (examples 2 and 3)
@@ -396,7 +454,9 @@ For earlier version it needs to be specified as an env var to the pod. A quick w
 
 
 #### Service Account
-For distros of Kubernetes that support more fine-grained role-based access within the cluster, you need to make sure a pod that runs with spring-cloud-kubernetes has access to the Kubernetes API. For example, OpenShift has very comprehensive security measures that are on by default (typically) in a shared cluster. For any service accounts you assign to a deployment/pod, you need to make sure it has the correct roles. For example, you can add `cluster-reader` permissions to your `default` service account depending on the project you're in:
+For distros of Kubernetes that support more fine-grained role-based access within the cluster, you need to make sure a pod that runs with spring-cloud-kubernetes has access to the Kubernetes API.
+For example, OpenShift has very comprehensive security measures that are on by default (typically) in a shared cluster.
+For any service accounts you assign to a deployment/pod, you need to make sure it has the correct roles. For example, you can add `cluster-reader` permissions to your `default` service account depending on the project you're in:
 
 ```             
 oc policy add-role-to-user cluster-reader system:serviceaccount:<project/namespace>:default
