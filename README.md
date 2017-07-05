@@ -382,8 +382,9 @@ as the code of the project relies on the [Fabric8 Kubernetes Java client](https:
 
 ### Kubernetes Profile Autoconfiguration
 
-When the application is run inside Kubernetes a profile named `kubernetes` will automatically get activated.
-This allows the user to customize the configuration that will be applied in and out of kubernetes *(e.g. different dev and prod configuration)*.
+When the application runs as a pod inside Kubernetes a Spring profile named `kubernetes` will automatically get activated.
+This allows the developer to customize the configuration, to define beans that will be applied when the Spring Boot application is deployed
+within the kubernetes platform *(e.g. different dev and prod configuration)*.
 
 ### Ribbon discovery in Kubernetes
 
@@ -391,7 +392,11 @@ This allows the user to customize the configuration that will be applied in and 
 [![Javadocs](http://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-starter-kubernetes-netflix.svg?color=blue)](http://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-starter-kubernetes-netflix)
 [![Dependency Status](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-netflix/badge?style=flat)](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-netflix/)
 
-A Kubernetes based `ServerList` for Ribbon has been implemented. The implementation is part of the [spring-cloud-kubernetes-ribbon](spring-cloud-kubernetes-ribbon/pom.xml) module and you can use it by adding:
+A Spring Cloud application which is a client calling a microservice will be interested to rely on a client loadbalanceing feature in order to discover for a service, the endpoints that it could
+reach. This mechanism has been implemented within the [spring-cloud-kubernetes-ribbon](spring-cloud-kubernetes-ribbon/pom.xml) project where a kubernetes client will populate a `ServerList` about
+such endpoints available.
+
+The implementation is part of the following starter that you can use by adding its dependency to your pom file:
 
 ```xml
 <dependency>
@@ -401,18 +406,25 @@ A Kubernetes based `ServerList` for Ribbon has been implemented. The implementat
 </dependency>
 ```
 
-The ribbon discovery client can be disabled by setting `spring.cloud.kubernetes.ribbon.enabled=false`.
+When the list of the endpoints will be populated, the Kubernetes client will search the registered endpoints  that lives in the current namespace/project and where the name to search has been defined
+using the Ribbon Client annotation
 
-By default the client will detect all endpoints with the configured *client name* that lives in the current namespace.
-If the endpoint contains multiple ports, the first port will be used. To fine tune the name of the desired port (if the service is a multiport service) or fine tune the namespace you can use one of the following properties.
+```java
+@RibbonClient(name = "name-service")
+```
+
+If a endpoint contains multiple ports, the first port will be used. To fine tune the name of the desired port (if the service is a multiport service) or fine tune the namespace you can use one of the following properties.
 
 - `KubernetesNamespace`
 - `PortName`
 
 Examples that are using this module for ribbon discovery are:
 
+- [Sprinng Cloud Circuitbreaker and Ribbon](kubernetes-circuitbreaker-ribbon-example)
 - [fabric8-quickstarts - Spring Boot - Ribbon](https://github.com/fabric8-quickstarts/spring-boot-ribbon)
 - [Kubeflix - LoanBroker - Bank](https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank)
+
+Remark : The ribbon discovery client can be disabled by setting this key within the application properties file `spring.cloud.kubernetes.ribbon.enabled=false`.
 
 
 ### Zipkin discovery in Kubernetes
@@ -421,9 +433,11 @@ Examples that are using this module for ribbon discovery are:
 [![Javadocs](http://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-starter-kubernetes-zipkin.svg?color=blue)](http://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-starter-kubernetes-zipkin)
 [![Dependency Status](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-zipkin/badge?style=flat)](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-zipkin/)
 
-[Zipkin](https://github.com/openzipkin/zipkin) is a distributed tracing system and it is also supported by [Sleuth](https://github.com/spring-cloud/spring-cloud-sleuth).
+[Zipkin](https://github.com/openzipkin/zipkin) is a distributed tracing system which is supported by the project [Spring Cloud Sleuth](https://github.com/spring-cloud/spring-cloud-sleuth) which allows
+to collect traces or spans from microservice applications. 
 
-Discovery of the services required by Zipkin (e.g. `zipkin-query`) is provided by [spring-cloud-kubernetes-zipkin](spring-cloud-kubernetes-zipkin/pom.xml) module and you can use it by adding:
+A Discovery client has been implemented top of Kubernetes in order to fetch the service Zipkin (e.g. `zipkin`). This client is provided by the [spring-cloud-kubernetes-zipkin](spring-cloud-kubernetes-zipkin/pom.xml) project that you can use it by adding
+this starter to your maven pom file:
 
 ```xml
 <dependency>
@@ -433,10 +447,19 @@ Discovery of the services required by Zipkin (e.g. `zipkin-query`) is provided b
 </dependency>
 ```
 
-This works as an extension of [spring-cloud-sleuth-zipkin](https://github.com/spring-cloud/spring-cloud-sleuth/tree/master/spring-cloud-sleuth-zipkin).    
+This works as an extension of the [spring-cloud-sleuth-zipkin](https://github.com/spring-cloud/spring-cloud-sleuth/tree/master/spring-cloud-sleuth-zipkin) project. 
+the name of the Zipkin service to find like also the kubernetes namespace/project where it runs can be changed using these keys:
+
+```bash
+spring.cloud.kubernetes.zipkin.discovery.serviceName=my-zipkin
+spring.cloud.kubernetes.zipkin.discovery.serviceNamespace=tracing
+```
+
+By default, the discovery client will look about the service `zipkin` within the current namespace.
 
 Examples of application that are using Zipkin discovery in Kubernetes:
 
+- [Spring Cloud Kubernetes and Zipkin](kubernetes-zipkin)
 - [fabric8-quickstarts - Spring Boot - Ribbon](https://github.com/fabric8-quickstarts/spring-boot-ribbon)
 - [Kubeflix - LoanBroker - Bank](https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank)
 
@@ -446,11 +469,14 @@ Examples of application that are using Zipkin discovery in Kubernetes:
 [![Javadocs](http://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-kubernetes-archaius.svg?color=blue)](http://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-kubernetes-archaius)
 [![Dependency Status](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-kubernetes-archaius/badge?style=flat)](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-kubernetes-archaius/)
 
-Section [ConfigMap PropertySource](#configmap-propertysource) provides a brief explanation on how to configure spring boot application via ConfigMap.
-This approach will aid in creating the configuration properties objects that will be passed in our application. If our application is using Archaius it will indirectly benefit by it.
-An alternative approach that provides more direct Archaius support without getting in the way of spring configuration properties by using [spring-cloud-kubernetes-archaius](spring-cloud-kubernetes-archaius/pom.xml) that is part of the Netflix starter.
+The section [ConfigMap PropertySource](#configmap-propertysource) introduced how to configure a spring boot application via `Kubernetes ConfigMap` containing your configuration properties file.
 
-This module allows you to annotate your application with the `@ArchaiusConfigMapSource` and archaius will automatically use the configmap as a watched source *(get notification on changes)*.
+If you prefer to use the configuration management library [NetFlix Archaius](https://github.com/Netflix/archaius/wiki) instead of using the Spring application.properties|"yaml file,
+then you can also leverage the `ConfigMap feature` by using the [spring-cloud-kubernetes-archaius](spring-cloud-kubernetes-archaius/pom.xml) project.
+
+To use it, add the following starter `spring-cloud-starter-kubernetes-all` to yiur pom file definition.
+
+This module allows you to annotate your application with the `@ArchaiusConfigMapSource` and archaius will automatically use the `Kubernetes configmap` as a watched source *(get notification on changes)*.
 
 ---
 ### Troubleshooting
