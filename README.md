@@ -441,11 +441,20 @@ the current namespace/project matching the service name defined using the Ribbon
 @RibbonClient(name = "name-service")
 ```
 
-If a endpoint contains multiple ports, the first port will be used. To fine tune the name of the desired port (if the
-service is a multiport service) or fine tune the namespace you can use one of the following properties:
+You can configure Ribbon's behavior by providing properties in your `application.properties` (via your application's 
+dedicated `ConfigMap`) using the following format: `<name of your service>.ribbon.<Ribbon configuration key>` where:
 
-- `KubernetesNamespace`
-- `PortName`
+- `<name of your service>` corresponds to the service name you're accessing over Ribbon, as configured using the 
+`@RibbonClient` annotation (e.g. `name-service` in the example above)
+- `<Ribbon configuration key` is one of the Ribbon configuration key defined by 
+[Ribbon's CommonClientConfigKey class](https://github.com/Netflix/ribbon/blob/master/ribbon-core/src/main/java/com/netflix/client/config/CommonClientConfigKey.java)
+
+Additionally, the `spring-cloud-kubernetes-ribbon` project defines two additional configuration keys to further 
+control how Ribbon interacts with Kubernetes. In particular, if an endpoint defines multiple ports, the default 
+behavior is to use the first one found. To select more specifically which port to use, in a multi-port service, use 
+the `PortName` key. If you want to specify in which Kubernetes' namespace the target service should be looked up, use
+the `KubernetesNamespace` key, remembering in both instances to prefix these keys with your service name and 
+`ribbon` prefix as specified above.
 
 Examples that are using this module for ribbon discovery are:
 
