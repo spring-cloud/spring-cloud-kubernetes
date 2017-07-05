@@ -56,7 +56,6 @@ If for any reason you need to disable the `DiscoveryClient` you can simply set t
 spring.cloud.kubernetes.discovery.enabled=false
 ```
 
-// TODO: make clearer with an example and details on how to align service and application name
 Some Spring Cloud components use the `DiscoveryClient` in order to obtain info about the local service instance. For 
 this to work you need to align the service name with the `spring.application.name` property.
 
@@ -161,7 +160,7 @@ spec:
       - env:
         - name: JAVA_APP_DIR
           value: /deployments
-	    - name: JAVA_OPTIONS
+        - name: JAVA_OPTIONS
           value: -Dspring.profile.active=developer
 ```
 
@@ -181,63 +180,79 @@ spec:
 
 #### Secrets PropertySource
 
-Kubernetes has the notion of [Secrets](http://kubernetes.io/docs/user-guide/secrets/) for storing sensitive data such as password, OAuth tokens, etc. This project provides integration with `Secrets` to make secrets accessible by spring boot.
+Kubernetes has the notion of [Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) for storing 
+sensitive data such as password, OAuth tokens, etc. This project provides integration with `Secrets` to make secrets 
+accessible by Spring Boot applications. This feature can be explicitly enabled/disabled using the `spring.cloud
+.kubernetes.secrets.enabled` property.
 
-The `Secrets` `PropertySource` when enabled will lookup Kubernetes for `Secrets` from the following sources:
+The `SecretsPropertySource` when enabled will lookup Kubernetes for `Secrets` from the following sources:
 1. reading recursively from secrets mounts
-2. named after the application (see `spring.application.name`)
+2. named after the application (as defined by `spring.application.name`)
 3. matching some labels
 
-Please note that by default, consuming Secrets via API (points 2 and 3 above) **is not enabled**.
+Please note that by default, consuming Secrets via API (points 2 and 3 above) **is not enabled** for security reasons
+ and it is recommend that containers share secrets via mounted volumes.
 
 If the secrets are found theirs data is made available to the application.
 
 **Example:**
 
-Let's assume that we have a spring boot application named ``demo`` that uses properties to read its ActiveMQ Message broker and PosgreSQL Database configuration.
+Let's assume that we have a spring boot application named ``demo`` that uses properties to read its database 
+configuration. We can create a Kubernetes secret using the following command:
 
-- `amq.username`
-- `amq.password`
-- `pg.username`
-- `pg.password`
+```
+oc create secret generic db-secret --from-literal=username=user --from-literal=password=p455w0rd
+```
 
-This can be externalized to Secrets in yaml format:
+This would create the following secret (shown using `oc get secrets db-secret -o yaml`):
 
-- **ActiveMQ**
-    ```yaml
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      name: activemq-secrets
-      labels:
-        broker: activemq
-    type: Opaque
-    data:
-      amq.username: bXl1c2VyCg==
-      amq.password: MWYyZDFlMmU2N2Rm
-    ```    
+```yaml
+apiVersion: v1
+data:
+  password: cDQ1NXcwcmQ=
+  username: dXNlcg==
+kind: Secret
+metadata:
+  creationTimestamp: 2017-07-04T09:15:57Z
+  name: db-secret
+  namespace: default
+  resourceVersion: "357496"
+  selfLink: /api/v1/namespaces/default/secrets/db-secret
+  uid: 63c89263-6099-11e7-b3da-76d6186905a8
+type: Opaque
+``` 
 
-- **PosgreSQL**
-    ```yaml
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      name: posgresql-secrets
-      labels:
-        db: posgresql
-    type: Opaque
-    data:
-      amq.username: dXNlcgo=
-      amq.password: cGdhZG1pbgo=
-    ```    
-**NOTE**
-The data are converted from clear text format to base64 when a secret is created.
+Note that the data contains Base64-encoded versions of the literal provided by the create command.
+
+This secret can then be used by your application for example by exporting the secret's value as environment variables:
+
+```yaml
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: ${project.artifactId}
+spec:
+   template:
+     spec:
+       containers:
+         - env:
+            - name: DB_USERNAME
+              valueFrom:
+                 secretKeyRef:
+                   name: db-secret
+                   key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                 secretKeyRef:
+                   name: db-secret
+                   key: password
+```
 
 You can select the Secrets to consume in a number of ways:    
 
 1. By listing the directories were secrets are mapped:
     ```
-    -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/activemq,etc/secrets/posgresql
+    -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/db-secret,etc/secrets/posgresql
     ```
 
     If you have all the secrets mapped to a common root, you can set them like:
@@ -248,7 +263,7 @@ You can select the Secrets to consume in a number of ways:
 
 2. By setting a named secret:
     ```
-    -Dspring.cloud.kubernetes.secrets.name=posgresql-secrets
+    -Dspring.cloud.kubernetes.secrets.name=db-secret
     ```
 
 3. By defining a list of labels:
@@ -261,37 +276,43 @@ You can select the Secrets to consume in a number of ways:
 
 | Name                                      | Type    | Default                    | Description
 | ---                                       | ---     | ---                        | ---
-| spring.cloud.kubernetes.secrets.enabled   | Boolean | true                       | Enable Secrets PropertySource
+| spring.cloud.kubernetes.secrets.enabled   | Boolean | true                       | Enable SecretsPropertySource
 | spring.cloud.kubernetes.secrets.name      | String  | ${spring.application.name} | Sets the name of the secret to lookup
-| spring.cloud.kubernetes.secrets.namespace | String  | Client namespace           | Sets the kubernetes namespace where to lookup
+| spring.cloud.kubernetes.secrets.namespace | String  | Client namespace           | Sets the Kubernetes namespace where to lookup
 | spring.cloud.kubernetes.secrets.labels    | Map     | null                       | Sets the labels used to lookup secrets
-| spring.cloud.kubernetes.secrets.paths     | List    | null                       | Sets the paths were secrets are mounted /example 1)
+| spring.cloud.kubernetes.secrets.paths     | List    | null                       | Sets the paths were secrets are mounted (example 1)
 | spring.cloud.kubernetes.secrets.enableApi | Boolean | false                      | Enable/Disable consuming secrets via APIs (examples 2 and 3)
 
 **Notes:**
-- The property spring.cloud.kubernetes.secrets.labels behave as defined by [Map-based binding](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding).
-- The property spring.cloud.kubernetes.secrets.paths behave as defined by [Collection-based binding](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#collection-based-binding).
+- The property `spring.cloud.kubernetes.secrets.labels` behaves as defined by 
+[Map-based binding](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding).
+- The property `spring.cloud.kubernetes.secrets.paths` behaves as defined by 
+[Collection-based binding](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#collection-based-binding).
 - Access to secrets via API may be restricted for security reasons, the preferred way is to mount secret to the POD.
+
+Example of application using secrets (though it hasn't been updated to use the new `spring-cloud-kubernetes` project):
+[spring-boot-camel-config](https://github.com/fabric8-quickstarts/spring-boot-camel-config)
 
 #### PropertySource Reload
 
 Some applications may need to detect changes on external property sources and update their internal status to reflect the new configuration.
-The reload feature of Spring Cloud Kubernetes is able to trigger an application reload when a related ConfigMap or Secret change.
+The reload feature of Spring Cloud Kubernetes is able to trigger an application reload when a related `ConfigMap` or 
+`Secret` changes.
 
 This feature is disabled by default and can be enabled using the configuration property `spring.cloud.kubernetes.reload.enabled=true`
  (eg. in the *application.properties* file).
 
 The following levels of reload are supported (property `spring.cloud.kubernetes.reload.strategy`):
-- **refresh (default)**: only configuration beans annotated with `@ConfigurationProperties` or `@RefreshScope` are reloaded. 
+- **`refresh` (default)**: only configuration beans annotated with `@ConfigurationProperties` or `@RefreshScope` are reloaded. 
 This reload level leverages the refresh feature of Spring Cloud Context.
-- **restart_context**: the whole Spring _ApplicationContext_ is gracefully restarted. Beans are recreated with the new configuration.
-- **shutdown**: the Spring _ApplicationContext_ is shut down to activate a restart of the container.
+- **`restart_context`**: the whole Spring _ApplicationContext_ is gracefully restarted. Beans are recreated with the new configuration.
+- **`shutdown`**: the Spring _ApplicationContext_ is shut down to activate a restart of the container.
  When using this level, make sure that the lifecycle of all non-daemon threads is bound to the ApplicationContext 
  and that a replication controller or replica set is configured to restart the pod.
 
 Example:
 
-Assuming that the reload feature is enabled with default settings (*refresh* mode), the following bean will be refreshed when the config map changes:
+Assuming that the reload feature is enabled with default settings (*`refresh`* mode), the following bean will be refreshed when the config map changes:
  
 ```java
 @Configuration
@@ -333,8 +354,9 @@ data:
     bean.message=Hello World!
 ```
 
-Any change to the property named `bean.message` in the Config Map associated to the pod will be reflected in the output of the program 
-(more details [here](#configmap-propertysource) about how to associate a Config Map to a pod).
+Any change to the property named `bean.message` in the Config Map associated to properties prefixed with the value 
+defined by the `prefix` field of the `@ConfigurationProperties` annotation will be reflected in the output of the 
+program (more details [here](#configmap-propertysource) about how to associate a `ConfigMap` to a pod).
 
 The full example is available in [spring-cloud-kubernetes-reload-example](spring-cloud-kubernetes-examples/kubernetes-reload-example). 
 
@@ -360,7 +382,7 @@ Properties:
 | spring.cloud.kubernetes.reload.period                  | Long    | 15000                      | The period in milliseconds for verifying changes when using the *polling* strategy
 
 Notes:
-- Properties under *spring.cloud.kubernetes.reload.** should not be used in config maps or secrets: changing such properties at runtime may lead to unexpected results;
+- Properties under *spring.cloud.kubernetes.reload.* should not be used in config maps or secrets: changing such properties at runtime may lead to unexpected results;
 - Deleting a property or the whole config map does not restore the original state of the beans when using the *refresh* level.
 
 
@@ -376,15 +398,19 @@ The Kubernetes health indicator which is part of the core module exposes the fol
 
 ### Transparency
 
-All of the features described above will work equally fine regardless of whether our application is running inside Kubernetes or not. This is really helpful for development and troubleshooting.
-From a development point of view, this is really helpful as you can start your Spring Boot application and debug one of the modules part of this project. It is not required to deploy it in Kubernetes
-as the code of the project relies on the [Fabric8 Kubernetes Java client](https://github.com/fabric8io/kubernetes-client) which is a fluent DSL able to communicate using `http` protocol to the REST Api of Kubernetes Server.  
+All of the features described above will work equally well regardless of whether your application is running inside 
+Kubernetes or not. This is really helpful for development and troubleshooting.
+From a development point of view, this is really helpful as you can start your Spring Boot application and debug one 
+of the modules part of this project. It is not required to deploy it in Kubernetes
+as the code of the project relies on the 
+[Fabric8 Kubernetes Java client](https://github.com/fabric8io/kubernetes-client) which is a fluent DSL able to 
+communicate using `http` protocol to the REST API of Kubernetes Server.  
 
 ### Kubernetes Profile Autoconfiguration
 
 When the application runs as a pod inside Kubernetes a Spring profile named `kubernetes` will automatically get activated.
 This allows the developer to customize the configuration, to define beans that will be applied when the Spring Boot application is deployed
-within the kubernetes platform *(e.g. different dev and prod configuration)*.
+within the Kubernetes platform *(e.g. different dev and prod configuration)*.
 
 ### Ribbon discovery in Kubernetes
 
@@ -392,9 +418,11 @@ within the kubernetes platform *(e.g. different dev and prod configuration)*.
 [![Javadocs](http://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-starter-kubernetes-netflix.svg?color=blue)](http://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-starter-kubernetes-netflix)
 [![Dependency Status](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-netflix/badge?style=flat)](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-netflix/)
 
-A Spring Cloud application which is a client calling a microservice will be interested to rely on a client loadbalanceing feature in order to discover for a service, the endpoints that it could
-reach. This mechanism has been implemented within the [spring-cloud-kubernetes-ribbon](spring-cloud-kubernetes-ribbon/pom.xml) project where a kubernetes client will populate a `ServerList` about
-such endpoints available.
+Spring Cloud client applications calling a microservice should be interested on relying on a client load-balancing 
+feature in order to automatically discover at which endpoint(s) it can reach a given service. This mechanism has been
+implemented within the [spring-cloud-kubernetes-ribbon](spring-cloud-kubernetes-ribbon/pom.xml) project where a 
+Kubernetes client will populate a [Ribbon](https://github.com/Netflix/ribbon) `ServerList` containing information 
+about such endpoints.
 
 The implementation is part of the following starter that you can use by adding its dependency to your pom file:
 
@@ -406,14 +434,15 @@ The implementation is part of the following starter that you can use by adding i
 </dependency>
 ```
 
-When the list of the endpoints will be populated, the Kubernetes client will search the registered endpoints  that lives in the current namespace/project and where the name to search has been defined
-using the Ribbon Client annotation
+When the list of the endpoints is populated, the Kubernetes client will search the registered endpoints living in 
+the current namespace/project matching the service name defined using the Ribbon Client annotation:
 
 ```java
 @RibbonClient(name = "name-service")
 ```
 
-If a endpoint contains multiple ports, the first port will be used. To fine tune the name of the desired port (if the service is a multiport service) or fine tune the namespace you can use one of the following properties.
+If a endpoint contains multiple ports, the first port will be used. To fine tune the name of the desired port (if the
+service is a multiport service) or fine tune the namespace you can use one of the following properties:
 
 - `KubernetesNamespace`
 - `PortName`
@@ -424,7 +453,8 @@ Examples that are using this module for ribbon discovery are:
 - [fabric8-quickstarts - Spring Boot - Ribbon](https://github.com/fabric8-quickstarts/spring-boot-ribbon)
 - [Kubeflix - LoanBroker - Bank](https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank)
 
-Remark : The ribbon discovery client can be disabled by setting this key within the application properties file `spring.cloud.kubernetes.ribbon.enabled=false`.
+Remark : The Ribbon discovery client can be disabled by setting this key within the application properties file 
+`spring.cloud.kubernetes.ribbon.enabled=false`.
 
 
 ### Zipkin discovery in Kubernetes
@@ -433,11 +463,13 @@ Remark : The ribbon discovery client can be disabled by setting this key within 
 [![Javadocs](http://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-starter-kubernetes-zipkin.svg?color=blue)](http://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-starter-kubernetes-zipkin)
 [![Dependency Status](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-zipkin/badge?style=flat)](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-zipkin/)
 
-[Zipkin](https://github.com/openzipkin/zipkin) is a distributed tracing system which is supported by the project [Spring Cloud Sleuth](https://github.com/spring-cloud/spring-cloud-sleuth) which allows
+[Zipkin](https://github.com/openzipkin/zipkin) is a distributed tracing system which is supported by the project 
+[Spring Cloud Sleuth](https://github.com/spring-cloud/spring-cloud-sleuth) which allows
 to collect traces or spans from microservice applications. 
 
-A Discovery client has been implemented top of Kubernetes in order to fetch the service Zipkin (e.g. `zipkin`). This client is provided by the [spring-cloud-kubernetes-zipkin](spring-cloud-kubernetes-zipkin/pom.xml) project that you can use it by adding
-this starter to your maven pom file:
+A Discovery client has been implemented top of Kubernetes in order to fetch the Zipkin service (e.g. `zipkin`). This 
+client is provided by the [spring-cloud-kubernetes-zipkin](spring-cloud-kubernetes-zipkin/pom.xml) project that you 
+can use by adding this starter to your maven pom file:
 
 ```xml
 <dependency>
@@ -448,14 +480,15 @@ this starter to your maven pom file:
 ```
 
 This works as an extension of the [spring-cloud-sleuth-zipkin](https://github.com/spring-cloud/spring-cloud-sleuth/tree/master/spring-cloud-sleuth-zipkin) project. 
-the name of the Zipkin service to find like also the kubernetes namespace/project where it runs can be changed using these keys:
+The name of the Zipkin service and the target Kubernetes namespace/project where the service runs can be specified 
+using the following `application.properties` properties:
 
 ```bash
 spring.cloud.kubernetes.zipkin.discovery.serviceName=my-zipkin
 spring.cloud.kubernetes.zipkin.discovery.serviceNamespace=tracing
 ```
 
-By default, the discovery client will look about the service `zipkin` within the current namespace.
+By default, the discovery client will look for a Zipkin service named `zipkin` within the current namespace.
 
 Examples of application that are using Zipkin discovery in Kubernetes:
 
