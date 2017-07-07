@@ -31,8 +31,7 @@
 	<name>Spring Cloud Kubernetes :: Ribbon</name>
 
 	<properties>
-		<!-- Value calculated for Circleci -->
-		<service.occurence>5</service.occurence>
+		<service.occurence>1</service.occurence>
 	</properties>
 
 	<dependencies>
