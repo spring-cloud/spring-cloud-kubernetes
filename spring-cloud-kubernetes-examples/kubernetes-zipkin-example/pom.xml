@@ -9,8 +9,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.springframework.cloud</groupId>
-	<artifactId>kubernetes-zipkin</artifactId>
+	<artifactId>kubernetes-zipkin-example</artifactId>
 	<name>Spring Cloud Kubernetes :: Examples :: Zipkin</name>
 	<description>Example that demonstrates how to send Zipkin traces from a Spring Boot
 		application to Zipkin server running In Kubernetes
