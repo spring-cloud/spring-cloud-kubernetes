@@ -56,7 +56,8 @@ If for any reason you need to disable the `DiscoveryClient` you can simply set t
 spring.cloud.kubernetes.discovery.enabled=false
 ```
 
-// TODO: make clearer with an example and details on how to align service and application name
+[//]: # "TODO: make clearer with an example and details on how to align service and application name"
+
 Some Spring Cloud components use the `DiscoveryClient` in order to obtain info about the local service instance. For 
 this to work you need to align the service name with the `spring.application.name` property.
 
