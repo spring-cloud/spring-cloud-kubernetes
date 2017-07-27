@@ -12,7 +12,7 @@ import static org.springframework.cloud.kubernetes.config.Constants.SPRING_APPLI
 
 public class ConfigUtils {
 
-    private static final Log LOG = LogFactory.getLog(SecretsPropertySource.class);
+	private static final Log LOG = LogFactory.getLog(ConfigUtils.class);
 
     public static <C extends AbstractConfigProperties> String getApplicationName(Environment env, C config) {
         String name = config.getName();
