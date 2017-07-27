@@ -23,13 +23,13 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>1.3.3.BUILD-SNAPSHOT</version>
+		<version>1.3.3.RELEASE</version>
 		<relativePath/>
 	</parent>
 
 	<groupId>org.springframework.cloud</groupId>
 	<artifactId>spring-cloud-kubernetes</artifactId>
-	<version>0.2.0.BUILD-SNAPSHOT</version>
+	<version>0.2.0.RELEASE</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes</name>
 
@@ -311,7 +311,7 @@
 		<profile>
 			<id>snapshot</id>
 			<properties>
-				<spring-cloud.version>Camden.BUILD-SNAPSHOT</spring-cloud.version>
+				<spring-cloud.version>Dalston.SR2</spring-cloud.version>
 			</properties>
 		</profile>
 		<profile>
