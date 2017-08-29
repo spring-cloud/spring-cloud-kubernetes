@@ -24,6 +24,16 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
     private static final String TARGET = "Config Map";
 
+	private boolean readConfigsFromApi = true;
+
+	public boolean isReadConfigsFromApi() {
+		return readConfigsFromApi;
+	}
+
+	public void setReadConfigsFromApi(boolean readConfigsFromApi) {
+		this.readConfigsFromApi = readConfigsFromApi;
+	}
+
     @Override
     public String getConfigurationTarget() {
         return TARGET;
