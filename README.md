@@ -13,7 +13,7 @@
   -   [Secrets PropertySource](#secrets-propertysource)
   -   [PropertySource Reload](#propertysource-reload)
 -   [Pod Health Indicator](#pod-health-indicator)
--   [Transparency](#transparency) *(its transparent wether the code runs in or outside of Kubernetes)*
+-   [Transparency](#transparency) *(its transparent whether the code runs in or outside of Kubernetes)*
 -   [Kubernetes Profile Autoconfiguration](#kubernetes-profile-autoconfiguration)
 -   [Ribbon discovery in Kubernetes](#ribbon-discovery-in-kubernetes)
 -   [Zipkin discovery in Kubernetes](#zipkin-discovery-in-kubernetes)
@@ -163,7 +163,7 @@ spec:
         - name: JAVA_APP_DIR
           value: /deployments
         - name: JAVA_OPTIONS
-          value: -Dspring.profile.active=developer
+          value: -Dspring.profiles.active=developer
 ```
 
 **Notes:**
@@ -184,8 +184,7 @@ spec:
 
 Kubernetes has the notion of [Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) for storing 
 sensitive data such as password, OAuth tokens, etc. This project provides integration with `Secrets` to make secrets 
-accessible by Spring Boot applications. This feature can be explicitly enabled/disabled using the `spring.cloud
-.kubernetes.secrets.enabled` property.
+accessible by Spring Boot applications. This feature can be explicitly enabled/disabled using the `spring.cloud.kubernetes.secrets.enabled` property.
 
 The `SecretsPropertySource` when enabled will lookup Kubernetes for `Secrets` from the following sources:
 1. reading recursively from secrets mounts
@@ -195,7 +194,7 @@ The `SecretsPropertySource` when enabled will lookup Kubernetes for `Secrets` fr
 Please note that by default, consuming Secrets via API (points 2 and 3 above) **is not enabled** for security reasons
  and it is recommend that containers share secrets via mounted volumes.
 
-If the secrets are found theirs data is made available to the application.
+If the secrets are found their data is made available to the application.
 
 **Example:**
 
@@ -397,7 +396,7 @@ That makes it really useful for exposing health related information to the user 
 
 The Kubernetes health indicator which is part of the core module exposes the following info:
 
-- pod name, ip address, namespace, service account, node name amd its ip address
+- pod name, ip address, namespace, service account, node name and its ip address
 - flag that indicates if the Spring Boot application is internal or external to Kubernetes
 
 ### Transparency
@@ -517,10 +516,10 @@ Examples of application that are using Zipkin discovery in Kubernetes:
 
 The section [ConfigMap PropertySource](#configmap-propertysource) introduced how to configure a spring boot application via `Kubernetes ConfigMap` containing your configuration properties file.
 
-If you prefer to use the configuration management library [NetFlix Archaius](https://github.com/Netflix/archaius/wiki) instead of using the Spring application.properties|"yaml file,
+If you prefer to use the configuration management library [Netflix Archaius](https://github.com/Netflix/archaius/wiki) instead of using the Spring application.properties|"yaml file,
 then you can also leverage the `ConfigMap feature` by using the [spring-cloud-kubernetes-archaius](spring-cloud-kubernetes-archaius/pom.xml) project.
 
-To use it, add the following starter `spring-cloud-starter-kubernetes-all` to yiur pom file definition.
+To use it, add the following starter `spring-cloud-starter-kubernetes-all` to your pom file definition.
 
 This module allows you to annotate your application with the `@ArchaiusConfigMapSource` and archaius will automatically use the `Kubernetes configmap` as a watched source *(get notification on changes)*.
 
