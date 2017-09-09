@@ -36,20 +36,28 @@ public class BootstrapConfiguration {
 
     @Configuration
     @Import(KubernetesAutoConfiguration.class)
-    @EnableConfigurationProperties({ ConfigMapConfigProperties.class, SecretsConfigProperties.class })
+    @EnableConfigurationProperties(ConfigMapConfigProperties.class)
     @ConditionalOnProperty(name = "spring.cloud.kubernetes.config.enabled", matchIfMissing = true)
-    protected static class KubernetesPropertySourceConfiguration {
-        @Autowired
-        private KubernetesClient client;
+    protected static class KubernetesConfigMapPropertySourceConfiguration {
 
         @Bean
-        public ConfigMapPropertySourceLocator configMapPropertySourceLocator(ConfigMapConfigProperties properties) {
+        public ConfigMapPropertySourceLocator configMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties) {
             return new ConfigMapPropertySourceLocator(client, properties);
         }
 
+    }
+
+    @Configuration
+    @Import(KubernetesAutoConfiguration.class)
+    @EnableConfigurationProperties(SecretsConfigProperties.class)
+    @ConditionalOnProperty(name = "spring.cloud.kubernetes.secrets.enabled", matchIfMissing = true)
+    protected static class KubernetesSecretsPropertySourceConfiguration {
+
         @Bean
-        public SecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties) {
+        public SecretsPropertySourceLocator secretsPropertySourceLocator(KubernetesClient client, SecretsConfigProperties properties) {
             return new SecretsPropertySourceLocator(client, properties);
         }
+
     }
+
 }

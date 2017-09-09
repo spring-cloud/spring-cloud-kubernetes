@@ -37,7 +37,7 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 
     @Override
     public MapPropertySource locate(Environment environment) {
-        if (environment instanceof ConfigurableEnvironment && properties.isReadConfigsFromApi()) {
+        if (environment instanceof ConfigurableEnvironment) {
             ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
             String name = getApplicationName(environment, properties);
             String namespace = getApplicationNamespace(client, env, properties);
