@@ -36,7 +36,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 @EnableConfigurationProperties(KubernetesClientProperties.class)
 public class KubernetesAutoConfiguration {
 
-    private static final Log LOG = LogFactory.getLog(KubernetesClientProperties.class);
+    private static final Log LOG = LogFactory.getLog(KubernetesAutoConfiguration.class);
 
     @Bean
     @ConditionalOnMissingBean(Config.class)
