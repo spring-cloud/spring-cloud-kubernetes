@@ -38,7 +38,7 @@ This is something that you get for free just by adding the following dependency 
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes</artifactId>
-    <version>${latest.version></version>
+    <version>${latest.version}</version>
 </dependency>
 ```
 
@@ -433,7 +433,7 @@ The implementation is part of the following starter that you can use by adding i
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-netflix</artifactId>
-    <version>${latest.version></version>
+    <version>${latest.version}</version>
 </dependency>
 ```
 
@@ -449,7 +449,7 @@ dedicated `ConfigMap`) using the following format: `<name of your service>.ribbo
 
 - `<name of your service>` corresponds to the service name you're accessing over Ribbon, as configured using the 
 `@RibbonClient` annotation (e.g. `name-service` in the example above)
-- `<Ribbon configuration key` is one of the Ribbon configuration key defined by 
+- `<Ribbon configuration key>` is one of the Ribbon configuration key defined by
 [Ribbon's CommonClientConfigKey class](https://github.com/Netflix/ribbon/blob/master/ribbon-core/src/main/java/com/netflix/client/config/CommonClientConfigKey.java)
 
 Additionally, the `spring-cloud-kubernetes-ribbon` project defines two additional configuration keys to further 
@@ -487,7 +487,7 @@ can use by adding this starter to your maven pom file:
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-zipkin</artifactId>
-    <version>${latest.version></version>
+    <version>${latest.version}</version>
 </dependency>
 ```
 
