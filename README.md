@@ -461,7 +461,7 @@ the `KubernetesNamespace` key, remembering in both instances to prefix these key
 
 Examples that are using this module for ribbon discovery are:
 
-- [Sprinng Cloud Circuitbreaker and Ribbon](kubernetes-circuitbreaker-ribbon-example)
+- [Spring Cloud Circuitbreaker and Ribbon](spring-cloud-kubernetes-examples/kubernetes-circuitbreaker-ribbon-example)
 - [fabric8-quickstarts - Spring Boot - Ribbon](https://github.com/fabric8-quickstarts/spring-boot-ribbon)
 - [Kubeflix - LoanBroker - Bank](https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank)
 
