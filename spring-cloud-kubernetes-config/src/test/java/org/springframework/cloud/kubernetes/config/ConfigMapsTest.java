@@ -17,21 +17,24 @@
 
 package org.springframework.cloud.kubernetes.config;
 
-import java.util.HashMap;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Map;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
-import io.fabric8.kubernetes.api.model.ListMeta;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.server.mock.KubernetesServer;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -65,9 +68,43 @@ public class ConfigMapsTest {
 		ConfigMapList configMapList = client.configMaps().inNamespace("ns2").list();
 		assertNotNull(configMapList);
 		assertEquals(1, configMapList.getAdditionalProperties().size());
-		HashMap<String,String> data = (HashMap<String, String>) configMapList.getAdditionalProperties().get("data");
+		@SuppressWarnings("unchecked")
+		Map<String,String> data = (Map<String, String>) configMapList.getAdditionalProperties().get("data");
 		assertEquals("123",data.get("KEY"));
+	}
 
+	@Test
+	public void testConfigMapGetFromVolume() throws IOException {
+		KubernetesClient client = server.getClient();
+		ConfigMapConfigProperties cmConfProperties = new ConfigMapConfigProperties();
+		cmConfProperties.setEnableApi(false);
+
+		// create test data, as if in-container volumes mounted by k8s, see
+		// https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#add-configmap-data-to-a-volume
+		final Path tmp = Files.createTempDirectory("test-k8s-cm-");
+		final Path dbPath = tmp.resolve("cm/db");
+		final Path apiPath = tmp.resolve("cm/api");
+		createConfigMapFile(dbPath, "db.url", "http://localhost/db");
+		createConfigMapFile(apiPath, "api.url", "http://localhost/api");
+		createConfigMapFile(apiPath, "foo.bar", "42");
+
+		// parse ConfigMaps
+		cmConfProperties.setPaths(Arrays.asList(dbPath.toString(), apiPath.toString()));
+		ConfigMapPropertySource cmps = new ConfigMapPropertySource(client, "testapp", cmConfProperties);
+
+		// assert as expected
+		assertEquals("42", cmps.getProperty("foo.bar"));
+		assertEquals("http://localhost/db", cmps.getProperty("db.url"));
+		assertEquals("http://localhost/api", cmps.getProperty("api.url"));
+		assertFalse(cmps.containsProperty("no.such.property"));
+
+		FileUtils.deleteDirectory(tmp.toFile());
+	}
+
+	private void createConfigMapFile(Path basePath, String key, String value) throws IOException {
+		Files.createDirectories(basePath);
+		final Path apiUrlFile = Files.createFile(basePath.resolve(key));
+		Files.write(apiUrlFile, value.getBytes(StandardCharsets.UTF_8));
 	}
 
 }

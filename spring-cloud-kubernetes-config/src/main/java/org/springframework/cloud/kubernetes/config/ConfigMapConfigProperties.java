@@ -17,6 +17,9 @@
 
 package org.springframework.cloud.kubernetes.config;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("spring.cloud.kubernetes.config")
@@ -24,7 +27,26 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
     private static final String TARGET = "Config Map";
 
-    @Override
+	private boolean enableApi = true;
+	private List<String> paths = new LinkedList<>();
+
+	public boolean isEnableApi() {
+		return enableApi;
+	}
+
+	public void setEnableApi(boolean enableApi) {
+		this.enableApi = enableApi;
+	}
+
+	public void setPaths(List<String> paths) {
+		this.paths = paths;
+	}
+
+	public List<String> getPaths() {
+		return paths;
+	}
+
+	@Override
     public String getConfigurationTarget() {
         return TARGET;
     }

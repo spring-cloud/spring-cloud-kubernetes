@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.server.mock.KubernetesServer;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.restassured.RestAssured;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -53,18 +53,18 @@ public class ConfigMapsSpringBootTest {
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
-	public static KubernetesClient mockClient;
+	private static KubernetesClient mockClient;
 
 	@Autowired(required = false)
 	Config config;
 
-	private static String APPLICATION_NAME = "configmap-example";
+	private static final String APPLICATION_NAME = "configmap-example";
 
 	@Value("${local.server.port}")
 	private int port;
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpBeforeClass() {
 		mockClient = server.getClient();
 
 		//Configure the kubernetes master url to point to the mock server
