@@ -29,9 +29,9 @@ import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.util.FileSystemUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -98,7 +98,7 @@ public class ConfigMapsTest {
 		assertEquals("http://localhost/api", cmps.getProperty("api.url"));
 		assertFalse(cmps.containsProperty("no.such.property"));
 
-		FileUtils.deleteDirectory(tmp.toFile());
+		FileSystemUtils.deleteRecursively(tmp.toFile());
 	}
 
 	private void createConfigMapFile(Path basePath, String key, String value) throws IOException {
