@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.kubernetes.profile;
 
-import io.fabric8.kubernetes.api.model.Pod;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.PodUtils;
@@ -47,13 +45,6 @@ public class KubernetesProfileApplicationListener implements ApplicationListener
     }
 
     void addKubernetesProfile(ConfigurableEnvironment environment) {
-        Pod current = utils.currentPod().get();
-        if (current != null) {
-            if (!hasKubernetesProfile(environment)) {
-                environment.addActiveProfile(KUBERNETES_PROFILE);
-            }
-        }
-
         if (utils.isInsideKubernetes()) {
             if (hasKubernetesProfile(environment)) {
                 if (LOG.isDebugEnabled()) {
