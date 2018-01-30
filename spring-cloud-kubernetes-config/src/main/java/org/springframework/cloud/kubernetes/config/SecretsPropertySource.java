@@ -16,10 +16,6 @@
  */
 package org.springframework.cloud.kubernetes.config;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,12 +26,11 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.env.Environment;
-import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.config.ConfigUtils.*;
 
-public class SecretsPropertySource extends MapPropertySource {
+public class SecretsPropertySource extends KubernetesPropertySource {
     private static final Log LOG = LogFactory.getLog(SecretsPropertySource.class);
 
     private static final String PREFIX = "secrets";
@@ -65,20 +60,18 @@ public class SecretsPropertySource extends MapPropertySource {
         if (config.isEnableApi()) {
             try {
                 // Read for secrets api (named)
+				Secret secret;
                 if (StringUtils.isEmpty(namespace)) {
-                    putAll(
-                        client.secrets()
-                            .withName(name)
-                            .get(),
-                        result);
+					secret = client.secrets()
+						.withName(name)
+						.get();
                 } else {
-                    putAll(
-                        client.secrets()
-                            .inNamespace(namespace)
-                            .withName(name)
-                            .get(),
-                        result);
+					secret = client.secrets()
+						.inNamespace(namespace)
+						.withName(name)
+						.get();
                 }
+                putAll(secret, result);
 
                 // Read for secrets api (label)
                 if (!config.getLabels().isEmpty()) {
@@ -106,16 +99,12 @@ public class SecretsPropertySource extends MapPropertySource {
         }
 
         // read for secrets mount
-        config.getPaths()
-            .stream()
-            .map(Paths::get)
-            .filter(Files::exists)
-            .forEach(p -> putAll(p, result));
+		putPathConfig(result, config.getPaths());
 
-        return result;
+		return result;
     }
 
-    // *****************************
+	// *****************************
     // Helpers
     // *****************************
     private static void putAll(Secret secret, Map<String, Object> result) {
@@ -124,26 +113,6 @@ public class SecretsPropertySource extends MapPropertySource {
                 k,
                 new String(Base64.getDecoder().decode(v)).trim())
             );
-        }
-    }
-
-    private static void putAll(Path path, Map<String, Object> result) {
-        try {
-            Files.walk(path)
-                .filter(Files::isRegularFile)
-                .forEach(p -> readFile(p, result));
-        } catch (IOException e) {
-            LOG.warn("", e);
-        }
-    }
-
-    private static void readFile(Path path, Map<String, Object> result) {
-        try {
-            result.put(
-                path.getFileName().toString(),
-                new String(Files.readAllBytes(path)).trim());
-        } catch (IOException e) {
-            LOG.warn("", e);
         }
     }
 }

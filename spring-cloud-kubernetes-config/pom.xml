@@ -72,6 +72,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>io.fabric8</groupId>
+			<artifactId>kubernetes-server-mock</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.spockframework</groupId>
 			<artifactId>spock-spring</artifactId>
 			<scope>test</scope>

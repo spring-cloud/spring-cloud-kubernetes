@@ -30,13 +30,12 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.config.YamlProcessor;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.boot.yaml.SpringProfileDocumentMatcher;
-import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.util.StringUtils;
 
-public class ConfigMapPropertySource extends MapPropertySource {
+public class ConfigMapPropertySource extends KubernetesPropertySource {
     private static final Log LOG = LogFactory.getLog(ConfigMapPropertySource.class);
 
     private static final String APPLICATION_YML = "application.yml";
@@ -45,16 +44,16 @@ public class ConfigMapPropertySource extends MapPropertySource {
 
     private static final String PREFIX = "configmap";
 
-	public ConfigMapPropertySource(KubernetesClient client, String name) {
-		this(client, name, null);
+	public ConfigMapPropertySource(KubernetesClient client, String name, ConfigMapConfigProperties config) {
+		this(client, name, null, config);
 	}
 
-    public ConfigMapPropertySource(KubernetesClient client, String name, String[] profiles) {
-        this(client, name, null, profiles);
+    public ConfigMapPropertySource(KubernetesClient client, String name, String[] profiles, ConfigMapConfigProperties config) {
+        this(client, name, null, profiles, config);
     }
 
-    public ConfigMapPropertySource(KubernetesClient client, String name, String namespace, String[] profiles) {
-        super(getName(client, name, namespace), asObjectMap(getData(client, name, namespace, profiles)));
+    public ConfigMapPropertySource(KubernetesClient client, String name, String namespace, String[] profiles, ConfigMapConfigProperties config) {
+        super(getName(client, name, namespace), asObjectMap(getData(client, name, namespace, profiles, config)));
     }
 
     private static String getName(KubernetesClient client, String name, String namespace) {
@@ -67,30 +66,37 @@ public class ConfigMapPropertySource extends MapPropertySource {
             .toString();
     }
 
-    private static Map<String, String> getData(KubernetesClient client, String name, String namespace, String[] profiles) {
+    private static Map<String, String> getData(KubernetesClient client, String name, String namespace,
+											   String[] profiles, ConfigMapConfigProperties config) {
         Map<String, String> result = new HashMap<>();
-        try {
-            ConfigMap map = namespace == null || namespace.isEmpty()
-                    ? client.configMaps().withName(name).get()
-                    : client.configMaps().inNamespace(namespace).withName(name).get();
+		if (config.isEnableApi()) {
+			try {
+				ConfigMap map = StringUtils.isEmpty(namespace)
+					? client.configMaps().withName(name).get()
+					: client.configMaps().inNamespace(namespace).withName(name).get();
 
-            if (map != null) {
-                for (Map.Entry<String, String> entry : map.getData().entrySet()) {
-                    String key = entry.getKey();
-                    String value = entry.getValue();
-                    if (key.equals(APPLICATION_YAML) || key.equals(APPLICATION_YML)) {
-                        result.putAll(yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP).apply(value));
-                    } else if (key.equals(APPLICATION_PROPERTIES)) {
-                        result.putAll(KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(value));
-                    } else {
-                        result.put(key, value);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOG.warn("Can't read configMap with name: [" + name + "] in namespace:[" + namespace + "]. Ignoring", e);
-        }
-        return result;
+				if (map != null) {
+					for (Map.Entry<String, String> entry : map.getData().entrySet()) {
+						String key = entry.getKey();
+						String value = entry.getValue();
+						if (key.equals(APPLICATION_YAML) || key.equals(APPLICATION_YML)) {
+							result.putAll(yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP).apply(value));
+						} else if (key.equals(APPLICATION_PROPERTIES)) {
+							result.putAll(KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(value));
+						} else {
+							result.put(key, value);
+						}
+					}
+				}
+			} catch (Exception e) {
+				LOG.warn("Can't read configMap with name: [" + name + "] in namespace:[" + namespace + "]. Ignoring", e);
+			}
+		}
+
+		// read for secrets mount
+		putPathConfig(result, config.getPaths());
+
+		return result;
     }
 
     private static Map<String, Object> asObjectMap(Map<String, String> source) {
@@ -99,7 +105,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-	private static final Function<String, Properties> yamlParserGenerator(final String[] profiles) {
+	private static Function<String, Properties> yamlParserGenerator(final String[] profiles) {
 		return s -> {
 			YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
 			if (profiles == null) {
