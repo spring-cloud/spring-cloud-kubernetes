@@ -60,8 +60,8 @@
 	<properties>
 		<!-- Dependency Versions -->
 		<spring-cloud-commons.version>2.0.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
-		<spring-cloud-netflix.version>1.3.2.RELEASE</spring-cloud-netflix.version>
-		<spring-cloud-sleuth.version>1.2.2.RELEASE</spring-cloud-sleuth.version>
+		<!--<spring-cloud-netflix.version>1.3.2.RELEASE</spring-cloud-netflix.version>-->
+		<!--<spring-cloud-sleuth.version>1.2.2.RELEASE</spring-cloud-sleuth.version>-->
 
 		<!-- Maven Plugin Versions -->
 		<maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
@@ -78,15 +78,8 @@
 		<module>spring-cloud-kubernetes-core</module>
 		<module>spring-cloud-kubernetes-config</module>
 		<module>spring-cloud-kubernetes-discovery</module>
-		<module>spring-cloud-kubernetes-ribbon</module>
-		<module>spring-cloud-kubernetes-zipkin</module>
-		<module>spring-cloud-kubernetes-hystrix</module>
-		<module>spring-cloud-kubernetes-archaius</module>
 		<module>spring-cloud-starter-kubernetes</module>
 		<module>spring-cloud-starter-kubernetes-config</module>
-		<module>spring-cloud-starter-kubernetes-netflix</module>
-		<module>spring-cloud-starter-kubernetes-zipkin</module>
-		<module>spring-cloud-starter-kubernetes-all</module>
 		<module>spring-cloud-kubernetes-examples</module>
 	</modules>
 	<dependencies>
@@ -114,21 +107,21 @@
 				<scope>import</scope>
 			</dependency>
 
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-netflix-dependencies</artifactId>
-				<version>${spring-cloud-netflix.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
+			<!--<dependency>-->
+				<!--<groupId>org.springframework.cloud</groupId>-->
+				<!--<artifactId>spring-cloud-netflix-dependencies</artifactId>-->
+				<!--<version>${spring-cloud-netflix.version}</version>-->
+				<!--<type>pom</type>-->
+				<!--<scope>import</scope>-->
+			<!--</dependency>-->
 
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-sleuth-dependencies</artifactId>
-				<version>${spring-cloud-sleuth.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
+			<!--<dependency>-->
+				<!--<groupId>org.springframework.cloud</groupId>-->
+				<!--<artifactId>spring-cloud-sleuth-dependencies</artifactId>-->
+				<!--<version>${spring-cloud-sleuth.version}</version>-->
+				<!--<type>pom</type>-->
+				<!--<scope>import</scope>-->
+			<!--</dependency>-->
 
 			<dependency>
 				<groupId>org.codehaus.groovy</groupId>
