@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.client.serviceregistry.ServiceRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -35,8 +36,8 @@ public class KubernetesDiscoveryClientConfiguration {
     }
 
     @Bean
-    public KubernetesDiscoveryLifecycle kubernetesDiscoveryLifecycle(KubernetesClient client, KubernetesDiscoveryProperties properties) {
-        return new KubernetesDiscoveryLifecycle(client, properties);
+    public KubernetesDiscoveryLifecycle kubernetesDiscoveryLifecycle(ServiceRegistry serviceRegistry, KubernetesClient client, KubernetesDiscoveryProperties properties) {
+        return new KubernetesDiscoveryLifecycle(serviceRegistry, client, properties);
 
     }
 }

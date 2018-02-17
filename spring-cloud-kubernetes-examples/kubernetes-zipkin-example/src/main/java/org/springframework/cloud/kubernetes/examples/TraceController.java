@@ -22,7 +22,8 @@ import java.util.Random;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
+
+import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.cloud.sleuth.SpanAccessor;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.ApplicationListener;
@@ -31,8 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 @RestController
-public class TraceController implements
-ApplicationListener<EmbeddedServletContainerInitializedEvent> {
+public class TraceController implements ApplicationListener<WebServerInitializedEvent> {
 
 	private static final Log log = LogFactory.getLog(TraceController.class);
 
@@ -63,7 +63,7 @@ ApplicationListener<EmbeddedServletContainerInitializedEvent> {
 	}
 
 	@Override
-	public void onApplicationEvent(EmbeddedServletContainerInitializedEvent event) {
-		this.port = event.getEmbeddedServletContainer().getPort();
+	public void onApplicationEvent(WebServerInitializedEvent event) {
+		this.port = event.getWebServer().getPort();
 	}
 }

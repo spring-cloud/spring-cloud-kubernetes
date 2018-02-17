@@ -53,7 +53,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
         return "Kubernetes Discovery Client";
     }
 
-    @Override
     public ServiceInstance getLocalServiceInstance() {
         String serviceName = properties.getServiceName();
         String podName = System.getenv(HOSTNAME);

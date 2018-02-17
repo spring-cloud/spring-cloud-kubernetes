@@ -17,20 +17,22 @@
 package org.springframework.cloud.kubernetes.discovery;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.springframework.cloud.client.discovery.AbstractDiscoveryLifecycle;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
+import org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration;
+import org.springframework.cloud.client.serviceregistry.Registration;
+import org.springframework.cloud.client.serviceregistry.ServiceRegistry;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class KubernetesDiscoveryLifecycle extends AbstractDiscoveryLifecycle {
+public class KubernetesDiscoveryLifecycle<R extends Registration> extends AbstractAutoServiceRegistration {
 
     private KubernetesClient client;
     private KubernetesDiscoveryProperties properties;
-
     private AtomicBoolean running = new AtomicBoolean(false);
 
-    public KubernetesDiscoveryLifecycle(KubernetesClient client, KubernetesDiscoveryProperties properties) {
-        this.client = client;
+    public KubernetesDiscoveryLifecycle(ServiceRegistry<R> serviceRegistry, KubernetesClient client, KubernetesDiscoveryProperties properties) {
+        super(serviceRegistry, properties);
+    	this.client = client;
         this.properties = properties;
     }
 
@@ -52,15 +54,15 @@ public class KubernetesDiscoveryLifecycle extends AbstractDiscoveryLifecycle {
     }
 
 
-    @Override
-    protected int getConfiguredPort() {
-        return client.getMasterUrl().getPort();
-    }
-
-    @Override
-    protected void setConfiguredPort(int port) {
-
-    }
+//    @Override
+//    protected int getConfiguredPort() {
+//        return client.getMasterUrl().getPort();
+//    }
+//
+//    @Override
+//    protected void setConfiguredPort(int port) {
+//
+//    }
 
     @Override
     protected Object getConfiguration() {
@@ -79,4 +81,14 @@ public class KubernetesDiscoveryLifecycle extends AbstractDiscoveryLifecycle {
     protected boolean isEnabled() {
         return properties.isEnabled();
     }
+
+	@Override
+	protected Registration getRegistration() {
+		return null;
+	}
+
+	@Override
+	protected Registration getManagementRegistration() {
+		return null;
+	}
 }

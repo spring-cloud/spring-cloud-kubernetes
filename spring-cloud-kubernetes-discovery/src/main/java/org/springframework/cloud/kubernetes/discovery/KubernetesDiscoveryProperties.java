@@ -18,9 +18,10 @@ package org.springframework.cloud.kubernetes.discovery;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.client.serviceregistry.AutoServiceRegistrationProperties;
 
 @ConfigurationProperties("spring.cloud.kubernetes.discovery")
-public class KubernetesDiscoveryProperties {
+public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProperties {
 
     private boolean enabled = true;
 
