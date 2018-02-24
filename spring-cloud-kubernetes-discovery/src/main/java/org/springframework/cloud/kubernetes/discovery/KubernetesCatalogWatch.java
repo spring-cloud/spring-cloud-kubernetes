@@ -16,7 +16,8 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -29,8 +30,9 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * @author Oleg Vyukov
  */
-@Slf4j
 public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
+
+	private static final Logger logger = LoggerFactory.getLogger(KubernetesCatalogWatch.class);
 
 	private final KubernetesDiscoveryClient kubernetesDiscoveryClient;
 	private final AtomicReference<List<String>> catalogServicesState = new AtomicReference<>();
@@ -56,11 +58,11 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 			catalogServicesState.set(services);
 
 			if (!services.equals(previousState)) {
-				log.trace("Received services update from kubernetesDiscoveryClient: {}", services);
+				logger.trace("Received services update from kubernetesDiscoveryClient: {}", services);
 				publisher.publishEvent(new HeartbeatEvent(this, services));
 			}
 		} catch (Exception e) {
-			log.error("Error watching Kubernetes Services", e);
+			logger.error("Error watching Kubernetes Services", e);
 		}
 	}
 }
