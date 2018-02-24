@@ -27,6 +27,8 @@ public class KubernetesDiscoveryProperties {
     @Value("${spring.application.name:unknown}")
     private String serviceName = "unknown";
 
+	private int catalogServicesWatchDelay = 30000;
+
     public boolean isEnabled() {
         return enabled;
     }
@@ -38,4 +40,12 @@ public class KubernetesDiscoveryProperties {
     public String getServiceName() {
         return serviceName;
     }
+
+	public int getCatalogServicesWatchDelay() {
+		return catalogServicesWatchDelay;
+	}
+
+	public void setCatalogServicesWatchDelay(int catalogServicesWatchDelay) {
+		this.catalogServicesWatchDelay = catalogServicesWatchDelay;
+	}
 }

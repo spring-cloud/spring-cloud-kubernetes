@@ -37,6 +37,12 @@ public class KubernetesDiscoveryClientConfiguration {
     @Bean
     public KubernetesDiscoveryLifecycle kubernetesDiscoveryLifecycle(KubernetesClient client, KubernetesDiscoveryProperties properties) {
         return new KubernetesDiscoveryLifecycle(client, properties);
+	}
 
-    }
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnProperty(name = "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled", matchIfMissing = true)
+	public KubernetesCatalogWatch kubernetesCatalogWatch(KubernetesDiscoveryClient client) {
+		return new KubernetesCatalogWatch(client);
+	}
 }
