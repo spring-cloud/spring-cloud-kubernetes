@@ -7,11 +7,6 @@ The message can be changed using a config map.
 
 ### Running the example
 
-When using Openshift, you must assign the `view` role to the *default* service account in the current project:
-
-```
-oc policy add-role-to-user view --serviceaccount=default
-```
 
 You can deploy the application using the fabric8 maven plugin:
 
@@ -36,17 +31,17 @@ data:
 
 A sample config map is provided with this example in the *config-map.yml* file.
 
-To deploy the config map, just run the following command on Openshift (just replace `oc` with `kubectl` if you are using plain Kubernetes):
+To deploy the config map, just run the following command on Kubernetes:
 
 ```
-oc create -f config-map.yml
+kubectl create -f config-map.yml
 ```
 
 As soon as the config map is deployed, the output of the application changes accordingly.
 The config map can be now edited with the following command:
 
 ```
-oc edit configmap reload-example
+kubectl edit configmap reload-example
 ```
 
 Changes are applied immediately when using the *event* reload mode.

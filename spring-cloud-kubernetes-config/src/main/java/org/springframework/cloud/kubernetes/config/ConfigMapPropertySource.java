@@ -31,7 +31,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
-import org.springframework.boot.yaml.SpringProfileDocumentMatcher;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.util.StringUtils;
 
@@ -108,11 +107,6 @@ public class ConfigMapPropertySource extends KubernetesPropertySource {
 	private static Function<String, Properties> yamlParserGenerator(final String[] profiles) {
 		return s -> {
 			YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
-			if (profiles == null) {
-				yamlFactory.setDocumentMatchers(new SpringProfileDocumentMatcher());
-			} else {
-				yamlFactory.setDocumentMatchers(new SpringProfileDocumentMatcher(profiles));
-			}
 			yamlFactory.setResources(new ByteArrayResource(s.getBytes()));
 			return yamlFactory.getObject();
 		};
