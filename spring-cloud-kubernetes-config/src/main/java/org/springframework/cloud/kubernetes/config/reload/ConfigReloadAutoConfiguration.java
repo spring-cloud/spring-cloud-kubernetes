@@ -17,6 +17,11 @@
 package org.springframework.cloud.kubernetes.config.reload;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
+import org.springframework.boot.actuate.info.InfoEndpoint;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
+import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
 
@@ -39,7 +44,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @Configuration
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
+@AutoConfigureAfter({InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class, RefreshAutoConfiguration.class})
 @EnableConfigurationProperties(ConfigReloadProperties.class)
+
 public class ConfigReloadAutoConfiguration {
 
     /**
