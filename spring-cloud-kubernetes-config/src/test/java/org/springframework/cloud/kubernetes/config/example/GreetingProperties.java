@@ -25,6 +25,8 @@ import org.springframework.context.annotation.Configuration;
 public class GreetingProperties {
 
 	private String message = "Hello, %s!";
+	private String global = "Hello, %s!";
+	private String profile = "Hello, %s!";
 
 	public String getMessage() {
 		return message;
@@ -34,4 +36,11 @@ public class GreetingProperties {
 		this.message = message;
 	}
 
+	public String getGlobal() { return global; }
+
+	public void setGlobal(String global) { this.global = global; }
+
+	public String getProfile() { return profile; }
+
+	public void setProfile(String profile) { this.profile = profile; }
 }
