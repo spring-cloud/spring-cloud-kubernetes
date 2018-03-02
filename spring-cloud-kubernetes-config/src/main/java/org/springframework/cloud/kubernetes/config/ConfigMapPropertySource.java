@@ -35,59 +35,73 @@ import org.springframework.boot.yaml.SpringProfileDocumentMatcher;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.util.StringUtils;
 
+/**
+ * @author <a href="mailto:shahbour@gmail.com">Ali Shahbour</a>
+ */
 public class ConfigMapPropertySource extends KubernetesPropertySource {
-    private static final Log LOG = LogFactory.getLog(ConfigMapPropertySource.class);
+	private static final Log LOG = LogFactory.getLog(ConfigMapPropertySource.class);
 
-    private static final String APPLICATION_YML = "application.yml";
-    private static final String APPLICATION_YAML = "application.yaml";
-    private static final String APPLICATION_PROPERTIES = "application.properties";
+	private static final String APPLICATION_YML = "application.yml";
+	private static final String APPLICATION_YAML = "application.yaml";
+	private static final String APPLICATION_PROPERTIES = "application.properties";
 
-    private static final String PREFIX = "configmap";
+	private static final String PREFIX = "configmap";
+	private static final String GLOBAL_APPLICATION = "application";
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, ConfigMapConfigProperties config) {
 		this(client, name, null, config);
 	}
 
-    public ConfigMapPropertySource(KubernetesClient client, String name, String[] profiles, ConfigMapConfigProperties config) {
-        this(client, name, null, profiles, config);
-    }
+	public ConfigMapPropertySource(KubernetesClient client, String name, String[] profiles, ConfigMapConfigProperties config) {
+		this(client, name, null, profiles, config);
+	}
 
-    public ConfigMapPropertySource(KubernetesClient client, String name, String namespace, String[] profiles, ConfigMapConfigProperties config) {
-        super(getName(client, name, namespace), asObjectMap(getData(client, name, namespace, profiles, config)));
-    }
+	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace, String[] profiles, ConfigMapConfigProperties config) {
+		super(getName(client, name, namespace), asObjectMap(getData(client, name, namespace, profiles, config)));
+	}
 
-    private static String getName(KubernetesClient client, String name, String namespace) {
-        return new StringBuilder()
-            .append(PREFIX)
-            .append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR)
-            .append(name)
-            .append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR)
-            .append(namespace == null || namespace.isEmpty() ? client.getNamespace() : namespace)
-            .toString();
-    }
+	private static String getName(KubernetesClient client, String name, String namespace) {
+		return new StringBuilder()
+			.append(PREFIX)
+			.append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR)
+			.append(name)
+			.append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR)
+			.append(namespace == null || namespace.isEmpty() ? client.getNamespace() : namespace)
+			.toString();
+	}
 
-    private static Map<String, String> getData(KubernetesClient client, String name, String namespace,
+	private static Map<String, String> getData(KubernetesClient client, String name, String namespace,
 											   String[] profiles, ConfigMapConfigProperties config) {
-        Map<String, String> result = new HashMap<>();
+		Map<String, String> result = new HashMap<>();
 		if (config.isEnableApi()) {
 			try {
+
+				// Try to fetch config map with name application
+
+				ConfigMap globalMap = StringUtils.isEmpty(namespace)
+					? client.configMaps().withName(GLOBAL_APPLICATION).get()
+					: client.configMaps().inNamespace(namespace).withName(GLOBAL_APPLICATION).get();
+
+				result.putAll(addMap(globalMap, profiles));
+
+				// Try to fetch config map with name equal to application name
 				ConfigMap map = StringUtils.isEmpty(namespace)
 					? client.configMaps().withName(name).get()
 					: client.configMaps().inNamespace(namespace).withName(name).get();
 
-				if (map != null) {
-					for (Map.Entry<String, String> entry : map.getData().entrySet()) {
-						String key = entry.getKey();
-						String value = entry.getValue();
-						if (key.equals(APPLICATION_YAML) || key.equals(APPLICATION_YML)) {
-							result.putAll(yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP).apply(value));
-						} else if (key.equals(APPLICATION_PROPERTIES)) {
-							result.putAll(KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(value));
-						} else {
-							result.put(key, value);
-						}
-					}
+				result.putAll(addMap(map, profiles));
+
+				// Try to fetch config map with name equal to application name plus profile
+				for (String profile: profiles) {
+						String nameWithProfile = name + "-" + profile;
+						ConfigMap profileMap =  StringUtils.isEmpty(namespace)
+							? client.configMaps().withName(nameWithProfile).get()
+							: client.configMaps().inNamespace(namespace).withName(nameWithProfile).get();
+
+						result.putAll(addMap(profileMap, profiles));
 				}
+
+
 			} catch (Exception e) {
 				LOG.warn("Can't read configMap with name: [" + name + "] in namespace:[" + namespace + "]. Ignoring", e);
 			}
@@ -97,13 +111,31 @@ public class ConfigMapPropertySource extends KubernetesPropertySource {
 		putPathConfig(result, config.getPaths());
 
 		return result;
-    }
+	}
 
-    private static Map<String, Object> asObjectMap(Map<String, String> source) {
-        return source.entrySet()
-                .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
+	private static Map<String,String> addMap(ConfigMap map, String[] profiles) {
+		Map<String, String> result = new HashMap<>();
+		if (map != null) {
+			for (Map.Entry<String, String> entry : map.getData().entrySet()) {
+				String key = entry.getKey();
+				String value = entry.getValue();
+				if (key.equals(APPLICATION_YAML) || key.equals(APPLICATION_YML)) {
+					result.putAll(yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP).apply(value));
+				} else if (key.equals(APPLICATION_PROPERTIES)) {
+					result.putAll(KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(value));
+				} else {
+					result.put(key, value);
+				}
+			}
+		}
+		return result;
+	}
+
+	private static Map<String, Object> asObjectMap(Map<String, String> source) {
+		return source.entrySet()
+			.stream()
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+	}
 
 	private static Function<String, Properties> yamlParserGenerator(final String[] profiles) {
 		return s -> {
@@ -118,20 +150,20 @@ public class ConfigMapPropertySource extends KubernetesPropertySource {
 		};
 	}
 
-    private static final Function<String, Properties> KEY_VALUE_TO_PROPERTIES = s -> {
-        Properties properties = new Properties();
-        try {
-            properties.load(new ByteArrayInputStream(s.getBytes()));
-            return properties;
-        } catch (IOException e) {
-            throw new IllegalArgumentException();
-        }
-    };
+	private static final Function<String, Properties> KEY_VALUE_TO_PROPERTIES = s -> {
+		Properties properties = new Properties();
+		try {
+			properties.load(new ByteArrayInputStream(s.getBytes()));
+			return properties;
+		} catch (IOException e) {
+			throw new IllegalArgumentException();
+		}
+	};
 
-    private static final Function<Properties, Map<String,String>> PROPERTIES_TO_MAP = p -> p.entrySet().stream()
-            .collect(Collectors.toMap(
-                    e -> String.valueOf(e.getKey()),
-                    e -> String.valueOf(e.getValue())));
+	private static final Function<Properties, Map<String,String>> PROPERTIES_TO_MAP = p -> p.entrySet().stream()
+		.collect(Collectors.toMap(
+			e -> String.valueOf(e.getKey()),
+			e -> String.valueOf(e.getValue())));
 
 
 }

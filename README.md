@@ -76,9 +76,11 @@ The [Spring Cloud Kubernetes Config](./spring-cloud-kubernetes-config) project m
 during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on 
 observed `ConfigMap`s.
 
-`ConfigMapPropertySource` will search for a Kubernetes `ConfigMap` which `metadata.name` is either the name of 
-your Spring application (as defined by its `spring.application.name` property) or a custom name defined within the
+`ConfigMapPropertySource` will search for a Kubernetes `ConfigMap` as below
+- `application` is a global common config map (This can be used to hold common configuration for all pods)
+- `metadata.name` is either the name of your Spring application (as defined by its `spring.application.name` property) or a custom name defined within the
 `bootstrap.properties` file under the following key `spring.cloud.kubernetes.config.name`.
+- `metadata.name-profile` same name 2nd step but with active profiles added
 
 If such a `ConfigMap` is found, it will be processed as follows:
 
