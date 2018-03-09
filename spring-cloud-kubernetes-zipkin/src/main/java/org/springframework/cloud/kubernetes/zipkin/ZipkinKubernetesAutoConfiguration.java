@@ -18,6 +18,8 @@
 package org.springframework.cloud.kubernetes.zipkin;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Utils;
 import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
@@ -37,7 +39,9 @@ import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 import zipkin.Span;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -71,7 +75,7 @@ public class ZipkinKubernetesAutoConfiguration {
                 .orElse(new Endpoints())
                 .getSubsets()
                 .stream()
-                .flatMap(s -> s.getAddresses().stream().map(a -> (ServiceInstance) new KubernetesServiceInstance(name, a ,s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new), false)))
+                .flatMap(s -> s.getAddresses().stream().map(a -> (ServiceInstance) new KubernetesServiceInstance(name, a ,s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new), false,getServiceLabels(client,name))))
                 .collect(Collectors.toList());
     }
 
@@ -93,5 +97,20 @@ public class ZipkinKubernetesAutoConfiguration {
 		RestTemplate restTemplate = new RestTemplate();
 		new DefaultZipkinRestTemplateCustomizer(zipkinProperties).customize(restTemplate);
 		return restTemplate;
+	}
+
+	private static Map<String,String> getServiceLabels(KubernetesClient client, String serviceId) {
+
+		Map<String, String> labels = null;
+
+		Service service = client.services().withName(serviceId).get();
+		if (service != null) {
+			ObjectMeta metadata = service.getMetadata();
+			if(metadata != null)
+				labels = metadata.getLabels();
+		}
+		if(labels == null)
+			labels = Collections.EMPTY_MAP;
+		return labels;
 	}
 }
