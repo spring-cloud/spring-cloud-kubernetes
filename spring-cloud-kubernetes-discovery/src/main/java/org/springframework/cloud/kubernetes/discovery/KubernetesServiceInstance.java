@@ -38,12 +38,14 @@ public class KubernetesServiceInstance implements ServiceInstance {
     private final EndpointAddress endpointAddress;
     private final EndpointPort endpointPort;
     private final Boolean secure;
+	private final Map<String,String> metadata;
 
-    public KubernetesServiceInstance(String serviceId, EndpointAddress endpointAddress, EndpointPort endpointPort, Boolean secure) {
+    public KubernetesServiceInstance(String serviceId, EndpointAddress endpointAddress, EndpointPort endpointPort, Boolean secure, Map<String, String> metadata) {
         this.serviceId = serviceId;
         this.endpointAddress = endpointAddress;
         this.endpointPort = endpointPort;
         this.secure = secure;
+        this.metadata = metadata;
     }
 
     @Override
@@ -85,6 +87,6 @@ public class KubernetesServiceInstance implements ServiceInstance {
     }
 
     public Map<String, String> getMetadata() {
-        return Collections.EMPTY_MAP;
+        return metadata;
     }
 }
