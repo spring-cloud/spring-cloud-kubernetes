@@ -16,75 +16,77 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Map;
+
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import org.springframework.cloud.client.ServiceInstance;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.Map;
-
-import static io.fabric8.kubernetes.client.utils.Utils.isNotNullOrEmpty;
-import static io.fabric8.kubernetes.client.utils.Utils.isNullOrEmpty;
-
 public class KubernetesServiceInstance implements ServiceInstance {
 
-    private static final String HTTP_PREFIX = "http://";
-    private static final String HTTPS_PREFIX = "https://";
-    private static final String COLN = ":";
+	private static final String HTTP_PREFIX = "http://";
+	private static final String HTTPS_PREFIX = "https://";
+	private static final String COLN = ":";
 
-    private final String serviceId;
-    private final EndpointAddress endpointAddress;
-    private final EndpointPort endpointPort;
-    private final Boolean secure;
+	private final String serviceId;
+	private final EndpointAddress endpointAddress;
+	private final EndpointPort endpointPort;
+	private final Boolean secure;
+	private final Map<String, String> metadata;
 
-    public KubernetesServiceInstance(String serviceId, EndpointAddress endpointAddress, EndpointPort endpointPort, Boolean secure) {
-        this.serviceId = serviceId;
-        this.endpointAddress = endpointAddress;
-        this.endpointPort = endpointPort;
-        this.secure = secure;
-    }
+	public KubernetesServiceInstance(String serviceId,
+									 EndpointAddress endpointAddress,
+									 EndpointPort endpointPort,
+									 Map<String, String> metadata,
+									 Boolean secure) {
+		this.serviceId = serviceId;
+		this.endpointAddress = endpointAddress;
+		this.endpointPort = endpointPort;
+		this.metadata = metadata;
+		this.secure = secure;
+	}
 
-    @Override
-    public String getServiceId() {
-        return serviceId;
-    }
+	@Override
+	public String getServiceId() {
+		return serviceId;
+	}
 
-    @Override
-    public String getHost() {
-        return endpointAddress.getIp();
-    }
+	@Override
+	public String getHost() {
+		return endpointAddress.getIp();
+	}
 
-    @Override
-    public int getPort() {
-        return endpointPort.getPort();
-    }
+	@Override
+	public int getPort() {
+		return endpointPort.getPort();
+	}
 
-    @Override
-    public boolean isSecure() {
-        return secure;
-    }
+	@Override
+	public boolean isSecure() {
+		return secure;
+	}
 
-    @Override
-    public URI getUri() {
-        StringBuilder sb = new StringBuilder();
+	@Override
+	public URI getUri() {
+		StringBuilder sb = new StringBuilder();
 
-        if (isSecure()) {
-            sb.append(HTTPS_PREFIX);
-        } else {
-            sb.append(HTTP_PREFIX);
-        }
+		if (isSecure()) {
+			sb.append(HTTPS_PREFIX);
+		} else {
+			sb.append(HTTP_PREFIX);
+		}
 
-        sb.append(getHost()).append(COLN).append(getPort());
-        try {
-            return new URI(sb.toString());
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-    }
+		sb.append(getHost()).append(COLN).append(getPort());
+		try {
+			return new URI(sb.toString());
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    public Map<String, String> getMetadata() {
-        return Collections.EMPTY_MAP;
-    }
+	public Map<String, String> getMetadata() {
+		return metadata;
+	}
 }

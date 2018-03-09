@@ -8,6 +8,7 @@ import org.springframework.cloud.kubernetes.registry.KubernetesRegistration;
 import org.springframework.cloud.kubernetes.registry.KubernetesServiceRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class KubernetesDiscoveryClientConfig {
@@ -34,7 +35,8 @@ public class KubernetesDiscoveryClientConfig {
 	}
 
 	@Bean
-	public KubernetesDiscoveryProperties getProperties() {
+	@Primary
+	public KubernetesDiscoveryProperties getKubernetesDiscoveryProperties() {
 		return new KubernetesDiscoveryProperties();
 	}
 }
