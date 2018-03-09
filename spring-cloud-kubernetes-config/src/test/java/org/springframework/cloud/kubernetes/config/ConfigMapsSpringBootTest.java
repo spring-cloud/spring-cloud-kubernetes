@@ -39,15 +39,18 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author <a href="mailto:cmoullia@redhat.com">Charles Moulliard</a>
+ * @author <a href="mailto:shahbour@gmail.com">Ali Shahbour</a>
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
                 classes = App.class,
 				properties = { "spring.application.name=configmap-example",
-	           "spring.cloud.kubernetes.reload.enabled=false"})
+	           "spring.cloud.kubernetes.reload.enabled=false",
+				"spring.profiles.active=production"})
 public class ConfigMapsSpringBootTest {
 
 	@ClassRule
@@ -58,7 +61,9 @@ public class ConfigMapsSpringBootTest {
 	@Autowired(required = false)
 	Config config;
 
+	private static final String GLOBAL_APPLICATION = "application";
 	private static final String APPLICATION_NAME = "configmap-example";
+	private static final String ACTIVE_PROFILE = "production";
 
 	@Value("${local.server.port}")
 	private int port;
@@ -74,19 +79,38 @@ public class ConfigMapsSpringBootTest {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 
+		HashMap<String,String> global = new HashMap<>();
+		global.put("bean.global","Hello ConfigMap Global, %s!");
+		global.put("bean.message","Hello ConfigMap Global, %s!");  // This should be ignored by application name properties
+		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + GLOBAL_APPLICATION).andReturn(200, new ConfigMapBuilder()
+			.withNewMetadata().withName(GLOBAL_APPLICATION).endMetadata()
+			.addToData(global)
+			.build())
+			.always();
+
 		HashMap<String,String> data = new HashMap<>();
 		data.put("bean.message","Hello ConfigMap, %s!");
+		data.put("bean.profile","Hello ConfigMap, %s!");  // This should be ignored by profiles properties
 		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME).andReturn(200, new ConfigMapBuilder()
 			.withNewMetadata().withName(APPLICATION_NAME).endMetadata()
 			.addToData(data)
 			.build())
 			.always();
+
+		HashMap<String,String> profile = new HashMap<>();
+		profile.put("bean.profile","Hello ConfigMap Profile, %s!");
+		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME + "-" + ACTIVE_PROFILE).andReturn(200, new ConfigMapBuilder()
+			.withNewMetadata().withName(APPLICATION_NAME + "-" + ACTIVE_PROFILE).endMetadata()
+			.addToData(profile)
+			.build())
+			.always();
+
 	}
 
 
 	@Before
 	public void setUp() {
-		RestAssured.baseURI = String.format("http://localhost:%d/api/greeting", port);
+		RestAssured.baseURI = String.format("http://localhost:%d/api/", port);
 	}
 
 	@Test
@@ -95,19 +119,56 @@ public class ConfigMapsSpringBootTest {
 		assertEquals(config.getNamespace(),mockClient.getNamespace());
 	}
 
+
+	@Test
+	public void testGlobalEndpoint() {
+		when().get("global")
+			.then()
+			.statusCode(200)
+			.body("content", is("Hello ConfigMap Global, World!"));
+	}
+
 	@Test
 	public void testGreetingEndpoint() {
-		when().get()
+		when().get("greeting")
 			.then()
 			.statusCode(200)
 			.body("content", is("Hello ConfigMap, World!"));
 	}
 
 	@Test
+	public void testProfileEndpoint() {
+		when().get("profile")
+			.then()
+			.statusCode(200)
+			.body("content", is("Hello ConfigMap Profile, World!"));
+	}
+
+	@Test
+	public void testGlobalConfigMap() {
+		ConfigMap configmap = mockClient.configMaps().inNamespace("test").withName(GLOBAL_APPLICATION).get();
+		HashMap<String,String> keys = (HashMap<String, String>) configmap.getData();
+		assertEquals(keys.get("bean.global"),"Hello ConfigMap Global, %s!");
+		assertEquals(keys.get("bean.message"),"Hello ConfigMap Global, %s!");
+		assertNull(keys.get("bean.profile"));
+	}
+
+	@Test
 	public void testConfigMap() {
 		ConfigMap configmap = mockClient.configMaps().inNamespace("test").withName(APPLICATION_NAME).get();
 		HashMap<String,String> keys = (HashMap<String, String>) configmap.getData();
+		assertNull(keys.get("bean.global"));
 		assertEquals(keys.get("bean.message"),"Hello ConfigMap, %s!");
+		assertEquals(keys.get("bean.profile"),"Hello ConfigMap, %s!");
+	}
+
+	@Test
+	public void testProfileConfigMap() {
+		ConfigMap configmap = mockClient.configMaps().inNamespace("test").withName(APPLICATION_NAME + "-" + ACTIVE_PROFILE).get();
+		HashMap<String,String> keys = (HashMap<String, String>) configmap.getData();
+		assertNull(keys.get("bean.global"));
+		assertNull(keys.get("bean.message"));
+		assertEquals(keys.get("bean.profile"),"Hello ConfigMap Profile, %s!");
 	}
 
 }

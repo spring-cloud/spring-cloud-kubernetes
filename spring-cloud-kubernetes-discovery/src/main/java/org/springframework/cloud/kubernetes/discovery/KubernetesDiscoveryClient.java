@@ -17,6 +17,8 @@
 package org.springframework.cloud.kubernetes.discovery;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Utils;
 import org.springframework.cloud.client.DefaultServiceInstance;
@@ -24,7 +26,9 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.util.Assert;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -70,7 +74,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
                     .map(s -> (ServiceInstance) new KubernetesServiceInstance(serviceName,
                             s.getAddresses().stream().findFirst().orElseThrow(IllegalStateException::new),
                             s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
-                            false))
+                            false,getServiceLabels(serviceName)))
                     .findFirst().orElse(defaultInstance);
         } catch (Throwable t) {
             return defaultInstance;
@@ -80,10 +84,11 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
     @Override
     public List<ServiceInstance> getInstances(String serviceId) {
         Assert.notNull(serviceId, "[Assertion failed] - the object argument must be null");
+
         return Optional.ofNullable(client.endpoints().withName(serviceId).get()).orElse(new Endpoints())
                 .getSubsets()
                 .stream()
-                .flatMap(s -> s.getAddresses().stream().map(a -> (ServiceInstance) new KubernetesServiceInstance(serviceId, a ,s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new), false)))
+                .flatMap(s -> s.getAddresses().stream().map(a -> (ServiceInstance) new KubernetesServiceInstance(serviceId, a ,s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new), false,getServiceLabels(serviceId))))
                 .collect(Collectors.toList());
 
     }
@@ -95,4 +100,19 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
                 .stream().map(s -> s.getMetadata().getName())
                 .collect(Collectors.toList());
     }
+
+    private Map<String,String> getServiceLabels(String serviceId) {
+
+    	Map<String, String> labels = null;
+
+		Service service = client.services().withName(serviceId).get();
+		if (service != null) {
+			ObjectMeta metadata = service.getMetadata();
+			if(metadata != null)
+				labels = metadata.getLabels();
+		}
+		if(labels == null)
+		 labels = Collections.EMPTY_MAP;
+		return labels;
+	}
 }
