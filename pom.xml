@@ -59,6 +59,8 @@
 
 	<properties>
 		<!-- Dependency Versions -->
+		<!-- <spring-cloud-netflix.version>1.3.2.RELEASE</spring-cloud-netflix.version>
+		<spring-cloud-sleuth.version>1.2.2.RELEASE</spring-cloud-sleuth.version> -->
 		<spring-cloud-commons.version>2.0.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
 
 		<!-- Maven Plugin Versions -->
@@ -81,6 +83,14 @@
 		<module>spring-cloud-starter-kubernetes</module>
 		<module>spring-cloud-starter-kubernetes-config</module>
 		<module>spring-cloud-kubernetes-examples</module>
+
+		<!-- <module>spring-cloud-starter-kubernetes-netflix</module>
+		<module>spring-cloud-starter-kubernetes-zipkin</module>
+		<module>spring-cloud-starter-kubernetes-all</module>
+		<module>spring-cloud-kubernetes-ribbon</module>
+		<module>spring-cloud-kubernetes-zipkin</module>
+		<module>spring-cloud-kubernetes-hystrix</module>
+		<module>spring-cloud-kubernetes-archaius</module> -->
 	</modules>
 	<dependencies>
 		<dependency>
