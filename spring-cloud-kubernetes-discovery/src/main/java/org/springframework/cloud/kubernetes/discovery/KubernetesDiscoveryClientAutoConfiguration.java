@@ -11,9 +11,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 @Configuration
-public class KubernetesDiscoveryClientConfig {
+public class KubernetesDiscoveryClientAutoConfiguration {
 
-	private static final Log log = LogFactory.getLog(KubernetesDiscoveryClientConfig.class);
+	private static final Log log = LogFactory.getLog(KubernetesDiscoveryClientAutoConfiguration.class);
 
 	@Bean
 	public DiscoveryClient discoveryClient(KubernetesClient client,
