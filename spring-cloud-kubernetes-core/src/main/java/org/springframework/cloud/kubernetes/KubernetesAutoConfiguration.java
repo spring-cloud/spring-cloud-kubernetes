@@ -41,7 +41,7 @@ public class KubernetesAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(Config.class)
     public Config kubernetesClientConfig(KubernetesClientProperties kubernetesClientProperties) {
-        Config base = new Config();
+        Config base = Config.autoConfigure(null);
         Config properties = new ConfigBuilder(base)
                 //Only set values that have been explicitly specified
                 .withMasterUrl(or(kubernetesClientProperties.getMasterUrl(), base.getMasterUrl()))

@@ -18,24 +18,33 @@ package org.springframework.cloud.kubernetes.discovery;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.client.serviceregistry.AutoServiceRegistrationProperties;
 
 @ConfigurationProperties("spring.cloud.kubernetes.discovery")
-public class KubernetesDiscoveryProperties {
+public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProperties {
 
-    private boolean enabled = true;
+	private boolean enabled = true;
 
-    @Value("${spring.application.name:unknown}")
-    private String serviceName = "unknown";
+	@Value("${spring.application.name:unknown}")
+	private String serviceName = "unknown";
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+	public boolean isEnabled() {
+		return enabled;
+	}
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
-    public String getServiceName() {
-        return serviceName;
-    }
+	public String getServiceName() {
+		return serviceName;
+	}
+
+	@Override
+	public String toString() {
+		return "KubernetesDiscoveryProperties{" +
+			"enabled=" + enabled +
+			", serviceName='" + serviceName + '\'' +
+			'}';
+	}
 }

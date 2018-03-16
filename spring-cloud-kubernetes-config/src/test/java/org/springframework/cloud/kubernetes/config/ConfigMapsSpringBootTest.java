@@ -47,7 +47,8 @@ import static org.junit.Assert.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
                 classes = App.class,
 				properties = { "spring.application.name=configmap-example",
-	           "spring.cloud.kubernetes.reload.enabled=false"})
+	           "spring.cloud.kubernetes.reload.enabled=false"}
+	           )
 public class ConfigMapsSpringBootTest {
 
 	@ClassRule
