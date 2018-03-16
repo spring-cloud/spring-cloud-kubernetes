@@ -48,47 +48,47 @@
 				<version>${project.version}</version>
 			</dependency>
 
-			<!--<dependency>-->
-				<!--<groupId>org.springframework.cloud</groupId>-->
-				<!--<artifactId>spring-cloud-kubernetes-archaius</artifactId>-->
-				<!--<version>${project.version}</version>-->
-			<!--</dependency>-->
+			<!--<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-kubernetes-archaius</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
-			<!--<dependency>-->
-				<!--<groupId>org.springframework.cloud</groupId>-->
-				<!--<artifactId>spring-cloud-kubernetes-hystrix</artifactId>-->
-				<!--<version>${project.version}</version>-->
-			<!--</dependency>-->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-kubernetes-hystrix</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
-			<!--<dependency>-->
-				<!--<groupId>org.springframework.cloud</groupId>-->
-				<!--<artifactId>spring-cloud-kubernetes-ribbon</artifactId>-->
-				<!--<version>${project.version}</version>-->
-			<!--</dependency>-->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-kubernetes-ribbon</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
-			<!--<dependency>-->
-				<!--<groupId>org.springframework.cloud</groupId>-->
-				<!--<artifactId>spring-cloud-kubernetes-zipkin</artifactId>-->
-				<!--<version>${project.version}</version>-->
-			<!--</dependency>-->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-kubernetes-zipkin</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
-			<!--<dependency>-->
-				<!--<groupId>org.springframework.cloud</groupId>-->
-				<!--<artifactId>spring-cloud-starter-kubernetes-netflix</artifactId>-->
-				<!--<version>${project.version}</version>-->
-			<!--</dependency>-->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-kubernetes-netflix</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
-			<!--<dependency>-->
-				<!--<groupId>org.springframework.cloud</groupId>-->
-				<!--<artifactId>spring-cloud-starter-kubernetes-zipkin</artifactId>-->
-				<!--<version>${project.version}</version>-->
-			<!--</dependency>-->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-kubernetes-zipkin</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
-			<!--<dependency>-->
-				<!--<groupId>org.springframework.cloud</groupId>-->
-				<!--<artifactId>spring-cloud-starter-kubernetes-all</artifactId>-->
-				<!--<version>${project.version}</version>-->
-			<!--</dependency>-->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-kubernetes-all</artifactId>
+				<version>${project.version}</version>
+			</dependency>-->
 
 			<!-- Own dependencies - Starters -->
 			<dependency>
