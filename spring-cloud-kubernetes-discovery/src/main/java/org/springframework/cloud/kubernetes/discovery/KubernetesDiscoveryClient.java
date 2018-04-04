@@ -72,11 +72,11 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 		Endpoints endpoints = client.endpoints().withName(serviceName).get();
 		Optional<Service> service = Optional.ofNullable(client.services().withName(serviceName).get());
-		final Map<String, String> labels;
+		final Map<String, String> annotations;
 		if (service.isPresent()) {
-			labels = service.get().getMetadata().getLabels();
+			annotations = service.get().getMetadata().getAnnotations();
 		} else {
-			labels = null;
+			annotations = null;
 		}
 		if (Utils.isNullOrEmpty(podName) || endpoints == null) {
 			return defaultInstance;
@@ -91,7 +91,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 						return new KubernetesServiceInstance(serviceName,
 																	a,
 																	s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
-																	labels,
+																	annotations,
 																	false);
 					}
 				}
