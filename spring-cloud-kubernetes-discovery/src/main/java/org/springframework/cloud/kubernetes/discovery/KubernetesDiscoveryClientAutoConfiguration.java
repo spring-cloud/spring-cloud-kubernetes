@@ -1,6 +1,8 @@
 package org.springframework.cloud.kubernetes.discovery;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.registry.KubernetesRegistration;
 import org.springframework.cloud.kubernetes.registry.KubernetesServiceRegistry;
@@ -32,5 +34,12 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	@Primary
 	public KubernetesDiscoveryProperties getKubernetesDiscoveryProperties() {
 		return new KubernetesDiscoveryProperties();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnProperty(name = "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled", matchIfMissing = true)
+	public KubernetesCatalogWatch kubernetesCatalogWatch(KubernetesDiscoveryClient client) {
+		return new KubernetesCatalogWatch(client);
 	}
 }
