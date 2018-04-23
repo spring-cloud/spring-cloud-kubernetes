@@ -1,0 +1,5 @@
+dummy:
+  property:
+    string2: "a"
+    int2: 1
+    bool2: true

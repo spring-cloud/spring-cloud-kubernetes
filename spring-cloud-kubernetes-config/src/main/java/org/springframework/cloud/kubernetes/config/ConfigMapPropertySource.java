@@ -75,28 +75,40 @@ public class ConfigMapPropertySource extends KubernetesPropertySource {
 					: client.configMaps().inNamespace(namespace).withName(name).get();
 
 				if (map != null) {
-					for (Map.Entry<String, String> entry : map.getData().entrySet()) {
-						String key = entry.getKey();
-						String value = entry.getValue();
-						if (key.equals(APPLICATION_YAML) || key.equals(APPLICATION_YML)) {
-							result.putAll(yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP).apply(value));
-						} else if (key.equals(APPLICATION_PROPERTIES)) {
-							result.putAll(KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(value));
-						} else {
-							result.put(key, value);
-						}
-					}
+					result.putAll(processAllEntries(map.getData(), profiles));
 				}
 			} catch (Exception e) {
 				LOG.warn("Can't read configMap with name: [" + name + "] in namespace:[" + namespace + "]. Ignoring", e);
 			}
 		}
 
-		// read for secrets mount
-		putPathConfig(result, config.getPaths());
-
+		Map<String, String> configsFromPaths = new HashMap<>();
+		putPathConfig(configsFromPaths, config.getPaths());
+		result.putAll(processAllEntries(configsFromPaths, profiles));
 		return result;
     }
+
+	private static Map<String, String> processAllEntries(Map<String, String> input,
+		String[] profiles) {
+		return input.entrySet().stream()
+				.map(e -> extractProperties(e.getKey(), e.getValue(), profiles))
+				.filter(m -> !m.isEmpty())
+				.flatMap(m -> m.entrySet().stream())
+				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+	}
+
+	private static Map<String, String> extractProperties(String resourceName, String content, String[] profiles) {
+		Map<String, String> result = new HashMap<>();
+
+    	if (resourceName.equals(APPLICATION_YAML) || resourceName.equals(APPLICATION_YML)) {
+			result.putAll(yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP).apply(content));
+		} else if (resourceName.equals(APPLICATION_PROPERTIES)) {
+			result.putAll(KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(content));
+		} else {
+			result.put(resourceName, content);
+		}
+			return result;
+		}
 
     private static Map<String, Object> asObjectMap(Map<String, String> source) {
         return source.entrySet()
