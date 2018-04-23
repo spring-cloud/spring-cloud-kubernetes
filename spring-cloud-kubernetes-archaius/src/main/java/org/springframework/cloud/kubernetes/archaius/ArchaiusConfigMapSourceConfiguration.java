@@ -82,7 +82,7 @@ public class ArchaiusConfigMapSourceConfiguration implements InitializingBean, D
         }
         watch = StringUtils.isEmpty(namespace)
                 ? client.configMaps().withName(name).watch(watcher)
-                : client.configMaps().inNamespace(namespace).withName(namespace).watch(watcher);
+                : client.configMaps().inNamespace(namespace).withName(name).watch(watcher);
         started.set(true);
     }
 
