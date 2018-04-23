@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>1.3.3.BUILD-SNAPSHOT</version>
+		<version>2.0.0.BUILD-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 
@@ -34,7 +34,7 @@
 	<name>Spring Cloud Kubernetes</name>
 
 	<url>http://cloud.spring.io</url>
-	<inceptionYear>2016</inceptionYear>
+	<inceptionYear>2017</inceptionYear>
 
 	<organization>
 		<name>Pivotal Software, Inc.</name>
@@ -59,17 +59,20 @@
 
 	<properties>
 		<!-- Dependency Versions -->
-		<spring-cloud-commons.version>1.2.3.RELEASE</spring-cloud-commons.version>
-		<spring-cloud-netflix.version>1.3.2.RELEASE</spring-cloud-netflix.version>
-		<spring-cloud-sleuth.version>1.2.2.RELEASE</spring-cloud-sleuth.version>
+		<!-- <spring-cloud-netflix.version>1.3.2.RELEASE</spring-cloud-netflix.version>
+		<spring-cloud-sleuth.version>1.2.2.RELEASE</spring-cloud-sleuth.version> -->
+		<spring-cloud-commons.version>2.0.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
 
 		<!-- Maven Plugin Versions -->
 		<maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
 		<maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
-		<maven-failsafe-plugin.version>2.19.1</maven-failsafe-plugin.version>
-		<maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
-		<fabric8.maven.plugin.version>3.2.28</fabric8.maven.plugin.version>
-		<gmavenplus-plugin.version>1.2</gmavenplus-plugin.version>
+		<maven-failsafe-plugin.version>2.18.1</maven-failsafe-plugin.version>
+		<maven-surefire-plugin.version>2.21.0</maven-surefire-plugin.version>
+		<fabric8.maven.plugin.version>3.5.37</fabric8.maven.plugin.version>
+		<gmavenplus-plugin.version>1.6</gmavenplus-plugin.version>
+		<groovy.version>2.4.12</groovy.version>
+		<restassured.version>3.0.2</restassured.version>
+		<spock-spring.version>1.1-groovy-2.4</spock-spring.version>
 	</properties>
 
 	<modules>
@@ -77,18 +80,25 @@
 		<module>spring-cloud-kubernetes-core</module>
 		<module>spring-cloud-kubernetes-config</module>
 		<module>spring-cloud-kubernetes-discovery</module>
+		<module>spring-cloud-starter-kubernetes</module>
+		<module>spring-cloud-starter-kubernetes-config</module>
+		<module>spring-cloud-kubernetes-examples</module>
+
+		<!-- <module>spring-cloud-starter-kubernetes-netflix</module>
+		<module>spring-cloud-starter-kubernetes-zipkin</module>
+		<module>spring-cloud-starter-kubernetes-all</module>
 		<module>spring-cloud-kubernetes-ribbon</module>
 		<module>spring-cloud-kubernetes-zipkin</module>
 		<module>spring-cloud-kubernetes-hystrix</module>
-		<module>spring-cloud-kubernetes-archaius</module>
-		<module>spring-cloud-starter-kubernetes</module>
-		<module>spring-cloud-starter-kubernetes-config</module>
-		<module>spring-cloud-starter-kubernetes-netflix</module>
-		<module>spring-cloud-starter-kubernetes-zipkin</module>
-		<module>spring-cloud-starter-kubernetes-all</module>
-		<module>spring-cloud-kubernetes-examples</module>
+		<module>spring-cloud-kubernetes-archaius</module> -->
 	</modules>
-
+	<dependencies>
+		<dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy-all</artifactId>
+			<version>${groovy.version}</version>
+		</dependency>
+	</dependencies>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -108,21 +118,23 @@
 			</dependency>
 
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-netflix-dependencies</artifactId>
-				<version>${spring-cloud-netflix.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
+				<groupId>org.codehaus.groovy</groupId>
+				<artifactId>groovy-all</artifactId>
+				<version>${groovy.version}</version>
 			</dependency>
 
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-sleuth-dependencies</artifactId>
-				<version>${spring-cloud-sleuth.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
+				<groupId>io.rest-assured</groupId>
+				<artifactId>rest-assured</artifactId>
+				<version>${restassured.version}</version>
+				<scope>test</scope>
 			</dependency>
 
+			<dependency>
+				<groupId>org.spockframework</groupId>
+				<artifactId>spock-spring</artifactId>
+				<version>${spock-spring.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -147,7 +159,7 @@
 					<execution>
 						<goals>
 							<goal>compile</goal>
-							<goal>testCompile</goal>
+							<goal>compileTests</goal>
 						</goals>
 					</execution>
 				</executions>

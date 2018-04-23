@@ -24,7 +24,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Oleg Vyukov
  */
-public class KubernetesCatalogServicesWatchtConfigurationTest {
+public class KubernetesCatalogServicesWatchConfigurationTest {
 
 	private ConfigurableApplicationContext context;
 
@@ -51,7 +51,7 @@ public class KubernetesCatalogServicesWatchtConfigurationTest {
 		this.context = new SpringApplicationBuilder(
 			PropertyPlaceholderAutoConfiguration.class,
 			KubernetesClientTestConfiguration.class,
-			KubernetesDiscoveryClientConfiguration.class).web(false)
+			KubernetesDiscoveryClientAutoConfiguration.class).web(false)
 			.properties(env).run();
 	}
 

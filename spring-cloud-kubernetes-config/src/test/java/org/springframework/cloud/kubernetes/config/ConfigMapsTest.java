@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.kubernetes.config;
 
+import io.fabric8.kubernetes.client.utils.IOHelpers;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -88,8 +89,13 @@ public class ConfigMapsTest {
 		createConfigMapFile(apiPath, "api.url", "http://localhost/api");
 		createConfigMapFile(apiPath, "foo.bar", "42");
 
+		final Path filesPath = tmp.resolve("cm/files");
+
+		createConfigMapFile(filesPath, "application.yaml", readResourceFile("application.yaml"));
+		createConfigMapFile(filesPath, "application.properties", readResourceFile("application.properties"));
+
 		// parse ConfigMaps
-		cmConfProperties.setPaths(Arrays.asList(dbPath.toString(), apiPath.toString()));
+		cmConfProperties.setPaths(Arrays.asList(dbPath.toString(), apiPath.toString(), filesPath.toString()));
 		ConfigMapPropertySource cmps = new ConfigMapPropertySource(client, "testapp", cmConfProperties);
 
 		// assert as expected
@@ -98,7 +104,26 @@ public class ConfigMapsTest {
 		assertEquals("http://localhost/api", cmps.getProperty("api.url"));
 		assertFalse(cmps.containsProperty("no.such.property"));
 
-		FileSystemUtils.deleteRecursively(tmp.toFile());
+		assertEquals("a", cmps.getProperty("dummy.property.string1"));
+		assertEquals("1", cmps.getProperty("dummy.property.int1"));
+		assertEquals("true", cmps.getProperty("dummy.property.bool1"));
+
+		assertEquals("a", cmps.getProperty("dummy.property.string2"));
+		assertEquals("1", cmps.getProperty("dummy.property.int2"));
+		assertEquals("true", cmps.getProperty("dummy.property.bool2"));
+
+    	FileSystemUtils.deleteRecursively(tmp.toFile());
+	}
+
+	private String readResourceFile(String file) {
+		String resource;
+		try {
+			resource = IOHelpers.readFully(getClass().getClassLoader().getResourceAsStream(file));
+		}
+		catch (IOException e) {
+			resource = "";
+		}
+		return resource;
 	}
 
 	private void createConfigMapFile(Path basePath, String key, String value) throws IOException {
