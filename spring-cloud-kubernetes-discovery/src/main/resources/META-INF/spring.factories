@@ -1,3 +1,8 @@
+<<<<<<< HEAD
 # Discovery Client Configuration
 org.springframework.cloud.client.discovery.EnableDiscoveryClient=\
 org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryClientConfiguration
+=======
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryClientAutoConfiguration
+>>>>>>> a8d32ef... Fixes dual discovery client beans by only relying on auto-configuration
