@@ -27,8 +27,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.springframework.cloud</groupId>
-	<artifactId>spring-cloud-starter-kubernetes-netflix</artifactId>
-	<name>Spring Cloud Kubernetes :: Starter :: Netflix</name>
+	<artifactId>spring-cloud-starter-kubernetes-ribbon</artifactId>
+	<name>Spring Cloud Kubernetes :: Starter :: Ribbon</name>
 
 	<dependencies>
 		<dependency>

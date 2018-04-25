@@ -16,14 +16,14 @@
 	<properties>
 		<arquillian.version>1.4.0.Final</arquillian.version>
 		<arquillian-cube.version>1.15.2</arquillian-cube.version>
-		<kubernetes-client.version>3.1.8</kubernetes-client.version>
+		<kubernetes-client.version>3.1.10</kubernetes-client.version>
 		<mockwebserver.version>0.1.0</mockwebserver.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
 				<groupId>io.fabric8</groupId>
-				<artifactId>kubernetes-client-bom-with-deps</artifactId>
+				<artifactId>kubernetes-client-bom</artifactId>
 				<version>${kubernetes-client.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
@@ -48,47 +48,12 @@
 				<version>${project.version}</version>
 			</dependency>
 
-			<!--<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-kubernetes-archaius</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-kubernetes-hystrix</artifactId>
-				<version>${project.version}</version>
-			</dependency>
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-kubernetes-ribbon</artifactId>
 				<version>${project.version}</version>
 			</dependency>
-
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-kubernetes-zipkin</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-kubernetes-netflix</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-kubernetes-zipkin</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-kubernetes-all</artifactId>
-				<version>${project.version}</version>
-			</dependency>-->
 
 			<!-- Own dependencies - Starters -->
 			<dependency>
@@ -100,6 +65,18 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-kubernetes-config</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-kubernetes-ribbon</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-kubernetes-all</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
