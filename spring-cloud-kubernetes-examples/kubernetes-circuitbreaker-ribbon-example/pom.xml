@@ -6,7 +6,7 @@
 	<parent>
 		<artifactId>spring-cloud-kubernetes-examples</artifactId>
 		<groupId>org.springframework.cloud</groupId>
-		<version>0.2.1.BUILD-SNAPSHOT</version>
+		<version>0.3.0.BUILD-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.springframework.cloud</groupId>
