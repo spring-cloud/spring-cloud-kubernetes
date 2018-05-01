@@ -42,6 +42,8 @@ This is something that you get for free just by adding the following dependency 
 </dependency>
 ```
 
+To enable loading of the `DiscoveryClient`, add `@EnableDiscoveryClient` to the according configuration or application class.
+
 Then you can inject the client in your code simply by:
 
 ```java
