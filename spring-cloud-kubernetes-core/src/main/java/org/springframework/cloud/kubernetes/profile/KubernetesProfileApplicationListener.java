@@ -58,7 +58,7 @@ public class KubernetesProfileApplicationListener implements ApplicationListener
             }
         } else {
             if (LOG.isDebugEnabled()) {
-                LOG.warn("Not running inside kubernetes. Skipping 'kuberntes' profile activation.");
+                LOG.warn("Not running inside kubernetes. Skipping 'kubernetes' profile activation.");
             }
         }
     }
