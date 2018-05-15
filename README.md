@@ -98,6 +98,13 @@ If such a `ConfigMap` is found, it will be processed as follows:
 - apply as `yaml` the content of any property named `application.yaml`
 - apply as properties file the content of any property named `application.properties`
 
+The single exception to the aforementioned flow is when the `ConfigMap` contains a **single** key that indicates
+the file is a YAML or Properties file. In that case the name of the key does NOT have to be `application.yaml` or
+`application.properties` (it can be anything) and the value of the property will be treated correctly.
+This features facilitates the use case where the `ConfigMap` was created using something like:
+
+`kubectl create configmap game-config --from-file=/path/to/app-config.yaml`
+
 Example:
 
 Let's assume that we have a Spring Boot application named ``demo`` that uses properties to read its thread pool 
@@ -128,6 +135,21 @@ metadata:
   name: demo
 data:
   application.yaml: |-
+    pool:
+      size:
+        core: 1
+        max:16
+```
+
+The following also works:
+
+ ```yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  custom-name.yaml: |-
     pool:
       size:
         core: 1

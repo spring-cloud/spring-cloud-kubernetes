@@ -27,7 +27,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
@@ -93,11 +95,40 @@ public class ConfigMapPropertySource extends KubernetesPropertySource {
 
 	private static Map<String, String> processAllEntries(Map<String, String> input,
 		String[] profiles) {
+
+		Set<Entry<String, String>> entrySet = input.entrySet();
+		if(entrySet.size() == 1) {
+			Entry<String, String> singleEntry = entrySet.iterator().next();
+			String propertyName = singleEntry.getKey();
+			String propertyValue = singleEntry.getValue();
+			if (propertyName.endsWith(".yml") || propertyName.endsWith(".yaml")) {
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("The single property with name: [" + propertyName + "] will be treated as a yaml file");
+				}
+
+				return yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP).apply(propertyValue);
+			} else if (propertyName.endsWith(".properties")) {
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("The single property with name: [" + propertyName + "] will be treated as a properties file");
+				}
+
+				return KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(propertyValue);
+			} else {
+				return defaultProcessAllEntries(input, profiles);
+			}
+		}
+
+		return defaultProcessAllEntries(input, profiles);
+	}
+
+	private static Map<String, String> defaultProcessAllEntries(Map<String, String> input,
+		String[] profiles) {
+
 		return input.entrySet().stream()
-				.map(e -> extractProperties(e.getKey(), e.getValue(), profiles))
-				.filter(m -> !m.isEmpty())
-				.flatMap(m -> m.entrySet().stream())
-				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+			  .map(e -> extractProperties(e.getKey(), e.getValue(), profiles))
+			  .filter(m -> !m.isEmpty())
+			  .flatMap(m -> m.entrySet().stream())
+			  .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 	}
 
 	private static Map<String, String> extractProperties(String resourceName, String content, String[] profiles) {
