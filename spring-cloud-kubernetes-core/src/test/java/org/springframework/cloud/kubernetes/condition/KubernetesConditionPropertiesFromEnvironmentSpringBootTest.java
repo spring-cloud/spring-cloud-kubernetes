@@ -1,6 +1,7 @@
 package org.springframework.cloud.kubernetes.condition;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.springframework.cloud.kubernetes.KubernetesClientProperties.SPRING_CLOUD_KUBERNETES_CLIENT_PROPS;
 
 import io.fabric8.kubernetes.client.Config;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.util.EnvironmentTestUtils;
 import org.springframework.cloud.kubernetes.condition.App.K8SBean;
+import org.springframework.cloud.kubernetes.condition.App.OpenshiftBean;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
@@ -33,6 +35,9 @@ public class KubernetesConditionPropertiesFromEnvironmentSpringBootTest {
 	@Autowired(required = false)
 	private K8SBean k8SBean;
 
+	@Autowired(required = false)
+	private OpenshiftBean openshiftBean;
+
 	@BeforeClass
 	public static void setUpBeforeClass() {
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -43,6 +48,11 @@ public class KubernetesConditionPropertiesFromEnvironmentSpringBootTest {
 	@Test
 	public void anyK8sBeanShouldBeCreated() {
 		assertNotNull(k8SBean);
+	}
+
+	@Test
+	public void openshiftBeanShouldNotBeCreated() {
+		assertNull(openshiftBean);
 	}
 
 

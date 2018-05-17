@@ -13,4 +13,9 @@ import org.springframework.context.annotation.Conditional;
 @Conditional(OnKubernetesCondition.class)
 public @interface ConditionalOnKubernetes {
 
+	/**
+	 * If set, KubernetesClient must be adaptable to this class
+	 * if the Condition is to pass
+	 */
+	Class<?> classClientMustAdaptTo() default Void.class;
 }

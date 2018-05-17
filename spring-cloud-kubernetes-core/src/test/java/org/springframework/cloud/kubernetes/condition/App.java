@@ -1,5 +1,6 @@
 package org.springframework.cloud.kubernetes.condition;
 
+import io.fabric8.openshift.client.OpenShiftClient;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +15,8 @@ public class App {
 
 	static class K8SBean {}
 
+	static class OpenshiftBean {}
+
 	@Configuration
 	static class AppConfiguration {
 
@@ -21,6 +24,12 @@ public class App {
 		@ConditionalOnKubernetes
 		public K8SBean anyK8sBean() {
 			return new K8SBean();
+		}
+
+		@Bean
+		@ConditionalOnKubernetes(classClientMustAdaptTo = OpenShiftClient.class)
+		public OpenshiftBean openshiftBean() {
+			return new OpenshiftBean();
 		}
 
 	}

@@ -12,6 +12,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.cloud.kubernetes.condition.App.K8SBean;
+import org.springframework.cloud.kubernetes.condition.App.OpenshiftBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -27,7 +29,11 @@ public class OpenshiftConditionSpringBootTest {
 	public static OpenShiftServer server = new OpenShiftServer();
 
 	@Autowired(required = false)
-	private App.K8SBean k8SBean;
+	private K8SBean k8SBean;
+
+	@Autowired(required = false)
+	private OpenshiftBean openshiftBean;
+
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
@@ -44,5 +50,10 @@ public class OpenshiftConditionSpringBootTest {
 	@Test
 	public void anyK8sBeanShouldBeCreated() {
 		assertNotNull(k8SBean);
+	}
+
+	@Test
+	public void openshiftBeanShouldBeCreated() {
+		assertNotNull(openshiftBean);
 	}
 }
