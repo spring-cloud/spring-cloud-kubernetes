@@ -1,7 +1,7 @@
 package org.springframework.cloud.kubernetes.condition;
 
 import static org.junit.Assert.assertNotNull;
-import static org.springframework.cloud.kubernetes.Constants.SPRING_CLOUD_KUBERNETES_CLIENT_PROPS;
+import static org.springframework.cloud.kubernetes.KubernetesClientProperties.SPRING_CLOUD_KUBERNETES_CLIENT_PROPS;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
