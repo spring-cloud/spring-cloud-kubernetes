@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Conditional;
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Conditional(OnKubernetesOrOpenshiftCondition.class)
+@Conditional(OnOpenshiftCondition.class)
 public @interface ConditionalOnOpenshift {
 
 }

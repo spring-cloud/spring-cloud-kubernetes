@@ -9,7 +9,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.cloud.kubernetes.condition.App.K8SBean;
+import org.springframework.cloud.kubernetes.condition.App.OpenshiftBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -22,7 +22,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class ServerUnreachableConditionSpringBootTest {
 
 	@Autowired(required = false)
-	private K8SBean k8SBean;
+	private OpenshiftBean openshiftBean;
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
@@ -36,6 +36,6 @@ public class ServerUnreachableConditionSpringBootTest {
 
 	@Test
 	public void anyK8sBeanShouldNotBeCreated() {
-		assertNull(k8SBean);
+		assertNull(openshiftBean);
 	}
 }

@@ -31,7 +31,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>io.fabric8</groupId>
-			<artifactId>openshift-client</artifactId>
+			<artifactId>kubernetes-client</artifactId>
 			<exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>

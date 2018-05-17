@@ -12,15 +12,15 @@ public class App {
 		SpringApplication.run(App.class, args);
 	}
 
-	static class K8SBean {}
+	static class OpenshiftBean {}
 
 	@Configuration
 	static class AppConfiguration {
 
 		@Bean
-		@ConditionalOnKubernetes
-		public K8SBean anyK8sBean() {
-			return new K8SBean();
+		@ConditionalOnOpenshift
+		public OpenshiftBean anyK8sBean() {
+			return new OpenshiftBean();
 		}
 
 	}

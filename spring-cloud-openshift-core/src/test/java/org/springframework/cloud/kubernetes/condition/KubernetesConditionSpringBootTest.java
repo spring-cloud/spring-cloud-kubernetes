@@ -1,6 +1,5 @@
 package org.springframework.cloud.kubernetes.condition;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import io.fabric8.kubernetes.client.Config;
@@ -13,28 +12,23 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.cloud.kubernetes.condition.App.OpenshiftBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.NONE,
 	classes = App.class,
-	properties = { "spring.application.name=openshift-example"}
+	properties = { "spring.application.name=vanilla-k8s-example"}
 )
 @DirtiesContext
-public class VanillaKubernetesConditionSpringBootTest {
+public class KubernetesConditionSpringBootTest {
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
 	@Autowired(required = false)
-	private App.AnyK8sBean anyK8sBean;
-
-	@Autowired(required = false)
-	private App.OnlyVanillaK8sBean onlyVanillaK8sBean;
-
-	@Autowired(required = false)
-	private App.OpenshiftBean openshiftBean;
+	private OpenshiftBean openshiftBean;
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
@@ -50,16 +44,6 @@ public class VanillaKubernetesConditionSpringBootTest {
 
 	@Test
 	public void anyK8sBeanShouldBeCreated() {
-		assertNotNull(anyK8sBean);
-	}
-
-	@Test
-	public void onlyVanillaK8sBeanShouldBeCreated() {
-		assertNotNull(onlyVanillaK8sBean);
-	}
-
-	@Test
-	public void openshiftBeanShouldNotBeCreated() {
 		assertNull(openshiftBean);
 	}
 }
