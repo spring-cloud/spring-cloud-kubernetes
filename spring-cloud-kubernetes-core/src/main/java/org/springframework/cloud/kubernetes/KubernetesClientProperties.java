@@ -23,7 +23,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(SPRING_CLOUD_KUBERNETES_CLIENT_PROPS)
 public class KubernetesClientProperties {
 
-	private Boolean trustCerts;
+    private Boolean trustCerts;
     private String masterUrl;
     private String apiVersion;
     private String namespace;
