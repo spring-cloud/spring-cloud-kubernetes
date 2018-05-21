@@ -1,0 +1,12 @@
+bean:
+  message: "Hello ConfigMap default, %s!"
+---
+spring:
+  profiles: development
+bean:
+  message: "Hello ConfigMap dev, %s!"
+---
+spring:
+  profiles: production
+bean:
+  message: "Hello ConfigMap prod, %s!"

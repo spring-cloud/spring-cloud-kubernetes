@@ -17,6 +17,12 @@
 
 package org.springframework.cloud.kubernetes.config;
 
+import static java.util.Arrays.asList;
+import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.FOUND;
+import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.NOT_FOUND;
+
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -24,12 +30,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.client.KubernetesClient;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.config.YamlProcessor.DocumentMatcher;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.boot.yaml.SpringProfileDocumentMatcher;
 import org.springframework.core.io.ByteArrayResource;
@@ -120,10 +123,12 @@ public class ConfigMapPropertySource extends KubernetesPropertySource {
 	private static Function<String, Properties> yamlParserGenerator(final String[] profiles) {
 		return s -> {
 			YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
-			if (profiles == null) {
-				yamlFactory.setDocumentMatchers(new SpringProfileDocumentMatcher());
-			} else {
-				yamlFactory.setDocumentMatchers(new SpringProfileDocumentMatcher(profiles));
+			if (profiles != null) {
+				yamlFactory.setDocumentMatchers(
+					(DocumentMatcher) properties ->
+						(asList(profiles).contains(properties.getProperty("spring.profiles")) ?
+							FOUND : NOT_FOUND)
+				);
 			}
 			yamlFactory.setResources(new ByteArrayResource(s.getBytes()));
 			return yamlFactory.getObject();

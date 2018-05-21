@@ -17,7 +17,6 @@
 
 package org.springframework.cloud.kubernetes.config;
 
-import io.fabric8.kubernetes.client.utils.IOHelpers;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -37,6 +36,7 @@ import org.springframework.util.FileSystemUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.*;
 
 /**
  * @author <a href="mailto:cmoullia@redhat.com">Charles Moulliard</a>
@@ -113,17 +113,6 @@ public class ConfigMapsTest {
 		assertEquals("true", cmps.getProperty("dummy.property.bool2"));
 
     	FileSystemUtils.deleteRecursively(tmp.toFile());
-	}
-
-	private String readResourceFile(String file) {
-		String resource;
-		try {
-			resource = IOHelpers.readFully(getClass().getClassLoader().getResourceAsStream(file));
-		}
-		catch (IOException e) {
-			resource = "";
-		}
-		return resource;
 	}
 
 	private void createConfigMapFile(Path basePath, String key, String value) throws IOException {
