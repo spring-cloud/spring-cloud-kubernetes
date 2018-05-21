@@ -18,4 +18,25 @@ public @interface ConditionalOnKubernetes {
 	 * if the Condition is to pass
 	 */
 	Class<?> classClientMustAdaptTo() default Void.class;
+
+	/**
+	 * Configures whether the value configured version shall be considered the
+	 * upper exclusive, lower inclusive boundary or exact version
+	 */
+	Range range() default Range.EQUAL_OR_NEWER;
+
+	/**
+	 * The Kubernetes version to check for (major.minor). Use range to specify whether the
+	 * configured value is an upper-exclusive or lower-inclusive boundary.
+	 */
+	String version() default "";
+
+	enum Range {
+
+		EXACT,
+
+		EQUAL_OR_NEWER,
+
+		OLDER_THAN
+	}
 }
