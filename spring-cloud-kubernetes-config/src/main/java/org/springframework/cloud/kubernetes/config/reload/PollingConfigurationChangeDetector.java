@@ -16,14 +16,15 @@
  */
 package org.springframework.cloud.kubernetes.config.reload;
 
-import javax.annotation.PostConstruct;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
+import java.util.List;
+import javax.annotation.PostConstruct;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
-
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -32,6 +33,8 @@ import org.springframework.scheduling.annotation.Scheduled;
  * A change detector that periodically retrieves secrets and configmaps and fire a reload when something changes.
  */
 public class PollingConfigurationChangeDetector extends ConfigurationChangeDetector {
+
+	protected Log log = LogFactory.getLog(getClass());
 
     private ConfigMapPropertySourceLocator configMapPropertySourceLocator;
 
@@ -59,10 +62,14 @@ public class PollingConfigurationChangeDetector extends ConfigurationChangeDetec
 
         boolean changedConfigMap = false;
         if (properties.isMonitoringConfigMaps()) {
-            MapPropertySource currentConfigMapSource = findPropertySource(ConfigMapPropertySource.class);
-            if (currentConfigMapSource != null) {
-                MapPropertySource newConfigMapSource = configMapPropertySourceLocator.locate(environment);
-                changedConfigMap = changed(currentConfigMapSource, newConfigMapSource);
+            List<? extends MapPropertySource> currentConfigMapSources
+				= findPropertySources(ConfigMapPropertySource.class);
+
+            if (!currentConfigMapSources.isEmpty()) {
+				changedConfigMap = changed(
+					locateMapPropertySources(configMapPropertySourceLocator, environment),
+					currentConfigMapSources
+				);
             }
         }
 

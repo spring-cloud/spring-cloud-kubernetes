@@ -17,13 +17,19 @@
 
 package org.springframework.cloud.kubernetes.config;
 
+import static org.springframework.cloud.kubernetes.config.ConfigUtils.getApplicationName;
+import static org.springframework.cloud.kubernetes.config.ConfigUtils.getApplicationNamespace;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
+import java.util.List;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
+import org.springframework.cloud.kubernetes.config.ConfigMapConfigProperties.NormalizedSource;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
-import static org.springframework.cloud.kubernetes.config.ConfigUtils.*;
+import org.springframework.core.env.PropertySource;
 
 @Order(0)
 public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
@@ -36,13 +42,36 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
     }
 
     @Override
-    public MapPropertySource locate(Environment environment) {
+    public PropertySource locate(Environment environment) {
         if (environment instanceof ConfigurableEnvironment) {
             ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
-            String name = getApplicationName(environment, properties);
-            String namespace = getApplicationNamespace(client, env, properties);
-            return new ConfigMapPropertySource(client, name, namespace, env.getActiveProfiles(), properties);
-        }
+
+			List<ConfigMapConfigProperties.NormalizedSource> sources =
+				properties.determineSources();
+			if (sources.size() == 1) {
+				return getMapPropertySourceForSingleConfigMap(env, sources.get(0));
+			}
+
+			CompositePropertySource composite = new CompositePropertySource("composite-configmap");
+			sources.forEach(s ->
+				composite.addFirstPropertySource(getMapPropertySourceForSingleConfigMap(env, s))
+			);
+
+			return composite;
+		}
         return null;
     }
+
+	private MapPropertySource getMapPropertySourceForSingleConfigMap(
+		ConfigurableEnvironment environment, NormalizedSource normalizedSource) {
+
+    	String configurationTarget = properties.getConfigurationTarget();
+		return new ConfigMapPropertySource(
+			client,
+			getApplicationName(environment, normalizedSource.getName(), configurationTarget),
+			getApplicationNamespace(client, normalizedSource.getNamespace(), configurationTarget),
+			environment.getActiveProfiles(),
+			properties
+		);
+	}
 }

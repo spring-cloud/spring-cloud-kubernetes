@@ -16,17 +16,19 @@
  */
 package org.springframework.cloud.kubernetes.config.reload;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.PreDestroy;
-
-import io.fabric8.kubernetes.client.KubernetesClient;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 
@@ -76,6 +78,23 @@ public abstract class ConfigurationChangeDetector {
         return s1 == null ? s2 != null : !s1.equals(s2);
     }
 
+    protected boolean changed(List<? extends MapPropertySource> l1,
+		List<? extends MapPropertySource> l2) {
+
+		if(l1.size() != l2.size()) {
+			log.debug("The current number of Confimap PropertySources does not match "
+				+ "the ones loaded from the Kubernetes - No reload will take place");
+			return false;
+		}
+
+		for(int i=0; i<l1.size(); i++) {
+			if (changed(l1.get(i), l2.get(i))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
     /**
      * Finds one registered property source of the given type, logging a warning if
      * multiple property sources of that type are available.
@@ -118,5 +137,31 @@ public abstract class ConfigurationChangeDetector {
         }
         return list;
     }
+
+	/**
+	 * Returns a list of MapPropertySource that correspond to the current state of the system
+	 * This only handles the PropertySource objects that are returned
+	 */
+	protected List<MapPropertySource> locateMapPropertySources(
+		PropertySourceLocator propertySourceLocator, Environment environment) {
+
+		List<MapPropertySource> result = new ArrayList<>();
+		PropertySource propertySource= propertySourceLocator.locate(environment);
+		if(propertySource instanceof MapPropertySource) {
+			result.add((MapPropertySource) propertySource);
+		} else if(propertySource instanceof CompositePropertySource) {
+			result.addAll(((CompositePropertySource) propertySource)
+				.getPropertySources()
+				.stream()
+				.filter(p -> p instanceof  MapPropertySource)
+				.map(p -> (MapPropertySource) p)
+				.collect(Collectors.toList()));
+		} else {
+			log.debug("Found property source that cannot be handled: "
+				+ propertySource.getClass());
+		}
+
+		return result;
+	}
 
 }

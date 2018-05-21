@@ -46,15 +46,17 @@ public class SecretsPropertySource extends KubernetesPropertySource {
         return new StringBuilder()
             .append(PREFIX)
             .append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR)
-            .append(getApplicationName(env,config))
+            .append(getApplicationName(env, config.getName(), config.getConfigurationTarget()))
             .append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR)
-            .append(getApplicationNamespace(client, env, config))
+            .append(getApplicationNamespace(client, config.getNamespace(),
+				config.getConfigurationTarget()))
             .toString();
     }
 
     private static Map<String, Object> getSourceData(KubernetesClient client, Environment env, SecretsConfigProperties config) {
-        String name = getApplicationName(env, config);
-        String namespace = getApplicationNamespace(client, env, config);
+        String name = getApplicationName(env, config.getName(), config.getConfigurationTarget());
+        String namespace = getApplicationNamespace(client, config.getNamespace(),
+			config.getConfigurationTarget());
         Map<String, Object> result = new HashMap<>();
 
         if (config.isEnableApi()) {

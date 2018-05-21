@@ -88,11 +88,37 @@ The [Spring Cloud Kubernetes Config](./spring-cloud-kubernetes-config) project m
 during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on 
 observed `ConfigMap`s.
 
-`ConfigMapPropertySource` will search for a Kubernetes `ConfigMap` which `metadata.name` is either the name of 
+The default behavior is to create a `ConfigMapPropertySource` based on a Kubernetes `ConfigMap` which has `metadata.name` of either the name of 
 your Spring application (as defined by its `spring.application.name` property) or a custom name defined within the
 `bootstrap.properties` file under the following key `spring.cloud.kubernetes.config.name`.
 
-If such a `ConfigMap` is found, it will be processed as follows:
+However, more advanced configuration are possible where multiple ConfigMaps can be used
+This is made possible by the `spring.cloud.kubernetes.config.sources` list.
+For example one could define the following ConfigMaps
+
+```yaml
+spring:
+  application:
+    name: cloud-k8s-app	
+  cloud:
+    kubernetes:
+      config:
+        name: default-name
+        namespace: default-namespace
+        sources:
+         # Spring Cloud Kubernetes will lookup a ConfigMap named c1 in namespace default-namespace 
+         - name: c1
+         # Spring Cloud Kubernetes will lookup a ConfigMap named default-name in whatever namespace n2
+         - namespace: n2
+         # Spring Cloud Kubernetes will lookup a ConfigMap named c3 in namespace n3
+         - namespace: n3
+           name: c3
+```
+
+In the example above, it `spring.cloud.kubernetes.config.namespace` had not been set,
+then the ConfigMap named `c1` would be looked up in the namespace that the application runs  
+
+Any matching `ConfigMap` that is found, will be processed as follows:
 
 - apply individual configuration properties.
 - apply as `yaml` the content of any property named `application.yaml`
