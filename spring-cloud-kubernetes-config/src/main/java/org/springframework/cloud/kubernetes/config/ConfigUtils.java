@@ -14,12 +14,13 @@ public class ConfigUtils {
 
 	private static final Log LOG = LogFactory.getLog(ConfigUtils.class);
 
-    public static <C extends AbstractConfigProperties> String getApplicationName(Environment env, C config) {
-        String name = config.getName();
+    public static <C extends AbstractConfigProperties> String getApplicationName(Environment env,
+		String configName, String configurationTarget) {
+        String name = configName;
         if (StringUtils.isEmpty(name)) {
         	//TODO: use relaxed binding
             if (LOG.isDebugEnabled()) {
-                LOG.debug(config.getConfigurationTarget() +
+                LOG.debug(configurationTarget +
                         " name has not been set, taking it from property/env " +
                         SPRING_APPLICATION_NAME + " (default=" + FALLBACK_APPLICATION_NAME + ")");
             }
@@ -30,11 +31,13 @@ public class ConfigUtils {
         return name;
     }
 
-    public static <C extends AbstractConfigProperties> String getApplicationNamespace(KubernetesClient client, Environment env, C config) {
-        String namespace = config.getNamespace();
+    public static <C extends AbstractConfigProperties> String getApplicationNamespace(
+		KubernetesClient client, String configNamespace, String configurationTarget) {
+        String namespace = configNamespace;
         if (StringUtils.isEmpty(namespace)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(config.getConfigurationTarget() + " namespace has not been set, taking it from client (ns="+client.getNamespace()+")");
+                LOG.debug(
+					configurationTarget + " namespace has not been set, taking it from client (ns="+client.getNamespace()+")");
             }
 
             namespace = client.getNamespace();

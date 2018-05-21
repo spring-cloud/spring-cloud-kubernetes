@@ -16,24 +16,21 @@
  */
 package org.springframework.cloud.kubernetes.examples;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-@Component
-public class MyBean {
+@Configuration
+@ConfigurationProperties(prefix = "dummy")
+public class DummyConfig {
 
-    @Autowired
-    private MyConfig myConfig;
+    private String message = "this is a dummy message";
 
-    @Autowired
-    private DummyConfig dummyConfig;
-
-    @Scheduled(fixedDelay = 5000)
-    public void hello() {
-        System.out.println("The first message is: " + myConfig.getMessage());
-        System.out.println("The other message is: " + dummyConfig.getMessage());
+    public String getMessage() {
+        return message;
     }
 
+    public void setMessage(String message) {
+        this.message = message;
+    }
 
 }

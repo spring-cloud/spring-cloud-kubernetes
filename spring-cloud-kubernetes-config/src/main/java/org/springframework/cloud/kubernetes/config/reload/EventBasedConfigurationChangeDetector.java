@@ -16,22 +16,20 @@
  */
 package org.springframework.cloud.kubernetes.config.reload;
 
-import java.util.HashMap;
-import java.util.Map;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
-
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
@@ -127,14 +125,14 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
     }
 
     private void onEvent(ConfigMap configMap) {
-        MapPropertySource currentConfigMapSource = findPropertySource(ConfigMapPropertySource.class);
-        if (currentConfigMapSource != null) {
-            MapPropertySource newConfigMapSource = configMapPropertySourceLocator.locate(environment);
-            if (changed(currentConfigMapSource, newConfigMapSource)) {
-                log.info("Detected change in config maps");
-                reloadProperties();
-            }
-        }
+		boolean changed = changed(
+			locateMapPropertySources(configMapPropertySourceLocator, environment),
+			findPropertySources(ConfigMapPropertySource.class)
+		);
+		if(changed) {
+			log.info("Detected change in config maps");
+			reloadProperties();
+		}
     }
 
     private void onEvent(Secret secret) {
