@@ -123,7 +123,7 @@ public class ConfigMapPropertySource extends KubernetesPropertySource {
 	private static Function<String, Properties> yamlParserGenerator(final String[] profiles) {
 		return s -> {
 			YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
-			if (profiles != null) {
+			if ((profiles != null) && (profiles.length > 0)){
 				yamlFactory.setDocumentMatchers(
 					(DocumentMatcher) properties ->
 						(asList(profiles).contains(properties.getProperty("spring.profiles")) ?
