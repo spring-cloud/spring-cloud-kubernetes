@@ -17,7 +17,8 @@
 package org.springframework.cloud.kubernetes.profile;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
-import org.springframework.cloud.kubernetes.PodUtils;
+import java.util.function.Supplier;
+import org.springframework.cloud.kubernetes.LazilyInstantiate;
 import org.springframework.cloud.kubernetes.StandardPodUtils;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -26,30 +27,38 @@ import org.springframework.core.Ordered;
 public class KubernetesApplicationContextInitializer implements
         ApplicationContextInitializer<ConfigurableApplicationContext>, Ordered {
 
-    private final KubernetesProfileApplicationListener listener;
     private static final int ORDER = 100;
 
-    public KubernetesApplicationContextInitializer() {
-        //If we are inside Kubernetes this should be perfectly valid.
-        //If not then we won't add the Kubernetes profile anyway.
-        this(new StandardPodUtils(new DefaultKubernetesClient()));
-    }
+    private final Supplier<KubernetesProfileApplicationListener> listenerSupplier;
 
-    public KubernetesApplicationContextInitializer(PodUtils utils) {
-        this(new KubernetesProfileApplicationListener(utils));
-    }
+	public KubernetesApplicationContextInitializer() {
+		this(LazilyInstantiate.using(() ->
+			//If we are inside Kubernetes this should be perfectly valid.
+			//If not then we won't add the Kubernetes profile anyway.
+			new KubernetesProfileApplicationListener(
+				new StandardPodUtils(new DefaultKubernetesClient()))
+		));
+	}
 
-    public KubernetesApplicationContextInitializer(KubernetesProfileApplicationListener listener) {
-        this.listener = listener;
-    }
+	public KubernetesApplicationContextInitializer(
+		Supplier<KubernetesProfileApplicationListener> listenerSupplier) {
+		this.listenerSupplier = listenerSupplier;
+	}
 
-    @Override
+	@Override
     public int getOrder() {
         return ORDER;
     }
 
     @Override
     public void initialize(ConfigurableApplicationContext applicationContext) {
-        listener.addKubernetesProfile(applicationContext.getEnvironment());
+    	if(isKubernetesEnabled(applicationContext)){
+			listenerSupplier.get().addKubernetesProfile(applicationContext.getEnvironment());
+		}
     }
+
+	private Boolean isKubernetesEnabled(ConfigurableApplicationContext applicationContext) {
+		return applicationContext.getEnvironment()
+			.getProperty("spring.cloud.kubernetes.enabled", Boolean.class, true);
+	}
 }
