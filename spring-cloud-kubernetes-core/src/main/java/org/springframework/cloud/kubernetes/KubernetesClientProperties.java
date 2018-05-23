@@ -16,12 +16,17 @@
 
 package org.springframework.cloud.kubernetes;
 
+import static org.springframework.cloud.kubernetes.KubernetesClientProperties.SPRING_CLOUD_KUBERNETES_CLIENT_PROPS;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("spring.cloud.kubernetes.client")
+@ConfigurationProperties(SPRING_CLOUD_KUBERNETES_CLIENT_PROPS)
 public class KubernetesClientProperties {
 
-    private Boolean trustCerts;
+	public static final String SPRING_CLOUD_KUBERNETES_CLIENT_PROPS =
+		"spring.cloud.kubernetes.client";
+
+	private Boolean trustCerts;
     private String masterUrl;
     private String apiVersion;
     private String namespace;
