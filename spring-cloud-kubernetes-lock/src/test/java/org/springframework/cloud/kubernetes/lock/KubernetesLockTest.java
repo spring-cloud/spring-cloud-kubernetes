@@ -33,15 +33,8 @@ public class KubernetesLockTest {
 	}
 
 	@Test
-	public void shouldWaitUntilLockCanBeAcquired() {
-		given(repository.create(NAME, HOLDER, 0)).will(new Answer<Boolean>() {
-			private int callsCounter = 0;
-
-			@Override
-			public Boolean answer(InvocationOnMock invocationOnMock) {
-				return callsCounter++ > 0;
-			}
-		});
+	public void lockShouldWaitUntilLockCanBeAcquired() {
+		given(repository.create(NAME, HOLDER, 0)).will(new LockInSecondCall());
 
 		KubernetesLock lock = new KubernetesLock(repository, NAME, HOLDER, 0);
 		lock.lock();
@@ -52,17 +45,7 @@ public class KubernetesLockTest {
 
 	@Test
 	public void lockShouldNotBeInterrupted() {
-		given(repository.create(NAME, HOLDER, 0)).will(new Answer<Boolean>() {
-			private int callsCounter = 0;
-
-			@Override
-			public Boolean answer(InvocationOnMock invocationOnMock) throws InterruptedException {
-				if (callsCounter++ > 0) {
-					return true;
-				}
-				throw new InterruptedException("test exception");
-			}
-		});
+		given(repository.create(NAME, HOLDER, 0)).will(new InterrupFirstCall());
 
 		KubernetesLock lock = new KubernetesLock(repository, NAME, HOLDER, 0);
 		lock.lock();
@@ -72,13 +55,33 @@ public class KubernetesLockTest {
 	}
 
 	@Test
-	public void shouldLockWithLockInterruptibly() {
+	public void shouldLockWithLockInterruptibly() throws InterruptedException {
+		given(repository.create(NAME, HOLDER, 0)).willReturn(true);
 
+		KubernetesLock lock = new KubernetesLock(repository, NAME, HOLDER, 0);
+		lock.lockInterruptibly();
+
+		verify(repository).deleteIfExpired(NAME);
+		verify(repository).create(NAME, HOLDER, 0);
 	}
 
 	@Test
-	public void lockInterruptiblyShouldBeInterrupted() {
+	public void lockInterruptiblyShouldWaitUntilLockCanBeAcquired() throws InterruptedException {
+		given(repository.create(NAME, HOLDER, 0)).will(new LockInSecondCall());
 
+		KubernetesLock lock = new KubernetesLock(repository, NAME, HOLDER, 0);
+		lock.lockInterruptibly();
+
+		verify(repository).deleteIfExpired(NAME);
+		verify(repository, times(2)).create(NAME, HOLDER, 0);
+	}
+
+	@Test(expected = InterruptedException.class)
+	public void lockInterruptiblyShouldBeInterrupted() throws InterruptedException {
+		given(repository.create(NAME, HOLDER, 0)).will(new InterrupFirstCall());
+
+		KubernetesLock lock = new KubernetesLock(repository, NAME, HOLDER, 0);
+		lock.lockInterruptibly();
 	}
 
 	@Test
@@ -105,6 +108,27 @@ public class KubernetesLockTest {
 	public void newConditionShouldFail() {
 		KubernetesLock lock = new KubernetesLock(repository, NAME, HOLDER, 0);
 		lock.newCondition();
+	}
+
+	private static class LockInSecondCall implements Answer<Boolean> {
+		private int callsCounter = 0;
+
+		@Override
+		public Boolean answer(InvocationOnMock invocationOnMock) {
+			return callsCounter++ > 0;
+		}
+	}
+
+	private static class InterrupFirstCall implements Answer<Boolean> {
+		private int callsCounter = 0;
+
+		@Override
+		public Boolean answer(InvocationOnMock invocationOnMock) throws InterruptedException {
+			if (callsCounter++ > 0) {
+				return true;
+			}
+			throw new InterruptedException("test exception");
+		}
 	}
 
 }
