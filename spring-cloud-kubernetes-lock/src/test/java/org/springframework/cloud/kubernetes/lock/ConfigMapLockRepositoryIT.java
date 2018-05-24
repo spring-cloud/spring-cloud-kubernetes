@@ -7,7 +7,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.arquillian.cube.kubernetes.api.Session;
 import org.arquillian.cube.kubernetes.impl.requirement.RequiresKubernetes;
-import org.jboss.arquillian.junit.Arquillian;
+import org.arquillian.cube.requirement.ArquillianConditionalRunner;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.junit.After;
 import org.junit.Before;
@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.lock.ConfigMapLockRepository.EXPIRATION_KEY;
 import static org.springframework.cloud.kubernetes.lock.ConfigMapLockRepository.HOLDER_KEY;
 
-@RunWith(Arquillian.class)
+@RunWith(ArquillianConditionalRunner.class)
 @RequiresKubernetes
 public class ConfigMapLockRepositoryIT {
 
