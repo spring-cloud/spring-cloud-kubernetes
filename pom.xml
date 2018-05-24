@@ -87,6 +87,7 @@
 		<module>spring-cloud-starter-kubernetes-zipkin</module>
 		<module>spring-cloud-starter-kubernetes-all</module>
 		<module>spring-cloud-kubernetes-examples</module>
+		<module>spring-cloud-kubernetes-lock</module>
 	</modules>
 
 	<dependencyManagement>
