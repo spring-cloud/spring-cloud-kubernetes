@@ -22,7 +22,7 @@ import java.util.concurrent.locks.Lock;
 
 public class KubernetesLock implements Lock {
 
-	private static final int RETRY_PERIOD = 100;
+	private static final int LOCK_RETRY_INTERVAL = 100;
 
 	private final ConfigMapLockRepository repository;
 
@@ -47,7 +47,7 @@ public class KubernetesLock implements Lock {
 				if (repository.create(name, holder, expiration)) {
 					return;
 				}
-				Thread.sleep(RETRY_PERIOD);
+				Thread.sleep(LOCK_RETRY_INTERVAL);
 			} catch (InterruptedException e) {
 				// This method cannot be interrupted
 			}
@@ -56,7 +56,18 @@ public class KubernetesLock implements Lock {
 
 	@Override
 	public void lockInterruptibly() throws InterruptedException {
-		// TODO same as lock(), but thread can be interrupted
+		repository.deleteIfExpired(name);
+		while (true) {
+			try {
+				if (repository.create(name, holder, expiration)) {
+					return;
+				}
+				Thread.sleep(LOCK_RETRY_INTERVAL);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw e;
+			}
+		}
 	}
 
 	@Override
