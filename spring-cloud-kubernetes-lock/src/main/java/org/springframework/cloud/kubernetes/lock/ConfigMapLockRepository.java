@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.kubernetes.lock;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -53,22 +52,26 @@ public class ConfigMapLockRepository {
 		this.namespace = namespace;
 	}
 
-	public ConfigMap get(String name) {
-		return kubernetesClient.configMaps()
+	public Optional<ConfigMap> get(String name) {
+		String configMapName = getConfigMapName(name);
+		ConfigMap configMap = kubernetesClient.configMaps()
 			.inNamespace(namespace)
-			.withName(getConfigMapName(name))
+			.withName(configMapName)
 			.get();
+
+		return Optional.ofNullable(configMap);
 	}
 
 	public boolean create(String name, String holder, long expiration) {
+		String configMapName = getConfigMapName(name);
+		String expirationString = String.valueOf(expiration);
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
-			.withName(getConfigMapName(name))
+			.withName(configMapName)
 			.addToLabels(PROVIDER_LABEL, PROVIDER_LABEL_VALUE)
 			.addToLabels(KIND_LABEL, KIND_LABEL_VALUE)
 			.endMetadata()
 			.addToData(HOLDER_KEY, holder)
-			.addToData(EXPIRATION_KEY, String.valueOf(expiration))
-			// TODO add information about the creator
+			.addToData(EXPIRATION_KEY, expirationString)
 			.build();
 
 		try {
@@ -83,30 +86,23 @@ public class ConfigMapLockRepository {
 		return true;
 	}
 
-	public void deleteAll() {
+	public void delete(String name) {
+		// TODO make sure that only creator can delete the lock
 		kubernetesClient.configMaps()
 			.inNamespace(namespace)
-			.withLabel(PROVIDER_LABEL, PROVIDER_LABEL_VALUE)
-			.withLabel(KIND_LABEL, KIND_LABEL_VALUE)
+			.withName(getConfigMapName(name))
 			.delete();
 	}
 
-	public void deleteExpired() {
-		long now = System.currentTimeMillis();
-		// TODO check that it was created by this process
-		List<ConfigMap> configMaps = kubernetesClient.configMaps()
-			.inNamespace(namespace)
-			.withLabel(PROVIDER_LABEL, PROVIDER_LABEL_VALUE)
-			.withLabel(KIND_LABEL, KIND_LABEL_VALUE)
-			.list()
-			.getItems()
-			.stream()
-			.filter(c -> Long.valueOf(c.getData().get("expiration")) < now)
-			.collect(Collectors.toList());
+	public void deleteIfExpired(String name) {
+		get(name)
+			.filter(this::isExpired)
+			.ifPresent(c -> delete(name));
+	}
 
-		kubernetesClient.configMaps()
-			.inNamespace(namespace)
-			.delete(configMaps);
+	private boolean isExpired(ConfigMap configMap) {
+		String expirationString = configMap.getData().get(EXPIRATION_KEY);
+		return Long.valueOf(expirationString) < System.currentTimeMillis();
 	}
 
 	private String getConfigMapName(String name) {

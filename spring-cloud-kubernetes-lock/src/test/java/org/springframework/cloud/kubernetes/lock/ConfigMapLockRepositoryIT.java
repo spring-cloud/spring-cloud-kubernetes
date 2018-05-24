@@ -1,6 +1,7 @@
 package org.springframework.cloud.kubernetes.lock;
 
 import java.util.Map;
+import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -14,10 +15,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.lock.ConfigMapLockRepository.EXPIRATION_KEY;
+import static org.springframework.cloud.kubernetes.lock.ConfigMapLockRepository.HOLDER_KEY;
 
 @RunWith(Arquillian.class)
 @RequiresKubernetes
 public class ConfigMapLockRepositoryIT {
+
+	private static final String NAME = "test-name";
+
+	private static final String HOLDER = "test-holder";
 
 	@ArquillianResource
 	private KubernetesClient kubernetesClient;
@@ -34,54 +41,46 @@ public class ConfigMapLockRepositoryIT {
 
 	@After
 	public void after() {
-		deleteConfigMap("test-name");
-		deleteConfigMap("test-name-2");
+		repository.delete(NAME);
 	}
 
 	@Test
-	public void shouldCreateConfigMap() {
-		long expiration = System.currentTimeMillis();
-		boolean result = repository.create("test-name", "test-holder", expiration);
-		assertThat(result).isTrue();
+	public void shouldCreate() {
+		assertThat(repository.create(NAME, HOLDER, 1000)).isTrue();
 
-		ConfigMap configMap = repository.get("test-name");
-		Map<String, String> data = configMap.getData();
-		assertThat(data).containsEntry(ConfigMapLockRepository.HOLDER_KEY, "test-holder");
-		assertThat(data).containsEntry(ConfigMapLockRepository.EXPIRATION_KEY, String.valueOf(expiration));
+		Optional<ConfigMap> optionalConfigMap = repository.get(NAME);
+		assertThat(optionalConfigMap.isPresent()).isTrue();
+
+		Map<String, String> data = optionalConfigMap.get().getData();
+		assertThat(data).containsEntry(HOLDER_KEY, HOLDER);
+		assertThat(data).containsEntry(EXPIRATION_KEY, String.valueOf(1000));
 	}
 
 	@Test
-	public void shouldNotOverwriteConfigMap() {
-		boolean firstResult = repository.create("test-name", "test-holder", 0);
-		assertThat(firstResult).isTrue();
-
-		boolean secondResult = repository.create("test-name", "test-holder", 0);
-		assertThat(secondResult).isFalse();
+	public void shouldNotOverwrite() {
+		assertThat(repository.create(NAME, HOLDER, 0)).isTrue();
+		assertThat(repository.create(NAME, HOLDER, 0)).isFalse();
 	}
 
 	@Test
-	public void shouldDeleteAllConfigMaps() {
-		repository.create("test-name", "test-holder", 0);
-		repository.create("test-name-2", "test-holder-2", 0);
-		repository.deleteAll();
-		assertThat(repository.get("test-name")).isNull();
-		assertThat(repository.get("test-name-2")).isNull();
+	public void shouldDelete() {
+		repository.create(NAME, HOLDER, System.currentTimeMillis() + 10000);
+		repository.delete(NAME);
+		assertThat(repository.get(NAME).isPresent()).isFalse();
 	}
 
 	@Test
-	public void shouldDeleteExpiredConfigMaps() {
-		repository.create("test-name", "test-holder", System.currentTimeMillis() - 1);
-		repository.create("test-name-2", "test-holder-2", System.currentTimeMillis() + 10000);
-		repository.deleteExpired();
-		assertThat(repository.get("test-name")).isNull();
-		assertThat(repository.get("test-name-2")).isNotNull();
+	public void shouldDeleteExpired() {
+		repository.create(NAME, HOLDER, System.currentTimeMillis() - 1);
+		repository.deleteIfExpired(NAME);
+		assertThat(repository.get(NAME).isPresent()).isFalse();
 	}
 
-	private void deleteConfigMap(String name) {
-		kubernetesClient.configMaps()
-			.inNamespace(session.getNamespace())
-			.withName(String.format("%s-%s", ConfigMapLockRepository.CONFIG_MAP_PREFIX, name))
-			.delete();
+	@Test
+	public void shouldKeepNotExpired() {
+		repository.create(NAME, HOLDER, System.currentTimeMillis() + 10000);
+		repository.deleteIfExpired(NAME);
+		assertThat(repository.get(NAME).isPresent()).isTrue();
 	}
 
 }
