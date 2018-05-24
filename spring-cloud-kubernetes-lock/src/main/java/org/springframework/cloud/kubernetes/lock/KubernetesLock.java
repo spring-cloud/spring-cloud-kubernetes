@@ -41,50 +41,50 @@ public class KubernetesLock implements Lock {
 
 	@Override
 	public void lock() {
-		repository.deleteIfExpired(name);
 		while (true) {
 			try {
-				if (repository.create(name, holder, expiration)) {
+				if (tryLock()) {
 					return;
 				}
 				Thread.sleep(LOCK_RETRY_INTERVAL);
 			} catch (InterruptedException e) {
 				// This method cannot be interrupted
 			}
- 		}
+		}
 	}
 
 	@Override
 	public void lockInterruptibly() throws InterruptedException {
-		repository.deleteIfExpired(name);
 		while (true) {
-			try {
-				if (repository.create(name, holder, expiration)) {
-					return;
-				}
-				Thread.sleep(LOCK_RETRY_INTERVAL);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				throw e;
+			if (tryLock()) {
+				return;
 			}
+			Thread.sleep(LOCK_RETRY_INTERVAL);
 		}
 	}
 
 	@Override
 	public boolean tryLock() {
-		// TODO same as lock() but return immediately if te lock cannot be acquired
-		return false;
+		repository.deleteIfExpired(name);
+		return repository.create(name, holder, expiration);
 	}
 
 	@Override
 	public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-		// TODO same as lockInterruptibly() but return after specified time if te lock cannot be acquired.
-		return false;
+		long expiration = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(time, unit);
+		while (true) {
+			if (System.currentTimeMillis() > expiration) {
+				return false;
+			} else if (tryLock()) {
+				return true;
+			}
+			Thread.sleep(LOCK_RETRY_INTERVAL);
+		}
 	}
 
 	@Override
 	public void unlock() {
-   		// TODO delete configmap for this lock
+		// TODO delete configmap for this lock
 		// TODO consider only allowing lock release only from the same application and/or thread
 	}
 
