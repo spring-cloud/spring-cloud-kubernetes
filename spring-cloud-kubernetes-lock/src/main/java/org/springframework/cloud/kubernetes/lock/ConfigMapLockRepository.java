@@ -97,6 +97,7 @@ public class ConfigMapLockRepository {
 	public void deleteIfExpired(String name) {
 		get(name)
 			.filter(this::isExpired)
+			// TODO what if someone else deletes and creates a lock in this gap?
 			.ifPresent(c -> delete(name));
 	}
 
