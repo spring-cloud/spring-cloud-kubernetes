@@ -148,7 +148,9 @@ public class KubernetesLockTest {
 
 	@Test
 	public void shouldUnlock() {
+		lock.unlock();
 
+		verify(repository).delete(NAME);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

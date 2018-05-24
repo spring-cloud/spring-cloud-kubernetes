@@ -84,8 +84,7 @@ public class KubernetesLock implements Lock {
 
 	@Override
 	public void unlock() {
-		// TODO delete configmap for this lock
-		// TODO consider only allowing lock release only from the same application and/or thread
+		repository.delete(name);
 	}
 
 	@Override
