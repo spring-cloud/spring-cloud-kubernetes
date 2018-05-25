@@ -15,8 +15,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.kubernetes.lock.ConfigMapLockRepository.EXPIRATION_KEY;
+import static org.springframework.cloud.kubernetes.lock.ConfigMapLockRepository.CREATED_AT_KEY;
 import static org.springframework.cloud.kubernetes.lock.ConfigMapLockRepository.HOLDER_KEY;
+import static org.springframework.cloud.kubernetes.lock.KubernetesLock.DEFAULT_TTL;
 
 @RunWith(ArquillianConditionalRunner.class)
 @RequiresKubernetes
@@ -53,7 +54,7 @@ public class ConfigMapLockRepositoryIT {
 
 		Map<String, String> data = optionalConfigMap.get().getData();
 		assertThat(data).containsEntry(HOLDER_KEY, HOLDER);
-		assertThat(data).containsEntry(EXPIRATION_KEY, String.valueOf(1000));
+		assertThat(data).containsEntry(CREATED_AT_KEY, String.valueOf(1000));
 	}
 
 	@Test
@@ -64,22 +65,22 @@ public class ConfigMapLockRepositoryIT {
 
 	@Test
 	public void shouldDelete() {
-		repository.create(NAME, HOLDER, System.currentTimeMillis() + 10000);
+		repository.create(NAME, HOLDER, 0);
 		repository.delete(NAME);
 		assertThat(repository.get(NAME).isPresent()).isFalse();
 	}
 
 	@Test
 	public void shouldDeleteExpired() {
-		repository.create(NAME, HOLDER, System.currentTimeMillis() - 1);
-		repository.deleteIfExpired(NAME);
+		repository.create(NAME, HOLDER, 0);
+		repository.deleteIfOlderThan(NAME, DEFAULT_TTL);
 		assertThat(repository.get(NAME).isPresent()).isFalse();
 	}
 
 	@Test
 	public void shouldKeepNotExpired() {
-		repository.create(NAME, HOLDER, System.currentTimeMillis() + 10000);
-		repository.deleteIfExpired(NAME);
+		repository.create(NAME, HOLDER, System.currentTimeMillis());
+		repository.deleteIfOlderThan(NAME, DEFAULT_TTL);
 		assertThat(repository.get(NAME).isPresent()).isTrue();
 	}
 

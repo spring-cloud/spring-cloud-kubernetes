@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.springframework.cloud.kubernetes.lock.KubernetesLock.DEFAULT_TTL;
 
 @RunWith(MockitoJUnitRunner.class)
 public class KubernetesLockTest {
@@ -38,7 +39,7 @@ public class KubernetesLockTest {
 
 		lock.lock();
 
-		verify(repository).deleteIfExpired(NAME);
+		verify(repository).deleteIfOlderThan(NAME, DEFAULT_TTL);
 		verify(repository).create(NAME, HOLDER, 0);
 	}
 
@@ -48,7 +49,7 @@ public class KubernetesLockTest {
 
 		lock.lock();
 
-		verify(repository, times(2)).deleteIfExpired(NAME);
+		verify(repository, times(2)).deleteIfOlderThan(NAME, DEFAULT_TTL);
 		verify(repository, times(2)).create(NAME, HOLDER, 0);
 	}
 
@@ -58,7 +59,7 @@ public class KubernetesLockTest {
 
 		lock.lock();
 
-		verify(repository, times(2)).deleteIfExpired(NAME);
+		verify(repository, times(2)).deleteIfOlderThan(NAME, DEFAULT_TTL);
 		verify(repository, times(2)).create(NAME, HOLDER, 0);
 	}
 
@@ -68,7 +69,7 @@ public class KubernetesLockTest {
 
 		lock.lockInterruptibly();
 
-		verify(repository).deleteIfExpired(NAME);
+		verify(repository).deleteIfOlderThan(NAME, DEFAULT_TTL);
 		verify(repository).create(NAME, HOLDER, 0);
 	}
 
@@ -78,7 +79,7 @@ public class KubernetesLockTest {
 
 		lock.lockInterruptibly();
 
-		verify(repository, times(2)).deleteIfExpired(NAME);
+		verify(repository, times(2)).deleteIfOlderThan(NAME, DEFAULT_TTL);
 		verify(repository, times(2)).create(NAME, HOLDER, 0);
 	}
 
@@ -95,7 +96,7 @@ public class KubernetesLockTest {
 
 		assertThat(lock.tryLock()).isTrue();
 
-		verify(repository).deleteIfExpired(NAME);
+		verify(repository).deleteIfOlderThan(NAME, DEFAULT_TTL);
 		verify(repository).create(NAME, HOLDER, 0);
 	}
 
@@ -105,7 +106,7 @@ public class KubernetesLockTest {
 
 		assertThat(lock.tryLock()).isFalse();
 
-		verify(repository).deleteIfExpired(NAME);
+		verify(repository).deleteIfOlderThan(NAME, DEFAULT_TTL);
 		verify(repository).create(NAME, HOLDER, 0);
 	}
 
@@ -115,7 +116,7 @@ public class KubernetesLockTest {
 
 		assertThat(lock.tryLock(2, TimeUnit.SECONDS)).isTrue();
 
-		verify(repository).deleteIfExpired(NAME);
+		verify(repository).deleteIfOlderThan(NAME, DEFAULT_TTL);
 		verify(repository).create(NAME, HOLDER, 0);
 	}
 
@@ -125,7 +126,7 @@ public class KubernetesLockTest {
 
 		assertThat(lock.tryLock(2, TimeUnit.SECONDS)).isTrue();
 
-		verify(repository, times(2)).deleteIfExpired(NAME);
+		verify(repository, times(2)).deleteIfOlderThan(NAME, DEFAULT_TTL);
 		verify(repository, times(2)).create(NAME, HOLDER, 0);
 	}
 
@@ -135,7 +136,7 @@ public class KubernetesLockTest {
 
 		assertThat(lock.tryLock(90, TimeUnit.MILLISECONDS)).isFalse();
 
-		verify(repository).deleteIfExpired(NAME);
+		verify(repository).deleteIfOlderThan(NAME, DEFAULT_TTL);
 		verify(repository).create(NAME, HOLDER, 0);
 	}
 

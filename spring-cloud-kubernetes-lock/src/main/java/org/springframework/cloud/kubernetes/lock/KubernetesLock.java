@@ -22,6 +22,8 @@ import java.util.concurrent.locks.Lock;
 
 public class KubernetesLock implements Lock {
 
+	static final long DEFAULT_TTL = 10000;
+
 	private static final int LOCK_RETRY_INTERVAL = 100;
 
 	private final ConfigMapLockRepository repository;
@@ -30,13 +32,13 @@ public class KubernetesLock implements Lock {
 
 	private final String holder;
 
-	private final long expiration;
+	private final long createdAt;
 
-	public KubernetesLock(ConfigMapLockRepository repository, String name, String holder, long expiration) {
+	public KubernetesLock(ConfigMapLockRepository repository, String name, String holder, long createdAt) {
 		this.repository = repository;
 		this.name = name;
 		this.holder = holder;
-		this.expiration = expiration;
+		this.createdAt = createdAt;
 	}
 
 	@Override
@@ -65,8 +67,8 @@ public class KubernetesLock implements Lock {
 
 	@Override
 	public boolean tryLock() {
-		repository.deleteIfExpired(name);
-		return repository.create(name, holder, expiration);
+		repository.deleteIfOlderThan(name, DEFAULT_TTL);
+		return repository.create(name, holder, createdAt);
 	}
 
 	@Override

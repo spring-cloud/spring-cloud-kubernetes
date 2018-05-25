@@ -31,7 +31,7 @@ public class ConfigMapLockRepository {
 
 	static final String HOLDER_KEY = "holder";
 
-	static final String EXPIRATION_KEY = "expiration";
+	static final String CREATED_AT_KEY = "created_at";
 
 	static final String PROVIDER_LABEL = "provider";
 
@@ -62,16 +62,16 @@ public class ConfigMapLockRepository {
 		return Optional.ofNullable(configMap);
 	}
 
-	public boolean create(String name, String holder, long expiration) {
+	public boolean create(String name, String holder, long createdAt) {
 		String configMapName = getConfigMapName(name);
-		String expirationString = String.valueOf(expiration);
+		String createdAtString = String.valueOf(createdAt);
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
 			.withName(configMapName)
 			.addToLabels(PROVIDER_LABEL, PROVIDER_LABEL_VALUE)
 			.addToLabels(KIND_LABEL, KIND_LABEL_VALUE)
 			.endMetadata()
 			.addToData(HOLDER_KEY, holder)
-			.addToData(EXPIRATION_KEY, expirationString)
+			.addToData(CREATED_AT_KEY, createdAtString)
 			.build();
 
 		try {
@@ -94,16 +94,16 @@ public class ConfigMapLockRepository {
 			.delete();
 	}
 
-	public void deleteIfExpired(String name) {
+	public void deleteIfOlderThan(String name, long age) {
 		get(name)
-			.filter(this::isExpired)
+			.filter(m -> this.isOlder(m, age))
 			// TODO what if someone else deletes and creates a lock in this gap?
 			.ifPresent(c -> delete(name));
 	}
 
-	private boolean isExpired(ConfigMap configMap) {
-		String expirationString = configMap.getData().get(EXPIRATION_KEY);
-		return Long.valueOf(expirationString) < System.currentTimeMillis();
+	private boolean isOlder(ConfigMap configMap, long age) {
+		String createdAtString = configMap.getData().get(CREATED_AT_KEY);
+		return System.currentTimeMillis() - Long.valueOf(createdAtString) > age;
 	}
 
 	private String getConfigMapName(String name) {
