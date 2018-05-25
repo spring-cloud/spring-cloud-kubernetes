@@ -24,7 +24,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.cloud.kubernetes.lock.ConfigMapLockRepository.CONFIG_MAP_PREFIX;
-import static org.springframework.cloud.kubernetes.lock.ConfigMapLockRepository.EXPIRATION_KEY;
+import static org.springframework.cloud.kubernetes.lock.ConfigMapLockRepository.CREATED_AT_KEY;
 import static org.springframework.cloud.kubernetes.lock.ConfigMapLockRepository.HOLDER_KEY;
 import static org.springframework.cloud.kubernetes.lock.ConfigMapLockRepository.KIND_LABEL;
 import static org.springframework.cloud.kubernetes.lock.ConfigMapLockRepository.KIND_LABEL_VALUE;
@@ -106,7 +106,7 @@ public class ConfigMapLockRepositoryTest {
 			.addToLabels(KIND_LABEL, KIND_LABEL_VALUE)
 			.endMetadata()
 			.addToData(HOLDER_KEY, HOLDER)
-			.addToData(EXPIRATION_KEY, "1000")
+			.addToData(CREATED_AT_KEY, "1000")
 			.build();
 		verify(mockInNamespaceOperation).create(eq(expectedConfigMap));
 	}
@@ -127,19 +127,19 @@ public class ConfigMapLockRepositoryTest {
 	}
 
 	@Test
-	public void shouldDeleteExpired() {
-		given(mockData.get(EXPIRATION_KEY)).willReturn(String.valueOf(System.currentTimeMillis() - 1));
+	public void shouldDeleteOld() {
+		given(mockData.get(CREATED_AT_KEY)).willReturn(String.valueOf(System.currentTimeMillis() - 1000));
 
-		repository.deleteIfExpired(NAME);
+		repository.deleteIfOlderThan(NAME, 100);
 
 		verify(mockWithNameResource).delete();
 	}
 
 	@Test
 	public void shouldNotDeleteNonExpired() {
-		given(mockData.get(EXPIRATION_KEY)).willReturn(String.valueOf(System.currentTimeMillis() + 10000));
+		given(mockData.get(CREATED_AT_KEY)).willReturn(String.valueOf(System.currentTimeMillis()) + 1000);
 
-		repository.deleteIfExpired(NAME);
+		repository.deleteIfOlderThan(NAME, 100);
 
 		verify(mockWithNameResource, times(0)).delete();
 	}
