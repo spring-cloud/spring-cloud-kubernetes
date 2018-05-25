@@ -33,13 +33,13 @@ public class ConfigMapLockRepository {
 
 	static final String EXPIRATION_KEY = "expiration";
 
-	private static final String PROVIDER_LABEL = "provider";
+	static final String PROVIDER_LABEL = "provider";
 
-	private static final String PROVIDER_LABEL_VALUE = "spring-cloud-kubernetes";
+	static final String PROVIDER_LABEL_VALUE = "spring-cloud-kubernetes";
 
-	private static final String KIND_LABEL = "kind";
+	static final String KIND_LABEL = "kind";
 
-	private static final String KIND_LABEL_VALUE = "lock";
+	static final String KIND_LABEL_VALUE = "lock";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigMapLockRepository.class);
 
