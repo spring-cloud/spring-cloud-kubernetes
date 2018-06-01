@@ -24,8 +24,8 @@
 		<version>0.3.0.BUILD-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>spring-cloud-kubernetes-lock</artifactId>
-	<name>Spring Cloud Kubernetes :: Lock</name>
+	<artifactId>spring-cloud-kubernetes-leader</artifactId>
+	<name>Spring Cloud Kubernetes :: Leader</name>
 
 	<dependencies>
 		<dependency>
