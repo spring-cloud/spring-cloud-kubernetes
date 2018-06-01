@@ -19,10 +19,13 @@ package org.springframework.cloud.kubernetes.leader;
 import java.util.Collections;
 import java.util.Map;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
 /**
  * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
  */
-public class LeaderConfiguration {
+@ConfigurationProperties("spring.cloud.kubernetes.leader")
+public class LeaderProperties {
 
 	private static final String DEFAULT_LEADER_ID_PREFIX = "leader.id.";
 
@@ -36,20 +39,56 @@ public class LeaderConfiguration {
 
 	private static final double DEFAULT_JITTER_FACTOR = 1.2;
 
+	/**
+	 * Should leader election be started automatically on startup.
+	 * Default: true
+	 */
 	private boolean autoStartup = DEFAULT_AUTO_STARTUP;
 
+	/**
+	 * Role for which leadership this candidate will compete.
+	 */
+	private String role;
+
+	/**
+	 * Kubernetes namespace where the leaders ConfigMap and candidates are located.
+	 */
 	private String namespace;
 
+	/**
+	 * Kubernetes ConfigMap where leaders information will be stored.
+	 * Default: leaders
+	 */
 	private String configMapName = DEFAULT_CONFIG_MAP_NAME;
 
+	/**
+	 * Kubernetes labels common to all leadership candidates.
+	 * Default: empty
+	 */
 	private Map<String, String> labels = Collections.emptyMap();
 
+	/**
+	 * Leader id property prefix for the ConfigMap.
+	 * Default: leader.id.
+	 */
 	private String leaderIdPrefix = DEFAULT_LEADER_ID_PREFIX;
 
+	/**
+	 * Time period after which leader should check it's leadership or new leader should be elected.
+	 * Default: 30s
+	 */
 	private long leaseDuration = DEFAULT_LEASE_DURATION;
 
+	/**
+	 * Time period after connections should be retired after failure.
+	 * Default: 5s
+	 */
 	private long retryPeriod = DEFAULT_RETRY_PERIOD;
 
+	/**
+	 * A parameter to randomise scheduler.
+	 * Default: 1.2
+	 */
 	private double jitterFactor = DEFAULT_JITTER_FACTOR;
 
 	public boolean isAutoStartup() {
@@ -58,6 +97,14 @@ public class LeaderConfiguration {
 
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
+	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
 	}
 
 	public String getNamespace() {
