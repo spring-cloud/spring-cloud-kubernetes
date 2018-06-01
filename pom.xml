@@ -85,7 +85,7 @@
 		<module>spring-cloud-starter-kubernetes-ribbon</module>
 		<module>spring-cloud-starter-kubernetes-all</module>
 		<module>spring-cloud-kubernetes-examples</module>
-		<module>spring-cloud-kubernetes-lock</module>
+		<module>spring-cloud-kubernetes-leader</module>
 	</modules>
 	<dependencies>
 		<dependency>
