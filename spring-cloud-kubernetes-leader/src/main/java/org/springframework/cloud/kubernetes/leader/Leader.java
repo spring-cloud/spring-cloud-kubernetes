@@ -25,9 +25,12 @@ public class Leader {
 
 	private final String id;
 
-	public Leader(String role, String id) {
+	private final KubernetesHelper kubernetesHelper;
+
+	public Leader(String role, String id, KubernetesHelper kubernetesHelper) {
 		this.role = role;
 		this.id = id;
+		this.kubernetesHelper = kubernetesHelper;
 	}
 
 	public String getRole() {
@@ -36,6 +39,10 @@ public class Leader {
 
 	public String getId() {
 		return id;
+	}
+
+	public boolean isValid() {
+		return kubernetesHelper.isPodAlive(id);
 	}
 
 }
