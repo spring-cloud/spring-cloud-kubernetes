@@ -143,7 +143,7 @@ public class KubernetesHelperTest {
 	}
 
 	@Test
-	public void shouldUpdateConfigMap() {
+	public void shouldUpdateConfigMapEntry() {
 		given(mockConfigMap.getMetadata()).willReturn(mockObjectMeta);
 		given(mockObjectMeta.getResourceVersion()).willReturn("test-version");
 
@@ -153,13 +153,34 @@ public class KubernetesHelperTest {
 		given(configMapResource.lockResourceVersion("test-version")).willReturn(configMapReplaceable);
 
 		Map<String, String> data = Collections.singletonMap("test-key", "test-value");
-		kubernetesHelper.updateConfigMap(mockConfigMap, data);
+		kubernetesHelper.updateConfigMapEntry(mockConfigMap, data);
 
 		ArgumentCaptor<ConfigMap> configMapCaptor = ArgumentCaptor.forClass(ConfigMap.class);
 		verify(configMapReplaceable).replace(configMapCaptor.capture());
 
 		ConfigMap configMap = configMapCaptor.getValue();
 		assertThat(configMap.getData()).containsEntry("test-key", "test-value");
+	}
+
+	@Test
+	public void shouldRemoveConfigMapEntry() {
+		Map<String, String> data = Collections.singletonMap("test-key", "test-value");
+		given(mockConfigMap.getData()).willReturn(data);
+		given(mockConfigMap.getMetadata()).willReturn(mockObjectMeta);
+		given(mockObjectMeta.getResourceVersion()).willReturn("test-version");
+
+		given(mockKubernetesClient.configMaps()).willReturn(configMapMixedOperation);
+		given(configMapMixedOperation.inNamespace(NAMESPACE)).willReturn(configMapNonNamespaceOperation);
+		given(configMapNonNamespaceOperation.withName(NAME)).willReturn(configMapResource);
+		given(configMapResource.lockResourceVersion("test-version")).willReturn(configMapReplaceable);
+
+		kubernetesHelper.removeConfigMapEntry(mockConfigMap, "test-key");
+
+		ArgumentCaptor<ConfigMap> configMapCaptor = ArgumentCaptor.forClass(ConfigMap.class);
+		verify(configMapReplaceable).replace(configMapCaptor.capture());
+
+		ConfigMap configMap = configMapCaptor.getValue();
+		assertThat(configMap.getData()).doesNotContainKeys("test-key");
 	}
 
 }
