@@ -51,14 +51,14 @@ public class LeadershipController {
 		try {
 			ConfigMap configMap = kubernetesHelper.getConfigMap();
 			if (configMap == null) {
-				createLeaderConfigMap(candidate);
+				createConfigMapWithLeader(candidate);
 				handleOnGranted(candidate);
 				return true;
 			}
 
 			Leader leader = getLeader(candidate.getRole(), configMap);
 			if (leader == null || !leader.isValid()) {
-				updateLeaderConfigMap(candidate, configMap);
+				updateLeaderInConfigMap(candidate, configMap);
 				handleOnGranted(candidate);
 				return true;
 			}
@@ -76,11 +76,27 @@ public class LeadershipController {
 	}
 
 	public boolean revoke(Candidate candidate) {
-		// Get config map
-		// Check if candidate is a leader - if not, return false
-		// Try to revoke leadership - return true
-		// Return false
-		// In case of an exception - pass it forward
+		try {
+			ConfigMap configMap = kubernetesHelper.getConfigMap();
+			if (configMap == null) {
+				return false;
+			}
+
+			Leader leader = getLeader(candidate.getRole(), configMap);
+			if (leader == null) {
+				return false;
+			}
+
+			if (candidate.getId().equals(leader.getId())) {
+				removeLeaderFromConfigMap(candidate, configMap);
+				handleOnRevoked(candidate);
+				return true;
+			}
+		} catch (KubernetesClientException e) {
+			LOGGER.warn("Failed to revoke leadership with role='{}' for candidate='{}': {}", candidate.getRole(),
+				candidate.getId(), e.getMessage());
+		}
+
 		return false;
 	}
 
@@ -113,14 +129,19 @@ public class LeadershipController {
 		return new Leader(role, leaderId, kubernetesHelper);
 	}
 
-	private void createLeaderConfigMap(Candidate candidate) {
+	private void createConfigMapWithLeader(Candidate candidate) {
 		Map<String, String> data = getLeaderData(candidate);
 		kubernetesHelper.createConfigMap(data);
 	}
 
-	private void updateLeaderConfigMap(Candidate candidate, ConfigMap configMap) {
+	private void updateLeaderInConfigMap(Candidate candidate, ConfigMap configMap) {
 		Map<String, String> data = getLeaderData(candidate);
-		kubernetesHelper.updateConfigMap(configMap, data);
+		kubernetesHelper.updateConfigMapEntry(configMap, data);
+	}
+
+	private void removeLeaderFromConfigMap(Candidate candidate, ConfigMap configMap) {
+		String leaderKey = leaderProperties.getLeaderIdPrefix() + candidate.getRole();
+		kubernetesHelper.removeConfigMapEntry(configMap, leaderKey);
 	}
 
 	private void handleOnGranted(Candidate candidate) {
@@ -132,6 +153,12 @@ public class LeadershipController {
 			LOGGER.warn(e.getMessage());
 			Thread.currentThread().interrupt();
 		}
+	}
+
+	private void handleOnRevoked(Candidate candidate) {
+		Context context = new LeaderContext(candidate, this);
+		leaderEventPublisher.publishOnRevoked(this, context, candidate.getRole());
+		candidate.onRevoked(context);
 	}
 
 	private void handleOnFailed(Candidate candidate) {
