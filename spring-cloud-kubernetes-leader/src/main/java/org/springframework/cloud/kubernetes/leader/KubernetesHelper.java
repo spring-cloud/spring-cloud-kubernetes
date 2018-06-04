@@ -79,15 +79,27 @@ public class KubernetesHelper {
 			.create(newConfigMap);
 	}
 
-	public void updateConfigMap(ConfigMap configMap, Map<String, String> newData) {
+	public void updateConfigMapEntry(ConfigMap configMap, Map<String, String> newData) {
 		ConfigMap newConfigMap = new ConfigMapBuilder(configMap)
 			.addToData(newData)
 			.build();
 
+		updateConfigMap(configMap, newConfigMap);
+	}
+
+	public void removeConfigMapEntry(ConfigMap configMap, String key) {
+		ConfigMap newConfigMap = new ConfigMapBuilder(configMap)
+			.removeFromData(key)
+			.build();
+
+		updateConfigMap(configMap, newConfigMap);
+	}
+
+	private void updateConfigMap(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
 		kubernetesClient.configMaps()
 			.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
 			.withName(leaderProperties.getConfigMapName())
-			.lockResourceVersion(configMap.getMetadata().getResourceVersion())
+			.lockResourceVersion(oldConfigMap.getMetadata().getResourceVersion())
 			.replace(newConfigMap);
 	}
 
