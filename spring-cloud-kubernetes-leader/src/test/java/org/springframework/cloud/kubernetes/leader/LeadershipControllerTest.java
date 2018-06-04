@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.integration.leader.Candidate;
@@ -15,6 +16,7 @@ import org.springframework.integration.leader.event.LeaderEventPublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -67,7 +69,7 @@ public class LeadershipControllerTest {
 
 		assertThat(result).isTrue();
 		verify(mockKubernetesHelper).createConfigMap(Collections.singletonMap(PREFIX + ROLE, ID));
-		verify(mockLeaderEventPublisher).publishOnGranted(leadershipController, null, ROLE);
+		verifyPublishOnGranted();
 	}
 
 	@Test
@@ -78,7 +80,7 @@ public class LeadershipControllerTest {
 
 		assertThat(result).isTrue();
 		verify(mockKubernetesHelper).updateConfigMap(mockConfigMap, leaderData);
-		verify(mockLeaderEventPublisher).publishOnGranted(leadershipController, null, ROLE);
+		verifyPublishOnGranted();
 	}
 
 	@Test
@@ -109,7 +111,7 @@ public class LeadershipControllerTest {
 
 		assertThat(result).isTrue();
 		verify(mockKubernetesHelper).updateConfigMap(mockConfigMap, Collections.singletonMap(PREFIX + ROLE, anotherId));
-		verify(mockLeaderEventPublisher).publishOnGranted(leadershipController, null, ROLE);
+		verifyPublishOnGranted();
 	}
 
 	@Test
@@ -124,7 +126,7 @@ public class LeadershipControllerTest {
 		assertThat(result).isFalse();
 		verify(mockKubernetesHelper, times(0)).createConfigMap(any());
 		verify(mockKubernetesHelper, times(0)).updateConfigMap(any(), any());
-		verify(mockLeaderEventPublisher).publishOnFailedToAcquire(leadershipController, null, ROLE);
+		verifyPublishOnFailedToAcquire();
 	}
 
 	@Test
@@ -134,7 +136,7 @@ public class LeadershipControllerTest {
 		boolean result = leadershipController.acquire(mockCandidate);
 
 		assertThat(result).isFalse();
-		verify(mockLeaderEventPublisher).publishOnFailedToAcquire(leadershipController, null, ROLE);
+		verifyPublishOnFailedToAcquire();
 	}
 
 	@Test
@@ -180,6 +182,22 @@ public class LeadershipControllerTest {
 
 		Leader leader = leadershipController.getLeader(ROLE);
 		assertThat(leader).isNull();
+	}
+
+	private void verifyPublishOnGranted() {
+		ArgumentCaptor<LeaderContext> leaderContextCaptor = ArgumentCaptor.forClass(LeaderContext.class);
+		verify(mockLeaderEventPublisher).publishOnGranted(eq(leadershipController),
+			leaderContextCaptor.capture(), eq(ROLE));
+		LeaderContext expectedLeaderContext = new LeaderContext(mockCandidate, leadershipController);
+		assertThat(leaderContextCaptor.getValue()).isEqualToComparingFieldByField(expectedLeaderContext);
+	}
+
+	public void verifyPublishOnFailedToAcquire() {
+		ArgumentCaptor<LeaderContext> leaderContextCaptor = ArgumentCaptor.forClass(LeaderContext.class);
+		verify(mockLeaderEventPublisher).publishOnFailedToAcquire(eq(leadershipController),
+			leaderContextCaptor.capture(), eq(ROLE));
+		LeaderContext expectedLeaderContext = new LeaderContext(mockCandidate, leadershipController);
+		assertThat(leaderContextCaptor.getValue()).isEqualToComparingFieldByField(expectedLeaderContext);
 	}
 
 }
