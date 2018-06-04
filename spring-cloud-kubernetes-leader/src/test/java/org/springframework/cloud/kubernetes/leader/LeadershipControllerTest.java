@@ -79,7 +79,7 @@ public class LeadershipControllerTest {
 		boolean result = leadershipController.acquire(mockCandidate);
 
 		assertThat(result).isTrue();
-		verify(mockKubernetesHelper).updateConfigMap(mockConfigMap, leaderData);
+		verify(mockKubernetesHelper).updateConfigMapEntry(mockConfigMap, leaderData);
 		verifyPublishOnGranted();
 	}
 
@@ -93,10 +93,8 @@ public class LeadershipControllerTest {
 
 		assertThat(result).isTrue();
 		verify(mockKubernetesHelper, times(0)).createConfigMap(any());
-		verify(mockKubernetesHelper, times(0)).updateConfigMap(any(), any());
+		verify(mockKubernetesHelper, times(0)).updateConfigMapEntry(any(), any());
 		verify(mockLeaderEventPublisher, times(0)).publishOnGranted(any(), any(), any());
-		verify(mockLeaderEventPublisher, times(0)).publishOnRevoked(any(), any(), any());
-		verify(mockLeaderEventPublisher, times(0)).publishOnFailedToAcquire(any(), any(), any());
 	}
 
 	@Test
@@ -110,7 +108,8 @@ public class LeadershipControllerTest {
 		boolean result = leadershipController.acquire(mockCandidate);
 
 		assertThat(result).isTrue();
-		verify(mockKubernetesHelper).updateConfigMap(mockConfigMap, Collections.singletonMap(PREFIX + ROLE, anotherId));
+		verify(mockKubernetesHelper).updateConfigMapEntry(mockConfigMap,
+			Collections.singletonMap(PREFIX + ROLE, anotherId));
 		verifyPublishOnGranted();
 	}
 
@@ -125,7 +124,7 @@ public class LeadershipControllerTest {
 
 		assertThat(result).isFalse();
 		verify(mockKubernetesHelper, times(0)).createConfigMap(any());
-		verify(mockKubernetesHelper, times(0)).updateConfigMap(any(), any());
+		verify(mockKubernetesHelper, times(0)).updateConfigMapEntry(any(), any());
 		verifyPublishOnFailedToAcquire();
 	}
 
@@ -137,6 +136,65 @@ public class LeadershipControllerTest {
 
 		assertThat(result).isFalse();
 		verifyPublishOnFailedToAcquire();
+	}
+
+	@Test
+	public void shouldRevokeLeadership() {
+		given(mockKubernetesHelper.getConfigMap()).willReturn(mockConfigMap);
+		given(mockConfigMap.getData()).willReturn(leaderData);
+
+		boolean result = leadershipController.revoke(mockCandidate);
+
+		assertThat(result).isTrue();
+		verify(mockKubernetesHelper).removeConfigMapEntry(mockConfigMap, PREFIX + ROLE);
+		verifyPublishOnRevoked();
+	}
+
+	@Test
+	public void shouldNotRevokeLeadershipIfThereIsNoConfigMap() {
+		boolean result = leadershipController.revoke(mockCandidate);
+
+		assertThat(result).isFalse();
+		verify(mockKubernetesHelper, times(0)).removeConfigMapEntry(any(), any());
+		verify(mockLeaderEventPublisher, times(0)).publishOnRevoked(any(), any(), any());
+	}
+
+	@Test
+	public void shouldNotRevokeLeadershipIfThereIsNoLeader() {
+		given(mockKubernetesHelper.getConfigMap()).willReturn(mockConfigMap);
+
+		boolean result = leadershipController.revoke(mockCandidate);
+
+		assertThat(result).isFalse();
+		verify(mockKubernetesHelper, times(0)).removeConfigMapEntry(any(), any());
+		verify(mockLeaderEventPublisher, times(0)).publishOnRevoked(any(), any(), any());
+	}
+
+	@Test
+	public void shouldNotRevokeLeadershipIfThereIsAnotherLeader() {
+		given(mockKubernetesHelper.getConfigMap()).willReturn(mockConfigMap);
+		given(mockConfigMap.getData()).willReturn(leaderData);
+		given(mockCandidate.getId()).willReturn("another-test-id");
+
+		boolean result = leadershipController.revoke(mockCandidate);
+
+		assertThat(result).isFalse();
+		verify(mockKubernetesHelper, times(0)).removeConfigMapEntry(any(), any());
+		verify(mockLeaderEventPublisher, times(0)).publishOnRevoked(any(), any(), any());
+	}
+
+	@Test
+	public void shouldFailToRevokeLeadership() {
+		given(mockKubernetesHelper.getConfigMap()).willReturn(mockConfigMap);
+		given(mockConfigMap.getData()).willReturn(leaderData);
+		doThrow(new KubernetesClientException("Test exception")).when(mockKubernetesHelper)
+			.removeConfigMapEntry(any(), any());
+
+		boolean result = leadershipController.revoke(mockCandidate);
+
+		assertThat(result).isFalse();
+		verify(mockKubernetesHelper).removeConfigMapEntry(mockConfigMap, PREFIX + ROLE);
+		verify(mockLeaderEventPublisher, times(0)).publishOnRevoked(any(), any(), any());
 	}
 
 	@Test
@@ -187,6 +245,14 @@ public class LeadershipControllerTest {
 	private void verifyPublishOnGranted() {
 		ArgumentCaptor<LeaderContext> leaderContextCaptor = ArgumentCaptor.forClass(LeaderContext.class);
 		verify(mockLeaderEventPublisher).publishOnGranted(eq(leadershipController),
+			leaderContextCaptor.capture(), eq(ROLE));
+		LeaderContext expectedLeaderContext = new LeaderContext(mockCandidate, leadershipController);
+		assertThat(leaderContextCaptor.getValue()).isEqualToComparingFieldByField(expectedLeaderContext);
+	}
+
+	private void verifyPublishOnRevoked() {
+		ArgumentCaptor<LeaderContext> leaderContextCaptor = ArgumentCaptor.forClass(LeaderContext.class);
+		verify(mockLeaderEventPublisher).publishOnRevoked(eq(leadershipController),
 			leaderContextCaptor.capture(), eq(ROLE));
 		LeaderContext expectedLeaderContext = new LeaderContext(mockCandidate, leadershipController);
 		assertThat(leaderContextCaptor.getValue()).isEqualToComparingFieldByField(expectedLeaderContext);
