@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.leader.Candidate;
+import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 
 /**
@@ -123,9 +124,10 @@ public class LeadershipController {
 	}
 
 	private void handleOnGranted(Candidate candidate) {
-		leaderEventPublisher.publishOnGranted(this, null, candidate.getRole());
+		Context context = new LeaderContext(candidate, this);
+		leaderEventPublisher.publishOnGranted(this, context, candidate.getRole());
 		try {
-			candidate.onGranted(null); // TODO context
+			candidate.onGranted(context);
 		} catch (InterruptedException e) {
 			LOGGER.warn(e.getMessage());
 			Thread.currentThread().interrupt();
@@ -133,7 +135,8 @@ public class LeadershipController {
 	}
 
 	private void handleOnFailed(Candidate candidate) {
-		leaderEventPublisher.publishOnFailedToAcquire(this, null, candidate.getRole());  // TODO context
+		Context context = new LeaderContext(candidate, this);
+		leaderEventPublisher.publishOnFailedToAcquire(this, context, candidate.getRole());
 	}
 
 	private Map<String, String> getLeaderData(Candidate candidate) {
