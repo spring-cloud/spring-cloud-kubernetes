@@ -47,6 +47,21 @@ public class LeadershipController {
 		this.leaderEventPublisher = leaderEventPublisher;
 	}
 
+	/**
+	 * Acquire leadership for the requested candidate, if there is no existing leader or existing leader is not valid.
+	 * <p>
+	 * If leadership is successfully acquired {@code true} will be returned, {@link Candidate#onGranted(Context)}
+	 * invoked and {@link LeaderEventPublisher#publishOnGranted(Object, Context, String)} event emitted.
+	 * <p>
+	 * If requested candidate is already a leader, simply {@code true} will be returned.
+	 * <p>
+	 * If for some reason leadership cannot be acquired (communication failure or there is another leader),
+	 * {@code false} will be returned and {@link LeaderEventPublisher#publishOnFailedToAcquire(Object, Context, String)}
+	 * event will be emitted.
+	 *
+	 * @param candidate
+	 * @return {@code true} if at the end of execution candidate is a leader and {@code false} if it isn't.
+	 */
 	public boolean acquire(Candidate candidate) {
 		try {
 			ConfigMap configMap = kubernetesHelper.getConfigMap();
@@ -75,29 +90,44 @@ public class LeadershipController {
 		return false;
 	}
 
+	/**
+	 * Revoke leadership for the requested candidate.
+	 * <p>
+	 * If candidate's leadership is successfully revoked, {@code true} will be returned,
+	 * {@link Candidate#onRevoked(Context)} invoked and
+	 * {@link LeaderEventPublisher#publishOnRevoked(Object, Context, String)} event emitted.
+	 * <p>
+	 * If requested candidate is already not a leader, simply {@code true} will be returned.
+	 * <p>
+	 * If leadership cannot be revoked for a communication error or a concurrent ConfigMap modification, {@code false}
+	 * will be returned.
+	 *
+	 * @param candidate
+	 * @return {@code true} if at the end of execution candidate is not a leader. {@code false} revoke operation failed.
+	 */
 	public boolean revoke(Candidate candidate) {
 		try {
 			ConfigMap configMap = kubernetesHelper.getConfigMap();
 			if (configMap == null) {
-				return false;
+				return true;
 			}
 
 			Leader leader = getLeader(candidate.getRole(), configMap);
 			if (leader == null) {
-				return false;
+				return true;
 			}
 
 			if (candidate.getId().equals(leader.getId())) {
 				removeLeaderFromConfigMap(candidate, configMap);
 				handleOnRevoked(candidate);
-				return true;
 			}
 		} catch (KubernetesClientException e) {
 			LOGGER.warn("Failed to revoke leadership with role='{}' for candidate='{}': {}", candidate.getRole(),
 				candidate.getId(), e.getMessage());
+			return false;
 		}
 
-		return false;
+		return true;
 	}
 
 	public Leader getLeader(String role) {
