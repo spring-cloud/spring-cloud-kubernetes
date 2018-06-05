@@ -16,18 +16,9 @@
 
 package org.springframework.cloud.kubernetes.leader;
 
-import java.util.Map;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.leader.Candidate;
 
@@ -36,22 +27,22 @@ import org.springframework.integration.leader.Candidate;
  */
 public class LeaderInitiator implements SmartLifecycle {
 
-	private final Lock lock = new ReentrantLock();
-
-	private final KubernetesClient kubernetesClient;
+	private final LeadershipController leadershipController;
 
 	private final Candidate candidate;
 
 	private final LeaderProperties leaderProperties;
 
-	private ScheduledExecutorService scheduledExecutorService;
+	private final ScheduledExecutorService scheduledExecutorService;
 
-	private String currentLeaderId; // TODO remove once events are implemented
+	private boolean isRunning;
 
-	public LeaderInitiator(KubernetesClient kubernetesClient, Candidate candidate, LeaderProperties leaderProperties) {
-		this.kubernetesClient = kubernetesClient;
+	public LeaderInitiator(LeadershipController leadershipController, Candidate candidate,
+		LeaderProperties leaderProperties, ScheduledExecutorService scheduledExecutorService) {
+		this.leadershipController = leadershipController;
 		this.candidate = candidate;
 		this.leaderProperties = leaderProperties;
+		this.scheduledExecutorService = scheduledExecutorService;
 	}
 
 	@Override
@@ -61,27 +52,17 @@ public class LeaderInitiator implements SmartLifecycle {
 
 	@Override
 	public void start() {
-		lock.lock();
-		try {
-			if (!isRunning()) {
-				scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-				scheduledExecutorService.execute(this::update);
-			}
-		} finally {
-			lock.unlock();
+		if (!isRunning()) {
+			scheduledExecutorService.execute(this::update);
+			isRunning = true;
 		}
 	}
 
 	@Override
 	public void stop() {
-		lock.lock();
-		try {
-			if (isRunning()) {
-				scheduledExecutorService.shutdown();
-				scheduledExecutorService = null;
-			}
-		} finally {
-			lock.unlock();
+		if (isRunning()) {
+			scheduledExecutorService.shutdown();
+			isRunning = false;
 		}
 	}
 
@@ -93,7 +74,7 @@ public class LeaderInitiator implements SmartLifecycle {
 
 	@Override
 	public boolean isRunning() {
-		return scheduledExecutorService != null;
+		return isRunning;
 	}
 
 	@Override
@@ -101,102 +82,15 @@ public class LeaderInitiator implements SmartLifecycle {
 		return 0; // TODO implement
 	}
 
-	public String getCurrentLeaderId() {
-		return currentLeaderId;
-	}
-
 	private void update() {
-		ConfigMap configMap = getConfigMap();
-		Leader leader = getLeader(configMap);
-
-		if (leader == null) {
-			System.out.println("Currently there is no leader, trying to become one");
-			try {
-				takeLeadership(configMap);
-				currentLeaderId = candidate.getId();
-				scheduleUpdate(leaderProperties.getLeaseDuration());
-			} catch (Exception e) {
-				// Leadership takeover failed, try again later
-				System.out.println("Leadership takeover failed: " + e.getMessage());
-				scheduleUpdate(leaderProperties.getRetryPeriod());
-			}
-		} else if (!isValidLeader(leader)) {
-			System.out.println("Old leader is not valid any more, try to take over");
-			try {
-				takeLeadership(configMap);
-				currentLeaderId = candidate.getId();
-				scheduleUpdate(leaderProperties.getLeaseDuration()); // Is this needed?
-			} catch (Exception e) {
-				// Leadership takeover failed, try again later
-				System.out.println("Leadership takeover failed: " + e.getMessage());
-				scheduleUpdate(leaderProperties.getRetryPeriod());
-			}
-		} else if (!isCandidateALeader(leader)) {
-			currentLeaderId = leader.getId();
-			System.out.println(currentLeaderId + " is a leader, check in later");
+		if (leadershipController.acquire(candidate)) {
+			// We're a leader, check-in later
 			scheduleUpdate(leaderProperties.getLeaseDuration());
 		} else {
-			System.out.println("I am a leader, check in later");
-			currentLeaderId = candidate.getId();
-			scheduleUpdate(leaderProperties.getLeaseDuration()); // Is this needed?
+			// Couldn't become a leader, retry sooner.
+			// TODO maybe we should separate error and another leader scenarios?
+			scheduleUpdate(leaderProperties.getRetryPeriod());
 		}
-	}
-
-	private void takeLeadership(ConfigMap oldConfigMap) {
-		String leaderIdKey = leaderProperties.getLeaderIdPrefix() + candidate.getRole();
-
-		if (oldConfigMap == null) {
-			ConfigMap newConfigMap = new ConfigMapBuilder().withNewMetadata()
-				.withName(leaderProperties.getConfigMapName())
-				.addToLabels("provider", "spring-cloud-kubernetes")
-				.addToLabels("kind", "locks")
-				.endMetadata()
-				.addToData(leaderIdKey, candidate.getId())
-				.build();
-
-			kubernetesClient.configMaps()
-				.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-				.create(newConfigMap);
-		} else {
-			ConfigMap newConfigMap = new ConfigMapBuilder(oldConfigMap)
-				.addToData(leaderIdKey, candidate.getId())
-				.build();
-
-			kubernetesClient.configMaps()
-				.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-				.withName(leaderProperties.getConfigMapName())
-				.lockResourceVersion(oldConfigMap.getMetadata().getResourceVersion())
-				.replace(newConfigMap);
-		}
-
-		System.out.println(candidate.getId() + " is now a leader");
-	}
-
-	private ConfigMap getConfigMap() {
-		try {
-			return kubernetesClient.configMaps()
-				.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-				.withName(leaderProperties.getConfigMapName())
-				.get();
-		} catch (Exception e) {
-			System.out.println("Failed to get a ConfigMap: " + e.getMessage());
-			return null;
-		}
-	}
-
-	private Leader getLeader(ConfigMap configMap) {
-		if (configMap == null || configMap.getData() == null) {
-			return null;
-		}
-
-		Map<String, String> data = configMap.getData();
-		String leaderIdKey = leaderProperties.getLeaderIdPrefix() + candidate.getRole();
-		String leaderId = data.get(leaderIdKey);
-		if (leaderId == null) {
-			return null;
-		}
-
-		return new Leader(candidate.getRole(), leaderId);
 	}
 
 	private void scheduleUpdate(long waitPeriod) {
@@ -205,22 +99,6 @@ public class LeaderInitiator implements SmartLifecycle {
 
 	private long jitter(long num) {
 		return (long) (num * (1 + Math.random() * (leaderProperties.getJitterFactor() - 1)));
-	}
-
-	private boolean isCandidateALeader(Leader leader) {
-		return candidate.getId().equals(leader.getId());
-	}
-
-	private boolean isValidLeader(Leader leader) {
-		return kubernetesClient.pods()
-			.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-			.withLabels(leaderProperties.getLabels())
-			.list()
-			.getItems()
-			.stream()
-			.map(Pod::getMetadata)
-			.map(ObjectMeta::getName)
-			.anyMatch(name -> name.equals(leader.getId()));
 	}
 
 }
