@@ -18,15 +18,21 @@ package org.springframework.cloud.kubernetes.leader;
 
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.DefaultCandidate;
+import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
+import org.springframework.integration.leader.event.LeaderEventPublisher;
 
 /**
  * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
@@ -38,13 +44,42 @@ import org.springframework.integration.leader.DefaultCandidate;
 public class LeaderAutoConfiguration {
 
 	@Bean
-	public LeaderInitiator leaderInitiator(KubernetesClient kubernetesClient, LeaderProperties leaderProperties)
+	@ConditionalOnMissingBean(LeaderEventPublisher.class)
+	LeaderEventPublisher defaultLeaderEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		return new DefaultLeaderEventPublisher(applicationEventPublisher);
+	}
+
+	@Bean
+	KubernetesHelper kubernetesHelper(LeaderProperties leaderProperties, KubernetesClient kubernetesClient) {
+		return new KubernetesHelper(leaderProperties, kubernetesClient);
+	}
+
+	@Bean
+	LeadershipController leadershipController(LeaderProperties leaderProperties, KubernetesHelper kubernetesHelper,
+		LeaderEventPublisher leaderEventPublisher) {
+		return new LeadershipController(leaderProperties, kubernetesHelper, leaderEventPublisher);
+	}
+
+	@Bean(destroyMethod = "stop")
+	public LeaderInitiator leaderInitiator(LeadershipController leadershipController, LeaderProperties leaderProperties)
 		throws UnknownHostException {
-		String candidateId = Inet4Address.getLocalHost().getHostName();
-		Candidate candidate = new DefaultCandidate(candidateId, leaderProperties.getRole());
-		LeaderInitiator leaderInitiator = new LeaderInitiator(kubernetesClient, candidate, leaderProperties);
-		leaderInitiator.start();
+		Candidate candidate = getCandidate(leaderProperties);
+		ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+		LeaderInitiator leaderInitiator =
+			new LeaderInitiator(leaderProperties, leadershipController, candidate, scheduledExecutorService);
+
+		if (leaderInitiator.isAutoStartup()) {
+			leaderInitiator.start();
+		}
+
 		return leaderInitiator;
+	}
+
+	private Candidate getCandidate(LeaderProperties leaderProperties) throws UnknownHostException {
+		String id = Inet4Address.getLocalHost().getHostName();
+		String role = leaderProperties.getRole();
+
+		return new DefaultCandidate(id, role);
 	}
 
 }
