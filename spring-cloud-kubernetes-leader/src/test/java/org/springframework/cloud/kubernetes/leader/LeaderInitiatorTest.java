@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -42,7 +43,7 @@ public class LeaderInitiatorTest {
 
 	@Before
 	public void before() {
-		leaderInitiator = new LeaderInitiator(mockLeadershipController, mockCandidate, mockLeaderProperties,
+		leaderInitiator = new LeaderInitiator(mockLeaderProperties, mockLeadershipController, mockCandidate,
 			mockScheduledExecutorService);
 	}
 
@@ -68,6 +69,7 @@ public class LeaderInitiatorTest {
 		leaderInitiator.stop();
 
 		assertThat(leaderInitiator.isRunning()).isFalse();
+		verify(mockScheduledExecutorService, times(2)).execute(any());
 		verify(mockScheduledExecutorService).shutdown();
 	}
 
@@ -77,8 +79,22 @@ public class LeaderInitiatorTest {
 		leaderInitiator.stop(mockRunnable);
 
 		assertThat(leaderInitiator.isRunning()).isFalse();
+		verify(mockScheduledExecutorService, times(2)).execute(any());
 		verify(mockScheduledExecutorService).shutdown();
 		verify(mockRunnable).run();
+	}
+
+	@Test
+	public void shouldRevokeLeadershipWhenStopping() {
+		leaderInitiator.start();
+		leaderInitiator.stop();
+
+		ArgumentCaptor<Runnable> revokeRunnableCaptor = ArgumentCaptor.forClass(Runnable.class);
+		verify(mockScheduledExecutorService, times(2)).execute(revokeRunnableCaptor.capture());
+
+		Runnable revokeRunnable = revokeRunnableCaptor.getAllValues().get(1);
+		revokeRunnable.run();
+		verify(mockLeadershipController).revoke(mockCandidate);
 	}
 
 	@Test

@@ -27,21 +27,21 @@ import org.springframework.integration.leader.Candidate;
  */
 public class LeaderInitiator implements SmartLifecycle {
 
+	private final LeaderProperties leaderProperties;
+
 	private final LeadershipController leadershipController;
 
 	private final Candidate candidate;
-
-	private final LeaderProperties leaderProperties;
 
 	private final ScheduledExecutorService scheduledExecutorService;
 
 	private boolean isRunning;
 
-	public LeaderInitiator(LeadershipController leadershipController, Candidate candidate,
-		LeaderProperties leaderProperties, ScheduledExecutorService scheduledExecutorService) {
+	public LeaderInitiator(LeaderProperties leaderProperties, LeadershipController leadershipController,
+		Candidate candidate, ScheduledExecutorService scheduledExecutorService) {
+		this.leaderProperties = leaderProperties;
 		this.leadershipController = leadershipController;
 		this.candidate = candidate;
-		this.leaderProperties = leaderProperties;
 		this.scheduledExecutorService = scheduledExecutorService;
 	}
 
@@ -61,6 +61,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	@Override
 	public void stop() {
 		if (isRunning()) {
+			scheduledExecutorService.execute(() -> leadershipController.revoke(candidate));
 			scheduledExecutorService.shutdown();
 			isRunning = false;
 		}
