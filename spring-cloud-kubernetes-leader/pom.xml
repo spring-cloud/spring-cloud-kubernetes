@@ -37,21 +37,6 @@
 			<artifactId>spring-integration-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.jboss.arquillian.junit</groupId>
-			<artifactId>arquillian-junit-standalone</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.arquillian.cube</groupId>
-			<artifactId>arquillian-cube-kubernetes</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.arquillian.cube</groupId>
-			<artifactId>arquillian-cube-requirement</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
