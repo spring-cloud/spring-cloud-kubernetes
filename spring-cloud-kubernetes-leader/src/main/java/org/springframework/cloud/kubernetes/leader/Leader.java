@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Red Hat, Inc, and individual contributors.
+ * Copyright (C) 2018 to the original authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
