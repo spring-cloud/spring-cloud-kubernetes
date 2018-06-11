@@ -95,7 +95,7 @@ public class KubernetesHelperTest {
 	}
 
 	@Test
-	public void shouldCheckIfPodIsAlive() {
+	public void shouldCheckIfPodExists() {
 		given(mockKubernetesClient.getNamespace()).willReturn(NAMESPACE);
 		given(mockKubernetesClient.pods()).willReturn(podMixedOperation);
 		given(podMixedOperation.inNamespace(NAMESPACE)).willReturn(podNonNamespaceOperation);
@@ -105,7 +105,7 @@ public class KubernetesHelperTest {
 		given(mockPod.getMetadata()).willReturn(mockObjectMeta);
 		given(mockObjectMeta.getName()).willReturn("test-id");
 
-		boolean result = kubernetesHelper.isPodAlive("test-id");
+		boolean result = kubernetesHelper.podExists("test-id");
 
 		assertThat(result).isTrue();
 		verify(mockObjectMeta).getName();
