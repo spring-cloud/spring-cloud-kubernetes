@@ -42,7 +42,7 @@ public class Leader {
 	}
 
 	public boolean isValid() {
-		return kubernetesHelper.isPodAlive(id);
+		return kubernetesHelper.podExists(id);
 	}
 
 }

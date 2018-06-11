@@ -42,12 +42,12 @@ public class LeaderTest {
 
 	@Test
 	public void shouldCheckValidity() {
-		given(mockKubernetesHelper.isPodAlive(ID)).willReturn(true);
+		given(mockKubernetesHelper.podExists(ID)).willReturn(true);
 
 		boolean result = leader.isValid();
 
 		assertThat(result).isTrue();
-		verify(mockKubernetesHelper).isPodAlive(ID);
+		verify(mockKubernetesHelper).podExists(ID);
 	}
 
 }

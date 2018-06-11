@@ -46,7 +46,7 @@ public class KubernetesHelper {
 		this.kubernetesClient = kubernetesClient;
 	}
 
-	public boolean isPodAlive(String id) {
+	public boolean podExists(String id) {
 		return kubernetesClient.pods()
 			.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
 			.withLabels(leaderProperties.getLabels())
