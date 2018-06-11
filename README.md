@@ -13,7 +13,7 @@
   -   [Secrets PropertySource](#secrets-propertysource)
   -   [PropertySource Reload](#propertysource-reload)
 -   [Pod Health Indicator](#pod-health-indicator)
--   [Transparency](#transparency) *(its transparent whether the code runs in or outside of Kubernetes)*
+-   [Transparency](#transparency) *(it is transparent whether the code runs in or outside of Kubernetes)*
 -   [Kubernetes Profile Autoconfiguration](#kubernetes-profile-autoconfiguration)
 -   [Ribbon discovery in Kubernetes](#ribbon-discovery-in-kubernetes)
 -   [Zipkin discovery in Kubernetes](#zipkin-discovery-in-kubernetes)
@@ -190,7 +190,7 @@ spec:
 | spring.cloud.kubernetes.config.enabled   | Boolean | true                       | Enable Secrets PropertySource
 | spring.cloud.kubernetes.config.name      | String  | ${spring.application.name} | Sets the name of ConfigMap to lookup
 | spring.cloud.kubernetes.config.namespace | String  | Client namespace           | Sets the Kubernetes namespace where to lookup
-| spring.cloud.kubernetes.config.paths     | List    | null                       | Sets the paths were ConfigMaps are mounted
+| spring.cloud.kubernetes.config.paths     | List    | null                       | Sets the paths where ConfigMaps are mounted
 | spring.cloud.kubernetes.config.enableApi | Boolean | true                       | Enable/Disable consuming ConfigMaps via APIs
 
 
@@ -266,7 +266,7 @@ spec:
 
 You can select the Secrets to consume in a number of ways:    
 
-1. By listing the directories were secrets are mapped:
+1. By listing the directories where secrets are mapped:
     ```
     -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/db-secret,etc/secrets/postgresql
     ```
@@ -296,7 +296,7 @@ You can select the Secrets to consume in a number of ways:
 | spring.cloud.kubernetes.secrets.name      | String  | ${spring.application.name} | Sets the name of the secret to lookup
 | spring.cloud.kubernetes.secrets.namespace | String  | Client namespace           | Sets the Kubernetes namespace where to lookup
 | spring.cloud.kubernetes.secrets.labels    | Map     | null                       | Sets the labels used to lookup secrets
-| spring.cloud.kubernetes.secrets.paths     | List    | null                       | Sets the paths were secrets are mounted (example 1)
+| spring.cloud.kubernetes.secrets.paths     | List    | null                       | Sets the paths where secrets are mounted (example 1)
 | spring.cloud.kubernetes.secrets.enableApi | Boolean | false                      | Enable/Disable consuming secrets via APIs (examples 2 and 3)
 
 **Notes:**
