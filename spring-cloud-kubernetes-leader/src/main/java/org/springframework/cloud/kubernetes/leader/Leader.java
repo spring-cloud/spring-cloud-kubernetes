@@ -25,9 +25,9 @@ public class Leader {
 
 	private final String id;
 
-	private final KubernetesHelper kubernetesHelper;
+	private final LeaderKubernetesHelper kubernetesHelper;
 
-	public Leader(String role, String id, KubernetesHelper kubernetesHelper) {
+	public Leader(String role, String id, LeaderKubernetesHelper kubernetesHelper) {
 		this.role = role;
 		this.id = id;
 		this.kubernetesHelper = kubernetesHelper;
