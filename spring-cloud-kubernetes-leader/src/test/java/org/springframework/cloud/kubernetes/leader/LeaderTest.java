@@ -21,7 +21,7 @@ public class LeaderTest {
 	private static final String ID = "test-id";
 
 	@Mock
-	private KubernetesHelper mockKubernetesHelper;
+	private LeaderKubernetesHelper mockKubernetesHelper;
 
 	private Leader leader;
 

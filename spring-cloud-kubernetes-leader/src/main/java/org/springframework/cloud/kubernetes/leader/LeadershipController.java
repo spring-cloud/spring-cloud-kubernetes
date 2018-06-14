@@ -36,11 +36,11 @@ public class LeadershipController {
 
 	private final LeaderProperties leaderProperties;
 
-	private final KubernetesHelper kubernetesHelper;
+	private final LeaderKubernetesHelper kubernetesHelper;
 
 	private final LeaderEventPublisher leaderEventPublisher;
 
-	public LeadershipController(LeaderProperties leaderProperties, KubernetesHelper kubernetesHelper,
+	public LeadershipController(LeaderProperties leaderProperties, LeaderKubernetesHelper kubernetesHelper,
 		LeaderEventPublisher leaderEventPublisher) {
 		this.leaderProperties = leaderProperties;
 		this.kubernetesHelper = kubernetesHelper;

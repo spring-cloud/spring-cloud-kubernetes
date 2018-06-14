@@ -38,7 +38,7 @@ public class LeadershipControllerTest {
 	private LeaderProperties mockLeaderProperties;
 
 	@Mock
-	private KubernetesHelper mockKubernetesHelper;
+	private LeaderKubernetesHelper mockKubernetesHelper;
 
 	@Mock
 	private ConfigMap mockConfigMap;

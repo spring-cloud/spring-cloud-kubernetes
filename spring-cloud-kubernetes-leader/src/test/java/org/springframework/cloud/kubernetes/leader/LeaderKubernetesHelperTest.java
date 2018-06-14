@@ -35,7 +35,7 @@ import static org.mockito.Mockito.verify;
  * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
  */
 @RunWith(MockitoJUnitRunner.class)
-public class KubernetesHelperTest {
+public class LeaderKubernetesHelperTest {
 
 	private static final String NAMESPACE = "test-namespace";
 
@@ -82,7 +82,7 @@ public class KubernetesHelperTest {
 	@Mock
 	private ConfigMap mockConfigMap;
 
-	private KubernetesHelper kubernetesHelper;
+	private LeaderKubernetesHelper kubernetesHelper;
 
 	@Before
 	public void before() {
@@ -91,7 +91,7 @@ public class KubernetesHelperTest {
 
 		given(mockKubernetesClient.getNamespace()).willReturn(NAMESPACE);
 
-		kubernetesHelper = new KubernetesHelper(mockLeaderProperties, mockKubernetesClient);
+		kubernetesHelper = new LeaderKubernetesHelper(mockLeaderProperties, mockKubernetesClient);
 	}
 
 	@Test
