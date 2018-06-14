@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author <a href="mailto:cmoullia@redhat.com">Charles Moulliard</a>
+ * @author <a href="mailto:shahbour@gmail.com">Ali Shahbour</a>
  */
 @RestController
 public class GreetingController {
@@ -38,6 +39,18 @@ public class GreetingController {
 	@RequestMapping("/api/greeting")
 	public Greeting greeting(@RequestParam(value="name", defaultValue="World") String name) {
 		String message = String.format(properties.getMessage(), name);
+		return new Greeting(message);
+	}
+
+	@RequestMapping("/api/global")
+	public Greeting global(@RequestParam(value="name", defaultValue="World") String name) {
+		String message = String.format(properties.getGlobal(), name);
+		return new Greeting(message);
+	}
+
+	@RequestMapping("/api/profile")
+	public Greeting profile(@RequestParam(value="name", defaultValue="World") String name) {
+		String message = String.format(properties.getProfile(), name);
 		return new Greeting(message);
 	}
 }
