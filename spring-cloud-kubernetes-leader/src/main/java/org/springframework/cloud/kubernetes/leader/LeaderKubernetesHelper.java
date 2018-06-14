@@ -27,7 +27,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 /**
  * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
  */
-public class KubernetesHelper {
+public class LeaderKubernetesHelper {
 
 	private static final String PROVIDER_KEY = "provider";
 
@@ -41,7 +41,7 @@ public class KubernetesHelper {
 
 	private final KubernetesClient kubernetesClient;
 
-	public KubernetesHelper(LeaderProperties leaderProperties, KubernetesClient kubernetesClient) {
+	public LeaderKubernetesHelper(LeaderProperties leaderProperties, KubernetesClient kubernetesClient) {
 		this.leaderProperties = leaderProperties;
 		this.kubernetesClient = kubernetesClient;
 	}

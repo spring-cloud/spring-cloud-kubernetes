@@ -50,13 +50,14 @@ public class LeaderAutoConfiguration {
 	}
 
 	@Bean
-	KubernetesHelper kubernetesHelper(LeaderProperties leaderProperties, KubernetesClient kubernetesClient) {
-		return new KubernetesHelper(leaderProperties, kubernetesClient);
+	LeaderKubernetesHelper leaderKubernetesHelper(LeaderProperties leaderProperties,
+		KubernetesClient kubernetesClient) {
+		return new LeaderKubernetesHelper(leaderProperties, kubernetesClient);
 	}
 
 	@Bean
-	LeadershipController leadershipController(LeaderProperties leaderProperties, KubernetesHelper kubernetesHelper,
-		LeaderEventPublisher leaderEventPublisher) {
+	LeadershipController leadershipController(LeaderProperties leaderProperties,
+		LeaderKubernetesHelper kubernetesHelper, LeaderEventPublisher leaderEventPublisher) {
 		return new LeadershipController(leaderProperties, kubernetesHelper, leaderEventPublisher);
 	}
 
