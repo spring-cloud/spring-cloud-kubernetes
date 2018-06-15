@@ -52,13 +52,7 @@ public class KubernetesApplicationContextInitializer implements
 
     @Override
     public void initialize(ConfigurableApplicationContext applicationContext) {
-    	if(isKubernetesEnabled(applicationContext)){
-			listenerSupplier.get().addKubernetesProfile(applicationContext.getEnvironment());
-		}
+		listenerSupplier.get().addKubernetesProfile(applicationContext.getEnvironment());
     }
 
-	private Boolean isKubernetesEnabled(ConfigurableApplicationContext applicationContext) {
-		return applicationContext.getEnvironment()
-			.getProperty("spring.cloud.kubernetes.enabled", Boolean.class, true);
-	}
 }
