@@ -57,7 +57,7 @@ public class Application {
 Then you can inject the client in your code simply by:
 
 ```java
-@Autowire
+@Autowired
 private DiscoveryClient discoveryClient;
 ```
 
