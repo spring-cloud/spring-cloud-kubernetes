@@ -39,13 +39,13 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private static final Log log = LogFactory.getLog(KubernetesDiscoveryClient.class);
 	private static final String HOSTNAME = "HOSTNAME";
-	private static final String SPRING_BOOT_APP_LABEL = "spring-boot-app";
+
 
 	private KubernetesClient client;
 	private KubernetesDiscoveryProperties properties;
 
 	public KubernetesDiscoveryClient(KubernetesClient client,
-									 KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+									 KubernetesDiscoveryProperties properties) {
 		this.client = client;
 		this.properties = properties;
 	}
@@ -80,7 +80,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		if (Utils.isNullOrEmpty(podName) || endpoints == null) {
 			return defaultInstance;
 		}
-		if(labels != null && labels.containsKey(SPRING_BOOT_APP_LABEL) && labels.get(SPRING_BOOT_APP_LABEL).equals("true")) {
+		if(labels != null && labels.containsKey(properties.getSpringBootAppLabel())
+			&& labels.get(properties.getSpringBootAppLabel()).equals("true")) {
 			try {
 				List<EndpointSubset> subsets = endpoints.getSubsets();
 
@@ -114,7 +115,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			labels = service.get().getMetadata().getLabels();
 		}
 		List<ServiceInstance> instances = new ArrayList<>();
-		if(labels != null && labels.containsKey(SPRING_BOOT_APP_LABEL) && labels.get(SPRING_BOOT_APP_LABEL).equals("true")) {
+		if(labels != null && labels.containsKey(properties.getSpringBootAppLabel())
+			&& labels.get(properties.getSpringBootAppLabel()).equals("true")) {
 			Optional<Endpoints> endpoints = Optional.ofNullable(client.endpoints().withName(serviceId).get());
 			List<EndpointSubset> subsets = endpoints.get().getSubsets();
 
@@ -141,8 +143,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			.getItems()
 			.stream().filter(s -> {
 				if(s.getMetadata().getLabels() != null
-						&& s.getMetadata().getLabels().containsKey(SPRING_BOOT_APP_LABEL)
-						&& s.getMetadata().getLabels().get(SPRING_BOOT_APP_LABEL).equals("true")) {
+						&& s.getMetadata().getLabels().containsKey(properties.getSpringBootAppLabel())
+						&& s.getMetadata().getLabels().get(properties.getSpringBootAppLabel()).equals("true")) {
 					return true;
 				}
 				return false;
