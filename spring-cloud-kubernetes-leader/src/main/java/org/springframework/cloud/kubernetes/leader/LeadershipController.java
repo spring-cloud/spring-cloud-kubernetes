@@ -192,8 +192,10 @@ public class LeadershipController {
 	}
 
 	private void handleOnFailed(Candidate candidate) {
-		Context context = new LeaderContext(candidate, this);
-		leaderEventPublisher.publishOnFailedToAcquire(this, context, candidate.getRole());
+		if (leaderProperties.isPublishFailedEvents()) {
+			Context context = new LeaderContext(candidate, this);
+			leaderEventPublisher.publishOnFailedToAcquire(this, context, candidate.getRole());
+		}
 	}
 
 	private Map<String, String> getLeaderData(Candidate candidate) {

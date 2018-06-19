@@ -116,6 +116,7 @@ public class LeadershipControllerTest {
 
 	@Test
 	public void shouldFailToAcquireIfThereIsAnotherLeader() {
+		given(mockLeaderProperties.isPublishFailedEvents()).willReturn(true);
 		given(mockKubernetesHelper.getConfigMap()).willReturn(mockConfigMap);
 		given(mockKubernetesHelper.podExists(ID)).willReturn(true);
 		given(mockConfigMap.getData()).willReturn(leaderData);
@@ -131,12 +132,23 @@ public class LeadershipControllerTest {
 
 	@Test
 	public void shouldFailToAcquireBecauseOfException() {
+		given(mockLeaderProperties.isPublishFailedEvents()).willReturn(true);
 		doThrow(new KubernetesClientException("Test exception")).when(mockKubernetesHelper).createConfigMap(any());
 
 		boolean result = leadershipController.acquire(mockCandidate);
 
 		assertThat(result).isFalse();
 		verifyPublishOnFailedToAcquire();
+	}
+
+	@Test
+	public void shouldFailToAcquireAndSuspendEvents() {
+		doThrow(new KubernetesClientException("Test exception")).when(mockKubernetesHelper).createConfigMap(any());
+
+		boolean result = leadershipController.acquire(mockCandidate);
+
+		assertThat(result).isFalse();
+		verify(mockLeaderEventPublisher, times(0)).publishOnFailedToAcquire(any(), any(), any());
 	}
 
 	@Test

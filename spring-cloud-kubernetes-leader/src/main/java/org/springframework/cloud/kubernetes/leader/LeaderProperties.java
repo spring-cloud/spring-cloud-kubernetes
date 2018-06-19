@@ -91,6 +91,12 @@ public class LeaderProperties {
 	 */
 	private double jitterFactor = DEFAULT_JITTER_FACTOR;
 
+	/**
+	 * Enable/disable publishing events in case leadership acquisition fails.
+	 * Default: false
+	 */
+	private boolean publishFailedEvents = false;
+
 	public boolean isAutoStartup() {
 		return autoStartup;
 	}
@@ -169,5 +175,13 @@ public class LeaderProperties {
 
 	public void setJitterFactor(double jitterFactor) {
 		this.jitterFactor = jitterFactor;
+	}
+
+	public boolean isPublishFailedEvents() {
+		return publishFailedEvents;
+	}
+
+	public void setPublishFailedEvents(boolean publishFailedEvents) {
+		this.publishFailedEvents = publishFailedEvents;
 	}
 }
