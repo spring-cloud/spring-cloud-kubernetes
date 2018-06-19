@@ -40,7 +40,6 @@ class KubernetesDiscoveryClientTest extends Specification {
 		labels.put(properties.springBootAppLabel, "true")
 
 		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/my-service").andReturn(200, new ServiceBuilder()
-
 			.withNewMetadata()
 				.withName("service")
 				.withLabels(labels)
@@ -92,7 +91,6 @@ class KubernetesDiscoveryClientTest extends Specification {
         mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/my-service").andReturn(200, new EndpointsBuilder()
                 .withNewMetadata()
                     .withName("my-service")
-		//			.withLabels(labels)
                 .endMetadata()
 
                 .addNewSubset()
