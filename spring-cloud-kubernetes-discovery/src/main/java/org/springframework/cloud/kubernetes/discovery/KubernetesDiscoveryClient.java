@@ -67,39 +67,41 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		String serviceName = properties.getServiceName();
 		String podName = System.getenv(HOSTNAME);
 		ServiceInstance defaultInstance = new DefaultServiceInstance(serviceName,
-																	 serviceName,
+																	 podName,
 																	 80,
 																	 false);
 
-		Endpoints endpoints = client.endpoints().withName(serviceName).get();
+
 		Optional<Service> service = Optional.ofNullable(client.services().withName(serviceName).get());
 		Map<String, String> labels = null;
 		if (service.isPresent()) {
 			labels = service.get().getMetadata().getLabels();
-		}
-		if (Utils.isNullOrEmpty(podName) || endpoints == null) {
-			return defaultInstance;
-		}
-		if(labels != null && labels.containsKey(properties.getSpringBootAppLabel())
-			&& labels.get(properties.getSpringBootAppLabel()).equals("true")) {
-			try {
-				List<EndpointSubset> subsets = endpoints.getSubsets();
+			Endpoints endpoints = client.endpoints().withName(serviceName).get();
 
-				if (subsets != null) {
-					for (EndpointSubset s : subsets) {
-						List<EndpointAddress> addresses = s.getAddresses();
-						for (EndpointAddress a : addresses) {
-							return new KubernetesServiceInstance(serviceName,
-																 a,
-																 s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
-																 labels,
-																 false);
+			if (Utils.isNullOrEmpty(podName) || endpoints == null) {
+				return defaultInstance;
+			}
+			if(labels != null && labels.containsKey(properties.getSpringBootAppLabel())
+				&& labels.get(properties.getSpringBootAppLabel()).equals("true")) {
+				try {
+					List<EndpointSubset> subsets = endpoints.getSubsets();
+
+					if (subsets != null) {
+						for (EndpointSubset s : subsets) {
+							List<EndpointAddress> addresses = s.getAddresses();
+							for (EndpointAddress a : addresses) {
+								return new KubernetesServiceInstance(serviceName,
+																	 a,
+																	 s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
+																	 labels,
+																	 false);
+							}
 						}
 					}
+					return defaultInstance;
+				} catch (Throwable t) {
+					return defaultInstance;
 				}
-				return defaultInstance;
-			} catch (Throwable t) {
-				return defaultInstance;
 			}
 		}
 		return defaultInstance;
@@ -109,31 +111,33 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId,
 					   "[Assertion failed] - the object argument must be null");
+
 		Optional<Service> service = Optional.ofNullable(client.services().withName(serviceId).get());
 		Map<String, String> labels = null;
+		List<ServiceInstance> instances = new ArrayList<>();
 		if (service.isPresent()) {
 			labels = service.get().getMetadata().getLabels();
-		}
-		List<ServiceInstance> instances = new ArrayList<>();
-		if(labels != null && labels.containsKey(properties.getSpringBootAppLabel())
-			&& labels.get(properties.getSpringBootAppLabel()).equals("true")) {
-			Optional<Endpoints> endpoints = Optional.ofNullable(client.endpoints().withName(serviceId).get());
-			List<EndpointSubset> subsets = endpoints.get().getSubsets();
 
-			if (subsets != null) {
-				for (EndpointSubset s : subsets) {
-					List<EndpointAddress> addresses = s.getAddresses();
-					for (EndpointAddress a : addresses) {
-						instances.add(new KubernetesServiceInstance(serviceId,
-																	a,
-																	s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
-																	labels,
-																	false));
+			if(labels != null && labels.containsKey(properties.getSpringBootAppLabel())
+				&& labels.get(properties.getSpringBootAppLabel()).equals("true")) {
+				Optional<Endpoints> endpoints = Optional.ofNullable(client.endpoints().withName(serviceId).get());
+				if(endpoints.isPresent()) {
+					List<EndpointSubset> subsets = endpoints.get().getSubsets();
+					if (subsets != null) {
+						for (EndpointSubset s : subsets) {
+							List<EndpointAddress> addresses = s.getAddresses();
+							for (EndpointAddress a : addresses) {
+								instances.add(new KubernetesServiceInstance(serviceId,
+																			a,
+																			s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
+																			labels,
+																			false));
+							}
+						}
 					}
 				}
 			}
 		}
-
 		return instances;
 	}
 
