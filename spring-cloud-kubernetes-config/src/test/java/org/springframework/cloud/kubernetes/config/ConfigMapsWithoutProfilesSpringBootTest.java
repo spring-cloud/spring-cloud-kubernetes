@@ -1,38 +1,17 @@
-/*
- * Copyright (C) 2016 to the original authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
 package org.springframework.cloud.kubernetes.config;
 
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.*;
+import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.restassured.RestAssured;
 import java.util.HashMap;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,17 +21,14 @@ import org.springframework.cloud.kubernetes.config.example.App;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-/**
- * @author <a href="mailto:cmoullia@redhat.com">Charles Moulliard</a>
- */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-                classes = App.class,
-				properties = { "spring.application.name=configmap-with-profile-example",
-	           "spring.cloud.kubernetes.reload.enabled=false"}
-	           )
+	classes = App.class,
+	properties = { "spring.application.name=configmap-without-profile-example",
+		"spring.cloud.kubernetes.reload.enabled=false"}
+)
 @ActiveProfiles("development")
-public class ConfigMapsWithProfilesSpringBootTest {
+public class ConfigMapsWithoutProfilesSpringBootTest {
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
@@ -62,7 +38,7 @@ public class ConfigMapsWithProfilesSpringBootTest {
 	@Autowired(required = false)
 	Config config;
 
-	private static final String APPLICATION_NAME = "configmap-with-profile-example";
+	private static final String APPLICATION_NAME = "configmap-without-profile-example";
 
 	@Value("${local.server.port}")
 	private int port;
@@ -79,7 +55,7 @@ public class ConfigMapsWithProfilesSpringBootTest {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 
 		HashMap<String,String> data = new HashMap<>();
-		data.put("application.yml", readResourceFile("application-with-profiles.yaml"));
+		data.put("application.yml", readResourceFile("application-without-profiles.yaml"));
 		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME).andReturn(200, new ConfigMapBuilder()
 			.withNewMetadata().withName(APPLICATION_NAME).endMetadata()
 			.addToData(data)
@@ -93,7 +69,7 @@ public class ConfigMapsWithProfilesSpringBootTest {
 		when().get()
 			.then()
 			.statusCode(200)
-			.body("content", is("Hello ConfigMap dev, World!"));
+			.body("content", is("Hello ConfigMap, World!"));
 	}
 
 	@Test
@@ -102,6 +78,6 @@ public class ConfigMapsWithProfilesSpringBootTest {
 		when().get()
 			.then()
 			.statusCode(200)
-			.body("content", is("Goodbye ConfigMap default, World!"));
+			.body("content", is("Goodbye ConfigMap, World!"));
 	}
 }

@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.config.example.App;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
@@ -82,17 +83,22 @@ public class ConfigMapsWithProfilesNoActiveProfileSpringBootTest {
 			.always();
 	}
 
-	@Before
-	public void setUp() {
-		RestAssured.baseURI = String.format("http://localhost:%d/api/greeting", port);
-	}
-
 	@Test
 	public void testGreetingEndpoint() {
+		RestAssured.baseURI = String.format("http://localhost:%d/api/greeting", port);
 		when().get()
 			.then()
 			.statusCode(200)
-			.body("content", is("Hello ConfigMap prod, World!"));
+			.body("content", is("Hello ConfigMap default, World!"));
+	}
+
+	@Test
+	public void testFarewellEndpoint() {
+		RestAssured.baseURI = String.format("http://localhost:%d/api/farewell", port);
+		when().get()
+			.then()
+			.statusCode(200)
+			.body("content", is("Goodbye ConfigMap default, World!"));
 	}
 
 }

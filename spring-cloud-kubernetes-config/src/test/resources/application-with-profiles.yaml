@@ -1,12 +1,13 @@
 bean:
-  message: "Hello ConfigMap default, %s!"
+  greeting: "Hello ConfigMap default, %s!"
+  farewell: "Goodbye ConfigMap default, %s!"
 ---
 spring:
   profiles: development
 bean:
-  message: "Hello ConfigMap dev, %s!"
+  greeting: "Hello ConfigMap dev, %s!"
 ---
 spring:
   profiles: production
 bean:
-  message: "Hello ConfigMap prod, %s!"
+  greeting: "Hello ConfigMap prod, %s!"
