@@ -24,14 +24,22 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "bean")
 public class GreetingProperties {
 
-	private String message = "Hello, %s!";
+	private String greeting = "Hello, %s!";
+	private String farewell = "Goodbye, %s!";
 
-	public String getMessage() {
-		return message;
+	public String getGreeting() {
+		return greeting;
 	}
 
-	public void setMessage(String message) {
-		this.message = message;
+	public void setGreeting(String greeting) {
+		this.greeting = greeting;
 	}
 
+	public String getFarewell() {
+		return farewell;
+	}
+
+	public void setFarewell(String farewell) {
+		this.farewell = farewell;
+	}
 }

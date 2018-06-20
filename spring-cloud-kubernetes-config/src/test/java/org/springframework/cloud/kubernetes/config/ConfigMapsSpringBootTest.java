@@ -76,7 +76,7 @@ public class ConfigMapsSpringBootTest {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 
 		HashMap<String,String> data = new HashMap<>();
-		data.put("bean.message","Hello ConfigMap, %s!");
+		data.put("bean.greeting","Hello ConfigMap, %s!");
 		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME).andReturn(200, new ConfigMapBuilder()
 			.withNewMetadata().withName(APPLICATION_NAME).endMetadata()
 			.addToData(data)
@@ -108,7 +108,7 @@ public class ConfigMapsSpringBootTest {
 	public void testConfigMap() {
 		ConfigMap configmap = mockClient.configMaps().inNamespace("test").withName(APPLICATION_NAME).get();
 		HashMap<String,String> keys = (HashMap<String, String>) configmap.getData();
-		assertEquals(keys.get("bean.message"),"Hello ConfigMap, %s!");
+		assertEquals(keys.get("bean.greeting"),"Hello ConfigMap, %s!");
 	}
 
 }
