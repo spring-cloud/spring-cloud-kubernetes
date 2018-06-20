@@ -87,17 +87,21 @@ public class ConfigMapsWithProfilesSpringBootTest {
 			.always();
 	}
 
-	@Before
-	public void setUp() {
-		RestAssured.baseURI = String.format("http://localhost:%d/api/greeting", port);
-	}
-
 	@Test
 	public void testGreetingEndpoint() {
+		RestAssured.baseURI = String.format("http://localhost:%d/api/greeting", port);
 		when().get()
 			.then()
 			.statusCode(200)
 			.body("content", is("Hello ConfigMap dev, World!"));
 	}
 
+	@Test
+	public void testFarewellEndpoint() {
+		RestAssured.baseURI = String.format("http://localhost:%d/api/farewell", port);
+		when().get()
+			.then()
+			.statusCode(200)
+			.body("content", is("Goodbye ConfigMap default, World!"));
+	}
 }

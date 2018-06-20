@@ -18,6 +18,7 @@
 package org.springframework.cloud.kubernetes.config;
 
 import static java.util.Arrays.asList;
+import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.ABSTAIN;
 import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.FOUND;
 import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.NOT_FOUND;
 
@@ -123,13 +124,14 @@ public class ConfigMapPropertySource extends KubernetesPropertySource {
 	private static Function<String, Properties> yamlParserGenerator(final String[] profiles) {
 		return s -> {
 			YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
-			if ((profiles != null) && (profiles.length > 0)){
-				yamlFactory.setDocumentMatchers(
-					(DocumentMatcher) properties ->
-						(asList(profiles).contains(properties.getProperty("spring.profiles")) ?
-							FOUND : NOT_FOUND)
-				);
-			}
+			yamlFactory.setDocumentMatchers(properties -> {
+				String profileProperty = properties.getProperty("spring.profiles");
+				if (profileProperty != null && profileProperty.length() > 0) {
+					return asList(profiles).contains(profileProperty) ? FOUND : NOT_FOUND;
+				} else {
+					return ABSTAIN;
+				}
+			});
 			yamlFactory.setResources(new ByteArrayResource(s.getBytes()));
 			return yamlFactory.getObject();
 		};
