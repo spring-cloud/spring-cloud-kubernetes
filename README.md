@@ -134,9 +134,10 @@ data:
         max:16
 ```
 
-Spring Boot applications can also be configured differently depending on active profiles and it is possible to 
-provide different property values for different profiles using an `application.properties|yaml` property, specifying 
-profile-specific values each in their own document (indicated by the `---` sequence) as follows:
+Spring Boot applications can also be configured differently depending on active profiles which will be merged together
+when the ConfigMap is read. It is possible to provide different property values for different profiles using an
+`application.properties|yaml` property, specifying profile-specific values each in their own document
+(indicated by the `---` sequence) as follows:
  
 ```yaml
 kind: ConfigMap
@@ -147,17 +148,39 @@ data:
   application.yml: |-
     greeting:
       message: Say Hello to the World
+    farewell:
+      message: Say Goodbye
     ---
     spring:
       profiles: development
     greeting:
       message: Say Hello to the Developers
+    farewell:
+      message: Say Goodbye to the Developers
     ---
     spring:
       profiles: production
     greeting:
       message: Say Hello to the Ops
 ```
+
+In the above case, the configuration loaded into your Spring Application with the `development` profile will be:
+```yaml
+  greeting:
+    message: Say Hello to the Developers
+  farewell:
+    message: Say Goodbye to the Developers
+```
+whereas if the `production` profile is active, the configuration will be:
+```yaml
+  greeting:
+    message: Say Hello to the Ops
+  farewell:
+    message: Say Goodbye
+```
+
+If both profiles are active, the property which appears last within the configmap will overwrite preceding values.
+
 
 To tell to Spring Boot which `profile` should be enabled at bootstrap, a system property can be passed to the Java 
 command launching your Spring Boot application using an env variable that you will define with the OpenShift 
