@@ -27,7 +27,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.restassured.RestAssured;
 import java.util.HashMap;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -82,17 +81,22 @@ public class ConfigMapsWithProfilesNoActiveProfileSpringBootTest {
 			.always();
 	}
 
-	@Before
-	public void setUp() {
-		RestAssured.baseURI = String.format("http://localhost:%d/api/greeting", port);
-	}
-
 	@Test
 	public void testGreetingEndpoint() {
+		RestAssured.baseURI = String.format("http://localhost:%d/api/greeting", port);
 		when().get()
 			.then()
 			.statusCode(200)
-			.body("content", is("Hello ConfigMap prod, World!"));
+			.body("content", is("Hello ConfigMap default, World!"));
+	}
+
+	@Test
+	public void testFarewellEndpoint() {
+		RestAssured.baseURI = String.format("http://localhost:%d/api/farewell", port);
+		when().get()
+			.then()
+			.statusCode(200)
+			.body("content", is("Goodbye ConfigMap default, World!"));
 	}
 
 }

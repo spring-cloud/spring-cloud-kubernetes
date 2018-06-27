@@ -1,0 +1,3 @@
+bean:
+  greeting: "Hello ConfigMap, %s!"
+  farewell: "Goodbye ConfigMap, %s!"

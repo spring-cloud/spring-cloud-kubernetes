@@ -13,7 +13,7 @@
   -   [Secrets PropertySource](#secrets-propertysource)
   -   [PropertySource Reload](#propertysource-reload)
 -   [Pod Health Indicator](#pod-health-indicator)
--   [Transparency](#transparency) *(its transparent whether the code runs in or outside of Kubernetes)*
+-   [Transparency](#transparency) *(it is transparent whether the code runs in or outside of Kubernetes)*
 -   [Kubernetes Profile Autoconfiguration](#kubernetes-profile-autoconfiguration)
 -   [Ribbon discovery in Kubernetes](#ribbon-discovery-in-kubernetes)
 -   [Zipkin discovery in Kubernetes](#zipkin-discovery-in-kubernetes)
@@ -57,7 +57,7 @@ public class Application {
 Then you can inject the client in your code simply by:
 
 ```java
-@Autowire
+@Autowired
 private DiscoveryClient discoveryClient;
 ```
 
@@ -156,9 +156,10 @@ data:
         max:16
 ```
 
-Spring Boot applications can also be configured differently depending on active profiles and it is possible to 
-provide different property values for different profiles using an `application.properties|yaml` property, specifying 
-profile-specific values each in their own document (indicated by the `---` sequence) as follows:
+Spring Boot applications can also be configured differently depending on active profiles which will be merged together
+when the ConfigMap is read. It is possible to provide different property values for different profiles using an
+`application.properties|yaml` property, specifying profile-specific values each in their own document
+(indicated by the `---` sequence) as follows:
  
 ```yaml
 kind: ConfigMap
@@ -169,17 +170,39 @@ data:
   application.yml: |-
     greeting:
       message: Say Hello to the World
+    farewell:
+      message: Say Goodbye
     ---
     spring:
       profiles: development
     greeting:
       message: Say Hello to the Developers
+    farewell:
+      message: Say Goodbye to the Developers
     ---
     spring:
       profiles: production
     greeting:
       message: Say Hello to the Ops
 ```
+
+In the above case, the configuration loaded into your Spring Application with the `development` profile will be:
+```yaml
+  greeting:
+    message: Say Hello to the Developers
+  farewell:
+    message: Say Goodbye to the Developers
+```
+whereas if the `production` profile is active, the configuration will be:
+```yaml
+  greeting:
+    message: Say Hello to the Ops
+  farewell:
+    message: Say Goodbye
+```
+
+If both profiles are active, the property which appears last within the configmap will overwrite preceding values.
+
 
 To tell to Spring Boot which `profile` should be enabled at bootstrap, a system property can be passed to the Java 
 command launching your Spring Boot application using an env variable that you will define with the OpenShift 
@@ -212,7 +235,7 @@ spec:
 | spring.cloud.kubernetes.config.enabled   | Boolean | true                       | Enable Secrets PropertySource
 | spring.cloud.kubernetes.config.name      | String  | ${spring.application.name} | Sets the name of ConfigMap to lookup
 | spring.cloud.kubernetes.config.namespace | String  | Client namespace           | Sets the Kubernetes namespace where to lookup
-| spring.cloud.kubernetes.config.paths     | List    | null                       | Sets the paths were ConfigMaps are mounted
+| spring.cloud.kubernetes.config.paths     | List    | null                       | Sets the paths where ConfigMaps are mounted
 | spring.cloud.kubernetes.config.enableApi | Boolean | true                       | Enable/Disable consuming ConfigMaps via APIs
 
 
@@ -288,7 +311,7 @@ spec:
 
 You can select the Secrets to consume in a number of ways:    
 
-1. By listing the directories were secrets are mapped:
+1. By listing the directories where secrets are mapped:
     ```
     -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/db-secret,etc/secrets/postgresql
     ```
@@ -318,7 +341,7 @@ You can select the Secrets to consume in a number of ways:
 | spring.cloud.kubernetes.secrets.name      | String  | ${spring.application.name} | Sets the name of the secret to lookup
 | spring.cloud.kubernetes.secrets.namespace | String  | Client namespace           | Sets the Kubernetes namespace where to lookup
 | spring.cloud.kubernetes.secrets.labels    | Map     | null                       | Sets the labels used to lookup secrets
-| spring.cloud.kubernetes.secrets.paths     | List    | null                       | Sets the paths were secrets are mounted (example 1)
+| spring.cloud.kubernetes.secrets.paths     | List    | null                       | Sets the paths where secrets are mounted (example 1)
 | spring.cloud.kubernetes.secrets.enableApi | Boolean | false                      | Enable/Disable consuming secrets via APIs (examples 2 and 3)
 
 **Notes:**
