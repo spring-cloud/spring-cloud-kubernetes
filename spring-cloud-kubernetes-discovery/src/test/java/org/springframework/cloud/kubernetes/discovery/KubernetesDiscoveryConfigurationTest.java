@@ -2,29 +2,21 @@ package org.springframework.cloud.kubernetes.discovery;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 /**
- * @author Oleg Vyukov
+ * @author Ryan Dawson
  */
-public class KubernetesCatalogServicesWatchConfigurationTest {
+public class KubernetesDiscoveryConfigurationTest {
 
 	private ConfigurableApplicationContext context;
 
@@ -36,22 +28,22 @@ public class KubernetesCatalogServicesWatchConfigurationTest {
 	}
 
 	@Test
-	public void kubernetesCatalogWatchDisabled() throws Exception {
-		setup("spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false");
-		assertFalse(context.containsBean("kubernetesCatalogWatch"));
+	public void kubernetesDiscoveryDisabled() throws Exception {
+		setup("spring.cloud.kubernetes.discovery.enabled=false","spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false");
+		assertFalse(context.containsBean("discoveryClient"));
 	}
 
 	@Test
-	public void kubernetesCatalogWatchWhenKubernetesDisabled() throws Exception {
+	public void kubernetesDiscoveryWhenKubernetesDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.enabled=false");
-		assertFalse(context.containsBean("kubernetesCatalogWatch"));
+		assertFalse(context.containsBean("discoveryClient"));
 	}
 
 
 	@Test
-	public void kubernetesCatalogWatchDefaultEnabled() throws Exception {
-		setup();
-		assertTrue(context.containsBean("kubernetesCatalogWatch"));
+	public void kubernetesDiscoveryDefaultEnabled() throws Exception {
+		setup("spring.cloud.kubernetes.enabled=true");
+		assertTrue(context.containsBean("discoveryClient"));
 	}
 
 	private void setup(String... env) {
