@@ -18,6 +18,7 @@
 	<modules>
 		<module>kubernetes-reload-example</module>
 		<module>kubernetes-hello-world-example</module>
+		<module>kubernetes-leader-election-example</module>
 		<!-- <module>kubernetes-circuitbreaker-ribbon-example</module>
 		<module>kubernetes-zipkin-example</module> -->
 	</modules>
