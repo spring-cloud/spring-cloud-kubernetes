@@ -88,11 +88,13 @@ public class KubernetesAutoConfiguration {
 
     @Configuration
     @ConditionalOnClass(HealthIndicator.class)
+	@EnableConfigurationProperties(KubernetesHealthIndicatorProperties.class)
     protected static class KubernetesActuatorConfiguration {
         @Bean
         @ConditionalOnMissingBean
-        public KubernetesHealthIndicator kubernetesHealthIndicator(PodUtils podUtils) {
-            return new KubernetesHealthIndicator(podUtils);
+        public KubernetesHealthIndicator kubernetesHealthIndicator(PodUtils podUtils,
+																   KubernetesHealthIndicatorProperties properties) {
+            return new KubernetesHealthIndicator(podUtils, properties);
         }
     }
 

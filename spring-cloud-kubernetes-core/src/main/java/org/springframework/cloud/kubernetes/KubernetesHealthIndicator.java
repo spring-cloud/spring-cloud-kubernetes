@@ -24,9 +24,11 @@ import io.fabric8.kubernetes.api.model.Pod;
 public class KubernetesHealthIndicator extends AbstractHealthIndicator {
 
     private PodUtils utils;
+    private KubernetesHealthIndicatorProperties properties;
 
-    public KubernetesHealthIndicator(PodUtils utils) {
+    public KubernetesHealthIndicator(PodUtils utils, KubernetesHealthIndicatorProperties properties) {
         this.utils = utils;
+        this.properties = properties;
     }
 
     @Override
@@ -43,8 +45,13 @@ public class KubernetesHealthIndicator extends AbstractHealthIndicator {
                         .withDetail("nodeName", current.getSpec().getNodeName())
                         .withDetail("hostIp", current.getStatus().getHostIP());
             } else {
-                builder.up()
-                        .withDetail("inside", false);
+            	if (this.properties.isFailOutsidePod()) {
+            		builder.down()
+						.withDetail("inside", false);
+				} else {
+					builder.up()
+						.withDetail("inside", false);
+				}
             }
         } catch (Exception e) {
             builder.down(e);
