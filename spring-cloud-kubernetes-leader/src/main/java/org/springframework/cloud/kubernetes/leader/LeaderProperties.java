@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.kubernetes.leader;
 
-import java.util.Collections;
-import java.util.Map;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -60,12 +57,6 @@ public class LeaderProperties {
 	 * Default: leaders
 	 */
 	private String configMapName = DEFAULT_CONFIG_MAP_NAME;
-
-	/**
-	 * Kubernetes labels common to all leadership candidates.
-	 * Default: empty
-	 */
-	private Map<String, String> labels = Collections.emptyMap();
 
 	/**
 	 * Leader id property prefix for the ConfigMap.
@@ -135,14 +126,6 @@ public class LeaderProperties {
 
 	public void setConfigMapName(String configMapName) {
 		this.configMapName = configMapName;
-	}
-
-	public Map<String, String> getLabels() {
-		return labels;
-	}
-
-	public void setLabels(Map<String, String> labels) {
-		this.labels = Collections.unmodifiableMap(labels);
 	}
 
 	public String getLeaderIdPrefix() {

@@ -46,16 +46,11 @@ public class LeaderKubernetesHelper {
 		this.kubernetesClient = kubernetesClient;
 	}
 
-	public boolean podExists(String id) {
+	public boolean podIsReady(String id) {
 		return kubernetesClient.pods()
 			.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-			.withLabels(leaderProperties.getLabels())
-			.list()
-			.getItems()
-			.stream()
-			.map(Pod::getMetadata)
-			.map(ObjectMeta::getName)
-			.anyMatch(name -> name.equals(id));
+			.withName(id)
+			.isReady();
 	}
 
 	public ConfigMap getConfigMap() {
