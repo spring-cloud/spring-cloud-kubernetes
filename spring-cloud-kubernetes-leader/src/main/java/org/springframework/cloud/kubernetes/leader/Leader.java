@@ -17,6 +17,10 @@
 
 package org.springframework.cloud.kubernetes.leader;
 
+import java.util.Objects;
+
+import org.springframework.integration.leader.Candidate;
+
 /**
  * @author Gytis Trikleris
  */
@@ -26,12 +30,9 @@ public class Leader {
 
 	private final String id;
 
-	private final LeaderKubernetesHelper kubernetesHelper;
-
-	public Leader(String role, String id, LeaderKubernetesHelper kubernetesHelper) {
+	public Leader(String role, String id) {
 		this.role = role;
 		this.id = id;
-		this.kubernetesHelper = kubernetesHelper;
 	}
 
 	public String getRole() {
@@ -42,8 +43,37 @@ public class Leader {
 		return id;
 	}
 
-	public boolean isValid() {
-		return kubernetesHelper.podExists(id);
+	public boolean isCandidate(Candidate candidate) {
+		if (candidate == null) {
+			return false;
+		}
+
+		return Objects.equals(role, candidate.getRole()) && Objects.equals(id, candidate.getId());
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
+		Leader leader = (Leader) o;
+
+		return Objects.equals(role, leader.role) && Objects.equals(id, leader.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(role, id);
+	}
+
+	@Override
+	public String toString() {
+		return String.format("Leader{role='%s', id='%s'}", role, id);
 	}
 
 }

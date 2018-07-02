@@ -22,8 +22,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.integration.leader.Candidate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -38,13 +40,13 @@ public class LeaderTest {
 	private static final String ID = "test-id";
 
 	@Mock
-	private LeaderKubernetesHelper mockKubernetesHelper;
+	private Candidate mockCandidate;
 
 	private Leader leader;
 
 	@Before
 	public void before() {
-		leader = new Leader(ROLE, ID, mockKubernetesHelper);
+		leader = new Leader(ROLE, ID);
 	}
 
 	@Test
@@ -58,13 +60,16 @@ public class LeaderTest {
 	}
 
 	@Test
-	public void shouldCheckValidity() {
-		given(mockKubernetesHelper.podExists(ID)).willReturn(true);
+	public void shouldCheckWithNullCandidate() {
+		assertThat(leader.isCandidate(null)).isEqualTo(false);
+	}
 
-		boolean result = leader.isValid();
+	@Test
+	public void shouldCheckCandidate() {
+		given(mockCandidate.getId()).willReturn(ID);
+		given(mockCandidate.getRole()).willReturn(ROLE);
 
-		assertThat(result).isTrue();
-		verify(mockKubernetesHelper).podExists(ID);
+		assertThat(leader.isCandidate(mockCandidate)).isTrue();
 	}
 
 }

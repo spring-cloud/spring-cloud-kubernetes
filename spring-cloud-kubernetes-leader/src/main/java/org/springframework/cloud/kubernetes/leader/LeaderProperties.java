@@ -17,10 +17,6 @@
 
 package org.springframework.cloud.kubernetes.leader;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -29,17 +25,23 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("spring.cloud.kubernetes.leader")
 public class LeaderProperties {
 
+	private static final boolean DEFAULT_ENABLED = true;
+
 	private static final String DEFAULT_LEADER_ID_PREFIX = "leader.id.";
 
 	private static final boolean DEFAULT_AUTO_STARTUP = true;
 
 	private static final String DEFAULT_CONFIG_MAP_NAME = "leaders";
 
-	private static final long DEFAULT_LEASE_DURATION = 30000;
+	private static final long DEFAULT_UPDATE_PERIOD = 60000;
 
-	private static final long DEFAULT_RETRY_PERIOD = 5000;
+	private static final boolean DEFAULT_PUBLISH_FAILED_EVENTS = false;
 
-	private static final double DEFAULT_JITTER_FACTOR = 1.2;
+	/**
+	 * Should leader election be enabled.
+	 * Default: true
+	 */
+	private boolean enabled = DEFAULT_ENABLED;
 
 	/**
 	 * Should leader election be started automatically on startup.
@@ -64,40 +66,30 @@ public class LeaderProperties {
 	private String configMapName = DEFAULT_CONFIG_MAP_NAME;
 
 	/**
-	 * Kubernetes labels common to all leadership candidates.
-	 * Default: empty
-	 */
-	private Map<String, String> labels = new HashMap<>();
-
-	/**
 	 * Leader id property prefix for the ConfigMap.
 	 * Default: leader.id.
 	 */
 	private String leaderIdPrefix = DEFAULT_LEADER_ID_PREFIX;
 
 	/**
-	 * Time period after which leader should check it's leadership or new leader should be elected.
-	 * Default: 30s
+	 * Leadership status check period.
+	 * Default: 60s
 	 */
-	private long leaseDuration = DEFAULT_LEASE_DURATION;
-
-	/**
-	 * Time period after connections should be retired after failure.
-	 * Default: 5s
-	 */
-	private long retryPeriod = DEFAULT_RETRY_PERIOD;
-
-	/**
-	 * A parameter to randomise scheduler.
-	 * Default: 1.2
-	 */
-	private double jitterFactor = DEFAULT_JITTER_FACTOR;
+	private long updatePeriod = DEFAULT_UPDATE_PERIOD;
 
 	/**
 	 * Enable/disable publishing events in case leadership acquisition fails.
 	 * Default: false
 	 */
-	private boolean publishFailedEvents = false;
+	private boolean publishFailedEvents = DEFAULT_PUBLISH_FAILED_EVENTS;
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
 	public boolean isAutoStartup() {
 		return autoStartup;
@@ -139,14 +131,6 @@ public class LeaderProperties {
 		this.configMapName = configMapName;
 	}
 
-	public Map<String, String> getLabels() {
-		return labels;
-	}
-
-	public void setLabels(Map<String, String> labels) {
-		this.labels = Collections.unmodifiableMap(labels);
-	}
-
 	public String getLeaderIdPrefix() {
 		return leaderIdPrefix;
 	}
@@ -155,28 +139,12 @@ public class LeaderProperties {
 		this.leaderIdPrefix = leaderIdPrefix;
 	}
 
-	public long getLeaseDuration() {
-		return leaseDuration;
+	public long getUpdatePeriod() {
+		return updatePeriod;
 	}
 
-	public void setLeaseDuration(long leaseDuration) {
-		this.leaseDuration = leaseDuration;
-	}
-
-	public long getRetryPeriod() {
-		return retryPeriod;
-	}
-
-	public void setRetryPeriod(long retryPeriod) {
-		this.retryPeriod = retryPeriod;
-	}
-
-	public double getJitterFactor() {
-		return jitterFactor;
-	}
-
-	public void setJitterFactor(double jitterFactor) {
-		this.jitterFactor = jitterFactor;
+	public void setUpdatePeriod(long updatePeriod) {
+		this.updatePeriod = updatePeriod;
 	}
 
 	public boolean isPublishFailedEvents() {
