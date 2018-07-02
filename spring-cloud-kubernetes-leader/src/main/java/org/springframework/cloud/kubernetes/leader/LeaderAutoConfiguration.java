@@ -40,28 +40,32 @@ import org.springframework.integration.leader.event.LeaderEventPublisher;
 @Configuration
 @EnableConfigurationProperties(LeaderProperties.class)
 @ConditionalOnBean(KubernetesClient.class)
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
+@ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
 public class LeaderAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(LeaderEventPublisher.class)
+	@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
 	LeaderEventPublisher defaultLeaderEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		return new DefaultLeaderEventPublisher(applicationEventPublisher);
 	}
 
 	@Bean
+	@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
 	LeaderKubernetesHelper leaderKubernetesHelper(LeaderProperties leaderProperties,
 		KubernetesClient kubernetesClient) {
 		return new LeaderKubernetesHelper(leaderProperties, kubernetesClient);
 	}
 
 	@Bean
+	@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
 	LeadershipController leadershipController(LeaderProperties leaderProperties,
 		LeaderKubernetesHelper kubernetesHelper, LeaderEventPublisher leaderEventPublisher) {
 		return new LeadershipController(leaderProperties, kubernetesHelper, leaderEventPublisher);
 	}
 
 	@Bean(destroyMethod = "stop")
+	@ConditionalOnBean(LeadershipController.class)
 	public LeaderInitiator leaderInitiator(LeadershipController leadershipController, LeaderProperties leaderProperties)
 		throws UnknownHostException {
 		Candidate candidate = getCandidate(leaderProperties);
