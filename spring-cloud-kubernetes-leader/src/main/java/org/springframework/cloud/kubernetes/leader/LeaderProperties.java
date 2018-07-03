@@ -24,6 +24,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("spring.cloud.kubernetes.leader")
 public class LeaderProperties {
 
+	private static final boolean DEFAULT_ENABLED = true;
+
 	private static final String DEFAULT_LEADER_ID_PREFIX = "leader.id.";
 
 	private static final boolean DEFAULT_AUTO_STARTUP = true;
@@ -35,6 +37,14 @@ public class LeaderProperties {
 	private static final long DEFAULT_RETRY_PERIOD = 5000;
 
 	private static final double DEFAULT_JITTER_FACTOR = 1.2;
+
+	private static final boolean DEFAULT_PUBLISH_FAILED_EVENTS = false;
+
+	/**
+	 * Should leader election be enabled.
+	 * Default: true
+	 */
+	private boolean enabled = DEFAULT_ENABLED;
 
 	/**
 	 * Should leader election be started automatically on startup.
@@ -86,7 +96,15 @@ public class LeaderProperties {
 	 * Enable/disable publishing events in case leadership acquisition fails.
 	 * Default: false
 	 */
-	private boolean publishFailedEvents = false;
+	private boolean publishFailedEvents = DEFAULT_PUBLISH_FAILED_EVENTS;
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
 	public boolean isAutoStartup() {
 		return autoStartup;
