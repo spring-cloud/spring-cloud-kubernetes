@@ -66,14 +66,8 @@ public class LeaderAutoConfiguration {
 		throws UnknownHostException {
 		Candidate candidate = getCandidate(leaderProperties);
 		ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-		LeaderInitiator leaderInitiator =
-			new LeaderInitiator(leaderProperties, leadershipController, candidate, scheduledExecutorService);
 
-		if (leaderInitiator.isAutoStartup()) {
-			leaderInitiator.start();
-		}
-
-		return leaderInitiator;
+		return new LeaderInitiator(leaderProperties, leadershipController, candidate, scheduledExecutorService);
 	}
 
 	private Candidate getCandidate(LeaderProperties leaderProperties) throws UnknownHostException {
