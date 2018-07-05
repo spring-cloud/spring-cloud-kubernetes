@@ -39,7 +39,7 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnProperty(name = "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled", matchIfMissing = true)
-	public KubernetesCatalogWatch kubernetesCatalogWatch(KubernetesDiscoveryClient client) {
+	public KubernetesCatalogWatch kubernetesCatalogWatch(KubernetesClient client) {
 		return new KubernetesCatalogWatch(client);
 	}
 }
