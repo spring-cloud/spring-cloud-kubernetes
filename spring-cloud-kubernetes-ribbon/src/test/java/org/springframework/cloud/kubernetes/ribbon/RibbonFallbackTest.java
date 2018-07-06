@@ -66,6 +66,9 @@ public class RibbonFallbackTest {
 	@Value("${service.occurence}")
 	private int SERVICE_OCCURENCE;
 
+	@Value("${testapp.ribbon.ServerListRefreshInterval}")
+	private int serverListRefreshInterval;
+
 	@Autowired
 	RestTemplate restTemplate;
 
@@ -93,7 +96,8 @@ public class RibbonFallbackTest {
 		 **/
 
 		LOG.info(">>>>>>>>>> BEGIN PART 1 <<<<<<<<<<<<<");
-		// As Ribbon refreshes its list every 500ms, we will configure the Kube Server endpoint to reply to at least x attempts
+		// As Ribbon refreshes its list every serverListRefreshInterval ms,
+		// we configure the API Server endpoint to reply to exactly SERVICE_OCCURENCE attempts
 		// to be sure that Ribbon will get the mockendpoint to access it for the call
 		mockServer.expect().get()
 			.withPath("/api/v1/namespaces/testns/endpoints/testapp")
@@ -106,8 +110,8 @@ public class RibbonFallbackTest {
 
 		LOG.info(">>>>>>>>>> BEGIN PART 2 <<<<<<<<<<<<<");
 		try {
-			Thread.sleep(2000);
-		    restTemplate.getForObject("http://testapp/greeting", String.class);
+			ensureEndpointsNoLongerReturnedByAPIServer();
+			restTemplate.getForObject("http://testapp/greeting", String.class);
 		    fail("My method didn't throw when I expected it to");
 		} catch (Exception e) {
 			// No endpoint is available anymore and Ribbon list is empty
@@ -130,6 +134,12 @@ public class RibbonFallbackTest {
 		response = restTemplate.getForObject("http://testapp/greeting", String.class);
 		Assert.assertEquals("Hello from A",response);
 		LOG.info(">>>>>>>>>> END PART 3 <<<<<<<<<<<<<");
+	}
+
+	// This works because the (mock) API server is configured to return the endpoints exactly
+	// SERVICE_OCCURENCE times while Ribbon refreshes it's list every serverListRefreshInterval milliseconds
+	private void ensureEndpointsNoLongerReturnedByAPIServer() throws InterruptedException {
+		Thread.sleep((SERVICE_OCCURENCE + 1) * serverListRefreshInterval);
 	}
 
 	public static Endpoints newEndpoint(String name, String namespace, DefaultMockServer mockServer) {
