@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
@@ -25,6 +27,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 
 /**
@@ -34,12 +37,13 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private static final Logger logger = LoggerFactory.getLogger(KubernetesCatalogWatch.class);
 
-	private final KubernetesDiscoveryClient kubernetesDiscoveryClient;
-	private final AtomicReference<List<String>> catalogServicesState = new AtomicReference<>();
+	private final KubernetesClient kubernetesClient;
+	private final AtomicReference<List<String>> catalogEndpointsState = new AtomicReference<>();
 	private ApplicationEventPublisher publisher;
 
-	public KubernetesCatalogWatch(KubernetesDiscoveryClient kubernetesDiscoveryClient) {
-		this.kubernetesDiscoveryClient = kubernetesDiscoveryClient;
+
+	public KubernetesCatalogWatch(KubernetesClient kubernetesClient) {
+		this.kubernetesClient = kubernetesClient;
 	}
 
 	@Override
@@ -50,19 +54,27 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 	@Scheduled(fixedDelayString = "${spring.cloud.kubernetes.discovery.catalogServicesWatchDelay:30000}")
 	public void catalogServicesWatch() {
 		try {
-			List<String> previousState = catalogServicesState.get();
+			List<String> previousState = catalogEndpointsState.get();
 
-			List<String> services = kubernetesDiscoveryClient.getServices();
+			//not all pods participate in the service discovery. only those that have endpoints.
+			List<Endpoints> endpoints = kubernetesClient.endpoints().list().getItems();
+			List<String> endpointsPodNames =
+				endpoints.stream()
+					.flatMap(endpoint -> endpoint.getSubsets().stream())
+					.flatMap(subset -> subset.getAddresses().stream())
+					.map(endpointAddress -> endpointAddress.getTargetRef().getName()) // pod name unique in namespace
+					.sorted(String::compareTo).collect(Collectors.toList());
 
-			services.sort(String::compareTo);
-			catalogServicesState.set(services);
+			catalogEndpointsState.set(endpointsPodNames);
 
-			if (!services.equals(previousState)) {
-				logger.trace("Received services update from kubernetesDiscoveryClient: {}", services);
-				publisher.publishEvent(new HeartbeatEvent(this, services));
+			if (!endpointsPodNames.equals(previousState)) {
+				logger.trace("Received endpoints update from kubernetesClient: {}", endpointsPodNames);
+				publisher.publishEvent(new HeartbeatEvent(this, endpointsPodNames));
 			}
 		} catch (Exception e) {
 			logger.error("Error watching Kubernetes Services", e);
 		}
 	}
+
+
 }

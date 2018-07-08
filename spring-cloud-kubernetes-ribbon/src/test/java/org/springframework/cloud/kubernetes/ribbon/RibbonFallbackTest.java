@@ -63,8 +63,11 @@ public class RibbonFallbackTest {
 
 	private static final Log LOG = LogFactory.getLog(RibbonFallbackTest.class);
 
-	@Value("${service.occurence}")
-	private int SERVICE_OCCURENCE;
+	@Value("${service.occurrence}")
+	private int serviceOccurrence;
+
+	@Value("${testapp.ribbon.ServerListRefreshInterval}")
+	private int serverListRefreshInterval;
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -93,33 +96,46 @@ public class RibbonFallbackTest {
 		 **/
 
 		LOG.info(">>>>>>>>>> BEGIN PART 1 <<<<<<<<<<<<<");
-		// As Ribbon refreshes its list every 500ms, we will configure the Kube Server endpoint to reply to at least x attempts
+
+		// As Ribbon refreshes its list every serverListRefreshInterval ms,
+		// we configure the API Server endpoint to reply to exactly serviceOccurrence attempts
 		// to be sure that Ribbon will get the mockendpoint to access it for the call
 		mockServer.expect().get()
 			.withPath("/api/v1/namespaces/testns/endpoints/testapp")
-			.andReturn(200, newEndpoint("testapp-a","testns", mockEndpoint)).times(SERVICE_OCCURENCE);
+			.andReturn(200, newEndpoint("testapp-a","testns", mockEndpoint))
+			.times(serviceOccurrence);
 
-		mockEndpoint.expect().get().withPath("/greeting").andReturn(200, "Hello from A").once();
+		mockEndpoint.expect().get()
+			.withPath("/greeting")
+			.andReturn(200, "Hello from A")
+			.once();
+
 		String response = restTemplate.getForObject("http://testapp/greeting", String.class);
-		Assert.assertEquals("Hello from A",response);
+		Assert.assertEquals("Hello from A", response);
 		LOG.info(">>>>>>>>>> END PART 1 <<<<<<<<<<<<<");
 
 		LOG.info(">>>>>>>>>> BEGIN PART 2 <<<<<<<<<<<<<");
 		try {
-			Thread.sleep(2000);
-		    restTemplate.getForObject("http://testapp/greeting", String.class);
-		    fail("My method didn't throw when I expected it to");
+			ensureEndpointsNoLongerReturnedByAPIServer();
+			restTemplate.getForObject("http://testapp/greeting", String.class);
+		    fail("Ribbon was supposed to throw an Exception due to not knowing of any endpoints to route the request to");
 		} catch (Exception e) {
 			// No endpoint is available anymore and Ribbon list is empty
-			Assert.assertEquals("No instances available for testapp",e.getMessage());
+			Assert.assertEquals("No instances available for testapp", e.getMessage());
 		}
 		LOG.info(">>>>>>>>>> END PART 2 <<<<<<<<<<<<<");
 
 		LOG.info(">>>>>>>>>> BEGIN PART 3 <<<<<<<<<<<<<");
 		mockServer.expect().get()
 			.withPath("/api/v1/namespaces/testns/endpoints/testapp")
-			.andReturn(200, newEndpoint("testapp-a","testns", mockEndpoint)).always();
+			.andReturn(200, newEndpoint("testapp-a","testns", mockEndpoint))
+			.always();
 
+		// the purpose of sleeping here is to make sure that even after some refreshes to it's list
+		// Ribbon still has endpoints to route to
+		// This is different than the first part of the test because the API server has now been
+		// configured to always respond with some endpoints as opposed to only a certain amount of
+		// requests which was the case in part 1
 		try {
 			Thread.sleep(2000);
 		} catch(InterruptedException ex) {
@@ -130,6 +146,12 @@ public class RibbonFallbackTest {
 		response = restTemplate.getForObject("http://testapp/greeting", String.class);
 		Assert.assertEquals("Hello from A",response);
 		LOG.info(">>>>>>>>>> END PART 3 <<<<<<<<<<<<<");
+	}
+
+	// This works because the (mock) API server is configured to return the endpoints exactly
+	// serviceOccurrence times while Ribbon refreshes it's list every serverListRefreshInterval milliseconds
+	private void ensureEndpointsNoLongerReturnedByAPIServer() throws InterruptedException {
+		Thread.sleep((serviceOccurrence + 1) * serverListRefreshInterval);
 	}
 
 	public static Endpoints newEndpoint(String name, String namespace, DefaultMockServer mockServer) {

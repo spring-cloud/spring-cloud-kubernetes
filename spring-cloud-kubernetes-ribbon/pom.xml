@@ -31,7 +31,7 @@
 	<name>Spring Cloud Kubernetes :: Ribbon</name>
 
 	<properties>
-		<service.occurence>1</service.occurence>
+		<service.occurrence>1</service.occurrence>
 	</properties>
 
 	<dependencies>
@@ -93,7 +93,7 @@
 				<configuration>
 					<argLine>-Dservice</argLine>
 					<systemPropertyVariables>
-						<service.occurence>${service.occurence}</service.occurence>
+						<service.occurrence>${service.occurrence}</service.occurrence>
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>
