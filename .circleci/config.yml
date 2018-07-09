@@ -44,7 +44,7 @@ jobs:
           name: test
           command: |
             ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} #org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-            find . -type f -regex ".*/spring-cloud-*.*/target/*.*" | cpio -pdm $CIRCLE_ARTIFACTS
+            find . -type f -regex ".*/spring-cloud-*.*/target/*.*" | cp $CIRCLE_ARTIFACTS
             mkdir -p $CIRCLE_TEST_REPORTS/junit/
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
             bash <(curl -s https://codecov.io/bash)
