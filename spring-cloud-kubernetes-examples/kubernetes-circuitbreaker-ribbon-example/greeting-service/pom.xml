@@ -37,15 +37,15 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-ribbon</artifactId>
+      <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-hystrix</artifactId>
+      <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-kubernetes-netflix</artifactId>
+      <artifactId>spring-cloud-starter-kubernetes-ribbon</artifactId>
     </dependency>
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
