@@ -28,6 +28,8 @@ public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProper
 	@Value("${spring.application.name:unknown}")
 	private String serviceName = "unknown";
 
+	private String springBootAppLabel = "spring-boot-app";
+
 	public boolean isEnabled() {
 		return enabled;
 	}
@@ -38,6 +40,10 @@ public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProper
 
 	public String getServiceName() {
 		return serviceName;
+	}
+
+	public String getSpringBootAppLabel(){
+		return springBootAppLabel;
 	}
 
 	@Override

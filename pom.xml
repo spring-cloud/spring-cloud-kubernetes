@@ -179,7 +179,7 @@
 					<reuseForks>false</reuseForks>
 				</configuration>
 			</plugin>
-		</plugins>
+    </plugins>
 		<pluginManagement>
 			<plugins>
 			</plugins>

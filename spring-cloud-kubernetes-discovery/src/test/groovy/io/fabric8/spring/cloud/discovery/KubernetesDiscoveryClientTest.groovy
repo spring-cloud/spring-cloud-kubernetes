@@ -1,6 +1,8 @@
 package org.springframework.cloud.kubernetes.discovery
 
 import io.fabric8.kubernetes.api.model.EndpointsBuilder
+import io.fabric8.kubernetes.api.model.ServiceBuilder
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder
 import io.fabric8.kubernetes.client.Config
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.server.mock.KubernetesMockServer
@@ -18,6 +20,7 @@ class KubernetesDiscoveryClientTest extends Specification {
         mockServer.init()
         mockClient = mockServer.createClient()
 
+
         //Configure the kubernetes master url to point to the mock server
         System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl())
         System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true")
@@ -29,11 +32,25 @@ class KubernetesDiscoveryClientTest extends Specification {
         mockServer.destroy();
     }
 
-    def "Should be able to handle endpoints single address"() {
-        given:
-        mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint").andReturn(200, new EndpointsBuilder()
+    def "Should be able to handle service with single endpoint and address"() {
+		def properties = new KubernetesDiscoveryProperties()
+		given:
+
+		Map<String, String> labels = new HashMap<>()
+		labels.put(properties.springBootAppLabel, "true")
+
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/my-service").andReturn(200, new ServiceBuilder()
+			.withNewMetadata()
+				.withName("service")
+				.withLabels(labels)
+			.endMetadata()
+
+
+			.build()).once()
+
+        mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/my-service").andReturn(200, new EndpointsBuilder()
                 .withNewMetadata()
-                    .withName("endpoint")
+                    .withName("my-service")
                 .endMetadata()
                 .addNewSubset()
                     .addNewAddress()
@@ -43,9 +60,11 @@ class KubernetesDiscoveryClientTest extends Specification {
                 .endSubset()
                 .build()).once()
 
-        DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, new KubernetesDiscoveryProperties())
+
+
+        DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties )
         when:
-        List<ServiceInstance> instances = discoveryClient.getInstances("endpoint")
+        List<ServiceInstance> instances = discoveryClient.getInstances("my-service")
         then:
         instances != null
         instances.size() == 1
@@ -55,11 +74,25 @@ class KubernetesDiscoveryClientTest extends Specification {
 
 
     def "Should be able to handle endpoints multiple addresses"() {
+		def properties = new KubernetesDiscoveryProperties()
         given:
-        mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint").andReturn(200, new EndpointsBuilder()
+		Map<String, String> labels = new HashMap<>()
+		labels.put(properties.springBootAppLabel, "true")
+
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/my-service").andReturn(200, new ServiceBuilder()
+			.withNewMetadata()
+			.withName("my-service")
+			.withLabels(labels)
+			.endMetadata()
+
+			.build()).once()
+
+
+        mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/my-service").andReturn(200, new EndpointsBuilder()
                 .withNewMetadata()
-                    .withName("endpoint")
+                    .withName("my-service")
                 .endMetadata()
+
                 .addNewSubset()
                     .addNewAddress()
                         .withIp("ip1")
@@ -71,9 +104,9 @@ class KubernetesDiscoveryClientTest extends Specification {
                 .endSubset()
                 .build()).once()
 
-        DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, new KubernetesDiscoveryProperties())
+        DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties)
         when:
-        List<ServiceInstance> instances = discoveryClient.getInstances("endpoint")
+        List<ServiceInstance> instances = discoveryClient.getInstances("my-service")
         then:
         instances != null
         instances.size() == 2
