@@ -11,9 +11,6 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
@@ -27,7 +24,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -62,13 +58,7 @@ public class LeaderKubernetesHelperTest {
 		configMapNonNamespaceOperation;
 
 	@Mock
-	private FilterWatchListDeletable<Pod, PodList, Boolean, Watch, Watcher<Pod>> podWatchList;
-
-	@Mock
-	private PodList mockPodList;
-
-	@Mock
-	private Pod mockPod;
+	private PodResource<Pod, DoneablePod> mockPodResource;
 
 	@Mock
 	private ObjectMeta mockObjectMeta;
@@ -95,20 +85,15 @@ public class LeaderKubernetesHelperTest {
 	}
 
 	@Test
-	public void shouldCheckIfPodExists() {
-		given(mockKubernetesClient.getNamespace()).willReturn(NAMESPACE);
+	public void shouldCheckIfPodIsReady() {
 		given(mockKubernetesClient.pods()).willReturn(podMixedOperation);
 		given(podMixedOperation.inNamespace(NAMESPACE)).willReturn(podNonNamespaceOperation);
-		given(podNonNamespaceOperation.withLabels(anyMap())).willReturn(podWatchList);
-		given(podWatchList.list()).willReturn(mockPodList);
-		given(mockPodList.getItems()).willReturn(Collections.singletonList(mockPod));
-		given(mockPod.getMetadata()).willReturn(mockObjectMeta);
-		given(mockObjectMeta.getName()).willReturn("test-id");
+		given(podNonNamespaceOperation.withName(NAME)).willReturn(mockPodResource);
+		given(mockPodResource.isReady()).willReturn(true);
 
-		boolean result = kubernetesHelper.podExists("test-id");
+		boolean result = kubernetesHelper.podIsReady(NAME);
 
 		assertThat(result).isTrue();
-		verify(mockObjectMeta).getName();
 	}
 
 	@Test

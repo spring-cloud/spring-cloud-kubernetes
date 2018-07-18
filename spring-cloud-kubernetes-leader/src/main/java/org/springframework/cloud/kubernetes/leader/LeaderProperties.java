@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.kubernetes.leader;
 
-import java.util.Collections;
-import java.util.Map;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -26,6 +23,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties("spring.cloud.kubernetes.leader")
 public class LeaderProperties {
+
+	private static final boolean DEFAULT_ENABLED = true;
 
 	private static final String DEFAULT_LEADER_ID_PREFIX = "leader.id.";
 
@@ -38,6 +37,14 @@ public class LeaderProperties {
 	private static final long DEFAULT_RETRY_PERIOD = 5000;
 
 	private static final double DEFAULT_JITTER_FACTOR = 1.2;
+
+	private static final boolean DEFAULT_PUBLISH_FAILED_EVENTS = false;
+
+	/**
+	 * Should leader election be enabled.
+	 * Default: true
+	 */
+	private boolean enabled = DEFAULT_ENABLED;
 
 	/**
 	 * Should leader election be started automatically on startup.
@@ -60,12 +67,6 @@ public class LeaderProperties {
 	 * Default: leaders
 	 */
 	private String configMapName = DEFAULT_CONFIG_MAP_NAME;
-
-	/**
-	 * Kubernetes labels common to all leadership candidates.
-	 * Default: empty
-	 */
-	private Map<String, String> labels = Collections.emptyMap();
 
 	/**
 	 * Leader id property prefix for the ConfigMap.
@@ -95,7 +96,15 @@ public class LeaderProperties {
 	 * Enable/disable publishing events in case leadership acquisition fails.
 	 * Default: false
 	 */
-	private boolean publishFailedEvents = false;
+	private boolean publishFailedEvents = DEFAULT_PUBLISH_FAILED_EVENTS;
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
 	public boolean isAutoStartup() {
 		return autoStartup;
@@ -135,14 +144,6 @@ public class LeaderProperties {
 
 	public void setConfigMapName(String configMapName) {
 		this.configMapName = configMapName;
-	}
-
-	public Map<String, String> getLabels() {
-		return labels;
-	}
-
-	public void setLabels(Map<String, String> labels) {
-		this.labels = Collections.unmodifiableMap(labels);
 	}
 
 	public String getLeaderIdPrefix() {

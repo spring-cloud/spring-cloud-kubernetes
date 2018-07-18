@@ -86,7 +86,7 @@ public class LeadershipControllerTest {
 	@Test
 	public void shouldAcquireWithoutEventsIfAlreadyLeader() throws InterruptedException {
 		given(mockKubernetesHelper.getConfigMap()).willReturn(mockConfigMap);
-		given(mockKubernetesHelper.podExists(ID)).willReturn(true);
+		given(mockKubernetesHelper.podIsReady(ID)).willReturn(true);
 		given(mockConfigMap.getData()).willReturn(leaderData);
 
 		boolean result = leadershipController.acquire(mockCandidate);
@@ -102,7 +102,7 @@ public class LeadershipControllerTest {
 	public void shouldTakeOverLeadershipFromInvalidLeader() throws InterruptedException {
 		String anotherId = "another-test-id";
 		given(mockKubernetesHelper.getConfigMap()).willReturn(mockConfigMap);
-		given(mockKubernetesHelper.podExists(ID)).willReturn(false);
+		given(mockKubernetesHelper.podIsReady(ID)).willReturn(false);
 		given(mockConfigMap.getData()).willReturn(leaderData);
 		given(mockCandidate.getId()).willReturn(anotherId);
 
@@ -118,7 +118,7 @@ public class LeadershipControllerTest {
 	public void shouldFailToAcquireIfThereIsAnotherLeader() {
 		given(mockLeaderProperties.isPublishFailedEvents()).willReturn(true);
 		given(mockKubernetesHelper.getConfigMap()).willReturn(mockConfigMap);
-		given(mockKubernetesHelper.podExists(ID)).willReturn(true);
+		given(mockKubernetesHelper.podIsReady(ID)).willReturn(true);
 		given(mockConfigMap.getData()).willReturn(leaderData);
 		given(mockCandidate.getId()).willReturn("another-test-id");
 
