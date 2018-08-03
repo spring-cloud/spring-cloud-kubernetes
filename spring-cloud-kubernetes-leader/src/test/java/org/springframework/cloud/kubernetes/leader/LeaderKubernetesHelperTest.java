@@ -144,6 +144,8 @@ public class LeaderKubernetesHelperTest {
 
 	@Test
 	public void shouldUpdateConfigMapEntry() {
+		given(mockConfigMap.getApiVersion()).willReturn("v1");
+		given(mockConfigMap.getKind()).willReturn("ConfigMap");
 		given(mockConfigMap.getMetadata()).willReturn(mockObjectMeta);
 		given(mockObjectMeta.getResourceVersion()).willReturn("test-version");
 
@@ -165,6 +167,8 @@ public class LeaderKubernetesHelperTest {
 	@Test
 	public void shouldRemoveConfigMapEntry() {
 		Map<String, String> data = Collections.singletonMap("test-key", "test-value");
+		given(mockConfigMap.getApiVersion()).willReturn("v1");
+		given(mockConfigMap.getKind()).willReturn("ConfigMap");
 		given(mockConfigMap.getData()).willReturn(data);
 		given(mockConfigMap.getMetadata()).willReturn(mockObjectMeta);
 		given(mockObjectMeta.getResourceVersion()).willReturn("test-version");
