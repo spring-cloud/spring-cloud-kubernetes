@@ -18,7 +18,7 @@
 package org.springframework.cloud.kubernetes.config.example;
 
 /**
- * @author <a href="mailto:cmoullia@redhat.com">Charles Moulliard</a>
+ * @author Charles Moulliard
  */
 public class Greeting {
 

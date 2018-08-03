@@ -38,7 +38,7 @@ import org.springframework.cloud.kubernetes.config.example2.ExampleApp;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
- * @author <a href="mailto:cmoullia@redhat.com">Charles Moulliard</a>
+ * @author Charles Moulliard
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = ExampleApp.class,

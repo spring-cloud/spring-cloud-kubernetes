@@ -28,7 +28,7 @@ import org.springframework.web.client.RestTemplate;
 /**
  * Entry point to the application.
  *
- * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
+ * @author Gytis Trikleris
  */
 @SpringBootApplication
 @EnableDiscoveryClient

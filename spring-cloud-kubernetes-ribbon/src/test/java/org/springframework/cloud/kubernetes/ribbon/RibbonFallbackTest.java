@@ -41,7 +41,7 @@ import org.springframework.web.client.RestTemplate;
 import static org.junit.Assert.fail;
 
 /**
- * @author <a href="mailto:cmoullia@redhat.com">Charles Moulliard</a>
+ * @author Charles Moulliard
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = TestApplication.class,

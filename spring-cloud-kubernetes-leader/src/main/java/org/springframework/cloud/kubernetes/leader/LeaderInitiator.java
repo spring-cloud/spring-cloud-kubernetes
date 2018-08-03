@@ -23,7 +23,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.leader.Candidate;
 
 /**
- * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
+ * @author Gytis Trikleris
  */
 public class LeaderInitiator implements SmartLifecycle {
 

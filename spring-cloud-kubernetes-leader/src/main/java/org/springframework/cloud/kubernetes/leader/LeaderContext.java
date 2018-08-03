@@ -20,7 +20,7 @@ import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.Context;
 
 /**
- * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
+ * @author Gytis Trikleris
  */
 public class LeaderContext implements Context {
 

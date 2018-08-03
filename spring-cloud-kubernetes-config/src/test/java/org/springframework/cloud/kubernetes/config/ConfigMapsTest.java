@@ -45,7 +45,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.*;
 
 /**
- * @author <a href="mailto:cmoullia@redhat.com">Charles Moulliard</a>
+ * @author Charles Moulliard
  */
 public class ConfigMapsTest {
 

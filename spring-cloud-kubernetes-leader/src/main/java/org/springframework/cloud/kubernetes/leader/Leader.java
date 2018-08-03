@@ -17,7 +17,7 @@
 package org.springframework.cloud.kubernetes.leader;
 
 /**
- * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
+ * @author Gytis Trikleris
  */
 public class Leader {
 

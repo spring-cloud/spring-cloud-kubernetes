@@ -24,7 +24,7 @@ import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
+ * @author Gytis Trikleris
  */
 @ConfigurationProperties("spring.cloud.kubernetes.leader")
 public class LeaderProperties {
