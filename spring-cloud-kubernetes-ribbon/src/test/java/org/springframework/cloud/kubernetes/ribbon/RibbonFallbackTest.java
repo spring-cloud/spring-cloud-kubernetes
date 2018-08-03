@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016 to the original authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,6 +30,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -44,12 +45,11 @@ import static org.junit.Assert.fail;
  * @author Charles Moulliard
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = TestApplication.class,
-                properties = {
-	"spring.application.name=testapp",
-	"spring.cloud.kubernetes.client.namespace=testns",
-	"spring.cloud.kubernetes.client.trustCerts=true",
-	"spring.cloud.kubernetes.config.namespace=testns"})
+@SpringBootTest(classes = TestApplication.class, properties = {
+		"spring.application.name=testapp",
+		"spring.cloud.kubernetes.client.namespace=testns",
+		"spring.cloud.kubernetes.client.trustCerts=true",
+		"spring.cloud.kubernetes.config.namespace=testns" })
 @EnableAutoConfiguration
 @EnableDiscoveryClient
 public class RibbonFallbackTest {
@@ -76,11 +76,13 @@ public class RibbonFallbackTest {
 	public static void setUpBefore() throws Exception {
 		mockClient = mockServer.getClient();
 
-		//Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
+		// Configure the kubernetes master url to point to the mock server
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
+				mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
+				"false");
 
 		mockEndpoint = new DefaultMockServer(false);
 		mockEndpoint.start();
@@ -89,28 +91,27 @@ public class RibbonFallbackTest {
 	@Test
 	public void testFallBackGreetingEndpoint() {
 		/**
-		 *  Scenario tested
-		 *  1. Register the mock endpoint of the service into KubeMockServer and call /greeting service
-		 *  2. Unregister the mock endpoint and verify that Ribbon doesn't have any instances anymore in its list
-		 *  3. Re register the mock endpoint and play step 1)
+		 * Scenario tested 1. Register the mock endpoint of the service into
+		 * KubeMockServer and call /greeting service 2. Unregister the mock endpoint and
+		 * verify that Ribbon doesn't have any instances anymore in its list 3. Re
+		 * register the mock endpoint and play step 1)
 		 **/
 
 		LOG.info(">>>>>>>>>> BEGIN PART 1 <<<<<<<<<<<<<");
 
 		// As Ribbon refreshes its list every serverListRefreshInterval ms,
-		// we configure the API Server endpoint to reply to exactly serviceOccurrence attempts
+		// we configure the API Server endpoint to reply to exactly serviceOccurrence
+		// attempts
 		// to be sure that Ribbon will get the mockendpoint to access it for the call
-		mockServer.expect().get()
-			.withPath("/api/v1/namespaces/testns/endpoints/testapp")
-			.andReturn(200, newEndpoint("testapp-a","testns", mockEndpoint))
-			.times(serviceOccurrence);
+		mockServer.expect().get().withPath("/api/v1/namespaces/testns/endpoints/testapp")
+				.andReturn(200, newEndpoint("testapp-a", "testns", mockEndpoint))
+				.times(serviceOccurrence);
 
-		mockEndpoint.expect().get()
-			.withPath("/greeting")
-			.andReturn(200, "Hello from A")
-			.once();
+		mockEndpoint.expect().get().withPath("/greeting").andReturn(200, "Hello from A")
+				.once();
 
-		String response = restTemplate.getForObject("http://testapp/greeting", String.class);
+		String response = restTemplate.getForObject("http://testapp/greeting",
+				String.class);
 		Assert.assertEquals("Hello from A", response);
 		LOG.info(">>>>>>>>>> END PART 1 <<<<<<<<<<<<<");
 
@@ -118,53 +119,66 @@ public class RibbonFallbackTest {
 		try {
 			ensureEndpointsNoLongerReturnedByAPIServer();
 			restTemplate.getForObject("http://testapp/greeting", String.class);
-		    fail("Ribbon was supposed to throw an Exception due to not knowing of any endpoints to route the request to");
-		} catch (Exception e) {
+			fail("Ribbon was supposed to throw an Exception due to not knowing of any endpoints to route the request to");
+		}
+		catch (Exception e) {
 			// No endpoint is available anymore and Ribbon list is empty
 			Assert.assertEquals("No instances available for testapp", e.getMessage());
 		}
 		LOG.info(">>>>>>>>>> END PART 2 <<<<<<<<<<<<<");
 
 		LOG.info(">>>>>>>>>> BEGIN PART 3 <<<<<<<<<<<<<");
-		mockServer.expect().get()
-			.withPath("/api/v1/namespaces/testns/endpoints/testapp")
-			.andReturn(200, newEndpoint("testapp-a","testns", mockEndpoint))
-			.always();
+		mockServer.expect().get().withPath("/api/v1/namespaces/testns/endpoints/testapp")
+				.andReturn(200, newEndpoint("testapp-a", "testns", mockEndpoint))
+				.always();
 
-		// the purpose of sleeping here is to make sure that even after some refreshes to it's list
+		// the purpose of sleeping here is to make sure that even after some refreshes to
+		// it's list
 		// Ribbon still has endpoints to route to
-		// This is different than the first part of the test because the API server has now been
-		// configured to always respond with some endpoints as opposed to only a certain amount of
+		// This is different than the first part of the test because the API server has
+		// now been
+		// configured to always respond with some endpoints as opposed to only a certain
+		// amount of
 		// requests which was the case in part 1
 		try {
 			Thread.sleep(2000);
-		} catch(InterruptedException ex) {
+		}
+		catch (InterruptedException ex) {
 			Thread.currentThread().interrupt();
 		}
 
-		mockEndpoint.expect().get().withPath("/greeting").andReturn(200, "Hello from A").once();
+		mockEndpoint.expect().get().withPath("/greeting").andReturn(200, "Hello from A")
+				.once();
 		response = restTemplate.getForObject("http://testapp/greeting", String.class);
-		Assert.assertEquals("Hello from A",response);
+		Assert.assertEquals("Hello from A", response);
 		LOG.info(">>>>>>>>>> END PART 3 <<<<<<<<<<<<<");
 	}
 
-	// This works because the (mock) API server is configured to return the endpoints exactly
-	// serviceOccurrence times while Ribbon refreshes it's list every serverListRefreshInterval milliseconds
-	private void ensureEndpointsNoLongerReturnedByAPIServer() throws InterruptedException {
+	// This works because the (mock) API server is configured to return the endpoints
+	// exactly
+	// serviceOccurrence times while Ribbon refreshes it's list every
+	// serverListRefreshInterval milliseconds
+	private void ensureEndpointsNoLongerReturnedByAPIServer()
+			throws InterruptedException {
 		Thread.sleep((serviceOccurrence + 1) * serverListRefreshInterval);
 	}
 
-	public static Endpoints newEndpoint(String name, String namespace, DefaultMockServer mockServer) {
+	public static Endpoints newEndpoint(String name, String namespace,
+			DefaultMockServer mockServer) {
+		// @formatter:off
 		return new EndpointsBuilder()
-			        .withNewMetadata()
-			          .withName(name)
-			          .withNamespace(namespace)
-			          .endMetadata()
-			        .addNewSubset()
-			          .addNewAddress().withIp(mockServer.getHostName()).endAddress()
-			          .addNewPort("http",mockServer.getPort(),"http")
-			        .endSubset()
-			        .build();
+			.withNewMetadata()
+				.withName(name)
+				.withNamespace(namespace)
+				.endMetadata()
+			.addNewSubset()
+				.addNewAddress()
+					.withIp(mockServer.getHostName())
+				.endAddress()
+				.addNewPort("http", mockServer.getPort(), "http")
+				.endSubset()
+			.build();
+		// @formatter:on
 	}
 
 }

@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016 to the original authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,13 +21,14 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
 
 @ConfigurationProperties("spring.cloud.kubernetes.config")
 public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
-    private static final String TARGET = "Config Map";
+	private static final String TARGET = "Config Map";
 
 	private boolean enableApi = true;
 	private List<String> paths = new LinkedList<>();
@@ -58,28 +59,32 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	}
 
 	/**
-	 * @return A list of Source to use
-	 * If the user has not specified any Source properties, then a single Source
-	 * is constructed based on the supplied name and namespace
+	 * @return A list of Source to use If the user has not specified any Source
+	 * properties, then a single Source is constructed based on the supplied name and
+	 * namespace
 	 *
-	 * These are the actual name/namespace pairs that are used to create a ConfigMapPropertySource
+	 * These are the actual name/namespace pairs that are used to create a
+	 * ConfigMapPropertySource
 	 */
 	public List<NormalizedSource> determineSources() {
 		if (sources.isEmpty()) {
-			return new ArrayList<NormalizedSource>() {{
-				add(new NormalizedSource(name, namespace));
-			}};
+			return new ArrayList<NormalizedSource>() {
+				{
+					add(new NormalizedSource(name, namespace));
+				}
+			};
 		}
 
-		return sources.stream().map(s -> s.normalize(name, namespace)).collect(Collectors.toList());
+		return sources.stream().map(s -> s.normalize(name, namespace))
+				.collect(Collectors.toList());
 	}
 
 	@Override
-    public String getConfigurationTarget() {
-        return TARGET;
-    }
+	public String getConfigurationTarget() {
+		return TARGET;
+	}
 
-    public static class Source {
+	public static class Source {
 
 		/**
 		 * The name of the ConfigMap
@@ -120,10 +125,10 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		}
 
 		public NormalizedSource normalize(String defaultName, String defaultNamespace) {
-			final String normalizedName =
-				StringUtils.isEmpty(this.name) ? defaultName : this.name;
-			final String normalizedNamespace =
-				StringUtils.isEmpty(this.namespace) ? defaultNamespace : this.namespace;
+			final String normalizedName = StringUtils.isEmpty(this.name) ? defaultName
+					: this.name;
+			final String normalizedNamespace = StringUtils.isEmpty(this.namespace)
+					? defaultNamespace : this.namespace;
 
 			return new NormalizedSource(normalizedName, normalizedNamespace);
 		}

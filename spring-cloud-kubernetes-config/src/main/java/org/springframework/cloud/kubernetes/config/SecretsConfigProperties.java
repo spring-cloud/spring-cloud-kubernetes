@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016 to the original authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,39 +26,38 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("spring.cloud.kubernetes.secrets")
 public class SecretsConfigProperties extends AbstractConfigProperties {
 
-    private static final String TARGET = "Secret";
+	private static final String TARGET = "Secret";
 
-    private boolean enableApi = false;
-    private Map<String, String> labels = new HashMap<>();
-    private List<String> paths = new LinkedList<>();
+	private boolean enableApi = false;
+	private Map<String, String> labels = new HashMap<>();
+	private List<String> paths = new LinkedList<>();
 
+	public boolean isEnableApi() {
+		return enableApi;
+	}
 
-    public boolean isEnableApi() {
-        return enableApi;
-    }
+	public void setEnableApi(boolean enableApi) {
+		this.enableApi = enableApi;
+	}
 
-    public void setEnableApi(boolean enableApi) {
-        this.enableApi = enableApi;
-    }
+	public void setLabels(Map<String, String> labels) {
+		this.labels = labels;
+	}
 
-    public void setLabels(Map<String, String> labels) {
-        this.labels = labels;
-    }
+	public Map<String, String> getLabels() {
+		return labels;
+	}
 
-    public Map<String, String> getLabels() {
-        return labels;
-    }
+	public void setPaths(List<String> paths) {
+		this.paths = paths;
+	}
 
-    public void setPaths(List<String> paths) {
-        this.paths = paths;
-    }
+	public List<String> getPaths() {
+		return paths;
+	}
 
-    public List<String> getPaths() {
-        return paths;
-    }
-
-    @Override
-    public String getConfigurationTarget() {
-        return TARGET;
-    }
+	@Override
+	public String getConfigurationTarget() {
+		return TARGET;
+	}
 }
