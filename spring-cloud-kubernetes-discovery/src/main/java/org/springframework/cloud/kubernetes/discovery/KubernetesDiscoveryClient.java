@@ -21,12 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointSubset;
-import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Utils;
 import org.apache.commons.logging.Log;
@@ -41,21 +42,20 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	private static final Log log = LogFactory.getLog(KubernetesDiscoveryClient.class);
 	private static final String HOSTNAME = "HOSTNAME";
 
-	private KubernetesClient client;
-	private KubernetesDiscoveryProperties properties;
+	private KubernetesClient kubernetesClient;
+	private KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
 
-	public KubernetesDiscoveryClient(KubernetesClient client,
-									 KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
-		this.client = client;
-		this.properties = properties;
+	public KubernetesDiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+		this.kubernetesClient = client;
+		this.kubernetesDiscoveryProperties = kubernetesDiscoveryProperties;
 	}
 
 	public KubernetesClient getClient() {
-		return client;
+		return kubernetesClient;
 	}
 
 	public void setClient(KubernetesClient client) {
-		this.client = client;
+		this.kubernetesClient = client;
 	}
 
 	@Override
@@ -64,82 +64,87 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	public ServiceInstance getLocalServiceInstance() {
-		String serviceName = properties.getServiceName();
+		String serviceName = kubernetesDiscoveryProperties.getServiceName();
 		String podName = System.getenv(HOSTNAME);
-		ServiceInstance defaultInstance = new DefaultServiceInstance(serviceName,
-																	 "localhost",
-																	 8080,
-																	 false);
+		ServiceInstance serviceInstance = new DefaultServiceInstance(serviceName,
+			"localhost",
+			8080,
+			false);
 
-		Endpoints endpoints = client.endpoints().withName(serviceName).get();
-		Optional<Service> service = Optional.ofNullable(client.services().withName(serviceName).get());
-		final Map<String, String> labels;
-		if (service.isPresent()) {
-			labels = service.get().getMetadata().getLabels();
-		} else {
-			labels = null;
-		}
+		Endpoints endpoints = kubernetesClient.endpoints().withName(serviceName).get();
 		if (Utils.isNullOrEmpty(podName) || endpoints == null) {
-			return defaultInstance;
+			return serviceInstance;
 		}
-		try {
-			List<EndpointSubset> subsets = endpoints.getSubsets();
 
-			if (subsets != null) {
-				for (EndpointSubset s : subsets) {
+		Optional<Service> service = Optional.ofNullable(kubernetesClient.services().withName(serviceName).get());
+		Map<String, String> labels = service.isPresent() ? service.get().getMetadata().getLabels() : null;
+
+		List<EndpointSubset> subsets = endpoints.getSubsets();
+		if (subsets != null) {
+			for (EndpointSubset s : subsets) {
+				Optional<EndpointPort> optionalEndpointPort = s.getPorts().stream().findFirst();
+				if (optionalEndpointPort.isPresent()) {
 					List<EndpointAddress> addresses = s.getAddresses();
 					for (EndpointAddress a : addresses) {
-						return new KubernetesServiceInstance(serviceName,
-																	a,
-																	s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
-																	labels,
-																	false);
+						serviceInstance = new KubernetesServiceInstance(serviceName,
+							a,
+							optionalEndpointPort.get(),
+							labels,
+							false);
+						break;
 					}
 				}
 			}
-			return defaultInstance;
-
-		} catch (Throwable t) {
-			return defaultInstance;
 		}
+		return serviceInstance;
 	}
 
 	@Override
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId,
-					   "[Assertion failed] - the object argument must be null");
-		Optional<Service> service = Optional.ofNullable(client.services().withName(serviceId).get());
-		final Map<String, String> labels;
-		if (service.isPresent()) {
-			labels = service.get().getMetadata().getLabels();
-		} else {
-			labels = null;
-		}
+			"[Assertion failed] - the object argument must be null");
+		return getServiceInstances(serviceId);
+	}
 
-		Optional<Endpoints> endpoints = Optional.ofNullable(client.endpoints().withName(serviceId).get());
-		List<EndpointSubset> subsets = endpoints.get().getSubsets();
+	private List<ServiceInstance> getServiceInstances(String serviceId) {
 		List<ServiceInstance> instances = new ArrayList<>();
-		if (subsets != null) {
-			for (EndpointSubset s : subsets) {
-				List<EndpointAddress> addresses = s.getAddresses();
-				for (EndpointAddress a : addresses) {
-					instances.add(new KubernetesServiceInstance(serviceId,
-																a,
-																s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
-																labels,
-																false));
+		try {
+			Optional<Service> service = Optional.ofNullable(kubernetesClient.services().withName(serviceId).get());
+			Map<String, String> labels = service.isPresent() ? service.get().getMetadata().getLabels() : null;
+
+			Endpoints value = kubernetesClient.endpoints().withName(serviceId).get();
+			Optional<Endpoints> endpoints = Optional.ofNullable(value);
+			log.debug("value = " + value);
+
+			if (endpoints.isPresent()) {
+				List<EndpointSubset> endpointSubsets = endpoints.get().getSubsets();
+				for (EndpointSubset endpointSubset : endpointSubsets) {
+					Optional<EndpointPort> optionalEndpointPort = endpointSubset.getPorts().stream()
+						.findFirst();
+					if (optionalEndpointPort.isPresent()) {
+						instances.addAll(endpointSubset.getAddresses().stream()
+							.map(endpointAddress -> {
+								KubernetesServiceInstance kubernetesServiceInstance = new KubernetesServiceInstance(serviceId,
+									endpointAddress,
+									optionalEndpointPort.get(),
+									labels,
+									false);
+								return kubernetesServiceInstance;
+							})
+							.collect(Collectors.toList()));
+					}
 				}
 			}
+		} catch (Exception e) {
+			log.error("Error calling Kubernetes server", e);
 		}
-
 		return instances;
 	}
 
 	@Override
 	public List<String> getServices() {
-		return client.services().list()
-			.getItems()
-			.stream().map(s -> s.getMetadata().getName())
+		return kubernetesClient.services().list().getItems().stream()
+			.map(s -> s.getMetadata().getName())
 			.collect(Collectors.toList());
 	}
 }
