@@ -17,16 +17,6 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Utils;
@@ -37,25 +27,22 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private static final Log log = LogFactory.getLog(KubernetesDiscoveryClient.class);
-	private static final String HOSTNAME = "HOSTNAME";
 
-	private KubernetesClient kubernetesClient;
-	private KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
+	private final KubernetesClient kubernetesClient;
+	private final KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
 
-	public KubernetesDiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
-		this.kubernetesClient = client;
+	public KubernetesDiscoveryClient(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+		this.kubernetesClient = kubernetesClient;
 		this.kubernetesDiscoveryProperties = kubernetesDiscoveryProperties;
-	}
-
-	public KubernetesClient getClient() {
-		return kubernetesClient;
-	}
-
-	public void setClient(KubernetesClient client) {
-		this.kubernetesClient = client;
 	}
 
 	@Override
@@ -65,33 +52,33 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	public ServiceInstance getLocalServiceInstance() {
 		String serviceName = kubernetesDiscoveryProperties.getServiceName();
-		String podName = System.getenv(HOSTNAME);
 		ServiceInstance serviceInstance = new DefaultServiceInstance(serviceName,
 			"localhost",
 			8080,
 			false);
 
+		String hostname = "HOSTNAME";
+		String podName = System.getenv(hostname);
 		Endpoints endpoints = kubernetesClient.endpoints().withName(serviceName).get();
-		if (Utils.isNullOrEmpty(podName) || endpoints == null) {
-			return serviceInstance;
-		}
+		if (Utils.isNotNullOrEmpty(podName) && endpoints != null) {
 
-		Optional<Service> service = Optional.ofNullable(kubernetesClient.services().withName(serviceName).get());
-		Map<String, String> labels = service.isPresent() ? service.get().getMetadata().getLabels() : null;
+			Optional<Service> service = Optional.ofNullable(kubernetesClient.services().withName(serviceName).get());
+			Map<String, String> labels = service.isPresent() ? service.get().getMetadata().getLabels() : null;
 
-		List<EndpointSubset> subsets = endpoints.getSubsets();
-		if (subsets != null) {
-			for (EndpointSubset s : subsets) {
-				Optional<EndpointPort> optionalEndpointPort = s.getPorts().stream().findFirst();
-				if (optionalEndpointPort.isPresent()) {
-					List<EndpointAddress> addresses = s.getAddresses();
-					for (EndpointAddress a : addresses) {
-						serviceInstance = new KubernetesServiceInstance(serviceName,
-							a,
-							optionalEndpointPort.get(),
-							labels,
-							false);
-						break;
+			List<EndpointSubset> subsets = endpoints.getSubsets();
+			if (subsets != null) {
+				for (EndpointSubset s : subsets) {
+					Optional<EndpointPort> optionalEndpointPort = s.getPorts().stream().findFirst();
+					if (optionalEndpointPort.isPresent()) {
+						List<EndpointAddress> addresses = s.getAddresses();
+						for (EndpointAddress a : addresses) {
+							serviceInstance = new KubernetesServiceInstance(serviceName,
+								a,
+								optionalEndpointPort.get(),
+								labels,
+								false);
+							break;
+						}
 					}
 				}
 			}
@@ -112,12 +99,11 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			Optional<Service> service = Optional.ofNullable(kubernetesClient.services().withName(serviceId).get());
 			Map<String, String> labels = service.isPresent() ? service.get().getMetadata().getLabels() : null;
 
-			Endpoints value = kubernetesClient.endpoints().withName(serviceId).get();
-			Optional<Endpoints> endpoints = Optional.ofNullable(value);
-			log.debug("value = " + value);
+			Endpoints endpoints = kubernetesClient.endpoints().withName(serviceId).get();
+			Optional<Endpoints> optionalEndpoints = Optional.ofNullable(endpoints);
 
-			if (endpoints.isPresent()) {
-				List<EndpointSubset> endpointSubsets = endpoints.get().getSubsets();
+			if (optionalEndpoints.isPresent()) {
+				List<EndpointSubset> endpointSubsets = optionalEndpoints.get().getSubsets();
 				for (EndpointSubset endpointSubset : endpointSubsets) {
 					Optional<EndpointPort> optionalEndpointPort = endpointSubset.getPorts().stream()
 						.findFirst();
