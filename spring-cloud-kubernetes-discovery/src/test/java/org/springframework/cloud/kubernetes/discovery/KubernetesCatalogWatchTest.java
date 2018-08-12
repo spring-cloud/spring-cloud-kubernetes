@@ -114,6 +114,38 @@ public class KubernetesCatalogWatchTest {
 		assertEquals(expectedPodsList, event.getValue());
 	}
 
+	@Test
+	public void testEndpointsWithoutAddresses() {
+
+		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
+		endpoints.getItems().get(0).getSubsets().get(0).setAddresses(null);
+
+		when(endpointsOperation.list()).thenReturn(endpoints);
+		when(kubernetesClient.endpoints()).thenReturn(endpointsOperation);
+
+		underTest.catalogServicesWatch();
+		// second execution on shuffleServices
+		underTest.catalogServicesWatch();
+
+		verify(applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+	}
+
+	@Test
+	public void testEndpointsWithoutTargetRefs() {
+
+		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
+		endpoints.getItems().get(0).getSubsets().get(0).getAddresses().get(0).setTargetRef(null);
+
+		when(endpointsOperation.list()).thenReturn(endpoints);
+		when(kubernetesClient.endpoints()).thenReturn(endpointsOperation);
+
+		underTest.catalogServicesWatch();
+		// second execution on shuffleServices
+		underTest.catalogServicesWatch();
+
+		verify(applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+	}
+
 
 	private EndpointsList createEndpointsListByServiceName(String... serviceNames) {
 		List<Endpoints> endpoints = stream(serviceNames)
