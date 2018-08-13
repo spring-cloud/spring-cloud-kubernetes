@@ -17,16 +17,16 @@
 
 package org.springframework.cloud.kubernetes.registry;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
+import org.springframework.cloud.client.serviceregistry.Registration;
+import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryProperties;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.springframework.cloud.client.serviceregistry.Registration;
-import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryProperties;
 
 public class KubernetesRegistration implements Registration, Closeable {
 

@@ -17,36 +17,36 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Map;
-
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import org.springframework.cloud.client.ServiceInstance;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Map;
+
 public class KubernetesServiceInstance implements ServiceInstance {
 
-	private static final String HTTP_PREFIX = "http://";
-	private static final String HTTPS_PREFIX = "https://";
-	private static final String COLN = ":";
-
+	private final URI uri;
+	private final String host;
 	private final String serviceId;
-	private final EndpointAddress endpointAddress;
-	private final EndpointPort endpointPort;
-	private final Boolean secure;
+
+	private final int port;
+	private final boolean secure;
 	private final Map<String, String> metadata;
 
 	public KubernetesServiceInstance(String serviceId,
 									 EndpointAddress endpointAddress,
 									 EndpointPort endpointPort,
 									 Map<String, String> metadata,
-									 Boolean secure) {
+									 boolean secure) {
 		this.serviceId = serviceId;
-		this.endpointAddress = endpointAddress;
-		this.endpointPort = endpointPort;
 		this.metadata = metadata;
 		this.secure = secure;
+
+		this.host = endpointAddress.getIp();
+		this.port = endpointPort.getPort();
+		this.uri = createUri(secure, host, port);
 	}
 
 	@Override
@@ -56,12 +56,12 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	@Override
 	public String getHost() {
-		return endpointAddress.getIp();
+		return host;
 	}
 
 	@Override
 	public int getPort() {
-		return endpointPort.getPort();
+		return port;
 	}
 
 	@Override
@@ -71,15 +71,18 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	@Override
 	public URI getUri() {
-		StringBuilder sb = new StringBuilder();
+		return uri;
+	}
 
-		if (isSecure()) {
-			sb.append(HTTPS_PREFIX);
+	private URI createUri(boolean secure, String host, int port) {
+		StringBuilder sb = new StringBuilder();
+		if (secure) {
+			sb.append("https://");
 		} else {
-			sb.append(HTTP_PREFIX);
+			sb.append("http://");
 		}
 
-		sb.append(getHost()).append(COLN).append(getPort());
+		sb.append(host).append(":").append(port);
 		try {
 			return new URI(sb.toString());
 		} catch (URISyntaxException e) {

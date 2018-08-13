@@ -20,7 +20,6 @@ package org.springframework.cloud.kubernetes.discovery;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.registry.KubernetesRegistration;
 import org.springframework.cloud.kubernetes.registry.KubernetesServiceRegistry;
 import org.springframework.context.annotation.Bean;
@@ -31,9 +30,8 @@ import org.springframework.context.annotation.Primary;
 public class KubernetesDiscoveryClientAutoConfiguration {
 
 	@Bean
-	public DiscoveryClient discoveryClient(KubernetesClient client,
-										   KubernetesDiscoveryProperties properties) {
-		return new KubernetesDiscoveryClient(client, properties);
+	public KubernetesDiscoveryClient discoveryClient(KubernetesClient kubernetesClient) {
+		return new KubernetesDiscoveryClient(kubernetesClient);
 	}
 
 	@Bean
@@ -42,9 +40,8 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	}
 
 	@Bean
-	public KubernetesRegistration getRegistration(KubernetesClient client,
-												  KubernetesDiscoveryProperties properties) {
-		return new KubernetesRegistration(client, properties);
+	public KubernetesRegistration getRegistration(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties) {
+		return new KubernetesRegistration(kubernetesClient, properties);
 	}
 
 	@Bean
@@ -56,7 +53,7 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnProperty(name = "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled", matchIfMissing = true)
-	public KubernetesCatalogWatch kubernetesCatalogWatch(KubernetesClient client) {
-		return new KubernetesCatalogWatch(client);
+	public KubernetesCatalogWatch kubernetesCatalogWatch(KubernetesClient kubernetesClient) {
+		return new KubernetesCatalogWatch(kubernetesClient);
 	}
 }
