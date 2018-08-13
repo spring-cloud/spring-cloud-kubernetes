@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016 to the original authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,6 +28,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,15 +37,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * @author <a href="mailto:cmoullia@redhat.com">Charles Moulliard</a>
+ * @author Charles Moulliard
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = TestApplication.class,
-                properties = {
-	"spring.application.name=testapp",
-	"spring.cloud.kubernetes.client.namespace=testns",
-	"spring.cloud.kubernetes.client.trustCerts=true",
-	"spring.cloud.kubernetes.config.namespace=testns"})
+@SpringBootTest(classes = TestApplication.class, properties = {
+		"spring.application.name=testapp",
+		"spring.cloud.kubernetes.client.namespace=testns",
+		"spring.cloud.kubernetes.client.trustCerts=true",
+		"spring.cloud.kubernetes.config.namespace=testns" })
 @EnableAutoConfiguration
 @EnableDiscoveryClient
 public class RibbonTest {
@@ -67,36 +67,43 @@ public class RibbonTest {
 	public static void setUpBefore() throws Exception {
 		mockClient = server.getClient();
 
-		//Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
+		// Configure the kubernetes master url to point to the mock server
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
+				mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
+				"false");
 
-		//Configured
-		server.expect().get().withPath("/api/v1/namespaces/testns/endpoints/testapp").andReturn(200, new EndpointsBuilder()
-			.withNewMetadata()
-			.withName("testapp-a")
-			.endMetadata()
-			.addNewSubset()
-			.addNewAddress().withIp(mockEndpointA.getMockServer().getHostName()).endAddress()
-			.addNewPort("http", mockEndpointA.getMockServer().getPort(), "http")
-			.endSubset()
-			.addNewSubset()
-			.addNewAddress().withIp(mockEndpointB.getMockServer().getHostName()).endAddress()
-			.addNewPort("http", mockEndpointB.getMockServer().getPort(), "http")
-			.endSubset()
-			.build()).always();
+		// Configured
+		server.expect().get().withPath("/api/v1/namespaces/testns/endpoints/testapp")
+				.andReturn(200,
+						new EndpointsBuilder().withNewMetadata().withName("testapp-a")
+								.endMetadata().addNewSubset().addNewAddress()
+								.withIp(mockEndpointA.getMockServer().getHostName())
+								.endAddress()
+								.addNewPort("http",
+										mockEndpointA.getMockServer().getPort(), "http")
+								.endSubset().addNewSubset().addNewAddress()
+								.withIp(mockEndpointB.getMockServer().getHostName())
+								.endAddress()
+								.addNewPort("http",
+										mockEndpointB.getMockServer().getPort(), "http")
+								.endSubset().build())
+				.always();
 
-		mockEndpointA.expect().get().withPath("/greeting").andReturn(200, "Hello from A").always();
-		mockEndpointB.expect().get().withPath("/greeting").andReturn(200, "Hello from B").always();
+		mockEndpointA.expect().get().withPath("/greeting").andReturn(200, "Hello from A")
+				.always();
+		mockEndpointB.expect().get().withPath("/greeting").andReturn(200, "Hello from B")
+				.always();
 	}
 
 	@Test
 	public void testGreetingEndpoint() {
 		List<String> greetings = new ArrayList<>();
-		for (int i = 0; i < 2 ; i++) {
-			greetings.add(restTemplate.getForObject("http://testapp/greeting", String.class));
+		for (int i = 0; i < 2; i++) {
+			greetings.add(
+					restTemplate.getForObject("http://testapp/greeting", String.class));
 		}
 		greetings.contains("Hello from A");
 		greetings.contains("Hello from B");

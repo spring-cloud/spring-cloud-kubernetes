@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016 to the original authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,6 +30,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,14 +42,12 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 
 /**
- * @author <a href="mailto:cmoullia@redhat.com">Charles Moulliard</a>
+ * @author Charles Moulliard
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-                classes = App.class,
-				properties = { "spring.application.name=configmap-example",
-	           "spring.cloud.kubernetes.reload.enabled=false"}
-	           )
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
+		"spring.application.name=configmap-example",
+		"spring.cloud.kubernetes.reload.enabled=false" })
 public class ConfigMapsSpringBootTest {
 
 	@ClassRule
@@ -68,22 +67,22 @@ public class ConfigMapsSpringBootTest {
 	public static void setUpBeforeClass() {
 		mockClient = server.getClient();
 
-		//Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
+		// Configure the kubernetes master url to point to the mock server
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
+				mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
+				"false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 
-		HashMap<String,String> data = new HashMap<>();
-		data.put("bean.message","Hello ConfigMap, %s!");
-		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME).andReturn(200, new ConfigMapBuilder()
-			.withNewMetadata().withName(APPLICATION_NAME).endMetadata()
-			.addToData(data)
-			.build())
-			.always();
+		HashMap<String, String> data = new HashMap<>();
+		data.put("bean.greeting", "Hello ConfigMap, %s!");
+		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME)
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
+						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
+				.always();
 	}
-
 
 	@Before
 	public void setUp() {
@@ -92,23 +91,22 @@ public class ConfigMapsSpringBootTest {
 
 	@Test
 	public void testConfig() {
-		assertEquals(config.getMasterUrl(),mockClient.getConfiguration().getMasterUrl());
-		assertEquals(config.getNamespace(),mockClient.getNamespace());
+		assertEquals(config.getMasterUrl(), mockClient.getConfiguration().getMasterUrl());
+		assertEquals(config.getNamespace(), mockClient.getNamespace());
 	}
 
 	@Test
 	public void testGreetingEndpoint() {
-		when().get()
-			.then()
-			.statusCode(200)
-			.body("content", is("Hello ConfigMap, World!"));
+		when().get().then().statusCode(200).body("content",
+				is("Hello ConfigMap, World!"));
 	}
 
 	@Test
 	public void testConfigMap() {
-		ConfigMap configmap = mockClient.configMaps().inNamespace("test").withName(APPLICATION_NAME).get();
-		HashMap<String,String> keys = (HashMap<String, String>) configmap.getData();
-		assertEquals(keys.get("bean.message"),"Hello ConfigMap, %s!");
+		ConfigMap configmap = mockClient.configMaps().inNamespace("test")
+				.withName(APPLICATION_NAME).get();
+		HashMap<String, String> keys = (HashMap<String, String>) configmap.getData();
+		assertEquals(keys.get("bean.greeting"), "Hello ConfigMap, %s!");
 	}
 
 }

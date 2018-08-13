@@ -1,0 +1,58 @@
+#
+# Copyright (C) 2018 to the original authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+version: 2
+jobs:
+  build:
+    branches:
+      ignore:
+        - gh-pages
+    docker:
+      - image: circleci/openjdk:8-jdk-node-browsers
+    environment:
+      _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
+      _SERVICE_OCCURENCE: 5
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - spring-cloud-kubernetes-{{ .Branch }}
+            - spring-cloud-kubernetes
+      - run:
+          name: dependencies
+          command: |
+            ./mvnw -s .settings.xml -U --fail-never dependency:go-offline -Dservice.occurence=${_SERVICE_OCCURENCE} || true
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+      - run:
+          name: test
+          command: |
+            ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} #org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+            mkdir -p $HOME/artifacts/junit/
+            find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
+            find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
+            bash <(curl -s https://codecov.io/bash)
+      - store_test_results:
+          path: $HOME/artifacts/junit/
+      - store_artifacts:
+          path: $HOME/artifacts/
+notify:
+  webhooks:
+    - url: https://webhooks.gitter.im/e/22e6bb4eb945dd61ba54
+

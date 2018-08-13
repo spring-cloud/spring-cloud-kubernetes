@@ -1,0 +1,16 @@
+---
+spring:
+  application:
+    name: name-in-file
+  cloud:
+    kubernetes:
+      reload:
+        enabled: false
+      config:
+        name: defname
+        namespace: defnamespace
+        sources:
+         - name: s1
+         - namespace: s2
+         - name: othername
+           namespace: othernamespace

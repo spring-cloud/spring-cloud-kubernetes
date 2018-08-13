@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Name service controller.
  *
- * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
+ * @author Gytis Trikleris
  */
 @RestController
 public class NameController {

@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016 to the original authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @author <a href="mailto:cmoullia@redhat.com">Charles Moulliard</a>
+ * @author Charles Moulliard
  */
 @RestController
 public class GreetingController {
@@ -37,7 +37,13 @@ public class GreetingController {
 
 	@RequestMapping("/api/greeting")
 	public Greeting greeting(@RequestParam(value="name", defaultValue="World") String name) {
-		String message = String.format(properties.getMessage(), name);
+		String message = String.format(properties.getGreeting(), name);
+		return new Greeting(message);
+	}
+
+	@RequestMapping("/api/farewell")
+	public Greeting farewell(@RequestParam(value="name", defaultValue="World") String name) {
+		String message = String.format(properties.getFarewell(), name);
 		return new Greeting(message);
 	}
 }

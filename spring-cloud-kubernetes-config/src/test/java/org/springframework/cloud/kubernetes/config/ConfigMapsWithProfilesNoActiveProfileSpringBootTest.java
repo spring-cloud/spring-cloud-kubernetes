@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016 to the original authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,36 +17,35 @@
 
 package org.springframework.cloud.kubernetes.config;
 
-import static io.restassured.RestAssured.when;
-import static org.hamcrest.core.Is.is;
-import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
+import java.util.HashMap;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.restassured.RestAssured;
-import java.util.HashMap;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.config.example.App;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static io.restassured.RestAssured.when;
+import static org.hamcrest.core.Is.is;
+import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
+
 /**
- * @author <a href="mailto:cmoullia@redhat.com">Charles Moulliard</a>
+ * @author Charles Moulliard
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-                classes = App.class,
-				properties = { "spring.application.name=configmap-with-profile-no-active-profiles-example",
-	           "spring.cloud.kubernetes.reload.enabled=false"}
-	           )
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
+		"spring.application.name=configmap-with-profile-no-active-profiles-example",
+		"spring.cloud.kubernetes.reload.enabled=false" })
 public class ConfigMapsWithProfilesNoActiveProfileSpringBootTest {
 
 	@ClassRule
@@ -66,33 +65,35 @@ public class ConfigMapsWithProfilesNoActiveProfileSpringBootTest {
 	public static void setUpBeforeClass() {
 		mockClient = server.getClient();
 
-		//Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
+		// Configure the kubernetes master url to point to the mock server
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
+				mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
+				"false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 
-		HashMap<String,String> data = new HashMap<>();
+		HashMap<String, String> data = new HashMap<>();
 		data.put("application.yml", readResourceFile("application-with-profiles.yaml"));
-		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME).andReturn(200, new ConfigMapBuilder()
-			.withNewMetadata().withName(APPLICATION_NAME).endMetadata()
-			.addToData(data)
-			.build())
-			.always();
-	}
-
-	@Before
-	public void setUp() {
-		RestAssured.baseURI = String.format("http://localhost:%d/api/greeting", port);
+		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME)
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
+						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
+				.always();
 	}
 
 	@Test
 	public void testGreetingEndpoint() {
-		when().get()
-			.then()
-			.statusCode(200)
-			.body("content", is("Hello ConfigMap prod, World!"));
+		RestAssured.baseURI = String.format("http://localhost:%d/api/greeting", port);
+		when().get().then().statusCode(200).body("content",
+				is("Hello ConfigMap default, World!"));
+	}
+
+	@Test
+	public void testFarewellEndpoint() {
+		RestAssured.baseURI = String.format("http://localhost:%d/api/farewell", port);
+		when().get().then().statusCode(200).body("content",
+				is("Goodbye ConfigMap default, World!"));
 	}
 
 }

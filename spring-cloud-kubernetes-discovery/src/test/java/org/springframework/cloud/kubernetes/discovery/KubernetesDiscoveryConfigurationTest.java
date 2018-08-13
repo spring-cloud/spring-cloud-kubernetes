@@ -50,7 +50,7 @@ public class KubernetesDiscoveryConfigurationTest {
 		this.context = new SpringApplicationBuilder(
 			PropertyPlaceholderAutoConfiguration.class,
 			KubernetesClientTestConfiguration.class,
-			KubernetesDiscoveryClientAutoConfiguration.class).web(false)
+			KubernetesDiscoveryClientAutoConfiguration.class).web(org.springframework.boot.WebApplicationType.NONE)
 			.properties(env).run();
 	}
 

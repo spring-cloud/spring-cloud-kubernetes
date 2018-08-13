@@ -60,7 +60,7 @@ public class KubernetesLeaderConfigurationTest {
 		this.context = new SpringApplicationBuilder(
 			PropertyPlaceholderAutoConfiguration.class,
 			KubernetesClientTestConfiguration.class,
-			LeaderAutoConfiguration.class).web(false)
+			LeaderAutoConfiguration.class).web(org.springframework.boot.WebApplicationType.NONE)
 			.properties(env).run();
 	}
 

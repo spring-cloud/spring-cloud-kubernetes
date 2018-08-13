@@ -1,28 +1,30 @@
 /*
- * Copyright (C) 2018 to the original authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package org.springframework.cloud.kubernetes.leader;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
+ * @author Gytis Trikleris
  */
 @ConfigurationProperties("spring.cloud.kubernetes.leader")
 public class LeaderProperties {
@@ -65,7 +67,7 @@ public class LeaderProperties {
 	 * Kubernetes labels common to all leadership candidates.
 	 * Default: empty
 	 */
-	private Map<String, String> labels = Collections.emptyMap();
+	private Map<String, String> labels = new HashMap<>();
 
 	/**
 	 * Leader id property prefix for the ConfigMap.
@@ -90,6 +92,12 @@ public class LeaderProperties {
 	 * Default: 1.2
 	 */
 	private double jitterFactor = DEFAULT_JITTER_FACTOR;
+
+	/**
+	 * Enable/disable publishing events in case leadership acquisition fails.
+	 * Default: false
+	 */
+	private boolean publishFailedEvents = false;
 
 	public boolean isAutoStartup() {
 		return autoStartup;
@@ -169,5 +177,13 @@ public class LeaderProperties {
 
 	public void setJitterFactor(double jitterFactor) {
 		this.jitterFactor = jitterFactor;
+	}
+
+	public boolean isPublishFailedEvents() {
+		return publishFailedEvents;
+	}
+
+	public void setPublishFailedEvents(boolean publishFailedEvents) {
+		this.publishFailedEvents = publishFailedEvents;
 	}
 }

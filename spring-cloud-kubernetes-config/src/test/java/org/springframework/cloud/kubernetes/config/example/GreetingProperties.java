@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016 to the original authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,14 +24,22 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "bean")
 public class GreetingProperties {
 
-	private String message = "Hello, %s!";
+	private String greeting = "Hello, %s!";
+	private String farewell = "Goodbye, %s!";
 
-	public String getMessage() {
-		return message;
+	public String getGreeting() {
+		return greeting;
 	}
 
-	public void setMessage(String message) {
-		this.message = message;
+	public void setGreeting(String greeting) {
+		this.greeting = greeting;
 	}
 
+	public String getFarewell() {
+		return farewell;
+	}
+
+	public void setFarewell(String farewell) {
+		this.farewell = farewell;
+	}
 }

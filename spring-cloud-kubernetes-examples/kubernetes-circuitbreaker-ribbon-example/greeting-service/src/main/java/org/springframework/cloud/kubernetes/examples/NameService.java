@@ -25,7 +25,7 @@ import org.springframework.web.client.RestTemplate;
 /**
  * Service invoking name-service via REST and guarded by Hystrix.
  *
- * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
+ * @author Gytis Trikleris
  */
 @Service
 public class NameService {

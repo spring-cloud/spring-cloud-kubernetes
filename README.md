@@ -57,7 +57,7 @@ public class Application {
 Then you can inject the client in your code simply by:
 
 ```java
-@Autowire
+@Autowired
 private DiscoveryClient discoveryClient;
 ```
 
@@ -88,15 +88,48 @@ The [Spring Cloud Kubernetes Config](./spring-cloud-kubernetes-config) project m
 during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on 
 observed `ConfigMap`s.
 
-`ConfigMapPropertySource` will search for a Kubernetes `ConfigMap` which `metadata.name` is either the name of 
+The default behavior is to create a `ConfigMapPropertySource` based on a Kubernetes `ConfigMap` which has `metadata.name` of either the name of 
 your Spring application (as defined by its `spring.application.name` property) or a custom name defined within the
 `bootstrap.properties` file under the following key `spring.cloud.kubernetes.config.name`.
 
-If such a `ConfigMap` is found, it will be processed as follows:
+However, more advanced configuration are possible where multiple ConfigMaps can be used
+This is made possible by the `spring.cloud.kubernetes.config.sources` list.
+For example one could define the following ConfigMaps
+
+```yaml
+spring:
+  application:
+    name: cloud-k8s-app	
+  cloud:
+    kubernetes:
+      config:
+        name: default-name
+        namespace: default-namespace
+        sources:
+         # Spring Cloud Kubernetes will lookup a ConfigMap named c1 in namespace default-namespace 
+         - name: c1
+         # Spring Cloud Kubernetes will lookup a ConfigMap named default-name in whatever namespace n2
+         - namespace: n2
+         # Spring Cloud Kubernetes will lookup a ConfigMap named c3 in namespace n3
+         - namespace: n3
+           name: c3
+```
+
+In the example above, it `spring.cloud.kubernetes.config.namespace` had not been set,
+then the ConfigMap named `c1` would be looked up in the namespace that the application runs  
+
+Any matching `ConfigMap` that is found, will be processed as follows:
 
 - apply individual configuration properties.
 - apply as `yaml` the content of any property named `application.yaml`
 - apply as properties file the content of any property named `application.properties`
+
+The single exception to the aforementioned flow is when the `ConfigMap` contains a **single** key that indicates
+the file is a YAML or Properties file. In that case the name of the key does NOT have to be `application.yaml` or
+`application.properties` (it can be anything) and the value of the property will be treated correctly.
+This features facilitates the use case where the `ConfigMap` was created using something like:
+
+`kubectl create configmap game-config --from-file=/path/to/app-config.yaml`
 
 Example:
 
@@ -134,9 +167,25 @@ data:
         max:16
 ```
 
-Spring Boot applications can also be configured differently depending on active profiles and it is possible to 
-provide different property values for different profiles using an `application.properties|yaml` property, specifying 
-profile-specific values each in their own document (indicated by the `---` sequence) as follows:
+The following also works:
+
+ ```yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  custom-name.yaml: |-
+    pool:
+      size:
+        core: 1
+        max:16
+```
+
+Spring Boot applications can also be configured differently depending on active profiles which will be merged together
+when the ConfigMap is read. It is possible to provide different property values for different profiles using an
+`application.properties|yaml` property, specifying profile-specific values each in their own document
+(indicated by the `---` sequence) as follows:
  
 ```yaml
 kind: ConfigMap
@@ -147,17 +196,39 @@ data:
   application.yml: |-
     greeting:
       message: Say Hello to the World
+    farewell:
+      message: Say Goodbye
     ---
     spring:
       profiles: development
     greeting:
       message: Say Hello to the Developers
+    farewell:
+      message: Say Goodbye to the Developers
     ---
     spring:
       profiles: production
     greeting:
       message: Say Hello to the Ops
 ```
+
+In the above case, the configuration loaded into your Spring Application with the `development` profile will be:
+```yaml
+  greeting:
+    message: Say Hello to the Developers
+  farewell:
+    message: Say Goodbye to the Developers
+```
+whereas if the `production` profile is active, the configuration will be:
+```yaml
+  greeting:
+    message: Say Hello to the Ops
+  farewell:
+    message: Say Goodbye
+```
+
+If both profiles are active, the property which appears last within the configmap will overwrite preceding values.
+
 
 To tell to Spring Boot which `profile` should be enabled at bootstrap, a system property can be passed to the Java 
 command launching your Spring Boot application using an env variable that you will define with the OpenShift 

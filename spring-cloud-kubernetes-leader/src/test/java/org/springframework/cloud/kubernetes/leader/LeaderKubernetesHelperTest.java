@@ -1,3 +1,20 @@
+/*
+ * Copyright 2013-2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package org.springframework.cloud.kubernetes.leader;
 
 import java.util.Collections;
@@ -32,7 +49,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 /**
- * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
+ * @author Gytis Trikleris
  */
 @RunWith(MockitoJUnitRunner.class)
 public class LeaderKubernetesHelperTest {
@@ -144,6 +161,8 @@ public class LeaderKubernetesHelperTest {
 
 	@Test
 	public void shouldUpdateConfigMapEntry() {
+		given(mockConfigMap.getApiVersion()).willReturn("v1");
+		given(mockConfigMap.getKind()).willReturn("ConfigMap");
 		given(mockConfigMap.getMetadata()).willReturn(mockObjectMeta);
 		given(mockObjectMeta.getResourceVersion()).willReturn("test-version");
 
@@ -165,6 +184,8 @@ public class LeaderKubernetesHelperTest {
 	@Test
 	public void shouldRemoveConfigMapEntry() {
 		Map<String, String> data = Collections.singletonMap("test-key", "test-value");
+		given(mockConfigMap.getApiVersion()).willReturn("v1");
+		given(mockConfigMap.getKind()).willReturn("ConfigMap");
 		given(mockConfigMap.getData()).willReturn(data);
 		given(mockConfigMap.getMetadata()).willReturn(mockObjectMeta);
 		given(mockObjectMeta.getResourceVersion()).willReturn("test-version");
