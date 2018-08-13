@@ -38,11 +38,9 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	private static final Log log = LogFactory.getLog(KubernetesDiscoveryClient.class);
 
 	private final KubernetesClient kubernetesClient;
-	private final KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
 
-	public KubernetesDiscoveryClient(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+	public KubernetesDiscoveryClient(KubernetesClient kubernetesClient) {
 		this.kubernetesClient = kubernetesClient;
-		this.kubernetesDiscoveryProperties = kubernetesDiscoveryProperties;
 	}
 
 	@Override
@@ -50,47 +48,18 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return "Kubernetes Discovery Client";
 	}
 
-	public ServiceInstance getLocalServiceInstance() {
-		String serviceName = kubernetesDiscoveryProperties.getServiceName();
-		ServiceInstance serviceInstance = new DefaultServiceInstance(serviceName,
-			"localhost",
-			8080,
-			false);
-
-		String hostname = "HOSTNAME";
-		String podName = System.getenv(hostname);
-		Endpoints endpoints = kubernetesClient.endpoints().withName(serviceName).get();
-		if (Utils.isNotNullOrEmpty(podName) && endpoints != null) {
-
-			Optional<Service> service = Optional.ofNullable(kubernetesClient.services().withName(serviceName).get());
-			Map<String, String> labels = service.isPresent() ? service.get().getMetadata().getLabels() : null;
-
-			List<EndpointSubset> subsets = endpoints.getSubsets();
-			if (subsets != null) {
-				for (EndpointSubset s : subsets) {
-					Optional<EndpointPort> optionalEndpointPort = s.getPorts().stream().findFirst();
-					if (optionalEndpointPort.isPresent()) {
-						List<EndpointAddress> addresses = s.getAddresses();
-						for (EndpointAddress a : addresses) {
-							serviceInstance = new KubernetesServiceInstance(serviceName,
-								a,
-								optionalEndpointPort.get(),
-								labels,
-								false);
-							break;
-						}
-					}
-				}
-			}
-		}
-		return serviceInstance;
-	}
-
 	@Override
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId,
 			"[Assertion failed] - the object argument must be null");
 		return getServiceInstances(serviceId);
+	}
+
+	@Override
+	public List<String> getServices() {
+		return kubernetesClient.services().list().getItems().stream()
+			.map(s -> s.getMetadata().getName())
+			.collect(Collectors.toList());
 	}
 
 	private List<ServiceInstance> getServiceInstances(String serviceId) {
@@ -125,12 +94,5 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			log.error("Error calling Kubernetes server", e);
 		}
 		return instances;
-	}
-
-	@Override
-	public List<String> getServices() {
-		return kubernetesClient.services().list().getItems().stream()
-			.map(s -> s.getMetadata().getName())
-			.collect(Collectors.toList());
 	}
 }
