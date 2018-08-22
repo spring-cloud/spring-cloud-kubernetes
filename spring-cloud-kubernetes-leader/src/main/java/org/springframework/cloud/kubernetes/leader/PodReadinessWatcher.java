@@ -35,6 +35,8 @@ public class PodReadinessWatcher implements Watcher<Pod> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PodReadinessWatcher.class);
 
+	private final Object lock = new Object();
+
 	private final String podName;
 
 	private final KubernetesClient kubernetesClient;
@@ -54,20 +56,28 @@ public class PodReadinessWatcher implements Watcher<Pod> {
 
 	public void start() {
 		if (watch == null) {
-			LOGGER.debug("Starting pod readiness watcher for '{}'", podName);
-			PodResource<Pod, DoneablePod> podResource = kubernetesClient
-				.pods()
-				.withName(podName);
-			previousState = podResource.isReady();
-			watch = podResource.watch(this);
+			synchronized (lock) {
+				if (watch == null) {
+					LOGGER.debug("Starting pod readiness watcher for '{}'", podName);
+					PodResource<Pod, DoneablePod> podResource = kubernetesClient
+						.pods()
+						.withName(podName);
+					previousState = podResource.isReady();
+					watch = podResource.watch(this);
+				}
+			}
 		}
 	}
 
 	public void stop() {
 		if (watch != null) {
-			LOGGER.debug("Stopping pod readiness watcher for '{}'", podName);
-			watch.close();
-			watch = null;
+			synchronized (lock) {
+				if (watch != null) {
+					LOGGER.debug("Stopping pod readiness watcher for '{}'", podName);
+					watch.close();
+					watch = null;
+				}
+			}
 		}
 	}
 
@@ -75,18 +85,24 @@ public class PodReadinessWatcher implements Watcher<Pod> {
 	public void eventReceived(Action action, Pod pod) {
 		boolean currentState = Readiness.isPodReady(pod);
 		if (previousState != currentState) {
-			LOGGER.debug("'{}' readiness status changed to '{}', triggering leadership update", podName, currentState);
-			previousState = currentState;
-			leadershipController.update();
+			synchronized (lock) {
+				if (previousState != currentState) {
+					LOGGER.debug("'{}' readiness status changed to '{}', triggering leadership update", podName, currentState);
+					previousState = currentState;
+					leadershipController.update();
+				}
+			}
 		}
 	}
 
 	@Override
 	public void onClose(KubernetesClientException cause) {
 		if (cause != null) {
-			LOGGER.warn("Watcher stopped unexpectedly, will restart", cause);
-			watch = null;
-			start();
+			synchronized (lock) {
+				LOGGER.warn("Watcher stopped unexpectedly, will restart", cause);
+				watch = null;
+				start();
+			}
 		}
 	}
 }

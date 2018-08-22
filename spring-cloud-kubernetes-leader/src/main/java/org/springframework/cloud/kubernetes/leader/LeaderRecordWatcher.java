@@ -32,6 +32,8 @@ public class LeaderRecordWatcher implements Watcher<ConfigMap> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LeaderRecordWatcher.class);
 
+	private final Object lock = new Object();
+
 	private final LeadershipController leadershipController;
 
 	private final LeaderProperties leaderProperties;
@@ -49,20 +51,28 @@ public class LeaderRecordWatcher implements Watcher<ConfigMap> {
 
 	public void start() {
 		if (watch == null) {
-			LOGGER.debug("Starting leader record watcher");
-			watch = kubernetesClient
-				.configMaps()
-				.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-				.withName(leaderProperties.getConfigMapName())
-				.watch(this);
+			synchronized (lock) {
+				if (watch == null) {
+					LOGGER.debug("Starting leader record watcher");
+					watch = kubernetesClient
+						.configMaps()
+						.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
+						.withName(leaderProperties.getConfigMapName())
+						.watch(this);
+				}
+			}
 		}
 	}
 
 	public void stop() {
 		if (watch != null) {
-			LOGGER.debug("Stopping leader record watcher");
-			watch.close();
-			watch = null;
+			synchronized (lock) {
+				if (watch != null) {
+					LOGGER.debug("Stopping leader record watcher");
+					watch.close();
+					watch = null;
+				}
+			}
 		}
 	}
 
@@ -78,9 +88,11 @@ public class LeaderRecordWatcher implements Watcher<ConfigMap> {
 	@Override
 	public void onClose(KubernetesClientException cause) {
 		if (cause != null) {
-			LOGGER.warn("Watcher stopped unexpectedly, will restart", cause);
-			watch = null;
-			start();
+			synchronized (lock) {
+				LOGGER.warn("Watcher stopped unexpectedly, will restart", cause);
+				watch = null;
+				start();
+			}
 		}
 	}
 }
