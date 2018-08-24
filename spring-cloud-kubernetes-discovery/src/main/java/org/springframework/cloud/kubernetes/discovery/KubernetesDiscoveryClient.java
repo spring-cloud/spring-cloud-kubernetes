@@ -29,12 +29,21 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Utils;
+import java.util.function.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.util.Assert;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 public class KubernetesDiscoveryClient implements DiscoveryClient {
 
@@ -42,11 +51,15 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	private static final String HOSTNAME = "HOSTNAME";
 
 	private KubernetesClient client;
-	private KubernetesDiscoveryProperties properties;
+	private final KubernetesDiscoveryProperties properties;
+	private final SpelExpressionParser parser = new SpelExpressionParser();
+        
 
+      
 	public KubernetesDiscoveryClient(KubernetesClient client,
-									 KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
-		this.client = client;
+					KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+		
+                this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
 	}
 
@@ -134,12 +147,42 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 		return instances;
 	}
-
+        
 	@Override
 	public List<String> getServices() {
-		return client.services().list()
-			.getItems()
-			.stream().map(s -> s.getMetadata().getName())
-			.collect(Collectors.toList());
+                String spelExpresion = properties.getFilter();
+		if(spelExpresion == null || spelExpresion.isEmpty()){
+                    spelExpresion = "true";
+                }
+                Expression includeExpr = parser.parseExpression(spelExpresion);
+                
+		return getServices(includeExpr);
 	}
+        
+        public List<String> getServices(String spelFilterExpression) {
+                Expression includeExpr = parser.parseExpression(spelFilterExpression);
+		return getServices(includeExpr);
+	}
+
+        private List<String> getServices(Expression filterExpr) {
+            SimpleEvaluationContext evalCtxt = SimpleEvaluationContext
+                    .forReadOnlyDataBinding()
+                    .withInstanceMethods()
+                    .build();
+
+            return client.services().list()
+                    .getItems()
+                    .stream()
+                    .filter(instance -> {
+                        Boolean include = filterExpr.getValue(evalCtxt, instance, Boolean.class);
+                        if(include == null){
+                            return false;
+                        }
+                        return include;
+                    })
+                    .map(s -> s.getMetadata().getName())
+                    .collect(Collectors.toList());
+        }
+        
+       
 }
