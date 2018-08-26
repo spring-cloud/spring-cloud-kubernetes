@@ -145,12 +145,12 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
     @Override
     public List<String> getServices() {
-        String spelExpresion = properties.getFilter();
+        String spelExpression = properties.getFilter();
         Predicate<Service> filteredServices;
-        if (spelExpresion == null || spelExpresion.isEmpty()) {
+        if (spelExpression == null || spelExpression.isEmpty()) {
             filteredServices = (Service instance) -> true;
         } else {
-            Expression filterExpr = parser.parseExpression(spelExpresion);
+            Expression filterExpr = parser.parseExpression(spelExpression);
             filteredServices = (Service instance) -> {
                 Boolean include = filterExpr.getValue(evalCtxt, instance, Boolean.class);
                 if (include == null) {
