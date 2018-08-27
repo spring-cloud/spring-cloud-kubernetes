@@ -47,7 +47,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	public KubernetesDiscoveryClient(KubernetesClient client,
 									 KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
 		this.client = client;
-		this.properties = properties;
+		this.properties = kubernetesDiscoveryProperties;
 	}
 
 	public KubernetesClient getClient() {
@@ -86,12 +86,12 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			List<EndpointSubset> subsets = endpoints.getSubsets();
 
 			if (subsets != null) {
-				for (EndpointSubset s : subsets) {
-					List<EndpointAddress> addresses = s.getAddresses();
-					for (EndpointAddress a : addresses) {
+				for (EndpointSubset subset : subsets) {
+					List<EndpointAddress> addresses = subset.getAddresses();
+					for (EndpointAddress address : addresses) {
 						return new KubernetesServiceInstance(serviceName,
-																	a,
-																	s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
+																	address,
+																	subset.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
 																	labels,
 																	false);
 					}
@@ -120,12 +120,12 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		List<EndpointSubset> subsets = endpoints.get().getSubsets();
 		List<ServiceInstance> instances = new ArrayList<>();
 		if (subsets != null) {
-			for (EndpointSubset s : subsets) {
-				List<EndpointAddress> addresses = s.getAddresses();
-				for (EndpointAddress a : addresses) {
+			for (EndpointSubset subset : subsets) {
+				List<EndpointAddress> addresses = subset.getAddresses();
+				for (EndpointAddress address : addresses) {
 					instances.add(new KubernetesServiceInstance(serviceId,
-																a,
-																s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
+																address,
+																subset.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
 																labels,
 																false));
 				}
