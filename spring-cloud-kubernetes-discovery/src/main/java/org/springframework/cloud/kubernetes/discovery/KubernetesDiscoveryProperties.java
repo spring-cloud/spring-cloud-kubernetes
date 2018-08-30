@@ -48,9 +48,9 @@ public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProper
 		return filter;
 	}
         
-        public void setFilter(String filter){
-                this.filter = filter;
-        }
+    public void setFilter(String filter){
+            this.filter = filter;
+    }
 
 	@Override
 	public String toString() {
