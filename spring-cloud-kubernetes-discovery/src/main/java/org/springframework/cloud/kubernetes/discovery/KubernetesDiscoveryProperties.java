@@ -49,7 +49,7 @@ public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProper
 	}
         
     public void setFilter(String filter){
-            this.filter = filter;
+        this.filter = filter;
     }
 
 	@Override
