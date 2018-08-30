@@ -29,7 +29,9 @@ public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProper
 	@Value("${spring.application.name:unknown}")
 	private String serviceName = "unknown";
 
-    /** SpEL expression to filter services **/
+	/** 
+	* SpEL expression to filter services 
+	**/
 	private String filter = "";
 
 	public boolean isEnabled() {
@@ -49,8 +51,8 @@ public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProper
 	}
 	
 	public void setFilter(String filter){
-        this.filter = filter;
-    }
+		this.filter = filter;
+	}
 
 	@Override
 	public String toString() {
