@@ -17,7 +17,10 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import io.fabric8.kubernetes.api.model.EndpointAddress;
+import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +29,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -62,8 +67,12 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 			List<String> endpointsPodNames =
 				endpoints.stream()
 					.flatMap(endpoint -> endpoint.getSubsets().stream())
-					.flatMap(subset -> subset.getAddresses().stream())
-					.map(endpointAddress -> endpointAddress.getTargetRef().getName()) // pod name unique in namespace
+					.map(EndpointSubset::getAddresses)
+					.filter(Objects::nonNull)
+					.flatMap(Collection::stream)
+					.map(EndpointAddress::getTargetRef)
+					.filter(Objects::nonNull)
+					.map(ObjectReference::getName) // pod name unique in namespace
 					.sorted(String::compareTo).collect(Collectors.toList());
 
 			catalogEndpointsState.set(endpointsPodNames);

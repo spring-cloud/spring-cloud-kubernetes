@@ -17,33 +17,39 @@
 
 package org.springframework.cloud.kubernetes.leader;
 
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.integration.leader.Candidate;
 
 /**
  * @author Gytis Trikleris
  */
 public class LeaderInitiator implements SmartLifecycle {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(LeaderInitiator.class);
+
 	private final LeaderProperties leaderProperties;
 
 	private final LeadershipController leadershipController;
 
-	private final Candidate candidate;
+	private final LeaderRecordWatcher leaderRecordWatcher;
 
-	private final ScheduledExecutorService scheduledExecutorService;
+	private final PodReadinessWatcher hostPodWatcher;
+
+	private ScheduledExecutorService scheduledExecutorService;
 
 	private boolean isRunning;
 
 	public LeaderInitiator(LeaderProperties leaderProperties, LeadershipController leadershipController,
-		Candidate candidate, ScheduledExecutorService scheduledExecutorService) {
+		LeaderRecordWatcher leaderRecordWatcher, PodReadinessWatcher hostPodWatcher) {
 		this.leaderProperties = leaderProperties;
 		this.leadershipController = leadershipController;
-		this.candidate = candidate;
-		this.scheduledExecutorService = scheduledExecutorService;
+		this.leaderRecordWatcher = leaderRecordWatcher;
+		this.hostPodWatcher = hostPodWatcher;
 	}
 
 	@Override
@@ -54,7 +60,12 @@ public class LeaderInitiator implements SmartLifecycle {
 	@Override
 	public void start() {
 		if (!isRunning()) {
-			scheduledExecutorService.execute(this::update);
+			LOGGER.debug("Leader initiator starting");
+			leaderRecordWatcher.start();
+			hostPodWatcher.start();
+			scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+			scheduledExecutorService.scheduleAtFixedRate(leadershipController::update,
+				leaderProperties.getUpdatePeriod(), leaderProperties.getUpdatePeriod(), TimeUnit.MILLISECONDS);
 			isRunning = true;
 		}
 	}
@@ -62,16 +73,20 @@ public class LeaderInitiator implements SmartLifecycle {
 	@Override
 	public void stop() {
 		if (isRunning()) {
-			scheduledExecutorService.execute(() -> leadershipController.revoke(candidate));
+			LOGGER.debug("Leader initiator stopping");
 			scheduledExecutorService.shutdown();
+			scheduledExecutorService = null;
+			hostPodWatcher.stop();
+			leaderRecordWatcher.stop();
+			leadershipController.revoke();
 			isRunning = false;
 		}
 	}
 
 	@Override
-	public void stop(Runnable runnable) {
+	public void stop(Runnable callback) {
 		stop();
-		runnable.run();
+		callback.run();
 	}
 
 	@Override
@@ -81,26 +96,6 @@ public class LeaderInitiator implements SmartLifecycle {
 
 	@Override
 	public int getPhase() {
-		return 0; // TODO implement
+		return 0;
 	}
-
-	private void update() {
-		if (leadershipController.acquire(candidate)) {
-			// We're a leader, check-in later
-			scheduleUpdate(leaderProperties.getLeaseDuration());
-		} else {
-			// Couldn't become a leader, retry sooner.
-			// TODO maybe we should separate error and another leader scenarios?
-			scheduleUpdate(leaderProperties.getRetryPeriod());
-		}
-	}
-
-	private void scheduleUpdate(long waitPeriod) {
-		scheduledExecutorService.schedule(this::update, jitter(waitPeriod), TimeUnit.MILLISECONDS);
-	}
-
-	private long jitter(long num) {
-		return (long) (num * (1 + Math.random() * (leaderProperties.getJitterFactor() - 1)));
-	}
-
 }

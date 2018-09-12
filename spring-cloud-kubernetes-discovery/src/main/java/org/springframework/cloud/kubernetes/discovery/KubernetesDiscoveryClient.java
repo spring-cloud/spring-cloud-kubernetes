@@ -14,13 +14,13 @@
  * limitations under the License.
  *
  */
-
 package org.springframework.cloud.kubernetes.discovery;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
@@ -31,9 +31,13 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Utils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.Assert;
 
 public class KubernetesDiscoveryClient implements DiscoveryClient {
@@ -42,12 +46,18 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	private static final String HOSTNAME = "HOSTNAME";
 
 	private KubernetesClient client;
-	private KubernetesDiscoveryProperties properties;
+	private final KubernetesDiscoveryProperties properties;
+	private final SpelExpressionParser parser = new SpelExpressionParser();
+	private final SimpleEvaluationContext evalCtxt = SimpleEvaluationContext
+														.forReadOnlyDataBinding()
+														.withInstanceMethods()
+														.build();
 
 	public KubernetesDiscoveryClient(KubernetesClient client,
-									 KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+			KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+
 		this.client = client;
-		this.properties = properties;
+		this.properties = kubernetesDiscoveryProperties;
 	}
 
 	public KubernetesClient getClient() {
@@ -67,9 +77,9 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		String serviceName = properties.getServiceName();
 		String podName = System.getenv(HOSTNAME);
 		ServiceInstance defaultInstance = new DefaultServiceInstance(serviceName,
-																	 "localhost",
-																	 8080,
-																	 false);
+				"localhost",
+				8080,
+				false);
 
 		Endpoints endpoints = client.endpoints().withName(serviceName).get();
 		Optional<Service> service = Optional.ofNullable(client.services().withName(serviceName).get());
@@ -90,10 +100,10 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 					List<EndpointAddress> addresses = s.getAddresses();
 					for (EndpointAddress a : addresses) {
 						return new KubernetesServiceInstance(serviceName,
-																	a,
-																	s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
-																	labels,
-																	false);
+								a,
+								s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
+								labels,
+								false);
 					}
 				}
 			}
@@ -107,7 +117,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	@Override
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId,
-					   "[Assertion failed] - the object argument must be null");
+				"[Assertion failed] - the object argument must be null");
 		Optional<Service> service = Optional.ofNullable(client.services().withName(serviceId).get());
 		final Map<String, String> labels;
 		if (service.isPresent()) {
@@ -124,10 +134,10 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				List<EndpointAddress> addresses = s.getAddresses();
 				for (EndpointAddress a : addresses) {
 					instances.add(new KubernetesServiceInstance(serviceId,
-																a,
-																s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
-																labels,
-																false));
+							a,
+							s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
+							labels,
+							false));
 				}
 			}
 		}
@@ -137,9 +147,30 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
-		return client.services().list()
-			.getItems()
-			.stream().map(s -> s.getMetadata().getName())
-			.collect(Collectors.toList());
+		String spelExpression = properties.getFilter();
+		Predicate<Service> filteredServices;
+		if (spelExpression == null || spelExpression.isEmpty()) {
+			filteredServices = (Service instance) -> true;
+		} else {
+			Expression filterExpr = parser.parseExpression(spelExpression);
+			filteredServices = (Service instance) -> {
+				Boolean include = filterExpr.getValue(evalCtxt, instance, Boolean.class);
+				if (include == null) {
+					return false;
+				}
+				return include;
+			};
+		}
+		return getServices(filteredServices);
 	}
+
+	public List<String> getServices(Predicate<Service> filter) {
+		return client.services().list()
+				.getItems()
+				.stream()
+				.filter(filter)
+				.map(s -> s.getMetadata().getName())
+				.collect(Collectors.toList());
+	}
+
 }

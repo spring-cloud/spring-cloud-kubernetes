@@ -19,8 +19,6 @@ package org.springframework.cloud.kubernetes.leader;
 
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -41,45 +39,44 @@ import org.springframework.integration.leader.event.LeaderEventPublisher;
 @Configuration
 @EnableConfigurationProperties(LeaderProperties.class)
 @ConditionalOnBean(KubernetesClient.class)
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
+@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
 public class LeaderAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(LeaderEventPublisher.class)
-	@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
-	LeaderEventPublisher defaultLeaderEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+	public LeaderEventPublisher defaultLeaderEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		return new DefaultLeaderEventPublisher(applicationEventPublisher);
 	}
 
 	@Bean
-	@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
-	LeaderKubernetesHelper leaderKubernetesHelper(LeaderProperties leaderProperties,
-		KubernetesClient kubernetesClient) {
-		return new LeaderKubernetesHelper(leaderProperties, kubernetesClient);
-	}
-
-	@Bean
-	@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
-	LeadershipController leadershipController(LeaderProperties leaderProperties,
-		LeaderKubernetesHelper kubernetesHelper, LeaderEventPublisher leaderEventPublisher) {
-		return new LeadershipController(leaderProperties, kubernetesHelper, leaderEventPublisher);
-	}
-
-	@Bean(destroyMethod = "stop")
-	@ConditionalOnBean(LeadershipController.class)
-	public LeaderInitiator leaderInitiator(LeadershipController leadershipController, LeaderProperties leaderProperties)
-		throws UnknownHostException {
-		Candidate candidate = getCandidate(leaderProperties);
-		ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-
-		return new LeaderInitiator(leaderProperties, leadershipController, candidate, scheduledExecutorService);
-	}
-
-	private Candidate getCandidate(LeaderProperties leaderProperties) throws UnknownHostException {
+	public Candidate candidate(LeaderProperties leaderProperties) throws UnknownHostException {
 		String id = Inet4Address.getLocalHost().getHostName();
 		String role = leaderProperties.getRole();
 
 		return new DefaultCandidate(id, role);
 	}
 
+	@Bean
+	public LeadershipController leadershipController(Candidate candidate, LeaderProperties leaderProperties,
+		LeaderEventPublisher leaderEventPublisher, KubernetesClient kubernetesClient) {
+		return new LeadershipController(candidate, leaderProperties, leaderEventPublisher, kubernetesClient);
+	}
+
+	@Bean
+	public LeaderRecordWatcher leaderRecordWatcher(LeaderProperties leaderProperties,
+		LeadershipController leadershipController, KubernetesClient kubernetesClient) {
+		return new LeaderRecordWatcher(leaderProperties, leadershipController, kubernetesClient);
+	}
+
+	@Bean
+	public PodReadinessWatcher hostPodWatcher(Candidate candidate, KubernetesClient kubernetesClient,
+		LeadershipController leadershipController) {
+		return new PodReadinessWatcher(candidate.getId(), kubernetesClient, leadershipController);
+	}
+
+	@Bean(destroyMethod = "stop")
+	public LeaderInitiator leaderInitiator(LeaderProperties leaderProperties, LeadershipController leadershipController,
+		LeaderRecordWatcher leaderRecordWatcher, PodReadinessWatcher hostPodWatcher) {
+		return new LeaderInitiator(leaderProperties, leadershipController, leaderRecordWatcher, hostPodWatcher);
+	}
 }

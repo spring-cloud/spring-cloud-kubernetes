@@ -22,13 +22,13 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT,
-	properties = { "spring.application.name=leader-autoconfig-test",
-		"spring.cloud.kubernetes.leader.labels.app=myapp"}
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+	properties = {
+		"spring.cloud.kubernetes.leader.autoStartup=false" // Make sure test passes without Kubernetes cluster
+	}
 )
 public class LeaderAutoConfigurationTests {
 
