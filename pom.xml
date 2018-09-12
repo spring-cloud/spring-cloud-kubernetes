@@ -85,6 +85,7 @@
 		<module>spring-cloud-starter-kubernetes-config</module>
 		<module>spring-cloud-starter-kubernetes-netflix</module>
 		<module>spring-cloud-starter-kubernetes-zipkin</module>
+		<module>spring-cloud-starter-kubernetes-ribbon</module>
 		<module>spring-cloud-starter-kubernetes-all</module>
 		<module>spring-cloud-kubernetes-examples</module>
 		<module>spring-cloud-kubernetes-leader</module>
