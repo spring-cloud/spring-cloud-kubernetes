@@ -66,7 +66,9 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 			List<Endpoints> endpoints = kubernetesClient.endpoints().list().getItems();
 			List<String> endpointsPodNames =
 				endpoints.stream()
-					.flatMap(endpoint -> endpoint.getSubsets().stream())
+					.map(Endpoints::getSubsets)
+					.filter(Objects::nonNull)
+					.flatMap(Collection::stream)
 					.map(EndpointSubset::getAddresses)
 					.filter(Objects::nonNull)
 					.flatMap(Collection::stream)
