@@ -115,6 +115,21 @@ public class KubernetesCatalogWatchTest {
 	}
 
 	@Test
+	public void testEndpointsWithoutSubsets() {
+
+		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets();
+
+		when(endpointsOperation.list()).thenReturn(endpoints);
+		when(kubernetesClient.endpoints()).thenReturn(endpointsOperation);
+
+		underTest.catalogServicesWatch();
+		// second execution on shuffleServices
+		underTest.catalogServicesWatch();
+
+		verify(applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+	}
+
+	@Test
 	public void testEndpointsWithoutAddresses() {
 
 		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
@@ -154,6 +169,14 @@ public class KubernetesCatalogWatchTest {
 
 		EndpointsList endpointsList = new EndpointsList();
 		endpointsList.setItems(endpoints);
+		return endpointsList;
+	}
+
+	private EndpointsList createSingleEndpointEndpointListWithoutSubsets() {
+		Endpoints endpoints = new Endpoints();
+
+		EndpointsList endpointsList = new EndpointsList();
+		endpointsList.setItems(Collections.singletonList(endpoints));
 		return endpointsList;
 	}
 
