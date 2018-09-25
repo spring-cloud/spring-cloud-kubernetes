@@ -17,25 +17,22 @@
 
 package org.springframework.cloud.kubernetes.config;
 
-import static io.restassured.RestAssured.when;
-import static org.hamcrest.core.Is.is;
-
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import io.restassured.RestAssured;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.config.example2.ExampleApp;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
  * @author Charles Moulliard
@@ -43,6 +40,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = ExampleApp.class,
 	properties = {"spring.cloud.bootstrap.name=multiplecms"})
+@AutoConfigureWebTestClient
 public class MultipleConfigMapsSpringBootTest {
 
 	@ClassRule
@@ -50,9 +48,8 @@ public class MultipleConfigMapsSpringBootTest {
 
 	private static KubernetesClient mockClient;
 
-
-	@Value("${local.server.port}")
-	private int port;
+	@Autowired
+	private WebTestClient webClient;
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
@@ -109,12 +106,6 @@ public class MultipleConfigMapsSpringBootTest {
 			.always();
 	}
 
-
-	@Before
-	public void setUp() {
-		RestAssured.baseURI = String.format("http://localhost:%d/", port);
-	}
-
 	//the last confimap defined in 'multiplecms.yml' has the highest priority, so
 	//the common property defined in all configmaps is taken from the last one defined
 	@Test
@@ -138,10 +129,9 @@ public class MultipleConfigMapsSpringBootTest {
 	}
 
 	private void assertResponse(String path, String expectedMessage) {
-		when().get(path)
-			.then()
-			.statusCode(200)
-			.body("message", is(expectedMessage));
+		this.webClient.get().uri(path).exchange().expectStatus().isOk()
+			.expectBody().jsonPath("message")
+			.isEqualTo(expectedMessage);
 	}
 
 }

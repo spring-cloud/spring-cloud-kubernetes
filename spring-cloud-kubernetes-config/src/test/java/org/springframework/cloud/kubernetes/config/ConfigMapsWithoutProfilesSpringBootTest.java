@@ -17,26 +17,24 @@
 
 package org.springframework.cloud.kubernetes.config;
 
-import static io.restassured.RestAssured.when;
-import static org.hamcrest.core.Is.is;
-import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
-
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import io.restassured.RestAssured;
 import java.util.HashMap;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.config.example.App;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.reactive.server.WebTestClient;
+
+import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -45,6 +43,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 		"spring.cloud.kubernetes.reload.enabled=false"}
 )
 @ActiveProfiles("development")
+@AutoConfigureWebTestClient
 public class ConfigMapsWithoutProfilesSpringBootTest {
 
 	@ClassRule
@@ -52,13 +51,10 @@ public class ConfigMapsWithoutProfilesSpringBootTest {
 
 	private static KubernetesClient mockClient;
 
-	@Autowired(required = false)
-	Config config;
-
 	private static final String APPLICATION_NAME = "configmap-without-profile-example";
 
-	@Value("${local.server.port}")
-	private int port;
+	@Autowired
+	private WebTestClient webClient;
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
@@ -82,19 +78,14 @@ public class ConfigMapsWithoutProfilesSpringBootTest {
 
 	@Test
 	public void testGreetingEndpoint() {
-		RestAssured.baseURI = String.format("http://localhost:%d/api/greeting", port);
-		when().get()
-			.then()
-			.statusCode(200)
-			.body("content", is("Hello ConfigMap, World!"));
+		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
+			.expectBody().jsonPath("content").isEqualTo("Hello ConfigMap, World!");
 	}
 
 	@Test
 	public void testFarewellEndpoint() {
-		RestAssured.baseURI = String.format("http://localhost:%d/api/farewell", port);
-		when().get()
-			.then()
-			.statusCode(200)
-			.body("content", is("Goodbye ConfigMap, World!"));
+		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk()
+			.expectBody().jsonPath("content")
+			.isEqualTo("Goodbye ConfigMap, World!");
 	}
 }

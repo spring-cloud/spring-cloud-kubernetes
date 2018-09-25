@@ -160,8 +160,13 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>io.rest-assured</groupId>
-			<artifactId>rest-assured</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.projectreactor</groupId>
+			<artifactId>reactor-spring</artifactId>
 			<scope>test</scope>
 		</dependency>
 

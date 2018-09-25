@@ -71,8 +71,8 @@
 		<fabric8.maven.plugin.version>3.5.37</fabric8.maven.plugin.version>
 		<gmavenplus-plugin.version>1.6</gmavenplus-plugin.version>
 		<groovy.version>2.4.12</groovy.version>
-		<restassured.version>3.0.2</restassured.version>
 		<spock-spring.version>1.1-groovy-2.4</spock-spring.version>
+		<reactor-spring.version>1.0.1.RELEASE</reactor-spring.version>
 	</properties>
 
 	<modules>
@@ -91,7 +91,7 @@
 
 	<dependencyManagement>
 		<dependencies>
-			
+
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-kubernetes-dependencies</artifactId>
@@ -123,10 +123,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>io.rest-assured</groupId>
-				<artifactId>rest-assured</artifactId>
-				<version>${restassured.version}</version>
-				<scope>test</scope>
+				<groupId>org.projectreactor</groupId>
+				<artifactId>reactor-spring</artifactId>
+				<version>${reactor-spring.version}</version>
 			</dependency>
 
 			<dependency>
