@@ -71,7 +71,6 @@
 		<fabric8.maven.plugin.version>3.5.37</fabric8.maven.plugin.version>
 		<gmavenplus-plugin.version>1.6</gmavenplus-plugin.version>
 		<groovy.version>2.4.12</groovy.version>
-		<restassured.version>3.0.2</restassured.version>
 		<spock-spring.version>1.1-groovy-2.4</spock-spring.version>
 	</properties>
 
@@ -121,13 +120,6 @@
 				<groupId>org.codehaus.groovy</groupId>
 				<artifactId>groovy-all</artifactId>
 				<version>${groovy.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>io.rest-assured</groupId>
-				<artifactId>rest-assured</artifactId>
-				<version>${restassured.version}</version>
-				<scope>test</scope>
 			</dependency>
 
 			<dependency>

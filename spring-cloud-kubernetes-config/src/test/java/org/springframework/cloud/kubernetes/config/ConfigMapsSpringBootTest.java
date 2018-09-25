@@ -17,28 +17,23 @@
 
 package org.springframework.cloud.kubernetes.config;
 
-import java.util.HashMap;
-
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import io.restassured.RestAssured;
-import org.junit.Before;
+import java.util.HashMap;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.config.example.App;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static io.restassured.RestAssured.when;
-import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -48,6 +43,7 @@ import static org.junit.Assert.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
 		"spring.application.name=configmap-example",
 		"spring.cloud.kubernetes.reload.enabled=false" })
+@AutoConfigureWebTestClient
 public class ConfigMapsSpringBootTest {
 
 	@ClassRule
@@ -56,12 +52,12 @@ public class ConfigMapsSpringBootTest {
 	private static KubernetesClient mockClient;
 
 	@Autowired(required = false)
-	Config config;
+	private Config config;
 
 	private static final String APPLICATION_NAME = "configmap-example";
 
-	@Value("${local.server.port}")
-	private int port;
+	@Autowired
+	private WebTestClient webClient;
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
@@ -84,21 +80,10 @@ public class ConfigMapsSpringBootTest {
 				.always();
 	}
 
-	@Before
-	public void setUp() {
-		RestAssured.baseURI = String.format("http://localhost:%d/api/greeting", port);
-	}
-
 	@Test
 	public void testConfig() {
 		assertEquals(config.getMasterUrl(), mockClient.getConfiguration().getMasterUrl());
 		assertEquals(config.getNamespace(), mockClient.getNamespace());
-	}
-
-	@Test
-	public void testGreetingEndpoint() {
-		when().get().then().statusCode(200).body("content",
-				is("Hello ConfigMap, World!"));
 	}
 
 	@Test
@@ -107,6 +92,12 @@ public class ConfigMapsSpringBootTest {
 				.withName(APPLICATION_NAME).get();
 		HashMap<String, String> keys = (HashMap<String, String>) configmap.getData();
 		assertEquals(keys.get("bean.greeting"), "Hello ConfigMap, %s!");
+	}
+
+	@Test
+	public void testGreetingEndpoint() {
+		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
+			.expectBody().jsonPath("content").isEqualTo("Hello ConfigMap, World!");
 	}
 
 }
