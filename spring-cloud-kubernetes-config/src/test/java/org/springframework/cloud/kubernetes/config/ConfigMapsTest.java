@@ -17,29 +17,19 @@
 
 package org.springframework.cloud.kubernetes.config;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import java.util.Map;
 import org.junit.Rule;
 import org.junit.Test;
-
-import org.springframework.util.FileSystemUtils;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
 
 /**
  * @author Charles Moulliard
@@ -95,8 +85,7 @@ public class ConfigMapsTest {
 				.once();
 
 		ConfigMapPropertySource cmps = new ConfigMapPropertySource(
-				server.getClient().inNamespace(namespace), configMapName,
-				new ConfigMapConfigProperties());
+				server.getClient().inNamespace(namespace), configMapName);
 
 		assertEquals("a", cmps.getProperty("dummy.property.string1"));
 		assertEquals("1", cmps.getProperty("dummy.property.int1"));
@@ -119,8 +108,7 @@ public class ConfigMapsTest {
 				.once();
 
 		ConfigMapPropertySource cmps = new ConfigMapPropertySource(
-				server.getClient().inNamespace(namespace), configMapName,
-				new ConfigMapConfigProperties());
+				server.getClient().inNamespace(namespace), configMapName);
 
 		assertEquals("a", cmps.getProperty("dummy.property.string2"));
 		assertEquals("1", cmps.getProperty("dummy.property.int2"));
@@ -140,8 +128,7 @@ public class ConfigMapsTest {
 				.once();
 
 		ConfigMapPropertySource cmps = new ConfigMapPropertySource(
-				server.getClient().inNamespace(namespace), configMapName,
-				new ConfigMapConfigProperties());
+				server.getClient().inNamespace(namespace), configMapName);
 
 		assertEquals("a", cmps.getProperty("dummy.property.string3"));
 		assertEquals("1", cmps.getProperty("dummy.property.int3"));
@@ -162,7 +149,7 @@ public class ConfigMapsTest {
 				.once();
 
 		new ConfigMapPropertySource(server.getClient().inNamespace(namespace),
-				configMapName, new ConfigMapConfigProperties());
+				configMapName);
 
 		// no exception is thrown for unparseable content
 	}
@@ -181,7 +168,7 @@ public class ConfigMapsTest {
 				.once();
 
 		new ConfigMapPropertySource(server.getClient().inNamespace(namespace),
-				configMapName, new ConfigMapConfigProperties());
+				configMapName);
 
 		// no exception is thrown for unparseable content
 	}
@@ -204,8 +191,7 @@ public class ConfigMapsTest {
 				.once();
 
 		ConfigMapPropertySource cmps = new ConfigMapPropertySource(
-				server.getClient().inNamespace(namespace), configMapName,
-				new ConfigMapConfigProperties());
+				server.getClient().inNamespace(namespace), configMapName);
 
 		// application.properties should be read correctly
 		assertEquals("a", cmps.getProperty("dummy.property.string1"));
@@ -216,87 +202,6 @@ public class ConfigMapsTest {
 		assertNull(cmps.getProperty("dummy.property.bool2"));
 		assertNull(cmps.getProperty("dummy.property.bool2"));
 		assertNull(cmps.getProperty("dummy.property.bool2"));
-	}
-
-	@Test
-	public void testConfigMapGetFromVolume() throws IOException {
-		KubernetesClient client = server.getClient();
-		ConfigMapConfigProperties cmConfProperties = new ConfigMapConfigProperties();
-		cmConfProperties.setEnableApi(false);
-
-		// create test data, as if in-container volumes mounted by k8s, see
-		// https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#add-configmap-data-to-a-volume
-		final Path tmp = Files.createTempDirectory("test-k8s-cm-");
-		final Path dbPath = tmp.resolve("cm/db");
-		final Path apiPath = tmp.resolve("cm/api");
-		createConfigMapFile(dbPath, "db.url", "http://localhost/db");
-		createConfigMapFile(apiPath, "api.url", "http://localhost/api");
-		createConfigMapFile(apiPath, "foo.bar", "42");
-
-		final Path filesPath = tmp.resolve("cm/files");
-
-		createConfigMapFile(filesPath, "application.yaml",
-				readResourceFile("application.yaml"));
-		createConfigMapFile(filesPath, "application.properties",
-				readResourceFile("application.properties"));
-
-		// parse ConfigMaps
-		cmConfProperties.setPaths(Arrays.asList(dbPath.toString(), apiPath.toString(),
-				filesPath.toString()));
-		ConfigMapPropertySource cmps = new ConfigMapPropertySource(client, "testapp",
-				cmConfProperties);
-
-		// assert as expected
-		assertEquals("42", cmps.getProperty("foo.bar"));
-		assertEquals("http://localhost/db", cmps.getProperty("db.url"));
-		assertEquals("http://localhost/api", cmps.getProperty("api.url"));
-		assertFalse(cmps.containsProperty("no.such.property"));
-
-		assertEquals("a", cmps.getProperty("dummy.property.string1"));
-		assertEquals("1", cmps.getProperty("dummy.property.int1"));
-		assertEquals("true", cmps.getProperty("dummy.property.bool1"));
-
-		assertEquals("a", cmps.getProperty("dummy.property.string2"));
-		assertEquals("1", cmps.getProperty("dummy.property.int2"));
-		assertEquals("true", cmps.getProperty("dummy.property.bool2"));
-
-		FileSystemUtils.deleteRecursively(tmp.toFile());
-	}
-
-	@Test
-	public void testConfigMapGetSingleApplicationPropertiesFromVolume()
-			throws IOException {
-		KubernetesClient client = server.getClient();
-		ConfigMapConfigProperties cmConfProperties = new ConfigMapConfigProperties();
-		cmConfProperties.setEnableApi(false);
-
-		// create test data, as if in-container volumes mounted by k8s, see
-		// https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#add-configmap-data-to-a-volume
-		final Path tmp = Files.createTempDirectory("test-k8s-cm-");
-
-		final Path filesPath = tmp.resolve("cm/files");
-
-		createConfigMapFile(filesPath, "adhoc.properties",
-				readResourceFile("adhoc.properties"));
-
-		// parse ConfigMaps
-		cmConfProperties.setPaths(Collections.singletonList(filesPath.toString()));
-		ConfigMapPropertySource cmps = new ConfigMapPropertySource(client, "testapp",
-				cmConfProperties);
-
-		// assert as expected
-		assertEquals("a", cmps.getProperty("dummy.property.string4"));
-		assertEquals("1", cmps.getProperty("dummy.property.int4"));
-		assertEquals("true", cmps.getProperty("dummy.property.bool4"));
-
-		FileSystemUtils.deleteRecursively(tmp.toFile());
-	}
-
-	private void createConfigMapFile(Path basePath, String key, String value)
-			throws IOException {
-		Files.createDirectories(basePath);
-		final Path apiUrlFile = Files.createFile(basePath.resolve(key));
-		Files.write(apiUrlFile, value.getBytes(StandardCharsets.UTF_8));
 	}
 
 }

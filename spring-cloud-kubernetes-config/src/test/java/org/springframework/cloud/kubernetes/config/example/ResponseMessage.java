@@ -20,15 +20,15 @@ package org.springframework.cloud.kubernetes.config.example;
 /**
  * @author Charles Moulliard
  */
-public class Greeting {
+public class ResponseMessage {
 
 	private final String content;
 
-	public Greeting() {
+	public ResponseMessage() {
 		this.content = null;
 	}
 
-	public Greeting(String content) {
+	public ResponseMessage(String content) {
 		this.content = content;
 	}
 
