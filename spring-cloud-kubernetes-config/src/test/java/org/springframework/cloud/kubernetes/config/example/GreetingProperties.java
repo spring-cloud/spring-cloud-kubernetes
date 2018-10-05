@@ -26,6 +26,7 @@ public class GreetingProperties {
 
 	private String greeting = "Hello, %s!";
 	private String farewell = "Goodbye, %s!";
+	private String morning = "Good morning, %s!";
 
 	public String getGreeting() {
 		return greeting;
@@ -41,5 +42,13 @@ public class GreetingProperties {
 
 	public void setFarewell(String farewell) {
 		this.farewell = farewell;
+	}
+
+	public String getMorning() {
+		return morning;
+	}
+
+	public void setMorning(String morning) {
+		this.morning = morning;
 	}
 }

@@ -17,31 +17,23 @@
 
 package org.springframework.cloud.kubernetes.config;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.KEY_VALUE_TO_PROPERTIES;
+import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.PROPERTIES_TO_MAP;
+import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.yamlParserGenerator;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
-import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.StringUtils;
 
-import static java.util.Arrays.asList;
-import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.ABSTAIN;
-import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.FOUND;
-import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.NOT_FOUND;
-
-public class ConfigMapPropertySource extends KubernetesPropertySource {
+public class ConfigMapPropertySource extends MapPropertySource {
 	private static final Log LOG = LogFactory.getLog(ConfigMapPropertySource.class);
 
 	private static final String APPLICATION_YML = "application.yml";
@@ -50,20 +42,14 @@ public class ConfigMapPropertySource extends KubernetesPropertySource {
 
 	private static final String PREFIX = "configmap";
 
-	public ConfigMapPropertySource(KubernetesClient client, String name,
-			ConfigMapConfigProperties config) {
-		this(client, name, null, config);
-	}
-
-	public ConfigMapPropertySource(KubernetesClient client, String name,
-			String[] profiles, ConfigMapConfigProperties config) {
-		this(client, name, null, profiles, config);
+	public ConfigMapPropertySource(KubernetesClient client, String name) {
+		this(client, name, null, null);
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
-			String[] profiles, ConfigMapConfigProperties config) {
+		String[] profiles) {
 		super(getName(client, name, namespace),
-				asObjectMap(getData(client, name, namespace, profiles, config)));
+				asObjectMap(getData(client, name, namespace, profiles)));
 	}
 
 	private static String getName(KubernetesClient client, String name,
@@ -77,28 +63,22 @@ public class ConfigMapPropertySource extends KubernetesPropertySource {
 	}
 
 	private static Map<String, String> getData(KubernetesClient client, String name,
-			String namespace, String[] profiles, ConfigMapConfigProperties config) {
-		Map<String, String> result = new HashMap<>();
-		if (config.isEnableApi()) {
-			try {
-				ConfigMap map = StringUtils.isEmpty(namespace)
-						? client.configMaps().withName(name).get()
-						: client.configMaps().inNamespace(namespace).withName(name).get();
+		String namespace, String[] profiles) {
+		try {
+			ConfigMap map = StringUtils.isEmpty(namespace)
+				? client.configMaps().withName(name).get()
+				: client.configMaps().inNamespace(namespace).withName(name).get();
 
-				if (map != null) {
-					result.putAll(processAllEntries(map.getData(), profiles));
-				}
-			}
-			catch (Exception e) {
-				LOG.warn("Can't read configMap with name: [" + name + "] in namespace:["
-						+ namespace + "]. Ignoring", e);
+			if (map != null) {
+				return processAllEntries(map.getData(), profiles);
 			}
 		}
+		catch (Exception e) {
+			LOG.warn("Can't read configMap with name: [" + name + "] in namespace:["
+				+ namespace + "]. Ignoring", e);
+		}
 
-		Map<String, String> configsFromPaths = new HashMap<>();
-		putPathConfig(configsFromPaths, config.getPaths());
-		result.putAll(processAllEntries(configsFromPaths, profiles));
-		return result;
+		return new HashMap<>();
 	}
 
 	private static Map<String, String> processAllEntries(Map<String, String> input,
@@ -106,6 +86,8 @@ public class ConfigMapPropertySource extends KubernetesPropertySource {
 
 		Set<Entry<String, String>> entrySet = input.entrySet();
 		if (entrySet.size() == 1) {
+			// we handle the case where the configmap contains a single "file"
+			// in this case we don't care what the name of t he file is
 			Entry<String, String> singleEntry = entrySet.iterator().next();
 			String propertyName = singleEntry.getKey();
 			String propertyValue = singleEntry.getValue();
@@ -115,7 +97,8 @@ public class ConfigMapPropertySource extends KubernetesPropertySource {
 							+ "] will be treated as a yaml file");
 				}
 
-				return yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP)
+				return yamlParserGenerator(profiles).andThen(
+					PROPERTIES_TO_MAP)
 						.apply(propertyValue);
 			}
 			else if (propertyName.endsWith(".properties")) {
@@ -124,7 +107,8 @@ public class ConfigMapPropertySource extends KubernetesPropertySource {
 							+ "] will be treated as a properties file");
 				}
 
-				return KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP)
+				return KEY_VALUE_TO_PROPERTIES.andThen(
+					PROPERTIES_TO_MAP)
 						.apply(propertyValue);
 			}
 			else {
@@ -140,65 +124,29 @@ public class ConfigMapPropertySource extends KubernetesPropertySource {
 
 		return input.entrySet().stream()
 				.map(e -> extractProperties(e.getKey(), e.getValue(), profiles))
-				.filter(m -> !m.isEmpty()).flatMap(m -> m.entrySet().stream())
-				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+				.filter(m -> !m.isEmpty())
+				.flatMap(m -> m.entrySet().stream())
+				.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 	}
 
 	private static Map<String, String> extractProperties(String resourceName,
 			String content, String[] profiles) {
-		Map<String, String> result = new HashMap<>();
 
-		if (resourceName.equals(APPLICATION_YAML)
-				|| resourceName.equals(APPLICATION_YML)) {
-			result.putAll(yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP)
-					.apply(content));
+		if (resourceName.equals(APPLICATION_YAML) || resourceName.equals(APPLICATION_YML)) {
+			return yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP).apply(content);
 		}
 		else if (resourceName.equals(APPLICATION_PROPERTIES)) {
-			result.putAll(
-					KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(content));
+			return KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(content);
 		}
-		else {
-			result.put(resourceName, content);
-		}
-		return result;
+
+		return new HashMap<String, String>() {{
+			put(resourceName, content);
+		}};
 	}
 
 	private static Map<String, Object> asObjectMap(Map<String, String> source) {
 		return source.entrySet().stream()
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
-
-	private static Function<String, Properties> yamlParserGenerator(
-			final String[] profiles) {
-		return s -> {
-			YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
-			yamlFactory.setDocumentMatchers(properties -> {
-				String profileProperty = properties.getProperty("spring.profiles");
-				if (profileProperty != null && profileProperty.length() > 0) {
-					return asList(profiles).contains(profileProperty) ? FOUND : NOT_FOUND;
-				}
-				else {
-					return ABSTAIN;
-				}
-			});
-			yamlFactory.setResources(new ByteArrayResource(s.getBytes()));
-			return yamlFactory.getObject();
-		};
-	}
-
-	private static final Function<String, Properties> KEY_VALUE_TO_PROPERTIES = s -> {
-		Properties properties = new Properties();
-		try {
-			properties.load(new ByteArrayInputStream(s.getBytes()));
-			return properties;
-		}
-		catch (IOException e) {
-			throw new IllegalArgumentException();
-		}
-	};
-
-	private static final Function<Properties, Map<String, String>> PROPERTIES_TO_MAP = p -> p
-			.entrySet().stream().collect(Collectors.toMap(e -> String.valueOf(e.getKey()),
-					e -> String.valueOf(e.getValue())));
 
 }
