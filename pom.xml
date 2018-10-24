@@ -71,6 +71,7 @@
 		<fabric8.maven.plugin.version>3.5.37</fabric8.maven.plugin.version>
 		<gmavenplus-plugin.version>1.6</gmavenplus-plugin.version>
 		<groovy.version>2.4.12</groovy.version>
+		<restassured.version>3.0.2</restassured.version>
 		<spock-spring.version>1.1-groovy-2.4</spock-spring.version>
 	</properties>
 
@@ -86,12 +87,13 @@
 		<module>spring-cloud-starter-kubernetes-all</module>
 		<module>spring-cloud-kubernetes-examples</module>
 		<module>spring-cloud-kubernetes-leader</module>
+		<module>spring-cloud-kubernetes-integration-tests</module>
 		<module>docs</module>
 	</modules>
 
 	<dependencyManagement>
 		<dependencies>
-
+			
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-kubernetes-dependencies</artifactId>

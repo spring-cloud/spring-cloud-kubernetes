@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: sck-example
+  cloud:
+    kubernetes:
+      enabled: false
