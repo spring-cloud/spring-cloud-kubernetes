@@ -1,0 +1,9 @@
+server:
+  port: 8080
+
+# we enable some of the management endpoints to make it possible to restart the application
+management:
+  endpoint:
+    health:
+      enabled: true
+      show-details: always

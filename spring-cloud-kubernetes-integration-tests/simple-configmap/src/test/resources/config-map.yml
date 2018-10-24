@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sck-example
+data:
+  application.properties: |-
+    config.message=Hello from Spring Cloud Kubernetes!
+    another.property=value

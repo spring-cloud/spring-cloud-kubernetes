@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-kubernetes</artifactId>
+		<version>1.0.0.BUILD-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>spring-cloud-kubernetes-integration-tests</artifactId>
+	<packaging>pom</packaging>
+
+	<name>Spring Cloud Kubernetes :: Integration Tests</name>
+	<description>Integration tests where SCK applications are run inside a Kubernetes cluster
+	</description>
+
+	<properties>
+		<java.version>1.8</java.version>
+		<fmp.version>3.5.42</fmp.version>
+		<arquillian-cube.version>1.18.2</arquillian-cube.version>
+		<arquillian.version>1.4.0.Final</arquillian.version>
+		<rest-assured.version>3.2.0</rest-assured.version>
+
+		<!-- We use the unix socket where microk8s' docker daemon listens -->
+		<docker.host>unix:///var/snap/microk8s/current/docker.sock</docker.host>
+
+		<!-- This is the default location of the container registry that comes with microk8s -->
+		<microk8s.registry>localhost:32000</microk8s.registry>
+
+		<!--
+          The port on localhost where the application will listen to from outside the cluster
+          Will be used to construct a NodePort
+        -->
+		<nodeport.value>32222</nodeport.value>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>${maven-deploy-plugin.version}</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>fmp</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>fabric8-maven-plugin</artifactId>
+						<version>${fmp.version}</version>
+						<configuration>
+							<!--
+                                FMP can work with Openshift as well, so here we explicitly force it
+                                to work with vanilla Kubernetes and Docker builds
+                            -->
+							<buildStrategy>docker</buildStrategy>
+							<mode>kubernetes</mode>
+							<pushRegistry>${microk8s.registry}</pushRegistry>
+						</configuration>
+						<executions>
+							<execution>
+								<id>fabric8</id>
+								<goals>
+									<goal>resource</goal>
+									<goal>build</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>it</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<service.host>localhost</service.host>
+								<service.port>${nodeport.value}</service.port>
+							</systemPropertyVariables>
+							<classesDirectory>${project.build.outputDirectory}</classesDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>integration-test</goal>
+									<goal>verify</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.jboss.arquillian</groupId>
+				<artifactId>arquillian-bom</artifactId>
+				<version>${arquillian.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.rest-assured</groupId>
+				<artifactId>rest-assured</artifactId>
+				<version>${rest-assured.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<modules>
+		<module>simple-core</module>
+		<module>simple-configmap</module>
+	</modules>
+
+
+</project>

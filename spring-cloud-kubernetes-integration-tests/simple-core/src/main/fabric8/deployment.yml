@@ -1,0 +1,10 @@
+# We need this fragment in order for the kubernetes client to talk to
+# the Kubernetes API without caring about proper certificates
+spec:
+  template:
+    spec:
+      containers:
+        - env:
+          - name: KUBERNETES_TRUST_CERTIFICATES
+            value: true
+
