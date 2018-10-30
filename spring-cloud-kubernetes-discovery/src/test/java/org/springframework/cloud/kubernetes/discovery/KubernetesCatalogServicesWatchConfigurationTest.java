@@ -51,6 +51,13 @@ public class KubernetesCatalogServicesWatchConfigurationTest {
 	}
 
 	@Test
+	public void kubernetesCatalogWatchWhenKubernetesDisabled() throws Exception {
+		setup("spring.cloud.kubernetes.enabled=false");
+		assertFalse(context.containsBean("kubernetesCatalogWatch"));
+	}
+
+
+	@Test
 	public void kubernetesCatalogWatchDefaultEnabled() throws Exception {
 		setup();
 		assertTrue(context.containsBean("kubernetesCatalogWatch"));
