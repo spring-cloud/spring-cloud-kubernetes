@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.config.reload;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -43,6 +44,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @Configuration
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
+@ConditionalOnClass(EndpointAutoConfiguration.class)
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class,
 		RefreshEndpointAutoConfiguration.class, RefreshAutoConfiguration.class })
 @EnableConfigurationProperties(ConfigReloadProperties.class)
