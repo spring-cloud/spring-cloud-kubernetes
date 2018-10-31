@@ -1,0 +1,29 @@
+= Spring Cloud Kubernetes
+
+include::intro.adoc[]
+
+include::discovery-client.adoc[]
+
+include::property-source-config.adoc[]
+
+include::ribbon-integration.adoc[]
+
+include::kubernetes-awareness.adoc[]
+
+include::pod-health-indicator.adoc[]
+
+include::leader-election.adoc[]
+
+include::security-service-accounts.adoc[]
+
+include::examples.adoc[]
+
+include::other-resources.adoc[]
+
+== Building
+
+include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/building.adoc[]
+
+== Contributing
+
+include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/contributing.adoc[]

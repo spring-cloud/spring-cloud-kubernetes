@@ -1,0 +1,45 @@
+= DiscoveryClient for Kubernetes
+
+This project provides an implementation of [Discovery Client](https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java) for [Kubernetes](http://kubernetes.io).
+This allows you to query Kubernetes endpoints *(see [services](http://kubernetes.io/docs/user-guide/services/))* by name.
+A service is typically exposed by the Kubernetes API server as a collection of endpoints which represent `http`, `https` addresses that a client can
+access from a Spring Boot application running as a pod. This discovery feature is also used by the Spring Cloud Kubernetes Ribbon project
+to fetch the list of the endpoints defined for an application to be load balanced.
+
+This is something that you get for free just by adding the following dependency inside your project:
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes</artifactId>
+    <version>${latest.version}</version>
+</dependency>
+```
+
+To enable loading of the `DiscoveryClient`, add `@EnableDiscoveryClient` to the according configuration or application class like this:
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+public class Application {
+  public static void main(String[] args) {
+    SpringApplication.run(Application.class, args);
+  }
+}
+```
+
+Then you can inject the client in your code simply by:
+
+```java
+@Autowired
+private DiscoveryClient discoveryClient;
+```
+
+If for any reason you need to disable the `DiscoveryClient` you can simply set the following property in `application.properties`:
+
+```
+spring.cloud.kubernetes.discovery.enabled=false
+```
+
+Some Spring Cloud components use the `DiscoveryClient` in order to obtain info about the local service instance. For
+this to work you need to align the Kubernetes service name with the `spring.application.name` property.

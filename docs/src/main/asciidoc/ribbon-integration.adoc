@@ -1,0 +1,50 @@
+# Ribbon discovery in Kubernetes
+
+
+Spring Cloud client applications calling a microservice should be interested on relying on a client load-balancing
+feature in order to automatically discover at which endpoint(s) it can reach a given service. This mechanism has been
+implemented within the [spring-cloud-kubernetes-ribbon](spring-cloud-kubernetes-ribbon/pom.xml) project where a
+Kubernetes client will populate a [Ribbon](https://github.com/Netflix/ribbon) `ServerList` containing information
+about such endpoints.
+
+The implementation is part of the following starter that you can use by adding its dependency to your pom file:
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-netflix</artifactId>
+    <version>${latest.version}</version>
+</dependency>
+```
+
+When the list of the endpoints is populated, the Kubernetes client will search the registered endpoints living in
+the current namespace/project matching the service name defined using the Ribbon Client annotation:
+
+```java
+@RibbonClient(name = "name-service")
+```
+
+You can configure Ribbon's behavior by providing properties in your `application.properties` (via your application's
+dedicated `ConfigMap`) using the following format: `<name of your service>.ribbon.<Ribbon configuration key>` where:
+
+- `<name of your service>` corresponds to the service name you're accessing over Ribbon, as configured using the
+`@RibbonClient` annotation (e.g. `name-service` in the example above)
+- `<Ribbon configuration key>` is one of the Ribbon configuration key defined by
+[Ribbon's CommonClientConfigKey class](https://github.com/Netflix/ribbon/blob/master/ribbon-core/src/main/java/com/netflix/client/config/CommonClientConfigKey.java)
+
+Additionally, the `spring-cloud-kubernetes-ribbon` project defines two additional configuration keys to further
+control how Ribbon interacts with Kubernetes. In particular, if an endpoint defines multiple ports, the default
+behavior is to use the first one found. To select more specifically which port to use, in a multi-port service, use
+the `PortName` key. If you want to specify in which Kubernetes' namespace the target service should be looked up, use
+the `KubernetesNamespace` key, remembering in both instances to prefix these keys with your service name and
+`ribbon` prefix as specified above.
+
+Examples that are using this module for ribbon discovery are:
+
+- [Spring Cloud Circuitbreaker and Ribbon](spring-cloud-kubernetes-examples/kubernetes-circuitbreaker-ribbon-example)
+- [fabric8-quickstarts - Spring Boot - Ribbon](https://github.com/fabric8-quickstarts/spring-boot-ribbon)
+- [Kubeflix - LoanBroker - Bank](https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank)
+
+Remark : The Ribbon discovery client can be disabled by setting this key within the application properties file
+`spring.cloud.kubernetes.ribbon.enabled=false`.
+
