@@ -1,4 +1,4 @@
-# Kubernetes Awareness
+= Kubernetes Awareness
 
 All of the features described above will work equally well regardless of whether your application is running inside
 Kubernetes or not. This is really helpful for development and troubleshooting.
@@ -8,7 +8,7 @@ as the code of the project relies on the
 [Fabric8 Kubernetes Java client](https://github.com/fabric8io/kubernetes-client) which is a fluent DSL able to
 communicate using `http` protocol to the REST API of Kubernetes Server.
 
-# Kubernetes Profile Autoconfiguration
+== Kubernetes Profile Autoconfiguration
 
 When the application runs as a pod inside Kubernetes a Spring profile named `kubernetes` will automatically get activated.
 This allows the developer to customize the configuration, to define beans that will be applied when the Spring Boot application is deployed

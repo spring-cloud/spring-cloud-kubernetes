@@ -4,7 +4,7 @@
 Spring Cloud client applications calling a microservice should be interested on relying on a client load-balancing
 feature in order to automatically discover at which endpoint(s) it can reach a given service. This mechanism has been
 implemented within the [spring-cloud-kubernetes-ribbon](spring-cloud-kubernetes-ribbon/pom.xml) project where a
-Kubernetes client will populate a [Ribbon](https://github.com/Netflix/ribbon) `ServerList` containing information
+Kubernetes client will populate a https://github.com/Netflix/ribbon[Ribbon] `ServerList` containing information
 about such endpoints.
 
 The implementation is part of the following starter that you can use by adding its dependency to your pom file:
@@ -30,7 +30,7 @@ dedicated `ConfigMap`) using the following format: `<name of your service>.ribbo
 - `<name of your service>` corresponds to the service name you're accessing over Ribbon, as configured using the
 `@RibbonClient` annotation (e.g. `name-service` in the example above)
 - `<Ribbon configuration key>` is one of the Ribbon configuration key defined by
-[Ribbon's CommonClientConfigKey class](https://github.com/Netflix/ribbon/blob/master/ribbon-core/src/main/java/com/netflix/client/config/CommonClientConfigKey.java)
+https://github.com/Netflix/ribbon/blob/master/ribbon-core/src/main/java/com/netflix/client/config/CommonClientConfigKey.java[Ribbon's CommonClientConfigKey class]
 
 Additionally, the `spring-cloud-kubernetes-ribbon` project defines two additional configuration keys to further
 control how Ribbon interacts with Kubernetes. In particular, if an endpoint defines multiple ports, the default
@@ -41,10 +41,10 @@ the `KubernetesNamespace` key, remembering in both instances to prefix these key
 
 Examples that are using this module for ribbon discovery are:
 
-- [Spring Cloud Circuitbreaker and Ribbon](spring-cloud-kubernetes-examples/kubernetes-circuitbreaker-ribbon-example)
-- [fabric8-quickstarts - Spring Boot - Ribbon](https://github.com/fabric8-quickstarts/spring-boot-ribbon)
-- [Kubeflix - LoanBroker - Bank](https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank)
+- link:./spring-cloud-kubernetes-examples/kubernetes-circuitbreaker-ribbon-example[Spring Cloud Circuitbreaker and Ribbon]
+- https://github.com/fabric8-quickstarts/spring-boot-ribbon[fabric8-quickstarts - Spring Boot - Ribbon]
+- https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank[Kubeflix - LoanBroker - Bank]
 
-Remark : The Ribbon discovery client can be disabled by setting this key within the application properties file
+*Note*: The Ribbon discovery client can be disabled by setting this key within the application properties file
 `spring.cloud.kubernetes.ribbon.enabled=false`.
 

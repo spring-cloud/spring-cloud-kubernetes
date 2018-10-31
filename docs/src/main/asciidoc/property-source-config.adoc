@@ -1,15 +1,15 @@
-# Kubernetes PropertySource
+= Kubernetes PropertySource implementations
 
 The most common approach to configure your Spring Boot application is to create an `application.properties|yaml` or
 an `application-profile.properties|yaml` file containing key-value pairs providing customization values to your
 application or Spring Boot starters. Users may override these properties by specifying system properties or environment
 variables.
 
-## ConfigMap PropertySource
+== ConfigMap PropertySource
 
-Kubernetes provides a resource named [ConfigMap](http://kubernetes.io/docs/user-guide/configmap/) to externalize the
+Kubernetes provides a resource named http://kubernetes.io/docs/user-guide/configmap/[ConfigMap] to externalize the
 parameters to pass to your application in the form of key-value pairs or embedded `application.properties|yaml` files.
-The [Spring Cloud Kubernetes Config](./spring-cloud-kubernetes-config) project makes Kubernetes `ConfigMap`s available
+The link:./spring-cloud-kubernetes-config[Spring Cloud Kubernetes Config] project makes Kubernetes `ConfigMap`s available
 during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on
 observed `ConfigMap`s.
 
@@ -175,22 +175,21 @@ spec:
 ```
 
 **Notes:**
-- To access `ConfigMap`s on OpenShift the service account needs at least view permissions i.e.:
+- check the security configuration section, to access config maps from inside a pod you need to have the correct
+Kubernetes service accounts, roles and role bindings.
 
-    ```oc policy add-role-to-user view system:serviceaccount:$(oc project -q):default -n $(oc project -q)```
-
-**Properties:**
-
+.Properties:
+[options="header,footer"]
+|===
 | Name                                     | Type    | Default                    | Description
-| ---                                      | ---     | ---                        | ---
 | spring.cloud.kubernetes.config.enabled   | Boolean | true                       | Enable Secrets PropertySource
 | spring.cloud.kubernetes.config.name      | String  | ${spring.application.name} | Sets the name of ConfigMap to lookup
 | spring.cloud.kubernetes.config.namespace | String  | Client namespace           | Sets the Kubernetes namespace where to lookup
 | spring.cloud.kubernetes.config.paths     | List    | null                       | Sets the paths where ConfigMaps are mounted
 | spring.cloud.kubernetes.config.enableApi | Boolean | true                       | Enable/Disable consuming ConfigMaps via APIs
+|===
 
-
-## Secrets PropertySource
+== Secrets PropertySource
 
 Kubernetes has the notion of [Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) for storing
 sensitive data such as password, OAuth tokens, etc. This project provides integration with `Secrets` to make secrets
@@ -284,28 +283,28 @@ You can select the Secrets to consume in a number of ways:
     -Dspring.cloud.kubernetes.secrets.labels.db=postgresql
     ```
 
-**Properties:**
-
+.Properties:
+[options="header,footer"]
+|===
 | Name                                      | Type    | Default                    | Description
-| ---                                       | ---     | ---                        | ---
 | spring.cloud.kubernetes.secrets.enabled   | Boolean | true                       | Enable Secrets PropertySource
 | spring.cloud.kubernetes.secrets.name      | String  | ${spring.application.name} | Sets the name of the secret to lookup
 | spring.cloud.kubernetes.secrets.namespace | String  | Client namespace           | Sets the Kubernetes namespace where to lookup
 | spring.cloud.kubernetes.secrets.labels    | Map     | null                       | Sets the labels used to lookup secrets
 | spring.cloud.kubernetes.secrets.paths     | List    | null                       | Sets the paths where secrets are mounted (example 1)
 | spring.cloud.kubernetes.secrets.enableApi | Boolean | false                      | Enable/Disable consuming secrets via APIs (examples 2 and 3)
-
+|===
 **Notes:**
 - The property `spring.cloud.kubernetes.secrets.labels` behaves as defined by
-[Map-based binding](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding).
+https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding[Map-based binding].
 - The property `spring.cloud.kubernetes.secrets.paths` behaves as defined by
-[Collection-based binding](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#collection-based-binding).
+https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#collection-based-binding[Collection-based binding].
 - Access to secrets via API may be restricted for security reasons, the preferred way is to mount secret to the POD.
 
 Example of application using secrets (though it hasn't been updated to use the new `spring-cloud-kubernetes` project):
-[spring-boot-camel-config](https://github.com/fabric8-quickstarts/spring-boot-camel-config)
+https://github.com/fabric8-quickstarts/spring-boot-camel-config[spring-boot-camel-config]
 
-## PropertySource Reload
+== PropertySource Reload
 
 Some applications may need to detect changes on external property sources and update their internal status to reflect the new configuration.
 The reload feature of Spring Cloud Kubernetes is able to trigger an application reload when a related `ConfigMap` or
@@ -383,18 +382,18 @@ The polling period can be configured using the property `spring.cloud.kubernetes
 It requires the same role as the monitored property source.
 This means, for example, that using polling on file mounted secret sources does not require particular privileges.
 
-Properties:
-
+.Properties:
+[options="header,footer"]
+|===
 | Name                                                   | Type    | Default                    | Description
-| ---                                                    | ---     | ---                        | ---
 | spring.cloud.kubernetes.reload.enabled                 | Boolean | false                      | Enables monitoring of property sources and configuration reload
 | spring.cloud.kubernetes.reload.monitoring-config-maps  | Boolean | true                       | Allow monitoring changes in config maps
 | spring.cloud.kubernetes.reload.monitoring-secrets      | Boolean | false                      | Allow monitoring changes in secrets
 | spring.cloud.kubernetes.reload.strategy                | Enum    | refresh                    | The strategy to use when firing a reload (*refresh*, *restart_context*, *shutdown*)
 | spring.cloud.kubernetes.reload.mode                    | Enum    | event                      | Specifies how to listen for changes in property sources (*event*, *polling*)
 | spring.cloud.kubernetes.reload.period                  | Long    | 15000                      | The period in milliseconds for verifying changes when using the *polling* strategy
-
-Notes:
+|===
+**Notes**:
 - Properties under *spring.cloud.kubernetes.reload.* should not be used in config maps or secrets: changing such properties at runtime may lead to unexpected results;
 - Deleting a property or the whole config map does not restore the original state of the beans when using the *refresh* level.
 
