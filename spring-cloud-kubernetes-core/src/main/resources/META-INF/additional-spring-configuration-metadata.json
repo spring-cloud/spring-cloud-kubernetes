@@ -1,0 +1,124 @@
+{
+	"properties": [
+		{
+			"name": "spring.cloud.kubernetes.client.trustCerts",
+			"type": "java.lang.Boolean",
+			"description": "",
+			"defaultValue": false
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.masterUrl",
+			"type": "java.lang.String",
+			"description": "",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.apiVersion",
+			"type": "java.lang.String",
+			"description": "Kubernetes API Version",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.namespace",
+			"type": "java.lang.String",
+			"description": "Kubernetes Namespace",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.username",
+			"type": "java.lang.String",
+			"description": "Kubernetes API Username",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.password",
+			"type": "java.lang.String",
+			"description": "Kubernetes API Password",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.caCertFile",
+			"type": "java.lang.String",
+			"description": "Kubernetes API CACertFile",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.caCertData",
+			"type": "java.lang.String",
+			"description": "Kubernetes API CACertData",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.clientCertFile",
+			"type": "java.lang.String",
+			"description": "Kubernetes API ClientCertFile",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.clientCertData",
+			"type": "java.lang.String",
+			"description": "Kubernetes API ClientCertData",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.clientKeyFile",
+			"type": "java.lang.String",
+			"description": "Kubernetes API ClientKeyFile",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.clientKeyData",
+			"type": "java.lang.String",
+			"description": "Kubernetes API ClientKeyData",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.clientKeyAlgo",
+			"type": "java.lang.String",
+			"description": "Kubernetes API ClientKeyAlgo",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.clientKeyPassphrase",
+			"type": "java.lang.String",
+			"description": "Kubernetes API ClientKeyPassphrase",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.watchReconnectInterval",
+			"type": "java.lang.Integer",
+			"description": "Reconnect Interval in milliseconds",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.watchReconnectLimit",
+			"type": "java.lang.Integer",
+			"description": "Reconnect Interval limit retries",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.connectionTimeout",
+			"type": "java.lang.Integer",
+			"description": "Connection timeout in milliseconds",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.requestTimeout",
+			"type": "java.lang.Integer",
+			"description": "Request timeout in milliseconds",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.rollingTimeout",
+			"type": "java.lang.Long",
+			"description": "Rolling timeout in milliseconds",
+			"defaultValue": true
+		},
+		{
+			"name": "spring.cloud.kubernetes.client.loggingInterval",
+			"type": "java.lang.Integer",
+			"description": "Logging interval",
+			"defaultValue": true
+		}
+	]
+}
