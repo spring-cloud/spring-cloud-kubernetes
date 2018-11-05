@@ -1,6 +1,6 @@
 = Spring Cloud Kubernetes
 
-include::intro.adoc[]
+include::spring-cloud-kubernetes.adoc[]
 
 include::discovery-client.adoc[]
 
