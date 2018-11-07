@@ -7,8 +7,6 @@
 Spring Cloud Kubernetes provide Spring Cloud common interfaces implementations to consume Kubernetes native services.
 The main objective of the projects provided in this repository is to facilitate the integration of Spring Cloud/Spring Boot applications running inside Kubernetes.
 
-
-
 = DiscoveryClient for Kubernetes
 
 This project provides an implementation of https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java[Discovery Client]
