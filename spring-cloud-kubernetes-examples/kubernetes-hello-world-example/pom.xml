@@ -120,6 +120,8 @@
 				<version>${maven-surefire-plugin.version}</version>
 				<configuration>
 					<skipTests>true</skipTests>
+					<!-- Workaround for https://issues.apache.org/jira/browse/SUREFIRE-1588 -->
+					<useSystemClassLoader>false</useSystemClassLoader>
 				</configuration>
 			</plugin>
 			<plugin>

@@ -92,7 +92,7 @@
 
 	<dependencyManagement>
 		<dependencies>
-			
+
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-kubernetes-dependencies</artifactId>
@@ -136,6 +136,13 @@
 				<version>${spock-spring.version}</version>
 				<scope>test</scope>
 			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-test-support</artifactId>
+				<version>${spring-cloud-commons.version}</version>
+				<scope>test</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -169,6 +176,8 @@
 				<configuration>
 					<forkCount>1</forkCount>
 					<reuseForks>false</reuseForks>
+					<!-- Workaround for https://issues.apache.org/jira/browse/SUREFIRE-1588 -->
+					<useSystemClassLoader>false</useSystemClassLoader>
 				</configuration>
 			</plugin>
 		</plugins>
