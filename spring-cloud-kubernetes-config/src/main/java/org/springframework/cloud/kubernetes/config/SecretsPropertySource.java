@@ -99,6 +99,10 @@ public class SecretsPropertySource extends KubernetesPropertySource {
 		return result;
 	}
 
+	@Override public String toString() {
+		return getClass().getSimpleName()
+	}
+
 	// *****************************
 	// Helpers
 	// *****************************
