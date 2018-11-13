@@ -1,0 +1,15 @@
+{"properties": [
+  {
+    "name": "spring.cloud.kubernetes.config.enabled",
+    "type": "java.lang.Boolean",
+    "description": "Enable the ConfigMap property source locator.",
+    "defaultValue": true
+  },
+  {
+    "name": "spring.cloud.kubernetes.secrets.enabled",
+    "type": "java.lang.Boolean",
+    "description": "Enable the Secrets property source locator.",
+    "defaultValue": true
+  }
+]}
+

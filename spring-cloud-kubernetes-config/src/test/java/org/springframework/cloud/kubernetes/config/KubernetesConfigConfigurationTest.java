@@ -37,11 +37,11 @@ public class KubernetesConfigConfigurationTest {
 
 	@Test
 	public void kubernetesWhenKubernetesConfigDisabled() throws Exception {
-		setup("spring.cloud.kubernetes.config.enabled=false");
+		setup("spring.cloud.kubernetes.config.enabled=false",
+			"spring.cloud.kubernetes.secrets.enabled=false");
 		assertFalse(context.containsBean("configMapPropertySourceLocator"));
 		assertFalse(context.containsBean("secretsPropertySourceLocator"));
 	}
-
 
 	@Test
 	public void kubernetesDefaultEnabled() throws Exception {
