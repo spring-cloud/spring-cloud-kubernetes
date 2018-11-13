@@ -5,6 +5,9 @@ spring:
   sleuth:
     sampler:
       percentage: 1.0
+  zipkin:
+    # Assuming that zipkinserver is the service name of zipkin server.
+    baseUrl: http://zipkinserver
 
 sample:
   zipkin:

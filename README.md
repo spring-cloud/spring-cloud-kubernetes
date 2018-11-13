@@ -16,7 +16,6 @@
 -   [Transparency](#transparency) *(it is transparent whether the code runs in or outside of Kubernetes)*
 -   [Kubernetes Profile Autoconfiguration](#kubernetes-profile-autoconfiguration)
 -   [Ribbon discovery in Kubernetes](#ribbon-discovery-in-kubernetes)
--   [Zipkin discovery in Kubernetes](#zipkin-discovery-in-kubernetes)
 -   [ConfigMap Archaius Bridge](#configmap-archaius-bridge)
 
 ---
@@ -526,33 +525,6 @@ Examples that are using this module for ribbon discovery are:
 
 Remark : The Ribbon discovery client can be disabled by setting this key within the application properties file 
 `spring.cloud.kubernetes.ribbon.enabled=false`.
-
-
-### Zipkin discovery in Kubernetes
-
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes-zipkin/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes-zipkin/)
-[![Javadocs](http://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-starter-kubernetes-zipkin.svg?color=blue)](http://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-starter-kubernetes-zipkin)
-[![Dependency Status](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-zipkin/badge?style=flat)](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-zipkin/)
-
-[Zipkin](https://github.com/openzipkin/zipkin) is a distributed tracing system which is supported by the project 
-[Spring Cloud Sleuth](https://github.com/spring-cloud/spring-cloud-sleuth) which allows
-to collect traces or spans from microservice applications. 
-
-A Discovery client has been implemented top of Kubernetes in order to fetch the Zipkin service (e.g. `zipkin`). This 
-client is provided by the [spring-cloud-kubernetes-zipkin](spring-cloud-kubernetes-zipkin/pom.xml) project that you 
-can use by adding this starter to your maven pom file:
-
-```xml
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-zipkin</artifactId>
-    <version>${latest.version}</version>
-</dependency>
-```
-
-This works as an extension of the [spring-cloud-sleuth-zipkin](https://github.com/spring-cloud/spring-cloud-sleuth/tree/master/spring-cloud-sleuth-zipkin) project. 
-The name of the Zipkin service and the target Kubernetes namespace/project where the service runs can be specified 
-using the following `application.properties` properties:
 
 ```bash
 spring.cloud.kubernetes.zipkin.discovery.serviceName=my-zipkin
