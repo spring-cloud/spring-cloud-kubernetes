@@ -36,6 +36,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 public class KubernetesDiscoveryClient implements DiscoveryClient {
 
@@ -114,7 +115,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	// but with the keys prefixed
 	private Map<String, String> getMapWithPrefixedKeys(Map<String, String> map, String prefix) {
 		// when the prefix is empty just return an map with the same entries
-		if (prefix.isEmpty()) {
+		if (!StringUtils.hasText(prefix)) {
 			return new HashMap<>(map);
 		}
 

@@ -44,7 +44,7 @@ public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProper
 	 * When enabledAdditionOfLabelsAsMetadata is set, then the value labelKeysPrefix
 	 * will be used as a prefix to the key names in the metadata map
 	 */
-	private String labelKeysPrefix = "";
+	private String labelKeysPrefix;
 
 
 	/**
@@ -57,7 +57,7 @@ public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProper
 	 * When enabledAdditionOfAnnotationsAsMetadata is set, then the value annotationKeysPrefix
 	 * will be used as a prefix to the key names in the metadata map
 	 */
-	private String annotationKeysPrefix = "";
+	private String annotationKeysPrefix;
 
 	public boolean isEnabled() {
 		return enabled;
