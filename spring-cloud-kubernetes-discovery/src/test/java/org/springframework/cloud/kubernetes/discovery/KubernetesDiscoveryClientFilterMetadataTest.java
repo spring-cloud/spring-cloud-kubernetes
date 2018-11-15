@@ -92,7 +92,6 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		when(properties.isEnabledAdditionOfLabelsAsMetadata()).thenReturn(true);
-		when(properties.getLabelKeysPrefix()).thenReturn("");
 		when(properties.isEnabledAdditionOfAnnotationsAsMetadata()).thenReturn(false);
 
 		setupServiceWithLabelsAndAnnotations(
@@ -141,7 +140,6 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 
 		when(properties.isEnabledAdditionOfLabelsAsMetadata()).thenReturn(false);
 		when(properties.isEnabledAdditionOfAnnotationsAsMetadata()).thenReturn(true);
-		when(properties.getAnnotationKeysPrefix()).thenReturn("");
 
 		setupServiceWithLabelsAndAnnotations(
 			serviceId,
