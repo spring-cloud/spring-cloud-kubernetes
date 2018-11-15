@@ -29,10 +29,35 @@ public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProper
 	@Value("${spring.application.name:unknown}")
 	private String serviceName = "unknown";
 
-	/** 
-	* SpEL expression to filter services 
+	/**
+	* SpEL expression to filter services
 	**/
 	private String filter;
+
+	/**
+	 * When set, the Kubernetes labels of the services will be included as metadata
+	 * of the returned ServiceInstance
+	 */
+	private boolean enabledAdditionOfLabelsAsMetadata = true;
+
+	/**
+	 * When enabledAdditionOfLabelsAsMetadata is set, then the value labelKeysPrefix
+	 * will be used as a prefix to the key names in the metadata map
+	 */
+	private String labelKeysPrefix = "";
+
+
+	/**
+	 * When set, the Kubernetes annotations of the services will be included as metadata
+	 * of the returned ServiceInstance
+	 */
+	private boolean enabledAdditionOfAnnotationsAsMetadata = true;
+
+	/**
+	 * When enabledAdditionOfAnnotationsAsMetadata is set, then the value annotationKeysPrefix
+	 * will be used as a prefix to the key names in the metadata map
+	 */
+	private String annotationKeysPrefix = "";
 
 	public boolean isEnabled() {
 		return enabled;
@@ -49,9 +74,42 @@ public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProper
 	public String getFilter() {
 		return filter;
 	}
-	
+
 	public void setFilter(String filter){
 		this.filter = filter;
+	}
+
+	public boolean isEnabledAdditionOfLabelsAsMetadata() {
+		return enabledAdditionOfLabelsAsMetadata;
+	}
+
+	public void setEnabledAdditionOfLabelsAsMetadata(boolean enabledAdditionOfLabelsAsMetadata) {
+		this.enabledAdditionOfLabelsAsMetadata = enabledAdditionOfLabelsAsMetadata;
+	}
+
+	public String getLabelKeysPrefix() {
+		return labelKeysPrefix;
+	}
+
+	public void setLabelKeysPrefix(String labelKeysPrefix) {
+		this.labelKeysPrefix = labelKeysPrefix;
+	}
+
+	public boolean isEnabledAdditionOfAnnotationsAsMetadata() {
+		return enabledAdditionOfAnnotationsAsMetadata;
+	}
+
+	public void setEnabledAdditionOfAnnotationsAsMetadata(
+		boolean enabledAdditionOfAnnotationsAsMetadata) {
+		this.enabledAdditionOfAnnotationsAsMetadata = enabledAdditionOfAnnotationsAsMetadata;
+	}
+
+	public String getAnnotationKeysPrefix() {
+		return annotationKeysPrefix;
+	}
+
+	public void setAnnotationKeysPrefix(String annotationKeysPrefix) {
+		this.annotationKeysPrefix = annotationKeysPrefix;
 	}
 
 	@Override

@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -72,19 +73,35 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId,
 				"[Assertion failed] - the object argument must be null");
-		final Map<String, String> labels = getLabels(serviceId);
 
 		Endpoints endpoints = client.endpoints().withName(serviceId).get();
 		List<EndpointSubset> subsets = null != endpoints ? endpoints.getSubsets() : new ArrayList<>();
 		List<ServiceInstance> instances = new ArrayList<>();
 		if (!subsets.isEmpty()) {
+
+			final Service service = client.services().withName(serviceId).get();
+
+			final Map<String, String> metadata = new HashMap<>();
+			if(properties.isEnabledAdditionOfLabelsAsMetadata()) {
+				metadata.putAll(
+					getMapWithPrefixedKeys(
+						service.getMetadata().getLabels(), properties.getLabelKeysPrefix())
+				);
+			}
+			if(properties.isEnabledAdditionOfAnnotationsAsMetadata()) {
+				metadata.putAll(
+					getMapWithPrefixedKeys(
+						service.getMetadata().getAnnotations(), properties.getAnnotationKeysPrefix())
+				);
+			}
+
 			for (EndpointSubset s : subsets) {
 				List<EndpointAddress> addresses = s.getAddresses();
 				for (EndpointAddress a : addresses) {
 					instances.add(new KubernetesServiceInstance(serviceId,
 							a,
 							s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
-							labels,
+							metadata,
 							false));
 				}
 			}
@@ -93,12 +110,18 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return instances;
 	}
 
-	private Map<String, String> getLabels(String serviceName) {
-		final Service service = client.services().withName(serviceName).get();
-		if (service != null) {
-			return service.getMetadata().getLabels();
+	// always returns a new map that contain all the entries of the original map
+	// but with the keys prefixed
+	private Map<String, String> getMapWithPrefixedKeys(Map<String, String> map, String prefix) {
+		// when the prefix is empty just return an map with the same entries
+		if (prefix.isEmpty()) {
+			return new HashMap<>(map);
 		}
-		return Collections.emptyMap();
+
+		final Map<String, String> result = new HashMap<>();
+		map.forEach((k, v) -> result.put(prefix + k, v));
+
+		return result;
 	}
 
 	@Override
