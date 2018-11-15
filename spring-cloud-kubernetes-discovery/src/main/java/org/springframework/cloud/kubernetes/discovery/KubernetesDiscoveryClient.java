@@ -111,12 +111,13 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return instances;
 	}
 
-	// always returns a new map that contain all the entries of the original map
+	// returns a new map that contain all the entries of the original map
 	// but with the keys prefixed
+	// if the prefix is null or empty, the map itself is returned (unchanged of course)
 	private Map<String, String> getMapWithPrefixedKeys(Map<String, String> map, String prefix) {
 		// when the prefix is empty just return an map with the same entries
 		if (!StringUtils.hasText(prefix)) {
-			return new HashMap<>(map);
+			return map;
 		}
 
 		final Map<String, String> result = new HashMap<>();
