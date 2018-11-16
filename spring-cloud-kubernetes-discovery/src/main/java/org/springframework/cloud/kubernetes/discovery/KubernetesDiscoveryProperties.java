@@ -20,56 +20,22 @@ package org.springframework.cloud.kubernetes.discovery;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.client.serviceregistry.AutoServiceRegistrationProperties;
+import org.springframework.core.style.ToStringCreator;
 
 @ConfigurationProperties("spring.cloud.kubernetes.discovery")
 public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProperties {
 
+	/** If Kubernetes Discovery is enabled. */
 	private boolean enabled = true;
 
+	/** The service name of the local instance. */
 	@Value("${spring.application.name:unknown}")
 	private String serviceName = "unknown";
 
-	/**
-	* SpEL expression to filter services
-	**/
+	/** SpEL expression to filter services. */
 	private String filter;
 
-	/**
-	 * When set, the Kubernetes labels of the services will be included as metadata
-	 * of the returned ServiceInstance
-	 */
-	private boolean enabledAdditionOfLabelsAsMetadata = true;
-
-	/**
-	 * When enabledAdditionOfLabelsAsMetadata is set, then the value labelKeysPrefix
-	 * will be used as a prefix to the key names in the metadata map
-	 */
-	private String labelKeysPrefix;
-
-
-	/**
-	 * When set, the Kubernetes annotations of the services will be included as metadata
-	 * of the returned ServiceInstance
-	 */
-	private boolean enabledAdditionOfAnnotationsAsMetadata = true;
-
-	/**
-	 * When enabledAdditionOfAnnotationsAsMetadata is set, then the value annotationKeysPrefix
-	 * will be used as a prefix to the key names in the metadata map
-	 */
-	private String annotationKeysPrefix;
-
-	/**
-	 * When set, any named Kubernetes service ports will be included as metadata
-	 * of the returned ServiceInstance
-	 */
-	private boolean enabledAdditionOfPortsAsMetadata = true;
-
-	/**
-	 * When enabledAdditionOfPortsAsMetadata is set, then the value portKeysPrefix
-	 * will be used as a prefix to the key names in the metadata map
-	 */
-	private String portKeysPrefix = "port.";
+	private Metadata metadata = new Metadata();
 
 	public boolean isEnabled() {
 		return enabled;
@@ -83,6 +49,10 @@ public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProper
 		return serviceName;
 	}
 
+	public void setServiceName(String serviceName) {
+		this.serviceName = serviceName;
+	}
+
 	public String getFilter() {
 		return filter;
 	}
@@ -91,61 +61,101 @@ public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProper
 		this.filter = filter;
 	}
 
-	public boolean isEnabledAdditionOfLabelsAsMetadata() {
-		return enabledAdditionOfLabelsAsMetadata;
+	public Metadata getMetadata() {
+		return metadata;
 	}
 
-	public void setEnabledAdditionOfLabelsAsMetadata(boolean enabledAdditionOfLabelsAsMetadata) {
-		this.enabledAdditionOfLabelsAsMetadata = enabledAdditionOfLabelsAsMetadata;
-	}
-
-	public String getLabelKeysPrefix() {
-		return labelKeysPrefix;
-	}
-
-	public void setLabelKeysPrefix(String labelKeysPrefix) {
-		this.labelKeysPrefix = labelKeysPrefix;
-	}
-
-	public boolean isEnabledAdditionOfAnnotationsAsMetadata() {
-		return enabledAdditionOfAnnotationsAsMetadata;
-	}
-
-	public void setEnabledAdditionOfAnnotationsAsMetadata(
-		boolean enabledAdditionOfAnnotationsAsMetadata) {
-		this.enabledAdditionOfAnnotationsAsMetadata = enabledAdditionOfAnnotationsAsMetadata;
-	}
-
-	public String getAnnotationKeysPrefix() {
-		return annotationKeysPrefix;
-	}
-
-	public void setAnnotationKeysPrefix(String annotationKeysPrefix) {
-		this.annotationKeysPrefix = annotationKeysPrefix;
-	}
-
-	public boolean isEnabledAdditionOfPortsAsMetadata() {
-		return enabledAdditionOfPortsAsMetadata;
-	}
-
-	public void setEnabledAdditionOfPortsAsMetadata(boolean enabledAdditionOfPortsAsMetadata) {
-		this.enabledAdditionOfPortsAsMetadata = enabledAdditionOfPortsAsMetadata;
-	}
-
-	public String getPortKeysPrefix() {
-		return portKeysPrefix;
-	}
-
-	public void setPortKeysPrefix(String portKeysPrefix) {
-		this.portKeysPrefix = portKeysPrefix;
+	public void setMetadata(Metadata metadata) {
+		this.metadata = metadata;
 	}
 
 	@Override
 	public String toString() {
-		return "KubernetesDiscoveryProperties{" +
-			"enabled=" + enabled +
-			", serviceName='" + serviceName + '\'' +
-			", filter='" + filter + '\'' +
-			'}';
+		return new ToStringCreator(this)
+			.append("enabled", enabled)
+			.append("serviceName", serviceName)
+			.append("filter", filter)
+			.append("metadata", metadata)
+			.toString();
+	}
+
+	public class Metadata {
+		/** When set, the Kubernetes labels of the services will be included as metadata of the returned ServiceInstance. */
+		private boolean addLabels = true;
+
+		/** When addLabels is set, then this will be used as a prefix to the key names in the metadata map. */
+		private String labelsPrefix;
+
+		/** When set, the Kubernetes annotations of the services will be included as metadata of the returned ServiceInstance. */
+		private boolean addAnnotations = true;
+
+		/** When addAnnotations is set, then this will be used as a prefix to the key names in the metadata map. */
+		private String annotationsPrefix;
+
+		/** When set, any named Kubernetes service ports will be included as metadata of the returned ServiceInstance. */
+		private boolean addPorts = true;
+
+		/** When addPorts is set, then this will be used as a prefix to the key names in the metadata map. */
+		private String portsPrefix = "port.";
+
+		public boolean isAddLabels() {
+			return addLabels;
+		}
+
+		public void setAddLabels(boolean addLabels) {
+			this.addLabels = addLabels;
+		}
+
+		public String getLabelsPrefix() {
+			return labelsPrefix;
+		}
+
+		public void setLabelsPrefix(String labelsPrefix) {
+			this.labelsPrefix = labelsPrefix;
+		}
+
+		public boolean isAddAnnotations() {
+			return addAnnotations;
+		}
+
+		public void setAddAnnotations(boolean addAnnotations) {
+			this.addAnnotations = addAnnotations;
+		}
+
+		public String getAnnotationsPrefix() {
+			return annotationsPrefix;
+		}
+
+		public void setAnnotationsPrefix(String annotationsPrefix) {
+			this.annotationsPrefix = annotationsPrefix;
+		}
+
+		public boolean isAddPorts() {
+			return addPorts;
+		}
+
+		public void setAddPorts(boolean addPorts) {
+			this.addPorts = addPorts;
+		}
+
+		public String getPortsPrefix() {
+			return portsPrefix;
+		}
+
+		public void setPortsPrefix(String portsPrefix) {
+			this.portsPrefix = portsPrefix;
+		}
+
+		@Override
+		public String toString() {
+			return new ToStringCreator(this)
+				.append("addLabels", addLabels)
+				.append("labelsPrefix", labelsPrefix)
+				.append("addAnnotations", addAnnotations)
+				.append("annotationsPrefix", annotationsPrefix)
+				.append("addPorts", addPorts)
+				.append("portsPrefix", portsPrefix)
+				.toString();
+		}
 	}
 }

@@ -21,10 +21,8 @@ import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,28 +85,29 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			final Service service = client.services().withName(serviceId).get();
 
 			final Map<String, String> serviceMetadata = new HashMap<>();
-			if(properties.isEnabledAdditionOfLabelsAsMetadata()) {
+			KubernetesDiscoveryProperties.Metadata metadataProps = properties.getMetadata();
+			if(metadataProps.isAddLabels()) {
 				serviceMetadata.putAll(
 					getMapWithPrefixedKeys(
-						service.getMetadata().getLabels(), properties.getLabelKeysPrefix())
+						service.getMetadata().getLabels(), metadataProps.getLabelsPrefix())
 				);
 			}
-			if(properties.isEnabledAdditionOfAnnotationsAsMetadata()) {
+			if(metadataProps.isAddAnnotations()) {
 				serviceMetadata.putAll(
 					getMapWithPrefixedKeys(
-						service.getMetadata().getAnnotations(), properties.getAnnotationKeysPrefix())
+						service.getMetadata().getAnnotations(), metadataProps.getAnnotationsPrefix())
 				);
 			}
 
 			for (EndpointSubset s : subsets) {
 				// Extend the service metadata map with per-endpoint port information (if requested)
 				Map<String, String> endpointMetadata = new HashMap<>(serviceMetadata);
-				if(properties.isEnabledAdditionOfPortsAsMetadata()) {
+				if(metadataProps.isAddPorts()) {
 					Map<String, String> ports = s.getPorts().stream()
 						.filter(port -> !StringUtils.isEmpty(port.getName()))
 						.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
 					endpointMetadata.putAll(
-						getMapWithPrefixedKeys(ports, properties.getPortKeysPrefix())
+						getMapWithPrefixedKeys(ports, metadataProps.getPortsPrefix())
 					);
 				}
 

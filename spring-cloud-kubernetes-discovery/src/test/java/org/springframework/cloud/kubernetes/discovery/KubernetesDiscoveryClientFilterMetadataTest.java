@@ -58,6 +58,9 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	private KubernetesDiscoveryProperties properties;
 
 	@Mock
+	private KubernetesDiscoveryProperties.Metadata metadata;
+
+	@Mock
 	private MixedOperation<Service, ServiceList, DoneableService, Resource<Service, DoneableService>> serviceOperation;
 
 	@Mock
@@ -76,9 +79,10 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testAllExtraMetadataDisabled() {
 		final String serviceId = "s";
 
-		when(properties.isEnabledAdditionOfLabelsAsMetadata()).thenReturn(false);
-		when(properties.isEnabledAdditionOfAnnotationsAsMetadata()).thenReturn(false);
-		when(properties.isEnabledAdditionOfPortsAsMetadata()).thenReturn(false);
+		when(properties.getMetadata()).thenReturn(metadata);
+		when(metadata.isAddLabels()).thenReturn(false);
+		when(metadata.isAddAnnotations()).thenReturn(false);
+		when(metadata.isAddPorts()).thenReturn(false);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(
 			serviceId,
@@ -103,9 +107,10 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testLabelsEnabled() {
 		final String serviceId = "s";
 
-		when(properties.isEnabledAdditionOfLabelsAsMetadata()).thenReturn(true);
-		when(properties.isEnabledAdditionOfAnnotationsAsMetadata()).thenReturn(false);
-		when(properties.isEnabledAdditionOfPortsAsMetadata()).thenReturn(false);
+		when(properties.getMetadata()).thenReturn(metadata);
+		when(metadata.isAddLabels()).thenReturn(true);
+		when(metadata.isAddAnnotations()).thenReturn(false);
+		when(metadata.isAddPorts()).thenReturn(false);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(
 			serviceId,
@@ -131,10 +136,11 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testLabelsEnabledWithPrefix() {
 		final String serviceId = "s";
 
-		when(properties.isEnabledAdditionOfLabelsAsMetadata()).thenReturn(true);
-		when(properties.getLabelKeysPrefix()).thenReturn("l_");
-		when(properties.isEnabledAdditionOfAnnotationsAsMetadata()).thenReturn(false);
-		when(properties.isEnabledAdditionOfPortsAsMetadata()).thenReturn(false);
+		when(properties.getMetadata()).thenReturn(metadata);
+		when(metadata.isAddLabels()).thenReturn(true);
+		when(metadata.getLabelsPrefix()).thenReturn("l_");
+		when(metadata.isAddAnnotations()).thenReturn(false);
+		when(metadata.isAddPorts()).thenReturn(false);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(
 			serviceId,
@@ -159,9 +165,10 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testAnnotationsEnabled() {
 		final String serviceId = "s";
 
-		when(properties.isEnabledAdditionOfLabelsAsMetadata()).thenReturn(false);
-		when(properties.isEnabledAdditionOfAnnotationsAsMetadata()).thenReturn(true);
-		when(properties.isEnabledAdditionOfPortsAsMetadata()).thenReturn(false);
+		when(properties.getMetadata()).thenReturn(metadata);
+		when(metadata.isAddLabels()).thenReturn(false);
+		when(metadata.isAddAnnotations()).thenReturn(true);
+		when(metadata.isAddPorts()).thenReturn(false);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(
 			serviceId,
@@ -187,10 +194,11 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testAnnotationsEnabledWithPrefix() {
 		final String serviceId = "s";
 
-		when(properties.isEnabledAdditionOfLabelsAsMetadata()).thenReturn(false);
-		when(properties.isEnabledAdditionOfAnnotationsAsMetadata()).thenReturn(true);
-		when(properties.getAnnotationKeysPrefix()).thenReturn("a_");
-		when(properties.isEnabledAdditionOfPortsAsMetadata()).thenReturn(false);
+		when(properties.getMetadata()).thenReturn(metadata);
+		when(metadata.isAddLabels()).thenReturn(false);
+		when(metadata.isAddAnnotations()).thenReturn(true);
+		when(metadata.getAnnotationsPrefix()).thenReturn("a_");
+		when(metadata.isAddPorts()).thenReturn(false);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(
 			serviceId,
@@ -216,9 +224,10 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testPortsEnabled() {
 		final String serviceId = "s";
 
-		when(properties.isEnabledAdditionOfLabelsAsMetadata()).thenReturn(false);
-		when(properties.isEnabledAdditionOfAnnotationsAsMetadata()).thenReturn(false);
-		when(properties.isEnabledAdditionOfPortsAsMetadata()).thenReturn(true);
+		when(properties.getMetadata()).thenReturn(metadata);
+		when(metadata.isAddLabels()).thenReturn(false);
+		when(metadata.isAddAnnotations()).thenReturn(false);
+		when(metadata.isAddPorts()).thenReturn(true);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(
 			serviceId,
@@ -244,10 +253,11 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testPortsEnabledWithPrefix() {
 		final String serviceId = "s";
 
-		when(properties.isEnabledAdditionOfLabelsAsMetadata()).thenReturn(false);
-		when(properties.isEnabledAdditionOfAnnotationsAsMetadata()).thenReturn(false);
-		when(properties.isEnabledAdditionOfPortsAsMetadata()).thenReturn(true);
-		when(properties.getPortKeysPrefix()).thenReturn("p_");
+		when(properties.getMetadata()).thenReturn(metadata);
+		when(metadata.isAddLabels()).thenReturn(false);
+		when(metadata.isAddAnnotations()).thenReturn(false);
+		when(metadata.isAddPorts()).thenReturn(true);
+		when(metadata.getPortsPrefix()).thenReturn("p_");
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(
 			serviceId,
@@ -273,12 +283,13 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testLabelsAndAnnotationsAndPortsEnabledWithPrefix() {
 		final String serviceId = "s";
 
-		when(properties.isEnabledAdditionOfLabelsAsMetadata()).thenReturn(true);
-		when(properties.getLabelKeysPrefix()).thenReturn("l_");
-		when(properties.isEnabledAdditionOfAnnotationsAsMetadata()).thenReturn(true);
-		when(properties.getAnnotationKeysPrefix()).thenReturn("a_");
-		when(properties.isEnabledAdditionOfPortsAsMetadata()).thenReturn(true);
-		when(properties.getPortKeysPrefix()).thenReturn("p_");
+		when(properties.getMetadata()).thenReturn(metadata);
+		when(metadata.isAddLabels()).thenReturn(true);
+		when(metadata.getLabelsPrefix()).thenReturn("l_");
+		when(metadata.isAddAnnotations()).thenReturn(true);
+		when(metadata.getAnnotationsPrefix()).thenReturn("a_");
+		when(metadata.isAddPorts()).thenReturn(true);
+		when(metadata.getPortsPrefix()).thenReturn("p_");
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(
 			serviceId,
