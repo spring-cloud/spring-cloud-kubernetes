@@ -59,6 +59,18 @@ public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProper
 	 */
 	private String annotationKeysPrefix;
 
+	/**
+	 * When set, any named Kubernetes service ports will be included as metadata
+	 * of the returned ServiceInstance
+	 */
+	private boolean enabledAdditionOfPortsAsMetadata = true;
+
+	/**
+	 * When enabledAdditionOfPortsAsMetadata is set, then the value portKeysPrefix
+	 * will be used as a prefix to the key names in the metadata map
+	 */
+	private String portKeysPrefix = "port.";
+
 	public boolean isEnabled() {
 		return enabled;
 	}
@@ -110,6 +122,22 @@ public class KubernetesDiscoveryProperties extends AutoServiceRegistrationProper
 
 	public void setAnnotationKeysPrefix(String annotationKeysPrefix) {
 		this.annotationKeysPrefix = annotationKeysPrefix;
+	}
+
+	public boolean isEnabledAdditionOfPortsAsMetadata() {
+		return enabledAdditionOfPortsAsMetadata;
+	}
+
+	public void setEnabledAdditionOfPortsAsMetadata(boolean enabledAdditionOfPortsAsMetadata) {
+		this.enabledAdditionOfPortsAsMetadata = enabledAdditionOfPortsAsMetadata;
+	}
+
+	public String getPortKeysPrefix() {
+		return portKeysPrefix;
+	}
+
+	public void setPortKeysPrefix(String portKeysPrefix) {
+		this.portKeysPrefix = portKeysPrefix;
 	}
 
 	@Override
