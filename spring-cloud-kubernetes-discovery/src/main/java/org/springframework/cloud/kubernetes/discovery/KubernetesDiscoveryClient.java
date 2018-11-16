@@ -17,9 +17,11 @@
 package org.springframework.cloud.kubernetes.discovery;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
+import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,6 +39,8 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import static java.util.stream.Collectors.toMap;
 
 public class KubernetesDiscoveryClient implements DiscoveryClient {
 
@@ -82,27 +86,38 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 			final Service service = client.services().withName(serviceId).get();
 
-			final Map<String, String> metadata = new HashMap<>();
+			final Map<String, String> serviceMetadata = new HashMap<>();
 			if(properties.isEnabledAdditionOfLabelsAsMetadata()) {
-				metadata.putAll(
+				serviceMetadata.putAll(
 					getMapWithPrefixedKeys(
 						service.getMetadata().getLabels(), properties.getLabelKeysPrefix())
 				);
 			}
 			if(properties.isEnabledAdditionOfAnnotationsAsMetadata()) {
-				metadata.putAll(
+				serviceMetadata.putAll(
 					getMapWithPrefixedKeys(
 						service.getMetadata().getAnnotations(), properties.getAnnotationKeysPrefix())
 				);
 			}
 
 			for (EndpointSubset s : subsets) {
+				// Extend the service metadata map with per-endpoint port information (if requested)
+				Map<String, String> endpointMetadata = new HashMap<>(serviceMetadata);
+				if(properties.isEnabledAdditionOfPortsAsMetadata()) {
+					Map<String, String> ports = s.getPorts().stream()
+						.filter(port -> !StringUtils.isEmpty(port.getName()))
+						.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
+					endpointMetadata.putAll(
+						getMapWithPrefixedKeys(ports, properties.getPortKeysPrefix())
+					);
+				}
+
 				List<EndpointAddress> addresses = s.getAddresses();
 				for (EndpointAddress a : addresses) {
 					instances.add(new KubernetesServiceInstance(serviceId,
 							a,
 							s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
-							metadata,
+							endpointMetadata,
 							false));
 				}
 			}
