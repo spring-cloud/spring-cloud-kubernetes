@@ -18,6 +18,7 @@
 package org.springframework.cloud.kubernetes.discovery
 
 import io.fabric8.kubernetes.api.model.EndpointsBuilder
+import io.fabric8.kubernetes.api.model.ServiceBuilder
 import io.fabric8.kubernetes.client.Config
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.server.mock.KubernetesMockServer
@@ -59,6 +60,15 @@ class KubernetesDiscoveryClientTest extends Specification {
                     .addNewPort("http",80,"TCP")
                 .endSubset()
                 .build()).once()
+		and:
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint").andReturn(200, new ServiceBuilder()
+			.withNewMetadata()
+				.withName("endpoint")
+			.withLabels(new HashMap<String, String>() {{
+				put("l", "v")
+			}})
+			.endMetadata()
+			.build()).once()
 
         DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, new KubernetesDiscoveryProperties())
         when:
@@ -87,6 +97,16 @@ class KubernetesDiscoveryClientTest extends Specification {
                     .addNewPort("http",80,"TCP")
                 .endSubset()
                 .build()).once()
+
+		and:
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint").andReturn(200, new ServiceBuilder()
+			.withNewMetadata()
+				.withName("endpoint")
+			.withLabels(new HashMap<String, String>() {{
+				put("l", "v")
+			}})
+			.endMetadata()
+			.build()).once()
 
         DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, new KubernetesDiscoveryProperties())
         when:
