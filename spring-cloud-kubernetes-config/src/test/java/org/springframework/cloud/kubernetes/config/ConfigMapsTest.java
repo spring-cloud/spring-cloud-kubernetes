@@ -27,7 +27,6 @@ import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import io.fabric8.kubernetes.client.utils.IOHelpers;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -39,9 +38,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.util.FileSystemUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.*;
 
 /**
