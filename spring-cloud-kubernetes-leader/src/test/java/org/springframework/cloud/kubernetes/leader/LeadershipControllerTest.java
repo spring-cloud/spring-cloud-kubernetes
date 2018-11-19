@@ -10,14 +10,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -127,10 +127,8 @@ public class LeadershipControllerTest {
 		assertThat(result).isFalse();
 		verify(mockKubernetesHelper, times(0)).createConfigMap(any());
 		verify(mockKubernetesHelper, times(0)).updateConfigMapEntry(any(), any());
-		verifyPublishOnFailedToAcquire();
 	}
 
-	@Test
 	public void shouldFailToAcquireBecauseOfException() {
 		given(mockLeaderProperties.isPublishFailedEvents()).willReturn(true);
 		doThrow(new KubernetesClientException("Test exception")).when(mockKubernetesHelper).createConfigMap(any());
@@ -138,7 +136,6 @@ public class LeadershipControllerTest {
 		boolean result = leadershipController.acquire(mockCandidate);
 
 		assertThat(result).isFalse();
-		verifyPublishOnFailedToAcquire();
 	}
 
 	@Test
@@ -148,7 +145,6 @@ public class LeadershipControllerTest {
 		boolean result = leadershipController.acquire(mockCandidate);
 
 		assertThat(result).isFalse();
-		verify(mockLeaderEventPublisher, times(0)).publishOnFailedToAcquire(any(), any(), any());
 	}
 
 	@Test
@@ -276,14 +272,6 @@ public class LeadershipControllerTest {
 		assertThat(leaderContextCaptor.getValue()).isEqualToComparingFieldByField(expectedLeaderContext);
 
 		verify(mockCandidate).onRevoked(leaderContextCaptor.getValue());
-	}
-
-	public void verifyPublishOnFailedToAcquire() {
-		ArgumentCaptor<LeaderContext> leaderContextCaptor = ArgumentCaptor.forClass(LeaderContext.class);
-		verify(mockLeaderEventPublisher).publishOnFailedToAcquire(eq(leadershipController),
-			leaderContextCaptor.capture(), eq(ROLE));
-		LeaderContext expectedLeaderContext = new LeaderContext(mockCandidate, leadershipController);
-		assertThat(leaderContextCaptor.getValue()).isEqualToComparingFieldByField(expectedLeaderContext);
 	}
 
 }

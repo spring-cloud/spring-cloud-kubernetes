@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.kubernetes.leader;
 
+import java.util.List;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
@@ -47,15 +47,17 @@ public class LeaderKubernetesHelper {
 	}
 
 	public boolean podExists(String id) {
-		return kubernetesClient.pods()
+		List<Pod> pods = kubernetesClient.pods()
 			.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
 			.withLabels(leaderProperties.getLabels())
 			.list()
-			.getItems()
-			.stream()
-			.map(Pod::getMetadata)
-			.map(ObjectMeta::getName)
-			.anyMatch(name -> name.equals(id));
+			.getItems();
+		for (Pod pod : pods ) {
+			if (pod.getMetadata().getName().equals(id)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public ConfigMap getConfigMap() {

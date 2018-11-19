@@ -56,8 +56,7 @@ public class LeadershipController {
 	 * If requested candidate is already a leader, simply {@code true} will be returned.
 	 * <p>
 	 * If for some reason leadership cannot be acquired (communication failure or there is another leader),
-	 * {@code false} will be returned and {@link LeaderEventPublisher#publishOnFailedToAcquire(Object, Context, String)}
-	 * event will be emitted.
+	 * {@code false} will be returned event will be emitted.
 	 *
 	 * @param candidate
 	 * @return {@code true} if at the end of execution candidate is a leader and {@code false} if it isn't.
@@ -86,7 +85,6 @@ public class LeadershipController {
 				candidate.getId(), e.getMessage());
 		}
 
-		handleOnFailed(candidate);
 		return false;
 	}
 
@@ -191,12 +189,7 @@ public class LeadershipController {
 		candidate.onRevoked(context);
 	}
 
-	private void handleOnFailed(Candidate candidate) {
-		if (leaderProperties.isPublishFailedEvents()) {
-			Context context = new LeaderContext(candidate, this);
-			leaderEventPublisher.publishOnFailedToAcquire(this, context, candidate.getRole());
-		}
-	}
+
 
 	private Map<String, String> getLeaderData(Candidate candidate) {
 		String leaderKey = leaderProperties.getLeaderIdPrefix() + candidate.getRole();

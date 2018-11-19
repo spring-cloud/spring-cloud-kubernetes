@@ -61,7 +61,12 @@ public class LeaderInitiator implements SmartLifecycle {
 	@Override
 	public void stop() {
 		if (isRunning()) {
-			scheduledExecutorService.execute(() -> leadershipController.revoke(candidate));
+			scheduledExecutorService.execute(new Runnable() {
+				@Override
+				public void run() {
+				leadershipController.revoke(candidate);
+				}
+			});
 			scheduledExecutorService.shutdown();
 			isRunning = false;
 		}
