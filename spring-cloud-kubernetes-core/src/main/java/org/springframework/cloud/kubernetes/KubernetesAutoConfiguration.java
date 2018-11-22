@@ -23,7 +23,6 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -87,6 +86,16 @@ public class KubernetesAutoConfiguration {
 						base.getRollingTimeout()))
 				.withTrustCerts(or(kubernetesClientProperties.isTrustCerts(),
 						base.isTrustCerts()))
+				.withHttpProxy(or(kubernetesClientProperties.getHttpProxy(),
+					base.getHttpProxy()))
+				.withHttpsProxy(or(kubernetesClientProperties.getHttpsProxy(),
+					base.getHttpsProxy()))
+				.withProxyUsername(or(kubernetesClientProperties.getProxyUsername(),
+					base.getProxyUsername()))
+				.withPassword(or(kubernetesClientProperties.getProxyPassword(),
+					base.getProxyPassword()))
+				.withNoProxy(or(kubernetesClientProperties.getNoProxy(),
+					base.getNoProxy()))
 				.build();
 
 		if (properties.getNamespace() == null || properties.getNamespace().isEmpty()) {
