@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.kubernetes;
 
+import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("spring.cloud.kubernetes.client")
@@ -42,6 +43,11 @@ public class KubernetesClientProperties {
 	private Integer requestTimeout;
 	private Long rollingTimeout;
 	private Integer loggingInterval;
+	private String httpProxy;
+	private String httpsProxy;
+	private String proxyUsername;
+	private String proxyPassword;
+	private String[] noProxy;
 
 	public String getClientCertData() {
 		return clientCertData;
@@ -201,5 +207,49 @@ public class KubernetesClientProperties {
 
 	public void setLoggingInterval(Integer loggingInterval) {
 		this.loggingInterval = loggingInterval;
+	}
+
+	public Boolean getTrustCerts() {
+		return trustCerts;
+	}
+
+	public String getHttpProxy() {
+		return httpProxy;
+	}
+
+	public void setHttpProxy(String httpProxy) {
+		this.httpProxy = httpProxy;
+	}
+
+	public String getHttpsProxy() {
+		return httpsProxy;
+	}
+
+	public void setHttpsProxy(String httpsProxy) {
+		this.httpsProxy = httpsProxy;
+	}
+
+	public String getProxyUsername() {
+		return proxyUsername;
+	}
+
+	public void setProxyUsername(String proxyUsername) {
+		this.proxyUsername = proxyUsername;
+	}
+
+	public String getProxyPassword() {
+		return proxyPassword;
+	}
+
+	public void setProxyPassword(String proxyPassword) {
+		this.proxyPassword = proxyPassword;
+	}
+
+	public String[] getNoProxy() {
+		return noProxy;
+	}
+
+	public void setNoProxy(String[] noProxy) {
+		this.noProxy = noProxy;
 	}
 }
