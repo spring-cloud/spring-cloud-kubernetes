@@ -23,12 +23,6 @@
 		<arquillian.version>1.4.0.Final</arquillian.version>
 		<rest-assured.version>3.2.0</rest-assured.version>
 
-		<!-- We use the unix socket where microk8s' docker daemon listens -->
-		<docker.host>unix:///var/snap/microk8s/current/docker.sock</docker.host>
-
-		<!-- This is the default location of the container registry that comes with microk8s -->
-		<microk8s.registry>localhost:32000</microk8s.registry>
-
 		<!--
           The port on localhost where the application will listen to from outside the cluster
           Will be used to construct a NodePort
@@ -71,7 +65,7 @@
                             -->
 							<buildStrategy>docker</buildStrategy>
 							<mode>kubernetes</mode>
-							<pushRegistry>${microk8s.registry}</pushRegistry>
+							<pushRegistry>${image.registry}</pushRegistry>
 						</configuration>
 						<executions>
 							<execution>

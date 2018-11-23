@@ -1,10 +1,26 @@
 # Purpose
 
-Demonstrate how integration tests can be run against a local cluster setup with [microk8s](https://microk8s.io/)
+Explain how integration tests can be run against any k8s cluster. 
+One way of running such a kubernetes cluster locally which is leveraged by our CI setup is [microk8s](https://microk8s.io/)
 The Kubernetes resources necessary to get the test application
-onto the cluster are created using the [Fabric8 Maven Plugin](https://maven.fabric8.io/)
+onto the cluster are created using the [Fabric8 Maven Plugin](https://maven.fabric8.io/) and the
+lifecycle of the test applications is controlled by [Arquillian Cube](http://arquillian.org/arquillian-cube/)
+
+# Basics
+
+With FMP and Arquillian Cube setup for our project we need to configure the following things in order to properly get
+our test applications onto our cluster of choice:
+
+* The `KUBECONFIG` environment variable needs to be set to the location of the Kubernetes configuration file
+we will use to access our cluster (this can be skipped if this file is already present in the standard locations that kubectl assumes)
+* The `docker.host` system property needs to be set to the URL where the docker daemon we will use to build images is listening
+This can be skipped when we use the default unix socket on a Linux machine
+* The Docker image registry were out built images will be stored needs to be set using the `image.registry` environment variable   
 
 # Instructions
+
+Here we will describe the steps that are needed to setup microk8s and the maven command we will use to run the integration
+tests against that microk8s cluster 
 
 ## Install microk8s
 
@@ -44,65 +60,43 @@ kube-system          replicaset.apps/hostpath-provisioner-9979c7f64   1         
 kube-system          replicaset.apps/kube-dns-864b8bdc77              1         1         0         41s
 ```
 
-## Setup environment for FMP to work
-
-One premise for the Fabric8 Maven Plugin to work is that is can read the proper Kubernetes Config file.
-We export the corresponding config file for the cluster microk8s sets up to temp file which will
-be used later
+Export the kube config file that will be used to access this cluster
 
 ```bash
 microk8s.kubectl config view --raw > /tmp/kubeconfig
 ```
 
-## Deploy application
 
-**The following commands assume that they are executed inside the maven module of each specific test**
-
-Since FMP is based on the Fabric8 Kubernetes Client, we can leverage the `KUBECONFIG` environment variable
-to make FMP aware of the Kubernetes Config file we created above
+## Launch tests
 
 ```bash
-export KUBECONFIG=/tmp/kubeconfig
-../../mvnw clean package fabric8:build fabric8:push fabric8:deploy -Pfmp 
+cd spring-cloud-kubernetes-integration-tests
+KUBECONFIG=/tmp/kubeconfig mvn -Ddocker.host='unix:///var/snap/microk8s/current/docker.sock' -Dimage.registry='localhost:32000' clean package fabric8:build verify -Pfmp,it
 ```
 
-Make sure the application was deployed be executing:
+The command above will for each test project:
 
-```bash
-microk8s.kubectl get pod -l app=sb-fmp-microk8s
-```
+* Build the ubjerjar
+* Build a docker image based on that uberjar
+* Launch the Arquillian Cube tests which will
+    - Deploy the application to the cluster
+    - Launch the test code
+    - Undeploy the application
+    
+    
+## Launching one of the applications manually
 
-It should look something like:
+Each of the test modules can also be launched manually. This can be very useful for debugging purposes.
+For example to launch the `simple-core` application
+    
+ ```bash
+ cd spring-cloud-kubernetes-integration-tests/simple-core
+ KUBECONFIG=/tmp/kubeconfig mvn -Ddocker.host='unix:///var/snap/microk8s/current/docker.sock' -Dimage.registry='localhost:32000' clean package fabric8:build fabric8:deploy -Pfmp
+ ```
+ 
+ When it's time to take down the application, simply execute: 
+ 
 
-```
-NAME                               READY     STATUS    RESTARTS   AGE
-simple-core-5fbb7646dc-66t7b   		1/1       Running     0       57s
-```
-
-The integration tests can be run against the service which is deployed inside the cluster by executing:
-
-```bash
-../../mvnw verify -Pfmp,it -Dfabric8.skip
-```
-
-This integration tests runs locally (making it easily debuggable), and interacts with the deployed service
-using the exposed port.
-By leveraging [Aquillian Cube Kubernetes](http://arquillian.org/arquillian-cube/#_kubernetes), it's able to setup and teardown resources needed for each test
-
-To undeploy the application from the cluster simply execute:
-
-```bash
-../../mvnw fabric8:undeploy -Pfmp 
-```
-
-## Run all tests
-
-By executing 
-
-```bash
-deploy_test_undeploy_all.sh
-```
-
-each one of the test applications will be deployed to the cluster and the integration tests will be executed 
-
-
+ ```bash
+  KUBECONFIG=/tmp/kubeconfig mvn fabric8:undeploy -Pfmp
+  ```
