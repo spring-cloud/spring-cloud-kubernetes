@@ -4,10 +4,6 @@
 
   <extension qualifier="kubernetes">
     <property name="namespace.use.existing">default</property>
-
-    <!-- Make sure Arquillian Cube does not make any modification to the environment -->
-    <property name="env.init.enabled">false</property>
-    <property name="namespace.cleanup.enabled">false</property>
   </extension>
 
 </arquillian>

@@ -88,9 +88,7 @@ jobs:
       - run:
           name: Run integration tests
           command: |
-            cd spring-cloud-kubernetes-integration-tests
-            /snap/bin/microk8s.kubectl config view --raw > /tmp/kubeconfig
-            ./deploy_test_undeploy_all.sh
+            KUBECONFIG=/tmp/kubeconfig mvn clean package fabric8:build verify -Pfmp,it
       - store_test_results:
           path: $HOME/artifacts/junit/
       - store_artifacts:
