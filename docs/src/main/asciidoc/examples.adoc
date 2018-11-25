@@ -8,11 +8,13 @@ The following projects highlight the usage of these dependencies and demonstrate
 
 List of examples using these projects:
 
-- Spring Cloud Kubernetes Examples: the ones located inside this repository.
+- https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-examples[Spring Cloud Kubernetes Examples]: the ones located inside this repository.
 - Spring Cloud Kubernetes Full Example: Minions and Boss
-- Spring Cloud Kubernetes Full Example: SpringOne Platform Tickets Service
-- Spring Cloud Gateway with Spring Cloud Kubernetes Discovery and Config
-- Spring Boot Admin with Spring Cloud Kubernetes Discovery and Config
+	- https://github.com/salaboy/spring-cloud-k8s-minion[Minion]
+	- https://github.com/salaboy/spring-cloud-k8s-boss[Boss]
+- Spring Cloud Kubernetes Full Example: https://github.com/salaboy/s1p_docs[SpringOne Platform Tickets Service]
+- https://github.com/salaboy/s1p_gateway[Spring Cloud Gateway with Spring Cloud Kubernetes Discovery and Config]
+- https://github.com/salaboy/showcase-admin-tool[Spring Boot Admin with Spring Cloud Kubernetes Discovery and Config]
 
 
 
