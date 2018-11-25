@@ -88,13 +88,14 @@
 		<module>spring-cloud-starter-kubernetes-all</module>
 		<module>spring-cloud-kubernetes-examples</module>
 		<module>spring-cloud-kubernetes-leader</module>
+		<module>spring-cloud-kubernetes-istio</module>
 		<module>spring-cloud-kubernetes-integration-tests</module>
 		<module>docs</module>
 	</modules>
 
 	<dependencyManagement>
 		<dependencies>
-			
+
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-kubernetes-dependencies</artifactId>
