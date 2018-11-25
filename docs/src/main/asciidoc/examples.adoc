@@ -1,5 +1,20 @@
 = Examples
 
+Spring Cloud Kubernetes tries to make it transparent for your applications to consume Kubernetes Native Services
+following the Spring Cloud interfaces. For your applications, you will only need to change the implementation of these interfaces
+if you were using different DiscoveryClient or PropertySourceLocator implementations.
+
+The following projects highlight the usage of these dependencies and demonstrate how these libraries can be used from any Spring Boot application.
+
 List of examples using these projects:
 
-<TBD>
+- Spring Cloud Kubernetes Examples: the ones located inside this repository.
+- Spring Cloud Kubernetes Full Example: Minions and Boss
+- Spring Cloud Kubernetes Full Example: SpringOne Platform Tickets Service
+- Spring Cloud Gateway with Spring Cloud Kubernetes Discovery and Config
+- Spring Boot Admin with Spring Cloud Kubernetes Discovery and Config
+
+
+
+
+
