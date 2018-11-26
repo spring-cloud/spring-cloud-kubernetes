@@ -65,6 +65,8 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mysql-data
+  labels:
+    type: local
 spec:
   accessModes:
   - ReadWriteOnce
@@ -124,6 +126,8 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mysql-data
+  labels:
+    type: local
 spec:
   accessModes:
   - ReadWriteOnce
