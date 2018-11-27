@@ -1,11 +1,11 @@
-= Kubernetes PropertySource implementations
+== Kubernetes PropertySource implementations
 
 The most common approach to configure your Spring Boot application is to create an `application.properties|yaml` or
 an `application-profile.properties|yaml` file containing key-value pairs providing customization values to your
 application or Spring Boot starters. Users may override these properties by specifying system properties or environment
 variables.
 
-== ConfigMap PropertySource
+=== ConfigMap PropertySource
 
 Kubernetes provides a resource named http://kubernetes.io/docs/user-guide/configmap/[ConfigMap] to externalize the
 parameters to pass to your application in the form of key-value pairs or embedded `application.properties|yaml` files.
@@ -189,7 +189,7 @@ Kubernetes service accounts, roles and role bindings.
 | spring.cloud.kubernetes.config.enableApi | Boolean | true                       | Enable/Disable consuming ConfigMaps via APIs
 |===
 
-== Secrets PropertySource
+=== Secrets PropertySource
 
 Kubernetes has the notion of [Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) for storing
 sensitive data such as password, OAuth tokens, etc. This project provides integration with `Secrets` to make secrets
@@ -305,7 +305,7 @@ https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Bi
 Example of application using secrets (though it hasn't been updated to use the new `spring-cloud-kubernetes` project):
 https://github.com/fabric8-quickstarts/spring-boot-camel-config[spring-boot-camel-config]
 
-== PropertySource Reload
+=== PropertySource Reload
 
 Some applications may need to detect changes on external property sources and update their internal status to reflect the new configuration.
 The reload feature of Spring Cloud Kubernetes is able to trigger an application reload when a related `ConfigMap` or

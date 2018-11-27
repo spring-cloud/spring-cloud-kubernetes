@@ -1,4 +1,4 @@
-# Ribbon discovery in Kubernetes
+== Ribbon discovery in Kubernetes
 
 
 Spring Cloud client applications calling a microservice should be interested on relying on a client load-balancing

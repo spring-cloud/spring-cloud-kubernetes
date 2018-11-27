@@ -1,4 +1,4 @@
-= DiscoveryClient for Kubernetes
+== DiscoveryClient for Kubernetes
 
 This project provides an implementation of https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java[Discovery Client]
 for http://kubernetes.io[Kubernetes].

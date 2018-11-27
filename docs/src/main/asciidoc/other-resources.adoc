@@ -1,4 +1,4 @@
-= Other Resources
+== Other Resources
 
 Here you can find other resources such as presentations(slides) and videos about Spring Cloud Kubernetes.
 
