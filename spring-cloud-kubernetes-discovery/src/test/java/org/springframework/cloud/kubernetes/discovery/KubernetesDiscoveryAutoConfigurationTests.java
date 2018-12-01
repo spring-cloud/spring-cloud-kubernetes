@@ -45,7 +45,6 @@ import org.springframework.context.annotation.Configuration;
  * @author Zhanwei Wang
  */
 @RunWith(ModifiedClassPathRunner.class)
-@ClassPathExclusions({ "spring-retry-*.jar", "spring-boot-starter-aop-*.jar" })
 public class KubernetesDiscoveryAutoConfigurationTests {
 	private AnnotationConfigApplicationContext context;
 
