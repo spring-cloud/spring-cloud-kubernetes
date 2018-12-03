@@ -1,0 +1,789 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?asciidoc-toc?>
+<?asciidoc-numbered?>
+<book xmlns="http://docbook.org/ns/docbook" xmlns:xl="http://www.w3.org/1999/xlink" version="5.0" xml:lang="en">
+<info>
+<title>Spring Cloud Kubernetes</title>
+<date>2018-12-03</date>
+</info>
+<chapter xml:id="_why_do_you_need_spring_cloud_kubernetes">
+<title>Why do you need Spring Cloud Kubernetes?</title>
+<simpara>Spring Cloud Kubernetes provide Spring Cloud common interfaces implementations to consume Kubernetes native services.
+The main objective of the projects provided in this repository is to facilitate the integration of Spring Cloud/Spring Boot applications running inside Kubernetes.</simpara>
+</chapter>
+<part xml:id="_discoveryclient_for_kubernetes">
+<title>DiscoveryClient for Kubernetes</title>
+<partintro>
+<simpara>This project provides an implementation of <link xl:href="https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java">Discovery Client</link>
+for <link xl:href="http://kubernetes.io">Kubernetes</link>.
+This allows you to query Kubernetes endpoints <emphasis role="strong">(see <link xl:href="http://kubernetes.io/docs/user-guide/services/">services</link>)</emphasis> by name.
+A service is typically exposed by the Kubernetes API server as a collection of endpoints which represent <literal>http</literal>, <literal>https</literal> addresses that a client can
+access from a Spring Boot application running as a pod. This discovery feature is also used by the Spring Cloud Kubernetes Ribbon project
+to fetch the list of the endpoints defined for an application to be load balanced.</simpara>
+<simpara>This is something that you get for free just by adding the following dependency inside your project:</simpara>
+<programlisting language="xml" linenumbering="unnumbered">&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-kubernetes&lt;/artifactId&gt;
+    &lt;version&gt;${latest.version}&lt;/version&gt;
+&lt;/dependency&gt;</programlisting>
+<simpara>To enable loading of the <literal>DiscoveryClient</literal>, add <literal>@EnableDiscoveryClient</literal> to the according configuration or application class like this:</simpara>
+<programlisting language="java" linenumbering="unnumbered">@SpringBootApplication
+@EnableDiscoveryClient
+public class Application {
+  public static void main(String[] args) {
+    SpringApplication.run(Application.class, args);
+  }
+}</programlisting>
+<simpara>Then you can inject the client in your code simply by:</simpara>
+<programlisting language="java" linenumbering="unnumbered">@Autowired
+private DiscoveryClient discoveryClient;</programlisting>
+<simpara>If for any reason you need to disable the <literal>DiscoveryClient</literal> you can simply set the following property in <literal>application.properties</literal>:</simpara>
+<screen>spring.cloud.kubernetes.discovery.enabled=false</screen>
+<simpara>Some Spring Cloud components use the <literal>DiscoveryClient</literal> in order to obtain info about the local service instance. For
+this to work you need to align the Kubernetes service name with the <literal>spring.application.name</literal> property.</simpara>
+</partintro>
+</part>
+<part xml:id="_kubernetes_propertysource_implementations">
+<title>Kubernetes PropertySource implementations</title>
+<partintro>
+<simpara>The most common approach to configure your Spring Boot application is to create an <literal>application.properties|yaml</literal> or
+an <literal>application-profile.properties|yaml</literal> file containing key-value pairs providing customization values to your
+application or Spring Boot starters. Users may override these properties by specifying system properties or environment
+variables.</simpara>
+</partintro>
+<chapter xml:id="_configmap_propertysource">
+<title>ConfigMap PropertySource</title>
+<simpara>Kubernetes provides a resource named <link xl:href="http://kubernetes.io/docs/user-guide/configmap/">ConfigMap</link> to externalize the
+parameters to pass to your application in the form of key-value pairs or embedded <literal>application.properties|yaml</literal> files.
+The <link xl:href="./spring-cloud-kubernetes-config">Spring Cloud Kubernetes Config</link> project makes Kubernetes `ConfigMap`s available
+during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on
+observed `ConfigMap`s.</simpara>
+<simpara>The default behavior is to create a <literal>ConfigMapPropertySource</literal> based on a Kubernetes <literal>ConfigMap</literal> which has <literal>metadata.name</literal> of either the name of
+your Spring application (as defined by its <literal>spring.application.name</literal> property) or a custom name defined within the
+<literal>bootstrap.properties</literal> file under the following key <literal>spring.cloud.kubernetes.config.name</literal>.</simpara>
+<simpara>However, more advanced configuration are possible where multiple ConfigMaps can be used
+This is made possible by the <literal>spring.cloud.kubernetes.config.sources</literal> list.
+For example one could define the following ConfigMaps</simpara>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  application:
+    name: cloud-k8s-app
+  cloud:
+    kubernetes:
+      config:
+        name: default-name
+        namespace: default-namespace
+        sources:
+         # Spring Cloud Kubernetes will lookup a ConfigMap named c1 in namespace default-namespace
+         - name: c1
+         # Spring Cloud Kubernetes will lookup a ConfigMap named default-name in whatever namespace n2
+         - namespace: n2
+         # Spring Cloud Kubernetes will lookup a ConfigMap named c3 in namespace n3
+         - namespace: n3
+           name: c3</programlisting>
+<simpara>In the example above, it <literal>spring.cloud.kubernetes.config.namespace</literal> had not been set,
+then the ConfigMap named <literal>c1</literal> would be looked up in the namespace that the application runs</simpara>
+<simpara>Any matching <literal>ConfigMap</literal> that is found, will be processed as follows:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>apply individual configuration properties.</simpara>
+</listitem>
+<listitem>
+<simpara>apply as <literal>yaml</literal> the content of any property named <literal>application.yaml</literal></simpara>
+</listitem>
+<listitem>
+<simpara>apply as properties file the content of any property named <literal>application.properties</literal></simpara>
+</listitem>
+</itemizedlist>
+<simpara>The single exception to the aforementioned flow is when the <literal>ConfigMap</literal> contains a <emphasis role="strong">single</emphasis> key that indicates
+the file is a YAML or Properties file. In that case the name of the key does NOT have to be <literal>application.yaml</literal> or
+<literal>application.properties</literal> (it can be anything) and the value of the property will be treated correctly.
+This features facilitates the use case where the <literal>ConfigMap</literal> was created using something like:</simpara>
+<simpara><literal>kubectl create configmap game-config --from-file=/path/to/app-config.yaml</literal></simpara>
+<simpara>Example:</simpara>
+<simpara>Let&#8217;s assume that we have a Spring Boot application named <literal>demo</literal> that uses properties to read its thread pool
+configuration.</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>pool.size.core</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>pool.size.maximum</literal></simpara>
+</listitem>
+</itemizedlist>
+<simpara>This can be externalized to config map in <literal>yaml</literal> format:</simpara>
+<programlisting language="yaml" linenumbering="unnumbered">kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  pool.size.core: 1
+  pool.size.max: 16</programlisting>
+<simpara>Individual properties work fine for most cases but sometimes embedded <literal>yaml</literal> is more convenient. In this case we will
+use a single property named <literal>application.yaml</literal> to embed our <literal>yaml</literal>:</simpara>
+<literallayout class="monospaced"> ```yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  application.yaml: |-
+    pool:
+      size:
+        core: 1
+        max:16</literallayout>
+<screen>The following also works:
+
+ ```yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  custom-name.yaml: |-
+    pool:
+      size:
+        core: 1
+        max:16</screen>
+<simpara>Spring Boot applications can also be configured differently depending on active profiles which will be merged together
+when the ConfigMap is read. It is possible to provide different property values for different profiles using an
+<literal>application.properties|yaml</literal> property, specifying profile-specific values each in their own document
+(indicated by the <literal>---</literal> sequence) as follows:</simpara>
+<programlisting language="yaml" linenumbering="unnumbered">kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello to the World
+    farewell:
+      message: Say Goodbye
+    ---
+    spring:
+      profiles: development
+    greeting:
+      message: Say Hello to the Developers
+    farewell:
+      message: Say Goodbye to the Developers
+    ---
+    spring:
+      profiles: production
+    greeting:
+      message: Say Hello to the Ops</programlisting>
+<simpara>In the above case, the configuration loaded into your Spring Application with the <literal>development</literal> profile will be:</simpara>
+<programlisting language="yaml" linenumbering="unnumbered">  greeting:
+    message: Say Hello to the Developers
+  farewell:
+    message: Say Goodbye to the Developers</programlisting>
+<simpara>whereas if the <literal>production</literal> profile is active, the configuration will be:</simpara>
+<programlisting language="yaml" linenumbering="unnumbered">  greeting:
+    message: Say Hello to the Ops
+  farewell:
+    message: Say Goodbye</programlisting>
+<simpara>If both profiles are active, the property which appears last within the configmap will overwrite preceding values.</simpara>
+<simpara>To tell to Spring Boot which <literal>profile</literal> should be enabled at bootstrap, a system property can be passed to the Java
+command launching your Spring Boot application using an env variable that you will define with the OpenShift
+<literal>DeploymentConfig</literal> or Kubernetes <literal>ReplicationConfig</literal> resource file as follows:</simpara>
+<programlisting language="yaml" linenumbering="unnumbered">apiVersion: v1
+kind: DeploymentConfig
+spec:
+  replicas: 1
+  ...
+    spec:
+      containers:
+      - env:
+        - name: JAVA_APP_DIR
+          value: /deployments
+        - name: JAVA_OPTIONS
+          value: -Dspring.profiles.active=developer</programlisting>
+<simpara><emphasis role="strong">Notes:</emphasis>
+- check the security configuration section, to access config maps from inside a pod you need to have the correct
+Kubernetes service accounts, roles and role bindings.</simpara>
+<table frame="all" rowsep="1" colsep="1">
+<title>Properties:</title>
+<tgroup cols="4">
+<colspec colname="col_1" colwidth="25*"/>
+<colspec colname="col_2" colwidth="25*"/>
+<colspec colname="col_3" colwidth="25*"/>
+<colspec colname="col_4" colwidth="25*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Name</entry>
+<entry align="left" valign="top">Type</entry>
+<entry align="left" valign="top">Default</entry>
+<entry align="left" valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.config.enabled</simpara></entry>
+<entry align="left" valign="top"><simpara>Boolean</simpara></entry>
+<entry align="left" valign="top"><simpara>true</simpara></entry>
+<entry align="left" valign="top"><simpara>Enable Secrets PropertySource</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.config.name</simpara></entry>
+<entry align="left" valign="top"><simpara>String</simpara></entry>
+<entry align="left" valign="top"><simpara>${spring.application.name}</simpara></entry>
+<entry align="left" valign="top"><simpara>Sets the name of ConfigMap to lookup</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.config.namespace</simpara></entry>
+<entry align="left" valign="top"><simpara>String</simpara></entry>
+<entry align="left" valign="top"><simpara>Client namespace</simpara></entry>
+<entry align="left" valign="top"><simpara>Sets the Kubernetes namespace where to lookup</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.config.paths</simpara></entry>
+<entry align="left" valign="top"><simpara>List</simpara></entry>
+<entry align="left" valign="top"><simpara>null</simpara></entry>
+<entry align="left" valign="top"><simpara>Sets the paths where ConfigMaps are mounted</simpara></entry>
+</row>
+</tbody>
+<tfoot>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.config.enableApi</simpara></entry>
+<entry align="left" valign="top"><simpara>Boolean</simpara></entry>
+<entry align="left" valign="top"><simpara>true</simpara></entry>
+<entry align="left" valign="top"><simpara>Enable/Disable consuming ConfigMaps via APIs</simpara></entry>
+</row>
+</tfoot>
+</tgroup>
+</table>
+</chapter>
+<chapter xml:id="_secrets_propertysource">
+<title>Secrets PropertySource</title>
+<simpara>Kubernetes has the notion of [Secrets](<link xl:href="https://kubernetes.io/docs/concepts/configuration/secret/">https://kubernetes.io/docs/concepts/configuration/secret/</link>) for storing
+sensitive data such as password, OAuth tokens, etc. This project provides integration with <literal>Secrets</literal> to make secrets
+accessible by Spring Boot applications. This feature can be explicitly enabled/disabled using the <literal>spring.cloud.kubernetes.secrets.enabled</literal> property.</simpara>
+<simpara>The <literal>SecretsPropertySource</literal> when enabled will lookup Kubernetes for <literal>Secrets</literal> from the following sources:
+1. reading recursively from secrets mounts
+2. named after the application (as defined by <literal>spring.application.name</literal>)
+3. matching some labels</simpara>
+<simpara>Please note that by default, consuming Secrets via API (points 2 and 3 above) <emphasis role="strong">is not enabled</emphasis> for security reasons
+ and it is recommend that containers share secrets via mounted volumes.</simpara>
+<simpara>If the secrets are found their data is made available to the application.</simpara>
+<simpara><emphasis role="strong">Example:</emphasis></simpara>
+<simpara>Let&#8217;s assume that we have a spring boot application named <literal>demo</literal> that uses properties to read its database
+configuration. We can create a Kubernetes secret using the following command:</simpara>
+<screen>oc create secret generic db-secret --from-literal=username=user --from-literal=password=p455w0rd</screen>
+<simpara>This would create the following secret (shown using <literal>oc get secrets db-secret -o yaml</literal>):</simpara>
+<programlisting language="yaml" linenumbering="unnumbered">apiVersion: v1
+data:
+  password: cDQ1NXcwcmQ=
+  username: dXNlcg==
+kind: Secret
+metadata:
+  creationTimestamp: 2017-07-04T09:15:57Z
+  name: db-secret
+  namespace: default
+  resourceVersion: "357496"
+  selfLink: /api/v1/namespaces/default/secrets/db-secret
+  uid: 63c89263-6099-11e7-b3da-76d6186905a8
+type: Opaque</programlisting>
+<simpara>Note that the data contains Base64-encoded versions of the literal provided by the create command.</simpara>
+<simpara>This secret can then be used by your application for example by exporting the secret&#8217;s value as environment variables:</simpara>
+<programlisting language="yaml" linenumbering="unnumbered">apiVersion: v1
+kind: Deployment
+metadata:
+  name: ${project.artifactId}
+spec:
+   template:
+     spec:
+       containers:
+         - env:
+            - name: DB_USERNAME
+              valueFrom:
+                 secretKeyRef:
+                   name: db-secret
+                   key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                 secretKeyRef:
+                   name: db-secret
+                   key: password</programlisting>
+<simpara>You can select the Secrets to consume in a number of ways:</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>By listing the directories where secrets are mapped:
+<literal>`
+-Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/db-secret,etc/secrets/postgresql
+</literal>`</simpara>
+<literallayout class="monospaced">If you have all the secrets mapped to a common root, you can set them like:</literallayout>
+<literallayout class="monospaced">```
+-Dspring.cloud.kubernetes.secrets.paths=/etc/secrets
+```</literallayout>
+</listitem>
+<listitem>
+<simpara>By setting a named secret:
+<literal>`
+-Dspring.cloud.kubernetes.secrets.name=db-secret
+</literal>`</simpara>
+</listitem>
+<listitem>
+<simpara>By defining a list of labels:
+<literal>`
+-Dspring.cloud.kubernetes.secrets.labels.broker=activemq
+-Dspring.cloud.kubernetes.secrets.labels.db=postgresql
+</literal>`</simpara>
+</listitem>
+</orderedlist>
+<table frame="all" rowsep="1" colsep="1">
+<title>Properties:</title>
+<tgroup cols="4">
+<colspec colname="col_1" colwidth="25*"/>
+<colspec colname="col_2" colwidth="25*"/>
+<colspec colname="col_3" colwidth="25*"/>
+<colspec colname="col_4" colwidth="25*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Name</entry>
+<entry align="left" valign="top">Type</entry>
+<entry align="left" valign="top">Default</entry>
+<entry align="left" valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.secrets.enabled</simpara></entry>
+<entry align="left" valign="top"><simpara>Boolean</simpara></entry>
+<entry align="left" valign="top"><simpara>true</simpara></entry>
+<entry align="left" valign="top"><simpara>Enable Secrets PropertySource</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.secrets.name</simpara></entry>
+<entry align="left" valign="top"><simpara>String</simpara></entry>
+<entry align="left" valign="top"><simpara>${spring.application.name}</simpara></entry>
+<entry align="left" valign="top"><simpara>Sets the name of the secret to lookup</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.secrets.namespace</simpara></entry>
+<entry align="left" valign="top"><simpara>String</simpara></entry>
+<entry align="left" valign="top"><simpara>Client namespace</simpara></entry>
+<entry align="left" valign="top"><simpara>Sets the Kubernetes namespace where to lookup</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.secrets.labels</simpara></entry>
+<entry align="left" valign="top"><simpara>Map</simpara></entry>
+<entry align="left" valign="top"><simpara>null</simpara></entry>
+<entry align="left" valign="top"><simpara>Sets the labels used to lookup secrets</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.secrets.paths</simpara></entry>
+<entry align="left" valign="top"><simpara>List</simpara></entry>
+<entry align="left" valign="top"><simpara>null</simpara></entry>
+<entry align="left" valign="top"><simpara>Sets the paths where secrets are mounted (example 1)</simpara></entry>
+</row>
+</tbody>
+<tfoot>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.secrets.enableApi</simpara></entry>
+<entry align="left" valign="top"><simpara>Boolean</simpara></entry>
+<entry align="left" valign="top"><simpara>false</simpara></entry>
+<entry align="left" valign="top"><simpara>Enable/Disable consuming secrets via APIs (examples 2 and 3)</simpara></entry>
+</row>
+</tfoot>
+</tgroup>
+</table>
+<simpara><emphasis role="strong">Notes:</emphasis>
+- The property <literal>spring.cloud.kubernetes.secrets.labels</literal> behaves as defined by
+<link xl:href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding">Map-based binding</link>.
+- The property <literal>spring.cloud.kubernetes.secrets.paths</literal> behaves as defined by
+<link xl:href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#collection-based-binding">Collection-based binding</link>.
+- Access to secrets via API may be restricted for security reasons, the preferred way is to mount secret to the POD.</simpara>
+<simpara>Example of application using secrets (though it hasn&#8217;t been updated to use the new <literal>spring-cloud-kubernetes</literal> project):
+<link xl:href="https://github.com/fabric8-quickstarts/spring-boot-camel-config">spring-boot-camel-config</link></simpara>
+</chapter>
+<chapter xml:id="_propertysource_reload">
+<title>PropertySource Reload</title>
+<simpara>Some applications may need to detect changes on external property sources and update their internal status to reflect the new configuration.
+The reload feature of Spring Cloud Kubernetes is able to trigger an application reload when a related <literal>ConfigMap</literal> or
+<literal>Secret</literal> changes.</simpara>
+<simpara>This feature is disabled by default and can be enabled using the configuration property <literal>spring.cloud.kubernetes.reload.enabled=true</literal>
+ (eg. in the <emphasis role="strong">application.properties</emphasis> file).</simpara>
+<simpara>The following levels of reload are supported (property <literal>spring.cloud.kubernetes.reload.strategy</literal>):
+- <emphasis role="strong"><literal>refresh</literal> (default)</emphasis>: only configuration beans annotated with <literal>@ConfigurationProperties</literal> or <literal>@RefreshScope</literal> are reloaded.
+This reload level leverages the refresh feature of Spring Cloud Context.
+- <emphasis role="strong"><literal>restart_context</literal></emphasis>: the whole Spring <emphasis>ApplicationContext</emphasis> is gracefully restarted. Beans are recreated with the new configuration.
+- <emphasis role="strong"><literal>shutdown</literal></emphasis>: the Spring <emphasis>ApplicationContext</emphasis> is shut down to activate a restart of the container.
+ When using this level, make sure that the lifecycle of all non-daemon threads is bound to the ApplicationContext
+ and that a replication controller or replica set is configured to restart the pod.</simpara>
+<simpara>Example:</simpara>
+<simpara>Assuming that the reload feature is enabled with default settings (<emphasis role="strong"><literal>refresh</literal></emphasis> mode), the following bean will be refreshed when the config map changes:</simpara>
+<programlisting language="java" linenumbering="unnumbered">@Configuration
+@ConfigurationProperties(prefix = "bean")
+public class MyConfig {
+
+    private String message = "a message that can be changed live";
+
+    // getter and setters
+
+}</programlisting>
+<simpara>A way to see that changes effectively happen is creating another bean that prints the message periodically.</simpara>
+<programlisting language="java" linenumbering="unnumbered">@Component
+public class MyBean {
+
+    @Autowired
+    private MyConfig config;
+
+    @Scheduled(fixedDelay = 5000)
+    public void hello() {
+        System.out.println("The message is: " + config.getMessage());
+    }
+}</programlisting>
+<simpara>The message printed by the application can be changed using a <literal>ConfigMap</literal> as follows:</simpara>
+<programlisting language="yaml" linenumbering="unnumbered">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reload-example
+data:
+  application.properties: |-
+    bean.message=Hello World!</programlisting>
+<simpara>Any change to the property named <literal>bean.message</literal> in the <literal>ConfigMap</literal> associated to the pod will be reflected in the
+output. More generally speaking, changes associated to properties prefixed with the value defined by the <literal>prefix</literal>
+field of the <literal>@ConfigurationProperties</literal> annotation will be detected and reflected in the application.
+[Associating a <literal>ConfigMap</literal> to a pod](#configmap-propertysource) is explained above.</simpara>
+<simpara>The full example is available in [spring-cloud-kubernetes-reload-example](spring-cloud-kubernetes-examples/kubernetes-reload-example).</simpara>
+<simpara>The reload feature supports two operating modes:
+- <emphasis role="strong">event (default)</emphasis>: watches for changes in config maps or secrets using the Kubernetes API (web socket).
+Any event will produce a re-check on the configuration and a reload in case of changes.
+The <literal>view</literal> role on the service account is required in order to listen for config map changes. A higher level role (eg. <literal>edit</literal>) is required for secrets
+(secrets are not monitored by default).
+- <emphasis role="strong">polling</emphasis>: re-creates the configuration periodically from config maps and secrets to see if it has changed.
+The polling period can be configured using the property <literal>spring.cloud.kubernetes.reload.period</literal> and defaults to <emphasis role="strong">15 seconds</emphasis>.
+It requires the same role as the monitored property source.
+This means, for example, that using polling on file mounted secret sources does not require particular privileges.</simpara>
+<table frame="all" rowsep="1" colsep="1">
+<title>Properties:</title>
+<tgroup cols="4">
+<colspec colname="col_1" colwidth="25*"/>
+<colspec colname="col_2" colwidth="25*"/>
+<colspec colname="col_3" colwidth="25*"/>
+<colspec colname="col_4" colwidth="25*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Name</entry>
+<entry align="left" valign="top">Type</entry>
+<entry align="left" valign="top">Default</entry>
+<entry align="left" valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.reload.enabled</simpara></entry>
+<entry align="left" valign="top"><simpara>Boolean</simpara></entry>
+<entry align="left" valign="top"><simpara>false</simpara></entry>
+<entry align="left" valign="top"><simpara>Enables monitoring of property sources and configuration reload</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.reload.monitoring-config-maps</simpara></entry>
+<entry align="left" valign="top"><simpara>Boolean</simpara></entry>
+<entry align="left" valign="top"><simpara>true</simpara></entry>
+<entry align="left" valign="top"><simpara>Allow monitoring changes in config maps</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.reload.monitoring-secrets</simpara></entry>
+<entry align="left" valign="top"><simpara>Boolean</simpara></entry>
+<entry align="left" valign="top"><simpara>false</simpara></entry>
+<entry align="left" valign="top"><simpara>Allow monitoring changes in secrets</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.reload.strategy</simpara></entry>
+<entry align="left" valign="top"><simpara>Enum</simpara></entry>
+<entry align="left" valign="top"><simpara>refresh</simpara></entry>
+<entry align="left" valign="top"><simpara>The strategy to use when firing a reload (<emphasis role="strong">refresh</emphasis>, <emphasis role="strong">restart_context</emphasis>, <emphasis role="strong">shutdown</emphasis>)</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.reload.mode</simpara></entry>
+<entry align="left" valign="top"><simpara>Enum</simpara></entry>
+<entry align="left" valign="top"><simpara>event</simpara></entry>
+<entry align="left" valign="top"><simpara>Specifies how to listen for changes in property sources (<emphasis role="strong">event</emphasis>, <emphasis role="strong">polling</emphasis>)</simpara></entry>
+</row>
+</tbody>
+<tfoot>
+<row>
+<entry align="left" valign="top"><simpara>spring.cloud.kubernetes.reload.period</simpara></entry>
+<entry align="left" valign="top"><simpara>Long</simpara></entry>
+<entry align="left" valign="top"><simpara>15000</simpara></entry>
+<entry align="left" valign="top"><simpara>The period in milliseconds for verifying changes when using the <emphasis role="strong">polling</emphasis> strategy</simpara></entry>
+</row>
+</tfoot>
+</tgroup>
+</table>
+<simpara><emphasis role="strong">Notes</emphasis>:
+- Properties under <emphasis role="strong">spring.cloud.kubernetes.reload.</emphasis> should not be used in config maps or secrets: changing such properties at runtime may lead to unexpected results;
+- Deleting a property or the whole config map does not restore the original state of the beans when using the <emphasis role="strong">refresh</emphasis> level.</simpara>
+</chapter>
+</part>
+<part xml:id="_ribbon_discovery_in_kubernetes">
+<title>Ribbon discovery in Kubernetes</title>
+<partintro>
+<simpara>Spring Cloud client applications calling a microservice should be interested on relying on a client load-balancing
+feature in order to automatically discover at which endpoint(s) it can reach a given service. This mechanism has been
+implemented within the [spring-cloud-kubernetes-ribbon](spring-cloud-kubernetes-ribbon/pom.xml) project where a
+Kubernetes client will populate a <link xl:href="https://github.com/Netflix/ribbon">Ribbon</link> <literal>ServerList</literal> containing information
+about such endpoints.</simpara>
+<simpara>The implementation is part of the following starter that you can use by adding its dependency to your pom file:</simpara>
+<programlisting language="xml" linenumbering="unnumbered">&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-kubernetes-netflix&lt;/artifactId&gt;
+    &lt;version&gt;${latest.version}&lt;/version&gt;
+&lt;/dependency&gt;</programlisting>
+<simpara>When the list of the endpoints is populated, the Kubernetes client will search the registered endpoints living in
+the current namespace/project matching the service name defined using the Ribbon Client annotation:</simpara>
+<programlisting language="java" linenumbering="unnumbered">@RibbonClient(name = "name-service")</programlisting>
+<simpara>You can configure Ribbon&#8217;s behavior by providing properties in your <literal>application.properties</literal> (via your application&#8217;s
+dedicated <literal>ConfigMap</literal>) using the following format: <literal>&lt;name of your service&gt;.ribbon.&lt;Ribbon configuration key&gt;</literal> where:</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>&lt;name of your service&gt;</literal> corresponds to the service name you&#8217;re accessing over Ribbon, as configured using the
+<literal>@RibbonClient</literal> annotation (e.g. <literal>name-service</literal> in the example above)</simpara>
+</listitem>
+<listitem>
+<simpara><literal>&lt;Ribbon configuration key&gt;</literal> is one of the Ribbon configuration key defined by
+<link xl:href="https://github.com/Netflix/ribbon/blob/master/ribbon-core/src/main/java/com/netflix/client/config/CommonClientConfigKey.java">Ribbon&#8217;s CommonClientConfigKey class</link></simpara>
+</listitem>
+</itemizedlist>
+<simpara>Additionally, the <literal>spring-cloud-kubernetes-ribbon</literal> project defines two additional configuration keys to further
+control how Ribbon interacts with Kubernetes. In particular, if an endpoint defines multiple ports, the default
+behavior is to use the first one found. To select more specifically which port to use, in a multi-port service, use
+the <literal>PortName</literal> key. If you want to specify in which Kubernetes' namespace the target service should be looked up, use
+the <literal>KubernetesNamespace</literal> key, remembering in both instances to prefix these keys with your service name and
+<literal>ribbon</literal> prefix as specified above.</simpara>
+<simpara>Examples that are using this module for ribbon discovery are:</simpara>
+<itemizedlist>
+<listitem>
+<simpara><link xl:href="./spring-cloud-kubernetes-examples/kubernetes-circuitbreaker-ribbon-example">Spring Cloud Circuitbreaker and Ribbon</link></simpara>
+</listitem>
+<listitem>
+<simpara><link xl:href="https://github.com/fabric8-quickstarts/spring-boot-ribbon">fabric8-quickstarts - Spring Boot - Ribbon</link></simpara>
+</listitem>
+<listitem>
+<simpara><link xl:href="https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank">Kubeflix - LoanBroker - Bank</link></simpara>
+</listitem>
+</itemizedlist>
+<simpara><emphasis role="strong">Note</emphasis>: The Ribbon discovery client can be disabled by setting this key within the application properties file
+<literal>spring.cloud.kubernetes.ribbon.enabled=false</literal>.</simpara>
+</partintro>
+</part>
+<part xml:id="_kubernetes_awareness">
+<title>Kubernetes Awareness</title>
+<partintro>
+<simpara>All of the features described above will work equally well regardless of whether your application is running inside
+Kubernetes or not. This is really helpful for development and troubleshooting.
+From a development point of view, this is really helpful as you can start your Spring Boot application and debug one
+of the modules part of this project. It is not required to deploy it in Kubernetes
+as the code of the project relies on the
+[Fabric8 Kubernetes Java client](<link xl:href="https://github.com/fabric8io/kubernetes-client">https://github.com/fabric8io/kubernetes-client</link>) which is a fluent DSL able to
+communicate using <literal>http</literal> protocol to the REST API of Kubernetes Server.</simpara>
+</partintro>
+<chapter xml:id="_kubernetes_profile_autoconfiguration">
+<title>Kubernetes Profile Autoconfiguration</title>
+<simpara>When the application runs as a pod inside Kubernetes a Spring profile named <literal>kubernetes</literal> will automatically get activated.
+This allows the developer to customize the configuration, to define beans that will be applied when the Spring Boot application is deployed
+within the Kubernetes platform <emphasis role="strong">(e.g. different dev and prod configuration)</emphasis>.</simpara>
+</chapter>
+</part>
+<part xml:id="_pod_health_indicator">
+<title>Pod Health Indicator</title>
+<partintro>
+<simpara>Spring Boot uses <link xl:href="https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/HealthEndpoint.java">HealthIndicator</link> to expose info about the health of an application.
+That makes it really useful for exposing health related information to the user and are also a good fit for use as <link xl:href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/">readiness probes</link>.</simpara>
+<simpara>The Kubernetes health indicator which is part of the core module exposes the following info:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>pod name, ip address, namespace, service account, node name and its ip address</simpara>
+</listitem>
+<listitem>
+<simpara>flag that indicates if the Spring Boot application is internal or external to Kubernetes</simpara>
+</listitem>
+</itemizedlist>
+</partintro>
+</part>
+<part xml:id="_leader_election">
+<title>Leader Election</title>
+<partintro>
+<simpara>&lt;TBD&gt;</simpara>
+</partintro>
+</part>
+<part xml:id="_security_configurations_inside_kubernetes">
+<title>Security Configurations inside Kubernetes</title>
+<chapter xml:id="_namespace">
+<title>Namespace</title>
+<simpara>Most of the components provided in this project need to know the namespace. For Kubernetes (1.3+) the namespace is made available to pod as part of the service account secret and automatically detected by the client.
+For earlier version it needs to be specified as an env var to the pod. A quick way to do this is:</simpara>
+<literallayout class="monospaced">env:
+- name: "KUBERNETES_NAMESPACE"
+  valueFrom:
+    fieldRef:
+      fieldPath: "metadata.namespace"</literallayout>
+</chapter>
+<chapter xml:id="_service_account">
+<title>Service Account</title>
+<simpara>For distros of Kubernetes that support more fine-grained role-based access within the cluster, you need to make sure a pod that runs with spring-cloud-kubernetes has access to the Kubernetes API.
+For any service accounts you assign to a deployment/pod, you need to make sure it has the correct roles. For example, you can add <literal>cluster-reader</literal> permissions to your <literal>default</literal> service account depending on the project you&#8217;re in:</simpara>
+</chapter>
+</part>
+<part xml:id="_examples">
+<title>Examples</title>
+<partintro>
+<simpara>List of examples using these projects:</simpara>
+<simpara>&lt;TBD&gt;</simpara>
+</partintro>
+</part>
+<part xml:id="_other_resources">
+<title>Other Resources</title>
+<chapter xml:id="_building">
+<title>Building</title>
+<section xml:id="_basic_compile_and_test">
+<title>Basic Compile and Test</title>
+<simpara>To build the source you will need to install JDK 1.7.</simpara>
+<simpara>Spring Cloud uses Maven for most build-related activities, and you
+should be able to get off the ground quite quickly by cloning the
+project you are interested in and typing</simpara>
+<screen>$ ./mvnw install</screen>
+<note>
+<simpara>You can also install Maven (&gt;=3.3.3) yourself and run the <literal>mvn</literal> command
+in place of <literal>./mvnw</literal> in the examples below. If you do that you also
+might need to add <literal>-P spring</literal> if your local Maven settings do not
+contain repository declarations for spring pre-release artifacts.</simpara>
+</note>
+<note>
+<simpara>Be aware that you might need to increase the amount of memory
+available to Maven by setting a <literal>MAVEN_OPTS</literal> environment variable with
+a value like <literal>-Xmx512m -XX:MaxPermSize=128m</literal>. We try to cover this in
+the <literal>.mvn</literal> configuration, so if you find you have to do it to make a
+build succeed, please raise a ticket to get the settings added to
+source control.</simpara>
+</note>
+<simpara>For hints on how to build the project look in <literal>.travis.yml</literal> if there
+is one. There should be a "script" and maybe "install" command. Also
+look at the "services" section to see if any services need to be
+running locally (e.g. mongo or rabbit).  Ignore the git-related bits
+that you might find in "before_install" since they&#8217;re related to setting git
+credentials and you already have those.</simpara>
+<simpara>The projects that require middleware generally include a
+<literal>docker-compose.yml</literal>, so consider using
+<link xl:href="http://compose.docker.io/">Docker Compose</link> to run the middeware servers
+in Docker containers. See the README in the
+<link xl:href="https://github.com/spring-cloud-samples/scripts">scripts demo
+repository</link> for specific instructions about the common cases of mongo,
+rabbit and redis.</simpara>
+<note>
+<simpara>If all else fails, build with the command from <literal>.travis.yml</literal> (usually
+<literal>./mvnw install</literal>).</simpara>
+</note>
+</section>
+<section xml:id="_documentation">
+<title>Documentation</title>
+<simpara>The spring-cloud-build module has a "docs" profile, and if you switch
+that on it will try to build asciidoc sources from
+<literal>src/main/asciidoc</literal>. As part of that process it will look for a
+<literal>README.adoc</literal> and process it by loading all the includes, but not
+parsing or rendering it, just copying it to <literal>${main.basedir}</literal>
+(defaults to <literal>${basedir}</literal>, i.e. the root of the project). If there are
+any changes in the README it will then show up after a Maven build as
+a modified file in the correct place. Just commit it and push the change.</simpara>
+</section>
+<section xml:id="_working_with_the_code">
+<title>Working with the code</title>
+<simpara>If you don&#8217;t have an IDE preference we would recommend that you use
+<link xl:href="http://www.springsource.com/developer/sts">Spring Tools Suite</link> or
+<link xl:href="http://eclipse.org">Eclipse</link> when working with the code. We use the
+<link xl:href="http://eclipse.org/m2e/">m2eclipse</link> eclipse plugin for maven support. Other IDEs and tools
+should also work without issue as long as they use Maven 3.3.3 or better.</simpara>
+<section xml:id="_importing_into_eclipse_with_m2eclipse">
+<title>Importing into eclipse with m2eclipse</title>
+<simpara>We recommend the <link xl:href="http://eclipse.org/m2e/">m2eclipse</link> eclipse plugin when working with
+eclipse. If you don&#8217;t already have m2eclipse installed it is available from the "eclipse
+marketplace".</simpara>
+<note>
+<simpara>Older versions of m2e do not support Maven 3.3, so once the
+projects are imported into Eclipse you will also need to tell
+m2eclipse to use the right profile for the projects.  If you
+see many different errors related to the POMs in the projects, check
+that you have an up to date installation.  If you can&#8217;t upgrade m2e,
+add the "spring" profile to your <literal>settings.xml</literal>. Alternatively you can
+copy the repository settings from the "spring" profile of the parent
+pom into your <literal>settings.xml</literal>.</simpara>
+</note>
+</section>
+<section xml:id="_importing_into_eclipse_without_m2eclipse">
+<title>Importing into eclipse without m2eclipse</title>
+<simpara>If you prefer not to use m2eclipse you can generate eclipse project metadata using the
+following command:</simpara>
+<screen>$ ./mvnw eclipse:eclipse</screen>
+<simpara>The generated eclipse projects can be imported by selecting <literal>import existing projects</literal>
+from the <literal>file</literal> menu.</simpara>
+</section>
+</section>
+</chapter>
+<chapter xml:id="_contributing">
+<title>Contributing</title>
+<simpara>Spring Cloud is released under the non-restrictive Apache 2.0 license,
+and follows a very standard Github development process, using Github
+tracker for issues and merging pull requests into master. If you want
+to contribute even something trivial please do not hesitate, but
+follow the guidelines below.</simpara>
+<section xml:id="_sign_the_contributor_license_agreement">
+<title>Sign the Contributor License Agreement</title>
+<simpara>Before we accept a non-trivial patch or pull request we will need you to sign the
+<link xl:href="https://cla.pivotal.io/sign/spring">Contributor License Agreement</link>.
+Signing the contributor&#8217;s agreement does not grant anyone commit rights to the main
+repository, but it does mean that we can accept your contributions, and you will get an
+author credit if we do.  Active contributors might be asked to join the core team, and
+given the ability to merge pull requests.</simpara>
+</section>
+<section xml:id="_code_of_conduct">
+<title>Code of Conduct</title>
+<simpara>This project adheres to the Contributor Covenant <link xl:href="https://github.com/spring-cloud/spring-cloud-build/blob/master/docs/src/main/asciidoc/code-of-conduct.adoc">code of
+conduct</link>. By participating, you  are expected to uphold this code. Please report
+unacceptable behavior to <link xl:href="mailto:spring-code-of-conduct@pivotal.io">spring-code-of-conduct@pivotal.io</link>.</simpara>
+</section>
+<section xml:id="_code_conventions_and_housekeeping">
+<title>Code Conventions and Housekeeping</title>
+<simpara>None of these is essential for a pull request, but they will all help.  They can also be
+added after the original pull request but before a merge.</simpara>
+<itemizedlist>
+<listitem>
+<simpara>Use the Spring Framework code format conventions. If you use Eclipse
+you can import formatter settings using the
+<literal>eclipse-code-formatter.xml</literal> file from the
+<link xl:href="https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-dependencies-parent/eclipse-code-formatter.xml">Spring
+Cloud Build</link> project. If using IntelliJ, you can use the
+<link xl:href="http://plugins.jetbrains.com/plugin/6546">Eclipse Code Formatter
+Plugin</link> to import the same file.</simpara>
+</listitem>
+<listitem>
+<simpara>Make sure all new <literal>.java</literal> files to have a simple Javadoc class comment with at least an
+<literal>@author</literal> tag identifying you, and preferably at least a paragraph on what the class is
+for.</simpara>
+</listitem>
+<listitem>
+<simpara>Add the ASF license header comment to all new <literal>.java</literal> files (copy from existing files
+in the project)</simpara>
+</listitem>
+<listitem>
+<simpara>Add yourself as an <literal>@author</literal> to the .java files that you modify substantially (more
+than cosmetic changes).</simpara>
+</listitem>
+<listitem>
+<simpara>Add some Javadocs and, if you change the namespace, some XSD doc elements.</simpara>
+</listitem>
+<listitem>
+<simpara>A few unit tests would help a lot as well&#8201;&#8212;&#8201;someone has to do it.</simpara>
+</listitem>
+<listitem>
+<simpara>If no-one else is using your branch, please rebase it against the current master (or
+other target branch in the main project).</simpara>
+</listitem>
+<listitem>
+<simpara>When writing a commit message please follow <link xl:href="http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html">these conventions</link>,
+if you are fixing an existing issue please add <literal>Fixes gh-XXXX</literal> at the end of the commit
+message (where XXXX is the issue number).</simpara>
+</listitem>
+</itemizedlist>
+</section>
+</chapter>
+</part>
+</book>
