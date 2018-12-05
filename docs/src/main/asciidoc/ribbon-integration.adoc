@@ -1,4 +1,4 @@
-# Ribbon discovery in Kubernetes
+== Ribbon discovery in Kubernetes
 
 
 Spring Cloud client applications calling a microservice should be interested on relying on a client load-balancing
@@ -12,7 +12,7 @@ The implementation is part of the following starter that you can use by adding i
 ```xml
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-netflix</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-ribbon</artifactId>
     <version>${latest.version}</version>
 </dependency>
 ```

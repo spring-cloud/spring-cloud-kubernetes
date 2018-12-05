@@ -1,5 +1,24 @@
-= Examples
+== Examples
+
+Spring Cloud Kubernetes tries to make it transparent for your applications to consume Kubernetes Native Services
+following the Spring Cloud interfaces.
+
+In your applications, you need to add the **spring-cloud-kubernetes-discovery** dependency to your classpath and remove any other dependency that contains a **DiscoveryClient** implementation (ie. Eureka Discovery Client).
+The same applies for PropertySourceLocator, where you need to add to the classpath the **spring-cloud-kubernetes-config** and remove any other dependency that contains a **PropertySourceLocator** implementation (ie. Config Server Client).
+
+The following projects highlight the usage of these dependencies and demonstrate how these libraries can be used from any Spring Boot application.
 
 List of examples using these projects:
 
-<TBD>
+- https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-examples[Spring Cloud Kubernetes Examples]: the ones located inside this repository.
+- Spring Cloud Kubernetes Full Example: Minions and Boss
+	- https://github.com/salaboy/spring-cloud-k8s-minion[Minion]
+	- https://github.com/salaboy/spring-cloud-k8s-boss[Boss]
+- Spring Cloud Kubernetes Full Example: https://github.com/salaboy/s1p_docs[SpringOne Platform Tickets Service]
+- https://github.com/salaboy/s1p_gateway[Spring Cloud Gateway with Spring Cloud Kubernetes Discovery and Config]
+- https://github.com/salaboy/showcase-admin-tool[Spring Boot Admin with Spring Cloud Kubernetes Discovery and Config]
+
+
+
+
+
