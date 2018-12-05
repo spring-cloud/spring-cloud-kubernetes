@@ -16,20 +16,22 @@
  */
 package org.springframework.cloud.kubernetes.discovery;
 
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointPort;
-import io.fabric8.kubernetes.api.model.EndpointSubset;
-import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import io.fabric8.kubernetes.api.model.EndpointAddress;
+import io.fabric8.kubernetes.api.model.EndpointPort;
+import io.fabric8.kubernetes.api.model.EndpointSubset;
+import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.expression.Expression;
@@ -135,9 +137,9 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	// but with the keys prefixed
 	// if the prefix is null or empty, the map itself is returned (unchanged of course)
 	private Map<String, String> getMapWithPrefixedKeys(Map<String, String> map, String prefix) {
-	    if(map == null) {
-	        return new HashMap<>();
-        }
+		if (map == null) {
+			return new HashMap<>();
+		}
 
 		// when the prefix is empty just return an map with the same entries
 		if (!StringUtils.hasText(prefix)) {
