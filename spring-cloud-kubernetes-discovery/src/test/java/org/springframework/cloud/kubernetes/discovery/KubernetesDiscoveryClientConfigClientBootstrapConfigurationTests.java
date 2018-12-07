@@ -16,16 +16,11 @@
  */
 package org.springframework.cloud.kubernetes.discovery;
 
-import static junit.framework.TestCase.assertEquals;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import java.util.Collections;
 
-import java.util.Arrays;
 import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.client.DefaultServiceInstance;
@@ -35,17 +30,20 @@ import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.config.client.ConfigClientProperties;
 import org.springframework.cloud.config.client.DiscoveryClientConfigServiceBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.KubernetesAutoConfiguration;
-import org.springframework.cloud.test.ClassPathExclusions;
-import org.springframework.cloud.test.ModifiedClassPathRunner;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import static junit.framework.TestCase.assertEquals;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 /**
  * @author Zhanwei Wang
  */
-@RunWith(ModifiedClassPathRunner.class)
-public class KubernetesDiscoveryAutoConfigurationTests {
+public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 	private AnnotationConfigApplicationContext context;
 
 	@After
@@ -80,7 +78,7 @@ public class KubernetesDiscoveryAutoConfigurationTests {
 		TestPropertyValues.of(env).applyTo(parent);
 		parent.register(UtilAutoConfiguration.class,
 			PropertyPlaceholderAutoConfiguration.class, EnvironmentKnobbler.class,
-			KubernetesDiscoveryClientBootstrapConfiguration.class,
+			KubernetesDiscoveryClientConfigClientBootstrapConfiguration.class,
 			DiscoveryClientConfigServiceBootstrapConfiguration.class,
 			ConfigClientProperties.class);
 		parent.refresh();
@@ -96,13 +94,12 @@ public class KubernetesDiscoveryAutoConfigurationTests {
 	protected static class EnvironmentKnobbler {
 
 		@Bean
-		public DiscoveryClient kubernetesDiscoveryClient(
-			KubernetesDiscoveryProperties properties) {
+		public KubernetesDiscoveryClient kubernetesDiscoveryClient() {
 			KubernetesDiscoveryClient client = mock(KubernetesDiscoveryClient.class);
-			ServiceInstance instance = new DefaultServiceInstance("configserver",
-				"fake", 8888, false);
+			ServiceInstance instance = new DefaultServiceInstance("configserver1",
+				"configserver", "fake", 8888, false);
 			given(client.getInstances("configserver"))
-				.willReturn(Arrays.asList(instance));
+				.willReturn(Collections.singletonList(instance));
 			return client;
 		}
 	}
