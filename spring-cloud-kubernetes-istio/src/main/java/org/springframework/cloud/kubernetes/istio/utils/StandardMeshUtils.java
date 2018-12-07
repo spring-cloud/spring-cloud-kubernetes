@@ -44,6 +44,8 @@ public class StandardMeshUtils implements MeshUtils {
 
 	private synchronized boolean checkIstioServices() {
 		try {
+			//Check if Istio proxy is installed.
+			// We can improve this initial detection if better methods are found.
 			WebClient client = WebClient.create("http://localhost:15090/");
 			ClientResponse clientResponse = client.get().uri("stats/prometheus").exchange().block();
 			if (clientResponse.statusCode().is2xxSuccessful()) {
