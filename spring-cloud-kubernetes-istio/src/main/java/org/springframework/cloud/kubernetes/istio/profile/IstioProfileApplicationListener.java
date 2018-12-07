@@ -41,10 +41,10 @@ public class IstioProfileApplicationListener implements ApplicationListener<Appl
 	@Override
 	public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
 		ConfigurableEnvironment environment = event.getEnvironment();
-		addKubernetesProfile(environment);
+		addIstioProfile(environment);
 	}
 
-	void addKubernetesProfile(ConfigurableEnvironment environment) {
+	void addIstioProfile(ConfigurableEnvironment environment) {
 		if (utils.isIstioEnabled()) {
 			if (hasIstioProfile(environment)) {
 				if (LOG.isDebugEnabled()) {

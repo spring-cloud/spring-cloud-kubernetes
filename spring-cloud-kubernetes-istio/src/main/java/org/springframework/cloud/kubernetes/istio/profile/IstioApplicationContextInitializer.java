@@ -50,6 +50,6 @@ public class IstioApplicationContextInitializer implements
 
 	@Override
 	public void initialize(ConfigurableApplicationContext applicationContext) {
-		listener.addKubernetesProfile(applicationContext.getEnvironment());
+		listener.addIstioProfile(applicationContext.getEnvironment());
 	}
 }

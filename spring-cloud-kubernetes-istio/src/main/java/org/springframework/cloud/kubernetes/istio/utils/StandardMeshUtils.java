@@ -16,14 +16,11 @@
 
 package org.springframework.cloud.kubernetes.istio.utils;
 
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
 import me.snowdrop.istio.client.IstioClient;
-import me.snowdrop.istio.mixer.template.apikey.ApiKey;
-import me.snowdrop.istio.mixer.template.apikey.ApiKeyList;
-import me.snowdrop.istio.mixer.template.apikey.DoneableApiKey;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.WebClient;
 
 
 public class StandardMeshUtils implements MeshUtils {
@@ -47,12 +44,12 @@ public class StandardMeshUtils implements MeshUtils {
 
 	private synchronized boolean checkIstioServices() {
 		try {
-			MixedOperation<ApiKey, ApiKeyList, DoneableApiKey, Resource<ApiKey, DoneableApiKey>> apiKeyApiKeyListDoneableApiKeyResourceMixedOperation = client.mixer().apiKey();
-			ApiKeyList list = apiKeyApiKeyListDoneableApiKeyResourceMixedOperation.list();
-			for (ApiKey ak : list.getItems()) {
-				LOG.info(">>> API Keys listed inside pod: " + ak.toString());
+			WebClient client = WebClient.create("http://localhost:15090/");
+			ClientResponse clientResponse = client.get().uri("stats/prometheus").exchange().block();
+			if (clientResponse.statusCode().is2xxSuccessful()) {
+				return true;
 			}
-			return true;
+			return false;
 		} catch (Throwable t) {
 			LOG.warn("Failed to get Istio Resources. Are you missing serviceaccount permissions?", t);
 			return false;
