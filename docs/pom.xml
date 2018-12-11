@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-kubernetes</artifactId>
-		<version>1.0.0.BUILD-SNAPSHOT</version>
+		<version>1.0.0.RC1</version>
 	</parent>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes Docs</name>
