@@ -1,8 +1,5 @@
 package org.springframework.cloud.kubernetes.istio;
 
-import io.fabric8.kubernetes.client.Config;
-import me.snowdrop.istio.client.DefaultIstioClient;
-import me.snowdrop.istio.client.IstioClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -26,16 +23,9 @@ public class IstioBootstrapConfiguration {
 
 	private static final String ISTIO_PROFILE = "istio";
 
-
 	@Bean
 	@ConditionalOnMissingBean
-	public IstioClient istioClient(Config config) {
-		return new DefaultIstioClient(config);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public MeshUtils istioMeshhUtils(IstioClientProperties istioClientProperties) {
+	public MeshUtils istioMeshUtils(IstioClientProperties istioClientProperties) {
 		return new StandardMeshUtils(istioClientProperties);
 	}
 
