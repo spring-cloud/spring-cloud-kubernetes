@@ -72,7 +72,7 @@ jobs:
             # Allow intra-pod communication
             sudo iptables -P FORWARD ACCEPT
 
-            /snap/bin/microk8s.enable dns registry
+            echo n |/snap/bin/microk8s.enable dns registry istio
 
             # wait until the registry is up and running
             sleep 10
@@ -85,6 +85,21 @@ jobs:
             done
 
             echo "Kubernetes Container Registry enabled"
+
+            # wait until istio is up and running
+            sleep 10
+            n=0
+            until [ $n -ge 10 ]
+            do
+              (/snap/bin/microk8s.kubectl get pod -l istio=sidecar-injector --namespace=istio-system | grep -z "Running") && break
+              n=$[$n+1]
+              sleep 10
+            done
+
+            echo "Istio enabled"
+
+            # create the namespace where the istio integration test will run
+            /snap/bin/microk8s.kubectl create -f .circleci/istio-test-namespace.yml
       - run:
           name: Run integration tests
           command: |
