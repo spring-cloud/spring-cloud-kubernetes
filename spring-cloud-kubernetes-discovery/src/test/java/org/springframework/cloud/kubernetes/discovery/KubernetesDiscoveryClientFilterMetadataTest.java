@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import org.assertj.core.util.Strings;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,13 +62,13 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	private KubernetesDiscoveryProperties.Metadata metadata;
 
 	@Mock
-	private MixedOperation<Service, ServiceList, DoneableService, Resource<Service, DoneableService>> serviceOperation;
+	private MixedOperation<Service, ServiceList, DoneableService, ServiceResource<Service, DoneableService>> serviceOperation;
 
 	@Mock
 	private MixedOperation<Endpoints, EndpointsList, DoneableEndpoints, Resource<Endpoints, DoneableEndpoints>> endpointsOperation;
 
 	@Mock
-	private Resource<Service, DoneableService> serviceResource;
+	private ServiceResource<Service, DoneableService> serviceResource;
 
 	@Mock
 	private Resource<Endpoints, DoneableEndpoints> endpointsResource;
