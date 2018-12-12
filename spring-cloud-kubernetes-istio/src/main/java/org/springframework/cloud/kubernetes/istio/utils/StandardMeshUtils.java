@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.istio.utils;
 
-import me.snowdrop.istio.client.IstioClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -29,15 +28,10 @@ public class StandardMeshUtils implements MeshUtils {
 
 	private static final Log LOG = LogFactory.getLog(StandardMeshUtils.class);
 
-	private final IstioClient client;
-	private final IstioClientProperties istioClientProperties;
+    private final IstioClientProperties istioClientProperties;
 
-	public StandardMeshUtils(IstioClient client, IstioClientProperties istioClientProperties) {
-		if (client == null) {
-			throw new IllegalArgumentException("Must provide an instance of IstioClient");
-		}
-		this.client = client;
-		this.istioClientProperties = istioClientProperties;
+	public StandardMeshUtils(IstioClientProperties istioClientProperties) {
+        this.istioClientProperties = istioClientProperties;
 	}
 
 

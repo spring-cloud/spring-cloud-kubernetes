@@ -36,7 +36,7 @@ public class IstioBootstrapConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public MeshUtils istioMeshhUtils(IstioClient client, IstioClientProperties istioClientProperties) {
-		return new StandardMeshUtils(client, istioClientProperties);
+		return new StandardMeshUtils(istioClientProperties);
 	}
 
 	@EnableConfigurationProperties(IstioClientProperties.class)
