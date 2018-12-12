@@ -1,5 +1,6 @@
 package org.springframework.cloud.kubernetes.it;
 
+import me.snowdrop.istio.client.IstioClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -16,6 +17,10 @@ public class IstioApplication {
 
     @Autowired
     private Environment environment;
+
+    // used just to ensure that the IstioClient is properly injected into the context
+    @Autowired
+    private IstioClient istioClient;
 
 	@GetMapping("/profiles")
 	public List<String> profiles() {
