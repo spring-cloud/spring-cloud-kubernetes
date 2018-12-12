@@ -57,10 +57,13 @@ public class StandardMeshUtils implements MeshUtils {
 				LOG.info("Istio Resources Found.");
 				return true;
 			}
-			LOG.warn("Failed to get Istio Resources.");
+			LOG.warn("Although Envoy proxy did respond at port" + istioClientProperties.getEnvoyPort() +
+                    ", it did not respond with HTTP 200 to path: " + istioClientProperties.getTestPath() +
+                    ". You may need to tweak the test path in order to get proper Istio support");
 			return false;
 		} catch (Throwable t) {
-			LOG.warn("Failed to get Istio Resources. Are you missing serviceaccount permissions? Are Istio Services up?", t);
+			LOG.debug("Envoy proxy could not be located at port: " + istioClientProperties.getEnvoyPort() +
+                    ". Assuming that the application is not running inside the Istio Service Mesh");
 			return false;
 		}
 	}
