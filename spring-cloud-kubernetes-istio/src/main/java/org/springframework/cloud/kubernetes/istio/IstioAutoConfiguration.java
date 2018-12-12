@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.istio.enabled", matchIfMissing = true)
+@ConditionalOnProperty(value = "spring.cloud.istio.enabled", matchIfMissing = true)
 public class IstioAutoConfiguration {
 
     @Bean
