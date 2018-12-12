@@ -1,0 +1,16 @@
+{
+	"properties": [
+		{
+			"name": "spring.cloud.istio.client.envoyPort",
+			"type": "java.lang.Integer",
+			"description": "Envoy Proxy Port to check if Istio is installed",
+			"defaultValue": 15090
+		},
+		{
+			"name": "spring.cloud.istio.client.testPath",
+			"type": "java.lang.String",
+			"description": "Test URL path to check if Istio is enabled where the pod is running",
+			"defaultValue": "stats/prometheus"
+		}
+	]
+}

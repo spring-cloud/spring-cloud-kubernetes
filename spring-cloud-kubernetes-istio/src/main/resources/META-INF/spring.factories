@@ -1,5 +1,2 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.kubernetes.istio.IstioAutoConfiguration\
-
-org.springframework.context.ApplicationContextInitializer=\
-org.springframework.cloud.kubernetes.istio.profile.IstioApplicationContextInitializer
+org.springframework.cloud.bootstrap.BootstrapConfiguration=\
+org.springframework.cloud.kubernetes.istio.IstioBootstrapConfiguration

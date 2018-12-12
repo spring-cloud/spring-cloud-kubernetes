@@ -19,8 +19,10 @@ package org.springframework.cloud.kubernetes.istio.utils;
 import me.snowdrop.istio.client.IstioClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.kubernetes.istio.IstioClientProperties;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 
 public class StandardMeshUtils implements MeshUtils {
@@ -28,12 +30,14 @@ public class StandardMeshUtils implements MeshUtils {
 	private static final Log LOG = LogFactory.getLog(StandardMeshUtils.class);
 
 	private final IstioClient client;
+	private final IstioClientProperties istioClientProperties;
 
-	public StandardMeshUtils(IstioClient client) {
+	public StandardMeshUtils(IstioClient client, IstioClientProperties istioClientProperties) {
 		if (client == null) {
 			throw new IllegalArgumentException("Must provide an instance of IstioClient");
 		}
 		this.client = client;
+		this.istioClientProperties = istioClientProperties;
 	}
 
 
@@ -44,16 +48,19 @@ public class StandardMeshUtils implements MeshUtils {
 
 	private synchronized boolean checkIstioServices() {
 		try {
-			//Check if Istio proxy is installed.
-			// We can improve this initial detection if better methods are found.
-			WebClient client = WebClient.create("http://localhost:15090/");
-			ClientResponse clientResponse = client.get().uri("stats/prometheus").exchange().block();
-			if (clientResponse.statusCode().is2xxSuccessful()) {
+			//Check if Istio Envoy proxy is installed. Notice that the check is done to localhost.
+			// TODO: We can improve this initial detection if better methods are found.
+			RestTemplate restTemplate = new RestTemplateBuilder().build();
+			String resource = "http://localhost:" + istioClientProperties.getEnvoyPort();
+			ResponseEntity<String> response = restTemplate.getForEntity(resource + "/" + istioClientProperties.getTestPath(), String.class);
+			if (response.getStatusCode().is2xxSuccessful()) {
+				LOG.info("Istio Resources Found.");
 				return true;
 			}
+			LOG.warn("Failed to get Istio Resources.");
 			return false;
 		} catch (Throwable t) {
-			LOG.warn("Failed to get Istio Resources. Are you missing serviceaccount permissions?", t);
+			LOG.warn("Failed to get Istio Resources. Are you missing serviceaccount permissions? Are Istio Services up?", t);
 			return false;
 		}
 	}

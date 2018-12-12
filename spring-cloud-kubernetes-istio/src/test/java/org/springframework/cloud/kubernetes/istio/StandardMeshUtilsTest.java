@@ -25,7 +25,7 @@ public class StandardMeshUtilsTest {
     public void constructorThrowsIllegalArgumentExceptionWhenIstioClientNull() {
         // expect an IllegalArgumentException if IstioClient argument is
         // null
-        new StandardMeshUtils(null);
+        new StandardMeshUtils(null, null);
     }
 
 }
