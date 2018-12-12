@@ -56,8 +56,10 @@ public class StandardMeshUtils implements MeshUtils {
                     ". You may need to tweak the test path in order to get proper Istio support");
 			return false;
 		} catch (Throwable t) {
-			LOG.debug("Envoy proxy could not be located at port: " + istioClientProperties.getEnvoyPort() +
-                    ". Assuming that the application is not running inside the Istio Service Mesh");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Envoy proxy could not be located at port: " + istioClientProperties.getEnvoyPort() +
+                        ". Assuming that the application is not running inside the Istio Service Mesh");
+            }
 			return false;
 		}
 	}
