@@ -16,11 +16,49 @@
 
 package org.springframework.cloud.kubernetes.istio.utils;
 
-public interface MeshUtils {
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.kubernetes.istio.IstioClientProperties;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+
+public class MeshUtils {
 
 
-	/**
-	 * @return true if called from within Kubernetes and Istio is installed, false otherwise.
-	 */
-	Boolean isIstioEnabled();
+	private static final Log LOG = LogFactory.getLog(MeshUtils.class);
+
+	private final IstioClientProperties istioClientProperties;
+
+	public MeshUtils(IstioClientProperties istioClientProperties) {
+		this.istioClientProperties = istioClientProperties;
+	}
+
+	public Boolean isIstioEnabled() {
+		return checkIstioServices();
+	}
+
+	private synchronized boolean checkIstioServices() {
+		try {
+			//Check if Istio Envoy proxy is installed. Notice that the check is done to localhost.
+			// TODO: We can improve this initial detection if better methods are found.
+			RestTemplate restTemplate = new RestTemplateBuilder().build();
+			String resource = "http://localhost:" + istioClientProperties.getEnvoyPort();
+			ResponseEntity<String> response = restTemplate.getForEntity(resource + "/" + istioClientProperties.getTestPath(), String.class);
+			if (response.getStatusCode().is2xxSuccessful()) {
+				LOG.info("Istio Resources Found.");
+				return true;
+			}
+			LOG.warn("Although Envoy proxy did respond at port" + istioClientProperties.getEnvoyPort() +
+				", it did not respond with HTTP 200 to path: " + istioClientProperties.getTestPath() +
+				". You may need to tweak the test path in order to get proper Istio support");
+			return false;
+		} catch (Throwable t) {
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Envoy proxy could not be located at port: " + istioClientProperties.getEnvoyPort() +
+					". Assuming that the application is not running inside the Istio Service Mesh");
+			}
+			return false;
+		}
+	}
 }

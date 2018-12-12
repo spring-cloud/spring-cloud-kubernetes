@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.kubernetes.istio.utils.MeshUtils;
-import org.springframework.cloud.kubernetes.istio.utils.StandardMeshUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -26,7 +25,7 @@ public class IstioBootstrapConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public MeshUtils istioMeshUtils(IstioClientProperties istioClientProperties) {
-		return new StandardMeshUtils(istioClientProperties);
+		return new MeshUtils(istioClientProperties);
 	}
 
 	@EnableConfigurationProperties(IstioClientProperties.class)
