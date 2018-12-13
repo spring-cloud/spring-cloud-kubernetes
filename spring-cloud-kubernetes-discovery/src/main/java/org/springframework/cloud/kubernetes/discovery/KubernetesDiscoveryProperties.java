@@ -34,6 +34,9 @@ public class KubernetesDiscoveryProperties {
 	/** SpEL expression to filter services. */
 	private String filter;
 
+    /** If enabled, all services are considered secured */
+	private boolean secured = false;
+
 	private Metadata metadata = new Metadata();
 
 	public boolean isEnabled() {
@@ -60,7 +63,15 @@ public class KubernetesDiscoveryProperties {
 		this.filter = filter;
 	}
 
-	public Metadata getMetadata() {
+    public boolean isSecured() {
+        return secured;
+    }
+
+    public void setSecured(boolean secured) {
+        this.secured = secured;
+    }
+
+    public Metadata getMetadata() {
 		return metadata;
 	}
 

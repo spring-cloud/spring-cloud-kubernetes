@@ -59,6 +59,9 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	private KubernetesDiscoveryProperties properties;
 
 	@Mock
+	private IsServicePortSecureResolver isServicePortSecureResolver;
+
+	@Mock
 	private KubernetesDiscoveryProperties.Metadata metadata;
 
 	@Mock

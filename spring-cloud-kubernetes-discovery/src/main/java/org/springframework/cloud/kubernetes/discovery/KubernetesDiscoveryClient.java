@@ -48,6 +48,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private KubernetesClient client;
 	private final KubernetesDiscoveryProperties properties;
+	private final IsServicePortSecureResolver isServicePortSecureResolver;
+
 	private final SpelExpressionParser parser = new SpelExpressionParser();
 	private final SimpleEvaluationContext evalCtxt = SimpleEvaluationContext
 														.forReadOnlyDataBinding()
@@ -55,11 +57,13 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 														.build();
 
 	public KubernetesDiscoveryClient(KubernetesClient client,
-			KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+                                     KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
+                                     IsServicePortSecureResolver isServicePortSecureResolver) {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
-	}
+        this.isServicePortSecureResolver = isServicePortSecureResolver;
+    }
 
 	public KubernetesClient getClient() {
 		return client;
@@ -120,12 +124,21 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				}
 
 				List<EndpointAddress> addresses = s.getAddresses();
-				for (EndpointAddress a : addresses) {
-					instances.add(new KubernetesServiceInstance(serviceId,
-							a,
-							s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
+				for (EndpointAddress endpointAddress : addresses) {
+                    final EndpointPort endpointPort =
+                            s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new);
+                    instances.add(new KubernetesServiceInstance(serviceId,
+							endpointAddress,
+                            endpointPort,
 							endpointMetadata,
-							false));
+                            isServicePortSecureResolver.resolve(
+                                    new IsServicePortSecureResolver.Input(
+                                            endpointPort.getPort(),
+                                            service.getMetadata().getName(),
+                                            service.getMetadata().getLabels(),
+                                            service.getMetadata().getAnnotations()
+                                    )
+                            )));
 				}
 			}
 		}
@@ -133,7 +146,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return instances;
 	}
 
-	// returns a new map that contain all the entries of the original map
+    // returns a new map that contain all the entries of the original map
 	// but with the keys prefixed
 	// if the prefix is null or empty, the map itself is returned (unchanged of course)
 	private Map<String, String> getMapWithPrefixedKeys(Map<String, String> map, String prefix) {

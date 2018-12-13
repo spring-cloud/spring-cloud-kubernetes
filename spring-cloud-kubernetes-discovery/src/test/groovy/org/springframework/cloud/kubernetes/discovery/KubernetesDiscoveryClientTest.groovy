@@ -44,7 +44,7 @@ class KubernetesDiscoveryClientTest extends Specification {
     }
 
     def cleanupSpec() {
-        mockServer.destroy();
+        mockServer.destroy()
     }
 
     def "Should be able to handle endpoints single address"() {
@@ -60,7 +60,8 @@ class KubernetesDiscoveryClientTest extends Specification {
                     .addNewPort("http",80,"TCP")
                 .endSubset()
                 .build()).once()
-		and:
+
+        and:
 		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint").andReturn(200, new ServiceBuilder()
 			.withNewMetadata()
 				.withName("endpoint")
@@ -70,13 +71,17 @@ class KubernetesDiscoveryClientTest extends Specification {
 			.endMetadata()
 			.build()).once()
 
-        DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, new KubernetesDiscoveryProperties())
+            final properties = new KubernetesDiscoveryProperties()
+            DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(
+                mockClient, properties, new DefaultIsServicePortSecureResolver(properties))
+
         when:
         List<ServiceInstance> instances = discoveryClient.getInstances("endpoint")
+
         then:
         instances != null
         instances.size() == 1
-        instances.find({s -> s.host == "ip1"})
+        instances.find({s -> s.host == "ip1" && !s.secure})
     }
 
 
@@ -94,7 +99,7 @@ class KubernetesDiscoveryClientTest extends Specification {
                     .addNewAddress()
                         .withIp("ip2")
                     .endAddress()
-                    .addNewPort("http",80,"TCP")
+                    .addNewPort("https",443,"TCP")
                 .endSubset()
                 .build()).once()
 
@@ -108,14 +113,18 @@ class KubernetesDiscoveryClientTest extends Specification {
 			.endMetadata()
 			.build()).once()
 
-        DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, new KubernetesDiscoveryProperties())
+            final properties = new KubernetesDiscoveryProperties()
+            DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(
+                mockClient, properties, new DefaultIsServicePortSecureResolver(properties))
+
         when:
         List<ServiceInstance> instances = discoveryClient.getInstances("endpoint")
+
         then:
         instances != null
         instances.size() == 2
-        instances.find({s -> s.host == "ip1"})
-        instances.find({s -> s.host == "ip2"})
+        instances.find({s -> s.host == "ip1" && s.secure})
+        instances.find({s -> s.host == "ip2" && s.secure})
 
     }
 }
