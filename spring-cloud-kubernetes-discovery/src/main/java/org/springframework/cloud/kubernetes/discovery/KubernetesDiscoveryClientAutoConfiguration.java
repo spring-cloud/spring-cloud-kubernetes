@@ -18,7 +18,6 @@
 package org.springframework.cloud.kubernetes.discovery;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -37,10 +36,17 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	public DefaultIsServicePortSecureResolver isServicePortSecureResolver(KubernetesDiscoveryProperties properties) {
+		return new DefaultIsServicePortSecureResolver(properties);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
 	@ConditionalOnProperty(name = "spring.cloud.kubernetes.discovery.enabled",matchIfMissing = true)
-	public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
-										   KubernetesDiscoveryProperties properties) {
-		return new KubernetesDiscoveryClient(client, properties);
+	public KubernetesDiscoveryClient kubernetesDiscoveryClient(
+			KubernetesClient client, KubernetesDiscoveryProperties properties,
+			DefaultIsServicePortSecureResolver isServicePortSecureResolver) {
+		return new KubernetesDiscoveryClient(client, properties, isServicePortSecureResolver);
 	}
 
 	@Bean

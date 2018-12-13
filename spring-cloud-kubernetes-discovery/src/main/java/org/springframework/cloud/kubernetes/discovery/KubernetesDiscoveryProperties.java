@@ -21,6 +21,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.style.ToStringCreator;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 @ConfigurationProperties("spring.cloud.kubernetes.discovery")
 public class KubernetesDiscoveryProperties {
 
@@ -33,6 +38,13 @@ public class KubernetesDiscoveryProperties {
 
 	/** SpEL expression to filter services. */
 	private String filter;
+
+
+	/** Set the port numbers that are considered secure and use HTTPS */
+	private Set<Integer> knownSecurePorts = new HashSet<Integer>() {{
+		add(443);
+		add(8443);
+	}};
 
 	private Metadata metadata = new Metadata();
 
@@ -58,6 +70,14 @@ public class KubernetesDiscoveryProperties {
 
 	public void setFilter(String filter){
 		this.filter = filter;
+	}
+
+	public Set<Integer> getKnownSecurePorts() {
+		return knownSecurePorts;
+	}
+
+	public void setKnownSecurePorts(Set<Integer> knownSecurePorts) {
+		this.knownSecurePorts = knownSecurePorts;
 	}
 
 	public Metadata getMetadata() {

@@ -28,75 +28,38 @@ import spock.lang.Specification
 
 class KubernetesDiscoveryClientTest extends Specification {
 
-    private static KubernetesMockServer mockServer = new KubernetesMockServer()
-    private static KubernetesClient mockClient
+	private static KubernetesMockServer mockServer = new KubernetesMockServer()
+	private static KubernetesClient mockClient
 
 
-    def setupSpec() {
-        mockServer.init()
-        mockClient = mockServer.createClient()
+	def setupSpec() {
+		mockServer.init()
+		mockClient = mockServer.createClient()
 
-        //Configure the kubernetes master url to point to the mock server
-        System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl())
-        System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true")
-        System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false")
-        System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false")
-    }
+		//Configure the kubernetes master url to point to the mock server
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl())
+		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true")
+		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false")
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false")
+	}
 
-    def cleanupSpec() {
-        mockServer.destroy();
-    }
+	def cleanupSpec() {
+		mockServer.destroy()
+	}
 
-    def "Should be able to handle endpoints single address"() {
-        given:
-        mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint").andReturn(200, new EndpointsBuilder()
-                .withNewMetadata()
-                    .withName("endpoint")
-                .endMetadata()
-                .addNewSubset()
-                    .addNewAddress()
-                        .withIp("ip1")
-                    .endAddress()
-                    .addNewPort("http",80,"TCP")
-                .endSubset()
-                .build()).once()
-		and:
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint").andReturn(200, new ServiceBuilder()
-			.withNewMetadata()
-				.withName("endpoint")
-			.withLabels(new HashMap<String, String>() {{
-				put("l", "v")
-			}})
-			.endMetadata()
-			.build()).once()
-
-        DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, new KubernetesDiscoveryProperties())
-        when:
-        List<ServiceInstance> instances = discoveryClient.getInstances("endpoint")
-        then:
-        instances != null
-        instances.size() == 1
-        instances.find({s -> s.host == "ip1"})
-    }
-
-
-
-    def "Should be able to handle endpoints multiple addresses"() {
-        given:
-        mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint").andReturn(200, new EndpointsBuilder()
-                .withNewMetadata()
-                    .withName("endpoint")
-                .endMetadata()
-                .addNewSubset()
-                    .addNewAddress()
-                        .withIp("ip1")
-                    .endAddress()
-                    .addNewAddress()
-                        .withIp("ip2")
-                    .endAddress()
-                    .addNewPort("http",80,"TCP")
-                .endSubset()
-                .build()).once()
+	def "Should be able to handle endpoints single address"() {
+		given:
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint").andReturn(200, new EndpointsBuilder()
+				.withNewMetadata()
+					.withName("endpoint")
+				.endMetadata()
+				.addNewSubset()
+					.addNewAddress()
+						.withIp("ip1")
+					.endAddress()
+					.addNewPort("http",80,"TCP")
+				.endSubset()
+				.build()).once()
 
 		and:
 		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint").andReturn(200, new ServiceBuilder()
@@ -108,14 +71,60 @@ class KubernetesDiscoveryClientTest extends Specification {
 			.endMetadata()
 			.build()).once()
 
-        DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, new KubernetesDiscoveryProperties())
-        when:
-        List<ServiceInstance> instances = discoveryClient.getInstances("endpoint")
-        then:
-        instances != null
-        instances.size() == 2
-        instances.find({s -> s.host == "ip1"})
-        instances.find({s -> s.host == "ip2"})
+			final properties = new KubernetesDiscoveryProperties()
+			DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(
+				mockClient, properties, new DefaultIsServicePortSecureResolver(properties))
 
-    }
+		when:
+		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint")
+
+		then:
+		instances != null
+		instances.size() == 1
+		instances.find({s -> s.host == "ip1" && !s.secure})
+	}
+
+
+
+	def "Should be able to handle endpoints multiple addresses"() {
+		given:
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint").andReturn(200, new EndpointsBuilder()
+				.withNewMetadata()
+					.withName("endpoint")
+				.endMetadata()
+				.addNewSubset()
+					.addNewAddress()
+						.withIp("ip1")
+					.endAddress()
+					.addNewAddress()
+						.withIp("ip2")
+					.endAddress()
+					.addNewPort("https",443,"TCP")
+				.endSubset()
+				.build()).once()
+
+		and:
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint").andReturn(200, new ServiceBuilder()
+			.withNewMetadata()
+				.withName("endpoint")
+			.withLabels(new HashMap<String, String>() {{
+				put("l", "v")
+			}})
+			.endMetadata()
+			.build()).once()
+
+			final properties = new KubernetesDiscoveryProperties()
+			DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(
+				mockClient, properties, new DefaultIsServicePortSecureResolver(properties))
+
+		when:
+		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint")
+
+		then:
+		instances != null
+		instances.size() == 2
+		instances.find({s -> s.host == "ip1" && s.secure})
+		instances.find({s -> s.host == "ip2" && s.secure})
+
+	}
 }

@@ -48,6 +48,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private KubernetesClient client;
 	private final KubernetesDiscoveryProperties properties;
+	private final DefaultIsServicePortSecureResolver isServicePortSecureResolver;
+
 	private final SpelExpressionParser parser = new SpelExpressionParser();
 	private final SimpleEvaluationContext evalCtxt = SimpleEvaluationContext
 														.forReadOnlyDataBinding()
@@ -55,10 +57,18 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 														.build();
 
 	public KubernetesDiscoveryClient(KubernetesClient client,
-			KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+									 KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+
+		this(client, kubernetesDiscoveryProperties, new DefaultIsServicePortSecureResolver(kubernetesDiscoveryProperties));
+	}
+
+	KubernetesDiscoveryClient(KubernetesClient client,
+									 KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
+									 DefaultIsServicePortSecureResolver isServicePortSecureResolver) {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
+		this.isServicePortSecureResolver = isServicePortSecureResolver;
 	}
 
 	public KubernetesClient getClient() {
@@ -120,12 +130,21 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				}
 
 				List<EndpointAddress> addresses = s.getAddresses();
-				for (EndpointAddress a : addresses) {
+				for (EndpointAddress endpointAddress : addresses) {
+					final EndpointPort endpointPort =
+							s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new);
 					instances.add(new KubernetesServiceInstance(serviceId,
-							a,
-							s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
+							endpointAddress,
+							endpointPort,
 							endpointMetadata,
-							false));
+							isServicePortSecureResolver.resolve(
+									new DefaultIsServicePortSecureResolver.Input(
+											endpointPort.getPort(),
+											service.getMetadata().getName(),
+											service.getMetadata().getLabels(),
+											service.getMetadata().getAnnotations()
+									)
+							)));
 				}
 			}
 		}
