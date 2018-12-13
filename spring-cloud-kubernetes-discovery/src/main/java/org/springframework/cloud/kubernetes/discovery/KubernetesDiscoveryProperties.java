@@ -34,7 +34,12 @@ public class KubernetesDiscoveryProperties {
 	/** SpEL expression to filter services. */
 	private String filter;
 
+	/** Frequency in milliseconds of when Catalog Watch is called. */
+	private int catalogServicesWatchDelay = 30000;
+
 	private Metadata metadata = new Metadata();
+
+	private CatalogServicesWatch catalogServicesWatch = new CatalogServicesWatch();
 
 	public boolean isEnabled() {
 		return enabled;
@@ -66,6 +71,22 @@ public class KubernetesDiscoveryProperties {
 
 	public void setMetadata(Metadata metadata) {
 		this.metadata = metadata;
+	}
+
+	public CatalogServicesWatch getCatalogServicesWatch() {
+		return catalogServicesWatch;
+	}
+
+	public void setCatalogServicesWatch(CatalogServicesWatch catalogServicesWatch) {
+		this.catalogServicesWatch = catalogServicesWatch;
+	}
+
+	public int getCatalogServicesWatchDelay() {
+		return catalogServicesWatchDelay;
+	}
+
+	public void setCatalogServicesWatchDelay(int catalogServicesWatchDelay) {
+		this.catalogServicesWatchDelay = catalogServicesWatchDelay;
 	}
 
 	@Override
@@ -155,6 +176,19 @@ public class KubernetesDiscoveryProperties {
 				.append("addPorts", addPorts)
 				.append("portsPrefix", portsPrefix)
 				.toString();
+		}
+	}
+
+	public class CatalogServicesWatch {
+		/** Enables Catalog Watch */
+		private boolean enabled = true;
+
+		public boolean isEnabled() {
+			return enabled;
+		}
+
+		public void setEnabled(boolean enabled) {
+			this.enabled = enabled;
 		}
 	}
 }

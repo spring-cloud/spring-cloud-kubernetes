@@ -1,6 +1,12 @@
 {
 	"properties": [
 		{
+			"name": "spring.cloud.kubernetes.enabled",
+			"type": "java.lang.Boolean",
+			"description": "Kubernetes Integration",
+			"defaultValue": true
+		},
+		{
 			"name": "spring.cloud.kubernetes.client.trustCerts",
 			"type": "java.lang.Boolean",
 			"description": "Kubernetes API Trust Certificates",

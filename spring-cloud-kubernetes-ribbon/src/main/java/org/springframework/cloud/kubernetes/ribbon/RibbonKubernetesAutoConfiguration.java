@@ -27,7 +27,7 @@ import org.springframework.cloud.netflix.ribbon.SpringClientFactory;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties
+@EnableConfigurationProperties(RibbonKubernetesProperties.class)
 @ConditionalOnBean(SpringClientFactory.class)
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.ribbon.enabled", matchIfMissing = true)
 @AutoConfigureAfter(RibbonAutoConfiguration.class)

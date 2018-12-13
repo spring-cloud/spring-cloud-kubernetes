@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
-@EnableConfigurationProperties(KubernetesClientProperties.class)
+@EnableConfigurationProperties({KubernetesProperties.class, KubernetesClientProperties.class})
 public class KubernetesAutoConfiguration {
 
 	private static final Log LOG = LogFactory.getLog(KubernetesAutoConfiguration.class);

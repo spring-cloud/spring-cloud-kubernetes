@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.registry.KubernetesRegistration;
@@ -33,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(name="spring.cloud.kubernetes.enabled", matchIfMissing = true)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class,
 	CommonsClientAutoConfiguration.class, })
+@EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 public class KubernetesDiscoveryClientAutoConfiguration {
 
 	@Bean
@@ -52,11 +54,6 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	public KubernetesRegistration getRegistration(KubernetesClient client,
 												  KubernetesDiscoveryProperties properties) {
 		return new KubernetesRegistration(client, properties);
-	}
-
-	@Bean
-	public KubernetesDiscoveryProperties getKubernetesDiscoveryProperties() {
-		return new KubernetesDiscoveryProperties();
 	}
 
 	@Bean
