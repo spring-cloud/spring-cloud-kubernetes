@@ -17,6 +17,8 @@
 
 package org.springframework.cloud.kubernetes.leader;
 
+import java.time.Duration;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -33,7 +35,7 @@ public class LeaderProperties {
 
 	private static final String DEFAULT_CONFIG_MAP_NAME = "leaders";
 
-	private static final long DEFAULT_UPDATE_PERIOD = 60000;
+	private static final Duration DEFAULT_UPDATE_PERIOD = Duration.ofMillis(60000);
 
 	private static final boolean DEFAULT_PUBLISH_FAILED_EVENTS = false;
 
@@ -75,7 +77,7 @@ public class LeaderProperties {
 	 * Leadership status check period.
 	 * Default: 60s
 	 */
-	private long updatePeriod = DEFAULT_UPDATE_PERIOD;
+	private Duration updatePeriod = DEFAULT_UPDATE_PERIOD;
 
 	/**
 	 * Enable/disable publishing events in case leadership acquisition fails.
@@ -139,11 +141,11 @@ public class LeaderProperties {
 		this.leaderIdPrefix = leaderIdPrefix;
 	}
 
-	public long getUpdatePeriod() {
+	public Duration getUpdatePeriod() {
 		return updatePeriod;
 	}
 
-	public void setUpdatePeriod(long updatePeriod) {
+	public void setUpdatePeriod(Duration updatePeriod) {
 		this.updatePeriod = updatePeriod;
 	}
 

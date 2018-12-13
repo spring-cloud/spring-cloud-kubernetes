@@ -21,6 +21,9 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+
+import java.time.Duration;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -78,11 +81,11 @@ public class KubernetesAutoConfiguration {
 						or(kubernetesClientProperties.getClientKeyPassphrase(),
 								base.getClientKeyPassphrase()))
 				.withConnectionTimeout(
-						or(kubernetesClientProperties.getConnectionTimeout(),
+						orDurationInt(kubernetesClientProperties.getConnectionTimeout(),
 								base.getConnectionTimeout()))
-				.withRequestTimeout(or(kubernetesClientProperties.getRequestTimeout(),
+				.withRequestTimeout(orDurationInt(kubernetesClientProperties.getRequestTimeout(),
 						base.getRequestTimeout()))
-				.withRollingTimeout(or(kubernetesClientProperties.getRollingTimeout(),
+				.withRollingTimeout(orDurationLong(kubernetesClientProperties.getRollingTimeout(),
 						base.getRollingTimeout()))
 				.withTrustCerts(or(kubernetesClientProperties.isTrustCerts(),
 						base.isTrustCerts()))
@@ -129,6 +132,24 @@ public class KubernetesAutoConfiguration {
 	private static <D> D or(D dis, D dat) {
 		if (dis != null) {
 			return dis;
+		}
+		else {
+			return dat;
+		}
+	}
+	
+	private static Integer orDurationInt(Duration dis, Integer dat) {
+		if (dis != null) {
+			return (int)dis.toMillis();
+		}
+		else {
+			return dat;
+		}
+	}
+	
+	private static Long orDurationLong(Duration dis, Long dat) {
+		if (dis != null) {
+			return dis.toMillis();
 		}
 		else {
 			return dat;

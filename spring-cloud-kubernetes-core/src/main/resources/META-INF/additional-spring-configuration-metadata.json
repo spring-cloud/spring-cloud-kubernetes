@@ -86,9 +86,9 @@
 		},
 		{
 			"name": "spring.cloud.kubernetes.client.watchReconnectInterval",
-			"type": "java.lang.Integer",
-			"description": "Reconnect Interval in milliseconds",
-			"defaultValue": 1000
+			"type": "java.time.Duration",
+			"description": "Reconnect Interval",
+			"defaultValue": "1s"
 		},
 		{
 			"name": "spring.cloud.kubernetes.client.watchReconnectLimit",
@@ -98,27 +98,27 @@
 		},
 		{
 			"name": "spring.cloud.kubernetes.client.connectionTimeout",
-			"type": "java.lang.Integer",
-			"description": "Connection timeout in milliseconds",
-			"defaultValue": 10000
+			"type": "java.time.Duration",
+			"description": "Connection timeout",
+			"defaultValue": "10s"
 		},
 		{
 			"name": "spring.cloud.kubernetes.client.requestTimeout",
-			"type": "java.lang.Integer",
-			"description": "Request timeout in milliseconds",
-			"defaultValue": 10000
+			"type": "java.time.Duration",
+			"description": "Request timeout",
+			"defaultValue": "10s"
 		},
 		{
 			"name": "spring.cloud.kubernetes.client.rollingTimeout",
-			"type": "java.lang.Long",
-			"description": "Rolling timeout in milliseconds",
-			"defaultValue": 900000
+			"type": "java.time.Duration",
+			"description": "Rolling timeout",
+			"defaultValue": "900s"
 		},
 		{
 			"name": "spring.cloud.kubernetes.client.loggingInterval",
-			"type": "java.lang.Integer",
+			"type": "java.time.Duration",
 			"description": "Logging interval",
-			"defaultValue": 20000
+			"defaultValue": "20s"
 		}
 	]
 }
