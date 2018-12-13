@@ -52,7 +52,7 @@ public class ConfigReloadProperties {
 	private ReloadDetectionMode mode = ReloadDetectionMode.EVENT;
 
 	/**
-	 * Sets the polling period in milliseconds to use when the detection mode is POLLING.
+	 * Sets the polling period to use when the detection mode is POLLING.
 	 */
 	private Duration period = Duration.ofMillis(15000L);
 
