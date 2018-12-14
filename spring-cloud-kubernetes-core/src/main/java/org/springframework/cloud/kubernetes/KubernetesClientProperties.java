@@ -17,7 +17,8 @@
 
 package org.springframework.cloud.kubernetes;
 
-import java.util.List;
+import java.time.Duration;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("spring.cloud.kubernetes.client")
@@ -37,12 +38,12 @@ public class KubernetesClientProperties {
 	private String clientKeyPassphrase;
 	private String username;
 	private String password;
-	private Integer watchReconnectInterval;
-	private Integer watchReconnectLimit;
-	private Integer connectionTimeout;
-	private Integer requestTimeout;
-	private Long rollingTimeout;
-	private Integer loggingInterval;
+	private Duration watchReconnectInterval;
+	private Duration watchReconnectLimit;
+	private Duration connectionTimeout;
+	private Duration requestTimeout;
+	private Duration rollingTimeout;
+	private Duration loggingInterval;
 	private String httpProxy;
 	private String httpsProxy;
 	private String proxyUsername;
@@ -161,51 +162,51 @@ public class KubernetesClientProperties {
 		this.password = password;
 	}
 
-	public Integer getWatchReconnectInterval() {
+	public Duration getWatchReconnectInterval() {
 		return watchReconnectInterval;
 	}
 
-	public void setWatchReconnectInterval(Integer watchReconnectInterval) {
+	public void setWatchReconnectInterval(Duration watchReconnectInterval) {
 		this.watchReconnectInterval = watchReconnectInterval;
 	}
 
-	public Integer getWatchReconnectLimit() {
+	public Duration getWatchReconnectLimit() {
 		return watchReconnectLimit;
 	}
 
-	public void setWatchReconnectLimit(Integer watchReconnectLimit) {
+	public void setWatchReconnectLimit(Duration watchReconnectLimit) {
 		this.watchReconnectLimit = watchReconnectLimit;
 	}
 
-	public Integer getConnectionTimeout() {
+	public Duration getConnectionTimeout() {
 		return connectionTimeout;
 	}
 
-	public void setConnectionTimeout(Integer connectionTimeout) {
+	public void setConnectionTimeout(Duration connectionTimeout) {
 		this.connectionTimeout = connectionTimeout;
 	}
 
-	public Integer getRequestTimeout() {
+	public Duration getRequestTimeout() {
 		return requestTimeout;
 	}
 
-	public void setRequestTimeout(Integer requestTimeout) {
+	public void setRequestTimeout(Duration requestTimeout) {
 		this.requestTimeout = requestTimeout;
 	}
 
-	public Long getRollingTimeout() {
+	public Duration getRollingTimeout() {
 		return rollingTimeout;
 	}
 
-	public void setRollingTimeout(Long rollingTimeout) {
+	public void setRollingTimeout(Duration rollingTimeout) {
 		this.rollingTimeout = rollingTimeout;
 	}
 
-	public Integer getLoggingInterval() {
+	public Duration getLoggingInterval() {
 		return loggingInterval;
 	}
 
-	public void setLoggingInterval(Integer loggingInterval) {
+	public void setLoggingInterval(Duration loggingInterval) {
 		this.loggingInterval = loggingInterval;
 	}
 

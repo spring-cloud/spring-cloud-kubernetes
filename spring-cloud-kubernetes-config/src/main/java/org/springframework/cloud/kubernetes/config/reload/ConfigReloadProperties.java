@@ -16,6 +16,8 @@
  */
 package org.springframework.cloud.kubernetes.config.reload;
 
+import java.time.Duration;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -50,9 +52,9 @@ public class ConfigReloadProperties {
 	private ReloadDetectionMode mode = ReloadDetectionMode.EVENT;
 
 	/**
-	 * Sets the polling period in milliseconds to use when the detection mode is POLLING.
+	 * Sets the polling period to use when the detection mode is POLLING.
 	 */
-	private Long period = 15000L;
+	private Duration period = Duration.ofMillis(15000L);
 
 	public ConfigReloadProperties() {
 	}
@@ -93,12 +95,12 @@ public class ConfigReloadProperties {
 		return mode;
 	}
 
-	public Long getPeriod() {
-		return period;
+	public void setPeriod(Duration period) {
+		this.period = period;
 	}
 
-	public void setPeriod(Long period) {
-		this.period = period;
+	public Duration getPeriod() {
+		return period;
 	}
 
 	public void setMode(ReloadDetectionMode mode) {

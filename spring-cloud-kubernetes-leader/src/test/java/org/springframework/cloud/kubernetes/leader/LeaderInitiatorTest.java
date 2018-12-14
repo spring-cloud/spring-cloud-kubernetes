@@ -29,6 +29,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.atLeastOnce;
 
+import java.time.Duration;
+
 /**
  * @author Gytis Trikleris
  */
@@ -72,7 +74,7 @@ public class LeaderInitiatorTest {
 
 	@Test
 	public void shouldStart() throws InterruptedException {
-		given(mockLeaderProperties.getUpdatePeriod()).willReturn(1L);
+		given(mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(1L));
 
 		leaderInitiator.start();
 
@@ -85,7 +87,7 @@ public class LeaderInitiatorTest {
 
 	@Test
 	public void shouldStartOnlyOnce() {
-		given(mockLeaderProperties.getUpdatePeriod()).willReturn(10000L);
+		given(mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
 
 		leaderInitiator.start();
 		leaderInitiator.start();
@@ -95,7 +97,7 @@ public class LeaderInitiatorTest {
 
 	@Test
 	public void shouldStop() {
-		given(mockLeaderProperties.getUpdatePeriod()).willReturn(10000L);
+		given(mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
 
 		leaderInitiator.start();
 		leaderInitiator.stop();
@@ -108,7 +110,7 @@ public class LeaderInitiatorTest {
 
 	@Test
 	public void shouldStopOnlyOnce() {
-		given(mockLeaderProperties.getUpdatePeriod()).willReturn(10000L);
+		given(mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
 
 		leaderInitiator.start();
 		leaderInitiator.stop();
@@ -119,7 +121,7 @@ public class LeaderInitiatorTest {
 
 	@Test
 	public void shouldStopAndExecuteCallback() {
-		given(mockLeaderProperties.getUpdatePeriod()).willReturn(10000L);
+		given(mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
 
 		leaderInitiator.start();
 		leaderInitiator.stop(mockRunnable);
