@@ -500,9 +500,9 @@ This means, for example, that using polling on file mounted secret sources does 
 <tfoot>
 <row>
 <entry align="left" valign="top"><simpara>spring.cloud.kubernetes.reload.period</simpara></entry>
-<entry align="left" valign="top"><simpara>Long</simpara></entry>
-<entry align="left" valign="top"><simpara>15000</simpara></entry>
-<entry align="left" valign="top"><simpara>The period in milliseconds for verifying changes when using the <emphasis role="strong">polling</emphasis> strategy</simpara></entry>
+<entry align="left" valign="top"><simpara>Duration</simpara></entry>
+<entry align="left" valign="top"><simpara>15s</simpara></entry>
+<entry align="left" valign="top"><simpara>The period for verifying changes when using the <emphasis role="strong">polling</emphasis> strategy</simpara></entry>
 </row>
 </tfoot>
 </tgroup>
