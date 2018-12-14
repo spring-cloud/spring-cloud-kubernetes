@@ -68,7 +68,7 @@ public class LeadershipController {
 	}
 
 	public Optional<Leader> getLocalLeader() {
-		return Optional.of(localLeader);
+		return Optional.ofNullable(localLeader);
 	}
 
 	public synchronized void update() {
