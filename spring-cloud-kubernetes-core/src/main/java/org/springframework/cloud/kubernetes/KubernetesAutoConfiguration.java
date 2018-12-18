@@ -127,6 +127,11 @@ public class KubernetesAutoConfiguration {
 		public KubernetesHealthIndicator kubernetesHealthIndicator(PodUtils podUtils) {
 			return new KubernetesHealthIndicator(podUtils);
 		}
+		
+		@Bean
+		public KubernetesInfoContributor kubernetesInfoContributor(PodUtils podUtils) {
+			return new KubernetesInfoContributor(podUtils);
+		}
 	}
 
 	private static <D> D or(D dis, D dat) {
