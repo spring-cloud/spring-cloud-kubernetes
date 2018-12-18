@@ -1,0 +1,11 @@
+== Kubernetes native service discovery
+
+Kubernetes itself is capable of (server side) service discovery (see: https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services).
+Using native kubernetes service discovery ensures compatibility with additional tooling, like: istio https://istio.io (service mesh, capable of load balancing, ribbon, circuit breaker, failover and much more).
+
+The caller service just needs to refer to names resolvable in particular kubernetes cluster then. Simplest implementation might use the spring `RestTemplate` referring to fully qualified domain name (FQDN) `http://<service-name>.<namespace>.svc.<cluster>.local:<service-port>`.
+
+Additionally, hystrix can be used for:
+
+* circuit breaker implementation on the caller side, just by annotating the spring boot application class: `@EnableCircuitBreaker`
+* and for the fallback functionality, annotating the respective method via: `@HystrixCommand(fallbackMethod=` does the job.
