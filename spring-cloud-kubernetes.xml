@@ -41,6 +41,21 @@ private DiscoveryClient discoveryClient;</programlisting>
 <simpara>Some Spring Cloud components use the <literal>DiscoveryClient</literal> in order to obtain info about the local service instance. For
 this to work you need to align the Kubernetes service name with the <literal>spring.application.name</literal> property.</simpara>
 </chapter>
+<chapter xml:id="_kubernetes_native_service_discovery">
+<title>Kubernetes native service discovery</title>
+<simpara>Kubernetes itself is capable of (server side) service discovery (see: <link xl:href="https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services">https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services</link>).
+Using native kubernetes service discovery ensures compatibility with additional tooling, like: istio <link xl:href="https://istio.io">https://istio.io</link> (service mesh, capable of load balancing, ribbon, circuit breaker, failover and much more).</simpara>
+<simpara>The caller service just needs to refer to names resolvable in particular kubernetes cluster then. Simplest implementation might use the spring <literal>RestTemplate</literal> referring to fully qualified domain name (FQDN) <literal><link xl:href="http://&lt;service-name&gt;.&lt;namespace&gt;.svc.&lt;cluster&gt;.local:&lt;service-port&gt">http://&lt;service-name&gt;.&lt;namespace&gt;.svc.&lt;cluster&gt;.local:&lt;service-port&gt</link>;</literal>.</simpara>
+<simpara>Additionally, hystrix can be used for:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>circuit breaker implementation on the caller side, just by annotating the spring boot application class: <literal>@EnableCircuitBreaker</literal></simpara>
+</listitem>
+<listitem>
+<simpara>and for the fallback functionality, annotating the respective method via: <literal>@HystrixCommand(fallbackMethod=</literal> does the job.</simpara>
+</listitem>
+</itemizedlist>
+</chapter>
 <chapter xml:id="_kubernetes_propertysource_implementations">
 <title>Kubernetes PropertySource implementations</title>
 <simpara>The most common approach to configure your Spring Boot application is to create an <literal>application.properties|yaml</literal> or
