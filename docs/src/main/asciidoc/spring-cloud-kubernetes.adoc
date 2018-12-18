@@ -7,6 +7,8 @@ The main objective of the projects provided in this repository is to facilitate 
 
 include::discovery-client.adoc[]
 
+include::discovery-kubernetes-native.adoc[]
+
 include::property-source-config.adoc[]
 
 include::ribbon-integration.adoc[]
