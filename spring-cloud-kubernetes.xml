@@ -210,6 +210,11 @@ spec:
 <simpara><emphasis role="strong">Notes:</emphasis>
 - check the security configuration section, to access config maps from inside a pod you need to have the correct
 Kubernetes service accounts, roles and role bindings.</simpara>
+<simpara>Another option for using ConfigMaps, is to mount them into the Pod running the Spring Cloud Kubernetes application
+and have Spring Cloud Kubernetes read them from the file system.
+This behavior is controlled by the <literal>spring.cloud.kubernetes.config.paths</literal> property and can be used in
+addition to or instead of the mechanism described earlier.
+Multiple (exact) file paths can be specified in <literal>spring.cloud.kubernetes.config.paths</literal> by using the <literal>,</literal> delimiter</simpara>
 <table frame="all" rowsep="1" colsep="1">
 <title>Properties:</title>
 <tgroup cols="4">
