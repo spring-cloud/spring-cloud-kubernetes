@@ -45,7 +45,7 @@ this to work you need to align the Kubernetes service name with the <literal>spr
 <title>Kubernetes native service discovery</title>
 <simpara>Kubernetes itself is capable of (server side) service discovery (see: <link xl:href="https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services">https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services</link>).
 Using native kubernetes service discovery ensures compatibility with additional tooling, like: istio <link xl:href="https://istio.io">https://istio.io</link> (service mesh, capable of load balancing, ribbon, circuit breaker, failover and much more).</simpara>
-<simpara>The caller service just needs to refer to names resolvable in particular kubernetes cluster then. Simplest implementation might use the spring <literal>RestTemplate</literal> referring to fully qualified domain name (FQDN) <literal><link xl:href="http://&lt;service-name&gt;.&lt;namespace&gt;.svc.&lt;cluster&gt;.local:&lt;service-port&gt">http://&lt;service-name&gt;.&lt;namespace&gt;.svc.&lt;cluster&gt;.local:&lt;service-port&gt</link>;</literal>.</simpara>
+<simpara>The caller service just needs to refer to names resolvable in particular kubernetes cluster then. Simplest implementation might use the spring <literal>RestTemplate</literal> referring to fully qualified domain name (FQDN) <literal><link xl:href="http://{service-name}.{namespace}.svc.{cluster}.local:{service-port}">http://{service-name}.{namespace}.svc.{cluster}.local:{service-port}</link></literal>.</simpara>
 <simpara>Additionally, hystrix can be used for:</simpara>
 <itemizedlist>
 <listitem>
