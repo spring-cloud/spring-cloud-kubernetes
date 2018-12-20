@@ -27,7 +27,7 @@ tests against that microk8s cluster
 ```bash
 sudo snap install microk8s --classic --channel=1.11/stable
 sleep 10
-microk8s.enable dns registry
+echo n | microk8s.enable dns registry istio
 ```
 
 Ensure everything is running by inspecting the output of:
@@ -65,6 +65,13 @@ Export the kube config file that will be used to access this cluster
 ```bash
 microk8s.kubectl config view --raw > /tmp/kubeconfig
 ```
+
+For the istio tests to work, we need a namespace that is properly configured for Istio injection.
+Such a namespace called `istio-test` can easily be created using:
+
+```bash
+microk8s.kubectl create -f .circleci/istio-test-namespace.yml
+``` 
 
 
 ## Launch tests

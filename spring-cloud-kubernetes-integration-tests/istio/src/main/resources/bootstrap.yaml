@@ -1,0 +1,5 @@
+spring:
+  cloud:
+    istio:
+      client:
+        envoyPort: 15000

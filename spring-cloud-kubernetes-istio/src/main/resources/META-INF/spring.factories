@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+org.springframework.cloud.kubernetes.istio.IstioAutoConfiguration
+
+org.springframework.cloud.bootstrap.BootstrapConfiguration=\
+org.springframework.cloud.kubernetes.istio.IstioBootstrapConfiguration
