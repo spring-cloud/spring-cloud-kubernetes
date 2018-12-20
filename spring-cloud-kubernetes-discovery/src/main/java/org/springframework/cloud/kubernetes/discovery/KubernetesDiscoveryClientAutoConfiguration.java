@@ -38,9 +38,10 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnProperty(name = "spring.cloud.kubernetes.discovery.enabled",matchIfMissing = true)
-	public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
-										   KubernetesDiscoveryProperties properties) {
-		return new KubernetesDiscoveryClient(client, properties);
+	public DiscoveryClient discoveryClient(KubernetesClient client,
+										   KubernetesDiscoveryProperties properties,
+										   SelectorsService selectorsService) {
+		return new KubernetesDiscoveryClient(client, properties, selectorsService);
 	}
 
 	@Bean

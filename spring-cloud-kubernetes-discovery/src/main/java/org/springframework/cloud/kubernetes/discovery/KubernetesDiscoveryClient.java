@@ -16,22 +16,10 @@
  */
 package org.springframework.cloud.kubernetes.discovery;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointPort;
-import io.fabric8.kubernetes.api.model.EndpointSubset;
-import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.expression.Expression;
@@ -40,25 +28,34 @@ import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import static java.util.stream.Collectors.toMap;
 
 public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private static final Log log = LogFactory.getLog(KubernetesDiscoveryClient.class);
-
-	private KubernetesClient client;
 	private final KubernetesDiscoveryProperties properties;
 	private final SpelExpressionParser parser = new SpelExpressionParser();
 	private final SimpleEvaluationContext evalCtxt = SimpleEvaluationContext
-														.forReadOnlyDataBinding()
-														.withInstanceMethods()
-														.build();
+		.forReadOnlyDataBinding()
+		.withInstanceMethods()
+		.build();
+	private final SelectorsService selectorsService;
+	private KubernetesClient client;
 
 	public KubernetesDiscoveryClient(KubernetesClient client,
-			KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+									 KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
+									 SelectorsService selectorsService) {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
+		this.selectorsService = selectorsService;
 	}
 
 	public KubernetesClient getClient() {
@@ -77,7 +74,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	@Override
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId,
-				"[Assertion failed] - the object argument must be null");
+			"[Assertion failed] - the object argument must be null");
 
 		Endpoints endpoints = client.endpoints().withName(serviceId).get();
 		List<EndpointSubset> subsets = null != endpoints ? endpoints.getSubsets() : new ArrayList<>();
@@ -88,19 +85,19 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 			final Map<String, String> serviceMetadata = new HashMap<>();
 			KubernetesDiscoveryProperties.Metadata metadataProps = properties.getMetadata();
-			if(metadataProps.isAddLabels()) {
+			if (metadataProps.isAddLabels()) {
 				Map<String, String> labelMetadata = getMapWithPrefixedKeys(
 					service.getMetadata().getLabels(), metadataProps.getLabelsPrefix());
 				if (log.isDebugEnabled()) {
-					log.debug("Adding label metadata: "+labelMetadata);
+					log.debug("Adding label metadata: " + labelMetadata);
 				}
 				serviceMetadata.putAll(labelMetadata);
 			}
-			if(metadataProps.isAddAnnotations()) {
+			if (metadataProps.isAddAnnotations()) {
 				Map<String, String> annotationMetadata = getMapWithPrefixedKeys(
 					service.getMetadata().getAnnotations(), metadataProps.getAnnotationsPrefix());
 				if (log.isDebugEnabled()) {
-					log.debug("Adding annotation metadata: "+annotationMetadata);
+					log.debug("Adding annotation metadata: " + annotationMetadata);
 				}
 				serviceMetadata.putAll(annotationMetadata);
 			}
@@ -108,13 +105,13 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			for (EndpointSubset s : subsets) {
 				// Extend the service metadata map with per-endpoint port information (if requested)
 				Map<String, String> endpointMetadata = new HashMap<>(serviceMetadata);
-				if(metadataProps.isAddPorts()) {
+				if (metadataProps.isAddPorts()) {
 					Map<String, String> ports = s.getPorts().stream()
 						.filter(port -> !StringUtils.isEmpty(port.getName()))
 						.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
 					Map<String, String> portMetadata = getMapWithPrefixedKeys(ports, metadataProps.getPortsPrefix());
 					if (log.isDebugEnabled()) {
-						log.debug("Adding port metadata: "+portMetadata);
+						log.debug("Adding port metadata: " + portMetadata);
 					}
 					endpointMetadata.putAll(portMetadata);
 				}
@@ -122,10 +119,10 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				List<EndpointAddress> addresses = s.getAddresses();
 				for (EndpointAddress a : addresses) {
 					instances.add(new KubernetesServiceInstance(serviceId,
-							a,
-							s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
-							endpointMetadata,
-							false));
+						a,
+						s.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
+						endpointMetadata,
+						false));
 				}
 			}
 		}
@@ -152,6 +149,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return result;
 	}
 
+
 	@Override
 	public List<String> getServices() {
 		String spelExpression = properties.getFilter();
@@ -173,11 +171,69 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	public List<String> getServices(Predicate<Service> filter) {
 		return client.services().list()
-				.getItems()
-				.stream()
-				.filter(filter)
-				.map(s -> s.getMetadata().getName())
-				.collect(Collectors.toList());
+			.getItems()
+			.stream()
+			.filter(filter)
+			.map(s -> s.getMetadata().getName())
+			.collect(Collectors.toList());
 	}
+
+
+	public Map<String, List<ServiceInstance>> getServicesInstances() {
+		Map<String, List<ServiceInstance>> services = new HashMap<>();
+		List<Selector> selectors = selectorsService.getSelectors();
+		Map<String, String> labels = new HashMap<>();
+		selectors.stream().forEach(s -> labels.put(s.getKey(), s.getValue()));
+
+		ServiceList serviceList = client.services().withLabels(labels).list();
+		for (Service s : serviceList.getItems()) {
+			List<ServiceInstance> instances = new ArrayList<>();
+			services.put(s.getSpec().getExternalName(), instances);
+			Endpoints endpoints = client.endpoints().withName(s.getSpec().getExternalName()).get();
+			List<EndpointSubset> subsets = null != endpoints ? endpoints.getSubsets() : new ArrayList<>();
+			subsets.stream().forEach(subset -> {
+				List<EndpointAddress> addresses = subset.getAddresses();
+				for (EndpointAddress a : addresses) {
+					instances.add(new KubernetesServiceInstance(s.getSpec().getExternalName(),
+						a,
+						subset.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
+						null,//endpointMetadata,
+						false));
+				}
+			});
+		}
+
+		return services;
+	}
+
+
+	public List<ServiceInstance> getServiceInstances(String serviceId) {
+		Service service = client.services().withName(serviceId).get();
+		List<ServiceInstance> instances = new ArrayList<>();
+		Endpoints endpoints = client.endpoints().withName(serviceId).get();
+		List<EndpointSubset> subsets = null != endpoints ? endpoints.getSubsets() : new ArrayList<>();
+		subsets.stream().forEach(subset -> {
+			List<EndpointAddress> addresses = subset.getAddresses();
+			for (EndpointAddress a : addresses) {
+				instances.add(new KubernetesServiceInstance(serviceId,
+					a,
+					subset.getPorts().stream().findFirst().orElseThrow(IllegalStateException::new),
+					null,//endpointMetadata,
+					false));
+			}
+		});
+		return instances;
+	}
+
+	public List<String> getServicesIds() {
+		List<Selector> selectors = selectorsService.getSelectors();
+		Map<String, String> labels = new HashMap<>();
+		selectors.stream().forEach(s -> labels.put(s.getKey(), s.getValue()));
+		ServiceList serviceList = client.services().withLabels(labels).list();
+		return serviceList.getItems()
+			.stream().map(s -> s.getSpec().getExternalName())
+			.collect(Collectors.toList());
+	}
+
 
 }

@@ -70,7 +70,7 @@ class KubernetesDiscoveryClientTest extends Specification {
 			.endMetadata()
 			.build()).once()
 
-        DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, new KubernetesDiscoveryProperties())
+        DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, new KubernetesDiscoveryProperties(), selectorsService)
         when:
         List<ServiceInstance> instances = discoveryClient.getInstances("endpoint")
         then:
@@ -108,7 +108,7 @@ class KubernetesDiscoveryClientTest extends Specification {
 			.endMetadata()
 			.build()).once()
 
-        DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, new KubernetesDiscoveryProperties())
+        DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, new KubernetesDiscoveryProperties(), selectorsService)
         when:
         List<ServiceInstance> instances = discoveryClient.getInstances("endpoint")
         then:
