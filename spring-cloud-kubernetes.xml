@@ -581,20 +581,28 @@ the <literal>KubernetesNamespace</literal> key, remembering in both instances to
 <simpara><emphasis role="strong">Note</emphasis>: The Ribbon discovery client can be disabled by setting this key within the application properties file
 <literal>spring.cloud.kubernetes.ribbon.enabled=false</literal>.</simpara>
 </chapter>
-<chapter xml:id="_kubernetes_awareness">
-<title>Kubernetes Awareness</title>
+<chapter xml:id="_kubernetes_ecosystem_awareness">
+<title>Kubernetes Ecosystem Awareness</title>
 <simpara>All of the features described above will work equally well regardless of whether your application is running inside
 Kubernetes or not. This is really helpful for development and troubleshooting.
 From a development point of view, this is really helpful as you can start your Spring Boot application and debug one
 of the modules part of this project. It is not required to deploy it in Kubernetes
 as the code of the project relies on the
-[Fabric8 Kubernetes Java client](<link xl:href="https://github.com/fabric8io/kubernetes-client">https://github.com/fabric8io/kubernetes-client</link>) which is a fluent DSL able to
+<link xl:href="https://github.com/fabric8io/kubernetes-client">Fabric8 Kubernetes Java client</link> which is a fluent DSL able to
 communicate using <literal>http</literal> protocol to the REST API of Kubernetes Server.</simpara>
 <section xml:id="_kubernetes_profile_autoconfiguration">
 <title>Kubernetes Profile Autoconfiguration</title>
 <simpara>When the application runs as a pod inside Kubernetes a Spring profile named <literal>kubernetes</literal> will automatically get activated.
 This allows the developer to customize the configuration, to define beans that will be applied when the Spring Boot application is deployed
 within the Kubernetes platform <emphasis role="strong">(e.g. different dev and prod configuration)</emphasis>.</simpara>
+</section>
+<section xml:id="_istio_awareness">
+<title>Istio Awareness</title>
+<simpara>When including the <emphasis role="strong">spring-cloud-kubernetes-istio</emphasis> module into the application classpath a new profile will be added to the application,
+if the application is running inside a Kubernetes Cluster with <link xl:href="http://istio.io">Istio</link> installed. Then you can use
+spring <emphasis role="strong">@Profile("istio")</emphasis> annotations into your Beans and <emphasis role="strong">@Configuration</emphasis>'s.</simpara>
+<simpara>The Istio awareness module uses the <emphasis role="strong">me.snowdrop:istio-client</emphasis> to interact with Istio APIs enabling us to discover traffic rules, circuit breakers, etc.
+Making it easy for our Spring Boot applications to consume this data to dynamically configure themselves according the environment.</simpara>
 </section>
 </chapter>
 <chapter xml:id="_pod_health_indicator">
