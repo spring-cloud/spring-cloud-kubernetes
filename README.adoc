@@ -340,8 +340,7 @@ You can select the Secrets to consume in a number of ways:
 ```
 -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/db-secret,etc/secrets/postgresql
 ```
-
-    If you have all the secrets mapped to a common root, you can set them like:
+   If you have all the secrets mapped to a common root, you can set them like:
 
 ```
 -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets
