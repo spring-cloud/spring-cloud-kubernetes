@@ -286,10 +286,10 @@ Let's assume that we have a spring boot application named ``demo`` that uses pro
 configuration. We can create a Kubernetes secret using the following command:
 
 ```
-oc create secret generic db-secret --from-literal=username=user --from-literal=password=p455w0rd
+kubectl create secret generic db-secret --from-literal=username=user --from-literal=password=p455w0rd
 ```
 
-This would create the following secret (shown using `oc get secrets db-secret -o yaml`):
+This would create the following secret (shown using `kubectl get secrets db-secret -o yaml`):
 
 ```yaml
 apiVersion: v1
