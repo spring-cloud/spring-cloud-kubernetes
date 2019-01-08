@@ -337,26 +337,26 @@ spec:
 You can select the Secrets to consume in a number of ways:
 
 1. By listing the directories where secrets are mapped:
-    ```
-    -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/db-secret,etc/secrets/postgresql
-    ```
+```
+-Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/db-secret,etc/secrets/postgresql
+```
 
     If you have all the secrets mapped to a common root, you can set them like:
 
-    ```
-    -Dspring.cloud.kubernetes.secrets.paths=/etc/secrets
-    ```
+```
+-Dspring.cloud.kubernetes.secrets.paths=/etc/secrets
+```
 
 2. By setting a named secret:
-    ```
-    -Dspring.cloud.kubernetes.secrets.name=db-secret
-    ```
+```
+-Dspring.cloud.kubernetes.secrets.name=db-secret
+```
 
 3. By defining a list of labels:
-    ```
-    -Dspring.cloud.kubernetes.secrets.labels.broker=activemq
-    -Dspring.cloud.kubernetes.secrets.labels.db=postgresql
-    ```
+```
+-Dspring.cloud.kubernetes.secrets.labels.broker=activemq
+-Dspring.cloud.kubernetes.secrets.labels.db=postgresql
+```
 
 .Properties:
 [options="header,footer"]
