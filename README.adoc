@@ -147,7 +147,7 @@ data:
 Individual properties work fine for most cases but sometimes embedded `yaml` is more convenient. In this case we will
 use a single property named `application.yaml` to embed our `yaml`:
 
- ```yaml
+```yaml
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -162,7 +162,7 @@ data:
 
 The following also works:
 
- ```yaml
+```yaml
 kind: ConfigMap
 apiVersion: v1
 metadata:
