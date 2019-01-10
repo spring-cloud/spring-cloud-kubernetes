@@ -20,7 +20,9 @@ package org.springframework.cloud.kubernetes.discovery;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -32,14 +34,11 @@ import java.util.Set;
  * the service contains a label or an annotation named 'secured' that is truthy
  * the port is one of the known ports used for secure communication
  */
-public class DefaultIsServicePortSecureResolver implements IsServicePortSecureResolver {
+class DefaultIsServicePortSecureResolver {
 
 	private static final Log log = LogFactory.getLog(DefaultIsServicePortSecureResolver.class);
 
-	private static final Set<Integer> KNOWN_SECURE_PORTS = new HashSet<Integer>() {{
-		add(443);
-		add(8443);
-	}};
+
 	private static final Set<String> TRUTHY_STRINGS = new HashSet<String>() {{
 		add("true");
 		add("on");
@@ -53,16 +52,7 @@ public class DefaultIsServicePortSecureResolver implements IsServicePortSecureRe
 		this.properties = properties;
 	}
 
-	@Override
-	public boolean resolve(Input input) {
-		if (properties.isSecured()) {
-			if (log.isDebugEnabled()) {
-				log.debug("Considering service with name: " + input.getServiceName() + " and port " + input.getPort()
-					+ " is secure due to 'spring.cloud.kubernetes.discovery.secured' being set to true");
-			}
-			return true;
-		}
-
+	boolean resolve(Input input) {
 		final String securedLabelValue = input.getServiceLabels().getOrDefault("secured", "false");
 		if (TRUTHY_STRINGS.contains(securedLabelValue)) {
 			if (log.isDebugEnabled()) {
@@ -81,7 +71,7 @@ public class DefaultIsServicePortSecureResolver implements IsServicePortSecureRe
 			return true;
 		}
 
-		if (input.getPort() != null && KNOWN_SECURE_PORTS.contains(input.getPort())) {
+		if (input.getPort() != null && properties.getKnownSecurePorts().contains(input.getPort())) {
 			if (log.isDebugEnabled()) {
 				log.debug("Considering service with name: " + input.getServiceName() + " and port " + input.getPort()
 					+ " is secure due to the port being a known https port");
@@ -90,5 +80,41 @@ public class DefaultIsServicePortSecureResolver implements IsServicePortSecureRe
 		}
 
 		return false;
+	}
+
+	static class Input {
+		private final Integer port;
+		private final String serviceName;
+		private final Map<String, String> serviceLabels;
+		private final Map<String, String> serviceAnnotations;
+
+		//used only for testing
+		Input(Integer port, String serviceName) {
+			this(port, serviceName, null, null);
+		}
+
+		Input(Integer port, String serviceName,
+					 Map<String, String> serviceLabels, Map<String, String> serviceAnnotations) {
+			this.port = port;
+			this.serviceName = serviceName;
+			this.serviceLabels = serviceLabels == null ? new HashMap<>() : serviceLabels;
+			this.serviceAnnotations = serviceAnnotations == null ? new HashMap<>() : serviceAnnotations;
+		}
+
+		public String getServiceName() {
+			return serviceName;
+		}
+
+		public Map<String, String> getServiceLabels() {
+			return serviceLabels;
+		}
+
+		public Map<String, String> getServiceAnnotations() {
+			return serviceAnnotations;
+		}
+
+		public Integer getPort() {
+			return port;
+		}
 	}
 }

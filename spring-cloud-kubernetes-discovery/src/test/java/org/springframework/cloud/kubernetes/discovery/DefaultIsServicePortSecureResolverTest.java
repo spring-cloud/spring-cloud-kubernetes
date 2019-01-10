@@ -27,47 +27,29 @@ import static org.junit.Assert.assertTrue;
 public class DefaultIsServicePortSecureResolverTest {
 
 
-	private static final KubernetesDiscoveryProperties securedNotSetProperties = new KubernetesDiscoveryProperties();
-	private static final KubernetesDiscoveryProperties securedSetProperties = new KubernetesDiscoveryProperties();
-
-	static {
-		securedSetProperties.setSecured(true);
-	}
-
-	@Test
-	public void testSecuredSetInPropertiesAlwaysReturnsTrue() {
-		final DefaultIsServicePortSecureResolver sut = new DefaultIsServicePortSecureResolver(securedSetProperties);
-
-		assertTrue(sut.resolve(new IsServicePortSecureResolver.Input(null, "dummy")));
-		assertTrue(sut.resolve(new IsServicePortSecureResolver.Input(8080, "dummy")));
-		assertTrue(sut.resolve(new IsServicePortSecureResolver.Input(8443, "dummy")));
-		assertTrue(sut.resolve(new IsServicePortSecureResolver.Input(
-			8080,
-			"dummy",
-			new HashMap<String, String>() {{
-				put("secured", "false");
-			}},
-			new HashMap<>()))
-		);
-	}
 
 	@Test
 	public void testPortNumbersOnly() {
-		final DefaultIsServicePortSecureResolver sut = new DefaultIsServicePortSecureResolver(securedNotSetProperties);
+		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
+		properties.getKnownSecurePorts().add(12345);
 
-		assertFalse(sut.resolve(new IsServicePortSecureResolver.Input(null, "dummy")));
-		assertFalse(sut.resolve(new IsServicePortSecureResolver.Input(8080, "dummy")));
-		assertFalse(sut.resolve(new IsServicePortSecureResolver.Input(1234, "dummy")));
+		final DefaultIsServicePortSecureResolver sut = new DefaultIsServicePortSecureResolver(properties);
 
-		assertTrue(sut.resolve(new IsServicePortSecureResolver.Input(443, "dummy")));
-		assertTrue(sut.resolve(new IsServicePortSecureResolver.Input(8443, "dummy")));
+		assertFalse(sut.resolve(new DefaultIsServicePortSecureResolver.Input(null, "dummy")));
+		assertFalse(sut.resolve(new DefaultIsServicePortSecureResolver.Input(8080, "dummy")));
+		assertFalse(sut.resolve(new DefaultIsServicePortSecureResolver.Input(1234, "dummy")));
+
+		assertTrue(sut.resolve(new DefaultIsServicePortSecureResolver.Input(443, "dummy")));
+		assertTrue(sut.resolve(new DefaultIsServicePortSecureResolver.Input(8443, "dummy")));
+		assertTrue(sut.resolve(new DefaultIsServicePortSecureResolver.Input(12345, "dummy")));
 	}
 
 	@Test
 	public void testLabelsAndAnnotations() {
-		final DefaultIsServicePortSecureResolver sut = new DefaultIsServicePortSecureResolver(securedNotSetProperties);
+		final DefaultIsServicePortSecureResolver sut
+			= new DefaultIsServicePortSecureResolver(new KubernetesDiscoveryProperties());
 
-		assertTrue(sut.resolve(new IsServicePortSecureResolver.Input(
+		assertTrue(sut.resolve(new DefaultIsServicePortSecureResolver.Input(
 			8080,
 			"dummy",
 			new HashMap<String, String>() {{
@@ -76,7 +58,7 @@ public class DefaultIsServicePortSecureResolverTest {
 			}},
 			new HashMap<>()))
 		);
-		assertTrue(sut.resolve(new IsServicePortSecureResolver.Input(
+		assertTrue(sut.resolve(new DefaultIsServicePortSecureResolver.Input(
 			1234,
 			"dummy",
 			new HashMap<String, String>() {{
@@ -85,7 +67,7 @@ public class DefaultIsServicePortSecureResolverTest {
 			}},
 			new HashMap<>()))
 		);
-		assertTrue(sut.resolve(new IsServicePortSecureResolver.Input(
+		assertTrue(sut.resolve(new DefaultIsServicePortSecureResolver.Input(
 			4321,
 			"dummy",
 			new HashMap<>(),

@@ -48,7 +48,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private KubernetesClient client;
 	private final KubernetesDiscoveryProperties properties;
-	private final IsServicePortSecureResolver isServicePortSecureResolver;
+	private final DefaultIsServicePortSecureResolver isServicePortSecureResolver;
 
 	private final SpelExpressionParser parser = new SpelExpressionParser();
 	private final SimpleEvaluationContext evalCtxt = SimpleEvaluationContext
@@ -58,7 +58,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	public KubernetesDiscoveryClient(KubernetesClient client,
                                      KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
-                                     IsServicePortSecureResolver isServicePortSecureResolver) {
+									 DefaultIsServicePortSecureResolver isServicePortSecureResolver) {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
@@ -132,7 +132,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
                             endpointPort,
 							endpointMetadata,
                             isServicePortSecureResolver.resolve(
-                                    new IsServicePortSecureResolver.Input(
+                                    new DefaultIsServicePortSecureResolver.Input(
                                             endpointPort.getPort(),
                                             service.getMetadata().getName(),
                                             service.getMetadata().getLabels(),
