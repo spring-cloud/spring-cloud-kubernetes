@@ -16,22 +16,10 @@
  */
 package org.springframework.cloud.kubernetes.discovery;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointPort;
-import io.fabric8.kubernetes.api.model.EndpointSubset;
-import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.expression.Expression;
@@ -39,6 +27,13 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -48,6 +43,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private KubernetesClient client;
 	private final KubernetesDiscoveryProperties properties;
+	private final KubernetesClientServicesFunction kubernetesClientServicesFunction;
 	private final SpelExpressionParser parser = new SpelExpressionParser();
 	private final SimpleEvaluationContext evalCtxt = SimpleEvaluationContext
 														.forReadOnlyDataBinding()
@@ -55,10 +51,12 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 														.build();
 
 	public KubernetesDiscoveryClient(KubernetesClient client,
-			KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+									 KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
+									 KubernetesClientServicesFunction kubernetesClientServicesFunction) {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
+		this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
 	}
 
 	public KubernetesClient getClient() {
@@ -172,7 +170,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	public List<String> getServices(Predicate<Service> filter) {
-		return client.services().list()
+		return kubernetesClientServicesFunction.apply(client).list()
 				.getItems()
 				.stream()
 				.filter(filter)

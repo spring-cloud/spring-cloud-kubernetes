@@ -21,6 +21,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.style.ToStringCreator;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @ConfigurationProperties("spring.cloud.kubernetes.discovery")
 public class KubernetesDiscoveryProperties {
 
@@ -31,8 +34,11 @@ public class KubernetesDiscoveryProperties {
 	@Value("${spring.application.name:unknown}")
 	private String serviceName = "unknown";
 
-	/** SpEL expression to filter services. */
+	/** SpEL expression to filter services AFTER they have been retrieved from the Kubernetes API server. */
 	private String filter;
+
+	/** If set, then only the services matching these labels will be fetched from the Kubernetes API server */
+	private Map<String, String> serviceLabels = new HashMap<>();
 
 	private Metadata metadata = new Metadata();
 
@@ -58,6 +64,14 @@ public class KubernetesDiscoveryProperties {
 
 	public void setFilter(String filter){
 		this.filter = filter;
+	}
+
+	public Map<String, String> getServiceLabels() {
+		return serviceLabels;
+	}
+
+	public void setServiceLabels(Map<String, String> serviceLabels) {
+		this.serviceLabels = serviceLabels;
 	}
 
 	public Metadata getMetadata() {
