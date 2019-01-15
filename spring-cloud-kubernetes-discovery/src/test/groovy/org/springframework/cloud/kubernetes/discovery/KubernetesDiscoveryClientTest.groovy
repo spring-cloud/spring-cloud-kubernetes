@@ -23,12 +23,11 @@ import io.fabric8.kubernetes.api.model.ServiceListBuilder
 import io.fabric8.kubernetes.client.Config
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.server.mock.KubernetesMockServer
-import org.assertj.core.api.Assertions
 import org.springframework.cloud.client.ServiceInstance
 import org.springframework.cloud.client.discovery.DiscoveryClient
 import spock.lang.Specification
 
-import static org.assertj.core.api.Assertions.*
+import static org.assertj.core.api.Assertions.assertThat
 
 class KubernetesDiscoveryClientTest extends Specification {
 
