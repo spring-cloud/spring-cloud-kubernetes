@@ -21,9 +21,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.style.ToStringCreator;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @ConfigurationProperties("spring.cloud.kubernetes.discovery")
@@ -36,7 +36,7 @@ public class KubernetesDiscoveryProperties {
 	@Value("${spring.application.name:unknown}")
 	private String serviceName = "unknown";
 
-	/** SpEL expression to filter services. */
+	/** SpEL expression to filter services AFTER they have been retrieved from the Kubernetes API server. */
 	private String filter;
 
 
@@ -45,6 +45,9 @@ public class KubernetesDiscoveryProperties {
 		add(443);
 		add(8443);
 	}};
+
+	/** If set, then only the services matching these labels will be fetched from the Kubernetes API server */
+	private Map<String, String> serviceLabels = new HashMap<>();
 
 	private Metadata metadata = new Metadata();
 
@@ -80,6 +83,14 @@ public class KubernetesDiscoveryProperties {
 		this.knownSecurePorts = knownSecurePorts;
 	}
 
+	public Map<String, String> getServiceLabels() {
+		return serviceLabels;
+	}
+
+	public void setServiceLabels(Map<String, String> serviceLabels) {
+		this.serviceLabels = serviceLabels;
+	}
+
 	public Metadata getMetadata() {
 		return metadata;
 	}
@@ -94,6 +105,8 @@ public class KubernetesDiscoveryProperties {
 			.append("enabled", enabled)
 			.append("serviceName", serviceName)
 			.append("filter", filter)
+			.append("knownSecurePorts", knownSecurePorts)
+			.append("serviceLabels", serviceLabels)
 			.append("metadata", metadata)
 			.toString();
 	}
