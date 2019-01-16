@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -34,6 +35,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -45,11 +48,17 @@ public class KubernetesDiscoveryClientFilterTest {
 	@Mock
 	private KubernetesDiscoveryProperties properties;
 
+	private KubernetesClientServicesFunction kubernetesClientServicesFunction = KubernetesClient::services;
+
 	@Mock
 	private MixedOperation<Service, ServiceList, DoneableService, ServiceResource<Service, DoneableService>> serviceOperation;
 
-	@InjectMocks
 	private KubernetesDiscoveryClient underTest;
+
+	@Before
+	public void setUp() {
+		underTest = new KubernetesDiscoveryClient(kubernetesClient, properties, kubernetesClientServicesFunction);
+	}
 
 	@Test
 	public void testFilteredServices() {

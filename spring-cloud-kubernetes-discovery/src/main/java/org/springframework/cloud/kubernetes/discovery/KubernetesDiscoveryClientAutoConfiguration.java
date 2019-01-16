@@ -41,12 +41,22 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	}
 
 	@Bean
+	public KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties) {
+		if (properties.getServiceLabels().isEmpty())  {
+			return KubernetesClient::services;
+		}
+
+		return (client) -> client.services().withLabels(properties.getServiceLabels());
+	}
+
+	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnProperty(name = "spring.cloud.kubernetes.discovery.enabled",matchIfMissing = true)
-	public KubernetesDiscoveryClient kubernetesDiscoveryClient(
-			KubernetesClient client, KubernetesDiscoveryProperties properties,
-			DefaultIsServicePortSecureResolver isServicePortSecureResolver) {
-		return new KubernetesDiscoveryClient(client, properties, isServicePortSecureResolver);
+	public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
+										   					   KubernetesDiscoveryProperties properties,
+															   KubernetesClientServicesFunction kubernetesClientServicesFunction,
+															   DefaultIsServicePortSecureResolver isServicePortSecureResolver) {
+		return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction, isServicePortSecureResolver);
 	}
 
 	@Bean

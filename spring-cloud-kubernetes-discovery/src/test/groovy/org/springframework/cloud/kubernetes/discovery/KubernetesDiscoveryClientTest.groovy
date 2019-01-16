@@ -19,12 +19,15 @@ package org.springframework.cloud.kubernetes.discovery
 
 import io.fabric8.kubernetes.api.model.EndpointsBuilder
 import io.fabric8.kubernetes.api.model.ServiceBuilder
+import io.fabric8.kubernetes.api.model.ServiceListBuilder
 import io.fabric8.kubernetes.client.Config
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.server.mock.KubernetesMockServer
 import org.springframework.cloud.client.ServiceInstance
 import org.springframework.cloud.client.discovery.DiscoveryClient
 import spock.lang.Specification
+
+import static org.assertj.core.api.Assertions.assertThat
 
 class KubernetesDiscoveryClientTest extends Specification {
 
@@ -47,7 +50,7 @@ class KubernetesDiscoveryClientTest extends Specification {
 		mockServer.destroy()
 	}
 
-	def "Should be able to handle endpoints single address"() {
+    def "getInstances should be able to handle endpoints single address"() {
 		given:
 		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint").andReturn(200, new EndpointsBuilder()
 				.withNewMetadata()
@@ -73,7 +76,7 @@ class KubernetesDiscoveryClientTest extends Specification {
 
 			final properties = new KubernetesDiscoveryProperties()
 			DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(
-				mockClient, properties, new DefaultIsServicePortSecureResolver(properties))
+				mockClient, properties, {client -> client.services(), new DefaultIsServicePortSecureResolver(properties))
 
 		when:
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint")
@@ -86,7 +89,7 @@ class KubernetesDiscoveryClientTest extends Specification {
 
 
 
-	def "Should be able to handle endpoints multiple addresses"() {
+    def "getInstances should be able to handle endpoints multiple addresses"() {
 		given:
 		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint").andReturn(200, new EndpointsBuilder()
 				.withNewMetadata()
@@ -115,7 +118,7 @@ class KubernetesDiscoveryClientTest extends Specification {
 
 			final properties = new KubernetesDiscoveryProperties()
 			DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(
-				mockClient, properties, new DefaultIsServicePortSecureResolver(properties))
+				mockClient, properties, {client -> client.services(), new DefaultIsServicePortSecureResolver(properties))
 
 		when:
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint")
@@ -126,5 +129,79 @@ class KubernetesDiscoveryClientTest extends Specification {
 		instances.find({s -> s.host == "ip1" && s.secure})
 		instances.find({s -> s.host == "ip2" && s.secure})
 
+    }
+
+	def "getServices should return all services when no labels are applied to the client"() {
+		given:
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/services").andReturn(200, new ServiceListBuilder()
+			.addNewItem()
+				.withNewMetadata()
+				.withName("s1")
+				.withLabels(new HashMap<String, String>() {{
+					put("label", "value")
+				}})
+				.endMetadata()
+			.endItem()
+		    .addNewItem()
+				.withNewMetadata()
+				.withName("s2")
+				.withLabels(new HashMap<String, String>() {{
+					put("label", "value")
+					put("label2", "value2")
+				}})
+				.endMetadata()
+		    .endItem()
+			.addNewItem()
+				.withNewMetadata()
+				.withName("s3")
+				.endMetadata()
+			.endItem()
+			.build()).once()
+
+		and:
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(
+			mockClient, new KubernetesDiscoveryProperties(), {client -> client.services()})
+
+		when:
+		List<String> instances = discoveryClient.getServices()
+
+		then:
+		assertThat(instances).containsOnly("s1", "s2", "s3")
+	}
+
+	def "getServices should return only matching services when labels are applied to the client"() {
+		given:
+		// this is the URL that is created by the KubernetesClient when a a label named 'label'
+		// with a value of 'value' is specified
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/services?labelSelector=label%3Dvalue").andReturn(200, new ServiceListBuilder()
+			.addNewItem()
+				.withNewMetadata()
+				.withName("s1")
+				.withLabels(new HashMap<String, String>() {{
+					put("label", "value")
+				}})
+				.endMetadata()
+			.endItem()
+			.addNewItem()
+				.withNewMetadata()
+				.withName("s2")
+				.withLabels(new HashMap<String, String>() {{
+					put("label", "value")
+					put("label2", "value2")
+				}})
+				.endMetadata()
+			.endItem()
+			.build()).once()
+
+		and:
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(
+			mockClient,
+			new KubernetesDiscoveryProperties(), {client -> client.services().withLabels(["label": "value"])})
+
+		when:
+		List<String> instances = discoveryClient.getServices()
+
+		then:
+		assertThat(instances).containsOnly("s1", "s2")
 	}
 }
