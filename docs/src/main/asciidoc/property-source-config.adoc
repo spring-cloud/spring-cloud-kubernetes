@@ -202,13 +202,15 @@ sensitive data such as password, OAuth tokens, etc. This project provides integr
 accessible by Spring Boot applications. This feature can be explicitly enabled/disabled using the `spring.cloud.kubernetes.secrets.enabled` property.
 
 The `SecretsPropertySource` when enabled will lookup Kubernetes for `Secrets` from the following sources:
-1. reading recursively from secrets mounts
-2. named after the application (as defined by `spring.application.name`)
-3. matching some labels
+
+. reading recursively from secrets mounts
+. named after the application (as defined by `spring.application.name`)
+. matching some labels
 
 Please note that by default, consuming Secrets via API (points 2 and 3 above) **is not enabled** for security reasons
- and it is recommend that containers share secrets via mounted volumes. Otherwise proper RBAC security configurations must be provided
- to make sure that unauthorized access to Secrets occurs.
+and it is recommended that containers share secrets via mounted volumes.
+If you enable consuming Secrets via API, then it is recommended access to Secrets is limited by an
+[authorization policy such as RBAC](https://kubernetes.io/docs/concepts/configuration/secret/#best-practices).
 
 If the secrets are found their data is made available to the application.
 
