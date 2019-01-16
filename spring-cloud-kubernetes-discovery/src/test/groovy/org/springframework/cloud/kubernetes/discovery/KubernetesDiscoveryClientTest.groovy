@@ -50,7 +50,7 @@ class KubernetesDiscoveryClientTest extends Specification {
 		mockServer.destroy()
 	}
 
-    def "getInstances should be able to handle endpoints single address"() {
+	def "getInstances should be able to handle endpoints single address"() {
 		given:
 		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint").andReturn(200, new EndpointsBuilder()
 				.withNewMetadata()
@@ -76,7 +76,7 @@ class KubernetesDiscoveryClientTest extends Specification {
 
 			final properties = new KubernetesDiscoveryProperties()
 			DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(
-				mockClient, properties, {client -> client.services(), new DefaultIsServicePortSecureResolver(properties))
+				mockClient, properties, {client -> client.services()}, new DefaultIsServicePortSecureResolver(properties))
 
 		when:
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint")
@@ -89,7 +89,7 @@ class KubernetesDiscoveryClientTest extends Specification {
 
 
 
-    def "getInstances should be able to handle endpoints multiple addresses"() {
+	def "getInstances should be able to handle endpoints multiple addresses"() {
 		given:
 		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint").andReturn(200, new EndpointsBuilder()
 				.withNewMetadata()
@@ -118,7 +118,7 @@ class KubernetesDiscoveryClientTest extends Specification {
 
 			final properties = new KubernetesDiscoveryProperties()
 			DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(
-				mockClient, properties, {client -> client.services(), new DefaultIsServicePortSecureResolver(properties))
+				mockClient, properties, {client -> client.services()}, new DefaultIsServicePortSecureResolver(properties))
 
 		when:
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint")
@@ -129,7 +129,7 @@ class KubernetesDiscoveryClientTest extends Specification {
 		instances.find({s -> s.host == "ip1" && s.secure})
 		instances.find({s -> s.host == "ip2" && s.secure})
 
-    }
+	}
 
 	def "getServices should return all services when no labels are applied to the client"() {
 		given:
@@ -142,7 +142,7 @@ class KubernetesDiscoveryClientTest extends Specification {
 				}})
 				.endMetadata()
 			.endItem()
-		    .addNewItem()
+			.addNewItem()
 				.withNewMetadata()
 				.withName("s2")
 				.withLabels(new HashMap<String, String>() {{
@@ -150,7 +150,7 @@ class KubernetesDiscoveryClientTest extends Specification {
 					put("label2", "value2")
 				}})
 				.endMetadata()
-		    .endItem()
+			.endItem()
 			.addNewItem()
 				.withNewMetadata()
 				.withName("s3")
