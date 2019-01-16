@@ -272,13 +272,22 @@ Multiple (exact) file paths can be specified in <literal>spring.cloud.kubernetes
 <simpara>Kubernetes has the notion of [Secrets](<link xl:href="https://kubernetes.io/docs/concepts/configuration/secret/">https://kubernetes.io/docs/concepts/configuration/secret/</link>) for storing
 sensitive data such as password, OAuth tokens, etc. This project provides integration with <literal>Secrets</literal> to make secrets
 accessible by Spring Boot applications. This feature can be explicitly enabled/disabled using the <literal>spring.cloud.kubernetes.secrets.enabled</literal> property.</simpara>
-<simpara>The <literal>SecretsPropertySource</literal> when enabled will lookup Kubernetes for <literal>Secrets</literal> from the following sources:
-1. reading recursively from secrets mounts
-2. named after the application (as defined by <literal>spring.application.name</literal>)
-3. matching some labels</simpara>
+<simpara>The <literal>SecretsPropertySource</literal> when enabled will lookup Kubernetes for <literal>Secrets</literal> from the following sources:</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>reading recursively from secrets mounts</simpara>
+</listitem>
+<listitem>
+<simpara>named after the application (as defined by <literal>spring.application.name</literal>)</simpara>
+</listitem>
+<listitem>
+<simpara>matching some labels</simpara>
+</listitem>
+</orderedlist>
 <simpara>Please note that by default, consuming Secrets via API (points 2 and 3 above) <emphasis role="strong">is not enabled</emphasis> for security reasons
- and it is recommend that containers share secrets via mounted volumes. Otherwise proper RBAC security configurations must be provided
- to make sure that unauthorized access to Secrets occurs.</simpara>
+and it is recommended that containers share secrets via mounted volumes.
+If you enable consuming Secrets via API, then it is recommended access to Secrets is limited by an
+[authorization policy such as RBAC](<link xl:href="https://kubernetes.io/docs/concepts/configuration/secret/#best-practices">https://kubernetes.io/docs/concepts/configuration/secret/#best-practices</link>).</simpara>
 <simpara>If the secrets are found their data is made available to the application.</simpara>
 <simpara><emphasis role="strong">Example:</emphasis></simpara>
 <simpara>Let&#8217;s assume that we have a spring boot application named <literal>demo</literal> that uses properties to read its database
