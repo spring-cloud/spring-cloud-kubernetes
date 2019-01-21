@@ -265,7 +265,7 @@ Multiple (exact) file paths can be specified in `spring.cloud.kubernetes.config.
 
 === Secrets PropertySource
 
-Kubernetes has the notion of [Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) for storing
+Kubernetes has the notion of https://kubernetes.io/docs/concepts/configuration/secret/[Secrets] for storing
 sensitive data such as password, OAuth tokens, etc. This project provides integration with `Secrets` to make secrets
 accessible by Spring Boot applications. This feature can be explicitly enabled/disabled using the `spring.cloud.kubernetes.secrets.enabled` property.
 
