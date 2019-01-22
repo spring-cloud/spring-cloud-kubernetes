@@ -23,7 +23,7 @@
 	<parent>
 		<artifactId>spring-cloud-kubernetes-examples</artifactId>
 		<groupId>org.springframework.cloud</groupId>
-		<version>1.0.0.BUILD-SNAPSHOT</version>
+		<version>1.0.1.BUILD-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.springframework.cloud</groupId>
