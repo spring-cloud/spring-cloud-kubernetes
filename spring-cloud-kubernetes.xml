@@ -269,7 +269,7 @@ Multiple (exact) file paths can be specified in <literal>spring.cloud.kubernetes
 </section>
 <section xml:id="_secrets_propertysource">
 <title>Secrets PropertySource</title>
-<simpara>Kubernetes has the notion of [Secrets](<link xl:href="https://kubernetes.io/docs/concepts/configuration/secret/">https://kubernetes.io/docs/concepts/configuration/secret/</link>) for storing
+<simpara>Kubernetes has the notion of <link xl:href="https://kubernetes.io/docs/concepts/configuration/secret/">Secrets</link> for storing
 sensitive data such as password, OAuth tokens, etc. This project provides integration with <literal>Secrets</literal> to make secrets
 accessible by Spring Boot applications. This feature can be explicitly enabled/disabled using the <literal>spring.cloud.kubernetes.secrets.enabled</literal> property.</simpara>
 <simpara>The <literal>SecretsPropertySource</literal> when enabled will lookup Kubernetes for <literal>Secrets</literal> from the following sources:</simpara>
