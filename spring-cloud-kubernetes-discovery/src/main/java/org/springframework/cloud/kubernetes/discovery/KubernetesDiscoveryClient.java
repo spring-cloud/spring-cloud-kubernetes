@@ -16,11 +16,7 @@
  */
 package org.springframework.cloud.kubernetes.discovery;
 
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointPort;
-import io.fabric8.kubernetes.api.model.EndpointSubset;
-import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -94,7 +90,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				"[Assertion failed] - the object argument must be null");
 
 		Endpoints endpoints = client.endpoints().withName(serviceId).get();
-		List<EndpointSubset> subsets = null != endpoints ? endpoints.getSubsets() : new ArrayList<>();
+		List<EndpointSubset> subsets = getSubsetsFromEndpoints(endpoints);
 		List<ServiceInstance> instances = new ArrayList<>();
 		if (!subsets.isEmpty()) {
 
@@ -154,6 +150,17 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		}
 
 		return instances;
+	}
+
+	private List<EndpointSubset> getSubsetsFromEndpoints(Endpoints endpoints) {
+		if (endpoints == null) {
+			return new ArrayList<>();
+		}
+		if (endpoints.getSubsets() == null) {
+			return new ArrayList<>();
+		}
+
+		return endpoints.getSubsets();
 	}
 
 	// returns a new map that contain all the entries of the original map
