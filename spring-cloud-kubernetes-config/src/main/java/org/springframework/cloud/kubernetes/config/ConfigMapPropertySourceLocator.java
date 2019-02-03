@@ -94,7 +94,7 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 						configurationTarget),
 				getApplicationNamespace(this.client, normalizedSource.getNamespace(),
 						configurationTarget),
-				environment.getActiveProfiles());
+				environment);
 	}
 
 	private void addPropertySourcesFromPaths(Environment environment,
@@ -121,7 +121,7 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 				}
 				else if (filename.endsWith(".yml") || filename.endsWith(".yaml")) {
 					addPropertySourceIfNeeded(c -> PROPERTIES_TO_MAP
-							.apply(yamlParserGenerator(environment.getActiveProfiles())
+							.apply(yamlParserGenerator(environment)
 									.apply(c)),
 							content, filename, composite);
 				}
