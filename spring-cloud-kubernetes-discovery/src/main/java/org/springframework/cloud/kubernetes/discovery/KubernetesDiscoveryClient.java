@@ -94,7 +94,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				"[Assertion failed] - the object argument must be null");
 
 		Endpoints endpoints = client.endpoints().withName(serviceId).get();
-		List<EndpointSubset> subsets = null != endpoints ? endpoints.getSubsets() : new ArrayList<>();
+		List<EndpointSubset> subsets = getSubsetsFromEndpoints(endpoints);
 		List<ServiceInstance> instances = new ArrayList<>();
 		if (!subsets.isEmpty()) {
 
@@ -154,6 +154,17 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		}
 
 		return instances;
+	}
+
+	private List<EndpointSubset> getSubsetsFromEndpoints(Endpoints endpoints) {
+		if (endpoints == null) {
+			return new ArrayList<>();
+		}
+		if (endpoints.getSubsets() == null) {
+			return new ArrayList<>();
+		}
+
+		return endpoints.getSubsets();
 	}
 
 	// returns a new map that contain all the entries of the original map
