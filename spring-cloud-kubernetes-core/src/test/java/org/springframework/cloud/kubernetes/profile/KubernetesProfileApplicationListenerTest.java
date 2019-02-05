@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.profile;
@@ -22,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.cloud.kubernetes.PodUtils;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -48,23 +48,23 @@ public class KubernetesProfileApplicationListenerTest {
 
 	@Before
 	public void before() {
-		when(mockEnvironment.getActiveProfiles()).thenReturn(ACTIVE_PROFILES);
-		when(mockEvent.getEnvironment()).thenReturn(mockEnvironment);
-		listener = new KubernetesProfileApplicationListener(mockPodUtils);
+		when(this.mockEnvironment.getActiveProfiles()).thenReturn(ACTIVE_PROFILES);
+		when(this.mockEvent.getEnvironment()).thenReturn(this.mockEnvironment);
+		this.listener = new KubernetesProfileApplicationListener(this.mockPodUtils);
 	}
 
 	@Test
 	public void shouldEnableKubernetesProfile() {
-		when(mockPodUtils.isInsideKubernetes()).thenReturn(true);
-		listener.onApplicationEvent(mockEvent);
-		verify(mockEnvironment).addActiveProfile("kubernetes");
+		when(this.mockPodUtils.isInsideKubernetes()).thenReturn(true);
+		this.listener.onApplicationEvent(this.mockEvent);
+		verify(this.mockEnvironment).addActiveProfile("kubernetes");
 	}
 
 	@Test
 	public void shouldNotEnableKubernetesProfile() {
-		when(mockPodUtils.isInsideKubernetes()).thenReturn(false);
-		listener.onApplicationEvent(mockEvent);
-		verify(mockEnvironment, times(0)).addActiveProfile("kubernetes");
+		when(this.mockPodUtils.isInsideKubernetes()).thenReturn(false);
+		this.listener.onApplicationEvent(this.mockEvent);
+		verify(this.mockEnvironment, times(0)).addActiveProfile("kubernetes");
 	}
 
 }

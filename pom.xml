@@ -16,8 +16,8 @@
   ~
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://maven.apache.org/POM/4.0.0"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -52,8 +52,11 @@
 
 	<scm>
 		<url>https://github.com/spring-cloud-incubator/spring-cloud-kubernetes</url>
-		<connection>scm:git:git://github.com/spring-cloud-incubator/spring-cloud-kubernetes.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com/spring-cloud-incubator/spring-cloud-kubernetes.git
+		<connection>
+			scm:git:git://github.com/spring-cloud-incubator/spring-cloud-kubernetes.git
+		</connection>
+		<developerConnection>
+			scm:git:ssh://git@github.com/spring-cloud-incubator/spring-cloud-kubernetes.git
 		</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
@@ -74,6 +77,12 @@
 		<groovy.version>2.4.12</groovy.version>
 		<restassured.version>3.0.2</restassured.version>
 		<spock-spring.version>1.1-groovy-2.4</spock-spring.version>
+
+		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
+		<maven-checkstyle-plugin.failsOnViolation>true
+		</maven-checkstyle-plugin.failsOnViolation>
+		<maven-checkstyle-plugin.includeTestSourceDirectory>true
+		</maven-checkstyle-plugin.includeTestSourceDirectory>
 	</properties>
 
 	<modules>
@@ -176,8 +185,25 @@
 					<useSystemClassLoader>false</useSystemClassLoader>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>io.spring.javaformat</groupId>
+				<artifactId>spring-javaformat-maven-plugin</artifactId>
+			</plugin>
 		</plugins>
 	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</reporting>
 
 	<profiles>
 		<profile>

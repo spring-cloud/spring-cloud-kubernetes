@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.leader;
@@ -36,11 +35,11 @@ public class Leader {
 	}
 
 	public String getRole() {
-		return role;
+		return this.role;
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	public boolean isCandidate(Candidate candidate) {
@@ -48,7 +47,8 @@ public class Leader {
 			return false;
 		}
 
-		return Objects.equals(role, candidate.getRole()) && Objects.equals(id, candidate.getId());
+		return Objects.equals(this.role, candidate.getRole())
+				&& Objects.equals(this.id, candidate.getId());
 	}
 
 	@Override
@@ -63,17 +63,18 @@ public class Leader {
 
 		Leader leader = (Leader) o;
 
-		return Objects.equals(role, leader.role) && Objects.equals(id, leader.id);
+		return Objects.equals(this.role, leader.role)
+				&& Objects.equals(this.id, leader.id);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(role, id);
+		return Objects.hash(this.role, this.id);
 	}
 
 	@Override
 	public String toString() {
-		return String.format("Leader{role='%s', id='%s'}", role, id);
+		return String.format("Leader{role='%s', id='%s'}", this.role, this.id);
 	}
 
 }

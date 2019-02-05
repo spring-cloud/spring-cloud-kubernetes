@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,32 +12,41 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.config;
 
-import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.KEY_VALUE_TO_PROPERTIES;
-import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.PROPERTIES_TO_MAP;
-import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.yamlParserGenerator;
-
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.StringUtils;
 
+import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.KEY_VALUE_TO_PROPERTIES;
+import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.PROPERTIES_TO_MAP;
+import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.yamlParserGenerator;
+
+/**
+ * A {@link MapPropertySource} that uses Kubernetes config maps.
+ *
+ * @author Ioannis Canellos
+ */
 public class ConfigMapPropertySource extends MapPropertySource {
+
 	private static final Log LOG = LogFactory.getLog(ConfigMapPropertySource.class);
 
 	private static final String APPLICATION_YML = "application.yml";
+
 	private static final String APPLICATION_YAML = "application.yaml";
+
 	private static final String APPLICATION_PROPERTIES = "application.properties";
 
 	private static final String PREFIX = "configmap";
@@ -47,7 +56,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
-		String[] profiles) {
+			String[] profiles) {
 		super(getName(client, name, namespace),
 				asObjectMap(getData(client, name, namespace, profiles)));
 	}
@@ -63,11 +72,11 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	private static Map<String, String> getData(KubernetesClient client, String name,
-		String namespace, String[] profiles) {
+			String namespace, String[] profiles) {
 		try {
 			ConfigMap map = StringUtils.isEmpty(namespace)
-				? client.configMaps().withName(name).get()
-				: client.configMaps().inNamespace(namespace).withName(name).get();
+					? client.configMaps().withName(name).get()
+					: client.configMaps().inNamespace(namespace).withName(name).get();
 
 			if (map != null) {
 				return processAllEntries(map.getData(), profiles);
@@ -75,7 +84,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
 		}
 		catch (Exception e) {
 			LOG.warn("Can't read configMap with name: [" + name + "] in namespace:["
-				+ namespace + "]. Ignoring");
+					+ namespace + "]. Ignoring");
 		}
 
 		return new HashMap<>();
@@ -97,8 +106,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
 							+ "] will be treated as a yaml file");
 				}
 
-				return yamlParserGenerator(profiles).andThen(
-					PROPERTIES_TO_MAP)
+				return yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP)
 						.apply(propertyValue);
 			}
 			else if (propertyName.endsWith(".properties")) {
@@ -107,8 +115,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
 							+ "] will be treated as a properties file");
 				}
 
-				return KEY_VALUE_TO_PROPERTIES.andThen(
-					PROPERTIES_TO_MAP)
+				return KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP)
 						.apply(propertyValue);
 			}
 			else {
@@ -124,24 +131,27 @@ public class ConfigMapPropertySource extends MapPropertySource {
 
 		return input.entrySet().stream()
 				.map(e -> extractProperties(e.getKey(), e.getValue(), profiles))
-				.filter(m -> !m.isEmpty())
-				.flatMap(m -> m.entrySet().stream())
+				.filter(m -> !m.isEmpty()).flatMap(m -> m.entrySet().stream())
 				.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 	}
 
 	private static Map<String, String> extractProperties(String resourceName,
 			String content, String[] profiles) {
 
-		if (resourceName.equals(APPLICATION_YAML) || resourceName.equals(APPLICATION_YML)) {
-			return yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP).apply(content);
+		if (resourceName.equals(APPLICATION_YAML)
+				|| resourceName.equals(APPLICATION_YML)) {
+			return yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP)
+					.apply(content);
 		}
 		else if (resourceName.equals(APPLICATION_PROPERTIES)) {
 			return KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(content);
 		}
 
-		return new HashMap<String, String>() {{
-			put(resourceName, content);
-		}};
+		return new HashMap<String, String>() {
+			{
+				put(resourceName, content);
+			}
+		};
 	}
 
 	private static Map<String, Object> asObjectMap(Map<String, String> source) {

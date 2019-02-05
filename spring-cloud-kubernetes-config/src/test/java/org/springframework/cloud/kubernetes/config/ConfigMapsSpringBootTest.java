@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,21 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.config;
+
+import java.util.HashMap;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import java.util.HashMap;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,7 +35,7 @@ import org.springframework.cloud.kubernetes.config.example.App;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Charles Moulliard
@@ -46,6 +47,8 @@ import static org.junit.Assert.assertEquals;
 @AutoConfigureWebTestClient
 public class ConfigMapsSpringBootTest {
 
+	private static final String APPLICATION_NAME = "configmap-example";
+
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
@@ -53,8 +56,6 @@ public class ConfigMapsSpringBootTest {
 
 	@Autowired(required = false)
 	private Config config;
-
-	private static final String APPLICATION_NAME = "configmap-example";
 
 	@Autowired
 	private WebTestClient webClient;
@@ -82,8 +83,9 @@ public class ConfigMapsSpringBootTest {
 
 	@Test
 	public void testConfig() {
-		assertEquals(config.getMasterUrl(), mockClient.getConfiguration().getMasterUrl());
-		assertEquals(config.getNamespace(), mockClient.getNamespace());
+		assertThat(mockClient.getConfiguration().getMasterUrl())
+				.isEqualTo(this.config.getMasterUrl());
+		assertThat(mockClient.getNamespace()).isEqualTo(this.config.getNamespace());
 	}
 
 	@Test
@@ -91,13 +93,13 @@ public class ConfigMapsSpringBootTest {
 		ConfigMap configmap = mockClient.configMaps().inNamespace("test")
 				.withName(APPLICATION_NAME).get();
 		HashMap<String, String> keys = (HashMap<String, String>) configmap.getData();
-		assertEquals(keys.get("bean.greeting"), "Hello ConfigMap, %s!");
+		assertThat("Hello ConfigMap, %s!").isEqualTo(keys.get("bean.greeting"));
 	}
 
 	@Test
 	public void testGreetingEndpoint() {
 		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
-			.expectBody().jsonPath("content").isEqualTo("Hello ConfigMap, World!");
+				.expectBody().jsonPath("content").isEqualTo("Hello ConfigMap, World!");
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.config.example;
@@ -36,17 +35,21 @@ public class GreetingController {
 	}
 
 	@RequestMapping("/api/greeting")
-	public ResponseMessage greeting(@RequestParam(value="name", defaultValue="World") String name) {
-		return new ResponseMessage(String.format(properties.getGreeting(), name));
+	public ResponseMessage greeting(
+			@RequestParam(value = "name", defaultValue = "World") String name) {
+		return new ResponseMessage(String.format(this.properties.getGreeting(), name));
 	}
 
 	@RequestMapping("/api/farewell")
-	public ResponseMessage farewell(@RequestParam(value="name", defaultValue="World") String name) {
-		return new ResponseMessage(String.format(properties.getFarewell(), name));
+	public ResponseMessage farewell(
+			@RequestParam(value = "name", defaultValue = "World") String name) {
+		return new ResponseMessage(String.format(this.properties.getFarewell(), name));
 	}
 
 	@RequestMapping("/api/morning")
-	public ResponseMessage morning(@RequestParam(value="name", defaultValue="World") String name) {
-		return new ResponseMessage(String.format(properties.getMorning(), name));
+	public ResponseMessage morning(
+			@RequestParam(value = "name", defaultValue = "World") String name) {
+		return new ResponseMessage(String.format(this.properties.getMorning(), name));
 	}
+
 }

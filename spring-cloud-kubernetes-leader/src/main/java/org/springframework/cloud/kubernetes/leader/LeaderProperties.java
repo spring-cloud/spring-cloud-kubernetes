@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.leader;
@@ -40,14 +39,12 @@ public class LeaderProperties {
 	private static final boolean DEFAULT_PUBLISH_FAILED_EVENTS = false;
 
 	/**
-	 * Should leader election be enabled.
-	 * Default: true
+	 * Should leader election be enabled. Default: true
 	 */
 	private boolean enabled = DEFAULT_ENABLED;
 
 	/**
-	 * Should leader election be started automatically on startup.
-	 * Default: true
+	 * Should leader election be started automatically on startup. Default: true
 	 */
 	private boolean autoStartup = DEFAULT_AUTO_STARTUP;
 
@@ -62,31 +59,28 @@ public class LeaderProperties {
 	private String namespace;
 
 	/**
-	 * Kubernetes ConfigMap where leaders information will be stored.
-	 * Default: leaders
+	 * Kubernetes ConfigMap where leaders information will be stored. Default: leaders
 	 */
 	private String configMapName = DEFAULT_CONFIG_MAP_NAME;
 
 	/**
-	 * Leader id property prefix for the ConfigMap.
-	 * Default: leader.id.
+	 * Leader id property prefix for the ConfigMap. Default: leader.id.
 	 */
 	private String leaderIdPrefix = DEFAULT_LEADER_ID_PREFIX;
 
 	/**
-	 * Leadership status check period.
-	 * Default: 60s
+	 * Leadership status check period. Default: 60s
 	 */
 	private Duration updatePeriod = DEFAULT_UPDATE_PERIOD;
 
 	/**
-	 * Enable/disable publishing events in case leadership acquisition fails.
-	 * Default: false
+	 * Enable/disable publishing events in case leadership acquisition fails. Default:
+	 * false
 	 */
 	private boolean publishFailedEvents = DEFAULT_PUBLISH_FAILED_EVENTS;
 
 	public boolean isEnabled() {
-		return enabled;
+		return this.enabled;
 	}
 
 	public void setEnabled(boolean enabled) {
@@ -94,7 +88,7 @@ public class LeaderProperties {
 	}
 
 	public boolean isAutoStartup() {
-		return autoStartup;
+		return this.autoStartup;
 	}
 
 	public void setAutoStartup(boolean autoStartup) {
@@ -102,7 +96,7 @@ public class LeaderProperties {
 	}
 
 	public String getRole() {
-		return role;
+		return this.role;
 	}
 
 	public void setRole(String role) {
@@ -110,23 +104,23 @@ public class LeaderProperties {
 	}
 
 	public String getNamespace() {
-		return namespace;
-	}
-
-	public String getNamespace(String defaultValue) {
-		if (namespace == null || namespace.isEmpty()) {
-			return defaultValue;
-		}
-
-		return namespace;
+		return this.namespace;
 	}
 
 	public void setNamespace(String namespace) {
 		this.namespace = namespace;
 	}
 
+	public String getNamespace(String defaultValue) {
+		if (this.namespace == null || this.namespace.isEmpty()) {
+			return defaultValue;
+		}
+
+		return this.namespace;
+	}
+
 	public String getConfigMapName() {
-		return configMapName;
+		return this.configMapName;
 	}
 
 	public void setConfigMapName(String configMapName) {
@@ -134,7 +128,7 @@ public class LeaderProperties {
 	}
 
 	public String getLeaderIdPrefix() {
-		return leaderIdPrefix;
+		return this.leaderIdPrefix;
 	}
 
 	public void setLeaderIdPrefix(String leaderIdPrefix) {
@@ -142,7 +136,7 @@ public class LeaderProperties {
 	}
 
 	public Duration getUpdatePeriod() {
-		return updatePeriod;
+		return this.updatePeriod;
 	}
 
 	public void setUpdatePeriod(Duration updatePeriod) {
@@ -150,10 +144,11 @@ public class LeaderProperties {
 	}
 
 	public boolean isPublishFailedEvents() {
-		return publishFailedEvents;
+		return this.publishFailedEvents;
 	}
 
 	public void setPublishFailedEvents(boolean publishFailedEvents) {
 		this.publishFailedEvents = publishFailedEvents;
 	}
+
 }

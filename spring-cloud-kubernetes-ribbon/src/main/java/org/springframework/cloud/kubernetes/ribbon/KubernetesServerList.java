@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.ribbon;
@@ -34,10 +33,16 @@ import io.fabric8.kubernetes.client.utils.Utils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+/**
+ * Kubernetes {@link ServerList}.
+ *
+ * @author Ioannis Canellos
+ */
 public class KubernetesServerList extends AbstractServerList<Server>
 		implements ServerList<Server> {
 
 	private static final int FIRST = 0;
+
 	private static final Log LOG = LogFactory.getLog(KubernetesServerList.class);
 
 	private final KubernetesClient client;
@@ -45,6 +50,7 @@ public class KubernetesServerList extends AbstractServerList<Server>
 	private String serviceId;
 
 	private String namespace;
+
 	private String portName;
 
 	public KubernetesServerList(KubernetesClient client) {
@@ -54,7 +60,7 @@ public class KubernetesServerList extends AbstractServerList<Server>
 	public void initWithNiwsConfig(IClientConfig clientConfig) {
 		this.serviceId = clientConfig.getClientName();
 		this.namespace = clientConfig.getPropertyAsString(KubernetesConfigKey.Namespace,
-				client.getNamespace());
+				this.client.getNamespace());
 		this.portName = clientConfig.getPropertyAsString(KubernetesConfigKey.PortName,
 				null);
 	}
@@ -64,17 +70,18 @@ public class KubernetesServerList extends AbstractServerList<Server>
 	}
 
 	public List<Server> getUpdatedListOfServers() {
-		Endpoints endpoints = namespace != null
-				? client.endpoints().inNamespace(namespace).withName(serviceId).get()
-				: client.endpoints().withName(serviceId).get();
+		Endpoints endpoints = this.namespace != null
+				? this.client.endpoints().inNamespace(this.namespace)
+						.withName(this.serviceId).get()
+				: this.client.endpoints().withName(this.serviceId).get();
 
 		List<Server> result = new ArrayList<Server>();
 		if (endpoints != null) {
 
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Found [" + endpoints.getSubsets().size()
-						+ "] endpoints in namespace [" + namespace + "] for name ["
-						+ serviceId + "] and portName [" + portName + "]");
+						+ "] endpoints in namespace [" + this.namespace + "] for name ["
+						+ this.serviceId + "] and portName [" + this.portName + "]");
 			}
 			for (EndpointSubset subset : endpoints.getSubsets()) {
 
@@ -86,8 +93,8 @@ public class KubernetesServerList extends AbstractServerList<Server>
 				}
 				else {
 					for (EndpointPort port : subset.getPorts()) {
-						if (Utils.isNullOrEmpty(portName)
-								|| portName.endsWith(port.getName())) {
+						if (Utils.isNullOrEmpty(this.portName)
+								|| this.portName.endsWith(port.getName())) {
 							for (EndpointAddress address : subset.getAddresses()) {
 								result.add(new Server(address.getIp(), port.getPort()));
 							}
@@ -97,9 +104,11 @@ public class KubernetesServerList extends AbstractServerList<Server>
 			}
 		}
 		else {
-			LOG.warn("Did not find any endpoints in ribbon in namespace [" + namespace
-					+ "] for name [" + serviceId + "] and portName [" + portName + "]");
+			LOG.warn("Did not find any endpoints in ribbon in namespace ["
+					+ this.namespace + "] for name [" + this.serviceId
+					+ "] and portName [" + this.portName + "]");
 		}
 		return result;
 	}
+
 }

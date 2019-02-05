@@ -4,9 +4,9 @@ metadata:
   name: leader
   namespace: default
 rules:
-- apiGroups:
-  resources:
-  - pods
-  - configmaps
-  verbs:
-  - "*"
+  - apiGroups:
+    resources:
+      - pods
+      - configmaps
+    verbs:
+      - "*"

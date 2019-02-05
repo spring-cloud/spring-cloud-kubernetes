@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,12 +12,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import io.fabric8.kubernetes.api.model.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import io.fabric8.kubernetes.api.model.DoneableEndpoints;
+import io.fabric8.kubernetes.api.model.EndpointAddress;
+import io.fabric8.kubernetes.api.model.EndpointSubset;
+import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.EndpointsList;
+import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -29,19 +38,15 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import static java.util.Arrays.stream;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Oleg Vyukov
@@ -66,52 +71,57 @@ public class KubernetesCatalogWatchTest {
 
 	@Before
 	public void setUp() throws Exception {
-		underTest.setApplicationEventPublisher(applicationEventPublisher);
+		this.underTest.setApplicationEventPublisher(this.applicationEventPublisher);
 	}
 
 	@Test
 	public void testRandomOrderChangePods() throws Exception {
-		when(endpointsOperation.list())
-			.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
-			.thenReturn(createSingleEndpointEndpointListByPodName("other-pod", "api-pod"));
-		when(kubernetesClient.endpoints()).thenReturn(endpointsOperation);
+		when(this.endpointsOperation.list())
+				.thenReturn(
+						createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
+				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod",
+						"api-pod"));
+		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 
-		underTest.catalogServicesWatch();
+		this.underTest.catalogServicesWatch();
 		// second execution on shuffleServices
-		underTest.catalogServicesWatch();
+		this.underTest.catalogServicesWatch();
 
-		verify(applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
 
 	@Test
 	public void testRandomOrderChangeServices() throws Exception {
-		when(endpointsOperation.list())
-			.thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
-			.thenReturn(createEndpointsListByServiceName("other-service", "api-service"));
-		when(kubernetesClient.endpoints()).thenReturn(endpointsOperation);
+		when(this.endpointsOperation.list())
+				.thenReturn(
+						createEndpointsListByServiceName("api-service", "other-service"))
+				.thenReturn(
+						createEndpointsListByServiceName("other-service", "api-service"));
+		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 
-		underTest.catalogServicesWatch();
+		this.underTest.catalogServicesWatch();
 		// second execution on shuffleServices
-		underTest.catalogServicesWatch();
+		this.underTest.catalogServicesWatch();
 
-		verify(applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
 
 	@Test
 	public void testEventBody() throws Exception {
-		when(endpointsOperation.list())
-			.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
-		when(kubernetesClient.endpoints()).thenReturn(endpointsOperation);
+		when(this.endpointsOperation.list()).thenReturn(
+				createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
+		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 
-		underTest.catalogServicesWatch();
+		this.underTest.catalogServicesWatch();
 
-		verify(applicationEventPublisher).publishEvent(heartbeatEventArgumentCaptor.capture());
+		verify(this.applicationEventPublisher)
+				.publishEvent(this.heartbeatEventArgumentCaptor.capture());
 
-		HeartbeatEvent event = heartbeatEventArgumentCaptor.getValue();
-		assertThat(event.getValue(), instanceOf(List.class));
+		HeartbeatEvent event = this.heartbeatEventArgumentCaptor.getValue();
+		assertThat(event.getValue()).isInstanceOf(List.class);
 
 		List<String> expectedPodsList = Arrays.asList("api-pod", "other-pod");
-		assertEquals(expectedPodsList, event.getValue());
+		assertThat(event.getValue()).isEqualTo(expectedPodsList);
 	}
 
 	@Test
@@ -119,14 +129,14 @@ public class KubernetesCatalogWatchTest {
 
 		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets();
 
-		when(endpointsOperation.list()).thenReturn(endpoints);
-		when(kubernetesClient.endpoints()).thenReturn(endpointsOperation);
+		when(this.endpointsOperation.list()).thenReturn(endpoints);
+		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 
-		underTest.catalogServicesWatch();
+		this.underTest.catalogServicesWatch();
 		// second execution on shuffleServices
-		underTest.catalogServicesWatch();
+		this.underTest.catalogServicesWatch();
 
-		verify(applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
 
 	@Test
@@ -135,37 +145,37 @@ public class KubernetesCatalogWatchTest {
 		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
 		endpoints.getItems().get(0).getSubsets().get(0).setAddresses(null);
 
-		when(endpointsOperation.list()).thenReturn(endpoints);
-		when(kubernetesClient.endpoints()).thenReturn(endpointsOperation);
+		when(this.endpointsOperation.list()).thenReturn(endpoints);
+		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 
-		underTest.catalogServicesWatch();
+		this.underTest.catalogServicesWatch();
 		// second execution on shuffleServices
-		underTest.catalogServicesWatch();
+		this.underTest.catalogServicesWatch();
 
-		verify(applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
 
 	@Test
 	public void testEndpointsWithoutTargetRefs() {
 
 		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
-		endpoints.getItems().get(0).getSubsets().get(0).getAddresses().get(0).setTargetRef(null);
+		endpoints.getItems().get(0).getSubsets().get(0).getAddresses().get(0)
+				.setTargetRef(null);
 
-		when(endpointsOperation.list()).thenReturn(endpoints);
-		when(kubernetesClient.endpoints()).thenReturn(endpointsOperation);
+		when(this.endpointsOperation.list()).thenReturn(endpoints);
+		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 
-		underTest.catalogServicesWatch();
+		this.underTest.catalogServicesWatch();
 		// second execution on shuffleServices
-		underTest.catalogServicesWatch();
+		this.underTest.catalogServicesWatch();
 
-		verify(applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
-
 
 	private EndpointsList createEndpointsListByServiceName(String... serviceNames) {
 		List<Endpoints> endpoints = stream(serviceNames)
-			.map(s -> createEndpointsByPodName(s + "-singlePodUniqueId"))
-			.collect(Collectors.toList());
+				.map(s -> createEndpointsByPodName(s + "-singlePodUniqueId"))
+				.collect(Collectors.toList());
 
 		EndpointsList endpointsList = new EndpointsList();
 		endpointsList.setItems(endpoints);
@@ -189,13 +199,11 @@ public class KubernetesCatalogWatchTest {
 		return endpointsList;
 	}
 
-
 	private Endpoints createEndpointsByPodName(String podName) {
 		Endpoints endpoints = new Endpoints();
 		endpoints.setSubsets(createSubsetsByPodName(podName));
 		return endpoints;
 	}
-
 
 	private List<EndpointSubset> createSubsetsByPodName(String... names) {
 		EndpointSubset endpointSubset = new EndpointSubset();
@@ -212,6 +220,5 @@ public class KubernetesCatalogWatchTest {
 			return endpointAddress;
 		}).collect(Collectors.toList());
 	}
-
 
 }

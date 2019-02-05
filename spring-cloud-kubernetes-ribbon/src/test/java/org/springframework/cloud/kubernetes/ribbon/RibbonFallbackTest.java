@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.ribbon;
@@ -25,7 +24,6 @@ import io.fabric8.kubernetes.server.mock.KubernetesServer;
 import io.fabric8.mockwebserver.DefaultMockServer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -39,7 +37,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Charles Moulliard
@@ -54,6 +53,8 @@ import static org.junit.Assert.fail;
 @EnableDiscoveryClient
 public class RibbonFallbackTest {
 
+	private static final Log LOG = LogFactory.getLog(RibbonFallbackTest.class);
+
 	@ClassRule
 	public static KubernetesServer mockServer = new KubernetesServer(false);
 
@@ -61,16 +62,14 @@ public class RibbonFallbackTest {
 
 	public static KubernetesClient mockClient;
 
-	private static final Log LOG = LogFactory.getLog(RibbonFallbackTest.class);
+	@Autowired
+	RestTemplate restTemplate;
 
 	@Value("${service.occurrence}")
 	private int serviceOccurrence;
 
 	@Value("${testapp.ribbon.ServerListRefreshInterval}")
 	private int serverListRefreshInterval;
-
-	@Autowired
-	RestTemplate restTemplate;
 
 	@BeforeClass
 	public static void setUpBefore() throws Exception {
@@ -86,6 +85,24 @@ public class RibbonFallbackTest {
 
 		mockEndpoint = new DefaultMockServer(false);
 		mockEndpoint.start();
+	}
+
+	public static Endpoints newEndpoint(String name, String namespace,
+			DefaultMockServer mockServer) {
+		// @formatter:off
+		return new EndpointsBuilder()
+			.withNewMetadata()
+				.withName(name)
+				.withNamespace(namespace)
+				.endMetadata()
+			.addNewSubset()
+				.addNewAddress()
+					.withIp(mockServer.getHostName())
+				.endAddress()
+				.addNewPort("http", mockServer.getPort(), "http")
+				.endSubset()
+			.build();
+		// @formatter:on
 	}
 
 	@Test
@@ -105,25 +122,25 @@ public class RibbonFallbackTest {
 		// to be sure that Ribbon will get the mockendpoint to access it for the call
 		mockServer.expect().get().withPath("/api/v1/namespaces/testns/endpoints/testapp")
 				.andReturn(200, newEndpoint("testapp-a", "testns", mockEndpoint))
-				.times(serviceOccurrence);
+				.times(this.serviceOccurrence);
 
 		mockEndpoint.expect().get().withPath("/greeting").andReturn(200, "Hello from A")
 				.once();
 
-		String response = restTemplate.getForObject("http://testapp/greeting",
+		String response = this.restTemplate.getForObject("http://testapp/greeting",
 				String.class);
-		Assert.assertEquals("Hello from A", response);
+		assertThat(response).isEqualTo("Hello from A");
 		LOG.info(">>>>>>>>>> END PART 1 <<<<<<<<<<<<<");
 
 		LOG.info(">>>>>>>>>> BEGIN PART 2 <<<<<<<<<<<<<");
 		try {
 			ensureEndpointsNoLongerReturnedByAPIServer();
-			restTemplate.getForObject("http://testapp/greeting", String.class);
+			this.restTemplate.getForObject("http://testapp/greeting", String.class);
 			fail("Ribbon was supposed to throw an Exception due to not knowing of any endpoints to route the request to");
 		}
 		catch (Exception e) {
 			// No endpoint is available anymore and Ribbon list is empty
-			Assert.assertEquals("No instances available for testapp", e.getMessage());
+			assertThat(e.getMessage()).isEqualTo("No instances available for testapp");
 		}
 		LOG.info(">>>>>>>>>> END PART 2 <<<<<<<<<<<<<");
 
@@ -149,8 +166,9 @@ public class RibbonFallbackTest {
 
 		mockEndpoint.expect().get().withPath("/greeting").andReturn(200, "Hello from A")
 				.once();
-		response = restTemplate.getForObject("http://testapp/greeting", String.class);
-		Assert.assertEquals("Hello from A", response);
+		response = this.restTemplate.getForObject("http://testapp/greeting",
+				String.class);
+		assertThat(response).isEqualTo("Hello from A");
 		LOG.info(">>>>>>>>>> END PART 3 <<<<<<<<<<<<<");
 	}
 
@@ -160,25 +178,7 @@ public class RibbonFallbackTest {
 	// serverListRefreshInterval milliseconds
 	private void ensureEndpointsNoLongerReturnedByAPIServer()
 			throws InterruptedException {
-		Thread.sleep((serviceOccurrence + 1) * serverListRefreshInterval);
-	}
-
-	public static Endpoints newEndpoint(String name, String namespace,
-			DefaultMockServer mockServer) {
-		// @formatter:off
-		return new EndpointsBuilder()
-			.withNewMetadata()
-				.withName(name)
-				.withNamespace(namespace)
-				.endMetadata()
-			.addNewSubset()
-				.addNewAddress()
-					.withIp(mockServer.getHostName())
-				.endAddress()
-				.addNewPort("http", mockServer.getPort(), "http")
-				.endSubset()
-			.build();
-		// @formatter:on
+		Thread.sleep((this.serviceOccurrence + 1) * this.serverListRefreshInterval);
 	}
 
 }

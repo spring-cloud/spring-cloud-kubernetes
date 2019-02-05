@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.discovery;
@@ -23,25 +22,34 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointPort;
+
 import org.springframework.cloud.client.ServiceInstance;
 
+/**
+ * Kubernetes {@link ServiceInstance}.
+ *
+ * @author Ioannis Canellos
+ */
 public class KubernetesServiceInstance implements ServiceInstance {
 
 	private static final String HTTP_PREFIX = "http://";
+
 	private static final String HTTPS_PREFIX = "https://";
+
 	private static final String COLN = ":";
 
 	private final String serviceId;
+
 	private final EndpointAddress endpointAddress;
+
 	private final EndpointPort endpointPort;
+
 	private final Boolean secure;
+
 	private final Map<String, String> metadata;
 
-	public KubernetesServiceInstance(String serviceId,
-									 EndpointAddress endpointAddress,
-									 EndpointPort endpointPort,
-									 Map<String, String> metadata,
-									 Boolean secure) {
+	public KubernetesServiceInstance(String serviceId, EndpointAddress endpointAddress,
+			EndpointPort endpointPort, Map<String, String> metadata, Boolean secure) {
 		this.serviceId = serviceId;
 		this.endpointAddress = endpointAddress;
 		this.endpointPort = endpointPort;
@@ -51,22 +59,22 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	@Override
 	public String getServiceId() {
-		return serviceId;
+		return this.serviceId;
 	}
 
 	@Override
 	public String getHost() {
-		return endpointAddress.getIp();
+		return this.endpointAddress.getIp();
 	}
 
 	@Override
 	public int getPort() {
-		return endpointPort.getPort();
+		return this.endpointPort.getPort();
 	}
 
 	@Override
 	public boolean isSecure() {
-		return secure;
+		return this.secure;
 	}
 
 	@Override
@@ -75,19 +83,22 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 		if (isSecure()) {
 			sb.append(HTTPS_PREFIX);
-		} else {
+		}
+		else {
 			sb.append(HTTP_PREFIX);
 		}
 
 		sb.append(getHost()).append(COLN).append(getPort());
 		try {
 			return new URI(sb.toString());
-		} catch (URISyntaxException e) {
+		}
+		catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	public Map<String, String> getMetadata() {
-		return metadata;
+		return this.metadata;
 	}
+
 }

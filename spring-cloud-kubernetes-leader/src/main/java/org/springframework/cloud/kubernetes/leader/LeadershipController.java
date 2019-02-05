@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.leader;
@@ -28,6 +27,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
@@ -45,7 +45,8 @@ public class LeadershipController {
 
 	private static final String KIND = "leaders";
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LeadershipController.class);
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(LeadershipController.class);
 
 	private final Candidate candidate;
 
@@ -60,7 +61,8 @@ public class LeadershipController {
 	private PodReadinessWatcher leaderReadinessWatcher;
 
 	public LeadershipController(Candidate candidate, LeaderProperties leaderProperties,
-		LeaderEventPublisher leaderEventPublisher, KubernetesClient kubernetesClient) {
+			LeaderEventPublisher leaderEventPublisher,
+			KubernetesClient kubernetesClient) {
 		this.candidate = candidate;
 		this.leaderProperties = leaderProperties;
 		this.leaderEventPublisher = leaderEventPublisher;
@@ -68,7 +70,7 @@ public class LeadershipController {
 	}
 
 	public Optional<Leader> getLocalLeader() {
-		return Optional.ofNullable(localLeader);
+		return Optional.ofNullable(this.localLeader);
 	}
 
 	public synchronized void update() {
@@ -81,9 +83,10 @@ public class LeadershipController {
 			return;
 		}
 
-		if (leader != null && leader.isCandidate(candidate)) {
+		if (leader != null && leader.isCandidate(this.candidate)) {
 			revoke(configMap);
-		} else {
+		}
+		else {
 			acquire(configMap);
 		}
 	}
@@ -92,100 +95,116 @@ public class LeadershipController {
 		ConfigMap configMap = getConfigMap();
 		Leader leader = extractLeader(configMap);
 
-		if (leader != null && leader.isCandidate(candidate)) {
+		if (leader != null && leader.isCandidate(this.candidate)) {
 			revoke(configMap);
 		}
 	}
 
 	private void revoke(ConfigMap configMap) {
-		LOGGER.debug("Trying to revoke leadership for '{}'", candidate);
+		LOGGER.debug("Trying to revoke leadership for '{}'", this.candidate);
 
 		try {
 			String leaderKey = getLeaderKey();
 			removeConfigMapEntry(configMap, leaderKey);
 			handleLeaderChange(null);
-		} catch (KubernetesClientException e) {
-			LOGGER.warn("Failure when revoking leadership for '{}': {}", candidate, e.getMessage());
+		}
+		catch (KubernetesClientException e) {
+			LOGGER.warn("Failure when revoking leadership for '{}': {}", this.candidate,
+					e.getMessage());
 		}
 	}
 
 	private void acquire(ConfigMap configMap) {
-		LOGGER.debug("Trying to acquire leadership for '{}'", candidate);
+		LOGGER.debug("Trying to acquire leadership for '{}'", this.candidate);
 
-		if (!isPodReady(candidate.getId())) {
-			LOGGER.debug("Pod of '{}' is not ready at the moment, cannot acquire leadership", candidate);
+		if (!isPodReady(this.candidate.getId())) {
+			LOGGER.debug(
+					"Pod of '{}' is not ready at the moment, cannot acquire leadership",
+					this.candidate);
 			return;
 		}
 
 		try {
-			Map<String, String> data = getLeaderData(candidate);
+			Map<String, String> data = getLeaderData(this.candidate);
 			if (configMap == null) {
 				createConfigMap(data);
-			} else {
+			}
+			else {
 				updateConfigMapEntry(configMap, data);
 			}
 
-			Leader newLeader = new Leader(candidate.getRole(), candidate.getId());
+			Leader newLeader = new Leader(this.candidate.getRole(),
+					this.candidate.getId());
 			handleLeaderChange(newLeader);
-		} catch (KubernetesClientException e) {
-			LOGGER.warn("Failure when acquiring leadership for '{}': {}", candidate, e.getMessage());
+		}
+		catch (KubernetesClientException e) {
+			LOGGER.warn("Failure when acquiring leadership for '{}': {}", this.candidate,
+					e.getMessage());
 			notifyOnFailedToAcquire();
 		}
 	}
 
 	private void handleLeaderChange(Leader newLeader) {
-		if (Objects.equals(localLeader, newLeader)) {
-			LOGGER.debug("Leader is still '{}'", localLeader);
+		if (Objects.equals(this.localLeader, newLeader)) {
+			LOGGER.debug("Leader is still '{}'", this.localLeader);
 			return;
-		} else if (localLeader != null && localLeader.isCandidate(candidate)) {
+		}
+		else if (this.localLeader != null
+				&& this.localLeader.isCandidate(this.candidate)) {
 			notifyOnRevoked();
-		} else if (newLeader != null && newLeader.isCandidate(candidate)) {
+		}
+		else if (newLeader != null && newLeader.isCandidate(this.candidate)) {
 			notifyOnGranted();
 		}
 
-		localLeader = newLeader;
-		if (leaderReadinessWatcher != null) {
-			leaderReadinessWatcher.stop();
-			leaderReadinessWatcher = null;
+		this.localLeader = newLeader;
+		if (this.leaderReadinessWatcher != null) {
+			this.leaderReadinessWatcher.stop();
+			this.leaderReadinessWatcher = null;
 		}
-		if (localLeader != null && !localLeader.isCandidate(candidate)) {
-			leaderReadinessWatcher = new PodReadinessWatcher(localLeader.getId(), kubernetesClient, this);
-			leaderReadinessWatcher.start();
+		if (this.localLeader != null && !this.localLeader.isCandidate(this.candidate)) {
+			this.leaderReadinessWatcher = new PodReadinessWatcher(
+					this.localLeader.getId(), this.kubernetesClient, this);
+			this.leaderReadinessWatcher.start();
 		}
 
-		LOGGER.debug("New leader is '{}'", localLeader);
+		LOGGER.debug("New leader is '{}'", this.localLeader);
 	}
 
 	private void notifyOnGranted() {
-		LOGGER.debug("Leadership has been granted for '{}'", candidate);
+		LOGGER.debug("Leadership has been granted for '{}'", this.candidate);
 
-		Context context = new LeaderContext(candidate, this);
-		leaderEventPublisher.publishOnGranted(this, context, candidate.getRole());
+		Context context = new LeaderContext(this.candidate, this);
+		this.leaderEventPublisher.publishOnGranted(this, context,
+				this.candidate.getRole());
 		try {
-			candidate.onGranted(context);
-		} catch (InterruptedException e) {
+			this.candidate.onGranted(context);
+		}
+		catch (InterruptedException e) {
 			LOGGER.warn(e.getMessage());
 			Thread.currentThread().interrupt();
 		}
 	}
 
 	private void notifyOnRevoked() {
-		LOGGER.debug("Leadership has been revoked for '{}'", candidate);
+		LOGGER.debug("Leadership has been revoked for '{}'", this.candidate);
 
-		Context context = new LeaderContext(candidate, this);
-		leaderEventPublisher.publishOnRevoked(this, context, candidate.getRole());
-		candidate.onRevoked(context);
+		Context context = new LeaderContext(this.candidate, this);
+		this.leaderEventPublisher.publishOnRevoked(this, context,
+				this.candidate.getRole());
+		this.candidate.onRevoked(context);
 	}
 
 	private void notifyOnFailedToAcquire() {
-		if (leaderProperties.isPublishFailedEvents()) {
-			Context context = new LeaderContext(candidate, this);
-			leaderEventPublisher.publishOnFailedToAcquire(this, context, candidate.getRole());
+		if (this.leaderProperties.isPublishFailedEvents()) {
+			Context context = new LeaderContext(this.candidate, this);
+			this.leaderEventPublisher.publishOnFailedToAcquire(this, context,
+					this.candidate.getRole());
 		}
 	}
 
 	private String getLeaderKey() {
-		return leaderProperties.getLeaderIdPrefix() + candidate.getRole();
+		return this.leaderProperties.getLeaderIdPrefix() + this.candidate.getRole();
 	}
 
 	private Map<String, String> getLeaderData(Candidate candidate) {
@@ -205,44 +224,39 @@ public class LeadershipController {
 			return null;
 		}
 
-		return new Leader(candidate.getRole(), leaderId);
+		return new Leader(this.candidate.getRole(), leaderId);
 	}
 
 	private boolean isPodReady(String name) {
-		return kubernetesClient.pods()
-			.withName(name)
-			.isReady();
+		return this.kubernetesClient.pods().withName(name).isReady();
 	}
 
 	private ConfigMap getConfigMap() {
-		return kubernetesClient.configMaps()
-			.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-			.withName(leaderProperties.getConfigMapName())
-			.get();
+		return this.kubernetesClient.configMaps()
+				.inNamespace(this.leaderProperties
+						.getNamespace(this.kubernetesClient.getNamespace()))
+				.withName(this.leaderProperties.getConfigMapName()).get();
 	}
 
 	private void createConfigMap(Map<String, String> data) {
 		LOGGER.debug("Creating new config map with data: {}", data);
 
 		ConfigMap newConfigMap = new ConfigMapBuilder().withNewMetadata()
-			.withName(leaderProperties.getConfigMapName())
-			.addToLabels(PROVIDER_KEY, PROVIDER)
-			.addToLabels(KIND_KEY, KIND)
-			.endMetadata()
-			.addToData(data)
-			.build();
+				.withName(this.leaderProperties.getConfigMapName())
+				.addToLabels(PROVIDER_KEY, PROVIDER).addToLabels(KIND_KEY, KIND)
+				.endMetadata().addToData(data).build();
 
-		kubernetesClient.configMaps()
-			.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-			.create(newConfigMap);
+		this.kubernetesClient.configMaps()
+				.inNamespace(this.leaderProperties
+						.getNamespace(this.kubernetesClient.getNamespace()))
+				.create(newConfigMap);
 	}
 
 	private void updateConfigMapEntry(ConfigMap configMap, Map<String, String> newData) {
 		LOGGER.debug("Adding new data to config map: {}", newData);
 
-		ConfigMap newConfigMap = new ConfigMapBuilder(configMap)
-			.addToData(newData)
-			.build();
+		ConfigMap newConfigMap = new ConfigMapBuilder(configMap).addToData(newData)
+				.build();
 
 		updateConfigMap(configMap, newConfigMap);
 	}
@@ -250,18 +264,19 @@ public class LeadershipController {
 	private void removeConfigMapEntry(ConfigMap configMap, String key) {
 		LOGGER.debug("Removing config map entry '{}'", key);
 
-		ConfigMap newConfigMap = new ConfigMapBuilder(configMap)
-			.removeFromData(key)
-			.build();
+		ConfigMap newConfigMap = new ConfigMapBuilder(configMap).removeFromData(key)
+				.build();
 
 		updateConfigMap(configMap, newConfigMap);
 	}
 
 	private void updateConfigMap(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
-		kubernetesClient.configMaps()
-			.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-			.withName(leaderProperties.getConfigMapName())
-			.lockResourceVersion(oldConfigMap.getMetadata().getResourceVersion())
-			.replace(newConfigMap);
+		this.kubernetesClient.configMaps()
+				.inNamespace(this.leaderProperties
+						.getNamespace(this.kubernetesClient.getNamespace()))
+				.withName(this.leaderProperties.getConfigMapName())
+				.lockResourceVersion(oldConfigMap.getMetadata().getResourceVersion())
+				.replace(newConfigMap);
 	}
+
 }

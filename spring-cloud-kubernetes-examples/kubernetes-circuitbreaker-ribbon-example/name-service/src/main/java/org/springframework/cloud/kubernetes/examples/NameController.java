@@ -42,14 +42,16 @@ public class NameController {
 	}
 
 	/**
-	 * Endpoint to get a name with a capability to delay a response for some number of milliseconds.
-	 *
+	 * Endpoint to get a name with a capability to delay a response for some number of
+	 * milliseconds.
 	 * @param delayValue Milliseconds for how long the response should be delayed.
 	 * @return Host name.
 	 */
 	@RequestMapping("/name")
-	public String getName(@RequestParam(value = "delay", defaultValue = "0") int delayValue) {
-		LOG.info(String.format("Returning a name '%s' with a delay '%d'", this.hostName, delayValue));
+	public String getName(
+			@RequestParam(value = "delay", defaultValue = "0") int delayValue) {
+		LOG.info(String.format("Returning a name '%s' with a delay '%d'", this.hostName,
+				delayValue));
 		delay(delayValue);
 		return this.hostName;
 	}
@@ -62,4 +64,5 @@ public class NameController {
 			e.printStackTrace();
 		}
 	}
+
 }

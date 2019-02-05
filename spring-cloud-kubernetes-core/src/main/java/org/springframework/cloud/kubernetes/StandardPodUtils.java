@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes;
@@ -26,13 +25,24 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+/**
+ * Utility class to work with pods.
+ *
+ * @author Ioannis Canellos
+ */
 public class StandardPodUtils implements PodUtils {
 
-	private static final Log LOG = LogFactory.getLog(StandardPodUtils.class);
+	/**
+	 * Hostname environment variable name.
+	 */
 	public static final String HOSTNAME = "HOSTNAME";
 
+	private static final Log LOG = LogFactory.getLog(StandardPodUtils.class);
+
 	private final KubernetesClient client;
+
 	private final String hostName;
+
 	private Supplier<Pod> current;
 
 	public StandardPodUtils(KubernetesClient client) {
@@ -48,7 +58,7 @@ public class StandardPodUtils implements PodUtils {
 
 	@Override
 	public Supplier<Pod> currentPod() {
-		return current;
+		return this.current;
 	}
 
 	@Override
@@ -59,22 +69,23 @@ public class StandardPodUtils implements PodUtils {
 	private synchronized Pod internalGetPod() {
 		try {
 			if (isServiceAccountFound() && isHostNameEnvVarPresent()) {
-				return client.pods().withName(hostName).get();
+				return this.client.pods().withName(this.hostName).get();
 			}
 			else {
 				return null;
 			}
 		}
 		catch (Throwable t) {
-			LOG.warn("Failed to get pod with name:[" + hostName
-					+ "]. You should look into this if things aren't working as you expect. Are you missing serviceaccount permissions?",
+			LOG.warn("Failed to get pod with name:[" + this.hostName
+					+ "]. You should look into this if things aren't"
+					+ " working as you expect. Are you missing serviceaccount permissions?",
 					t);
 			return null;
 		}
 	}
 
 	private boolean isHostNameEnvVarPresent() {
-		return hostName != null && !hostName.isEmpty();
+		return this.hostName != null && !this.hostName.isEmpty();
 	}
 
 	private boolean isServiceAccountFound() {
@@ -82,4 +93,5 @@ public class StandardPodUtils implements PodUtils {
 				&& Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH).toFile()
 						.exists();
 	}
+
 }

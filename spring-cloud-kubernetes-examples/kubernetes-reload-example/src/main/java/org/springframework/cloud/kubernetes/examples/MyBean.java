@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
+
 package org.springframework.cloud.kubernetes.examples;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +31,8 @@ public class MyBean {
 
 	@Scheduled(fixedDelay = 5000)
 	public void hello() {
-		System.out.println("The first message is: " + myConfig.getMessage());
-		System.out.println("The other message is: " + dummyConfig.getMessage());
+		System.out.println("The first message is: " + this.myConfig.getMessage());
+		System.out.println("The other message is: " + this.dummyConfig.getMessage());
 	}
-
 
 }

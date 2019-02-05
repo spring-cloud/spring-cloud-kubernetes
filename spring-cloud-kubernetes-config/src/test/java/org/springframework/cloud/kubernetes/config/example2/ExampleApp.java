@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.config.example2;
@@ -28,7 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ExampleApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(org.springframework.cloud.kubernetes.config.example.App.class, args);
+		SpringApplication
+				.run(org.springframework.cloud.kubernetes.config.example.App.class, args);
 	}
 
 	@RestController
@@ -42,27 +42,28 @@ public class ExampleApp {
 
 		@GetMapping("/common")
 		public Response commonMessage() {
-			return new Response(exampleAppProps.getCommonMessage());
+			return new Response(this.exampleAppProps.getCommonMessage());
 		}
 
 		@GetMapping("/m1")
 		public Response message1() {
-			return new Response(exampleAppProps.getMessage1());
+			return new Response(this.exampleAppProps.getMessage1());
 		}
 
 		@GetMapping("/m2")
 		public Response message2() {
-			return new Response(exampleAppProps.getMessage2());
+			return new Response(this.exampleAppProps.getMessage2());
 		}
 
 		@GetMapping("/m3")
 		public Response message3() {
-			return new Response(exampleAppProps.getMessage3());
+			return new Response(this.exampleAppProps.getMessage3());
 		}
+
 	}
-	
+
 	public static class Response {
-		
+
 		private final String message;
 
 		public Response(String message) {
@@ -70,8 +71,9 @@ public class ExampleApp {
 		}
 
 		public String getMessage() {
-			return message;
+			return this.message;
 		}
+
 	}
 
 }

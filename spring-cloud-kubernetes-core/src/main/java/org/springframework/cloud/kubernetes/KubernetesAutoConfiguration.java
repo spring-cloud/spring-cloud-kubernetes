@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,20 +12,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes;
+
+import java.time.Duration;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-
-import java.time.Duration;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -34,12 +33,44 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Auto configuration for Kubernetes.
+ *
+ * @author Ioannis Canellos
+ */
 @Configuration
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
 @EnableConfigurationProperties(KubernetesClientProperties.class)
 public class KubernetesAutoConfiguration {
 
 	private static final Log LOG = LogFactory.getLog(KubernetesAutoConfiguration.class);
+
+	private static <D> D or(D dis, D dat) {
+		if (dis != null) {
+			return dis;
+		}
+		else {
+			return dat;
+		}
+	}
+
+	private static Integer orDurationInt(Duration dis, Integer dat) {
+		if (dis != null) {
+			return (int) dis.toMillis();
+		}
+		else {
+			return dat;
+		}
+	}
+
+	private static Long orDurationLong(Duration dis, Long dat) {
+		if (dis != null) {
+			return dis.toMillis();
+		}
+		else {
+			return dat;
+		}
+	}
 
 	@Bean
 	@ConditionalOnMissingBean(Config.class)
@@ -83,27 +114,29 @@ public class KubernetesAutoConfiguration {
 				.withConnectionTimeout(
 						orDurationInt(kubernetesClientProperties.getConnectionTimeout(),
 								base.getConnectionTimeout()))
-				.withRequestTimeout(orDurationInt(kubernetesClientProperties.getRequestTimeout(),
-						base.getRequestTimeout()))
-				.withRollingTimeout(orDurationLong(kubernetesClientProperties.getRollingTimeout(),
-						base.getRollingTimeout()))
+				.withRequestTimeout(
+						orDurationInt(kubernetesClientProperties.getRequestTimeout(),
+								base.getRequestTimeout()))
+				.withRollingTimeout(
+						orDurationLong(kubernetesClientProperties.getRollingTimeout(),
+								base.getRollingTimeout()))
 				.withTrustCerts(or(kubernetesClientProperties.isTrustCerts(),
 						base.isTrustCerts()))
 				.withHttpProxy(or(kubernetesClientProperties.getHttpProxy(),
-					base.getHttpProxy()))
+						base.getHttpProxy()))
 				.withHttpsProxy(or(kubernetesClientProperties.getHttpsProxy(),
-					base.getHttpsProxy()))
+						base.getHttpsProxy()))
 				.withProxyUsername(or(kubernetesClientProperties.getProxyUsername(),
-					base.getProxyUsername()))
+						base.getProxyUsername()))
 				.withPassword(or(kubernetesClientProperties.getProxyPassword(),
-					base.getProxyPassword()))
-				.withNoProxy(or(kubernetesClientProperties.getNoProxy(),
-					base.getNoProxy()))
+						base.getProxyPassword()))
+				.withNoProxy(
+						or(kubernetesClientProperties.getNoProxy(), base.getNoProxy()))
 				.build();
 
 		if (properties.getNamespace() == null || properties.getNamespace().isEmpty()) {
-			LOG.warn(
-					"No namespace has been detected. Please specify KUBERNETES_NAMESPACE env var, or use a later kubernetes version (1.3 or later)");
+			LOG.warn("No namespace has been detected. Please specify "
+					+ "KUBERNETES_NAMESPACE env var, or use a later kubernetes version (1.3 or later)");
 		}
 		return properties;
 	}
@@ -123,41 +156,17 @@ public class KubernetesAutoConfiguration {
 	@Configuration
 	@ConditionalOnClass(HealthIndicator.class)
 	protected static class KubernetesActuatorConfiguration {
+
 		@Bean
 		public KubernetesHealthIndicator kubernetesHealthIndicator(PodUtils podUtils) {
 			return new KubernetesHealthIndicator(podUtils);
 		}
-		
+
 		@Bean
 		public KubernetesInfoContributor kubernetesInfoContributor(PodUtils podUtils) {
 			return new KubernetesInfoContributor(podUtils);
 		}
+
 	}
 
-	private static <D> D or(D dis, D dat) {
-		if (dis != null) {
-			return dis;
-		}
-		else {
-			return dat;
-		}
-	}
-	
-	private static Integer orDurationInt(Duration dis, Integer dat) {
-		if (dis != null) {
-			return (int)dis.toMillis();
-		}
-		else {
-			return dat;
-		}
-	}
-	
-	private static Long orDurationLong(Duration dis, Long dat) {
-		if (dis != null) {
-			return dis.toMillis();
-		}
-		else {
-			return dat;
-		}
-	}
 }

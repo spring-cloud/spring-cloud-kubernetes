@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
+
 package org.springframework.cloud.kubernetes.discovery;
 
 import java.util.ArrayList;
@@ -30,13 +30,10 @@ import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -57,7 +54,8 @@ public class KubernetesDiscoveryClientFilterTest {
 
 	@Before
 	public void setUp() {
-		underTest = new KubernetesDiscoveryClient(kubernetesClient, properties, kubernetesClientServicesFunction);
+		this.underTest = new KubernetesDiscoveryClient(this.kubernetesClient,
+				this.properties, this.kubernetesClientServicesFunction);
 	}
 
 	@Test
@@ -74,22 +72,23 @@ public class KubernetesDiscoveryClientFilterTest {
 
 		ServiceList serviceList = new ServiceList();
 		serviceList.setItems(services);
-		when(serviceOperation.list())
-				.thenReturn(serviceList);
-		when(kubernetesClient.services()).thenReturn(serviceOperation);
+		when(this.serviceOperation.list()).thenReturn(serviceList);
+		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
-		when(properties.getFilter()).thenReturn("metadata.additionalProperties['spring-boot']");
+		when(this.properties.getFilter())
+				.thenReturn("metadata.additionalProperties['spring-boot']");
 
-		List<String> filteredServices = underTest.getServices();
+		List<String> filteredServices = this.underTest.getServices();
 
 		System.out.println("Filtered Services: " + filteredServices);
-		assertEquals(springBootServiceNames, filteredServices);
+		assertThat(filteredServices).isEqualTo(springBootServiceNames);
 
 	}
 
 	@Test
 	public void testFilteredServicesByPrefix() {
-		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB", "serviceC");
+		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB",
+				"serviceC");
 		List<Service> services = createSpringBootServiceByName(springBootServiceNames);
 
 		// Add non spring boot service
@@ -101,36 +100,36 @@ public class KubernetesDiscoveryClientFilterTest {
 
 		ServiceList serviceList = new ServiceList();
 		serviceList.setItems(services);
-		when(serviceOperation.list())
-				.thenReturn(serviceList);
-		when(kubernetesClient.services()).thenReturn(serviceOperation);
+		when(this.serviceOperation.list()).thenReturn(serviceList);
+		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
-		when(properties.getFilter()).thenReturn("metadata.name.startsWith('service')");
+		when(this.properties.getFilter())
+				.thenReturn("metadata.name.startsWith('service')");
 
-		List<String> filteredServices = underTest.getServices();
+		List<String> filteredServices = this.underTest.getServices();
 
 		System.out.println("Filtered Services: " + filteredServices);
-		assertEquals(springBootServiceNames, filteredServices);
+		assertThat(filteredServices).isEqualTo(springBootServiceNames);
 
 	}
 
 	@Test
 	public void testNoExpression() {
-		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB", "serviceC");
+		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB",
+				"serviceC");
 		List<Service> services = createSpringBootServiceByName(springBootServiceNames);
 
 		ServiceList serviceList = new ServiceList();
 		serviceList.setItems(services);
-		when(serviceOperation.list())
-				.thenReturn(serviceList);
-		when(kubernetesClient.services()).thenReturn(serviceOperation);
+		when(this.serviceOperation.list()).thenReturn(serviceList);
+		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
-		when(properties.getFilter()).thenReturn("");
+		when(this.properties.getFilter()).thenReturn("");
 
-		List<String> filteredServices = underTest.getServices();
+		List<String> filteredServices = this.underTest.getServices();
 
 		System.out.println("Filtered Services: " + filteredServices);
-		assertEquals(springBootServiceNames, filteredServices);
+		assertThat(filteredServices).isEqualTo(springBootServiceNames);
 
 	}
 

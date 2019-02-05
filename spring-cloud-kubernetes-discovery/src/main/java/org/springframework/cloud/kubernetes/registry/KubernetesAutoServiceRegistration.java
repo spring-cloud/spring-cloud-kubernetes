@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.registry;
@@ -22,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.cloud.client.serviceregistry.AutoServiceRegistration;
@@ -31,11 +31,16 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.Ordered;
 
-public class KubernetesAutoServiceRegistration implements AutoServiceRegistration,
-														  SmartLifecycle,
-														  Ordered {
+/**
+ * Auto service registration for Kubernetes.
+ *
+ * @author Mauricio Salatino
+ */
+public class KubernetesAutoServiceRegistration
+		implements AutoServiceRegistration, SmartLifecycle, Ordered {
 
-	private static final Log log = LogFactory.getLog(KubernetesAutoServiceRegistration.class);
+	private static final Log log = LogFactory
+			.getLog(KubernetesAutoServiceRegistration.class);
 
 	private AtomicBoolean running = new AtomicBoolean(false);
 
@@ -50,8 +55,8 @@ public class KubernetesAutoServiceRegistration implements AutoServiceRegistratio
 	private KubernetesRegistration registration;
 
 	public KubernetesAutoServiceRegistration(ApplicationContext context,
-											 KubernetesServiceRegistry serviceRegistry,
-											 KubernetesRegistration registration) {
+			KubernetesServiceRegistry serviceRegistry,
+			KubernetesRegistration registration) {
 		this.context = context;
 		this.serviceRegistry = serviceRegistry;
 		this.registration = registration;
@@ -73,8 +78,7 @@ public class KubernetesAutoServiceRegistration implements AutoServiceRegistratio
 		this.serviceRegistry.register(this.registration);
 
 		this.context.publishEvent(
-			new InstanceRegisteredEvent<>(this,
-										  this.registration.getProperties()));
+				new InstanceRegisteredEvent<>(this, this.registration.getProperties()));
 		this.running.set(true);
 	}
 
@@ -105,16 +109,16 @@ public class KubernetesAutoServiceRegistration implements AutoServiceRegistratio
 		int localPort = event.getWebServer().getPort();
 		if (this.port.get() == 0) {
 			log.info("Updating port to " + localPort);
-			this.port.compareAndSet(0,
-									localPort);
+			this.port.compareAndSet(0, localPort);
 			start();
 		}
 	}
 
 	@EventListener(ContextClosedEvent.class)
 	public void onApplicationEvent(ContextClosedEvent event) {
-		if (event.getApplicationContext() == context) {
+		if (event.getApplicationContext() == this.context) {
 			stop();
 		}
 	}
+
 }

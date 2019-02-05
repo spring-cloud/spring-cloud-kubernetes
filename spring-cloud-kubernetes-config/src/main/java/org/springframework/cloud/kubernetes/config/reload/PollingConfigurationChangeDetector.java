@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
+
 package org.springframework.cloud.kubernetes.config.reload;
 
 import java.util.List;
@@ -35,6 +35,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 /**
  * A change detector that periodically retrieves secrets and configmaps and fire a reload
  * when something changes.
+ *
+ * @author Nicola Ferraro
  */
 public class PollingConfigurationChangeDetector extends ConfigurationChangeDetector {
 
@@ -57,32 +59,32 @@ public class PollingConfigurationChangeDetector extends ConfigurationChangeDetec
 
 	@PostConstruct
 	public void init() {
-		log.info("Kubernetes polling configuration change detector activated");
+		this.log.info("Kubernetes polling configuration change detector activated");
 	}
 
 	@Scheduled(initialDelayString = "${spring.cloud.kubernetes.reload.period:15000}", fixedDelayString = "${spring.cloud.kubernetes.reload.period:15000}")
 	public void executeCycle() {
 
 		boolean changedConfigMap = false;
-		if (properties.isMonitoringConfigMaps()) {
+		if (this.properties.isMonitoringConfigMaps()) {
 			List<? extends MapPropertySource> currentConfigMapSources = findPropertySources(
 					ConfigMapPropertySource.class);
 
 			if (!currentConfigMapSources.isEmpty()) {
 				changedConfigMap = changed(
-						locateMapPropertySources(configMapPropertySourceLocator,
-								environment),
+						locateMapPropertySources(this.configMapPropertySourceLocator,
+								this.environment),
 						currentConfigMapSources);
 			}
 		}
 
 		boolean changedSecrets = false;
-		if (properties.isMonitoringSecrets()) {
+		if (this.properties.isMonitoringSecrets()) {
 			MapPropertySource currentSecretSource = findPropertySource(
 					SecretsPropertySource.class);
 			if (currentSecretSource != null) {
-				MapPropertySource newSecretSource = secretsPropertySourceLocator
-						.locate(environment);
+				MapPropertySource newSecretSource = this.secretsPropertySourceLocator
+						.locate(this.environment);
 				changedSecrets = changed(currentSecretSource, newSecretSource);
 			}
 		}

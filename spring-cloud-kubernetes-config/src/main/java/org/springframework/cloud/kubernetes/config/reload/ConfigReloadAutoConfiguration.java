@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
+
 package org.springframework.cloud.kubernetes.config.reload;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -41,6 +41,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Definition of beans needed for the automatic reload of configuration.
+ *
+ * @author Nicolla Ferraro
  */
 @Configuration
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
@@ -54,7 +56,7 @@ public class ConfigReloadAutoConfiguration {
 	/**
 	 * Configuration reload must be enabled explicitly.
 	 */
-	@ConditionalOnProperty(value = "spring.cloud.kubernetes.reload.enabled")
+	@ConditionalOnProperty("spring.cloud.kubernetes.reload.enabled")
 	@ConditionalOnClass({ RestartEndpoint.class, ContextRefresher.class })
 	@EnableScheduling
 	@EnableAsync
@@ -73,7 +75,9 @@ public class ConfigReloadAutoConfiguration {
 		private SecretsPropertySourceLocator secretsPropertySourceLocator;
 
 		/**
-		 * Provides a bean that listen to configuration changes and fire a reload.
+		 * @param properties config reload properties
+		 * @param strategy configuration update strategy
+		 * @return a bean that listen to configuration changes and fire a reload.
 		 */
 		@Bean
 		@ConditionalOnMissingBean
@@ -81,20 +85,26 @@ public class ConfigReloadAutoConfiguration {
 				ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy) {
 			switch (properties.getMode()) {
 			case POLLING:
-				return new PollingConfigurationChangeDetector(environment, properties,
-						kubernetesClient, strategy, configMapPropertySourceLocator,
-						secretsPropertySourceLocator);
+				return new PollingConfigurationChangeDetector(this.environment,
+						properties, this.kubernetesClient, strategy,
+						this.configMapPropertySourceLocator,
+						this.secretsPropertySourceLocator);
 			case EVENT:
-				return new EventBasedConfigurationChangeDetector(environment, properties,
-						kubernetesClient, strategy, configMapPropertySourceLocator,
-						secretsPropertySourceLocator);
+				return new EventBasedConfigurationChangeDetector(this.environment,
+						properties, this.kubernetesClient, strategy,
+						this.configMapPropertySourceLocator,
+						this.secretsPropertySourceLocator);
 			}
 			throw new IllegalStateException(
 					"Unsupported configuration reload mode: " + properties.getMode());
 		}
 
 		/**
-		 * Provides the action to execute when the configuration changes.
+		 * @param properties config reload properties
+		 * @param ctx application context
+		 * @param restarter restart endpoint
+		 * @param refresher context refresher
+		 * @return provides the action to execute when the configuration changes.
 		 */
 		@Bean
 		@ConditionalOnMissingBean

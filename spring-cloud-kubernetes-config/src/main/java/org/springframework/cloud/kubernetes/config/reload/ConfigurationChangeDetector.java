@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
+
 package org.springframework.cloud.kubernetes.config.reload;
 
 import java.util.ArrayList;
@@ -38,6 +38,8 @@ import org.springframework.core.env.PropertySource;
 /**
  * This is the superclass of all beans that can listen to changes in the configuration and
  * fire a reload.
+ *
+ * @author Nicola Ferraro
  */
 public abstract class ConfigurationChangeDetector {
 
@@ -64,22 +66,27 @@ public abstract class ConfigurationChangeDetector {
 	public void shutdown() {
 		// Ensure the kubernetes client is cleaned up from spare threads when shutting
 		// down
-		kubernetesClient.close();
+		this.kubernetesClient.close();
 	}
 
 	public void reloadProperties() {
-		log.info("Reloading using strategy: " + strategy.getName());
-		strategy.reload();
+		this.log.info("Reloading using strategy: " + this.strategy.getName());
+		this.strategy.reload();
 	}
 
 	/**
 	 * Determines if two property sources are different.
+	 * @param mp1 map property sources 1
+	 * @param mp2 map property sources 2
+	 * @return {@code true} if source has changed
 	 */
 	protected boolean changed(MapPropertySource mp1, MapPropertySource mp2) {
-		if (mp1 == mp2)
+		if (mp1 == mp2) {
 			return false;
-		if (mp1 == null && mp2 != null || mp1 != null && mp2 == null)
+		}
+		if (mp1 == null && mp2 != null || mp1 != null && mp2 == null) {
 			return true;
+		}
 
 		Map<String, Object> s1 = mp1.getSource();
 		Map<String, Object> s2 = mp2.getSource();
@@ -91,8 +98,9 @@ public abstract class ConfigurationChangeDetector {
 			List<? extends MapPropertySource> l2) {
 
 		if (l1.size() != l2.size()) {
-			log.debug("The current number of Confimap PropertySources does not match "
-					+ "the ones loaded from the Kubernetes - No reload will take place");
+			this.log.debug(
+					"The current number of Confimap PropertySources does not match "
+							+ "the ones loaded from the Kubernetes - No reload will take place");
 			return false;
 		}
 
@@ -107,6 +115,9 @@ public abstract class ConfigurationChangeDetector {
 	/**
 	 * Finds one registered property source of the given type, logging a warning if
 	 * multiple property sources of that type are available.
+	 * @param <S> property source type
+	 * @param sourceClass class for which property sources will be searched for
+	 * @return matched property source
 	 */
 	protected <S extends PropertySource<?>> S findPropertySource(Class<S> sourceClass) {
 		List<S> sources = findPropertySources(sourceClass);
@@ -114,20 +125,22 @@ public abstract class ConfigurationChangeDetector {
 			return null;
 		}
 		if (sources.size() > 1) {
-			log.warn("Found more than one property source of type " + sourceClass);
+			this.log.warn("Found more than one property source of type " + sourceClass);
 		}
 		return sources.get(0);
 	}
 
 	/**
-	 * Finds all registered property sources of the given type.
+	 * @param <S> property source type
+	 * @param sourceClass class for which property sources will be found
+	 * @return finds all registered property sources of the given type
 	 */
 	protected <S extends PropertySource<?>> List<S> findPropertySources(
 			Class<S> sourceClass) {
 		List<S> managedSources = new LinkedList<>();
 
 		LinkedList<PropertySource<?>> sources = toLinkedList(
-				environment.getPropertySources());
+				this.environment.getPropertySources());
 		while (!sources.isEmpty()) {
 			PropertySource<?> source = sources.pop();
 			if (source instanceof CompositePropertySource) {
@@ -152,7 +165,11 @@ public abstract class ConfigurationChangeDetector {
 
 	/**
 	 * Returns a list of MapPropertySource that correspond to the current state of the
-	 * system This only handles the PropertySource objects that are returned
+	 * system. This only handles the PropertySource objects that are returned.
+	 * @param propertySourceLocator Spring's property source locator
+	 * @param environment Spring environment
+	 * @return a list of MapPropertySource that correspond to the current state of the
+	 * system
 	 */
 	protected List<MapPropertySource> locateMapPropertySources(
 			PropertySourceLocator propertySourceLocator, Environment environment) {
@@ -168,7 +185,7 @@ public abstract class ConfigurationChangeDetector {
 					.map(p -> (MapPropertySource) p).collect(Collectors.toList()));
 		}
 		else {
-			log.debug("Found property source that cannot be handled: "
+			this.log.debug("Found property source that cannot be handled: "
 					+ propertySource.getClass());
 		}
 

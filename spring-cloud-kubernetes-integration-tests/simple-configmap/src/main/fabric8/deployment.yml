@@ -5,6 +5,6 @@ spec:
     spec:
       containers:
         - env:
-          - name: KUBERNETES_TRUST_CERTIFICATES
-            value: true
+            - name: KUBERNETES_TRUST_CERTIFICATES
+              value: true
 

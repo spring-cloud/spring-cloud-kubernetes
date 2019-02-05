@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
+
 package org.springframework.cloud.kubernetes.discovery;
 
 import java.util.Collections;
@@ -44,6 +44,7 @@ import static org.mockito.Mockito.verify;
  * @author Zhanwei Wang
  */
 public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
+
 	private AnnotationConfigApplicationContext context;
 
 	@After
@@ -59,17 +60,15 @@ public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 	@Test
 	public void onWhenRequested() throws Exception {
 		setup("server.port=7000", "spring.cloud.config.discovery.enabled=true",
-			"spring.cloud.kubernetes.discovery.enabled:true",
-			"spring.cloud.kubernetes.enabled:true",
-			"spring.application.name:test",
-			"spring.cloud.config.discovery.service-id:configserver");
-		assertEquals( 1, this.context.getParent()
-			.getBeanNamesForType(DiscoveryClient.class).length);
-		DiscoveryClient client = this.context.getParent().getBean(
-			DiscoveryClient.class);
+				"spring.cloud.kubernetes.discovery.enabled:true",
+				"spring.cloud.kubernetes.enabled:true", "spring.application.name:test",
+				"spring.cloud.config.discovery.service-id:configserver");
+		assertEquals(1, this.context.getParent()
+				.getBeanNamesForType(DiscoveryClient.class).length);
+		DiscoveryClient client = this.context.getParent().getBean(DiscoveryClient.class);
 		verify(client, atLeast(2)).getInstances("configserver");
 		ConfigClientProperties locator = this.context
-			.getBean(ConfigClientProperties.class);
+				.getBean(ConfigClientProperties.class);
 		assertEquals("http://fake:8888/", locator.getUri()[0]);
 	}
 
@@ -77,16 +76,16 @@ public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 		AnnotationConfigApplicationContext parent = new AnnotationConfigApplicationContext();
 		TestPropertyValues.of(env).applyTo(parent);
 		parent.register(UtilAutoConfiguration.class,
-			PropertyPlaceholderAutoConfiguration.class, EnvironmentKnobbler.class,
-			KubernetesDiscoveryClientConfigClientBootstrapConfiguration.class,
-			DiscoveryClientConfigServiceBootstrapConfiguration.class,
-			ConfigClientProperties.class);
+				PropertyPlaceholderAutoConfiguration.class, EnvironmentKnobbler.class,
+				KubernetesDiscoveryClientConfigClientBootstrapConfiguration.class,
+				DiscoveryClientConfigServiceBootstrapConfiguration.class,
+				ConfigClientProperties.class);
 		parent.refresh();
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.setParent(parent);
 		this.context.register(PropertyPlaceholderAutoConfiguration.class,
-			KubernetesAutoConfiguration.class,
-			KubernetesDiscoveryClientAutoConfiguration.class);
+				KubernetesAutoConfiguration.class,
+				KubernetesDiscoveryClientAutoConfiguration.class);
 		this.context.refresh();
 	}
 
@@ -97,10 +96,12 @@ public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 		public KubernetesDiscoveryClient kubernetesDiscoveryClient() {
 			KubernetesDiscoveryClient client = mock(KubernetesDiscoveryClient.class);
 			ServiceInstance instance = new DefaultServiceInstance("configserver1",
-				"configserver", "fake", 8888, false);
+					"configserver", "fake", 8888, false);
 			given(client.getInstances("configserver"))
-				.willReturn(Collections.singletonList(instance));
+					.willReturn(Collections.singletonList(instance));
 			return client;
 		}
+
 	}
+
 }

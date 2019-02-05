@@ -8,9 +8,10 @@
 		</encoder>
 	</appender>
 
-	<include resource="org/springframework/boot/logging/logback/base.xml" />
-    <logger name="org.hibernate.validator" level="info" /> <!-- Validator prints a lot of debug messages for Arquillian Cube  -->
+	<include resource="org/springframework/boot/logging/logback/base.xml"/>
+	<logger name="org.hibernate.validator"
+			level="info"/> <!-- Validator prints a lot of debug messages for Arquillian Cube  -->
 	<root level="info">
-		<appender-ref ref="STDOUT" />
+		<appender-ref ref="STDOUT"/>
 	</root>
 </configuration>

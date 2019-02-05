@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.config;
@@ -25,33 +24,40 @@ import java.util.stream.Collectors;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
 
+/**
+ * Config map configuration properties.
+ *
+ * @author Ioannis Canellos
+ */
 @ConfigurationProperties("spring.cloud.kubernetes.config")
 public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 	private static final String TARGET = "Config Map";
 
 	private boolean enableApi = true;
+
 	private List<String> paths = new LinkedList<>();
+
 	private List<Source> sources = new LinkedList<>();
 
 	public boolean isEnableApi() {
-		return enableApi;
+		return this.enableApi;
 	}
 
 	public void setEnableApi(boolean enableApi) {
 		this.enableApi = enableApi;
 	}
 
+	public List<String> getPaths() {
+		return this.paths;
+	}
+
 	public void setPaths(List<String> paths) {
 		this.paths = paths;
 	}
 
-	public List<String> getPaths() {
-		return paths;
-	}
-
 	public List<Source> getSources() {
-		return sources;
+		return this.sources;
 	}
 
 	public void setSources(List<Source> sources) {
@@ -67,15 +73,16 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	 * ConfigMapPropertySource
 	 */
 	public List<NormalizedSource> determineSources() {
-		if (sources.isEmpty()) {
+		if (this.sources.isEmpty()) {
 			return new ArrayList<NormalizedSource>() {
 				{
-					add(new NormalizedSource(name, namespace));
+					add(new NormalizedSource(ConfigMapConfigProperties.this.name,
+							ConfigMapConfigProperties.this.namespace));
 				}
 			};
 		}
 
-		return sources.stream().map(s -> s.normalize(name, namespace))
+		return this.sources.stream().map(s -> s.normalize(this.name, this.namespace))
 				.collect(Collectors.toList());
 	}
 
@@ -84,15 +91,18 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		return TARGET;
 	}
 
+	/**
+	 * Config map source.
+	 */
 	public static class Source {
 
 		/**
-		 * The name of the ConfigMap
+		 * The name of the ConfigMap.
 		 */
 		private String name;
 
 		/**
-		 * The namespace where the ConfigMap is found
+		 * The namespace where the ConfigMap is found.
 		 */
 		private String namespace;
 
@@ -105,7 +115,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		}
 
 		public String getName() {
-			return name;
+			return this.name;
 		}
 
 		public void setName(String name) {
@@ -113,7 +123,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		}
 
 		public String getNamespace() {
-			return namespace;
+			return this.namespace;
 		}
 
 		public void setNamespace(String namespace) {
@@ -121,7 +131,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		}
 
 		public boolean isEmpty() {
-			return StringUtils.isEmpty(name) && StringUtils.isEmpty(namespace);
+			return StringUtils.isEmpty(this.name) && StringUtils.isEmpty(this.namespace);
 		}
 
 		public NormalizedSource normalize(String defaultName, String defaultNamespace) {
@@ -132,23 +142,28 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 			return new NormalizedSource(normalizedName, normalizedNamespace);
 		}
+
 	}
 
 	static class NormalizedSource {
+
 		private final String name;
+
 		private final String namespace;
 
-		public NormalizedSource(String name, String namespace) {
+		NormalizedSource(String name, String namespace) {
 			this.name = name;
 			this.namespace = namespace;
 		}
 
 		public String getName() {
-			return name;
+			return this.name;
 		}
 
 		public String getNamespace() {
-			return namespace;
+			return this.namespace;
 		}
+
 	}
+
 }

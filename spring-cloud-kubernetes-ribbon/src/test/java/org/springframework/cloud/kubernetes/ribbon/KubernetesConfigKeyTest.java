@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,18 +12,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.ribbon;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class KubernetesConfigKeyTest {
+import static org.assertj.core.api.Assertions.assertThat;
 
-	private class TypeOne<T> {
-	}
+public class KubernetesConfigKeyTest {
 
 	@Test
 	public <T extends TypeOne, I> void testTypes() {
@@ -39,9 +36,13 @@ public class KubernetesConfigKeyTest {
 		KubernetesConfigKey<I> key3 = new KubernetesConfigKey<I>("key3") {
 		};
 
-		Assert.assertEquals(String.class, key1.type());
-		Assert.assertEquals(TypeOne.class, key2.type());
-		Assert.assertEquals(Object.class, key3.type());
+		assertThat(key1.type()).isEqualTo(String.class);
+		assertThat(key2.type()).isEqualTo(TypeOne.class);
+		assertThat(key3.type()).isEqualTo(Object.class);
+	}
+
+	private class TypeOne<T> {
+
 	}
 
 }

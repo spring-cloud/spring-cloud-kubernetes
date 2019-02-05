@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.ribbon;
@@ -24,34 +23,66 @@ import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.springframework.util.Assert;
-
 import com.netflix.client.config.IClientConfigKey;
 
+import org.springframework.util.Assert;
+
+/**
+ * Kubernetes implementation of a Ribbon {@link IClientConfigKey}.
+ *
+ * @param <T> type of key
+ * @author Ioannis Canellos
+ */
 public abstract class KubernetesConfigKey<T> implements IClientConfigKey<T> {
 
-	public static final IClientConfigKey<String> Namespace = new KubernetesConfigKey<String>("KubernetesNamespace") {
+	/**
+	 * Namespace configuration key.
+	 */
+	public static final IClientConfigKey<String> Namespace = new KubernetesConfigKey<String>(
+			"KubernetesNamespace") {
 	};
-	public static final IClientConfigKey<String> PortName = new KubernetesConfigKey<String>("PortName") {
+
+	/**
+	 * Port name configuration key.
+	 */
+	public static final IClientConfigKey<String> PortName = new KubernetesConfigKey<String>(
+			"PortName") {
 	};
 
 	private static final Set<IClientConfigKey> keys = new HashSet<IClientConfigKey>();
 
 	static {
 		for (Field f : KubernetesConfigKey.class.getDeclaredFields()) {
-			if (Modifier.isStatic(f.getModifiers()) //&& Modifier.isPublic(f.getModifiers())
-				&& IClientConfigKey.class.isAssignableFrom(f.getType())) {
+			if (Modifier.isStatic(f.getModifiers()) // &&
+													// Modifier.isPublic(f.getModifiers())
+					&& IClientConfigKey.class.isAssignableFrom(f.getType())) {
 				try {
 					keys.add((IClientConfigKey) f.get(null));
-				} catch (IllegalAccessException e) {
+				}
+				catch (IllegalAccessException e) {
 					throw new RuntimeException(e);
 				}
 			}
 		}
 	}
 
+	private final String configKey;
+
+	private final Class<T> type;
+
+	@SuppressWarnings("unchecked")
+	protected KubernetesConfigKey(String configKey) {
+		this.configKey = configKey;
+		Type superclass = getClass().getGenericSuperclass();
+		Assert.isTrue(superclass instanceof ParameterizedType,
+				superclass + " isn't parameterized");
+		Type runtimeType = ((ParameterizedType) superclass).getActualTypeArguments()[0];
+		this.type = (Class<T>) Types.rawType(runtimeType);
+	}
+
 	/**
 	 * @deprecated see {@link #keys()}
+	 * @return array of {@link IClientConfigKey}
 	 */
 	@Deprecated
 	public static IClientConfigKey[] values() {
@@ -59,7 +90,7 @@ public abstract class KubernetesConfigKey<T> implements IClientConfigKey<T> {
 	}
 
 	/**
-	 * return all the public static keys defined in this class
+	 * @return all the public static keys defined in this class
 	 */
 	public static Set<IClientConfigKey> keys() {
 		return keys;
@@ -84,34 +115,24 @@ public abstract class KubernetesConfigKey<T> implements IClientConfigKey<T> {
 		};
 	}
 
-	private final String configKey;
-	private final Class<T> type;
-
-	@SuppressWarnings("unchecked")
-	protected KubernetesConfigKey(String configKey) {
-		this.configKey = configKey;
-		Type superclass = getClass().getGenericSuperclass();
-		Assert.isTrue(superclass instanceof ParameterizedType,
-			superclass + " isn't parameterized");
-		Type runtimeType = ((ParameterizedType) superclass).getActualTypeArguments()[0];
-		type = (Class<T>) Types.rawType(runtimeType);
-	}
-
 	@Override
 	public Class<T> type() {
-		return type;
+		return this.type;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 *
 	 * @see com.netflix.niws.client.ClientConfig#key()
 	 */
 	@Override
 	public String key() {
-		return configKey;
+		return this.configKey;
 	}
 
 	@Override
 	public String toString() {
-		return configKey;
+		return this.configKey;
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,56 +12,65 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.config;
 
-import static org.assertj.core.util.Lists.newArrayList;
-import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.createFileWithContent;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.config.example.App;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import static org.assertj.core.util.Lists.newArrayList;
+import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.createFileWithContent;
+
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class , properties = {
-	"spring.application.name=configmap-path-example",
-	"spring.cloud.kubernetes.config.enableApi=false",
-	"spring.cloud.kubernetes.config.paths="
-		+ ConfigMapsFromFilePathsSpringBootTest.FIRST_FILE_NAME_FULL_PATH + ","
-		+ ConfigMapsFromFilePathsSpringBootTest.SECOND_FILE_NAME_FULL_PATH
-})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
+		"spring.application.name=configmap-path-example",
+		"spring.cloud.kubernetes.config.enableApi=false",
+		"spring.cloud.kubernetes.config.paths="
+				+ ConfigMapsFromFilePathsSpringBootTest.FIRST_FILE_NAME_FULL_PATH + ","
+				+ ConfigMapsFromFilePathsSpringBootTest.SECOND_FILE_NAME_FULL_PATH })
 public class ConfigMapsFromFilePathsSpringBootTest {
 
 	protected static final String FILES_ROOT_PATH = "/tmp/scktests";
+
 	protected static final String FIRST_FILE_NAME = "application.properties";
+
 	protected static final String SECOND_FILE_NAME = "extra.properties";
+
 	protected static final String UNUSED_FILE_NAME = "unused.properties";
-	protected static final String FIRST_FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/" + FIRST_FILE_NAME;
-	protected static final String SECOND_FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/" + SECOND_FILE_NAME;
-	protected static final String UNUSED_FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/" + UNUSED_FILE_NAME;
+
+	protected static final String FIRST_FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/"
+			+ FIRST_FILE_NAME;
+
+	protected static final String SECOND_FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/"
+			+ SECOND_FILE_NAME;
+
+	protected static final String UNUSED_FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/"
+			+ UNUSED_FILE_NAME;
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
 	private static KubernetesClient mockClient;
 
-    @Autowired
-    private WebTestClient webClient;
+	@Autowired
+	private WebTestClient webClient;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws IOException {
@@ -77,41 +86,41 @@ public class ConfigMapsFromFilePathsSpringBootTest {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 
 		Files.createDirectories(Paths.get(FILES_ROOT_PATH));
-		createFileWithContent(FIRST_FILE_NAME_FULL_PATH, "bean.greeting=Hello from path!");
+		createFileWithContent(FIRST_FILE_NAME_FULL_PATH,
+				"bean.greeting=Hello from path!");
 		createFileWithContent(SECOND_FILE_NAME_FULL_PATH, "bean.farewell=Bye from path!");
-		createFileWithContent(UNUSED_FILE_NAME_FULL_PATH, "bean.morning=Morning from path!");
+		createFileWithContent(UNUSED_FILE_NAME_FULL_PATH,
+				"bean.morning=Morning from path!");
 	}
 
 	@AfterClass
 	public static void teardownAfterClass() {
-		newArrayList(
-			FIRST_FILE_NAME_FULL_PATH,
-			SECOND_FILE_NAME_FULL_PATH,
-			SECOND_FILE_NAME_FULL_PATH,
-			FILES_ROOT_PATH
-		).forEach(fn -> {
-			try {
-				Files.delete(Paths.get(fn));
-			} catch (IOException ignored) {}
-		});
+		newArrayList(FIRST_FILE_NAME_FULL_PATH, SECOND_FILE_NAME_FULL_PATH,
+				SECOND_FILE_NAME_FULL_PATH, FILES_ROOT_PATH).forEach(fn -> {
+					try {
+						Files.delete(Paths.get(fn));
+					}
+					catch (IOException ignored) {
+					}
+				});
 	}
 
 	@Test
 	public void greetingInputShouldReturnPropertyFromFirstFile() {
-        this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
-                .expectBody().jsonPath("content").isEqualTo("Hello from path!");
+		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
+				.expectBody().jsonPath("content").isEqualTo("Hello from path!");
 	}
 
 	@Test
 	public void farewellInputShouldReturnPropertyFromSecondFile() {
-        this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk()
-                .expectBody().jsonPath("content").isEqualTo("Bye from path!");
+		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk()
+				.expectBody().jsonPath("content").isEqualTo("Bye from path!");
 	}
 
 	@Test
 	public void morningInputShouldReturnDefaultValue() {
-        this.webClient.get().uri("/api/morning").exchange().expectStatus().isOk()
-                .expectBody().jsonPath("content").isEqualTo("Good morning, World!");
+		this.webClient.get().uri("/api/morning").exchange().expectStatus().isOk()
+				.expectBody().jsonPath("content").isEqualTo("Good morning, World!");
 	}
 
 }

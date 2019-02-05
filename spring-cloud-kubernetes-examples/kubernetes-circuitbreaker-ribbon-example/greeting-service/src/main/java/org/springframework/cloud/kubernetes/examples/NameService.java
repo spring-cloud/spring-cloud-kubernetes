@@ -37,10 +37,10 @@ public class NameService {
 	}
 
 	@HystrixCommand(fallbackMethod = "getFallbackName", commandProperties = {
-			@HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "1000")
-	})
+			@HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "1000") })
 	public String getName(int delay) {
-		return this.restTemplate.getForObject(String.format("http://name-service/name?delay=%d", delay), String.class);
+		return this.restTemplate.getForObject(
+				String.format("http://name-service/name?delay=%d", delay), String.class);
 	}
 
 	private String getFallbackName(int delay) {

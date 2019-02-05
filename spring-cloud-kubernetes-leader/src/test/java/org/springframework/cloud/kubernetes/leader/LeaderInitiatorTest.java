@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,10 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.leader;
+
+import java.time.Duration;
 
 import org.junit.After;
 import org.junit.Before;
@@ -28,8 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.atLeastOnce;
-
-import java.time.Duration;
 
 /**
  * @author Gytis Trikleris
@@ -56,80 +55,87 @@ public class LeaderInitiatorTest {
 
 	@Before
 	public void before() {
-		leaderInitiator = new LeaderInitiator(mockLeaderProperties, mockLeadershipController, mockLeaderRecordWatcher,
-			mockPodReadinessWatcher);
+		this.leaderInitiator = new LeaderInitiator(this.mockLeaderProperties,
+				this.mockLeadershipController, this.mockLeaderRecordWatcher,
+				this.mockPodReadinessWatcher);
 	}
 
 	@After
 	public void after() {
-		leaderInitiator.stop();
+		this.leaderInitiator.stop();
 	}
 
 	@Test
 	public void testIsAutoStartup() {
-		given(mockLeaderProperties.isAutoStartup()).willReturn(true);
+		given(this.mockLeaderProperties.isAutoStartup()).willReturn(true);
 
-		assertThat(leaderInitiator.isAutoStartup()).isTrue();
+		assertThat(this.leaderInitiator.isAutoStartup()).isTrue();
 	}
 
 	@Test
 	public void shouldStart() throws InterruptedException {
-		given(mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(1L));
+		given(this.mockLeaderProperties.getUpdatePeriod())
+				.willReturn(Duration.ofMillis(1L));
 
-		leaderInitiator.start();
+		this.leaderInitiator.start();
 
-		assertThat(leaderInitiator.isRunning()).isTrue();
-		verify(mockLeaderRecordWatcher).start();
-		verify(mockPodReadinessWatcher).start();
+		assertThat(this.leaderInitiator.isRunning()).isTrue();
+		verify(this.mockLeaderRecordWatcher).start();
+		verify(this.mockPodReadinessWatcher).start();
 		Thread.sleep(10);
-		verify(mockLeadershipController, atLeastOnce()).update();
+		verify(this.mockLeadershipController, atLeastOnce()).update();
 	}
 
 	@Test
 	public void shouldStartOnlyOnce() {
-		given(mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
+		given(this.mockLeaderProperties.getUpdatePeriod())
+				.willReturn(Duration.ofMillis(10000L));
 
-		leaderInitiator.start();
-		leaderInitiator.start();
+		this.leaderInitiator.start();
+		this.leaderInitiator.start();
 
-		verify(mockLeaderRecordWatcher).start();
+		verify(this.mockLeaderRecordWatcher).start();
 	}
 
 	@Test
 	public void shouldStop() {
-		given(mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
+		given(this.mockLeaderProperties.getUpdatePeriod())
+				.willReturn(Duration.ofMillis(10000L));
 
-		leaderInitiator.start();
-		leaderInitiator.stop();
+		this.leaderInitiator.start();
+		this.leaderInitiator.stop();
 
-		assertThat(leaderInitiator.isRunning()).isFalse();
-		verify(mockLeaderRecordWatcher).stop();
-		verify(mockPodReadinessWatcher).start();
-		verify(mockLeadershipController).revoke();
+		assertThat(this.leaderInitiator.isRunning()).isFalse();
+		verify(this.mockLeaderRecordWatcher).stop();
+		verify(this.mockPodReadinessWatcher).start();
+		verify(this.mockLeadershipController).revoke();
 	}
 
 	@Test
 	public void shouldStopOnlyOnce() {
-		given(mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
+		given(this.mockLeaderProperties.getUpdatePeriod())
+				.willReturn(Duration.ofMillis(10000L));
 
-		leaderInitiator.start();
-		leaderInitiator.stop();
-		leaderInitiator.stop();
+		this.leaderInitiator.start();
+		this.leaderInitiator.stop();
+		this.leaderInitiator.stop();
 
-		verify(mockLeaderRecordWatcher).stop();
+		verify(this.mockLeaderRecordWatcher).stop();
 	}
 
 	@Test
 	public void shouldStopAndExecuteCallback() {
-		given(mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
+		given(this.mockLeaderProperties.getUpdatePeriod())
+				.willReturn(Duration.ofMillis(10000L));
 
-		leaderInitiator.start();
-		leaderInitiator.stop(mockRunnable);
+		this.leaderInitiator.start();
+		this.leaderInitiator.stop(this.mockRunnable);
 
-		assertThat(leaderInitiator.isRunning()).isFalse();
-		verify(mockLeaderRecordWatcher).stop();
-		verify(mockPodReadinessWatcher).start();
-		verify(mockLeadershipController).revoke();
-		verify(mockRunnable).run();
+		assertThat(this.leaderInitiator.isRunning()).isFalse();
+		verify(this.mockLeaderRecordWatcher).stop();
+		verify(this.mockPodReadinessWatcher).start();
+		verify(this.mockLeadershipController).revoke();
+		verify(this.mockRunnable).run();
 	}
+
 }

@@ -35,18 +35,20 @@ public class GreetingController {
 	}
 
 	/**
-	 * Endpoint to get a greeting. This endpoint uses a name server to get a name for the greeting.
+	 * Endpoint to get a greeting. This endpoint uses a name server to get a name for the
+	 * greeting.
 	 *
-	 * Request to the name service is guarded with a circuit breaker. Therefore if a name service is not available or is too
-	 * slow to response fallback name is used.
+	 * Request to the name service is guarded with a circuit breaker. Therefore if a name
+	 * service is not available or is too slow to response fallback name is used.
 	 *
 	 * Delay parameter can me used to make name service response slower.
-	 *
-	 * @param delay Milliseconds for how long the response from name service should be delayed.
+	 * @param delay Milliseconds for how long the response from name service should be
+	 * delayed.
 	 * @return Greeting string.
 	 */
 	@RequestMapping("/greeting")
-	public String getGreeting(@RequestParam(value = "delay", defaultValue = "0") int delay) {
+	public String getGreeting(
+			@RequestParam(value = "delay", defaultValue = "0") int delay) {
 		return String.format("Hello from %s!", this.nameService.getName(delay));
 	}
 

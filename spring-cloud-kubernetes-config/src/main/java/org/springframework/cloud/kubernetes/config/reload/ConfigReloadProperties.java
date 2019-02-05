@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
+
 package org.springframework.cloud.kubernetes.config.reload;
 
 import java.time.Duration;
@@ -22,6 +22,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * General configuration for the configuration reload.
+ *
+ * @author Nicola Ferraro
  */
 @ConfigurationProperties(prefix = "spring.cloud.kubernetes.reload")
 public class ConfigReloadProperties {
@@ -60,7 +62,7 @@ public class ConfigReloadProperties {
 	}
 
 	public boolean isEnabled() {
-		return enabled;
+		return this.enabled;
 	}
 
 	public void setEnabled(boolean enabled) {
@@ -68,7 +70,7 @@ public class ConfigReloadProperties {
 	}
 
 	public boolean isMonitoringConfigMaps() {
-		return monitoringConfigMaps;
+		return this.monitoringConfigMaps;
 	}
 
 	public void setMonitoringConfigMaps(boolean monitoringConfigMaps) {
@@ -76,7 +78,7 @@ public class ConfigReloadProperties {
 	}
 
 	public boolean isMonitoringSecrets() {
-		return monitoringSecrets;
+		return this.monitoringSecrets;
 	}
 
 	public void setMonitoringSecrets(boolean monitoringSecrets) {
@@ -84,7 +86,7 @@ public class ConfigReloadProperties {
 	}
 
 	public ReloadStrategy getStrategy() {
-		return strategy;
+		return this.strategy;
 	}
 
 	public void setStrategy(ReloadStrategy strategy) {
@@ -92,22 +94,26 @@ public class ConfigReloadProperties {
 	}
 
 	public ReloadDetectionMode getMode() {
-		return mode;
-	}
-
-	public void setPeriod(Duration period) {
-		this.period = period;
-	}
-
-	public Duration getPeriod() {
-		return period;
+		return this.mode;
 	}
 
 	public void setMode(ReloadDetectionMode mode) {
 		this.mode = mode;
 	}
 
+	public Duration getPeriod() {
+		return this.period;
+	}
+
+	public void setPeriod(Duration period) {
+		this.period = period;
+	}
+
+	/**
+	 * Reload strategies.
+	 */
 	public enum ReloadStrategy {
+
 		/**
 		 * Fire a refresh of beans annotated with @ConfigurationProperties
 		 * or @RefreshScope.
@@ -126,9 +132,14 @@ public class ConfigReloadProperties {
 		 * configured to restart the pod.
 		 */
 		SHUTDOWN
+
 	}
 
+	/**
+	 * Reload detection modes.
+	 */
 	public enum ReloadDetectionMode {
+
 		/**
 		 * Enables a polling task that retrieves periodically all external properties and
 		 * fire a reload when they change.
@@ -140,6 +151,7 @@ public class ConfigReloadProperties {
 		 * or secrets change.
 		 */
 		EVENT
+
 	}
 
 }

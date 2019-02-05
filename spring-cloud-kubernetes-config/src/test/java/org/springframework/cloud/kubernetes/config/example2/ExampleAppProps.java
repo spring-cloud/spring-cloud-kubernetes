@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.config.example2;
@@ -23,12 +22,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ExampleAppProps {
 
 	private String commonMessage;
+
 	private String message1;
+
 	private String message2;
+
 	private String message3;
 
 	public String getCommonMessage() {
-		return commonMessage;
+		return this.commonMessage;
 	}
 
 	public void setCommonMessage(String commonMessage) {
@@ -36,7 +38,7 @@ public class ExampleAppProps {
 	}
 
 	public String getMessage1() {
-		return message1;
+		return this.message1;
 	}
 
 	public void setMessage1(String message1) {
@@ -44,7 +46,7 @@ public class ExampleAppProps {
 	}
 
 	public String getMessage2() {
-		return message2;
+		return this.message2;
 	}
 
 	public void setMessage2(String message2) {
@@ -52,10 +54,11 @@ public class ExampleAppProps {
 	}
 
 	public String getMessage3() {
-		return message3;
+		return this.message3;
 	}
 
 	public void setMessage3(String message3) {
 		this.message3 = message3;
 	}
+
 }

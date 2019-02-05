@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
+
 package org.springframework.cloud.kubernetes.config.reload;
 
 import java.util.HashMap;
@@ -39,6 +39,8 @@ import org.springframework.core.env.MapPropertySource;
 /**
  * A change detector that subscribes to changes in secrets and configmaps and fire a
  * reload when something changes.
+ *
+ * @author Nicola Ferraro
  */
 public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDetector {
 
@@ -64,11 +66,11 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 	public void watch() {
 		boolean activated = false;
 
-		if (properties.isMonitoringConfigMaps()) {
+		if (this.properties.isMonitoringConfigMaps()) {
 			try {
 				String name = "config-maps-watch";
-				watches.put(name,
-						kubernetesClient.configMaps().watch(new Watcher<ConfigMap>() {
+				this.watches.put(name, this.kubernetesClient.configMaps()
+						.watch(new Watcher<ConfigMap>() {
 							@Override
 							public void eventReceived(Action action,
 									ConfigMap configMap) {
@@ -80,41 +82,43 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 							}
 						}));
 				activated = true;
-				log.info("Added new Kubernetes watch: " + name);
+				this.log.info("Added new Kubernetes watch: " + name);
 			}
 			catch (Exception e) {
-				log.error(
+				this.log.error(
 						"Error while establishing a connection to watch config maps: configuration may remain stale",
 						e);
 			}
 		}
 
-		if (properties.isMonitoringSecrets()) {
+		if (this.properties.isMonitoringSecrets()) {
 			try {
 				activated = false;
 				String name = "secrets-watch";
-				watches.put(name, kubernetesClient.secrets().watch(new Watcher<Secret>() {
-					@Override
-					public void eventReceived(Action action, Secret secret) {
-						onEvent(secret);
-					}
+				this.watches.put(name,
+						this.kubernetesClient.secrets().watch(new Watcher<Secret>() {
+							@Override
+							public void eventReceived(Action action, Secret secret) {
+								onEvent(secret);
+							}
 
-					@Override
-					public void onClose(KubernetesClientException e) {
-					}
-				}));
+							@Override
+							public void onClose(KubernetesClientException e) {
+							}
+						}));
 				activated = true;
-				log.info("Added new Kubernetes watch: " + name);
+				this.log.info("Added new Kubernetes watch: " + name);
 			}
 			catch (Exception e) {
-				log.error(
+				this.log.error(
 						"Error while establishing a connection to watch secrets: configuration may remain stale",
 						e);
 			}
 		}
 
 		if (activated) {
-			log.info("Kubernetes event-based configuration change detector activated");
+			this.log.info(
+					"Kubernetes event-based configuration change detector activated");
 		}
 	}
 
@@ -123,12 +127,12 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 		if (this.watches != null) {
 			for (Map.Entry<String, Watch> entry : this.watches.entrySet()) {
 				try {
-					log.debug("Closing the watch " + entry.getKey());
+					this.log.debug("Closing the watch " + entry.getKey());
 					entry.getValue().close();
 
 				}
 				catch (Exception e) {
-					log.error("Error while closing the watch connection", e);
+					this.log.error("Error while closing the watch connection", e);
 				}
 			}
 		}
@@ -136,10 +140,11 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 
 	private void onEvent(ConfigMap configMap) {
 		boolean changed = changed(
-				locateMapPropertySources(configMapPropertySourceLocator, environment),
+				locateMapPropertySources(this.configMapPropertySourceLocator,
+						this.environment),
 				findPropertySources(ConfigMapPropertySource.class));
 		if (changed) {
-			log.info("Detected change in config maps");
+			this.log.info("Detected change in config maps");
 			reloadProperties();
 		}
 	}
@@ -148,10 +153,10 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 		MapPropertySource currentSecretSource = findPropertySource(
 				SecretsPropertySource.class);
 		if (currentSecretSource != null) {
-			MapPropertySource newSecretSource = secretsPropertySourceLocator
-					.locate(environment);
+			MapPropertySource newSecretSource = this.secretsPropertySourceLocator
+					.locate(this.environment);
 			if (changed(currentSecretSource, newSecretSource)) {
-				log.info("Detected change in secrets");
+				this.log.info("Detected change in secrets");
 				reloadProperties();
 			}
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.config.example;
@@ -25,11 +24,13 @@ import org.springframework.context.annotation.Configuration;
 public class GreetingProperties {
 
 	private String greeting = "Hello, %s!";
+
 	private String farewell = "Goodbye, %s!";
+
 	private String morning = "Good morning, %s!";
 
 	public String getGreeting() {
-		return greeting;
+		return this.greeting;
 	}
 
 	public void setGreeting(String greeting) {
@@ -37,7 +38,7 @@ public class GreetingProperties {
 	}
 
 	public String getFarewell() {
-		return farewell;
+		return this.farewell;
 	}
 
 	public void setFarewell(String farewell) {
@@ -45,10 +46,11 @@ public class GreetingProperties {
 	}
 
 	public String getMorning() {
-		return morning;
+		return this.morning;
 	}
 
 	public void setMorning(String morning) {
 		this.morning = morning;
 	}
+
 }

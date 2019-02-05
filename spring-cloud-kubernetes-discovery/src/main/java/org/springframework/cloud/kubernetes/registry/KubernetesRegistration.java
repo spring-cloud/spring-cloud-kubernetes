@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.registry;
@@ -25,18 +24,25 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+
 import org.springframework.cloud.client.serviceregistry.Registration;
 import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryProperties;
 
+/**
+ * Kubernetes implementation of a {@link Registration}.
+ *
+ * @author Mauricio Salatino
+ */
 public class KubernetesRegistration implements Registration, Closeable {
 
-
 	private final KubernetesClient client;
+
 	private KubernetesDiscoveryProperties properties;
+
 	private AtomicBoolean running = new AtomicBoolean(false);
 
 	public KubernetesRegistration(KubernetesClient client,
-								  KubernetesDiscoveryProperties properties) {
+			KubernetesDiscoveryProperties properties) {
 		this.client = client;
 		this.properties = properties;
 	}
@@ -48,12 +54,12 @@ public class KubernetesRegistration implements Registration, Closeable {
 
 	@Override
 	public String getServiceId() {
-		return properties.getServiceName();
+		return this.properties.getServiceName();
 	}
 
 	@Override
 	public String getHost() {
-		return client.getMasterUrl().getHost();
+		return this.client.getMasterUrl().getHost();
 	}
 
 	@Override
@@ -69,15 +75,16 @@ public class KubernetesRegistration implements Registration, Closeable {
 	@Override
 	public URI getUri() {
 		try {
-			return client.getMasterUrl().toURI();
-		} catch (URISyntaxException e) {
+			return this.client.getMasterUrl().toURI();
+		}
+		catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
 
 	public KubernetesDiscoveryProperties getProperties() {
-		return properties;
+		return this.properties;
 	}
 
 	@Override
@@ -87,10 +94,8 @@ public class KubernetesRegistration implements Registration, Closeable {
 
 	@Override
 	public String toString() {
-		return "KubernetesRegistration{" +
-			"client=" + client +
-			", properties=" + properties +
-			", running=" + running +
-			'}';
+		return "KubernetesRegistration{" + "client=" + this.client + ", properties="
+				+ this.properties + ", running=" + this.running + '}';
 	}
+
 }

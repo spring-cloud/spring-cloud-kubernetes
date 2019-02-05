@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,20 +12,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.config;
+
+import java.util.HashMap;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import java.util.HashMap;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,6 +48,8 @@ import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.read
 @AutoConfigureWebTestClient
 public class ConfigMapsWithProfilesSpringBootTest {
 
+	private static final String APPLICATION_NAME = "configmap-with-profile-example";
+
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
@@ -54,8 +57,6 @@ public class ConfigMapsWithProfilesSpringBootTest {
 
 	@Autowired(required = false)
 	Config config;
-
-	private static final String APPLICATION_NAME = "configmap-with-profile-example";
 
 	@Autowired
 	private WebTestClient webClient;
@@ -84,14 +85,15 @@ public class ConfigMapsWithProfilesSpringBootTest {
 	@Test
 	public void testGreetingEndpoint() {
 		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
-			.expectBody().jsonPath("content")
-			.isEqualTo("Hello ConfigMap dev, World!");
+				.expectBody().jsonPath("content")
+				.isEqualTo("Hello ConfigMap dev, World!");
 	}
 
 	@Test
 	public void testFarewellEndpoint() {
 		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk()
-			.expectBody().jsonPath("content")
-			.isEqualTo("Goodbye ConfigMap default, World!");
+				.expectBody().jsonPath("content")
+				.isEqualTo("Goodbye ConfigMap default, World!");
 	}
+
 }

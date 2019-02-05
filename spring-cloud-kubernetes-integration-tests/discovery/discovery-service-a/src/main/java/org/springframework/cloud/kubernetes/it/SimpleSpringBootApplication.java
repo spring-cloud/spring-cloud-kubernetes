@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.it;
@@ -26,25 +25,27 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SimpleSpringBootApplication {
 
-    @GetMapping("/greeting")
-    public Greeting home() {
-        return new Greeting("Hello from Service A");
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(SimpleSpringBootApplication.class, args);
+	}
 
-    public static void main(String[] args) {
-        SpringApplication.run(SimpleSpringBootApplication.class, args);
-    }
+	@GetMapping("/greeting")
+	public Greeting home() {
+		return new Greeting("Hello from Service A");
+	}
 
-    public static class Greeting {
+	public static class Greeting {
 
-        private final String message;
+		private final String message;
 
-        public Greeting(String message) {
-            this.message = message;
-        }
+		public Greeting(String message) {
+			this.message = message;
+		}
 
-        public String getMessage() {
-            return message;
-        }
-    }
+		public String getMessage() {
+			return this.message;
+		}
+
+	}
+
 }

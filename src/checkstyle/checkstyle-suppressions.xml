@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+	"-//Puppy Crawl//DTD Suppressions 1.1//EN"
+	"http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+<suppressions>
+	<suppress files=".*KubernetesCatalogWatchTest.*"
+			  checks="(Javadoc*|HideUtility*|LineLength*)"/>
+	<suppress files=".*KubernetesDiscoveryClientAutoConfiguration.*"
+			  checks="LineLength*"/>
+	<suppress files=".*KubernetesDiscoveryClientFilterMetadataTest.*"
+			  checks="LineLength*"/>
+	<suppress files=".*KubernetesDiscoveryClientFilterTest.*" checks="LineLength*"/>
+	<suppress files=".*PollingConfigurationChangeDetector.*" checks="LineLength*"/>
+	<suppress files=".*LeaderRecordWatcherTest.*" checks="LineLength*"/>
+</suppressions>

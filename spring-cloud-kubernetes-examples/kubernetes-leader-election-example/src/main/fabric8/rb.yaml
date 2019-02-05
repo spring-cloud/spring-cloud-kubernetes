@@ -8,6 +8,6 @@ roleRef:
   kind: Role
   name: leader
 subjects:
-- kind: ServiceAccount
-  name: default
-  namespace: default
+  - kind: ServiceAccount
+    name: default
+    namespace: default

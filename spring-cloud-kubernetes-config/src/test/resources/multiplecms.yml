@@ -10,7 +10,7 @@ spring:
         name: defname
         namespace: defnamespace
         sources:
-         - name: s1
-         - namespace: s2
-         - name: othername
-           namespace: othernamespace
+          - name: s1
+          - namespace: s2
+          - name: othername
+            namespace: othernamespace

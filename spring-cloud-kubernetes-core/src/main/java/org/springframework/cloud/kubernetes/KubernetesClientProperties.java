@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes;
@@ -21,37 +20,66 @@ import java.time.Duration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * Kubernetes client properties.
+ *
+ * @author Ioannis Canellos
+ */
 @ConfigurationProperties("spring.cloud.kubernetes.client")
 public class KubernetesClientProperties {
 
 	private Boolean trustCerts;
+
 	private String masterUrl;
+
 	private String apiVersion;
+
 	private String namespace;
+
 	private String caCertFile;
+
 	private String caCertData;
+
 	private String clientCertFile;
+
 	private String clientCertData;
+
 	private String clientKeyFile;
+
 	private String clientKeyData;
+
 	private String clientKeyAlgo;
+
 	private String clientKeyPassphrase;
+
 	private String username;
+
 	private String password;
+
 	private Duration watchReconnectInterval;
+
 	private Duration watchReconnectLimit;
+
 	private Duration connectionTimeout;
+
 	private Duration requestTimeout;
+
 	private Duration rollingTimeout;
+
 	private Duration loggingInterval;
+
 	private String httpProxy;
+
 	private String httpsProxy;
+
 	private String proxyUsername;
+
 	private String proxyPassword;
+
 	private String[] noProxy;
 
 	public String getClientCertData() {
-		return clientCertData;
+		return this.clientCertData;
 	}
 
 	public void setClientCertData(String clientCertData) {
@@ -59,15 +87,11 @@ public class KubernetesClientProperties {
 	}
 
 	public Boolean isTrustCerts() {
-		return trustCerts;
-	}
-
-	public void setTrustCerts(Boolean trustCerts) {
-		this.trustCerts = trustCerts;
+		return this.trustCerts;
 	}
 
 	public String getMasterUrl() {
-		return masterUrl;
+		return this.masterUrl;
 	}
 
 	public void setMasterUrl(String masterUrl) {
@@ -75,7 +99,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getApiVersion() {
-		return apiVersion;
+		return this.apiVersion;
 	}
 
 	public void setApiVersion(String apiVersion) {
@@ -83,7 +107,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getNamespace() {
-		return namespace;
+		return this.namespace;
 	}
 
 	public void setNamespace(String namespace) {
@@ -91,7 +115,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getCaCertFile() {
-		return caCertFile;
+		return this.caCertFile;
 	}
 
 	public void setCaCertFile(String caCertFile) {
@@ -99,7 +123,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getCaCertData() {
-		return caCertData;
+		return this.caCertData;
 	}
 
 	public void setCaCertData(String caCertData) {
@@ -107,7 +131,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getClientCertFile() {
-		return clientCertFile;
+		return this.clientCertFile;
 	}
 
 	public void setClientCertFile(String clientCertFile) {
@@ -115,7 +139,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getClientKeyFile() {
-		return clientKeyFile;
+		return this.clientKeyFile;
 	}
 
 	public void setClientKeyFile(String clientKeyFile) {
@@ -123,7 +147,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getClientKeyData() {
-		return clientKeyData;
+		return this.clientKeyData;
 	}
 
 	public void setClientKeyData(String clientKeyData) {
@@ -131,7 +155,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getClientKeyAlgo() {
-		return clientKeyAlgo;
+		return this.clientKeyAlgo;
 	}
 
 	public void setClientKeyAlgo(String clientKeyAlgo) {
@@ -139,7 +163,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getClientKeyPassphrase() {
-		return clientKeyPassphrase;
+		return this.clientKeyPassphrase;
 	}
 
 	public void setClientKeyPassphrase(String clientKeyPassphrase) {
@@ -147,7 +171,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getUsername() {
-		return username;
+		return this.username;
 	}
 
 	public void setUsername(String username) {
@@ -155,7 +179,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getPassword() {
-		return password;
+		return this.password;
 	}
 
 	public void setPassword(String password) {
@@ -163,7 +187,7 @@ public class KubernetesClientProperties {
 	}
 
 	public Duration getWatchReconnectInterval() {
-		return watchReconnectInterval;
+		return this.watchReconnectInterval;
 	}
 
 	public void setWatchReconnectInterval(Duration watchReconnectInterval) {
@@ -171,7 +195,7 @@ public class KubernetesClientProperties {
 	}
 
 	public Duration getWatchReconnectLimit() {
-		return watchReconnectLimit;
+		return this.watchReconnectLimit;
 	}
 
 	public void setWatchReconnectLimit(Duration watchReconnectLimit) {
@@ -179,7 +203,7 @@ public class KubernetesClientProperties {
 	}
 
 	public Duration getConnectionTimeout() {
-		return connectionTimeout;
+		return this.connectionTimeout;
 	}
 
 	public void setConnectionTimeout(Duration connectionTimeout) {
@@ -187,7 +211,7 @@ public class KubernetesClientProperties {
 	}
 
 	public Duration getRequestTimeout() {
-		return requestTimeout;
+		return this.requestTimeout;
 	}
 
 	public void setRequestTimeout(Duration requestTimeout) {
@@ -195,7 +219,7 @@ public class KubernetesClientProperties {
 	}
 
 	public Duration getRollingTimeout() {
-		return rollingTimeout;
+		return this.rollingTimeout;
 	}
 
 	public void setRollingTimeout(Duration rollingTimeout) {
@@ -203,7 +227,7 @@ public class KubernetesClientProperties {
 	}
 
 	public Duration getLoggingInterval() {
-		return loggingInterval;
+		return this.loggingInterval;
 	}
 
 	public void setLoggingInterval(Duration loggingInterval) {
@@ -211,11 +235,15 @@ public class KubernetesClientProperties {
 	}
 
 	public Boolean getTrustCerts() {
-		return trustCerts;
+		return this.trustCerts;
+	}
+
+	public void setTrustCerts(Boolean trustCerts) {
+		this.trustCerts = trustCerts;
 	}
 
 	public String getHttpProxy() {
-		return httpProxy;
+		return this.httpProxy;
 	}
 
 	public void setHttpProxy(String httpProxy) {
@@ -223,7 +251,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getHttpsProxy() {
-		return httpsProxy;
+		return this.httpsProxy;
 	}
 
 	public void setHttpsProxy(String httpsProxy) {
@@ -231,7 +259,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getProxyUsername() {
-		return proxyUsername;
+		return this.proxyUsername;
 	}
 
 	public void setProxyUsername(String proxyUsername) {
@@ -239,7 +267,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getProxyPassword() {
-		return proxyPassword;
+		return this.proxyPassword;
 	}
 
 	public void setProxyPassword(String proxyPassword) {
@@ -247,10 +275,11 @@ public class KubernetesClientProperties {
 	}
 
 	public String[] getNoProxy() {
-		return noProxy;
+		return this.noProxy;
 	}
 
 	public void setNoProxy(String[] noProxy) {
 		this.noProxy = noProxy;
 	}
+
 }

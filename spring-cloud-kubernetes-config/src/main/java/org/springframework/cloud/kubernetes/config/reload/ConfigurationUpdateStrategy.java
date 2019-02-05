@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
+
 package org.springframework.cloud.kubernetes.config.reload;
 
 import java.util.Objects;
@@ -21,6 +21,8 @@ import java.util.Objects;
 /**
  * This is the superclass of all named strategies that can be fired when the configuration
  * changes.
+ *
+ * @author Nicola Ferraro
  */
 public class ConfigurationUpdateStrategy {
 
@@ -36,7 +38,7 @@ public class ConfigurationUpdateStrategy {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void reload() {
@@ -46,8 +48,9 @@ public class ConfigurationUpdateStrategy {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("ConfigurationUpdateStrategy{");
-		sb.append("name='").append(name).append('\'');
+		sb.append("name='").append(this.name).append('\'');
 		sb.append('}');
 		return sb.toString();
 	}
+
 }

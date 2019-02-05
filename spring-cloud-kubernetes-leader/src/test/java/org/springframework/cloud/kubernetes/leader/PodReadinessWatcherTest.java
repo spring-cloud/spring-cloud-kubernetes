@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,16 +12,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.leader;
 
-import java.util.Collections;
-
 import io.fabric8.kubernetes.api.model.DoneablePod;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.PodCondition;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -76,63 +72,64 @@ public class PodReadinessWatcherTest {
 
 	@Before
 	public void before() {
-		watcher = new PodReadinessWatcher(POD_NAME, mockKubernetesClient, mockLeadershipController);
+		this.watcher = new PodReadinessWatcher(POD_NAME, this.mockKubernetesClient,
+				this.mockLeadershipController);
 
-		given(mockKubernetesClient.pods()).willReturn(mockPodsOperation);
-		given(mockPodsOperation.withName(POD_NAME)).willReturn(mockPodResource);
-		given(mockPodResource.watch(watcher)).willReturn(mockWatch);
+		given(this.mockKubernetesClient.pods()).willReturn(this.mockPodsOperation);
+		given(this.mockPodsOperation.withName(POD_NAME)).willReturn(this.mockPodResource);
+		given(this.mockPodResource.watch(this.watcher)).willReturn(this.mockWatch);
 	}
 
 	@Test
 	public void shouldStartOnce() {
-		watcher.start();
-		watcher.start();
+		this.watcher.start();
+		this.watcher.start();
 
-		verify(mockPodResource).watch(watcher);
+		verify(this.mockPodResource).watch(this.watcher);
 	}
 
 	@Test
 	public void shouldStopOnce() {
-		watcher.start();
-		watcher.stop();
-		watcher.stop();
+		this.watcher.start();
+		this.watcher.stop();
+		this.watcher.stop();
 
-		verify(mockWatch).close();
+		verify(this.mockWatch).close();
 	}
 
 	@Test
 	public void shouldHandleEventWithStateChange() {
-		given(mockPodResource.isReady()).willReturn(true);
-		given(mockPod.getStatus()).willReturn(mockPodStatus);
+		given(this.mockPodResource.isReady()).willReturn(true);
+		given(this.mockPod.getStatus()).willReturn(this.mockPodStatus);
 
-		watcher.start();
-		watcher.eventReceived(Watcher.Action.ADDED, mockPod);
+		this.watcher.start();
+		this.watcher.eventReceived(Watcher.Action.ADDED, this.mockPod);
 
-		verify(mockLeadershipController).update();
+		verify(this.mockLeadershipController).update();
 	}
 
 	@Test
 	public void shouldIgnoreEventIfStateDoesNotChange() {
-		given(mockPod.getStatus()).willReturn(mockPodStatus);
+		given(this.mockPod.getStatus()).willReturn(this.mockPodStatus);
 
-		watcher.start();
-		watcher.eventReceived(Watcher.Action.ADDED, mockPod);
+		this.watcher.start();
+		this.watcher.eventReceived(Watcher.Action.ADDED, this.mockPod);
 
-		verify(mockLeadershipController, times(0)).update();
+		verify(this.mockLeadershipController, times(0)).update();
 	}
 
 	@Test
 	public void shouldHandleClose() {
-		watcher.onClose(mockKubernetesClientException);
+		this.watcher.onClose(this.mockKubernetesClientException);
 
-		verify(mockPodResource).watch(watcher);
+		verify(this.mockPodResource).watch(this.watcher);
 	}
 
 	@Test
 	public void shouldIgnoreCloseWithoutCause() {
-		watcher.onClose(null);
+		this.watcher.onClose(null);
 
-		verify(mockPodResource, times(0)).watch(watcher);
+		verify(this.mockPodResource, times(0)).watch(this.watcher);
 	}
 
 }

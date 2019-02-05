@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.config;
@@ -25,9 +24,16 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 
+/**
+ * Kubernetes {@link PropertySourceLocator} for secrets.
+ *
+ * @author l burgazzoli
+ */
 @Order(1)
 public class SecretsPropertySourceLocator implements PropertySourceLocator {
+
 	private final KubernetesClient client;
+
 	private final SecretsConfigProperties properties;
 
 	public SecretsPropertySourceLocator(KubernetesClient client,
@@ -39,6 +45,8 @@ public class SecretsPropertySourceLocator implements PropertySourceLocator {
 	@Override
 	public MapPropertySource locate(Environment environment) {
 		return environment instanceof ConfigurableEnvironment
-				? new SecretsPropertySource(client, environment, properties) : null;
+				? new SecretsPropertySource(this.client, environment, this.properties)
+				: null;
 	}
+
 }

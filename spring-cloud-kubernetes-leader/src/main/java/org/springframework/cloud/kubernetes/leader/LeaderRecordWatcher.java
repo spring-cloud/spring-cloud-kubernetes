@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.leader;
@@ -30,7 +29,8 @@ import org.slf4j.LoggerFactory;
  */
 public class LeaderRecordWatcher implements Watcher<ConfigMap> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LeaderRecordWatcher.class);
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(LeaderRecordWatcher.class);
 
 	private final Object lock = new Object();
 
@@ -42,35 +42,36 @@ public class LeaderRecordWatcher implements Watcher<ConfigMap> {
 
 	private Watch watch;
 
-	public LeaderRecordWatcher(LeaderProperties leaderProperties, LeadershipController leadershipController,
-		KubernetesClient kubernetesClient) {
+	public LeaderRecordWatcher(LeaderProperties leaderProperties,
+			LeadershipController leadershipController,
+			KubernetesClient kubernetesClient) {
 		this.leadershipController = leadershipController;
 		this.leaderProperties = leaderProperties;
 		this.kubernetesClient = kubernetesClient;
 	}
 
 	public void start() {
-		if (watch == null) {
-			synchronized (lock) {
-				if (watch == null) {
+		if (this.watch == null) {
+			synchronized (this.lock) {
+				if (this.watch == null) {
 					LOGGER.debug("Starting leader record watcher");
-					watch = kubernetesClient
-						.configMaps()
-						.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-						.withName(leaderProperties.getConfigMapName())
-						.watch(this);
+					this.watch = this.kubernetesClient.configMaps()
+							.inNamespace(this.leaderProperties
+									.getNamespace(this.kubernetesClient.getNamespace()))
+							.withName(this.leaderProperties.getConfigMapName())
+							.watch(this);
 				}
 			}
 		}
 	}
 
 	public void stop() {
-		if (watch != null) {
-			synchronized (lock) {
-				if (watch != null) {
+		if (this.watch != null) {
+			synchronized (this.lock) {
+				if (this.watch != null) {
 					LOGGER.debug("Stopping leader record watcher");
-					watch.close();
-					watch = null;
+					this.watch.close();
+					this.watch = null;
 				}
 			}
 		}
@@ -81,18 +82,19 @@ public class LeaderRecordWatcher implements Watcher<ConfigMap> {
 		LOGGER.debug("'{}' event received, triggering leadership update", action);
 
 		if (!Action.ERROR.equals(action)) {
-			leadershipController.update();
+			this.leadershipController.update();
 		}
 	}
 
 	@Override
 	public void onClose(KubernetesClientException cause) {
 		if (cause != null) {
-			synchronized (lock) {
+			synchronized (this.lock) {
 				LOGGER.warn("Watcher stopped unexpectedly, will restart", cause);
-				watch = null;
+				this.watch = null;
 				start();
 			}
 		}
 	}
+
 }

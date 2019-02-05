@@ -1,115 +1,115 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://maven.apache.org/POM/4.0.0"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>discovery-parent</artifactId>
-        <version>1.0.1.BUILD-SNAPSHOT</version>
-    </parent>
+	<parent>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>discovery-parent</artifactId>
+		<version>1.0.1.BUILD-SNAPSHOT</version>
+	</parent>
 
-    <artifactId>tests</artifactId>
-    <name>Spring Cloud Kubernetes :: Integration Tests :: Discovery Tests</name>
+	<artifactId>tests</artifactId>
+	<name>Spring Cloud Kubernetes :: Integration Tests :: Discovery Tests</name>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.arquillian.cube</groupId>
-            <artifactId>arquillian-cube-kubernetes</artifactId>
-            <version>${arquillian-cube.version}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>undertow-core</artifactId>
-                    <groupId>io.undertow</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.arquillian.junit</groupId>
-            <artifactId>arquillian-junit-standalone</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <scope>test</scope>
-        </dependency>
-        
-    </dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.arquillian.cube</groupId>
+			<artifactId>arquillian-cube-kubernetes</artifactId>
+			<version>${arquillian-cube.version}</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>undertow-core</artifactId>
+					<groupId>io.undertow</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.junit</groupId>
+			<artifactId>arquillian-junit-standalone</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<scope>test</scope>
+		</dependency>
 
-    <!-- This module only contains test code so we skip the spring boot plugin and FMP -->
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>fabric8-maven-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+	</dependencies>
 
-    <profiles>
-        <profile>
-            <id>it</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>fabric8-maven-plugin</artifactId>
-                        <configuration>
-                            <skip>false</skip>
-                            <profile>aggregate</profile>
-                        </configuration>
-                        <!--
-                           We add the dependencies to the discovery modules that need to be deployed for the tests
-                           to run.
-                           This is done in order to make FMP pick up the generated Kubernetes
-                           resources file of each module and create an "uber" resources file containing
-                           resources for both modules (which is what the aggregate profile above does)
-                        -->
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.springframework.cloud</groupId>
-                                <artifactId>discovery-client</artifactId>
-                                <version>${project.version}</version>
-                            </dependency>
-                            <dependency>
-                                <groupId>org.springframework.cloud</groupId>
-                                <artifactId>discovery-service-a</artifactId>
-                                <version>${project.version}</version>
-                            </dependency>
-                            <dependency>
-                                <groupId>org.springframework.cloud</groupId>
-                                <artifactId>discovery-service-b</artifactId>
-                                <version>${project.version}</version>
-                            </dependency>
-                            <!-- fmp seems to fail without this... -->
-                            <dependency>
-                                <groupId>javax.validation</groupId>
-                                <artifactId>validation-api</artifactId>
-                                <version>2.0.1.Final</version>
-                            </dependency>
-                        </dependencies>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+	<!-- This module only contains test code so we skip the spring boot plugin and FMP -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>fabric8-maven-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>it</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>fabric8-maven-plugin</artifactId>
+						<configuration>
+							<skip>false</skip>
+							<profile>aggregate</profile>
+						</configuration>
+						<!--
+						   We add the dependencies to the discovery modules that need to be deployed for the tests
+						   to run.
+						   This is done in order to make FMP pick up the generated Kubernetes
+						   resources file of each module and create an "uber" resources file containing
+						   resources for both modules (which is what the aggregate profile above does)
+						-->
+						<dependencies>
+							<dependency>
+								<groupId>org.springframework.cloud</groupId>
+								<artifactId>discovery-client</artifactId>
+								<version>${project.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>org.springframework.cloud</groupId>
+								<artifactId>discovery-service-a</artifactId>
+								<version>${project.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>org.springframework.cloud</groupId>
+								<artifactId>discovery-service-b</artifactId>
+								<version>${project.version}</version>
+							</dependency>
+							<!-- fmp seems to fail without this... -->
+							<dependency>
+								<groupId>javax.validation</groupId>
+								<artifactId>validation-api</artifactId>
+								<version>2.0.1.Final</version>
+							</dependency>
+						</dependencies>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

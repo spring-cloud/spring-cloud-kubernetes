@@ -10,7 +10,7 @@ backend:
     eureka:
       enabled: false
     client:
-       enabled: true
+      enabled: true
     ServerListRefreshInterval: 5000
 
 hystrix.command.BackendCall.execution.isolation.thread.timeoutInMilliseconds: 5000

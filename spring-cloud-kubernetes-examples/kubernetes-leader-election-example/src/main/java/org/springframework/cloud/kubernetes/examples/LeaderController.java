@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 to the original authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,61 +45,58 @@ public class LeaderController {
 
 	/**
 	 * Return a message whether this instance is a leader or not.
-	 *
-	 * @return
+	 * @return info
 	 */
 	@GetMapping
 	public String getInfo() {
-		if (context == null) {
-			return String.format("I am '%s' but I am not a leader of the '%s'", host, role);
+		if (this.context == null) {
+			return String.format("I am '%s' but I am not a leader of the '%s'", this.host,
+					this.role);
 		}
 
-		return String.format("I am '%s' and I am the leader of the '%s'", host, role);
+		return String.format("I am '%s' and I am the leader of the '%s'", this.host,
+				this.role);
 	}
 
 	/**
-	 * PUT request to try and revoke a leadership of this instance.
-	 * If the instance is not a leader, leadership cannot be revoked. Thus "HTTP Bad Request" response.
-	 * If the instance is a leader, it must have a leadership context instance which can be used to give up the
-	 * leadership.
-	 *
-	 * @return
+	 * PUT request to try and revoke a leadership of this instance. If the instance is not
+	 * a leader, leadership cannot be revoked. Thus "HTTP Bad Request" response. If the
+	 * instance is a leader, it must have a leadership context instance which can be used
+	 * to give up the leadership.
+	 * @return info about leadership
 	 */
 	@PutMapping
 	public ResponseEntity<String> revokeLeadership() {
-		if (context == null) {
-			String message = String.format("Cannot revoke leadership because '%s' is not a leader", host);
-			return ResponseEntity
-				.badRequest()
-				.body(message);
+		if (this.context == null) {
+			String message = String.format(
+					"Cannot revoke leadership because '%s' is not a leader", this.host);
+			return ResponseEntity.badRequest().body(message);
 		}
 
-		context.yield();
+		this.context.yield();
 
-		String message = String.format("Leadership revoked for '%s'", host);
-		return ResponseEntity
-			.ok(message);
+		String message = String.format("Leadership revoked for '%s'", this.host);
+		return ResponseEntity.ok(message);
 	}
 
 	/**
 	 * Handle a notification that this instance has become a leader.
-	 *
-	 * @param event
+	 * @param event on granted event
 	 */
 	@EventListener
 	public void handleEvent(OnGrantedEvent event) {
 		System.out.println(String.format("'%s' leadership granted", event.getRole()));
-		context = event.getContext();
+		this.context = event.getContext();
 	}
 
 	/**
 	 * Handle a notification that this instance's leadership has been revoked.
-	 *
-	 * @param event
+	 * @param event on revoked event
 	 */
 	@EventListener
 	public void handleEvent(OnRevokedEvent event) {
 		System.out.println(String.format("'%s' leadership revoked", event.getRole()));
-		context = null;
+		this.context = null;
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.leader;
@@ -24,6 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import org.springframework.integration.leader.Candidate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,42 +49,46 @@ public class LeaderContextTest {
 
 	@Before
 	public void before() {
-		leaderContext = new LeaderContext(mockCandidate, mockLeadershipController);
+		this.leaderContext = new LeaderContext(this.mockCandidate,
+				this.mockLeadershipController);
 	}
 
 	@Test
 	public void testIsLeaderWithoutLeader() {
-		given(mockLeadershipController.getLocalLeader()).willReturn(Optional.empty());
+		given(this.mockLeadershipController.getLocalLeader())
+				.willReturn(Optional.empty());
 
-		boolean result = leaderContext.isLeader();
+		boolean result = this.leaderContext.isLeader();
 
 		assertThat(result).isFalse();
 	}
 
 	@Test
 	public void testIsLeaderWithAnotherLeader() {
-		given(mockLeadershipController.getLocalLeader()).willReturn(Optional.of(mockLeader));
+		given(this.mockLeadershipController.getLocalLeader())
+				.willReturn(Optional.of(this.mockLeader));
 
-		boolean result = leaderContext.isLeader();
+		boolean result = this.leaderContext.isLeader();
 
 		assertThat(result).isFalse();
 	}
 
 	@Test
 	public void testIsLeaderWhenLeader() {
-		given(mockLeadershipController.getLocalLeader()).willReturn(Optional.of(mockLeader));
-		given(mockLeader.isCandidate(mockCandidate)).willReturn(true);
+		given(this.mockLeadershipController.getLocalLeader())
+				.willReturn(Optional.of(this.mockLeader));
+		given(this.mockLeader.isCandidate(this.mockCandidate)).willReturn(true);
 
-		boolean result = leaderContext.isLeader();
+		boolean result = this.leaderContext.isLeader();
 
 		assertThat(result).isTrue();
 	}
 
 	@Test
 	public void shouldYieldLeadership() {
-		leaderContext.yield();
+		this.leaderContext.yield();
 
-		verify(mockLeadershipController).revoke();
+		verify(this.mockLeadershipController).revoke();
 	}
 
 }

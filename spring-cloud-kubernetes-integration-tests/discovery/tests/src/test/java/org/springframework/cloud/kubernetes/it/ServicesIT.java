@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.it;
@@ -30,21 +29,19 @@ import static io.restassured.RestAssured.given;
 public class ServicesIT {
 
 	private static final String HOST = System.getProperty("service.host");
-	private static final Integer PORT = Integer.valueOf(System.getProperty("service.port"));
+
+	private static final Integer PORT = Integer
+			.valueOf(System.getProperty("service.port"));
 
 	@Test
 	public void testServicesEndpoint() {
-		given()
-			.baseUri(String.format("http://%s:%d", HOST, PORT))
-			.get("services")
-			.then()
-			.statusCode(200)
-			.body(new StringContains("service-a") {
-                @Override
-                protected boolean evalSubstringOf(String s) {
-                    return s.contains("service-a") && s.contains("service-b");
-                }
-            });
+		given().baseUri(String.format("http://%s:%d", HOST, PORT)).get("services").then()
+				.statusCode(200).body(new StringContains("service-a") {
+					@Override
+					protected boolean evalSubstringOf(String s) {
+						return s.contains("service-a") && s.contains("service-b");
+					}
+				});
 	}
 
 }

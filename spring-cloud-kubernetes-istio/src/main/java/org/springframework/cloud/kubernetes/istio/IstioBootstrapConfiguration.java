@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,12 +12,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
+
 package org.springframework.cloud.kubernetes.istio;
+
+import java.util.Arrays;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -26,9 +31,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
-import javax.annotation.PostConstruct;
-import java.util.Arrays;
 
+/**
+ * Auto configuration for Istio bootstrap.
+ *
+ * @author Mauricio Salatino
+ */
 @Configuration
 @ConditionalOnProperty(value = "spring.cloud.istio.enabled", matchIfMissing = true)
 @EnableConfigurationProperties(IstioClientProperties.class)
@@ -49,42 +57,46 @@ public class IstioBootstrapConfiguration {
 
 		private final MeshUtils utils;
 
-
 		private final ConfigurableEnvironment environment;
 
-		public IstioDetectionConfiguration(MeshUtils utils, ConfigurableEnvironment environment) {
+		public IstioDetectionConfiguration(MeshUtils utils,
+				ConfigurableEnvironment environment) {
 			this.utils = utils;
 			this.environment = environment;
 		}
 
 		@PostConstruct
 		public void detectIstio() {
-			addIstioProfile(environment);
+			addIstioProfile(this.environment);
 		}
 
 		void addIstioProfile(ConfigurableEnvironment environment) {
-			if (utils.isIstioEnabled()) {
+			if (this.utils.isIstioEnabled()) {
 				if (hasIstioProfile(environment)) {
 					if (LOG.isDebugEnabled()) {
 						LOG.debug("'istio' already in list of active profiles");
 					}
-				} else {
+				}
+				else {
 					if (LOG.isDebugEnabled()) {
 						LOG.debug("Adding 'istio' to list of active profiles");
 					}
 					environment.addActiveProfile(ISTIO_PROFILE);
 				}
-			} else {
+			}
+			else {
 				if (LOG.isDebugEnabled()) {
-					LOG.debug("Not running inside kubernetes with istio enabled. Skipping 'istio' profile activation.");
+					LOG.debug(
+							"Not running inside kubernetes with istio enabled. Skipping 'istio' profile activation.");
 				}
 			}
 		}
 
 		private boolean hasIstioProfile(Environment environment) {
-			return Arrays.stream(environment.getActiveProfiles()).anyMatch(ISTIO_PROFILE::equalsIgnoreCase);
+			return Arrays.stream(environment.getActiveProfiles())
+					.anyMatch(ISTIO_PROFILE::equalsIgnoreCase);
 		}
-	}
 
+	}
 
 }
