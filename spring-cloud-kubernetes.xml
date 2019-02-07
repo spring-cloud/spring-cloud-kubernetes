@@ -846,5 +846,190 @@ message (where XXXX is the issue number).</simpara>
 </listitem>
 </itemizedlist>
 </section>
+<section xml:id="_checkstyle">
+<title>Checkstyle</title>
+<simpara>Spring Cloud Build comes with a set of checkstyle rules. You can find them in the <literal>spring-cloud-build-tools</literal> module. The most notable files under the module are:</simpara>
+<formalpara>
+<title>spring-cloud-build-tools/</title>
+<para>
+<screen>└── src
+    ├── checkstyle
+    │   └── checkstyle-suppressions.xml <co xml:id="CO1-1"/>
+    └── main
+        └── resources
+            ├── checkstyle-header.txt <co xml:id="CO1-2"/>
+            └── checkstyle.xml <co xml:id="CO1-3"/></screen>
+</para>
+</formalpara>
+<calloutlist>
+<callout arearefs="CO1-3">
+<para>Default Checkstyle rules</para>
+</callout>
+<callout arearefs="CO1-2">
+<para>File header setup</para>
+</callout>
+<callout arearefs="CO1-1">
+<para>Default suppression rules</para>
+</callout>
+</calloutlist>
+<section xml:id="_checkstyle_configuration">
+<title>Checkstyle configuration</title>
+<simpara>Checkstyle rules are <emphasis role="strong">disabled by default</emphasis>. To add checkstyle to your project just define the following properties and plugins.</simpara>
+<formalpara>
+<title>pom.xml</title>
+<para>
+<screen>&lt;properties&gt;
+&lt;maven-checkstyle-plugin.failsOnError&gt;true&lt;/maven-checkstyle-plugin.failsOnError&gt; <co xml:id="CO2-1"/>
+        &lt;maven-checkstyle-plugin.failsOnViolation&gt;true
+        &lt;/maven-checkstyle-plugin.failsOnViolation&gt; <co xml:id="CO2-2"/>
+        &lt;maven-checkstyle-plugin.includeTestSourceDirectory&gt;true
+        &lt;/maven-checkstyle-plugin.includeTestSourceDirectory&gt; <co xml:id="CO2-3"/>
+&lt;/properties&gt;
+
+&lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt; <co xml:id="CO2-4"/>
+                &lt;groupId&gt;io.spring.javaformat&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-javaformat-maven-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+            &lt;plugin&gt; <co xml:id="CO2-5"/>
+                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+                &lt;artifactId&gt;maven-checkstyle-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+
+    &lt;reporting&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt; <co xml:id="CO2-6"/>
+                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+                &lt;artifactId&gt;maven-checkstyle-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/reporting&gt;
+&lt;/build&gt;</screen>
+</para>
+</formalpara>
+<calloutlist>
+<callout arearefs="CO2-1">
+<para>Fails the build upon Checkstyle errors</para>
+</callout>
+<callout arearefs="CO2-2">
+<para>Fails the build upon Checkstyle violations</para>
+</callout>
+<callout arearefs="CO2-3">
+<para>Checkstyle analyzes also the test sources</para>
+</callout>
+<callout arearefs="CO2-4">
+<para>Add the Spring Java Format plugin that will reformat your code to pass most of the Checkstyle formatting rules</para>
+</callout>
+<callout arearefs="CO2-5 CO2-6">
+<para>Add checkstyle plugin to your build and reporting phases</para>
+</callout>
+</calloutlist>
+<simpara>If you need to suppress some rules (e.g. line length needs to be longer), then it&#8217;s enough for you to define a file under <literal>${project.root}/src/checkstyle/checkstyle-suppressions.xml</literal> with your suppressions. Example:</simpara>
+<formalpara>
+<title>projectRoot/src/checkstyle/checkstyle-suppresions.xml</title>
+<para>
+<screen>&lt;?xml version="1.0"?&gt;
+&lt;!DOCTYPE suppressions PUBLIC
+		"-//Puppy Crawl//DTD Suppressions 1.1//EN"
+		"http://www.puppycrawl.com/dtds/suppressions_1_1.dtd"&gt;
+&lt;suppressions&gt;
+	&lt;suppress files=".*ConfigServerApplication\.java" checks="HideUtilityClassConstructor"/&gt;
+	&lt;suppress files=".*ConfigClientWatch\.java" checks="LineLengthCheck"/&gt;
+&lt;/suppressions&gt;</screen>
+</para>
+</formalpara>
+<simpara>It&#8217;s advisable to copy the <literal>${spring-cloud-build.rootFolder}/.editorconfig</literal> and <literal>${spring-cloud-build.rootFolder}/.springformat</literal> to your project. That way, some default formatting rules will be applied. You can do so by running this script:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">$ curl https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/.editorconfig -o .editorconfig
+$ touch .springformat</programlisting>
+</section>
+</section>
+<section xml:id="_ide_setup">
+<title>IDE setup</title>
+<section xml:id="_intellij_idea">
+<title>Intellij IDEA</title>
+<simpara>In order to setup Intellij you should import our coding conventions, inspection profiles and set up the checkstyle plugin.</simpara>
+<formalpara>
+<title>spring-cloud-build-tools/</title>
+<para>
+<screen>└── src
+    ├── checkstyle
+    │   └── checkstyle-suppressions.xml <co xml:id="CO3-1"/>
+    └── main
+        └── resources
+            ├── checkstyle-header.txt <co xml:id="CO3-2"/>
+            ├── checkstyle.xml <co xml:id="CO3-3"/>
+            └── intellij
+                ├── Intellij_Project_Defaults.xml <co xml:id="CO3-4"/>
+                └── Intellij_Spring_Boot_Java_Conventions.xml <co xml:id="CO3-5"/></screen>
+</para>
+</formalpara>
+<calloutlist>
+<callout arearefs="CO3-3">
+<para>Default Checkstyle rules</para>
+</callout>
+<callout arearefs="CO3-2">
+<para>File header setup</para>
+</callout>
+<callout arearefs="CO3-1">
+<para>Default suppression rules</para>
+</callout>
+<callout arearefs="CO3-4">
+<para>Project defaults for Intellij that apply most of Checkstyle rules</para>
+</callout>
+<callout arearefs="CO3-5">
+<para>Project style conventions for Intellij that apply most of Checkstyle rules</para>
+</callout>
+</calloutlist>
+<figure>
+<title>Code style</title>
+<mediaobject>
+<imageobject>
+<imagedata fileref="https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/images/intellij-code-style.png"/>
+</imageobject>
+<textobject><phrase>Code style</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>Go to <literal>File</literal> &#8594; <literal>Settings</literal> &#8594; <literal>Editor</literal> &#8594; <literal>Code style</literal>. There click on the icon next to the <literal>Scheme</literal> section. There, click on the <literal>Import Scheme</literal> value and pick the <literal>Intellij IDEA code style XML</literal> option. Import the <literal>spring-cloud-build-tools/src/main/resources/intellij/Intellij_Spring_Boot_Java_Conventions.xml</literal> file.</simpara>
+<figure>
+<title>Inspection profiles</title>
+<mediaobject>
+<imageobject>
+<imagedata fileref="https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/images/intellij-inspections.png"/>
+</imageobject>
+<textobject><phrase>Code style</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>Go to <literal>File</literal> &#8594; <literal>Settings</literal> &#8594; <literal>Editor</literal> &#8594; <literal>Inspections</literal>. There click on the icon next to the <literal>Profile</literal> section. There, click on the <literal>Import Profile</literal> and import the <literal>spring-cloud-build-tools/src/main/resources/intellij/Intellij_Project_Defaults.xml</literal> file.</simpara>
+<formalpara>
+<title>Checkstyle</title>
+<para>To have Intellij work with Checkstyle, you have to install the <literal>Checkstyle</literal> plugin. It&#8217;s advisable to also install the <literal>Assertions2Assertj</literal> to automatically convert the JUnit assertions</para>
+</formalpara>
+<informalfigure>
+<mediaobject>
+<imageobject>
+<imagedata fileref="https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/images/intellij-checkstyle.png"/>
+</imageobject>
+<textobject><phrase>Checkstyle</phrase></textobject>
+</mediaobject>
+</informalfigure>
+<simpara>Go to <literal>File</literal> &#8594; <literal>Settings</literal> &#8594; <literal>Other settings</literal> &#8594; <literal>Checkstyle</literal>. There click on the <literal>+</literal> icon in the <literal>Configuration file</literal> section. There, you&#8217;ll have to define where the checkstyle rules should be picked from. In the image above, we&#8217;ve picked the rules from the cloned Spring Cloud Build repository. However, you can point to the Spring Cloud Build&#8217;s GitHub repository (e.g. for the <literal>checkstyle.xml</literal> : <literal><link xl:href="https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/main/resources/checkstyle.xml">https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/main/resources/checkstyle.xml</link></literal>). We need to provide the following variables:</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>checkstyle.header.file</literal> - please point it to the Spring Cloud Build&#8217;s, <literal>spring-cloud-build-tools/src/main/resources/checkstyle/checkstyle-header.txt</literal> file either in your cloned repo or via the <literal><link xl:href="https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/main/resources/checkstyle-header.txt">https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/main/resources/checkstyle-header.txt</link></literal> URL.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>checkstyle.suppressions.file</literal> - default suppressions. Please point it to the Spring Cloud Build&#8217;s, <literal>spring-cloud-build-tools/src/checkstyle/checkstyle-suppressions.xml</literal> file either in your cloned repo or via the <literal><link xl:href="https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/checkstyle/checkstyle-suppressions.xml">https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/checkstyle/checkstyle-suppressions.xml</link></literal> URL.</simpara>
+</listitem>
+<listitem>
+<simpara><literal>checkstyle.additional.suppressions.file</literal> - this variable corresponds to suppressions in your local project. E.g. you&#8217;re working on <literal>spring-cloud-contract</literal>. Then point to the <literal>project-root/src/checkstyle/checkstyle-suppressions.xml</literal> folder. Example for <literal>spring-cloud-contract</literal> would be: <literal>/home/username/spring-cloud-contract/src/checkstyle/checkstyle-suppressions.xml</literal>.</simpara>
+</listitem>
+</itemizedlist>
+<important>
+<simpara>Remember to set the <literal>Scan Scope</literal> to <literal>All sources</literal> since we apply checkstyle rules for production and test sources.</simpara>
+</important>
+</section>
+</section>
 </chapter>
 </book>
