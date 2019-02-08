@@ -252,6 +252,9 @@ This behavior is controlled by the `spring.cloud.kubernetes.config.paths` proper
 addition to or instead of the mechanism described earlier.
 Multiple (exact) file paths can be specified in `spring.cloud.kubernetes.config.paths` by using the `,` delimiter
 
+**Notes:**
+You have to provide full exact path to each property file, because directories are not being recursively parsed.
+
 .Properties:
 [options="header,footer"]
 |===
