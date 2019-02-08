@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.builder.Function;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -99,7 +100,18 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 
 	private void addPropertySourcesFromPaths(Environment environment,
 			CompositePropertySource composite) {
-		this.properties.getPaths().stream().map(Paths::get).peek(p -> {
+
+		// Traverse provided paths recursively, locate property files, add found properties to property source
+		this.properties.getPaths().stream().map(Paths::get).flatMap(start -> {
+			try {
+				return Files.walk(start);
+			}
+			catch (IOException e) {
+				LOG.error("Error while recursive traverse of provided directory", e);
+			}
+
+			return Stream.empty();
+		}).peek(p -> {
 			if (!Files.exists(p)) {
 				LOG.warn("Configured input path: " + p
 						+ " will be ignored because it does not exist on the file system");
