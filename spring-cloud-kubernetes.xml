@@ -215,6 +215,8 @@ and have Spring Cloud Kubernetes read them from the file system.
 This behavior is controlled by the <literal>spring.cloud.kubernetes.config.paths</literal> property and can be used in
 addition to or instead of the mechanism described earlier.
 Multiple (exact) file paths can be specified in <literal>spring.cloud.kubernetes.config.paths</literal> by using the <literal>,</literal> delimiter</simpara>
+<simpara><emphasis role="strong">Notes:</emphasis>
+You have to provide full exact path to each property file, because directories are not being recursively parsed.</simpara>
 <table frame="all" rowsep="1" colsep="1">
 <title>Properties:</title>
 <tgroup cols="4">
