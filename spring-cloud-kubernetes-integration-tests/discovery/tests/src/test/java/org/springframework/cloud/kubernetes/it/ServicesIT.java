@@ -50,9 +50,9 @@ public class ServicesIT {
 	@Test
 	public void testInstancesEndpoint() {
 		given().baseUri(String.format("http://%s:%d", HOST, PORT))
-				.get("services/service-a/instances").then().statusCode(200)
+				.get("services/discovery-service-a/instances").then().statusCode(200)
 				.body("instanceId", not(isEmptyOrNullString()))
-				.body("serviceId", equalTo("service-a"));
+				.body("serviceId", equalTo("discovery-service-a"));
 	}
 
 }
