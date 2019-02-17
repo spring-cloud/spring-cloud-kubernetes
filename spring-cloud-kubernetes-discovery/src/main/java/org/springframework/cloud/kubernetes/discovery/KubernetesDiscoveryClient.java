@@ -149,9 +149,13 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 				List<EndpointAddress> addresses = s.getAddresses();
 				for (EndpointAddress endpointAddress : addresses) {
+					String instanceId = null;
+					if (endpointAddress.getTargetRef() != null) {
+						instanceId = endpointAddress.getTargetRef().getUid();
+					}
 					final EndpointPort endpointPort = s.getPorts().stream().findFirst()
 							.orElseThrow(IllegalStateException::new);
-					instances.add(new KubernetesServiceInstance(serviceId,
+					instances.add(new KubernetesServiceInstance(instanceId, serviceId,
 							endpointAddress, endpointPort, endpointMetadata,
 							this.isServicePortSecureResolver
 									.resolve(new DefaultIsServicePortSecureResolver.Input(

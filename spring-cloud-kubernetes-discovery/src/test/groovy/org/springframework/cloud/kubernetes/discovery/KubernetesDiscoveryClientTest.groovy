@@ -63,6 +63,9 @@ class KubernetesDiscoveryClientTest extends Specification {
 					.addNewSubset()
 					.addNewAddress()
 					.withIp("ip1")
+					.withNewTargetRef()
+					.withUid("uid")
+					.endTargetRef()
 					.endAddress()
 					.addNewPort("http", 80, "TCP")
 					.endSubset()
@@ -94,6 +97,7 @@ class KubernetesDiscoveryClientTest extends Specification {
 		then:
 			instances != null
 			instances.size() == 1
+			instances.find({ s -> s.instanceId == "uid" })
 			instances.find({ s -> s.host == "ip1" && !s.secure })
 	}
 
@@ -109,9 +113,15 @@ class KubernetesDiscoveryClientTest extends Specification {
 					.addNewSubset()
 					.addNewAddress()
 					.withIp("ip1")
+					.withNewTargetRef()
+					.withUid("uid1")
+					.endTargetRef()
 					.endAddress()
 					.addNewAddress()
 					.withIp("ip2")
+					.withNewTargetRef()
+					.withUid("uid2")
+					.endTargetRef()
 					.endAddress()
 					.addNewPort("https", 443, "TCP")
 					.endSubset()
@@ -144,7 +154,9 @@ class KubernetesDiscoveryClientTest extends Specification {
 			instances != null
 			instances.size() == 2
 			instances.find({ s -> s.host == "ip1" && s.secure })
+			instances.find({ s -> s.instanceId == "uid1" })
 			instances.find({ s -> s.host == "ip2" && s.secure })
+			instances.find({ s -> s.instanceId == "uid2" })
 
 	}
 
