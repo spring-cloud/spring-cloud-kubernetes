@@ -23,6 +23,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 
 @RequiresKubernetes
 @RunWith(Arquillian.class)
@@ -42,6 +45,13 @@ public class ServicesIT {
 						return s.contains("service-a") && s.contains("service-b");
 					}
 				});
+	}
+
+	@Test
+	public void testInstancesEndpoint() {
+		given().baseUri(String.format("http://%s:%d", HOST, PORT)).get("services/service-a/instances").then()
+				.statusCode(200).body("instanceId", not(isEmptyOrNullString()))
+				.body("serviceId", equalTo("service-a"));
 	}
 
 }

@@ -21,8 +21,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
@@ -39,6 +41,11 @@ public class DiscoveryClientApplication {
 	@GetMapping("/services")
 	public List<String> services() {
 		return this.discoveryClient.getServices();
+	}
+
+	@GetMapping("/services/{service}/instances")
+	public List<ServiceInstance> instances(@PathVariable("service") String service) {
+		return this.discoveryClient.getInstances(service);
 	}
 
 }
