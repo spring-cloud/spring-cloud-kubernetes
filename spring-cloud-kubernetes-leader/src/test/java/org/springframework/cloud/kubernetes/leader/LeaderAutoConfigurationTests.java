@@ -16,13 +16,18 @@
 
 package org.springframework.cloud.kubernetes.leader;
 
+import io.restassured.RestAssured;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.core.StringContains.containsString;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
@@ -31,8 +36,19 @@ import org.springframework.test.context.junit4.SpringRunner;
 })
 public class LeaderAutoConfigurationTests {
 
+	@Value("${local.server.port}")
+	private int port;
+
 	@Test
 	public void contextLoads() {
+	}
+
+	@Test
+	public void infoEndpointShouldContainLeaderElection() {
+		RestAssured.baseURI = String.format("http://localhost:%d/actuator/info",
+				this.port);
+		given().contentType("application/json").get().then().statusCode(200)
+				.body(containsString("leaderElection"));
 	}
 
 	@SpringBootConfiguration
