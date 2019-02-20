@@ -19,19 +19,20 @@ package org.springframework.cloud.kubernetes;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.server.mock.KubernetesServer;
-import io.restassured.RestAssured;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.example.App;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.core.StringContains.containsString;
+import static org.hamcrest.Matchers.containsString;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
@@ -41,6 +42,9 @@ public class InfoContributorTest {
 	public static KubernetesServer server = new KubernetesServer();
 
 	private static KubernetesClient mockClient;
+
+	@Autowired
+	private WebTestClient webClient;
 
 	@Value("${local.server.port}")
 	private int port;
@@ -61,10 +65,9 @@ public class InfoContributorTest {
 
 	@Test
 	public void infoEndpointShouldContainKubernetes() {
-		RestAssured.baseURI = String.format("http://localhost:%d/actuator/info",
-				this.port);
-		given().contentType("application/json").get().then().statusCode(200)
-				.body(containsString("kubernetes"));
+		this.webClient.get().uri("http://localhost:{port}/actuator/info", this.port)
+				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk()
+				.expectBody(String.class).value(containsString("kubernetes"));
 	}
 
 }

@@ -16,18 +16,19 @@
 
 package org.springframework.cloud.kubernetes.leader;
 
-import io.restassured.RestAssured;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.core.StringContains.containsString;
+import static org.hamcrest.Matchers.containsString;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
@@ -39,16 +40,18 @@ public class LeaderAutoConfigurationTests {
 	@Value("${local.server.port}")
 	private int port;
 
+	@Autowired
+	private WebTestClient webClient;
+
 	@Test
 	public void contextLoads() {
 	}
 
 	@Test
 	public void infoEndpointShouldContainLeaderElection() {
-		RestAssured.baseURI = String.format("http://localhost:%d/actuator/info",
-				this.port);
-		given().contentType("application/json").get().then().statusCode(200)
-				.body(containsString("leaderElection"));
+		this.webClient.get().uri("http://localhost:{port}/actuator/info", this.port)
+				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk()
+				.expectBody(String.class).value(containsString("kubernetes"));
 	}
 
 	@SpringBootConfiguration
