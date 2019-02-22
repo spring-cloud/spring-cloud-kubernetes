@@ -21,7 +21,9 @@ import java.net.UnknownHostException;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 
+import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -88,6 +90,13 @@ public class LeaderAutoConfiguration {
 			LeaderRecordWatcher leaderRecordWatcher, PodReadinessWatcher hostPodWatcher) {
 		return new LeaderInitiator(leaderProperties, leadershipController,
 				leaderRecordWatcher, hostPodWatcher);
+	}
+
+	@Bean
+	@ConditionalOnClass(InfoContributor.class)
+	public LeaderInfoContributor leaderInfoContributor(
+			LeadershipController leadershipController, Candidate candidate) {
+		return new LeaderInfoContributor(leadershipController, candidate);
 	}
 
 }
