@@ -131,8 +131,7 @@ data:
   pool.size.max: 16</programlisting>
 <simpara>Individual properties work fine for most cases but sometimes embedded <literal>yaml</literal> is more convenient. In this case we will
 use a single property named <literal>application.yaml</literal> to embed our <literal>yaml</literal>:</simpara>
-<literallayout class="monospaced"> ```yaml
-kind: ConfigMap
+<programlisting language="yaml" linenumbering="unnumbered">kind: ConfigMap
 apiVersion: v1
 metadata:
   name: demo
@@ -141,11 +140,9 @@ data:
     pool:
       size:
         core: 1
-        max:16</literallayout>
-<screen>The following also works:
-
- ```yaml
-kind: ConfigMap
+        max:16</programlisting>
+<simpara>The following also works:</simpara>
+<programlisting language="yaml" linenumbering="unnumbered">kind: ConfigMap
 apiVersion: v1
 metadata:
   name: demo
@@ -154,7 +151,7 @@ data:
     pool:
       size:
         core: 1
-        max:16</screen>
+        max:16</programlisting>
 <simpara>Spring Boot applications can also be configured differently depending on active profiles which will be merged together
 when the ConfigMap is read. It is possible to provide different property values for different profiles using an
 <literal>application.properties|yaml</literal> property, specifying profile-specific values each in their own document
@@ -333,27 +330,19 @@ spec:
 <simpara>You can select the Secrets to consume in a number of ways:</simpara>
 <orderedlist numeration="arabic">
 <listitem>
-<simpara>By listing the directories where secrets are mapped:
-<literal>`
--Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/db-secret,etc/secrets/postgresql
-</literal>`</simpara>
-<literallayout class="monospaced">If you have all the secrets mapped to a common root, you can set them like:</literallayout>
-<literallayout class="monospaced">```
--Dspring.cloud.kubernetes.secrets.paths=/etc/secrets
-```</literallayout>
+<simpara>By listing the directories where secrets are mapped:</simpara>
+<screen>-Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/db-secret,etc/secrets/postgresql</screen>
+<simpara>If you have all the secrets mapped to a common root, you can set them like:</simpara>
+<screen>-Dspring.cloud.kubernetes.secrets.paths=/etc/secrets</screen>
 </listitem>
 <listitem>
-<simpara>By setting a named secret:
-<literal>`
--Dspring.cloud.kubernetes.secrets.name=db-secret
-</literal>`</simpara>
+<simpara>By setting a named secret:</simpara>
+<screen>-Dspring.cloud.kubernetes.secrets.name=db-secret</screen>
 </listitem>
 <listitem>
-<simpara>By defining a list of labels:
-<literal>`
--Dspring.cloud.kubernetes.secrets.labels.broker=activemq
--Dspring.cloud.kubernetes.secrets.labels.db=postgresql
-</literal>`</simpara>
+<simpara>By defining a list of labels:</simpara>
+<screen>-Dspring.cloud.kubernetes.secrets.labels.broker=activemq
+-Dspring.cloud.kubernetes.secrets.labels.db=postgresql</screen>
 </listitem>
 </orderedlist>
 <table frame="all" rowsep="1" colsep="1">
