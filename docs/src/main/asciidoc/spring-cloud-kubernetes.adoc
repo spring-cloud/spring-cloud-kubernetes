@@ -1,9 +1,11 @@
 = Spring Cloud Kubernetes
 
+This reference guide covers how to use Spring Cloud Kubernetes.
+
 == Why do you need Spring Cloud Kubernetes?
 
-Spring Cloud Kubernetes provide Spring Cloud common interfaces implementations to consume Kubernetes native services.
-The main objective of the projects provided in this repository is to facilitate the integration of Spring Cloud/Spring Boot applications running inside Kubernetes.
+Spring Cloud Kubernetes provide Spring Cloud common interface implementations that consume Kubernetes native services.
+The main objective of the projects provided in this repository is to facilitate the integration of Spring Cloud and Spring Boot applications running inside Kubernetes.
 
 include::getting-started.adoc[]
 
