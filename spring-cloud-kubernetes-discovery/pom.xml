@@ -83,7 +83,7 @@
 
 		<dependency>
 			<groupId>io.fabric8</groupId>
-			<artifactId>mockwebserver</artifactId>
+			<artifactId>kubernetes-server-mock</artifactId>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
@@ -122,19 +122,4 @@
 		</dependency>
 	</dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.gmavenplus</groupId>
-				<artifactId>gmavenplus-plugin</artifactId>
-				<executions>
-					<execution>
-						<goals>
-							<goal>compileTests</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
 </project>
