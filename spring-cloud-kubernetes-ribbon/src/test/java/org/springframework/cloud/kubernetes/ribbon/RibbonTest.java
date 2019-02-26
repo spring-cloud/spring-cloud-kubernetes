@@ -22,7 +22,7 @@ import java.util.List;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.server.mock.KubernetesServer;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -34,6 +34,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Charles Moulliard
@@ -57,13 +59,13 @@ public class RibbonTest {
 	@ClassRule
 	public static KubernetesServer mockEndpointB = new KubernetesServer(false);
 
-	public static KubernetesClient mockClient;
+	private static KubernetesClient mockClient;
 
 	@Autowired
-	RestTemplate restTemplate;
+	private RestTemplate restTemplate;
 
 	@BeforeClass
-	public static void setUpBefore() throws Exception {
+	public static void setUpBefore() {
 		mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
@@ -99,13 +101,13 @@ public class RibbonTest {
 
 	@Test
 	public void testGreetingEndpoint() {
-		List<String> greetings = new ArrayList<>();
-		for (int i = 0; i < 2; i++) {
-			greetings.add(this.restTemplate.getForObject("http://testapp/greeting",
-					String.class));
-		}
-		greetings.contains("Hello from A");
-		greetings.contains("Hello from B");
+		final List<String> greetings = new ArrayList<>();
+		greetings.add(
+				this.restTemplate.getForObject("http://testapp/greeting", String.class));
+		greetings.add(
+				this.restTemplate.getForObject("http://testapp/greeting", String.class));
+
+		assertThat(greetings).containsOnly("Hello from A", "Hello from B");
 	}
 
 }
