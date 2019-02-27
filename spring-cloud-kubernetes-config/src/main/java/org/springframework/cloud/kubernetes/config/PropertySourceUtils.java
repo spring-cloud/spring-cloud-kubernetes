@@ -24,9 +24,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.util.StringUtils;
 
-import static java.util.Arrays.asList;
 import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.ABSTAIN;
 import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.FOUND;
 import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.NOT_FOUND;
@@ -56,13 +58,14 @@ public final class PropertySourceUtils {
 		throw new IllegalStateException("Can't instantiate a utility class");
 	}
 
-	static Function<String, Properties> yamlParserGenerator(final String[] profiles) {
+	static Function<String, Properties> yamlParserGenerator(Environment environment) {
 		return s -> {
 			YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
 			yamlFactory.setDocumentMatchers(properties -> {
-				String profileProperty = properties.getProperty("spring.profiles");
-				if (profileProperty != null && profileProperty.length() > 0) {
-					return asList(profiles).contains(profileProperty) ? FOUND : NOT_FOUND;
+				String profiles = properties.getProperty("spring.profiles");
+				if (environment != null && StringUtils.hasText(profiles)) {
+					return environment.acceptsProfiles(Profiles.of(profiles)) ? FOUND
+							: NOT_FOUND;
 				}
 				else {
 					return ABSTAIN;
