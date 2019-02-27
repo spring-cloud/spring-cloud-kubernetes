@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.discovery;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
@@ -104,12 +103,7 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	public URI getUri() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getScheme()).append(getHost()).append(COLN).append(getPort());
-		try {
-			return new URI(sb.toString());
-		}
-		catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
+		return URI.create(sb.toString());
 	}
 
 	public Map<String, String> getMetadata() {
