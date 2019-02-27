@@ -11,6 +11,59 @@
 <simpara>Spring Cloud Kubernetes provide Spring Cloud common interfaces implementations to consume Kubernetes native services.
 The main objective of the projects provided in this repository is to facilitate the integration of Spring Cloud/Spring Boot applications running inside Kubernetes.</simpara>
 </chapter>
+<chapter xml:id="_starters">
+<title>Starters</title>
+<simpara>Starters are convenient dependency descriptors you can include in your
+application. Include a starter to get the dependencies and Spring Boot
+auto-configuration for a feature set.</simpara>
+<informaltable frame="all" rowsep="1" colsep="1">
+<tgroup cols="2">
+<colspec colname="col_1" colwidth="50*"/>
+<colspec colname="col_2" colwidth="50*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Starter</entry>
+<entry align="left" valign="top">Features</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><programlisting language="xml" linenumbering="unnumbered">&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-kubernetes&lt;/artifactId&gt;
+&lt;/dependency&gt;</programlisting></entry>
+<entry align="left" valign="top"><simpara><link linkend="_discoveryclient_for_kubernetes">Discovery Client</link> implementation that
+resolves service names to Kubernetes Services.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><programlisting language="xml" linenumbering="unnumbered">&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-kubernetes-config&lt;/artifactId&gt;
+&lt;/dependency&gt;</programlisting></entry>
+<entry align="left" valign="top"><simpara>Load application properties from Kubernetes
+<link linkend="_configmap_propertysource">ConfigMaps</link> and <link linkend="_secrets_propertysource">Secrets</link>.
+<link linkend="_propertysource_reload">Reload</link> application properties when a ConfigMap or
+Secret changes.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><programlisting language="xml" linenumbering="unnumbered">&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-kubernetes-ribbon&lt;/artifactId&gt;
+&lt;/dependency&gt;</programlisting></entry>
+<entry align="left" valign="top"><simpara><link linkend="_ribbon_discovery_in_kubernetes">Ribbon</link> client-side load balancer with
+server list obtained from Kubernetes Endpoints.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><programlisting language="xml" linenumbering="unnumbered">&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-kubernetes-all&lt;/artifactId&gt;
+&lt;/dependency&gt;</programlisting></entry>
+<entry align="left" valign="top"><simpara>All Spring Cloud Kubernetes features.</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+</chapter>
 <chapter xml:id="_discoveryclient_for_kubernetes">
 <title>DiscoveryClient for Kubernetes</title>
 <simpara>This project provides an implementation of <link xl:href="https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java">Discovery Client</link>
@@ -19,12 +72,6 @@ This allows you to query Kubernetes endpoints <emphasis role="strong">(see <link
 A service is typically exposed by the Kubernetes API server as a collection of endpoints which represent <literal>http</literal>, <literal>https</literal> addresses that a client can
 access from a Spring Boot application running as a pod. This discovery feature is also used by the Spring Cloud Kubernetes Ribbon project
 to fetch the list of the endpoints defined for an application to be load balanced.</simpara>
-<simpara>This is something that you get for free just by adding the following dependency inside your project:</simpara>
-<programlisting language="xml" linenumbering="unnumbered">&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-kubernetes&lt;/artifactId&gt;
-    &lt;version&gt;${latest.version}&lt;/version&gt;
-&lt;/dependency&gt;</programlisting>
 <simpara>To enable loading of the <literal>DiscoveryClient</literal>, add <literal>@EnableDiscoveryClient</literal> to the according configuration or application class like this:</simpara>
 <programlisting language="java" linenumbering="unnumbered">@SpringBootApplication
 @EnableDiscoveryClient
@@ -539,12 +586,6 @@ feature in order to automatically discover at which endpoint(s) it can reach a g
 implemented within the [spring-cloud-kubernetes-ribbon](spring-cloud-kubernetes-ribbon/pom.xml) project where a
 Kubernetes client will populate a <link xl:href="https://github.com/Netflix/ribbon">Ribbon</link> <literal>ServerList</literal> containing information
 about such endpoints.</simpara>
-<simpara>The implementation is part of the following starter that you can use by adding its dependency to your pom file:</simpara>
-<programlisting language="xml" linenumbering="unnumbered">&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-kubernetes-ribbon&lt;/artifactId&gt;
-    &lt;version&gt;${latest.version}&lt;/version&gt;
-&lt;/dependency&gt;</programlisting>
 <simpara>When the list of the endpoints is populated, the Kubernetes client will search the registered endpoints living in
 the current namespace/project matching the service name defined using the Ribbon Client annotation:</simpara>
 <programlisting language="java" linenumbering="unnumbered">@RibbonClient(name = "name-service")</programlisting>
