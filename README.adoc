@@ -476,6 +476,14 @@ This means, for example, that using polling on file mounted secret sources does 
 **Notes**:
 - Properties under *spring.cloud.kubernetes.reload.* should not be used in config maps or secrets: changing such properties at runtime may lead to unexpected results;
 - Deleting a property or the whole config map does not restore the original state of the beans when using the *refresh* level.
+- You need to have the reload actuator dependency in your pom file for reload to work:
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-actuator-autoconfigure</artifactId>
+</dependency>
+```
 
 
 == Ribbon discovery in Kubernetes
