@@ -60,7 +60,8 @@ public class KubernetesDiscoveryClientTest {
 				.andReturn(200,
 						new EndpointsBuilder().withNewMetadata().withName("endpoint")
 								.endMetadata().addNewSubset().addNewAddress()
-								.withIp("ip1").endAddress().addNewPort("http", 80, "TCP")
+								.withIp("ip1").withNewTargetRef().withUid("uid").endTargetRef().endAddress()
+								.addNewPort("http", 80, "TCP")
 								.endSubset().build())
 				.once();
 
@@ -81,7 +82,8 @@ public class KubernetesDiscoveryClientTest {
 		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
 		assertThat(instances).hasSize(1)
-				.filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1);
+				.filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
+				.filteredOn(s -> s.getInstanceId().equals("uid")).hasSize(1);
 	}
 
 	@Test

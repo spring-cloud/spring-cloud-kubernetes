@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.discovery;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
@@ -38,6 +37,8 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	private static final String COLN = ":";
 
+	private final String instanceId;
+
 	private final String serviceId;
 
 	private final EndpointAddress endpointAddress;
@@ -48,13 +49,34 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	private final Map<String, String> metadata;
 
+	/**
+	 * @param serviceId the id of the service.
+	 * @param endpointAddress the address where the service instance can be found.
+	 * @param endpointPort the port on which the service is running.
+	 * @param metadata a map containing metadata.
+	 * @param secure indicates whether or not the connection needs to be secure.
+	 * @deprecated - use other constructor
+	 */
+	@Deprecated
 	public KubernetesServiceInstance(String serviceId, EndpointAddress endpointAddress,
 			EndpointPort endpointPort, Map<String, String> metadata, Boolean secure) {
+		this(null, serviceId, endpointAddress, endpointPort, metadata, secure);
+	}
+
+	public KubernetesServiceInstance(String instanceId, String serviceId,
+			EndpointAddress endpointAddress, EndpointPort endpointPort,
+			Map<String, String> metadata, Boolean secure) {
+		this.instanceId = instanceId;
 		this.serviceId = serviceId;
 		this.endpointAddress = endpointAddress;
 		this.endpointPort = endpointPort;
 		this.metadata = metadata;
 		this.secure = secure;
+	}
+
+	@Override
+	public String getInstanceId() {
+		return this.instanceId;
 	}
 
 	@Override
@@ -80,25 +102,17 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	@Override
 	public URI getUri() {
 		StringBuilder sb = new StringBuilder();
-
-		if (isSecure()) {
-			sb.append(HTTPS_PREFIX);
-		}
-		else {
-			sb.append(HTTP_PREFIX);
-		}
-
-		sb.append(getHost()).append(COLN).append(getPort());
-		try {
-			return new URI(sb.toString());
-		}
-		catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
+		sb.append(getScheme()).append(getHost()).append(COLN).append(getPort());
+		return URI.create(sb.toString());
 	}
 
 	public Map<String, String> getMetadata() {
 		return this.metadata;
+	}
+
+	@Override
+	public String getScheme() {
+		return isSecure() ? HTTPS_PREFIX : HTTP_PREFIX;
 	}
 
 }

@@ -23,6 +23,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 
 @RequiresKubernetes
 @RunWith(Arquillian.class)
@@ -42,6 +44,14 @@ public class ServicesIT {
 						return s.contains("service-a") && s.contains("service-b");
 					}
 				});
+	}
+
+	@Test
+	public void testInstancesEndpoint() {
+		given().baseUri(String.format("http://%s:%d", HOST, PORT))
+				.get("services/discovery-service-a/instances").then().statusCode(200)
+				.body("instanceId", hasSize(1))
+				.body("serviceId", hasItems("discovery-service-a"));
 	}
 
 }
