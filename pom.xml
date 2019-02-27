@@ -73,7 +73,6 @@
 		<maven-failsafe-plugin.version>2.18.1</maven-failsafe-plugin.version>
 		<maven-surefire-plugin.version>2.21.0</maven-surefire-plugin.version>
 		<fabric8.maven.plugin.version>3.5.37</fabric8.maven.plugin.version>
-		<gmavenplus-plugin.version>1.6</gmavenplus-plugin.version>
 		<groovy.version>2.4.12</groovy.version>
 		<restassured.version>3.0.2</restassured.version>
 		<spock-spring.version>1.1-groovy-2.4</spock-spring.version>
@@ -152,15 +151,6 @@
 	</dependencyManagement>
 
 	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.codehaus.gmavenplus</groupId>
-					<artifactId>gmavenplus-plugin</artifactId>
-					<version>${gmavenplus-plugin.version}</version>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

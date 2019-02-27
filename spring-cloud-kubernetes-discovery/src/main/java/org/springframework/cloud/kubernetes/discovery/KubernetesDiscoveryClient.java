@@ -99,7 +99,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	@Override
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId,
-				"[Assertion failed] - the object argument must be null");
+				"[Assertion failed] - the object argument must not be null");
 
 		Endpoints endpoints = this.client.endpoints().withName(serviceId).get();
 		List<EndpointSubset> subsets = getSubsetsFromEndpoints(endpoints);

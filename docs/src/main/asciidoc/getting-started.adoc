@@ -1,0 +1,52 @@
+== Starters
+
+Starters are convenient dependency descriptors you can include in your
+application. Include a starter to get the dependencies and Spring Boot
+auto-configuration for a feature set.
+
+[cols="a,d"]
+|===
+| Starter | Features
+
+| [source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes</artifactId>
+</dependency>
+----
+| <<DiscoveryClient for Kubernetes,Discovery Client>> implementation that
+resolves service names to Kubernetes Services.
+
+| [source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-config</artifactId>
+</dependency>
+----
+| Load application properties from Kubernetes
+<<ConfigMap PropertySource,ConfigMaps>> and <<Secrets PropertySource,Secrets>>.
+<<PropertySource Reload,Reload>> application properties when a ConfigMap or
+Secret changes.
+
+| [source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-ribbon</artifactId>
+</dependency>
+----
+| <<Ribbon discovery in Kubernetes,Ribbon>> client-side load balancer with
+server list obtained from Kubernetes Endpoints.
+
+| [source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-all</artifactId>
+</dependency>
+----
+| All Spring Cloud Kubernetes features.
+
+|===

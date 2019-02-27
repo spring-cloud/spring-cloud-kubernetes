@@ -19,10 +19,16 @@ package org.springframework.cloud.kubernetes.leader;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.reactive.server.WebTestClient;
+
+import static org.hamcrest.Matchers.containsString;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
@@ -31,8 +37,21 @@ import org.springframework.test.context.junit4.SpringRunner;
 })
 public class LeaderAutoConfigurationTests {
 
+	@Value("${local.server.port}")
+	private int port;
+
+	@Autowired
+	private WebTestClient webClient;
+
 	@Test
 	public void contextLoads() {
+	}
+
+	@Test
+	public void infoEndpointShouldContainLeaderElection() {
+		this.webClient.get().uri("http://localhost:{port}/actuator/info", this.port)
+				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk()
+				.expectBody(String.class).value(containsString("kubernetes"));
 	}
 
 	@SpringBootConfiguration

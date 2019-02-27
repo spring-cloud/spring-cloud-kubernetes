@@ -27,7 +27,9 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.KEY_VALUE_TO_PROPERTIES;
@@ -52,13 +54,24 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	private static final String PREFIX = "configmap";
 
 	public ConfigMapPropertySource(KubernetesClient client, String name) {
-		this(client, name, null, null);
+		this(client, name, null, (Environment) null);
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
 			String[] profiles) {
+		this(client, name, null, createEnvironmentWithActiveProfiles(profiles));
+	}
+
+	private static Environment createEnvironmentWithActiveProfiles(String[] activeProfiles) {
+		StandardEnvironment environment = new StandardEnvironment();
+		environment.setActiveProfiles(activeProfiles);
+		return environment;
+	}
+
+	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
+			Environment environment) {
 		super(getName(client, name, namespace),
-				asObjectMap(getData(client, name, namespace, profiles)));
+				asObjectMap(getData(client, name, namespace, environment)));
 	}
 
 	private static String getName(KubernetesClient client, String name,
@@ -72,14 +85,14 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	private static Map<String, String> getData(KubernetesClient client, String name,
-			String namespace, String[] profiles) {
+			String namespace, Environment environment) {
 		try {
 			ConfigMap map = StringUtils.isEmpty(namespace)
 					? client.configMaps().withName(name).get()
 					: client.configMaps().inNamespace(namespace).withName(name).get();
 
 			if (map != null) {
-				return processAllEntries(map.getData(), profiles);
+				return processAllEntries(map.getData(), environment);
 			}
 		}
 		catch (Exception e) {
@@ -91,7 +104,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	private static Map<String, String> processAllEntries(Map<String, String> input,
-			String[] profiles) {
+			Environment environment) {
 
 		Set<Entry<String, String>> entrySet = input.entrySet();
 		if (entrySet.size() == 1) {
@@ -106,7 +119,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
 							+ "] will be treated as a yaml file");
 				}
 
-				return yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP)
+				return yamlParserGenerator(environment).andThen(PROPERTIES_TO_MAP)
 						.apply(propertyValue);
 			}
 			else if (propertyName.endsWith(".properties")) {
@@ -119,28 +132,28 @@ public class ConfigMapPropertySource extends MapPropertySource {
 						.apply(propertyValue);
 			}
 			else {
-				return defaultProcessAllEntries(input, profiles);
+				return defaultProcessAllEntries(input, environment);
 			}
 		}
 
-		return defaultProcessAllEntries(input, profiles);
+		return defaultProcessAllEntries(input, environment);
 	}
 
 	private static Map<String, String> defaultProcessAllEntries(Map<String, String> input,
-			String[] profiles) {
+			Environment environment) {
 
 		return input.entrySet().stream()
-				.map(e -> extractProperties(e.getKey(), e.getValue(), profiles))
+				.map(e -> extractProperties(e.getKey(), e.getValue(), environment))
 				.filter(m -> !m.isEmpty()).flatMap(m -> m.entrySet().stream())
 				.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 	}
 
 	private static Map<String, String> extractProperties(String resourceName,
-			String content, String[] profiles) {
+			String content, Environment environment) {
 
 		if (resourceName.equals(APPLICATION_YAML)
 				|| resourceName.equals(APPLICATION_YML)) {
-			return yamlParserGenerator(profiles).andThen(PROPERTIES_TO_MAP)
+			return yamlParserGenerator(environment).andThen(PROPERTIES_TO_MAP)
 					.apply(content);
 		}
 		else if (resourceName.equals(APPLICATION_PROPERTIES)) {
