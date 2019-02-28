@@ -57,12 +57,10 @@ public class KubernetesDiscoveryClientTest {
 	@Test
 	public void getInstancesShouldBeAbleToHandleEndpointsSingleAddress() {
 		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint")
-				.andReturn(200,
-						new EndpointsBuilder().withNewMetadata().withName("endpoint")
-								.endMetadata().addNewSubset().addNewAddress()
-								.withIp("ip1").withNewTargetRef().withUid("uid").endTargetRef().endAddress()
-								.addNewPort("http", 80, "TCP")
-								.endSubset().build())
+				.andReturn(200, new EndpointsBuilder().withNewMetadata()
+						.withName("endpoint").endMetadata().addNewSubset().addNewAddress()
+						.withIp("ip1").withNewTargetRef().withUid("uid").endTargetRef()
+						.endAddress().addNewPort("http", 80, "TCP").endSubset().build())
 				.once();
 
 		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint")
@@ -84,6 +82,39 @@ public class KubernetesDiscoveryClientTest {
 		assertThat(instances).hasSize(1)
 				.filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
 				.filteredOn(s -> s.getInstanceId().equals("uid")).hasSize(1);
+	}
+
+	@Test
+	public void getInstancesShouldBeAbleToHandleEndpointsSingleAddressAndMultiplePorts() {
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint")
+				.andReturn(200, new EndpointsBuilder().withNewMetadata()
+						.withName("endpoint").endMetadata().addNewSubset().addNewAddress()
+						.withIp("ip1").withNewTargetRef().withUid("uid").endTargetRef()
+						.endAddress().addNewPort("mgmt", 9000, "TCP")
+						.addNewPort("http", 80, "TCP").endSubset().build())
+				.once();
+
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint")
+				.andReturn(200, new ServiceBuilder().withNewMetadata()
+						.withName("endpoint").withLabels(new HashMap<String, String>() {
+							{
+								put("l", "v");
+							}
+						}).endMetadata().build())
+				.once();
+
+		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
+		properties.setPrimaryPortName("http");
+		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+				properties, KubernetesClient::services,
+				new DefaultIsServicePortSecureResolver(properties));
+
+		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
+
+		assertThat(instances).hasSize(1)
+				.filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
+				.filteredOn(s -> s.getInstanceId().equals("uid")).hasSize(1)
+				.filteredOn(s -> 80 == s.getPort()).hasSize(1);
 	}
 
 	@Test
