@@ -1,9 +1,9 @@
-== Ribbon discovery in Kubernetes
+== Ribbon Discovery in Kubernetes
 
 
 Spring Cloud client applications that call a microservice should be interested on relying on a client load-balancing
 feature in order to automatically discover at which endpoint(s) it can reach a given service. This mechanism has been
-implemented within the https://github.com/fabric8io/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-ribbon[spring-cloud-kubernetes-ribbon] project, where a
+implemented within the https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-ribbon[spring-cloud-kubernetes-ribbon] project, where a
 Kubernetes client populates a https://github.com/Netflix/ribbon[Ribbon] `ServerList` that contains information
 about such endpoints.
 
