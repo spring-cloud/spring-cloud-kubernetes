@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.config;
 
+import java.util.HashMap;
+
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -24,6 +26,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,8 +34,6 @@ import org.springframework.cloud.kubernetes.config.example.App;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
-
-import java.util.HashMap;
 
 import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
 
@@ -80,13 +81,17 @@ public class ConfigMapsWithActiveProfilesNameSpringBootTest {
 						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
 				.always();
 
-
-		HashMap<String,String> dataWithName = new HashMap<>();
-		dataWithName.put("application.yml", readResourceFile("application-with-active-profiles-name.yaml"));
-		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME + "-development")
-			.andReturn(200, new ConfigMapBuilder().withNewMetadata()
-				.withName(APPLICATION_NAME +"-development").endMetadata().addToData(dataWithName).build())
-			.always();
+		HashMap<String, String> dataWithName = new HashMap<>();
+		dataWithName.put("application.yml",
+				readResourceFile("application-with-active-profiles-name.yaml"));
+		server.expect()
+				.withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME
+						+ "-development")
+				.andReturn(200,
+						new ConfigMapBuilder().withNewMetadata()
+								.withName(APPLICATION_NAME + "-development").endMetadata()
+								.addToData(dataWithName).build())
+				.always();
 	}
 
 	@Test
