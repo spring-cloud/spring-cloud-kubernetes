@@ -60,6 +60,12 @@ public class KubernetesDiscoveryProperties {
 	 */
 	private Map<String, String> serviceLabels = new HashMap<>();
 
+	/**
+	 * If set then the port with a given name is used as primary when multiple ports are
+	 * defined for a service.
+	 */
+	private String primaryPortName;
+
 	private Metadata metadata = new Metadata();
 
 	public boolean isEnabled() {
@@ -100,6 +106,14 @@ public class KubernetesDiscoveryProperties {
 
 	public void setServiceLabels(Map<String, String> serviceLabels) {
 		this.serviceLabels = serviceLabels;
+	}
+
+	public String getPrimaryPortName() {
+		return primaryPortName;
+	}
+
+	public void setPrimaryPortName(String primaryPortName) {
+		this.primaryPortName = primaryPortName;
 	}
 
 	public Metadata getMetadata() {

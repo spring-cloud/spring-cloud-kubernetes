@@ -153,8 +153,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 					if (endpointAddress.getTargetRef() != null) {
 						instanceId = endpointAddress.getTargetRef().getUid();
 					}
-					final EndpointPort endpointPort = s.getPorts().stream().findFirst()
-							.orElseThrow(IllegalStateException::new);
+
+					EndpointPort endpointPort = findEndpointPort(s);
 					instances.add(new KubernetesServiceInstance(instanceId, serviceId,
 							endpointAddress, endpointPort, endpointMetadata,
 							this.isServicePortSecureResolver
@@ -168,6 +168,27 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		}
 
 		return instances;
+	}
+
+	private EndpointPort findEndpointPort(EndpointSubset s) {
+		List<EndpointPort> ports = s.getPorts();
+		EndpointPort endpointPort;
+		if (ports.size() == 1) {
+			endpointPort = ports.get(0);
+		}
+		else {
+			Predicate<EndpointPort> portPredicate;
+			if (!StringUtils.isEmpty(properties.getPrimaryPortName())) {
+				portPredicate = port -> properties.getPrimaryPortName()
+						.equalsIgnoreCase(port.getName());
+			}
+			else {
+				portPredicate = port -> true;
+			}
+			endpointPort = ports.stream().filter(portPredicate).findAny()
+					.orElseThrow(IllegalStateException::new);
+		}
+		return endpointPort;
 	}
 
 	private List<EndpointSubset> getSubsetsFromEndpoints(Endpoints endpoints) {
