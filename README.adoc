@@ -111,9 +111,6 @@ spring:
 In the example above, it `spring.cloud.kubernetes.config.namespace` had not been set,
 then the ConfigMap named `c1` would be looked up in the namespace that the application runs
 
-If a profile is active then it will also be looked at as `name-profile`. For example if `production` profile
-is active in the above example a `configMap` with name `c1-production` will fetched.
-
 Any matching `ConfigMap` that is found, will be processed as follows:
 
 - apply individual configuration properties.
