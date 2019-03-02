@@ -182,6 +182,59 @@ However, if the `production` profile is active, the configuration becomes:
 
 If both profiles are active, the property that appears last within the `ConfigMap` overwrites any preceding values.
 
+Another option is to create a different config map per profile and spring boot will automatically fetch it based
+on active profiles
+
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello to the World
+    farewell:
+      message: Say Goodbye
+----
+====
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-development
+data:
+  application.yml: |-
+    spring:
+      profiles: development
+    greeting:
+      message: Say Hello to the Developers
+    farewell:
+      message: Say Goodbye to the Developers
+----
+====
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-production
+data:
+  application.yml: |-
+    spring:
+      profiles: production
+    greeting:
+      message: Say Hello to the Ops
+    farewell:
+      message: Say Goodbye
+----
+====
+
 
 To tell Spring Boot which `profile` should be enabled at bootstrap, you can pass a system property to the Java
 command. To do so, you can launch your Spring Boot application with an environment variable that you can define with the OpenShift
