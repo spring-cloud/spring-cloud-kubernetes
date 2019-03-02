@@ -1,15 +1,29 @@
 == DiscoveryClient for Kubernetes
 
 This project provides an implementation of https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java[Discovery Client]
-for http://kubernetes.io[Kubernetes].
-This allows you to query Kubernetes endpoints *(see http://kubernetes.io/docs/user-guide/services/[services])* by name.
-A service is typically exposed by the Kubernetes API server as a collection of endpoints which represent `http`, `https` addresses that a client can
+for https://kubernetes.io[Kubernetes].
+This client lets you query Kubernetes endpoints (see https://kubernetes.io/docs/user-guide/services/[services]) by name.
+A service is typically exposed by the Kubernetes API server as a collection of endpoints that represent `http` and `https` addresses and that a client can
 access from a Spring Boot application running as a pod. This discovery feature is also used by the Spring Cloud Kubernetes Ribbon project
 to fetch the list of the endpoints defined for an application to be load balanced.
 
-To enable loading of the `DiscoveryClient`, add `@EnableDiscoveryClient` to the according configuration or application class like this:
+This is something that you get for free by adding the following dependency inside your project:
 
-```java
+====
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes</artifactId>
+</dependency>
+----
+====
+
+To enable loading of the `DiscoveryClient`, add `@EnableDiscoveryClient` to the according configuration or application class, as the following example shows:
+
+====
+[source,java]
+----
 @SpringBootApplication
 @EnableDiscoveryClient
 public class Application {
@@ -17,20 +31,27 @@ public class Application {
     SpringApplication.run(Application.class, args);
   }
 }
-```
+----
+====
 
-Then you can inject the client in your code simply by:
+Then you can inject the client in your code simply by autowiring it, as the following example shows:
 
-```java
+====
+[source,java]
+----
 @Autowired
 private DiscoveryClient discoveryClient;
-```
+----
+====
 
-If for any reason you need to disable the `DiscoveryClient` you can simply set the following property in `application.properties`:
+If, for any reason, you need to disable the `DiscoveryClient`, you can set the following property in `application.properties`:
 
-```
+====
+[source]
+----
 spring.cloud.kubernetes.discovery.enabled=false
-```
+----
+====
 
-Some Spring Cloud components use the `DiscoveryClient` in order to obtain info about the local service instance. For
-this to work you need to align the Kubernetes service name with the `spring.application.name` property.
+Some Spring Cloud components use the `DiscoveryClient` in order to obtain information about the local service instance. For
+this to work, you need to align the Kubernetes service name with the `spring.application.name` property.
