@@ -211,7 +211,7 @@ metadata:
 data:
   application.yml: |-
     spring:
-      profiles: development
+      profiles: production
     greeting:
       message: Say Hello to the Ops
     farewell:
