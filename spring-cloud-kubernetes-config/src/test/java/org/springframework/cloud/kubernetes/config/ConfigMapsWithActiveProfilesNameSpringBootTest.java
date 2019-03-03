@@ -38,7 +38,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
 
 /**
- * @author Charles Moulliard
+ * @author Ali Shahbour
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {

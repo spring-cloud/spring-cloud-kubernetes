@@ -40,6 +40,7 @@ import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.ya
  * A {@link MapPropertySource} that uses Kubernetes config maps.
  *
  * @author Ioannis Canellos
+ * @author Ali Shahbour
  */
 public class ConfigMapPropertySource extends MapPropertySource {
 
