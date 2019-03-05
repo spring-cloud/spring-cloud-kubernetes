@@ -120,9 +120,9 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 							content, filename, composite);
 				}
 				else if (filename.endsWith(".yml") || filename.endsWith(".yaml")) {
-					addPropertySourceIfNeeded(
-							c -> PROPERTIES_TO_MAP
-									.apply(yamlParserGenerator(environment).apply(c)),
+					addPropertySourceIfNeeded(c -> PROPERTIES_TO_MAP
+							.apply(yamlParserGenerator(environment)
+									.apply(c)),
 							content, filename, composite);
 				}
 			}
