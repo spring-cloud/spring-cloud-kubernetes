@@ -748,6 +748,12 @@ For earlier versions, it needs to be specified as an environment variable to the
 For any service accounts you assign to a deployment or pod, you need to make sure they have the correct roles. For example, you can add <literal>cluster-reader</literal> permissions to your <literal>default</literal> service account, depending on the project you&#8217;re in.</simpara>
 </section>
 </chapter>
+<chapter xml:id="_service_registry_implementation">
+<title>Service Registry Implementation</title>
+<simpara>In Kubernetes service registration is controlled by the platform, the application itself does not control
+registration as it may do in other platforms.  For this reason using <literal>spring.cloud.service-registry.auto-registration.enabled</literal>
+or setting <literal>@EnableDiscoveryClient(autoRegister=false)</literal> will have no effect in Spring Cloud Kubernetes.</simpara>
+</chapter>
 <chapter xml:id="_examples">
 <title>Examples</title>
 <simpara>Spring Cloud Kubernetes tries to make it transparent for your applications to consume Kubernetes Native Services by
