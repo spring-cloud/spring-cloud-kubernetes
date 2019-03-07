@@ -1,0 +1,5 @@
+== Service Registry Implementation
+
+In Kubernetes service registration is controlled by the platform, the application itself does not control
+registration as it may do in other platforms.  For this reason using `spring.cloud.service-registry.auto-registration.enabled`
+or setting `@EnableDiscoveryClient(autoRegister=false)` will have no effect in Spring Cloud Kubernetes.

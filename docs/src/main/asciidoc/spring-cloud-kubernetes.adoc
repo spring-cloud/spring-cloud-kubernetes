@@ -25,6 +25,8 @@ include::leader-election.adoc[]
 
 include::security-service-accounts.adoc[]
 
+include::service-registry.adoc[]
+
 include::examples.adoc[]
 
 include::other-resources.adoc[]
