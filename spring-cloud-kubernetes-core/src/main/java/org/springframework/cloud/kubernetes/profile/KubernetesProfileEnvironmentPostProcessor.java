@@ -16,47 +16,35 @@
 
 package org.springframework.cloud.kubernetes.profile;
 
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
-import org.springframework.cloud.kubernetes.PodUtils;
-import org.springframework.context.ApplicationListener;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.context.config.ConfigFileApplicationListener;
+import org.springframework.boot.env.EnvironmentPostProcessor;
+import org.springframework.cloud.kubernetes.StandardPodUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
-/**
- * Adds Kubernetes profiles.
- *
- * @author Ioannis Canellos
- */
-public class KubernetesProfileApplicationListener
-		implements ApplicationListener<ApplicationEnvironmentPreparedEvent>, Ordered {
+public class KubernetesProfileEnvironmentPostProcessor
+		implements EnvironmentPostProcessor, Ordered {
 
 	private static final Log LOG = LogFactory
-			.getLog(KubernetesProfileApplicationListener.class);
+			.getLog(KubernetesProfileEnvironmentPostProcessor.class);
+
+	// Before ConfigFileApplicationListener so values there can use these ones
+	private static final int ORDER = ConfigFileApplicationListener.DEFAULT_ORDER - 1;
 
 	private static final String KUBERNETES_PROFILE = "kubernetes";
 
-	private static final int OFFSET = 1;
-
-	private static final int ORDER = Ordered.HIGHEST_PRECEDENCE + OFFSET;
-
-	private final PodUtils utils;
-
-	public KubernetesProfileApplicationListener(PodUtils utils) {
-		this.utils = utils;
-	}
-
 	@Override
-	public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
-		ConfigurableEnvironment environment = event.getEnvironment();
-		addKubernetesProfile(environment);
-	}
-
-	void addKubernetesProfile(ConfigurableEnvironment environment) {
-		if (this.utils.isInsideKubernetes()) {
+	public void postProcessEnvironment(ConfigurableEnvironment environment,
+			SpringApplication application) {
+		final StandardPodUtils podUtils = new StandardPodUtils(
+				new DefaultKubernetesClient());
+		if (podUtils.isInsideKubernetes()) {
 			if (hasKubernetesProfile(environment)) {
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("'kubernetes' already in list of active profiles");

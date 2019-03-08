@@ -36,7 +36,7 @@ public class GreetingAndHealthIT {
 	@Test
 	public void testGreetingEndpoint() {
 		given().baseUri(String.format("http://%s:%d", HOST, PORT)).get("greeting").then()
-				.statusCode(200).body("message", is("Hello Spring Boot"));
+				.statusCode(200).body("message", is("Hello from k8s"));
 	}
 
 	@Test
