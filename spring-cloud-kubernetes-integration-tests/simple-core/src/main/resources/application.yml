@@ -1,6 +1,9 @@
 server:
   port: 8080
 
+greeting:
+  message: Hello sb
+
 # we enable some of the management endpoints to make it possible to restart the application
 management:
   endpoint:

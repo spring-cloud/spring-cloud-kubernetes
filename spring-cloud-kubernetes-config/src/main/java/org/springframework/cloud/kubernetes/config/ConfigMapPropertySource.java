@@ -62,7 +62,8 @@ public class ConfigMapPropertySource extends MapPropertySource {
 		this(client, name, null, createEnvironmentWithActiveProfiles(profiles));
 	}
 
-	private static Environment createEnvironmentWithActiveProfiles(String[] activeProfiles) {
+	private static Environment createEnvironmentWithActiveProfiles(
+			String[] activeProfiles) {
 		StandardEnvironment environment = new StandardEnvironment();
 		environment.setActiveProfiles(activeProfiles);
 		return environment;
