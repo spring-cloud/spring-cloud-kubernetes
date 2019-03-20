@@ -37,7 +37,7 @@ public class ServicesIT {
 
 	@Test
 	public void testServicesEndpoint() {
-		given().baseUri(String.format("http://%s:%d", HOST, PORT)).get("services").then()
+		given().baseUri(String.format("https://%s:%d", HOST, PORT)).get("services").then()
 				.statusCode(200).body(new StringContains("service-a") {
 					@Override
 					protected boolean evalSubstringOf(String s) {
@@ -48,7 +48,7 @@ public class ServicesIT {
 
 	@Test
 	public void testInstancesEndpoint() {
-		given().baseUri(String.format("http://%s:%d", HOST, PORT))
+		given().baseUri(String.format("https://%s:%d", HOST, PORT))
 				.get("services/discovery-service-a/instances").then().statusCode(200)
 				.body("instanceId", hasSize(1))
 				.body("serviceId", hasItems("discovery-service-a"));

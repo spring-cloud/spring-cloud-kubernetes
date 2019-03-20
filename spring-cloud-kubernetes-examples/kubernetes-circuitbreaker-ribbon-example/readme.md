@@ -1,6 +1,6 @@
 ## Kubernetes Circuit Breaker & Load Balancer Example
 
-This example demonstrates how to use [Hystrix circuit breaker](https://martinfowler.com/bliki/CircuitBreaker.html) and the [Ribbon Load Balancing](http://microservices.io/patterns/client-side-discovery.html). The circuit breaker which is backed with Ribbon will check regularly if the target service is still alive. If this is not loner the case, then a fall back process will be excuted. In our case, the REST `greeting service` which is calling the `name Service` responsible to generate the response message will reply a "fallback message" to the client if the `name service` is not longer replying.
+This example demonstrates how to use [Hystrix circuit breaker](https://martinfowler.com/bliki/CircuitBreaker.html) and the [Ribbon Load Balancing](https://microservices.io/patterns/client-side-discovery.html). The circuit breaker which is backed with Ribbon will check regularly if the target service is still alive. If this is not loner the case, then a fall back process will be excuted. In our case, the REST `greeting service` which is calling the `name Service` responsible to generate the response message will reply a "fallback message" to the client if the `name service` is not longer replying.
 As the Ribbon Kubernetes client is configured within this example, it will fetch from the Kubernetes API Server, the list of the endpoints available for the name service and loadbalance the request between the IP addresses available
 
 ### Running the example
@@ -39,7 +39,7 @@ minikube service --url greeting-service
 and then call the service using the curl client
 
 ```
-curl http://IP_OR_HOSTNAME/greeting
+curl https://IP_OR_HOSTNAME/greeting
 ```
 
 to get a response as such 
@@ -84,9 +84,9 @@ name-service   172.17.0.5:8080,172.17.0.6:8080   40m
 Here is an example about what you will get
 
 ```
-curl http://IP_OR_HOSTNAME/greeting
+curl https://IP_OR_HOSTNAME/greeting
 Hello from name-service-1652024859-hf3xv!
-curl http://IP_OR_HOSTNAME/greeting
+curl https://IP_OR_HOSTNAME/greeting
 Hello from name-service-1652024859-426kv!
 ...
 ```
@@ -150,7 +150,7 @@ oc get route/greeting-service
 and then call the service using the curl client
 
 ```
-curl http://IP_OR_HOSTNAME/greeting
+curl https://IP_OR_HOSTNAME/greeting
 ```
 
 to get a response as such 
@@ -195,9 +195,9 @@ name-service   172.17.0.2:8080,172.17.0.3:8080   40m
 Here is an example about what you will get
 
 ```
-curl http://IP_OR_HOSTNAME/greeting
+curl https://IP_OR_HOSTNAME/greeting
 Hello from name-service-1-0ss0r!
-curl http://IP_OR_HOSTNAME/greeting
+curl https://IP_OR_HOSTNAME/greeting
 Hello from name-service-1-fblp1!
 ...
 ```
