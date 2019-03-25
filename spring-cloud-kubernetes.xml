@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?asciidoc-toc?>
 <?asciidoc-numbered?>
-<book xmlns="http://docbook.org/ns/docbook" xmlns:xl="http://www.w3.org/1999/xlink" version="5.0" xml:lang="en">
+<book xmlns="https://docbook.org/ns/docbook" xmlns:xl="https://www.w3.org/1999/xlink" version="5.0" xml:lang="en">
 <info>
 <title>Spring Cloud Kubernetes</title>
 <date>2019-03-21</date>
@@ -831,7 +831,7 @@ that you might find in "before_install" since they&#8217;re related to setting g
 credentials and you already have those.</simpara>
 <simpara>The projects that require middleware generally include a
 <literal>docker-compose.yml</literal>, so consider using
-<link xl:href="http://compose.docker.io/">Docker Compose</link> to run the middeware servers
+<link xl:href="https://compose.docker.io/">Docker Compose</link> to run the middeware servers
 in Docker containers. See the README in the
 <link xl:href="https://github.com/spring-cloud-samples/scripts">scripts demo
 repository</link> for specific instructions about the common cases of mongo,
@@ -855,13 +855,13 @@ a modified file in the correct place. Just commit it and push the change.</simpa
 <section xml:id="_working_with_the_code">
 <title>Working with the code</title>
 <simpara>If you don&#8217;t have an IDE preference we would recommend that you use
-<link xl:href="http://www.springsource.com/developer/sts">Spring Tools Suite</link> or
-<link xl:href="http://eclipse.org">Eclipse</link> when working with the code. We use the
-<link xl:href="http://eclipse.org/m2e/">m2eclipse</link> eclipse plugin for maven support. Other IDEs and tools
+<link xl:href="https://www.springsource.com/developer/sts">Spring Tools Suite</link> or
+<link xl:href="https://eclipse.org">Eclipse</link> when working with the code. We use the
+<link xl:href="https://eclipse.org/m2e/">m2eclipse</link> eclipse plugin for maven support. Other IDEs and tools
 should also work without issue as long as they use Maven 3.3.3 or better.</simpara>
 <section xml:id="_importing_into_eclipse_with_m2eclipse">
 <title>Importing into eclipse with m2eclipse</title>
-<simpara>We recommend the <link xl:href="http://eclipse.org/m2e/">m2eclipse</link> eclipse plugin when working with
+<simpara>We recommend the <link xl:href="https://eclipse.org/m2e/">m2eclipse</link> eclipse plugin when working with
 eclipse. If you don&#8217;t already have m2eclipse installed it is available from the "eclipse
 marketplace".</simpara>
 <note>
@@ -918,7 +918,7 @@ you can import formatter settings using the
 <literal>eclipse-code-formatter.xml</literal> file from the
 <link xl:href="https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-dependencies-parent/eclipse-code-formatter.xml">Spring
 Cloud Build</link> project. If using IntelliJ, you can use the
-<link xl:href="http://plugins.jetbrains.com/plugin/6546">Eclipse Code Formatter
+<link xl:href="https://plugins.jetbrains.com/plugin/6546">Eclipse Code Formatter
 Plugin</link> to import the same file.</simpara>
 </listitem>
 <listitem>
@@ -945,7 +945,7 @@ than cosmetic changes).</simpara>
 other target branch in the main project).</simpara>
 </listitem>
 <listitem>
-<simpara>When writing a commit message please follow <link xl:href="http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html">these conventions</link>,
+<simpara>When writing a commit message please follow <link xl:href="https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html">these conventions</link>,
 if you are fixing an existing issue please add <literal>Fixes gh-XXXX</literal> at the end of the commit
 message (where XXXX is the issue number).</simpara>
 </listitem>
@@ -1038,7 +1038,7 @@ message (where XXXX is the issue number).</simpara>
 <screen>&lt;?xml version="1.0"?&gt;
 &lt;!DOCTYPE suppressions PUBLIC
 		"-//Puppy Crawl//DTD Suppressions 1.1//EN"
-		"http://www.puppycrawl.com/dtds/suppressions_1_1.dtd"&gt;
+		"https://www.puppycrawl.com/dtds/suppressions_1_1.dtd"&gt;
 &lt;suppressions&gt;
 	&lt;suppress files=".*ConfigServerApplication\.java" checks="HideUtilityClassConstructor"/&gt;
 	&lt;suppress files=".*ConfigClientWatch\.java" checks="LineLengthCheck"/&gt;

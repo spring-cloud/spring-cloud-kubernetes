@@ -1,6 +1,6 @@
-<arquillian xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xmlns="http://jboss.org/schema/arquillian"
-            xsi:schemaLocation="http://jboss.org/schema/arquillian http://jboss.org/schema/arquillian/arquillian_1_0.xsd">
+<arquillian xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+            xmlns="https://jboss.org/schema/arquillian"
+            xsi:schemaLocation="https://jboss.org/schema/arquillian https://jboss.org/schema/arquillian/arquillian_1_0.xsd">
 
   <extension qualifier="kubernetes">
     <property name="namespace.use.existing">default</property>
