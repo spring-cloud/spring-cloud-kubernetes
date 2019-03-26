@@ -1,10 +1,10 @@
 ## Spring Cloud Kubernetes
 
-[Spring Cloud](http://projects.spring.io/spring-cloud/) integration with [Kubernetes](http://kubernetes.io/)
+[Spring Cloud](https://projects.spring.io/spring-cloud/) integration with [Kubernetes](https://kubernetes.io/)
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes/) 
-![Apache 2](http://img.shields.io/badge/license-Apache%202-red.svg)
-[![Javadocs](http://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-starter-kubernetes.svg?color=blue)](http://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-starter-kubernetes)
+![Apache 2](https://img.shields.io/badge/license-Apache%202-red.svg)
+[![Javadocs](https://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-starter-kubernetes.svg?color=blue)](https://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-starter-kubernetes)
 
 
 ---

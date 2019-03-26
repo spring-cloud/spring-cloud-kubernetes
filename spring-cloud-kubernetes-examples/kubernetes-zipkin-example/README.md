@@ -42,7 +42,7 @@ To deploy the Zipkin server and store the traces under a MySQL server, execute t
 and next to deploy the Zipkin application
 
 ```
-kubectl create -f http://repo1.maven.org/maven2/io/fabric8/zipkin/zipkin-starter-minimal/0.1.9/zipkin-starter-minimal-0.1.9-kubernetes.yml
+kubectl create -f https://repo1.maven.org/maven2/io/fabric8/zipkin/zipkin-starter-minimal/0.1.9/zipkin-starter-minimal-0.1.9-kubernetes.yml
 
 cat << EOF | kubectl create -f -
 kind: PersistentVolume
@@ -118,7 +118,7 @@ oc policy add-role-to-user view --serviceaccount=default
 To deploy the Zipkin server and store the traces under a MySQL server, execute the following commands to deploy the Zipkin application
 
 ```
-oc create -f http://repo1.maven.org/maven2/io/fabric8/zipkin/zipkin-starter-minimal/0.1.9/zipkin-starter-minimal-0.1.9-openshift.yml
+oc create -f https://repo1.maven.org/maven2/io/fabric8/zipkin/zipkin-starter-minimal/0.1.9/zipkin-starter-minimal-0.1.9-openshift.yml
 oc delete pvc/mysql-data
 
 cat << EOF | oc create -f - 
