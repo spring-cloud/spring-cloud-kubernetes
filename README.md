@@ -1,8 +1,8 @@
 ## Spring Cloud Kubernetes
 
-[Spring Cloud](http://projects.spring.io/spring-cloud/) integration with [Kubernetes](http://kubernetes.io/)
+[Spring Cloud](https://projects.spring.io/spring-cloud/) integration with [Kubernetes](https://kubernetes.io/)
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes/) ![Apache 2](http://img.shields.io/badge/license-Apache%202-red.svg)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes/) ![Apache 2](https://img.shields.io/badge/license-Apache%202-red.svg)
 
 ### Features
 
@@ -22,11 +22,11 @@
 ### DiscoveryClient for Kubernetes
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes/)
-[![Javadocs](http://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-starter-kubernetes.svg?color=blue)](http://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-starter-kubernetes)
+[![Javadocs](https://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-starter-kubernetes.svg?color=blue)](https://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-starter-kubernetes)
 [![Dependency Status](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes/badge?style=flat)](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes/)
 
 
-This project provides an implementation of [Discovery Client](https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java) for [Kubernetes](http://kubernetes.io). This allows you to query Kubernetes endpoints *(see [services](http://kubernetes.io/docs/user-guide/services/))* by name.
+This project provides an implementation of [Discovery Client](https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java) for [Kubernetes](https://kubernetes.io). This allows you to query Kubernetes endpoints *(see [services](https://kubernetes.io/docs/user-guide/services/))* by name.
 A service is typically exposed by the Kubernetes API server as a collection of endpoints which represent `http`, `https` addresses that a client can
 access from a Spring Boot application running as a pod. This discovery feature is also used by the Spring Cloud Kubernetes Ribbon or Zipkin projects
 to fetch respectively the list of the endpoints defined for an application to be load balanced or the Zipkin servers available to send the traces or spans.
@@ -81,7 +81,7 @@ variables.
 
 #### ConfigMap PropertySource
 
-Kubernetes provides a resource named [ConfigMap](http://kubernetes.io/docs/user-guide/configmap/) to externalize the 
+Kubernetes provides a resource named [ConfigMap](https://kubernetes.io/docs/user-guide/configmap/) to externalize the 
 parameters to pass to your application in the form of key-value pairs or embedded `application.properties|yaml` files.
 The [Spring Cloud Kubernetes Config](./spring-cloud-kubernetes-config) project makes Kubernetes `ConfigMap`s available 
 during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on 
@@ -450,7 +450,7 @@ Notes:
 ### Pod Health Indicator
 
 Spring Boot uses [HealthIndicator](https://github.com/spring-projects/spring-boot/blob/master/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/HealthIndicator.java) to expose info about the health of an application.
-That makes it really useful for exposing health related information to the user and are also a good fit for use as [readiness probes](http://kubernetes.io/docs/user-guide/production-pods/#liveness-and-readiness-probes-aka-health-checks).
+That makes it really useful for exposing health related information to the user and are also a good fit for use as [readiness probes](https://kubernetes.io/docs/user-guide/production-pods/#liveness-and-readiness-probes-aka-health-checks).
 
 The Kubernetes health indicator which is part of the core module exposes the following info:
 
@@ -476,7 +476,7 @@ within the Kubernetes platform *(e.g. different dev and prod configuration)*.
 ### Ribbon discovery in Kubernetes
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes-netflix/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-starter-kubernetes-netflix/)
-[![Javadocs](http://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-starter-kubernetes-netflix.svg?color=blue)](http://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-starter-kubernetes-netflix)
+[![Javadocs](https://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-starter-kubernetes-netflix.svg?color=blue)](https://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-starter-kubernetes-netflix)
 [![Dependency Status](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-netflix/badge?style=flat)](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-starter-kubernetes-netflix/)
 
 Spring Cloud client applications calling a microservice should be interested on relying on a client load-balancing 
@@ -542,7 +542,7 @@ Examples of application that are using Zipkin discovery in Kubernetes:
 ### ConfigMap Archaius Bridge
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-kubernetes-archaius/badge.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/org.springframework.cloud/spring-cloud-kubernetes-archaius/)
-[![Javadocs](http://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-kubernetes-archaius.svg?color=blue)](http://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-kubernetes-archaius)
+[![Javadocs](https://www.javadoc.io/badge/org.springframework.cloud/spring-cloud-kubernetes-archaius.svg?color=blue)](https://www.javadoc.io/doc/org.springframework.cloud/spring-cloud-kubernetes-archaius)
 [![Dependency Status](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-kubernetes-archaius/badge?style=flat)](https://www.versioneye.com/java/org.springframework.cloud:spring-cloud-kubernetes-archaius/)
 
 The section [ConfigMap PropertySource](#configmap-propertysource) introduced how to configure a spring boot application via `Kubernetes ConfigMap` containing your configuration properties file.
