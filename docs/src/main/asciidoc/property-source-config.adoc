@@ -7,7 +7,7 @@ variables.
 
 == ConfigMap PropertySource
 
-Kubernetes provides a resource named http://kubernetes.io/docs/user-guide/configmap/[ConfigMap] to externalize the
+Kubernetes provides a resource named https://kubernetes.io/docs/user-guide/configmap/[ConfigMap] to externalize the
 parameters to pass to your application in the form of key-value pairs or embedded `application.properties|yaml` files.
 The link:./spring-cloud-kubernetes-config[Spring Cloud Kubernetes Config] project makes Kubernetes `ConfigMap`s available
 during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on

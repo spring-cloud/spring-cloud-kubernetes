@@ -285,7 +285,7 @@ running locally (e.g. mongo or rabbit).  Ignore the git-related bits
 that you might find in "before_install" since they&#8217;re related to setting git
 credentials and you already have those.</p><p>The projects that require middleware generally include a
 <code class="literal">docker-compose.yml</code>, so consider using
-<a class="link" href="http://compose.docker.io/" target="_top">Docker Compose</a> to run the middeware servers
+<a class="link" href="https://compose.docker.io/" target="_top">Docker Compose</a> to run the middeware servers
 in Docker containers. See the README in the
 <a class="link" href="https://github.com/spring-cloud-samples/scripts" target="_top">scripts demo
 repository</a> for specific instructions about the common cases of mongo,
@@ -298,10 +298,10 @@ parsing or rendering it, just copying it to <code class="literal">${main.basedir
 (defaults to <code class="literal">${basedir}</code>, i.e. the root of the project). If there are
 any changes in the README it will then show up after a Maven build as
 a modified file in the correct place. Just commit it and push the change.</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_working_with_the_code" href="#_working_with_the_code"></a>14.3&nbsp;Working with the code</h2></div></div></div><p>If you don&#8217;t have an IDE preference we would recommend that you use
-<a class="link" href="http://www.springsource.com/developer/sts" target="_top">Spring Tools Suite</a> or
-<a class="link" href="http://eclipse.org" target="_top">Eclipse</a> when working with the code. We use the
-<a class="link" href="http://eclipse.org/m2e/" target="_top">m2eclipse</a> eclipse plugin for maven support. Other IDEs and tools
-should also work without issue as long as they use Maven 3.3.3 or better.</p><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="_importing_into_eclipse_with_m2eclipse" href="#_importing_into_eclipse_with_m2eclipse"></a>14.3.1&nbsp;Importing into eclipse with m2eclipse</h3></div></div></div><p>We recommend the <a class="link" href="http://eclipse.org/m2e/" target="_top">m2eclipse</a> eclipse plugin when working with
+<a class="link" href="https://www.springsource.com/developer/sts" target="_top">Spring Tools Suite</a> or
+<a class="link" href="https://eclipse.org" target="_top">Eclipse</a> when working with the code. We use the
+<a class="link" href="https://eclipse.org/m2e/" target="_top">m2eclipse</a> eclipse plugin for maven support. Other IDEs and tools
+should also work without issue as long as they use Maven 3.3.3 or better.</p><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="_importing_into_eclipse_with_m2eclipse" href="#_importing_into_eclipse_with_m2eclipse"></a>14.3.1&nbsp;Importing into eclipse with m2eclipse</h3></div></div></div><p>We recommend the <a class="link" href="https://eclipse.org/m2e/" target="_top">m2eclipse</a> eclipse plugin when working with
 eclipse. If you don&#8217;t already have m2eclipse installed it is available from the "eclipse
 marketplace".</p><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="images/note.png"></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>Older versions of m2e do not support Maven 3.3, so once the
 projects are imported into Eclipse you will also need to tell
@@ -329,13 +329,13 @@ you can import formatter settings using the
 <code class="literal">eclipse-code-formatter.xml</code> file from the
 <a class="link" href="https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-dependencies-parent/eclipse-code-formatter.xml" target="_top">Spring
 Cloud Build</a> project. If using IntelliJ, you can use the
-<a class="link" href="http://plugins.jetbrains.com/plugin/6546" target="_top">Eclipse Code Formatter
+<a class="link" href="https://plugins.jetbrains.com/plugin/6546" target="_top">Eclipse Code Formatter
 Plugin</a> to import the same file.</li><li class="listitem">Make sure all new <code class="literal">.java</code> files to have a simple Javadoc class comment with at least an
 <code class="literal">@author</code> tag identifying you, and preferably at least a paragraph on what the class is
 for.</li><li class="listitem">Add the ASF license header comment to all new <code class="literal">.java</code> files (copy from existing files
 in the project)</li><li class="listitem">Add yourself as an <code class="literal">@author</code> to the .java files that you modify substantially (more
 than cosmetic changes).</li><li class="listitem">Add some Javadocs and, if you change the namespace, some XSD doc elements.</li><li class="listitem">A few unit tests would help a lot as well&#8201;&#8212;&#8201;someone has to do it.</li><li class="listitem">If no-one else is using your branch, please rebase it against the current master (or
-other target branch in the main project).</li><li class="listitem">When writing a commit message please follow <a class="link" href="http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html" target="_top">these conventions</a>,
+other target branch in the main project).</li><li class="listitem">When writing a commit message please follow <a class="link" href="https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html" target="_top">these conventions</a>,
 if you are fixing an existing issue please add <code class="literal">Fixes gh-XXXX</code> at the end of the commit
 message (where XXXX is the issue number).</li></ul></div></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_checkstyle" href="#_checkstyle"></a>15.4&nbsp;Checkstyle</h2></div></div></div><p>Spring Cloud Build comes with a set of checkstyle rules. You can find them in the <code class="literal">spring-cloud-build-tools</code> module. The most notable files under the module are:</p><p><b>spring-cloud-build-tools/.&nbsp;</b>
 </p><pre class="screen">&#9492;&#9472;&#9472; src
@@ -379,7 +379,7 @@ message (where XXXX is the issue number).</li></ul></div></div><div class="secti
 </p><pre class="screen">&lt;?xml version="1.0"?&gt;
 &lt;!DOCTYPE suppressions PUBLIC
 		"-//Puppy Crawl//DTD Suppressions 1.1//EN"
-		"http://www.puppycrawl.com/dtds/suppressions_1_1.dtd"&gt;
+		"https://www.puppycrawl.com/dtds/suppressions_1_1.dtd"&gt;
 &lt;suppressions&gt;
 	&lt;suppress files=".*ConfigServerApplication\.java" checks="HideUtilityClassConstructor"/&gt;
 	&lt;suppress files=".*ConfigClientWatch\.java" checks="LineLengthCheck"/&gt;

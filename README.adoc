@@ -10,8 +10,8 @@ The main objective of the projects provided in this repository is to facilitate 
 = DiscoveryClient for Kubernetes
 
 This project provides an implementation of https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java[Discovery Client]
-for http://kubernetes.io[Kubernetes].
-This allows you to query Kubernetes endpoints *(see http://kubernetes.io/docs/user-guide/services/[services])* by name.
+for https://kubernetes.io[Kubernetes].
+This allows you to query Kubernetes endpoints *(see https://kubernetes.io/docs/user-guide/services/[services])* by name.
 A service is typically exposed by the Kubernetes API server as a collection of endpoints which represent `http`, `https` addresses that a client can
 access from a Spring Boot application running as a pod. This discovery feature is also used by the Spring Cloud Kubernetes Ribbon project
 to fetch the list of the endpoints defined for an application to be load balanced.
@@ -60,7 +60,7 @@ variables.
 
 == ConfigMap PropertySource
 
-Kubernetes provides a resource named http://kubernetes.io/docs/user-guide/configmap/[ConfigMap] to externalize the
+Kubernetes provides a resource named https://kubernetes.io/docs/user-guide/configmap/[ConfigMap] to externalize the
 parameters to pass to your application in the form of key-value pairs or embedded `application.properties|yaml` files.
 The link:./spring-cloud-kubernetes-config[Spring Cloud Kubernetes Config] project makes Kubernetes `ConfigMap`s available
 during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on
@@ -587,7 +587,7 @@ credentials and you already have those.
 
 The projects that require middleware generally include a
 `docker-compose.yml`, so consider using
-http://compose.docker.io/[Docker Compose] to run the middeware servers
+https://compose.docker.io/[Docker Compose] to run the middeware servers
 in Docker containers. See the README in the
 https://github.com/spring-cloud-samples/scripts[scripts demo
 repository] for specific instructions about the common cases of mongo,
@@ -609,13 +609,13 @@ a modified file in the correct place. Just commit it and push the change.
 
 === Working with the code
 If you don't have an IDE preference we would recommend that you use
-http://www.springsource.com/developer/sts[Spring Tools Suite] or
-http://eclipse.org[Eclipse] when working with the code. We use the
-http://eclipse.org/m2e/[m2eclipse] eclipse plugin for maven support. Other IDEs and tools
+https://www.springsource.com/developer/sts[Spring Tools Suite] or
+https://eclipse.org[Eclipse] when working with the code. We use the
+https://eclipse.org/m2e/[m2eclipse] eclipse plugin for maven support. Other IDEs and tools
 should also work without issue as long as they use Maven 3.3.3 or better.
 
 ==== Importing into eclipse with m2eclipse
-We recommend the http://eclipse.org/m2e/[m2eclipse] eclipse plugin when working with
+We recommend the https://eclipse.org/m2e/[m2eclipse] eclipse plugin when working with
 eclipse. If you don't already have m2eclipse installed it is available from the "eclipse
 marketplace".
 
@@ -671,7 +671,7 @@ added after the original pull request but before a merge.
   `eclipse-code-formatter.xml` file from the
   https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-dependencies-parent/eclipse-code-formatter.xml[Spring
   Cloud Build] project. If using IntelliJ, you can use the
-  http://plugins.jetbrains.com/plugin/6546[Eclipse Code Formatter
+  https://plugins.jetbrains.com/plugin/6546[Eclipse Code Formatter
   Plugin] to import the same file.
 * Make sure all new `.java` files to have a simple Javadoc class comment with at least an
   `@author` tag identifying you, and preferably at least a paragraph on what the class is
@@ -684,6 +684,6 @@ added after the original pull request but before a merge.
 * A few unit tests would help a lot as well -- someone has to do it.
 * If no-one else is using your branch, please rebase it against the current master (or
   other target branch in the main project).
-* When writing a commit message please follow http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html[these conventions],
+* When writing a commit message please follow https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html[these conventions],
   if you are fixing an existing issue please add `Fixes gh-XXXX` at the end of the commit
   message (where XXXX is the issue number).

@@ -17,7 +17,7 @@ running locally (e.g. mongo or rabbit).  Ignore the git-related bits
 that you might find in "before_install" since they&#8217;re related to setting git
 credentials and you already have those.</p><p>The projects that require middleware generally include a
 <code class="literal">docker-compose.yml</code>, so consider using
-<a class="link" href="http://compose.docker.io/" target="_top">Docker Compose</a> to run the middeware servers
+<a class="link" href="https://compose.docker.io/" target="_top">Docker Compose</a> to run the middeware servers
 in Docker containers. See the README in the
 <a class="link" href="https://github.com/spring-cloud-samples/scripts" target="_top">scripts demo
 repository</a> for specific instructions about the common cases of mongo,
@@ -30,10 +30,10 @@ parsing or rendering it, just copying it to <code class="literal">${main.basedir
 (defaults to <code class="literal">${basedir}</code>, i.e. the root of the project). If there are
 any changes in the README it will then show up after a Maven build as
 a modified file in the correct place. Just commit it and push the change.</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_working_with_the_code" href="#_working_with_the_code"></a>14.3&nbsp;Working with the code</h2></div></div></div><p>If you don&#8217;t have an IDE preference we would recommend that you use
-<a class="link" href="http://www.springsource.com/developer/sts" target="_top">Spring Tools Suite</a> or
-<a class="link" href="http://eclipse.org" target="_top">Eclipse</a> when working with the code. We use the
-<a class="link" href="http://eclipse.org/m2e/" target="_top">m2eclipse</a> eclipse plugin for maven support. Other IDEs and tools
-should also work without issue as long as they use Maven 3.3.3 or better.</p><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="_importing_into_eclipse_with_m2eclipse" href="#_importing_into_eclipse_with_m2eclipse"></a>14.3.1&nbsp;Importing into eclipse with m2eclipse</h3></div></div></div><p>We recommend the <a class="link" href="http://eclipse.org/m2e/" target="_top">m2eclipse</a> eclipse plugin when working with
+<a class="link" href="https://www.springsource.com/developer/sts" target="_top">Spring Tools Suite</a> or
+<a class="link" href="https://eclipse.org" target="_top">Eclipse</a> when working with the code. We use the
+<a class="link" href="https://eclipse.org/m2e/" target="_top">m2eclipse</a> eclipse plugin for maven support. Other IDEs and tools
+should also work without issue as long as they use Maven 3.3.3 or better.</p><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="_importing_into_eclipse_with_m2eclipse" href="#_importing_into_eclipse_with_m2eclipse"></a>14.3.1&nbsp;Importing into eclipse with m2eclipse</h3></div></div></div><p>We recommend the <a class="link" href="https://eclipse.org/m2e/" target="_top">m2eclipse</a> eclipse plugin when working with
 eclipse. If you don&#8217;t already have m2eclipse installed it is available from the "eclipse
 marketplace".</p><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="images/note.png"></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>Older versions of m2e do not support Maven 3.3, so once the
 projects are imported into Eclipse you will also need to tell
