@@ -69,7 +69,7 @@ public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 		verify(client, atLeast(2)).getInstances("configserver");
 		ConfigClientProperties locator = this.context
 				.getBean(ConfigClientProperties.class);
-		assertEquals("http://fake:8888/", locator.getUri()[0]);
+		assertEquals("https://fake:8888/", locator.getUri()[0]);
 	}
 
 	private void setup(String... env) {
