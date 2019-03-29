@@ -35,13 +35,13 @@ public class GreetingAndHealthIT {
 
 	@Test
 	public void testGreetingEndpoint() {
-		given().baseUri(String.format("http://%s:%d", HOST, PORT)).get("greeting").then()
+		given().baseUri(String.format("https://%s:%d", HOST, PORT)).get("greeting").then()
 				.statusCode(200).body("message", is("Hello from k8s"));
 	}
 
 	@Test
 	public void testHealthEndpoint() {
-		given().baseUri(String.format("http://%s:%d", HOST, PORT))
+		given().baseUri(String.format("https://%s:%d", HOST, PORT))
 				.contentType("application/json").get("actuator/health").then()
 				.statusCode(200).body("details.kubernetes.details.inside", is(true));
 	}

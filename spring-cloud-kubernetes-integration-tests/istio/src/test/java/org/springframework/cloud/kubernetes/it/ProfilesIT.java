@@ -35,7 +35,7 @@ public class ProfilesIT {
 
 	@Test
 	public void testProfileEndpoint() {
-		given().baseUri(String.format("http://%s:%d", HOST, PORT)).get("profiles").then()
+		given().baseUri(String.format("https://%s:%d", HOST, PORT)).get("profiles").then()
 				.statusCode(200).body(new StringContains("istio"));
 	}
 

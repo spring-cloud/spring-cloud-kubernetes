@@ -39,7 +39,7 @@ public class GreetingIT {
 
 	@Test
 	public void firstTestThatTheDefaultMessageIsReturned() {
-		given().baseUri(String.format("http://%s:%d", HOST, PORT)).get("greeting").then()
+		given().baseUri(String.format("https://%s:%d", HOST, PORT)).get("greeting").then()
 				.statusCode(200).body("message", is("This is a dummy message"));
 	}
 
@@ -48,7 +48,7 @@ public class GreetingIT {
 	public void thenApplyAConfigMapAndEnsureThatTheMessageIsUpdated() {
 		waitForApplicationToReload();
 
-		given().baseUri(String.format("http://%s:%d", HOST, PORT)).get("greeting").then()
+		given().baseUri(String.format("https://%s:%d", HOST, PORT)).get("greeting").then()
 				.statusCode(200)
 				.body("message", is("Hello from Spring Cloud Kubernetes!"));
 	}
