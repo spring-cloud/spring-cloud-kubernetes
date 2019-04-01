@@ -831,7 +831,7 @@ that you might find in "before_install" since they&#8217;re related to setting g
 credentials and you already have those.</simpara>
 <simpara>The projects that require middleware generally include a
 <literal>docker-compose.yml</literal>, so consider using
-<link xl:href="https://compose.docker.io/">Docker Compose</link> to run the middeware servers
+<link xl:href="https://docs.docker.com/compose/">Docker Compose</link> to run the middeware servers
 in Docker containers. See the README in the
 <link xl:href="https://github.com/spring-cloud-samples/scripts">scripts demo
 repository</link> for specific instructions about the common cases of mongo,
