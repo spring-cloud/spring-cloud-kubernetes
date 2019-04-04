@@ -17,9 +17,7 @@
 package org.springframework.cloud.kubernetes.config.example;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
-@Configuration
 @ConfigurationProperties(prefix = "bean")
 public class GreetingProperties {
 
