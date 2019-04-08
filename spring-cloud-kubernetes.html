@@ -989,7 +989,7 @@ field of the <code>@ConfigurationProperties</code> annotation are detected and r
 Any event produces a re-check on the configuration and, in case of changes, a reload.
 The <code>view</code> role on the service account is required in order to listen for config map changes. A higher level role (such as <code>edit</code>) is required for secrets
 (by default, secrets are not monitored).
-* Polling: Oeriodically re-creates the configuration from config maps and secrets to see if it has changed.
+* Polling: Periodically re-creates the configuration from config maps and secrets to see if it has changed.
 You can configure the polling period by using the <code>spring.cloud.kubernetes.reload.period</code> property and defaults to 15 seconds.
 It requires the same role as the monitored property source.
 This means, for example, that using polling on file-mounted secret sources does not require particular privileges.</p>
