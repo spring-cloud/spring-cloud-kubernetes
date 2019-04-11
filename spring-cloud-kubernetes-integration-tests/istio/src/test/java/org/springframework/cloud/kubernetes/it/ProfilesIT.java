@@ -33,10 +33,13 @@ public class ProfilesIT {
 	private static final Integer PORT = Integer
 			.valueOf(System.getProperty("service.port"));
 
+	private static final String PROTOCOL = "true"
+			.equalsIgnoreCase(System.getProperty("service.secure")) ? "https" : "http";
+
 	@Test
 	public void testProfileEndpoint() {
-		given().baseUri(String.format("https://%s:%d", HOST, PORT)).get("profiles").then()
-				.statusCode(200).body(new StringContains("istio"));
+		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).get("profiles")
+				.then().statusCode(200).body(new StringContains("istio"));
 	}
 
 }
