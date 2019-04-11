@@ -92,6 +92,7 @@
 							<systemPropertyVariables>
 								<service.host>localhost</service.host>
 								<service.port>${nodeport.value}</service.port>
+								<service.secure>false</service.secure>
 							</systemPropertyVariables>
 							<classesDirectory>${project.build.outputDirectory}
 							</classesDirectory>
