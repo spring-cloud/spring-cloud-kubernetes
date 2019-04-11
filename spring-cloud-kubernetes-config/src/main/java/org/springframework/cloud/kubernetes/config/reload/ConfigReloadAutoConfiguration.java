@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.config.reload;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,16 +116,32 @@ public class ConfigReloadAutoConfiguration {
 			switch (properties.getStrategy()) {
 			case RESTART_CONTEXT:
 				return new ConfigurationUpdateStrategy(properties.getStrategy().name(),
-						restarter::restart);
+						() -> {
+							wait(properties);
+							restarter.restart();
+						});
 			case REFRESH:
 				return new ConfigurationUpdateStrategy(properties.getStrategy().name(),
 						refresher::refresh);
 			case SHUTDOWN:
 				return new ConfigurationUpdateStrategy(properties.getStrategy().name(),
-						ctx::close);
+						() -> {
+							wait(properties);
+							ctx.close();
+						});
 			}
 			throw new IllegalStateException("Unsupported configuration update strategy: "
 					+ properties.getStrategy());
+		}
+
+		private static void wait(ConfigReloadProperties properties) {
+			final long waitMillis = ThreadLocalRandom.current()
+					.nextLong(properties.getMaxWaitForRestart().toMillis());
+			try {
+				Thread.sleep(waitMillis);
+			}
+			catch (InterruptedException ignored) {
+			}
 		}
 
 	}
