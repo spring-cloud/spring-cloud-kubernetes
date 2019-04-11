@@ -24,10 +24,7 @@ import com.netflix.client.config.IClientConfig;
 import com.netflix.loadbalancer.AbstractServerList;
 import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ServerList;
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointPort;
-import io.fabric8.kubernetes.api.model.EndpointSubset;
-import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Utils;
 import org.apache.commons.logging.Log;
@@ -53,8 +50,15 @@ public class KubernetesServerList extends AbstractServerList<Server>
 
 	private String portName;
 
+	private KubernetesRibbonMode mode = KubernetesRibbonMode.POD;
+
 	public KubernetesServerList(KubernetesClient client) {
 		this.client = client;
+	}
+
+	public KubernetesServerList(KubernetesClient client, KubernetesRibbonMode mode) {
+		this.client = client;
+		this.mode = mode;
 	}
 
 	public void initWithNiwsConfig(IClientConfig clientConfig) {
@@ -70,43 +74,77 @@ public class KubernetesServerList extends AbstractServerList<Server>
 	}
 
 	public List<Server> getUpdatedListOfServers() {
-		Endpoints endpoints = this.namespace != null
-				? this.client.endpoints().inNamespace(this.namespace)
-						.withName(this.serviceId).get()
-				: this.client.endpoints().withName(this.serviceId).get();
-
 		List<Server> result = new ArrayList<Server>();
-		if (endpoints != null) {
-
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Found [" + endpoints.getSubsets().size()
-						+ "] endpoints in namespace [" + this.namespace + "] for name ["
-						+ this.serviceId + "] and portName [" + this.portName + "]");
-			}
-			for (EndpointSubset subset : endpoints.getSubsets()) {
-
-				if (subset.getPorts().size() == 1) {
-					EndpointPort port = subset.getPorts().get(FIRST);
-					for (EndpointAddress address : subset.getAddresses()) {
-						result.add(new Server(address.getIp(), port.getPort()));
-					}
+		if (mode == KubernetesRibbonMode.SERVICE) {
+			Service service = this.namespace != null
+					? this.client.services().inNamespace(this.namespace)
+							.withName(this.serviceId).get()
+					: this.client.services().withName(this.serviceId).get();
+			if (service != null) {
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("Found Service[" + service.getMetadata().getName() + "]");
+				}
+				if (service.getSpec().getPorts().size() == 1) {
+					result.add(new Server(
+							String.format("%s.%s.svc", service.getMetadata().getName(),
+									service.getMetadata().getNamespace()),
+							service.getSpec().getPorts().get(0).getPort()));
 				}
 				else {
-					for (EndpointPort port : subset.getPorts()) {
-						if (Utils.isNullOrEmpty(this.portName)
-								|| this.portName.endsWith(port.getName())) {
-							for (EndpointAddress address : subset.getAddresses()) {
-								result.add(new Server(address.getIp(), port.getPort()));
+					for (ServicePort servicePort : service.getSpec().getPorts()) {
+						if (Utils.isNotNullOrEmpty(this.portName)
+								|| this.portName.endsWith(servicePort.getName())) {
+							result.add(new Server(
+									String.format("%s.%s.svc",
+											service.getMetadata().getName(),
+											service.getMetadata().getNamespace()),
+									servicePort.getPort()));
+						}
+					}
+
+				}
+			}
+		}
+		else {
+			Endpoints endpoints = this.namespace != null
+					? this.client.endpoints().inNamespace(this.namespace)
+							.withName(this.serviceId).get()
+					: this.client.endpoints().withName(this.serviceId).get();
+
+			if (endpoints != null) {
+
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("Found [" + endpoints.getSubsets().size()
+							+ "] endpoints in l [" + this.namespace + "] for name ["
+							+ this.serviceId + "] and portName [" + this.portName + "]");
+				}
+				for (EndpointSubset subset : endpoints.getSubsets()) {
+
+					if (subset.getPorts().size() == 1) {
+						EndpointPort port = subset.getPorts().get(FIRST);
+						for (EndpointAddress address : subset.getAddresses()) {
+							result.add(new Server(address.getIp(), port.getPort()));
+						}
+					}
+					else {
+						for (EndpointPort port : subset.getPorts()) {
+							if (Utils.isNullOrEmpty(this.portName)
+									|| this.portName.endsWith(port.getName())) {
+								for (EndpointAddress address : subset.getAddresses()) {
+									result.add(
+											new Server(address.getIp(), port.getPort()));
+								}
 							}
 						}
 					}
 				}
 			}
-		}
-		else {
-			LOG.warn("Did not find any endpoints in ribbon in namespace ["
-					+ this.namespace + "] for name [" + this.serviceId
-					+ "] and portName [" + this.portName + "]");
+			else {
+				LOG.warn("Did not find any endpoints in ribbon in namespace ["
+						+ this.namespace + "] for name [" + this.serviceId
+						+ "] and portName [" + this.portName + "]");
+			}
+
 		}
 		return result;
 	}
