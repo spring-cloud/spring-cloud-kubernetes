@@ -20,7 +20,6 @@ import com.netflix.client.config.IClientConfig;
 import com.netflix.loadbalancer.ServerList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
