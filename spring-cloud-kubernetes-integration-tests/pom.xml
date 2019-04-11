@@ -131,7 +131,7 @@
 	<modules>
 		<module>simple-core</module>
 		<module>simple-configmap</module>
-		<module>istio</module>
+<!--		<module>istio</module>-->
 		<module>discovery</module>
 	</modules>
 
