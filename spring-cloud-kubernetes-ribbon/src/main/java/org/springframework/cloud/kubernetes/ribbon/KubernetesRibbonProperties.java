@@ -19,18 +19,42 @@ package org.springframework.cloud.kubernetes.ribbon;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * the KubernetesRibbonProperties description.
- *
- * @author wuzishu
+ * The type Kubernetes ribbon properties.
  */
 @ConfigurationProperties(prefix = "spring.cloud.kubernetes.ribbon")
 public class KubernetesRibbonProperties {
 
 	/**
+	 * Ribbon enabled,default true.
+	 */
+	private Boolean enabled = true;
+
+	/**
 	 * {@link KubernetesRibbonMode} setting ribbon server list with ip of pod or service
 	 * name. default value is POD.
 	 */
-	private KubernetesRibbonMode mode;
+	private KubernetesRibbonMode mode = KubernetesRibbonMode.POD;
+
+	/**
+	 * cluster domain.
+	 */
+	private String clusterDomain = "cluster.local";
+
+	/**
+	 * Get cluster domain.
+	 * @return the cluster domain
+	 */
+	public String getClusterDomain() {
+		return clusterDomain;
+	}
+
+	/**
+	 * Sets cluster domain.
+	 * @param clusterDomain the cluster domain
+	 */
+	public void setClusterDomain(String clusterDomain) {
+		this.clusterDomain = clusterDomain;
+	}
 
 	/**
 	 * Gets mode.
@@ -46,6 +70,22 @@ public class KubernetesRibbonProperties {
 	 */
 	public void setMode(KubernetesRibbonMode mode) {
 		this.mode = mode;
+	}
+
+	/**
+	 * Gets enabled.
+	 * @return the enabled
+	 */
+	public Boolean getEnabled() {
+		return enabled;
+	}
+
+	/**
+	 * Sets enabled.
+	 * @param enabled the enabled
+	 */
+	public void setEnabled(Boolean enabled) {
+		this.enabled = enabled;
 	}
 
 }

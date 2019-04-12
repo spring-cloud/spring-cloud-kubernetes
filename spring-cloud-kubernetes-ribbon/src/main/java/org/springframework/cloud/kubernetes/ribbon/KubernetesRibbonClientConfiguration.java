@@ -41,8 +41,7 @@ public class KubernetesRibbonClientConfiguration {
 	@ConditionalOnMissingBean
 	public ServerList<?> ribbonServerList(KubernetesClient client, IClientConfig config,
 			KubernetesRibbonProperties properties) {
-		KubernetesServerList serverList = new KubernetesServerList(client,
-				properties.getMode());
+		KubernetesServerList serverList = new KubernetesServerList(client, properties);
 		serverList.initWithNiwsConfig(config);
 		return serverList;
 	}
