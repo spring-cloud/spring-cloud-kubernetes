@@ -43,17 +43,20 @@ public class IstioRibbonAutoConfiguration {
 	@Autowired(required = false)
 	private List<RestTemplate> restTemplates = Collections.emptyList();
 
-	@Autowired
+	@Autowired(required = false)
 	private HeaderPropagationClientHttpRequestInterceptor interceptor;
 
 	@PostConstruct
 	public void RestTemplateCustom() {
-		for (RestTemplate restTemplate : restTemplates) {
-			List<ClientHttpRequestInterceptor> interceptors = restTemplate
+		if (interceptor != null) {
+			for (RestTemplate restTemplate : restTemplates) {
+				List<ClientHttpRequestInterceptor> interceptors = restTemplate
 					.getInterceptors();
-			interceptors.add(interceptor);
-			restTemplate.setInterceptors(interceptors);
+				interceptors.add(interceptor);
+				restTemplate.setInterceptors(interceptors);
+			}
 		}
+
 	}
 
 }
