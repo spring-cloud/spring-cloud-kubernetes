@@ -51,7 +51,7 @@ public class IstioRibbonAutoConfiguration {
 		if (interceptor != null) {
 			for (RestTemplate restTemplate : restTemplates) {
 				List<ClientHttpRequestInterceptor> interceptors = restTemplate
-					.getInterceptors();
+						.getInterceptors();
 				interceptors.add(interceptor);
 				restTemplate.setInterceptors(interceptors);
 			}
