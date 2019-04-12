@@ -2,6 +2,9 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 org.springframework.cloud.kubernetes.istio.IstioAutoConfiguration,\
 org.springframework.cloud.kubernetes.istio.IstioRibbonAutoConfiguration,\
 org.springframework.cloud.kubernetes.istio.trace.IstioHeaderPropagatoinRequestFilter,\
-org.springframework.cloud.kubernetes.istio.trace.HeaderPropagationClientHttpRequestInterceptor
+org.springframework.cloud.kubernetes.istio.trace.HeaderPropagationClientHttpRequestInterceptor,\
+org.springframework.cloud.kubernetes.istio.trace.FeignPropagationRequestInterceptor,\
+org.springframework.cloud.kubernetes.istio.trace.ThreadLocalHystrixConcurrencyStrategy,\
+org.springframework.cloud.kubernetes.istio.trace.HystrixConcurrencyStategyBeanFactoryPostProcessor
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
 org.springframework.cloud.kubernetes.istio.IstioBootstrapConfiguration

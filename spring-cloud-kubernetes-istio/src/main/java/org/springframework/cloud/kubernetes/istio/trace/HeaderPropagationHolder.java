@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.alibaba.ttl.TransmittableThreadLocal;
+
 /**
  * the HeaderPropagationHolder description.
  *
@@ -30,8 +32,12 @@ import java.util.TreeMap;
  */
 public final class HeaderPropagationHolder {
 
-	private static final ThreadLocal<Map<String, String>> headers = ThreadLocal
-			.withInitial(HashMap::new);
+	private static final TransmittableThreadLocal<Map<String, String>> headers = new TransmittableThreadLocal<Map<String, String>>() {
+		@Override
+		protected Map<String, String> initialValue() {
+			return new HashMap<>();
+		}
+	};
 
 	private HeaderPropagationHolder() {
 	}
