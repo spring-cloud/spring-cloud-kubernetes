@@ -37,12 +37,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * Kubernetes {@link ServerList}. updated by wuzishu
+ * Kubernetes {@link ServerList}.
  *
  * @author Ioannis Canellos
+ * @author wuzishu
  */
 public class KubernetesServerList extends AbstractServerList<Server>
-		implements ServerList<Server> {
+	implements ServerList<Server> {
 
 	private static final int FIRST = 0;
 
@@ -63,7 +64,7 @@ public class KubernetesServerList extends AbstractServerList<Server>
 	}
 
 	public KubernetesServerList(KubernetesClient client,
-			KubernetesRibbonProperties properties) {
+		KubernetesRibbonProperties properties) {
 		this.client = client;
 		this.properties = properties;
 	}
@@ -71,9 +72,9 @@ public class KubernetesServerList extends AbstractServerList<Server>
 	public void initWithNiwsConfig(IClientConfig clientConfig) {
 		this.serviceId = clientConfig.getClientName();
 		this.namespace = clientConfig.getPropertyAsString(KubernetesConfigKey.Namespace,
-				this.client.getNamespace());
+			this.client.getNamespace());
 		this.portName = clientConfig.getPropertyAsString(KubernetesConfigKey.PortName,
-				null);
+			null);
 	}
 
 	public List<Server> getInitialListOfServers() {
@@ -87,7 +88,8 @@ public class KubernetesServerList extends AbstractServerList<Server>
 	 */
 	private String concatServiceFQDN(Service service) {
 		return String.format("%s.%s.svc.%s", service.getMetadata().getName(),
-				service.getMetadata().getNamespace(), properties.getClusterDomain());
+			StringUtils.isNotBlank(service.getMetadata().getNamespace()) ? service.getMetadata()
+				.getNamespace() : "default", properties.getClusterDomain());
 	}
 
 	public List<Server> getUpdatedListOfServers() {
@@ -95,23 +97,23 @@ public class KubernetesServerList extends AbstractServerList<Server>
 		if (properties.getMode() == KubernetesRibbonMode.SERVICE) {
 			Service service;
 			service = StringUtils.isNotBlank(namespace)
-					? this.client.services().inNamespace(namespace)
-							.withName(this.serviceId).get()
-					: this.client.services().withName(this.serviceId).get();
+				? this.client.services().inNamespace(namespace)
+				.withName(this.serviceId).get()
+				: this.client.services().withName(this.serviceId).get();
 			if (service != null) {
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("Found Service[" + service.getMetadata().getName() + "]");
 				}
 				if (service.getSpec().getPorts().size() == 1) {
 					result.add(new Server(concatServiceFQDN(service),
-							service.getSpec().getPorts().get(0).getPort()));
+						service.getSpec().getPorts().get(0).getPort()));
 				}
 				else {
 					for (ServicePort servicePort : service.getSpec().getPorts()) {
 						if (Utils.isNotNullOrEmpty(this.portName)
-								|| this.portName.endsWith(servicePort.getName())) {
+							|| this.portName.endsWith(servicePort.getName())) {
 							result.add(new Server(concatServiceFQDN(service),
-									servicePort.getPort()));
+								servicePort.getPort()));
 						}
 					}
 
@@ -121,16 +123,16 @@ public class KubernetesServerList extends AbstractServerList<Server>
 		else {
 			Endpoints endpoints;
 			endpoints = StringUtils.isNotBlank(this.namespace)
-					? this.client.endpoints().inNamespace(namespace)
-							.withName(this.serviceId).get()
-					: this.client.endpoints().withName(this.serviceId).get();
+				? this.client.endpoints().inNamespace(namespace)
+				.withName(this.serviceId).get()
+				: this.client.endpoints().withName(this.serviceId).get();
 			if (endpoints != null) {
 				if (LOG.isDebugEnabled()) {
 					LOG.debug(String.format(
-							"Found [%d] endpoints in l [%s] for name [%s] and portName [%s]",
-							endpoints.getSubsets().size(),
-							endpoints.getMetadata().getNamespace(), this.serviceId,
-							this.portName));
+						"Found [%d] endpoints in l [%s] for name [%s] and portName [%s]",
+						endpoints.getSubsets().size(),
+						endpoints.getMetadata().getNamespace(), this.serviceId,
+						this.portName));
 				}
 				for (EndpointSubset subset : endpoints.getSubsets()) {
 
@@ -143,10 +145,10 @@ public class KubernetesServerList extends AbstractServerList<Server>
 					else {
 						for (EndpointPort port : subset.getPorts()) {
 							if (Utils.isNullOrEmpty(this.portName)
-									|| this.portName.endsWith(port.getName())) {
+								|| this.portName.endsWith(port.getName())) {
 								for (EndpointAddress address : subset.getAddresses()) {
 									result.add(
-											new Server(address.getIp(), port.getPort()));
+										new Server(address.getIp(), port.getPort()));
 								}
 							}
 						}
@@ -157,13 +159,13 @@ public class KubernetesServerList extends AbstractServerList<Server>
 		if (result.isEmpty()) {
 			if (properties.getMode() == KubernetesRibbonMode.POD) {
 				LOG.warn(String.format(
-						"Did not find any endpoints in ribbon in namespace [%s] for name [%s] and portName [%s]",
-						this.namespace, this.serviceId, this.portName));
+					"Did not find any endpoints in ribbon in namespace [%s] for name [%s] and portName [%s]",
+					this.namespace, this.serviceId, this.portName));
 			}
 			else {
 				LOG.warn(String.format(
-						"Did not find any service in ribbon in namespace [%s] for name [%s] and portName [%s]",
-						this.namespace, this.serviceId, this.portName));
+					"Did not find any service in ribbon in namespace [%s] for name [%s] and portName [%s]",
+					this.namespace, this.serviceId, this.portName));
 			}
 
 		}
