@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.ribbon;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,17 +23,7 @@ import com.netflix.client.config.IClientConfig;
 import com.netflix.loadbalancer.AbstractServerList;
 import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ServerList;
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointPort;
-import io.fabric8.kubernetes.api.model.EndpointSubset;
-import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.utils.Utils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Kubernetes {@link ServerList}.
@@ -42,12 +31,10 @@ import org.apache.commons.logging.LogFactory;
  * @author Ioannis Canellos
  * @author wuzishu
  */
-public class KubernetesServerList extends AbstractServerList<Server>
+public abstract class KubernetesServerList extends AbstractServerList<Server>
 	implements ServerList<Server> {
 
 	private static final int FIRST = 0;
-
-	private static final Log LOG = LogFactory.getLog(KubernetesServerList.class);
 
 	private final KubernetesClient client;
 
@@ -59,10 +46,12 @@ public class KubernetesServerList extends AbstractServerList<Server>
 
 	private KubernetesRibbonProperties properties;
 
-	public KubernetesServerList(KubernetesClient client) {
-		this.client = client;
-	}
-
+	/**
+	 * Instantiates a new Kubernetes server list.
+	 *
+	 * @param client the client
+	 * @param properties the properties
+	 */
 	public KubernetesServerList(KubernetesClient client,
 		KubernetesRibbonProperties properties) {
 		this.client = client;
@@ -81,95 +70,58 @@ public class KubernetesServerList extends AbstractServerList<Server>
 		return Collections.emptyList();
 	}
 
+
 	/**
-	 * Concat service fully qualified domain name.
-	 * @param service Service model
-	 * @return service FQDN
+	 * Gets first.
+	 *
+	 * @return the first
 	 */
-	private String concatServiceFQDN(Service service) {
-		return String.format("%s.%s.svc.%s", service.getMetadata().getName(),
-			StringUtils.isNotBlank(service.getMetadata().getNamespace()) ? service.getMetadata()
-				.getNamespace() : "default", properties.getClusterDomain());
+	static int getFIRST() {
+		return FIRST;
 	}
 
-	public List<Server> getUpdatedListOfServers() {
-		List<Server> result = new ArrayList<Server>();
-		if (properties.getMode() == KubernetesRibbonMode.SERVICE) {
-			Service service;
-			service = StringUtils.isNotBlank(namespace)
-				? this.client.services().inNamespace(namespace)
-				.withName(this.serviceId).get()
-				: this.client.services().withName(this.serviceId).get();
-			if (service != null) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("Found Service[" + service.getMetadata().getName() + "]");
-				}
-				if (service.getSpec().getPorts().size() == 1) {
-					result.add(new Server(concatServiceFQDN(service),
-						service.getSpec().getPorts().get(0).getPort()));
-				}
-				else {
-					for (ServicePort servicePort : service.getSpec().getPorts()) {
-						if (Utils.isNotNullOrEmpty(this.portName)
-							|| this.portName.endsWith(servicePort.getName())) {
-							result.add(new Server(concatServiceFQDN(service),
-								servicePort.getPort()));
-						}
-					}
-
-				}
-			}
-		}
-		else {
-			Endpoints endpoints;
-			endpoints = StringUtils.isNotBlank(this.namespace)
-				? this.client.endpoints().inNamespace(namespace)
-				.withName(this.serviceId).get()
-				: this.client.endpoints().withName(this.serviceId).get();
-			if (endpoints != null) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug(String.format(
-						"Found [%d] endpoints in l [%s] for name [%s] and portName [%s]",
-						endpoints.getSubsets().size(),
-						endpoints.getMetadata().getNamespace(), this.serviceId,
-						this.portName));
-				}
-				for (EndpointSubset subset : endpoints.getSubsets()) {
-
-					if (subset.getPorts().size() == 1) {
-						EndpointPort port = subset.getPorts().get(FIRST);
-						for (EndpointAddress address : subset.getAddresses()) {
-							result.add(new Server(address.getIp(), port.getPort()));
-						}
-					}
-					else {
-						for (EndpointPort port : subset.getPorts()) {
-							if (Utils.isNullOrEmpty(this.portName)
-								|| this.portName.endsWith(port.getName())) {
-								for (EndpointAddress address : subset.getAddresses()) {
-									result.add(
-										new Server(address.getIp(), port.getPort()));
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		if (result.isEmpty()) {
-			if (properties.getMode() == KubernetesRibbonMode.POD) {
-				LOG.warn(String.format(
-					"Did not find any endpoints in ribbon in namespace [%s] for name [%s] and portName [%s]",
-					this.namespace, this.serviceId, this.portName));
-			}
-			else {
-				LOG.warn(String.format(
-					"Did not find any service in ribbon in namespace [%s] for name [%s] and portName [%s]",
-					this.namespace, this.serviceId, this.portName));
-			}
-
-		}
-		return result;
+	/**
+	 * Gets client.
+	 *
+	 * @return the client
+	 */
+	KubernetesClient getClient() {
+		return client;
 	}
 
+	/**
+	 * Gets service id.
+	 *
+	 * @return the service id
+	 */
+	String getServiceId() {
+		return serviceId;
+	}
+
+	/**
+	 * Gets namespace.
+	 *
+	 * @return the namespace
+	 */
+	String getNamespace() {
+		return namespace;
+	}
+
+	/**
+	 * Gets port name.
+	 *
+	 * @return the port name
+	 */
+	String getPortName() {
+		return portName;
+	}
+
+	/**
+	 * Gets properties.
+	 *
+	 * @return the properties
+	 */
+	KubernetesRibbonProperties getProperties() {
+		return properties;
+	}
 }

@@ -652,6 +652,34 @@ the `PortName` key. If you want to specify in which Kubernetes namespace the tar
 the `KubernetesNamespace` key, remembering in both instances to prefix these keys with your service name and
 `ribbon` prefix, as specified earlier.
 
+
+.Spring Cloud Kubernetes Ribbon Configuration
+|===
+|Property Key |Type |Default Value
+
+|spring.cloud.kubernetes.ribbon.enabled
+|boolean
+|true
+
+|spring.cloud.kubernetes.ribbon.mode
+|`KubernetesRibbonMode`
+|POD
+
+|spring.cloud.kubernetes.ribbon.cluster-domain
+|string
+|cluster.local
+|===
+
+* `spring.cloud.kubernetes.ribbon.mode` supports `POD` and `SERVICE` modes.
+** The POD mode is to achieve load balancing by obtaining the Pod IP address of Kubernetes and using Ribbon.
+   POD mode uses the load balancing of the Ribbon Does not support Kubernetes load balancing, The traffic policy of `Istio` is not supported.
+** the `SERVICE` mode is directly based on the `service name` of the Ribbon. Get
+The Kubernetes service is concatenated into `service-name.{namespace}.svc.{cluster.domain}:{port}` such as: `demo1.default.svc.cluster.local:8080`.
+the `SERVICE` mode uses load balancing of the Kubernetes service to support Istio's traffic policy.
+
+* `spring.cloud.kubernetes.ribbon.cluster-domain` Set the custom Kubernetes cluster domain suffix. The default value is: 'cluster.local'
+
+
 The following examples use this module for ribbon discovery:
 
 * link:./spring-cloud-kubernetes-examples/kubernetes-circuitbreaker-ribbon-example[Spring Cloud Circuitbreaker and Ribbon]
