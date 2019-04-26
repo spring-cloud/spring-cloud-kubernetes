@@ -34,9 +34,9 @@
 	<properties>
 		<arquillian.version>1.4.0.Final</arquillian.version>
 		<arquillian-cube.version>1.15.2</arquillian-cube.version>
-		<kubernetes-client.version>4.1.0</kubernetes-client.version>
+		<kubernetes-client.version>4.2.2</kubernetes-client.version>
 		<istio-client.version>1.0.0</istio-client.version>
-		<mockwebserver.version>0.1.0</mockwebserver.version>
+		<mockwebserver.version>0.1.1</mockwebserver.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
