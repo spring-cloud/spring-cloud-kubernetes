@@ -124,6 +124,10 @@ spring.cloud.kubernetes.discovery.enabled=false
 Some Spring Cloud components use the `DiscoveryClient` in order to obtain information about the local service instance. For
 this to work, you need to align the Kubernetes service name with the `spring.application.name` property.
 
+Spring Cloud Kubernetes can also watch the Kubernetes service catalog for changes and update the
+`DiscoveryClient` implementation accordingly.  In order to enable this functionality you need to add
+`@EnableScheduling` on a configuration class in your application.
+
 == Kubernetes native service discovery
 
 Kubernetes itself is capable of (server side) service discovery (see: https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services).
@@ -794,7 +798,7 @@ credentials and you already have those.
 
 The projects that require middleware generally include a
 `docker-compose.yml`, so consider using
-https://compose.docker.io/[Docker Compose] to run the middeware servers
+https://docs.docker.com/compose/[Docker Compose] to run the middeware servers
 in Docker containers. See the README in the
 https://github.com/spring-cloud-samples/scripts[scripts demo
 repository] for specific instructions about the common cases of mongo,
