@@ -41,7 +41,7 @@ public class ServicesIT {
 	@Test
 	public void testServicesEndpoint() {
 		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).get("services")
-				.then().statusCode(200).body(new StringContains("service-a") {
+				.then().statusCode(200).body(new StringContains(false, "service-a") {
 					@Override
 					protected boolean evalSubstringOf(String s) {
 						return s.contains("service-a") && s.contains("service-b");
