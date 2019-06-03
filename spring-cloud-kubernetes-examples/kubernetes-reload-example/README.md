@@ -5,17 +5,17 @@ To play with these examples, you can install locally Kubernetes & Docker using `
 managed by a hypervisor (Xhyve, Virtualbox or KVM) if your machine is not a native Unix operating system.
 
   
-When the minikube  is installed on your machine, you can start kubernetes using this command:
+When the Minikube  is installed on your machine, you can start kubernetes using this command:
 ```
 minikube start
 ```
 
-You also probably want to configure your docker client to point the minikube docker deamon with:
+You also probably want to configure your docker client to point the Minikube docker daemon with:
 ```
 eval $(minikube docker-env)
 ```
 
-This will make sure that the docker images that you build are available to the minikube environment.
+This will make sure that the docker images that you build are available to the Minikube environment.
 
 ## Kubernetes Reload Example
 
@@ -30,10 +30,6 @@ Once you have your environment set up, you can deploy the application using the 
 ```
 mvn clean install fabric8:build fabric8:deploy -Pintegration
 ```
-
-**Note**: Unfortuntaly, when you deploy using the fabric8 plugin, the readyness and liveness probes fail to point to the right actuator URL due a lack of support for spring boot. 
-This push you to edit the generated deployment inside kubernetes and change these probes which points to "path": "/health" to  "path": "/actuator/health". 
-This will make your deployment go green. This issue is already reported into the fabric8 community: https://github.com/fabric8io/fabric8-maven-plugin/issues/1178
 
 ### Changing the configuration
 
@@ -68,3 +64,40 @@ kubectl edit configmap reload-example
 Changes are applied immediately when using the *event* reload mode.
 
 The name of the config map (*"reload-example"*) matches the name of the application as declared in the *application.properties* file.
+
+**Note**: If you are running in a Kubernetes environment where [RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) is enabled, you need to make sure that your pod has the right level of authorizations to access the K8s APIs or resources. 
+To help you get started, a sample `ServiceAccount` and `RoleBinding` configuration is provided in `src/k8s` directory. These configuration needs to be applied to your K8s cluster and the newly created `ServiceAccount` needs to be attached to your pod spec like this:
+
+```yml
+      spec:
+        containers:
+          image: <image_loc>
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 180
+            successThreshold: 1
+          name: spring-boot
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          - containerPort: 9779
+            name: prometheus
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            successThreshold: 1
+          securityContext:
+            privileged: false
+        serviceAccountName: <service_account_name>
+```
