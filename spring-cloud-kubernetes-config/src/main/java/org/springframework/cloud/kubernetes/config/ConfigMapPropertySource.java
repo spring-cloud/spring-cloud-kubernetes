@@ -98,7 +98,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
 		}
 		catch (Exception e) {
 			LOG.warn("Can't read configMap with name: [" + name + "] in namespace:["
-					+ namespace + "]. Ignoring.  Reason for failure: ", e);
+					+ namespace + "]. Ignoring.", e);
 		}
 
 		return new HashMap<>();
