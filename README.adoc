@@ -322,7 +322,7 @@ If both profiles are active, the property that appears last within the `ConfigMa
 
 
 To tell Spring Boot which `profile` should be enabled at bootstrap, you can pass `SPRING_PROFILES_ACTIVE` environment variable.
- To do so, you can launch your Spring Boot application with an environment variable that you can define it in the PodSpec at the container specification
+ To do so, you can launch your Spring Boot application with an environment variable that you can define it in the PodSpec at the container specification.
  Pod resource file, as follows:
 
 ====
