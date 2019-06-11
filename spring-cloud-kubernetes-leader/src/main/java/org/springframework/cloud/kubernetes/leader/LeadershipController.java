@@ -149,24 +149,18 @@ public class LeadershipController {
 			LOGGER.debug("Leader is still '{}'", this.localLeader);
 			return;
 		}
-		else if (this.localLeader != null
-				&& this.localLeader.isCandidate(this.candidate)) {
+
+		Leader oldLeader = this.localLeader;
+		this.localLeader = newLeader;
+
+		if (oldLeader != null && oldLeader.isCandidate(this.candidate)) {
 			notifyOnRevoked();
 		}
 		else if (newLeader != null && newLeader.isCandidate(this.candidate)) {
 			notifyOnGranted();
 		}
 
-		this.localLeader = newLeader;
-		if (this.leaderReadinessWatcher != null) {
-			this.leaderReadinessWatcher.stop();
-			this.leaderReadinessWatcher = null;
-		}
-		if (this.localLeader != null && !this.localLeader.isCandidate(this.candidate)) {
-			this.leaderReadinessWatcher = new PodReadinessWatcher(
-					this.localLeader.getId(), this.kubernetesClient, this);
-			this.leaderReadinessWatcher.start();
-		}
+		restartLeaderReadinessWatcher();
 
 		LOGGER.debug("New leader is '{}'", this.localLeader);
 	}
@@ -200,6 +194,19 @@ public class LeadershipController {
 			Context context = new LeaderContext(this.candidate, this);
 			this.leaderEventPublisher.publishOnFailedToAcquire(this, context,
 					this.candidate.getRole());
+		}
+	}
+
+	private void restartLeaderReadinessWatcher() {
+		if (this.leaderReadinessWatcher != null) {
+			this.leaderReadinessWatcher.stop();
+			this.leaderReadinessWatcher = null;
+		}
+
+		if (this.localLeader != null && !this.localLeader.isCandidate(this.candidate)) {
+			this.leaderReadinessWatcher = new PodReadinessWatcher(
+					this.localLeader.getId(), this.kubernetesClient, this);
+			this.leaderReadinessWatcher.start();
 		}
 	}
 
