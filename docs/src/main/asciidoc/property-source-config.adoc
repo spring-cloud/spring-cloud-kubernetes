@@ -183,25 +183,35 @@ However, if the `production` profile is active, the configuration becomes:
 If both profiles are active, the property that appears last within the `ConfigMap` overwrites any preceding values.
 
 
-To tell Spring Boot which `profile` should be enabled at bootstrap, you can pass a system property to the Java
-command. To do so, you can launch your Spring Boot application with an environment variable that you can define with the OpenShift
-`DeploymentConfig` or Kubernetes `ReplicationConfig` resource file, as follows:
+To tell Spring Boot which `profile` should be enabled at bootstrap, you can pass `SPRING_PROFILES_ACTIVE` environment variable.
+ To do so, you can launch your Spring Boot application with an environment variable that you can define it in the PodSpec at the container specification.
+ Deployment resource file, as follows:
 
 ====
 [source,yaml]
 ----
-apiVersion: v1
-kind: DeploymentConfig
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-name
+  labels:
+    app: deployment-name
 spec:
   replicas: 1
-  ...
-    spec:
-      containers:
-      - env:
-        - name: JAVA_APP_DIR
-          value: /deployments
-        - name: JAVA_OPTIONS
-          value: -Dspring.profiles.active=developer
+  selector:
+    matchLabels:
+      app: deployment-name
+  template:
+    metadata:
+      labels:
+        app: deployment-name
+	spec:
+		containers:
+		- name: container-name
+		  image: your-image
+		  env:
+		  - name: SPRING_PROFILES_ACTIVE
+			value: "development"
 ----
 ====
 
