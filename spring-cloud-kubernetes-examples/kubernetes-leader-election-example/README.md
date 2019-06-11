@@ -29,7 +29,8 @@ And finally, if the leadership is yielded or revoked for some reason, the old le
 
 To begin with, build and deploy the application:
 ```
-mvn clean package fabric8:deploy -Pkubernetes
+mvn clean install -Pkubernetes
+kubectl apply -f target/classes/META-INF/fabric8/kubernetes.yml
 ```
 
 This will deploy a single application instance to the cluster and that instance will automatically become a leader.
