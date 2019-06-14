@@ -62,7 +62,8 @@ public class PollingConfigurationChangeDetector extends ConfigurationChangeDetec
 		this.log.info("Kubernetes polling configuration change detector activated");
 	}
 
-	@Scheduled(initialDelayString = "${spring.cloud.kubernetes.reload.period:15000}", fixedDelayString = "${spring.cloud.kubernetes.reload.period:15000}")
+	@Scheduled(initialDelayString = "${spring.cloud.kubernetes.reload.period:15000}",
+			fixedDelayString = "${spring.cloud.kubernetes.reload.period:15000}")
 	public void executeCycle() {
 
 		boolean changedConfigMap = false;

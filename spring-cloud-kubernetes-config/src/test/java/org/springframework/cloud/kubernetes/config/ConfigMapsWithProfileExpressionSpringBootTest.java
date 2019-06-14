@@ -41,9 +41,10 @@ import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.read
  * Tests reading property from YAML document specified by profile expression.
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
-		"spring.application.name=configmap-with-profile-example",
-		"spring.cloud.kubernetes.reload.enabled=false" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		classes = App.class,
+		properties = { "spring.application.name=configmap-with-profile-example",
+				"spring.cloud.kubernetes.reload.enabled=false" })
 @ActiveProfiles({ "production", "us-east" })
 @AutoConfigureWebTestClient
 public class ConfigMapsWithProfileExpressionSpringBootTest {

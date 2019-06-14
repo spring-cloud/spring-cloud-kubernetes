@@ -33,7 +33,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableConfigurationProperties
 @ConditionalOnBean(SpringClientFactory.class)
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.ribbon.enabled", matchIfMissing = true)
+@ConditionalOnProperty(value = "spring.cloud.kubernetes.ribbon.enabled",
+		matchIfMissing = true)
 @AutoConfigureAfter(RibbonAutoConfiguration.class)
 @RibbonClients(defaultConfiguration = KubernetesRibbonClientConfiguration.class)
 public class RibbonKubernetesAutoConfiguration {
