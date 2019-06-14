@@ -380,7 +380,9 @@ When enabled, the `SecretsPropertySource` looks up Kubernetes for `Secrets` from
 Note that, by default, consuming Secrets through the API (points 2 and 3 above) *is not enabled* for security reasons.
 Further, we recommend that containers share secrets through mounted volumes.
 If you enable consuming Secrets through the API, we recommend that you limit access to Secrets by using an
-[authorization policy, such as RBAC](https://kubernetes.io/docs/concepts/configuration/secret/#best-practices).
+authorization policy, such as RBAC. 
+
+For more information about risks and best practices when consuiming Secrets through the API refer to https://kubernetes.io/docs/concepts/configuration/secret/#best-practices[this doc].
 
 If the secrets are found, their data is made available to the application.
 
