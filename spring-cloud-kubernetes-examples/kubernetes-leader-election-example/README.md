@@ -27,9 +27,17 @@ And finally, if the leadership is yielded or revoked for some reason, the old le
 
 ## Example application usage
 
-To begin with, build and deploy the application:
+Leader election mechanism uses Kubernetes ConfigMap feature to coordinate leadership information.
+To access ConfigMap user needs correct role and role binding.
+Create them using the following commands:
 ```
-mvn clean package fabric8:deploy -Pkubernetes
+kubectl apply -f leader-role.yml
+kubectl apply -f leader-rolebinding.yml
+```
+
+Now build and deploy the application:
+```
+mvn clean fabric8:deploy -Pkubernetes
 ```
 
 This will deploy a single application instance to the cluster and that instance will automatically become a leader.
@@ -76,8 +84,4 @@ Thus, when trying to yield the leadership, request might go to a non-leader node
 
 > Note: instances periodically try to acquire leadership and Spring Cloud Kubernetes doesn't decide which one of them is more worth to become one.
 Thus, it is possible that the instance which just yielded the leadership, made another leadership take over request faster than another instances and became a leader again.
-
-## Access control notice 
-
-Leader election mechanism uses Kubernetes ConfigMap feature to coordinate leadership information.
-In order to access it, [Role](./src/main/fabric8/role.yaml) and [RoleBinding](./src/main/fabric8/rb.yaml) objects are defined. 
+ 
