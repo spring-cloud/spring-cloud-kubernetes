@@ -253,7 +253,7 @@ Note that, by default, consuming Secrets through the API (points 2 and 3 above) 
 Further, we recommend that containers share secrets through mounted volumes.
 If you enable consuming Secrets through the API, we recommend that you limit access to Secrets by using an authorization policy, such as RBAC. 
 
-For more information about risks and best practices when consuiming Secrets through the API refer to https://kubernetes.io/docs/concepts/configuration/secret/#best-practices[this doc].
+The `list` permision on secrets allows the clients to inspect the values of all secrets that are in that namespace. For more information about risks and best practices when consuming Secrets through the API refer to https://kubernetes.io/docs/concepts/configuration/secret/#best-practices[this doc].
 
 If the secrets are found, their data is made available to the application.
 
