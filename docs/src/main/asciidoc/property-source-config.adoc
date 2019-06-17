@@ -1,6 +1,6 @@
 == Kubernetes PropertySource implementations
 
-The most common approach to configuring your Spring Boot application is to create an `application.properties` or `applicaiton.yaml` or
+The most common approach to configuring your Spring Boot application is to create an `application.properties` or `application.yaml` or
 an `application-profile.properties` or `application-profile.yaml` file that contains key-value pairs that provide customization values to your
 application or Spring Boot starters. You can override these properties by specifying system properties or environment
 variables.
