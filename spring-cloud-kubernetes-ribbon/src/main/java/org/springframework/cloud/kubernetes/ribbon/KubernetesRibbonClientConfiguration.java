@@ -21,6 +21,7 @@ import com.netflix.loadbalancer.ServerList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,6 +31,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Ioannis Canellos
  */
 @Configuration
+@EnableConfigurationProperties(KubernetesRibbonProperties.class)
 public class KubernetesRibbonClientConfiguration {
 
 	public KubernetesRibbonClientConfiguration() {
@@ -37,8 +39,15 @@ public class KubernetesRibbonClientConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ServerList<?> ribbonServerList(KubernetesClient client, IClientConfig config) {
-		KubernetesServerList serverList = new KubernetesServerList(client);
+	public ServerList<?> ribbonServerList(KubernetesClient client, IClientConfig config,
+		KubernetesRibbonProperties properties) {
+		KubernetesServerList serverList;
+		if (properties.getMode() == KubernetesRibbonMode.SERVICE) {
+			serverList = new KubernetesServicesServerList(client, properties);
+		}
+		else {
+			serverList = new KubernetesEndpointsServerList(client, properties);
+		}
 		serverList.initWithNiwsConfig(config);
 		return serverList;
 	}

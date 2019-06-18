@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.ribbon;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,26 +23,18 @@ import com.netflix.client.config.IClientConfig;
 import com.netflix.loadbalancer.AbstractServerList;
 import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ServerList;
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointPort;
-import io.fabric8.kubernetes.api.model.EndpointSubset;
-import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.utils.Utils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Kubernetes {@link ServerList}.
  *
  * @author Ioannis Canellos
+ * @author wuzishu
  */
-public class KubernetesServerList extends AbstractServerList<Server>
-		implements ServerList<Server> {
+public abstract class KubernetesServerList extends AbstractServerList<Server>
+	implements ServerList<Server> {
 
 	private static final int FIRST = 0;
-
-	private static final Log LOG = LogFactory.getLog(KubernetesServerList.class);
 
 	private final KubernetesClient client;
 
@@ -53,62 +44,84 @@ public class KubernetesServerList extends AbstractServerList<Server>
 
 	private String portName;
 
-	public KubernetesServerList(KubernetesClient client) {
+	private KubernetesRibbonProperties properties;
+
+	/**
+	 * Instantiates a new Kubernetes server list.
+	 *
+	 * @param client the client
+	 * @param properties the properties
+	 */
+	public KubernetesServerList(KubernetesClient client,
+		KubernetesRibbonProperties properties) {
 		this.client = client;
+		this.properties = properties;
 	}
 
 	public void initWithNiwsConfig(IClientConfig clientConfig) {
 		this.serviceId = clientConfig.getClientName();
 		this.namespace = clientConfig.getPropertyAsString(KubernetesConfigKey.Namespace,
-				this.client.getNamespace());
+			this.client.getNamespace());
 		this.portName = clientConfig.getPropertyAsString(KubernetesConfigKey.PortName,
-				null);
+			null);
 	}
 
 	public List<Server> getInitialListOfServers() {
 		return Collections.emptyList();
 	}
 
-	public List<Server> getUpdatedListOfServers() {
-		Endpoints endpoints = this.namespace != null
-				? this.client.endpoints().inNamespace(this.namespace)
-						.withName(this.serviceId).get()
-				: this.client.endpoints().withName(this.serviceId).get();
 
-		List<Server> result = new ArrayList<Server>();
-		if (endpoints != null) {
-
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Found [" + endpoints.getSubsets().size()
-						+ "] endpoints in namespace [" + this.namespace + "] for name ["
-						+ this.serviceId + "] and portName [" + this.portName + "]");
-			}
-			for (EndpointSubset subset : endpoints.getSubsets()) {
-
-				if (subset.getPorts().size() == 1) {
-					EndpointPort port = subset.getPorts().get(FIRST);
-					for (EndpointAddress address : subset.getAddresses()) {
-						result.add(new Server(address.getIp(), port.getPort()));
-					}
-				}
-				else {
-					for (EndpointPort port : subset.getPorts()) {
-						if (Utils.isNullOrEmpty(this.portName)
-								|| this.portName.endsWith(port.getName())) {
-							for (EndpointAddress address : subset.getAddresses()) {
-								result.add(new Server(address.getIp(), port.getPort()));
-							}
-						}
-					}
-				}
-			}
-		}
-		else {
-			LOG.warn("Did not find any endpoints in ribbon in namespace ["
-					+ this.namespace + "] for name [" + this.serviceId
-					+ "] and portName [" + this.portName + "]");
-		}
-		return result;
+	/**
+	 * Gets first.
+	 *
+	 * @return the first
+	 */
+	static int getFIRST() {
+		return FIRST;
 	}
 
+	/**
+	 * Gets client.
+	 *
+	 * @return the client
+	 */
+	KubernetesClient getClient() {
+		return client;
+	}
+
+	/**
+	 * Gets service id.
+	 *
+	 * @return the service id
+	 */
+	String getServiceId() {
+		return serviceId;
+	}
+
+	/**
+	 * Gets namespace.
+	 *
+	 * @return the namespace
+	 */
+	String getNamespace() {
+		return namespace;
+	}
+
+	/**
+	 * Gets port name.
+	 *
+	 * @return the port name
+	 */
+	String getPortName() {
+		return portName;
+	}
+
+	/**
+	 * Gets properties.
+	 *
+	 * @return the properties
+	 */
+	KubernetesRibbonProperties getProperties() {
+		return properties;
+	}
 }
