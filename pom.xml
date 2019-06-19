@@ -67,6 +67,7 @@
 		<spring-cloud-netflix.version>2.2.0.BUILD-SNAPSHOT</spring-cloud-netflix.version>
 		<spring-cloud-config.version>2.2.0.BUILD-SNAPSHOT</spring-cloud-config.version>
 
+
 		<!-- Maven Plugin Versions -->
 		<maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
 		<maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
@@ -74,8 +75,11 @@
 		<maven-surefire-plugin.version>2.21.0</maven-surefire-plugin.version>
 		<fabric8.maven.plugin.version>3.5.37</fabric8.maven.plugin.version>
 		<groovy.version>2.4.12</groovy.version>
+		<commons-lang3.version>3.8.1</commons-lang3.version>
 		<restassured.version>3.0.2</restassured.version>
 		<spock-spring.version>1.1-groovy-2.4</spock-spring.version>
+		<feign-core.version>9.7.0</feign-core.version>
+		<transmittable-thread-local.version>2.10.2</transmittable-thread-local.version>
 
 		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
 		<maven-checkstyle-plugin.failsOnViolation>true
@@ -135,6 +139,12 @@
 			</dependency>
 
 			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>${commons-lang3.version}</version>
+			</dependency>
+
+			<dependency>
 				<groupId>org.spockframework</groupId>
 				<artifactId>spock-spring</artifactId>
 				<version>${spock-spring.version}</version>
@@ -146,6 +156,16 @@
 				<artifactId>spring-cloud-test-support</artifactId>
 				<version>${spring-cloud-commons.version}</version>
 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.github.openfeign</groupId>
+				<artifactId>feign-core</artifactId>
+				<version>${feign-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>transmittable-thread-local</artifactId>
+				<version>${transmittable-thread-local.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
