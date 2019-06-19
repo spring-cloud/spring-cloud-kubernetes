@@ -31,13 +31,10 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import static org.hamcrest.Matchers.containsString;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		properties = { "spring.cloud.kubernetes.leader.autoStartup=false" // Make sure
-																			// test passes
-																			// without
-																			// Kubernetes
-																			// cluster
-		})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+		// Make sure test passes without Kubernetes cluster
+		"spring.cloud.kubernetes.leader.autoStartup=false"
+})
 public class LeaderAutoConfigurationTests {
 
 	@Value("${local.server.port}")
