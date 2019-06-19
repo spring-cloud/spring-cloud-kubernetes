@@ -41,11 +41,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Charles Moulliard
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = TestApplication.class, properties = {
-		"spring.application.name=testapp",
-		"spring.cloud.kubernetes.client.namespace=testns",
-		"spring.cloud.kubernetes.client.trustCerts=true",
-		"spring.cloud.kubernetes.config.namespace=testns" })
+@SpringBootTest(classes = TestApplication.class,
+		properties = { "spring.application.name=testapp",
+				"spring.cloud.kubernetes.client.namespace=testns",
+				"spring.cloud.kubernetes.client.trustCerts=true",
+				"spring.cloud.kubernetes.config.namespace=testns" })
 @EnableAutoConfiguration
 @EnableDiscoveryClient
 public class RibbonTest {

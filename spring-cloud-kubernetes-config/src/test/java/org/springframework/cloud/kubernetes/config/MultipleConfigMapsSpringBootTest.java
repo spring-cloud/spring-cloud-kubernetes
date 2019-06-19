@@ -39,8 +39,9 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * @author Charles Moulliard
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = ExampleApp.class, properties = {
-		"spring.cloud.bootstrap.name=multiplecms" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		classes = ExampleApp.class,
+		properties = { "spring.cloud.bootstrap.name=multiplecms" })
 @AutoConfigureWebTestClient
 public class MultipleConfigMapsSpringBootTest {
 

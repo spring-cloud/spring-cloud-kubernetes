@@ -41,11 +41,14 @@ import static org.assertj.core.util.Lists.newArrayList;
 import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
-		"spring.application.name=" + ConfigMapsMixedSpringBootTest.APPLICATION_NAME,
-		"spring.cloud.kubernetes.config.enableApi=true",
-		"spring.cloud.kubernetes.config.paths="
-				+ ConfigMapsMixedSpringBootTest.FILE_NAME_FULL_PATH })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		classes = App.class,
+		properties = {
+				"spring.application.name="
+						+ ConfigMapsMixedSpringBootTest.APPLICATION_NAME,
+				"spring.cloud.kubernetes.config.enableApi=true",
+				"spring.cloud.kubernetes.config.paths="
+						+ ConfigMapsMixedSpringBootTest.FILE_NAME_FULL_PATH })
 public class ConfigMapsMixedSpringBootTest {
 
 	protected static final String FILES_ROOT_PATH = "/tmp/scktests";

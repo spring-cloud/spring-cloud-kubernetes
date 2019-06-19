@@ -61,7 +61,7 @@ public class ConfigMapsTest {
 		KubernetesClient client = this.server.getClient();
 		ConfigMapList configMapList = client.configMaps().inNamespace("ns2").list();
 		assertThat(configMapList).isNotNull();
-		assertThat(configMapList.getAdditionalProperties().size()).isEqualTo(1);
+		assertThat(configMapList.getAdditionalProperties()).containsKey("data");
 		@SuppressWarnings("unchecked")
 		Map<String, String> data = (Map<String, String>) configMapList
 				.getAdditionalProperties().get("data");

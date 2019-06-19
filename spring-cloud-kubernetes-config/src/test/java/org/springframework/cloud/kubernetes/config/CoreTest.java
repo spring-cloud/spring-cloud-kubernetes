@@ -36,12 +36,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = TestApplication.class, properties = {
-		"spring.application.name=testapp",
-		"spring.cloud.kubernetes.client.namespace=testns",
-		"spring.cloud.kubernetes.client.trustCerts=true",
-		"spring.cloud.kubernetes.config.namespace=testns",
-		"spring.cloud.kubernetes.secrets.enableApi=true" })
+@SpringBootTest(classes = TestApplication.class,
+		properties = { "spring.application.name=testapp",
+				"spring.cloud.kubernetes.client.namespace=testns",
+				"spring.cloud.kubernetes.client.trustCerts=true",
+				"spring.cloud.kubernetes.config.namespace=testns",
+				"spring.cloud.kubernetes.secrets.enableApi=true" })
 public class CoreTest {
 
 	@ClassRule
