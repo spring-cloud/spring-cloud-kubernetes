@@ -26,9 +26,12 @@ import java.util.TreeMap;
 import com.alibaba.ttl.TransmittableThreadLocal;
 
 /**
- * the HeaderPropagationHolder description.
+ * Define TransmittableThreadLocal thread safety variable,
+ * support thread pool to pass variables,
+ * no variable value error due to thread multiplexing.
  *
  * @author wuzishu
+ * @see com.alibaba.ttl.TransmittableThreadLocal
  */
 public final class HeaderPropagationHolder {
 

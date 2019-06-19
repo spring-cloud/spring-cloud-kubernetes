@@ -35,9 +35,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 
 /**
- * the ThreadLocalHystrixConcurrencyStrategy description.
+ * Customize the thread pool of Hystrix thread pool mode, enabling it to pass Istio call chain headers without Header value error.
  *
  * @author wuzishu
+ * @see com.netflix.hystrix.strategy.concurrency.HystrixConcurrencyStrategy
+ * @see org.springframework.cloud.kubernetes.istio.trace.ThreadLocalThreadPoolExecutor
  */
 @ConditionalOnClass(HystrixConcurrencyStrategy.class)
 @ConditionalOnProperty(value = "spring.cloud.istio.enabled", matchIfMissing = true)

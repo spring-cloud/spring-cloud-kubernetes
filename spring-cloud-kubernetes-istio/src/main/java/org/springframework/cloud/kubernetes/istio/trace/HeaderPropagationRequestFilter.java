@@ -29,9 +29,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * the HeaderPropagationRequestFilter description.
+ * Define the RequestFilter and set the TraceHeader of Istio to the HeaderPropagationHolder,
+ * which is provided to the thread pool and can be passed to the next call.
  *
  * @author wuzishu
+ * @see org.springframework.web.filter.OncePerRequestFilter
+ * @see org.springframework.cloud.kubernetes.istio.trace.HeaderPropagationHolder
  */
 
 public abstract class HeaderPropagationRequestFilter extends OncePerRequestFilter {

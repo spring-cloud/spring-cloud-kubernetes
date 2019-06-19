@@ -23,9 +23,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.kubernetes.istio.IstioConstants;
 
 /**
- * the IstioHeaderPropagatoinRequestFilter description.
+ * Inherited from HeaderPropagationRequestFilter and set the headers of Istio that need to be passed.
  *
  * @author wuzishu
+ * @see org.springframework.cloud.kubernetes.istio.trace.HeaderPropagationRequestFilter
  */
 @ConditionalOnProperty(value = "spring.cloud.istio.enabled", matchIfMissing = true)
 public class IstioHeaderPropagatoinRequestFilter extends HeaderPropagationRequestFilter {

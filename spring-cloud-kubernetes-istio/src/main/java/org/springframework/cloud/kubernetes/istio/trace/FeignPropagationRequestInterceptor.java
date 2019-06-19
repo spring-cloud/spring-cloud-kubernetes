@@ -49,27 +49,8 @@ public class FeignPropagationRequestInterceptor implements RequestInterceptor {
 
 	@Override
 	public void apply(RequestTemplate requestTemplate) {
-
-		// ServletRequestAttributes attrs = (ServletRequestAttributes)
-		// RequestContextHolder
-		// .getRequestAttributes();
-		// LOG.warn("-------> in " + attrs);
-		// if (attrs != null) {
-		// for (String header : HEADERS) {
-		// HttpServletRequest request = attrs.getRequest();
-		// String value = request.getHeader(header);
-		// LOG.warn("----->" + header + ":" + value);
-		// if (StringUtils.isNotBlank(value)) {
-		// requestTemplate.header(header, value);
-		//
-		// }
-		//
-		// }
-		// }
-
 		for (String header : HEADERS) {
 			String value = HeaderPropagationHolder.get(header);
-			LOG.warn("----->" + header + ":" + value);
 			if (StringUtils.isNotBlank(value)) {
 				requestTemplate.header(header, value);
 			}

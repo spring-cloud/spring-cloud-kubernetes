@@ -25,9 +25,11 @@ import java.util.concurrent.TimeUnit;
 import com.alibaba.ttl.TtlRunnable;
 
 /**
- * the ThreadLocalThreadPoolExecutor description.
+ * Custom ThreadPoolExecutor implements thread pool context ThreadLocal variable passing.
  *
  * @author wuzishu
+ * @see java.util.concurrent.ThreadPoolExecutor
+ * @see com.alibaba.ttl.TtlRunnable
  */
 public class ThreadLocalThreadPoolExecutor extends ThreadPoolExecutor {
 

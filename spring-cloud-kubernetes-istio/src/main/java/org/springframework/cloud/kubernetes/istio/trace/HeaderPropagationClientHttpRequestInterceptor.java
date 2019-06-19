@@ -29,9 +29,10 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 
 /**
- * the HeaderPropagationClientHttpRequestInterceptor description.
+ * Define the ClientHttpRequestInterceptor interceptor to pass the Istio request headers.
  *
  * @author wuzishu
+ * @see org.springframework.cloud.kubernetes.istio.trace.HeaderPropagationHolder
  */
 @ConditionalOnProperty(value = "spring.cloud.istio.enabled", matchIfMissing = true)
 public class HeaderPropagationClientHttpRequestInterceptor

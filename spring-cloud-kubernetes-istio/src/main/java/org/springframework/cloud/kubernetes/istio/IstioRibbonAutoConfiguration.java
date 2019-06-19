@@ -31,9 +31,11 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * the IstioRibbonAutoConfiguration description.
+ * Set the interceptor for the RestTemplate to pass the Istio call chain Headers.
  *
  * @author wuzishu
+ * @see org.springframework.cloud.kubernetes.istio.trace.HeaderPropagationClientHttpRequestInterceptor
+ * @see org.springframework.http.client.ClientHttpRequestInterceptor
  */
 @ConditionalOnClass(RestTemplate.class)
 @ConditionalOnBean(LoadBalancerClient.class)

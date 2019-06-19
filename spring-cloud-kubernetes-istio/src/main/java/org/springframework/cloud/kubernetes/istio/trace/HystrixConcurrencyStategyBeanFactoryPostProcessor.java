@@ -26,9 +26,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 /**
- * the HystrixConcurrencyStategyBeanFactoryPostProcessor description.
+ * Use BeanFactoryProcessor to customize Hystrix's thread pool to support Istio's call chain headers.
  *
  * @author wuzishu
+ * @see org.springframework.beans.factory.config.BeanFactoryPostProcessor
+ * @see org.springframework.cloud.kubernetes.istio.trace.ThreadLocalHystrixConcurrencyStrategy
+ * @see com.netflix.hystrix.strategy.HystrixPlugins
  */
 @ConditionalOnClass(HystrixConcurrencyStrategy.class)
 @ConditionalOnProperty(value = "spring.cloud.istio.enabled", matchIfMissing = true)
