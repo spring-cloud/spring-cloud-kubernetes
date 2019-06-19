@@ -40,6 +40,7 @@ import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.ya
  * A {@link MapPropertySource} that uses Kubernetes config maps.
  *
  * @author Ioannis Canellos
+ * @author Ali Shahbour
  */
 public class ConfigMapPropertySource extends MapPropertySource {
 
@@ -59,7 +60,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
 			String[] profiles) {
-		this(client, name, null, createEnvironmentWithActiveProfiles(profiles));
+		this(client, name, namespace, createEnvironmentWithActiveProfiles(profiles));
 	}
 
 	private static Environment createEnvironmentWithActiveProfiles(
@@ -88,13 +89,33 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	private static Map<String, String> getData(KubernetesClient client, String name,
 			String namespace, Environment environment) {
 		try {
+			Map<String, String> result = new HashMap<>();
 			ConfigMap map = StringUtils.isEmpty(namespace)
 					? client.configMaps().withName(name).get()
 					: client.configMaps().inNamespace(namespace).withName(name).get();
 
 			if (map != null) {
-				return processAllEntries(map.getData(), environment);
+				result.putAll(processAllEntries(map.getData(), environment));
 			}
+
+			if (environment != null) {
+				for (String activeProfile:environment.getActiveProfiles()) {
+
+					String mapNameWithProfile = name + "-" + activeProfile;
+
+					ConfigMap mapWithProfile = StringUtils.isEmpty(namespace)
+						? client.configMaps().withName(mapNameWithProfile).get()
+						: client.configMaps().inNamespace(namespace).withName(mapNameWithProfile).get();
+
+					if (mapWithProfile != null) {
+						result.putAll(processAllEntries(mapWithProfile.getData(), environment));
+					}
+
+				}
+			}
+
+			return result;
+
 		}
 		catch (Exception e) {
 			LOG.warn("Can't read configMap with name: [" + name + "] in namespace:["
@@ -103,6 +124,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
 
 		return new HashMap<>();
 	}
+
 
 	private static Map<String, String> processAllEntries(Map<String, String> input,
 			Environment environment) {

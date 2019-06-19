@@ -1,0 +1,4 @@
+spring:
+  profiles: development
+bean:
+  greeting: "Hello ConfigMap Active Profile Name, %s!"
