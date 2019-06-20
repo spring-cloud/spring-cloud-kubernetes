@@ -99,18 +99,16 @@ public class ConfigMapPropertySource extends MapPropertySource {
 			}
 
 			if (environment != null) {
-				for (String activeProfile : environment.getActiveProfiles()) {
+				for (String activeProfile:environment.getActiveProfiles()) {
 
 					String mapNameWithProfile = name + "-" + activeProfile;
 
 					ConfigMap mapWithProfile = StringUtils.isEmpty(namespace)
-							? client.configMaps().withName(mapNameWithProfile).get()
-							: client.configMaps().inNamespace(namespace)
-									.withName(mapNameWithProfile).get();
+						? client.configMaps().withName(mapNameWithProfile).get()
+						: client.configMaps().inNamespace(namespace).withName(mapNameWithProfile).get();
 
 					if (mapWithProfile != null) {
-						result.putAll(
-								processAllEntries(mapWithProfile.getData(), environment));
+						result.putAll(processAllEntries(mapWithProfile.getData(), environment));
 					}
 
 				}
@@ -126,6 +124,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
 
 		return new HashMap<>();
 	}
+
 
 	private static Map<String, String> processAllEntries(Map<String, String> input,
 			Environment environment) {
