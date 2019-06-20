@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.config;
 
 import java.util.HashMap;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -31,27 +32,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.config.example.App;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
+import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @author Charles Moulliard
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = App.class,
-		properties = { "spring.application.name=configmap-without-profile-example",
+		classes = App.class, properties = { "spring.application.name=configmap-example",
 				"spring.cloud.kubernetes.reload.enabled=false" })
-@ActiveProfiles("development")
 @AutoConfigureWebTestClient
-public class ConfigMapsWithoutProfilesSpringBootTest {
+public class ConfigMapsTests {
 
-	private static final String APPLICATION_NAME = "configmap-without-profile-example";
+	private static final String APPLICATION_NAME = "configmap-example";
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
 	private static KubernetesClient mockClient;
+
+	@Autowired(required = false)
+	private Config config;
 
 	@Autowired
 	private WebTestClient webClient;
@@ -70,8 +74,7 @@ public class ConfigMapsWithoutProfilesSpringBootTest {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 
 		HashMap<String, String> data = new HashMap<>();
-		data.put("application.yml",
-				readResourceFile("application-without-profiles.yaml"));
+		data.put("bean.greeting", "Hello ConfigMap, %s!");
 		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME)
 				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
 						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
@@ -79,15 +82,24 @@ public class ConfigMapsWithoutProfilesSpringBootTest {
 	}
 
 	@Test
-	public void testGreetingEndpoint() {
-		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
-				.expectBody().jsonPath("content").isEqualTo("Hello ConfigMap, World!");
+	public void testConfig() {
+		assertThat(mockClient.getConfiguration().getMasterUrl())
+				.isEqualTo(this.config.getMasterUrl());
+		assertThat(mockClient.getNamespace()).isEqualTo(this.config.getNamespace());
 	}
 
 	@Test
-	public void testFarewellEndpoint() {
-		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk()
-				.expectBody().jsonPath("content").isEqualTo("Goodbye ConfigMap, World!");
+	public void testConfigMap() {
+		ConfigMap configmap = mockClient.configMaps().inNamespace("test")
+				.withName(APPLICATION_NAME).get();
+		HashMap<String, String> keys = (HashMap<String, String>) configmap.getData();
+		assertThat("Hello ConfigMap, %s!").isEqualTo(keys.get("bean.greeting"));
+	}
+
+	@Test
+	public void testGreetingEndpoint() {
+		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
+				.expectBody().jsonPath("content").isEqualTo("Hello ConfigMap, World!");
 	}
 
 }

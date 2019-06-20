@@ -35,29 +35,23 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
 
-/**
- * @author Ali Shahbour
- */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT, classes = App.class, properties = {
-		"spring.application.name=configmap-with-active-profile-name-example",
-		"spring.cloud.kubernetes.reload.enabled=false" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		classes = App.class,
+		properties = { "spring.application.name=configmap-without-profile-example",
+				"spring.cloud.kubernetes.reload.enabled=false" })
 @ActiveProfiles("development")
 @AutoConfigureWebTestClient
-public class ConfigMapsWithActiveProfilesNameSpringBootTest {
+public class ConfigMapsWithoutProfilesTests {
 
-	private static final String APPLICATION_NAME = "configmap-with-active-profile-name-example";
+	private static final String APPLICATION_NAME = "configmap-without-profile-example";
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
 	private static KubernetesClient mockClient;
-
-	@Autowired(required = false)
-	Config config;
 
 	@Autowired
 	private WebTestClient webClient;
@@ -76,37 +70,24 @@ public class ConfigMapsWithActiveProfilesNameSpringBootTest {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 
 		HashMap<String, String> data = new HashMap<>();
-		data.put("application.yml", readResourceFile("application-with-profiles.yaml"));
+		data.put("application.yml",
+				readResourceFile("application-without-profiles.yaml"));
 		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME)
 				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
 						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
-				.always();
-
-		HashMap<String, String> dataWithName = new HashMap<>();
-		dataWithName.put("application.yml",
-				readResourceFile("application-with-active-profiles-name.yaml"));
-		server.expect()
-				.withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME
-						+ "-development")
-				.andReturn(200,
-						new ConfigMapBuilder().withNewMetadata()
-								.withName(APPLICATION_NAME + "-development").endMetadata()
-								.addToData(dataWithName).build())
 				.always();
 	}
 
 	@Test
 	public void testGreetingEndpoint() {
 		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
-				.expectBody().jsonPath("content")
-				.isEqualTo("Hello ConfigMap Active Profile Name, World!");
+				.expectBody().jsonPath("content").isEqualTo("Hello ConfigMap, World!");
 	}
 
 	@Test
 	public void testFarewellEndpoint() {
 		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk()
-				.expectBody().jsonPath("content")
-				.isEqualTo("Goodbye ConfigMap default, World!");
+				.expectBody().jsonPath("content").isEqualTo("Goodbye ConfigMap, World!");
 	}
 
 }
