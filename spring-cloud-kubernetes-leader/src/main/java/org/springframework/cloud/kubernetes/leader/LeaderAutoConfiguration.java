@@ -41,8 +41,7 @@ import org.springframework.integration.leader.event.LeaderEventPublisher;
 @Configuration
 @EnableConfigurationProperties(LeaderProperties.class)
 @ConditionalOnBean(KubernetesClient.class)
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled",
-		matchIfMissing = true)
+@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
 public class LeaderAutoConfiguration {
 
 	@Bean
