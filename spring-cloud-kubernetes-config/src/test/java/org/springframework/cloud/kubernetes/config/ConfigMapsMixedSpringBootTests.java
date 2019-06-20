@@ -45,11 +45,11 @@ import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.read
 		classes = App.class,
 		properties = {
 				"spring.application.name="
-						+ ConfigMapsMixedSpringBootTest.APPLICATION_NAME,
+						+ ConfigMapsMixedSpringBootTests.APPLICATION_NAME,
 				"spring.cloud.kubernetes.config.enableApi=true",
 				"spring.cloud.kubernetes.config.paths="
-						+ ConfigMapsMixedSpringBootTest.FILE_NAME_FULL_PATH })
-public class ConfigMapsMixedSpringBootTest {
+						+ ConfigMapsMixedSpringBootTests.FILE_NAME_FULL_PATH })
+public class ConfigMapsMixedSpringBootTests {
 
 	protected static final String FILES_ROOT_PATH = "/tmp/scktests";
 
