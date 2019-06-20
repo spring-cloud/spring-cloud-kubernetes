@@ -30,7 +30,7 @@
 
 	<groupId>org.springframework.cloud</groupId>
 	<artifactId>spring-cloud-kubernetes</artifactId>
-	<version>1.0.3.BUILD-SNAPSHOT</version>
+	<version>1.0.4.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes</name>
 
