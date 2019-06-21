@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.config;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
@@ -31,31 +30,36 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.config.example2.ExampleApp;
+import org.springframework.cloud.kubernetes.config.example.App;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
+
 /**
- * @author Charles Moulliard
+ * Tests reading property from YAML document specified by profile expression.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = ExampleApp.class,
-		properties = { "spring.cloud.bootstrap.name=multiplecms" })
+		classes = App.class,
+		properties = { "spring.application.name=configmap-with-profile-example",
+				"spring.cloud.kubernetes.reload.enabled=false" })
+@ActiveProfiles({ "production", "us-east" })
 @AutoConfigureWebTestClient
-public class MultipleConfigMapsSpringBootTest {
+public class ConfigMapsWithProfileExpressionTests {
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
-	private static KubernetesClient mockClient;
+	private static final String APPLICATION_NAME = "configmap-with-profile-example";
 
 	@Autowired
 	private WebTestClient webClient;
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
-		mockClient = server.getClient();
+		KubernetesClient mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
@@ -66,65 +70,19 @@ public class MultipleConfigMapsSpringBootTest {
 				"false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 
-		createConfigmap(server, "s1", "defnamespace", new HashMap<String, String>() {
-			{
-				put("bean.common-message", "c1");
-				put("bean.message1", "m1");
-			}
-		});
-
-		createConfigmap(server, "defname", "s2", new HashMap<String, String>() {
-			{
-				put("bean.common-message", "c2");
-				put("bean.message2", "m2");
-			}
-		});
-
-		createConfigmap(server, "othername", "othernamespace",
-				new HashMap<String, String>() {
-					{
-						put("bean.common-message", "c3");
-						put("bean.message3", "m3");
-					}
-				});
-	}
-
-	private static void createConfigmap(KubernetesServer server, String configMapName,
-			String namespace, Map<String, String> data) {
-
-		server.expect()
-				.withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace,
-						configMapName))
+		HashMap<String, String> data = new HashMap<>();
+		data.put("application.yml", readResourceFile("application-with-profiles.yaml"));
+		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME)
 				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
-						.withName(configMapName).endMetadata().addToData(data).build())
+						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
 				.always();
 	}
 
-	// the last confimap defined in 'multiplecms.yml' has the highest priority, so
-	// the common property defined in all configmaps is taken from the last one defined
 	@Test
-	public void testCommonMessage() {
-		assertResponse("/common", "c3");
-	}
-
-	@Test
-	public void testMessage1() {
-		assertResponse("/m1", "m1");
-	}
-
-	@Test
-	public void testMessage2() {
-		assertResponse("/m2", "m2");
-	}
-
-	@Test
-	public void testMessage3() {
-		assertResponse("/m3", "m3");
-	}
-
-	private void assertResponse(String path, String expectedMessage) {
-		this.webClient.get().uri(path).exchange().expectStatus().isOk().expectBody()
-				.jsonPath("message").isEqualTo(expectedMessage);
+	public void testGreetingEndpoint() {
+		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
+				.expectBody().jsonPath("content")
+				.isEqualTo("Hello ConfigMap production and us-east, World!");
 	}
 
 }

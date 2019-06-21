@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.config;
 
 import java.util.HashMap;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -32,22 +31,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.config.example.App;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
 
 /**
- * @author Charles Moulliard
+ * @author Ali Shahbour
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = App.class, properties = { "spring.application.name=configmap-example",
-				"spring.cloud.kubernetes.reload.enabled=false" })
+@SpringBootTest(webEnvironment = RANDOM_PORT, classes = App.class, properties = {
+		"spring.application.name=configmap-with-active-profile-name-example",
+		"spring.cloud.kubernetes.reload.enabled=false" })
+@ActiveProfiles("development")
 @AutoConfigureWebTestClient
-public class ConfigMapsSpringBootTest {
+public class ConfigMapsWithActiveProfilesNameTests {
 
-	private static final String APPLICATION_NAME = "configmap-example";
+	private static final String APPLICATION_NAME = "configmap-with-active-profile-name-example";
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
@@ -55,7 +57,7 @@ public class ConfigMapsSpringBootTest {
 	private static KubernetesClient mockClient;
 
 	@Autowired(required = false)
-	private Config config;
+	Config config;
 
 	@Autowired
 	private WebTestClient webClient;
@@ -74,32 +76,37 @@ public class ConfigMapsSpringBootTest {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 
 		HashMap<String, String> data = new HashMap<>();
-		data.put("bean.greeting", "Hello ConfigMap, %s!");
+		data.put("application.yml", readResourceFile("application-with-profiles.yaml"));
 		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME)
 				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
 						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
 				.always();
-	}
 
-	@Test
-	public void testConfig() {
-		assertThat(mockClient.getConfiguration().getMasterUrl())
-				.isEqualTo(this.config.getMasterUrl());
-		assertThat(mockClient.getNamespace()).isEqualTo(this.config.getNamespace());
-	}
-
-	@Test
-	public void testConfigMap() {
-		ConfigMap configmap = mockClient.configMaps().inNamespace("test")
-				.withName(APPLICATION_NAME).get();
-		HashMap<String, String> keys = (HashMap<String, String>) configmap.getData();
-		assertThat("Hello ConfigMap, %s!").isEqualTo(keys.get("bean.greeting"));
+		HashMap<String, String> dataWithName = new HashMap<>();
+		dataWithName.put("application.yml",
+				readResourceFile("application-with-active-profiles-name.yaml"));
+		server.expect()
+				.withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME
+						+ "-development")
+				.andReturn(200,
+						new ConfigMapBuilder().withNewMetadata()
+								.withName(APPLICATION_NAME + "-development").endMetadata()
+								.addToData(dataWithName).build())
+				.always();
 	}
 
 	@Test
 	public void testGreetingEndpoint() {
 		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
-				.expectBody().jsonPath("content").isEqualTo("Hello ConfigMap, World!");
+				.expectBody().jsonPath("content")
+				.isEqualTo("Hello ConfigMap Active Profile Name, World!");
+	}
+
+	@Test
+	public void testFarewellEndpoint() {
+		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk()
+				.expectBody().jsonPath("content")
+				.isEqualTo("Goodbye ConfigMap default, World!");
 	}
 
 }
