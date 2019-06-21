@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,30 +35,36 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
 
 /**
- * Tests reading property from YAML document specified by profile expression.
+ * @author Ali Shahbour
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
-		"spring.application.name=configmap-with-profile-example",
+@SpringBootTest(webEnvironment = RANDOM_PORT, classes = App.class, properties = {
+		"spring.application.name=configmap-with-active-profile-name-example",
 		"spring.cloud.kubernetes.reload.enabled=false" })
-@ActiveProfiles({ "production", "us-east" })
+@ActiveProfiles("development")
 @AutoConfigureWebTestClient
-public class ConfigMapsWithProfileExpressionSpringBootTest {
+public class ConfigMapsWithActiveProfilesNameTests {
+
+	private static final String APPLICATION_NAME = "configmap-with-active-profile-name-example";
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
-	private static final String APPLICATION_NAME = "configmap-with-profile-example";
+	private static KubernetesClient mockClient;
+
+	@Autowired(required = false)
+	Config config;
 
 	@Autowired
 	private WebTestClient webClient;
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
-		KubernetesClient mockClient = server.getClient();
+		mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
@@ -75,13 +81,32 @@ public class ConfigMapsWithProfileExpressionSpringBootTest {
 				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
 						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
 				.always();
+
+		HashMap<String, String> dataWithName = new HashMap<>();
+		dataWithName.put("application.yml",
+				readResourceFile("application-with-active-profiles-name.yaml"));
+		server.expect()
+				.withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME
+						+ "-development")
+				.andReturn(200,
+						new ConfigMapBuilder().withNewMetadata()
+								.withName(APPLICATION_NAME + "-development").endMetadata()
+								.addToData(dataWithName).build())
+				.always();
 	}
 
 	@Test
 	public void testGreetingEndpoint() {
 		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
 				.expectBody().jsonPath("content")
-				.isEqualTo("Hello ConfigMap production and us-east, World!");
+				.isEqualTo("Hello ConfigMap Active Profile Name, World!");
+	}
+
+	@Test
+	public void testFarewellEndpoint() {
+		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk()
+				.expectBody().jsonPath("content")
+				.isEqualTo("Goodbye ConfigMap default, World!");
 	}
 
 }
