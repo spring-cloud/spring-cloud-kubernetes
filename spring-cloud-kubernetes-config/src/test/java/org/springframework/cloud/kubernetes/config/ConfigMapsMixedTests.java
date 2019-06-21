@@ -19,7 +19,9 @@ package org.springframework.cloud.kubernetes.config;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
@@ -36,35 +38,26 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.assertj.core.util.Lists.newArrayList;
-import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.createFileWithContent;
+import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		classes = App.class,
-		properties = { "spring.application.name=configmap-path-example",
-				"spring.cloud.kubernetes.config.enableApi=false",
+		properties = {
+				"spring.application.name="
+						+ ConfigMapsMixedTests.APPLICATION_NAME,
+				"spring.cloud.kubernetes.config.enableApi=true",
 				"spring.cloud.kubernetes.config.paths="
-						+ ConfigMapsFromFilePathsSpringBootTest.FIRST_FILE_NAME_FULL_PATH
-						+ ","
-						+ ConfigMapsFromFilePathsSpringBootTest.SECOND_FILE_NAME_FULL_PATH })
-public class ConfigMapsFromFilePathsSpringBootTest {
+						+ ConfigMapsMixedTests.FILE_NAME_FULL_PATH })
+public class ConfigMapsMixedTests {
 
 	protected static final String FILES_ROOT_PATH = "/tmp/scktests";
 
-	protected static final String FIRST_FILE_NAME = "application.properties";
+	protected static final String FILE_NAME = "application-path.yaml";
 
-	protected static final String SECOND_FILE_NAME = "extra.properties";
+	protected static final String FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/" + FILE_NAME;
 
-	protected static final String UNUSED_FILE_NAME = "unused.properties";
-
-	protected static final String FIRST_FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/"
-			+ FIRST_FILE_NAME;
-
-	protected static final String SECOND_FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/"
-			+ SECOND_FILE_NAME;
-
-	protected static final String UNUSED_FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/"
-			+ UNUSED_FILE_NAME;
+	protected static final String APPLICATION_NAME = "configmap-mixed-example";
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
@@ -88,41 +81,47 @@ public class ConfigMapsFromFilePathsSpringBootTest {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 
 		Files.createDirectories(Paths.get(FILES_ROOT_PATH));
-		createFileWithContent(FIRST_FILE_NAME_FULL_PATH,
-				"bean.greeting=Hello from path!");
-		createFileWithContent(SECOND_FILE_NAME_FULL_PATH, "bean.farewell=Bye from path!");
-		createFileWithContent(UNUSED_FILE_NAME_FULL_PATH,
-				"bean.morning=Morning from path!");
+		ConfigMapTestUtil.createFileWithContent(FILE_NAME_FULL_PATH,
+				readResourceFile("application-path.yaml"));
+
+		HashMap<String, String> data = new HashMap<>();
+		data.put("bean.morning", "Buenos Dias ConfigMap, %s");
+		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME)
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
+						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
+				.always();
 	}
 
 	@AfterClass
 	public static void teardownAfterClass() {
-		newArrayList(FIRST_FILE_NAME_FULL_PATH, SECOND_FILE_NAME_FULL_PATH,
-				SECOND_FILE_NAME_FULL_PATH, FILES_ROOT_PATH).forEach(fn -> {
-					try {
-						Files.delete(Paths.get(fn));
-					}
-					catch (IOException ignored) {
-					}
-				});
+		newArrayList(FILE_NAME_FULL_PATH, FILES_ROOT_PATH).forEach(fn -> {
+			try {
+				Files.delete(Paths.get(fn));
+			}
+			catch (IOException ignored) {
+			}
+		});
 	}
 
 	@Test
-	public void greetingInputShouldReturnPropertyFromFirstFile() {
+	public void greetingInputShouldReturnPropertyFromFile() {
 		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
-				.expectBody().jsonPath("content").isEqualTo("Hello from path!");
+				.expectBody().jsonPath("content")
+				.isEqualTo("Hello ConfigMap, World from path");
 	}
 
 	@Test
-	public void farewellInputShouldReturnPropertyFromSecondFile() {
+	public void farewellInputShouldReturnPropertyFromFile() {
 		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk()
-				.expectBody().jsonPath("content").isEqualTo("Bye from path!");
+				.expectBody().jsonPath("content")
+				.isEqualTo("Bye ConfigMap, World from path");
 	}
 
 	@Test
-	public void morningInputShouldReturnDefaultValue() {
+	public void morningInputShouldReturnPropertyFromApi() {
 		this.webClient.get().uri("/api/morning").exchange().expectStatus().isOk()
-				.expectBody().jsonPath("content").isEqualTo("Good morning, World!");
+				.expectBody().jsonPath("content")
+				.isEqualTo("Buenos Dias ConfigMap, World");
 	}
 
 }
