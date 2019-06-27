@@ -40,6 +40,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.util.Assert;
 
 /**
  * Definition of beans needed for the automatic reload of configuration.
@@ -112,9 +113,11 @@ public class ConfigReloadAutoConfiguration {
 		@ConditionalOnMissingBean
 		public ConfigurationUpdateStrategy configurationUpdateStrategy(
 				ConfigReloadProperties properties, ConfigurableApplicationContext ctx,
-				RestartEndpoint restarter, ContextRefresher refresher) {
+				@Autowired(required = false) RestartEndpoint restarter,
+				ContextRefresher refresher) {
 			switch (properties.getStrategy()) {
 			case RESTART_CONTEXT:
+				Assert.notNull(restarter, "Restart endpoint is not enabled");
 				return new ConfigurationUpdateStrategy(properties.getStrategy().name(),
 						() -> {
 							wait(properties);
