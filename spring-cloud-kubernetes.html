@@ -336,7 +336,7 @@ Using native kubernetes service discovery ensures compatibility with additional 
 <h2 id="_kubernetes_propertysource_implementations"><a class="link" href="#_kubernetes_propertysource_implementations">Kubernetes PropertySource implementations</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The most common approach to configuring your Spring Boot application is to create an <code>application.properties</code> or <code>applicaiton.yaml</code> or
+<p>The most common approach to configuring your Spring Boot application is to create an <code>application.properties</code> or <code>application.yaml</code> or
 an <code>application-profile.properties</code> or <code>application-profile.yaml</code> file that contains key-value pairs that provide customization values to your
 application or Spring Boot starters. You can override these properties by specifying system properties or environment
 variables.</p>
@@ -564,26 +564,98 @@ data:
 <p>If both profiles are active, the property that appears last within the <code>ConfigMap</code> overwrites any preceding values.</p>
 </div>
 <div class="paragraph">
-<p>To tell Spring Boot which <code>profile</code> should be enabled at bootstrap, you can pass a system property to the Java
-command. To do so, you can launch your Spring Boot application with an environment variable that you can define with the OpenShift
-<code>DeploymentConfig</code> or Kubernetes <code>ReplicationConfig</code> resource file, as follows:</p>
+<p>Another option is to create a different config map per profile and spring boot will automatically fetch it based
+on active profiles</p>
 </div>
 <div class="exampleblock">
 <div class="content">
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
-kind: DeploymentConfig
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello to the World
+    farewell:
+      message: Say Goodbye</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-development
+data:
+  application.yml: |-
+    spring:
+      profiles: development
+    greeting:
+      message: Say Hello to the Developers
+    farewell:
+      message: Say Goodbye to the Developers</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-production
+data:
+  application.yml: |-
+    spring:
+      profiles: production
+    greeting:
+      message: Say Hello to the Ops
+    farewell:
+      message: Say Goodbye</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>To tell Spring Boot which <code>profile</code> should be enabled at bootstrap, you can pass <code>SPRING_PROFILES_ACTIVE</code> environment variable.
+ To do so, you can launch your Spring Boot application with an environment variable that you can define it in the PodSpec at the container specification.
+ Deployment resource file, as follows:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-name
+  labels:
+    app: deployment-name
 spec:
   replicas: 1
-  ...
-    spec:
-      containers:
-      - env:
-        - name: JAVA_APP_DIR
-          value: /deployments
-        - name: JAVA_OPTIONS
-          value: -Dspring.profiles.active=developer</code></pre>
+  selector:
+    matchLabels:
+      app: deployment-name
+  template:
+    metadata:
+      labels:
+        app: deployment-name
+	spec:
+		containers:
+		- name: container-name
+		  image: your-image
+		  env:
+		  - name: SPRING_PROFILES_ACTIVE
+			value: "development"</code></pre>
 </div>
 </div>
 </div>
@@ -1126,6 +1198,61 @@ behavior is to use the first one found. To select more specifically which port t
 the <code>PortName</code> key. If you want to specify in which Kubernetes namespace the target service should be looked up, you can use
 the <code>KubernetesNamespace</code> key, remembering in both instances to prefix these keys with your service name and
 <code>ribbon</code> prefix, as specified earlier.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 4. Spring Cloud Kubernetes Ribbon Configuration</caption>
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property Key</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.ribbon.enabled</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.ribbon.mode</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KubernetesRibbonMode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POD</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.ribbon.cluster-domain</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">cluster.local</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p><code>spring.cloud.kubernetes.ribbon.mode</code> supports <code>POD</code> and <code>SERVICE</code> modes.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The POD mode is to achieve load balancing by obtaining the Pod IP address of Kubernetes and using Ribbon.
+POD mode uses the load balancing of the Ribbon Does not support Kubernetes load balancing, The traffic policy of <code>Istio</code> is not supported.</p>
+</li>
+<li>
+<p>the <code>SERVICE</code> mode is directly based on the <code>service name</code> of the Ribbon. Get
+The Kubernetes service is concatenated into <code>service-name.{namespace}.svc.{cluster.domain}:{port}</code> such as: <code>demo1.default.svc.cluster.local:8080</code>.
+the <code>SERVICE</code> mode uses load balancing of the Kubernetes service to support Istio&#8217;s traffic policy.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>spring.cloud.kubernetes.ribbon.cluster-domain</code> Set the custom Kubernetes cluster domain suffix. The default value is: 'cluster.local'</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>The following examples use this module for ribbon discovery:</p>
