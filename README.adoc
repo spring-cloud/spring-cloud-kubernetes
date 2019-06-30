@@ -596,7 +596,7 @@ This means, for example, that using polling on file-mounted secret sources does 
 | `spring.cloud.kubernetes.reload.enabled`                 | `Boolean` | `false`                      | Enables monitoring of property sources and configuration reload
 | `spring.cloud.kubernetes.reload.monitoring-config-maps`  | `Boolean` | `true`                       | Allow monitoring changes in config maps
 | `spring.cloud.kubernetes.reload.monitoring-secrets`      | `Boolean` | `false`                      | Allow monitoring changes in secrets
-| `spring.cloud.kubernetes.reload.strategy `               | `Enum`    | `refresh`                    | The strategy to use when firing a reload (`refresh`, `restart_context`, or `shutdown`)
+| `spring.cloud.kubernetes.reload.strategy`               | `Enum`    | `refresh`                    | The strategy to use when firing a reload (`refresh`, `restart_context`, or `shutdown`)
 | `spring.cloud.kubernetes.reload.mode`                    | `Enum`    | `event`                      | Specifies how to listen for changes in property sources (`event` or `polling`)
 | `spring.cloud.kubernetes.reload.period`                  | `Duration`| `15s`                        | The period for verifying changes when using the `polling` strategy
 |===
