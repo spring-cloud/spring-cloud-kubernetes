@@ -43,8 +43,8 @@ public class KubernetesProfileEnvironmentPostProcessor
 	public void postProcessEnvironment(ConfigurableEnvironment environment,
 			SpringApplication application) {
 
-		final String enabledStr = environment.getProperty("spring.cloud.kubernetes.enabled", "false");
-		if ("true".equals(enabledStr.toLowerCase())) {
+		final String enabledStr = environment.getProperty("spring.cloud.kubernetes.enabled", "true");
+		if ("false".equals(enabledStr.toLowerCase())) {
 			return;
 		}
 
