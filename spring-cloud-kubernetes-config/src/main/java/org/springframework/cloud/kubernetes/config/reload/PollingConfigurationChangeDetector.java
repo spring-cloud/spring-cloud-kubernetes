@@ -81,12 +81,12 @@ public class PollingConfigurationChangeDetector extends ConfigurationChangeDetec
 
 		boolean changedSecrets = false;
 		if (this.properties.isMonitoringSecrets()) {
-			MapPropertySource currentSecretSource = findPropertySource(
-					SecretsPropertySource.class);
-			if (currentSecretSource != null) {
-				MapPropertySource newSecretSource = this.secretsPropertySourceLocator
-						.locate(this.environment);
-				changedSecrets = changed(currentSecretSource, newSecretSource);
+			List<MapPropertySource> currentSecretSources = locateMapPropertySources(
+					this.secretsPropertySourceLocator, this.environment);
+			if (currentSecretSources != null && !currentSecretSources.isEmpty()) {
+				List<SecretsPropertySource> propertySources = findPropertySources(
+						SecretsPropertySource.class);
+				changedSecrets = changed(currentSecretSources, propertySources);
 			}
 		}
 

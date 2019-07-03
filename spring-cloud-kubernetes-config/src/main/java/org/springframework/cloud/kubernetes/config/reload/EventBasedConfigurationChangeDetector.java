@@ -34,13 +34,13 @@ import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocato
 import org.springframework.cloud.kubernetes.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.core.env.MapPropertySource;
 
 /**
  * A change detector that subscribes to changes in secrets and configmaps and fire a
  * reload when something changes.
  *
  * @author Nicola Ferraro
+ * @author Haytham Mohamed
  */
 public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDetector {
 
@@ -150,15 +150,13 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 	}
 
 	private void onEvent(Secret secret) {
-		MapPropertySource currentSecretSource = findPropertySource(
-				SecretsPropertySource.class);
-		if (currentSecretSource != null) {
-			MapPropertySource newSecretSource = this.secretsPropertySourceLocator
-					.locate(this.environment);
-			if (changed(currentSecretSource, newSecretSource)) {
-				this.log.info("Detected change in secrets");
-				reloadProperties();
-			}
+		boolean changed = changed(
+				locateMapPropertySources(this.secretsPropertySourceLocator,
+						this.environment),
+				findPropertySources(SecretsPropertySource.class));
+		if (changed) {
+			this.log.info("Detected change in secrets");
+			reloadProperties();
 		}
 	}
 
