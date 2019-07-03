@@ -43,24 +43,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * the RibbonWithServiceModeTest description.
- *
  * @author wuzishu
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = TestApplication.class,
-		properties = { "spring.application.name=testapp",
-				"spring.cloud.kubernetes.client.namespace=testns",
-				"spring.cloud.kubernetes.client.trustCerts=true",
-				"spring.cloud.kubernetes.config.namespace=testns",
-				"spring.cloud.kubernetes.enabled=true",
-				"spring.cloud.kubernetes.discovery.enabled=true",
-				"spring.cloud.kubernetes.ribbon.enabled=true",
-				"spring.cloud.kubernetes.ribbon.mode=SERVICE",
-				"spring.cloud.kubernetes.ribbon.clusterDomain=test.com" })
+@SpringBootTest(classes = TestApplication.class, properties = {
+	"spring.application.name=testapp",
+	"spring.cloud.kubernetes.client.namespace=testns",
+	"spring.cloud.kubernetes.client.trustCerts=true",
+	"spring.cloud.kubernetes.config.namespace=testns",
+	"spring.cloud.kubernetes.enabled=true",
+	"spring.cloud.kubernetes.discovery.enabled=true",
+	"spring.cloud.kubernetes.ribbon.enabled=true",
+	"spring.cloud.kubernetes.ribbon.mode=SERVICE",
+	"spring.cloud.kubernetes.ribbon.clusterDomain=test.com"})
 @EnableAutoConfiguration
 @EnableDiscoveryClient
 public class RibbonWithServiceModeTest {
-
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
@@ -78,22 +76,21 @@ public class RibbonWithServiceModeTest {
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
-				mockClient.getConfiguration().getMasterUrl());
+			mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
-				"false");
+			"false");
 
 		// Configured
-		server.expect().get().withPath("/api/v1/namespaces/testns/services/testapp")
-				.andReturn(200, new ServiceBuilder().withNewMetadata().withName("testapp")
-						.withNamespace("testns").endMetadata().withNewSpec()
-						.addToSelector("app", "testapp-a").addNewPort().withName("http")
-						.withPort(mockEndpointA.getMockServer().getPort())
-						.withTargetPort(
-								new IntOrString(mockEndpointA.getMockServer().getPort()))
-						.withProtocol("TCP").endPort().endSpec().build())
-				.always();
+		server.expect().get().withPath("/api/v1/namespaces/testns/services/testapp").andReturn(200,
+			new ServiceBuilder().withNewMetadata().withName("testapp").withNamespace("testns")
+				.endMetadata().withNewSpec().addToSelector("app", "testapp-a")
+				.addNewPort().withName("http")
+				.withPort(mockEndpointA.getMockServer().getPort())
+				.withTargetPort(new IntOrString(mockEndpointA.getMockServer().getPort()))
+				.withProtocol("TCP").endPort().endSpec().build())
+			.always();
 
 	}
 
@@ -102,14 +99,10 @@ public class RibbonWithServiceModeTest {
 
 	@Test
 	public void testGreetingWithServiceMode() {
-		SpringClientFactory springClientFactory = context
-				.getBean(SpringClientFactory.class);
+		SpringClientFactory springClientFactory = context.getBean(SpringClientFactory.class);
 		ILoadBalancer testapp = springClientFactory.getLoadBalancer("testapp");
 		List<Server> allServers = testapp.getAllServers();
-		assertThat(allServers.stream()
-				.map(c -> String.format("%s:%s", c.getHost(), c.getPort())))
-						.containsOnly("testapp.testns.svc.test.com:"
-								+ mockEndpointA.getMockServer().getPort());
+		assertThat(allServers.stream().map(c -> String.format("%s:%s", c.getHost(), c.getPort())))
+			.containsOnly("testapp.testns.svc.test.com:" + mockEndpointA.getMockServer().getPort());
 	}
-
 }

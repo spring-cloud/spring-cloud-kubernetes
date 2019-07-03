@@ -30,20 +30,18 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * the KubernetesServicesServerList description.
- *
  * @author wuzishu
  */
 public class KubernetesServicesServerList extends KubernetesServerList {
-
 	private static final Log LOG = LogFactory.getLog(KubernetesServicesServerList.class);
 
 	/**
 	 * Instantiates a new Kubernetes services server list.
+	 *
 	 * @param client the client
 	 * @param properties the properties
 	 */
-	KubernetesServicesServerList(KubernetesClient client,
-			KubernetesRibbonProperties properties) {
+	KubernetesServicesServerList(KubernetesClient client, KubernetesRibbonProperties properties) {
 		super(client, properties);
 	}
 
@@ -54,32 +52,31 @@ public class KubernetesServicesServerList extends KubernetesServerList {
 	 */
 	private String concatServiceFQDN(Service service) {
 		return String.format("%s.%s.svc.%s", service.getMetadata().getName(),
-				StringUtils.isNotBlank(service.getMetadata().getNamespace())
-						? service.getMetadata().getNamespace() : "default",
-				this.getProperties().getClusterDomain());
+			StringUtils.isNotBlank(service.getMetadata().getNamespace()) ? service.getMetadata()
+				.getNamespace() : "default", this.getProperties().getClusterDomain());
 	}
 
 	@Override
 	public List<Server> getUpdatedListOfServers() {
 		List<Server> result = new ArrayList<>();
 		Service service = StringUtils.isNotBlank(this.getNamespace())
-				? this.getClient().services().inNamespace(this.getNamespace())
-						.withName(this.getServiceId()).get()
-				: this.getClient().services().withName(this.getServiceId()).get();
+			? this.getClient().services().inNamespace(this.getNamespace())
+			.withName(this.getServiceId()).get()
+			: this.getClient().services().withName(this.getServiceId()).get();
 		if (service != null) {
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Found Service[" + service.getMetadata().getName() + "]");
 			}
 			if (service.getSpec().getPorts().size() == 1) {
 				result.add(new Server(this.concatServiceFQDN(service),
-						service.getSpec().getPorts().get(0).getPort()));
+					service.getSpec().getPorts().get(0).getPort()));
 			}
 			else {
 				for (ServicePort servicePort : service.getSpec().getPorts()) {
 					if (Utils.isNotNullOrEmpty(this.getPortName())
-							|| this.getPortName().endsWith(servicePort.getName())) {
+						|| this.getPortName().endsWith(servicePort.getName())) {
 						result.add(new Server(concatServiceFQDN(service),
-								servicePort.getPort()));
+							servicePort.getPort()));
 					}
 				}
 
@@ -87,10 +84,9 @@ public class KubernetesServicesServerList extends KubernetesServerList {
 		}
 		if (result.isEmpty()) {
 			LOG.warn(String.format(
-					"Did not find any service in ribbon in namespace [%s] for name [%s] and portName [%s]",
-					this.getNamespace(), this.getServiceId(), this.getPortName()));
+				"Did not find any service in ribbon in namespace [%s] for name [%s] and portName [%s]",
+				this.getNamespace(), this.getServiceId(), this.getPortName()));
 		}
 		return result;
 	}
-
 }

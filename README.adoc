@@ -124,10 +124,6 @@ spring.cloud.kubernetes.discovery.enabled=false
 Some Spring Cloud components use the `DiscoveryClient` in order to obtain information about the local service instance. For
 this to work, you need to align the Kubernetes service name with the `spring.application.name` property.
 
-Spring Cloud Kubernetes can also watch the Kubernetes service catalog for changes and update the
-`DiscoveryClient` implementation accordingly.  In order to enable this functionality you need to add
-`@EnableScheduling` on a configuration class in your application.
-
 == Kubernetes native service discovery
 
 Kubernetes itself is capable of (server side) service discovery (see: https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services).
@@ -142,7 +138,7 @@ Additionally, you can use Hystrix for:
 
 == Kubernetes PropertySource implementations
 
-The most common approach to configuring your Spring Boot application is to create an `application.properties` or `application.yaml` or
+The most common approach to configuring your Spring Boot application is to create an `application.properties` or `applicaiton.yaml` or
 an `application-profile.properties` or `application-profile.yaml` file that contains key-value pairs that provide customization values to your
 application or Spring Boot starters. You can override these properties by specifying system properties or environment
 variables.
@@ -324,89 +320,26 @@ However, if the `production` profile is active, the configuration becomes:
 
 If both profiles are active, the property that appears last within the `ConfigMap` overwrites any preceding values.
 
-Another option is to create a different config map per profile and spring boot will automatically fetch it based
-on active profiles
+
+To tell Spring Boot which `profile` should be enabled at bootstrap, you can pass a system property to the Java
+command. To do so, you can launch your Spring Boot application with an environment variable that you can define with the OpenShift
+`DeploymentConfig` or Kubernetes `ReplicationConfig` resource file, as follows:
 
 ====
 [source,yaml]
 ----
-kind: ConfigMap
 apiVersion: v1
-metadata:
-  name: demo
-data:
-  application.yml: |-
-    greeting:
-      message: Say Hello to the World
-    farewell:
-      message: Say Goodbye
-----
-====
-====
-[source,yaml]
-----
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: demo-development
-data:
-  application.yml: |-
-    spring:
-      profiles: development
-    greeting:
-      message: Say Hello to the Developers
-    farewell:
-      message: Say Goodbye to the Developers
-----
-====
-====
-[source,yaml]
-----
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: demo-production
-data:
-  application.yml: |-
-    spring:
-      profiles: production
-    greeting:
-      message: Say Hello to the Ops
-    farewell:
-      message: Say Goodbye
-----
-====
-
-
-To tell Spring Boot which `profile` should be enabled at bootstrap, you can pass `SPRING_PROFILES_ACTIVE` environment variable.
- To do so, you can launch your Spring Boot application with an environment variable that you can define it in the PodSpec at the container specification.
- Deployment resource file, as follows:
-
-====
-[source,yaml]
-----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: deployment-name
-  labels:
-    app: deployment-name
+kind: DeploymentConfig
 spec:
   replicas: 1
-  selector:
-    matchLabels:
-      app: deployment-name
-  template:
-    metadata:
-      labels:
-        app: deployment-name
-	spec:
-		containers:
-		- name: container-name
-		  image: your-image
-		  env:
-		  - name: SPRING_PROFILES_ACTIVE
-			value: "development"
+  ...
+    spec:
+      containers:
+      - env:
+        - name: JAVA_APP_DIR
+          value: /deployments
+        - name: JAVA_OPTIONS
+          value: -Dspring.profiles.active=developer
 ----
 ====
 
@@ -651,7 +584,7 @@ The reload feature supports two operating modes:
 Any event produces a re-check on the configuration and, in case of changes, a reload.
 The `view` role on the service account is required in order to listen for config map changes. A higher level role (such as `edit`) is required for secrets
 (by default, secrets are not monitored).
-* Polling: Periodically re-creates the configuration from config maps and secrets to see if it has changed.
+* Polling: Oeriodically re-creates the configuration from config maps and secrets to see if it has changed.
 You can configure the polling period by using the `spring.cloud.kubernetes.reload.period` property and defaults to 15 seconds.
 It requires the same role as the monitored property source.
 This means, for example, that using polling on file-mounted secret sources does not require particular privileges.
@@ -663,7 +596,7 @@ This means, for example, that using polling on file-mounted secret sources does 
 | `spring.cloud.kubernetes.reload.enabled`                 | `Boolean` | `false`                      | Enables monitoring of property sources and configuration reload
 | `spring.cloud.kubernetes.reload.monitoring-config-maps`  | `Boolean` | `true`                       | Allow monitoring changes in config maps
 | `spring.cloud.kubernetes.reload.monitoring-secrets`      | `Boolean` | `false`                      | Allow monitoring changes in secrets
-| `spring.cloud.kubernetes.reload.strategy`               | `Enum`    | `refresh`                    | The strategy to use when firing a reload (`refresh`, `restart_context`, or `shutdown`)
+| `spring.cloud.kubernetes.reload.strategy `               | `Enum`    | `refresh`                    | The strategy to use when firing a reload (`refresh`, `restart_context`, or `shutdown`)
 | `spring.cloud.kubernetes.reload.mode`                    | `Enum`    | `event`                      | Specifies how to listen for changes in property sources (`event` or `polling`)
 | `spring.cloud.kubernetes.reload.period`                  | `Duration`| `15s`                        | The period for verifying changes when using the `polling` strategy
 |===
@@ -719,6 +652,7 @@ the `PortName` key. If you want to specify in which Kubernetes namespace the tar
 the `KubernetesNamespace` key, remembering in both instances to prefix these keys with your service name and
 `ribbon` prefix, as specified earlier.
 
+
 .Spring Cloud Kubernetes Ribbon Configuration
 |===
 |Property Key |Type |Default Value
@@ -744,6 +678,7 @@ The Kubernetes service is concatenated into `service-name.{namespace}.svc.{clust
 the `SERVICE` mode uses load balancing of the Kubernetes service to support Istio's traffic policy.
 
 * `spring.cloud.kubernetes.ribbon.cluster-domain` Set the custom Kubernetes cluster domain suffix. The default value is: 'cluster.local'
+
 
 The following examples use this module for ribbon discovery:
 
@@ -1076,7 +1011,6 @@ $ touch .springformat
 ==== Intellij IDEA
 
 In order to setup Intellij you should import our coding conventions, inspection profiles and set up the checkstyle plugin.
-The following files can be found in the https://github.com/spring-cloud/spring-cloud-build/tree/master/spring-cloud-build-tools[Spring Cloud Build] project.
 
 .spring-cloud-build-tools/
 ----
