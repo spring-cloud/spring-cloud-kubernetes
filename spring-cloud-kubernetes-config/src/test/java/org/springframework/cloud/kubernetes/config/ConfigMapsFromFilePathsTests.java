@@ -44,8 +44,7 @@ import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.crea
 		properties = { "spring.application.name=configmap-path-example",
 				"spring.cloud.kubernetes.config.enableApi=false",
 				"spring.cloud.kubernetes.config.paths="
-						+ ConfigMapsFromFilePathsTests.FIRST_FILE_NAME_FULL_PATH
-						+ ","
+						+ ConfigMapsFromFilePathsTests.FIRST_FILE_NAME_FULL_PATH + ","
 						+ ConfigMapsFromFilePathsTests.SECOND_FILE_NAME_FULL_PATH })
 public class ConfigMapsFromFilePathsTests {
 

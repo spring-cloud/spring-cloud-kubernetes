@@ -42,9 +42,10 @@ import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.read
  * @author Ali Shahbour
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT, classes = App.class, properties = {
-		"spring.application.name=configmap-with-active-profile-name-example",
-		"spring.cloud.kubernetes.reload.enabled=false" })
+@SpringBootTest(webEnvironment = RANDOM_PORT, classes = App.class,
+		properties = {
+				"spring.application.name=configmap-with-active-profile-name-example",
+				"spring.cloud.kubernetes.reload.enabled=false" })
 @ActiveProfiles("development")
 @AutoConfigureWebTestClient
 public class ConfigMapsWithActiveProfilesNameTests {

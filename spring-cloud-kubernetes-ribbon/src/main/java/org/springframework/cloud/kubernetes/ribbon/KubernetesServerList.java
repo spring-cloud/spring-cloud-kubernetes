@@ -32,7 +32,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
  * @author wuzishu
  */
 public abstract class KubernetesServerList extends AbstractServerList<Server>
-	implements ServerList<Server> {
+		implements ServerList<Server> {
 
 	private static final int FIRST = 0;
 
@@ -48,12 +48,11 @@ public abstract class KubernetesServerList extends AbstractServerList<Server>
 
 	/**
 	 * Instantiates a new Kubernetes server list.
-	 *
 	 * @param client the client
 	 * @param properties the properties
 	 */
 	public KubernetesServerList(KubernetesClient client,
-		KubernetesRibbonProperties properties) {
+			KubernetesRibbonProperties properties) {
 		this.client = client;
 		this.properties = properties;
 	}
@@ -61,19 +60,17 @@ public abstract class KubernetesServerList extends AbstractServerList<Server>
 	public void initWithNiwsConfig(IClientConfig clientConfig) {
 		this.serviceId = clientConfig.getClientName();
 		this.namespace = clientConfig.getPropertyAsString(KubernetesConfigKey.Namespace,
-			this.client.getNamespace());
+				this.client.getNamespace());
 		this.portName = clientConfig.getPropertyAsString(KubernetesConfigKey.PortName,
-			null);
+				null);
 	}
 
 	public List<Server> getInitialListOfServers() {
 		return Collections.emptyList();
 	}
 
-
 	/**
 	 * Gets first.
-	 *
 	 * @return the first
 	 */
 	static int getFIRST() {
@@ -82,7 +79,6 @@ public abstract class KubernetesServerList extends AbstractServerList<Server>
 
 	/**
 	 * Gets client.
-	 *
 	 * @return the client
 	 */
 	KubernetesClient getClient() {
@@ -91,7 +87,6 @@ public abstract class KubernetesServerList extends AbstractServerList<Server>
 
 	/**
 	 * Gets service id.
-	 *
 	 * @return the service id
 	 */
 	String getServiceId() {
@@ -100,7 +95,6 @@ public abstract class KubernetesServerList extends AbstractServerList<Server>
 
 	/**
 	 * Gets namespace.
-	 *
 	 * @return the namespace
 	 */
 	String getNamespace() {
@@ -109,7 +103,6 @@ public abstract class KubernetesServerList extends AbstractServerList<Server>
 
 	/**
 	 * Gets port name.
-	 *
 	 * @return the port name
 	 */
 	String getPortName() {
@@ -118,10 +111,10 @@ public abstract class KubernetesServerList extends AbstractServerList<Server>
 
 	/**
 	 * Gets properties.
-	 *
 	 * @return the properties
 	 */
 	KubernetesRibbonProperties getProperties() {
 		return properties;
 	}
+
 }
