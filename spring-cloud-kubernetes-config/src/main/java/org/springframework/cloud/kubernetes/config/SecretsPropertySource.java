@@ -26,81 +26,67 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.StringUtils;
-
-import static org.springframework.cloud.kubernetes.config.ConfigUtils.getApplicationName;
-import static org.springframework.cloud.kubernetes.config.ConfigUtils.getApplicationNamespace;
 
 /**
  * Kubernetes property source for secrets.
  *
  * @author l burgazzoli
+ * @author Haytham Mohamed
  */
-public class SecretsPropertySource extends KubernetesPropertySource {
+public class SecretsPropertySource extends MapPropertySource {
 
 	private static final Log LOG = LogFactory.getLog(SecretsPropertySource.class);
 
 	private static final String PREFIX = "secrets";
 
-	public SecretsPropertySource(KubernetesClient client, Environment env,
-			SecretsConfigProperties config) {
-		super(getSourceName(client, env, config), getSourceData(client, env, config));
+	public SecretsPropertySource(KubernetesClient client, Environment env, String name,
+		String namespace, Map<String, String> labels) {
+		super(getSourceName(client, env, name, namespace),
+			getSourceData(client, env, name, namespace, labels));
 	}
 
 	private static String getSourceName(KubernetesClient client, Environment env,
-			SecretsConfigProperties config) {
+		String name, String namespace) {
 		return new StringBuilder().append(PREFIX)
-				.append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR)
-				.append(getApplicationName(env, config.getName(),
-						config.getConfigurationTarget()))
-				.append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR)
-				.append(getApplicationNamespace(client, config.getNamespace(),
-						config.getConfigurationTarget()))
-				.toString();
+			.append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR).append(name)
+			.append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR).append(namespace)
+			.toString();
 	}
 
 	private static Map<String, Object> getSourceData(KubernetesClient client,
-			Environment env, SecretsConfigProperties config) {
-		String name = getApplicationName(env, config.getName(),
-				config.getConfigurationTarget());
-		String namespace = getApplicationNamespace(client, config.getNamespace(),
-				config.getConfigurationTarget());
+		Environment env, String name, String namespace, Map<String, String> labels) {
 		Map<String, Object> result = new HashMap<>();
 
-		if (config.isEnableApi()) {
-			try {
-				// Read for secrets api (named)
-				Secret secret;
+		try {
+			// Read for secrets api (named)
+			Secret secret;
+			if (StringUtils.isEmpty(namespace)) {
+				secret = client.secrets().withName(name).get();
+			}
+			else {
+				secret = client.secrets().inNamespace(namespace).withName(name).get();
+			}
+			putAll(secret, result);
+
+			// Read for secrets api (label)
+			if (!labels.isEmpty()) {
 				if (StringUtils.isEmpty(namespace)) {
-					secret = client.secrets().withName(name).get();
+					client.secrets().withLabels(labels).list().getItems()
+						.forEach(s -> putAll(s, result));
 				}
 				else {
-					secret = client.secrets().inNamespace(namespace).withName(name).get();
+					client.secrets().inNamespace(namespace).withLabels(labels).list()
+						.getItems().forEach(s -> putAll(s, result));
 				}
-				putAll(secret, result);
-
-				// Read for secrets api (label)
-				if (!config.getLabels().isEmpty()) {
-					if (StringUtils.isEmpty(namespace)) {
-						client.secrets().withLabels(config.getLabels()).list().getItems()
-								.forEach(s -> putAll(s, result));
-					}
-					else {
-						client.secrets().inNamespace(namespace)
-								.withLabels(config.getLabels()).list().getItems()
-								.forEach(s -> putAll(s, result));
-					}
-				}
-			}
-			catch (Exception e) {
-				LOG.warn("Can't read secret with name: [" + name + "] or labels ["
-						+ config.getLabels() + "] in namespace:[" + namespace
-						+ "] (cause: " + e.getMessage() + "). Ignoring");
 			}
 		}
-
-		// read for secrets mount
-		putPathConfig(result, config.getPaths());
+		catch (Exception e) {
+			LOG.warn("Can't read secret with name: [" + name + "] or labels [" + labels
+				+ "] in namespace:[" + namespace + "] (cause: " + e.getMessage()
+				+ "). Ignoring");
+		}
 
 		return result;
 	}
@@ -111,7 +97,7 @@ public class SecretsPropertySource extends KubernetesPropertySource {
 	private static void putAll(Secret secret, Map<String, Object> result) {
 		if (secret != null && secret.getData() != null) {
 			secret.getData().forEach((k, v) -> result.put(k,
-					new String(Base64.getDecoder().decode(v)).trim()));
+				new String(Base64.getDecoder().decode(v)).trim()));
 		}
 	}
 
