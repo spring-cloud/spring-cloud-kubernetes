@@ -40,6 +40,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.util.Assert;
 
 /**
  * Definition of beans needed for the automatic reload of configuration.
@@ -50,7 +51,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
 @ConditionalOnClass(EndpointAutoConfiguration.class)
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class,
-		RefreshEndpointAutoConfiguration.class, RefreshAutoConfiguration.class })
+	RefreshEndpointAutoConfiguration.class, RefreshAutoConfiguration.class })
 @EnableConfigurationProperties(ConfigReloadProperties.class)
 
 public class ConfigReloadAutoConfiguration {
@@ -84,21 +85,21 @@ public class ConfigReloadAutoConfiguration {
 		@Bean
 		@ConditionalOnMissingBean
 		public ConfigurationChangeDetector propertyChangeWatcher(
-				ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy) {
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy) {
 			switch (properties.getMode()) {
 			case POLLING:
 				return new PollingConfigurationChangeDetector(this.environment,
-						properties, this.kubernetesClient, strategy,
-						this.configMapPropertySourceLocator,
-						this.secretsPropertySourceLocator);
+					properties, this.kubernetesClient, strategy,
+					this.configMapPropertySourceLocator,
+					this.secretsPropertySourceLocator);
 			case EVENT:
 				return new EventBasedConfigurationChangeDetector(this.environment,
-						properties, this.kubernetesClient, strategy,
-						this.configMapPropertySourceLocator,
-						this.secretsPropertySourceLocator);
+					properties, this.kubernetesClient, strategy,
+					this.configMapPropertySourceLocator,
+					this.secretsPropertySourceLocator);
 			}
 			throw new IllegalStateException(
-					"Unsupported configuration reload mode: " + properties.getMode());
+				"Unsupported configuration reload mode: " + properties.getMode());
 		}
 
 		/**
@@ -111,32 +112,34 @@ public class ConfigReloadAutoConfiguration {
 		@Bean
 		@ConditionalOnMissingBean
 		public ConfigurationUpdateStrategy configurationUpdateStrategy(
-				ConfigReloadProperties properties, ConfigurableApplicationContext ctx,
-				RestartEndpoint restarter, ContextRefresher refresher) {
+			ConfigReloadProperties properties, ConfigurableApplicationContext ctx,
+			@Autowired(required = false) RestartEndpoint restarter,
+			ContextRefresher refresher) {
 			switch (properties.getStrategy()) {
 			case RESTART_CONTEXT:
+				Assert.notNull(restarter, "Restart endpoint is not enabled");
 				return new ConfigurationUpdateStrategy(properties.getStrategy().name(),
-						() -> {
-							wait(properties);
-							restarter.restart();
-						});
+					() -> {
+						wait(properties);
+						restarter.restart();
+					});
 			case REFRESH:
 				return new ConfigurationUpdateStrategy(properties.getStrategy().name(),
-						refresher::refresh);
+					refresher::refresh);
 			case SHUTDOWN:
 				return new ConfigurationUpdateStrategy(properties.getStrategy().name(),
-						() -> {
-							wait(properties);
-							ctx.close();
-						});
+					() -> {
+						wait(properties);
+						ctx.close();
+					});
 			}
 			throw new IllegalStateException("Unsupported configuration update strategy: "
-					+ properties.getStrategy());
+				+ properties.getStrategy());
 		}
 
 		private static void wait(ConfigReloadProperties properties) {
 			final long waitMillis = ThreadLocalRandom.current()
-					.nextLong(properties.getMaxWaitForRestart().toMillis());
+				.nextLong(properties.getMaxWaitForRestart().toMillis());
 			try {
 				Thread.sleep(waitMillis);
 			}
