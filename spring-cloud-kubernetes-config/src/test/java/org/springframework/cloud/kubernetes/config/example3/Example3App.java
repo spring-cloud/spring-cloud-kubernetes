@@ -30,13 +30,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class Example3App {
 
 	public static void main(String[] args) {
-		SpringApplication
-			.run(Example3App.class, args);
+		SpringApplication.run(Example3App.class, args);
 	}
 
 	@RestController
 	public static class Controller {
-		private final Example3AppProperties properties ;
+
+		private final Example3AppProperties properties;
 
 		public Controller(Example3AppProperties properties) {
 			this.properties = properties;
@@ -51,6 +51,7 @@ public class Example3App {
 		public Response secret2() {
 			return new Response(this.properties.getSecret2());
 		}
+
 	}
 
 	public static class Response {
@@ -66,4 +67,5 @@ public class Example3App {
 		}
 
 	}
+
 }

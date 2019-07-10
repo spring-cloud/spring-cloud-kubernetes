@@ -24,8 +24,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("secrets")
 public class Example3AppProperties {
 
-
 	private String secret1;
+
 	private String secret2;
 
 	public String getSecret1() {
