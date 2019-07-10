@@ -408,6 +408,36 @@ If you have all the secrets mapped to a common root, you can set them like:
 ----
 ====
 
+As the case with `ConfigMap`, more advanced configuration is also possible where you can use multiple `Secret`
+instances. The `spring.cloud.kubernetes.secrets.sources` list makes this possible.
+For example, you could define the following `Secret` instances:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: cloud-k8s-app
+  cloud:
+    kubernetes:
+      secrets:
+        name: default-name
+        namespace: default-namespace
+        sources:
+         # Spring Cloud Kubernetes looks up a Secret named s1 in namespace default-namespace
+         - name: s1
+         # Spring Cloud Kubernetes looks up a Secret named default-name in whatever namespace n2
+         - namespace: n2
+         # Spring Cloud Kubernetes looks up a Secret named s3 in namespace n3
+         - namespace: n3
+           name: s3
+----
+====
+
+In the preceding example, if `spring.cloud.kubernetes.secrets.namespace` had not been set,
+the `Secret` named `s1` would be looked up in the namespace that the application runs.
+
+
 .Properties:
 [options="header,footer"]
 |===
