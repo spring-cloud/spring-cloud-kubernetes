@@ -26,19 +26,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
-@EnableConfigurationProperties(Example3AppProperties.class)
-public class Example3App {
+@EnableConfigurationProperties(MultiSecretsProperties.class)
+public class MultiSecretsApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(Example3App.class, args);
+		SpringApplication.run(MultiSecretsApp.class, args);
 	}
 
 	@RestController
 	public static class Controller {
 
-		private final Example3AppProperties properties;
+		private final MultiSecretsProperties properties;
 
-		public Controller(Example3AppProperties properties) {
+		public Controller(MultiSecretsProperties properties) {
 			this.properties = properties;
 		}
 

@@ -22,7 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  **/
 
 @ConfigurationProperties("secrets")
-public class Example3AppProperties {
+public class MultiSecretsProperties {
 
 	private String secret1;
 
