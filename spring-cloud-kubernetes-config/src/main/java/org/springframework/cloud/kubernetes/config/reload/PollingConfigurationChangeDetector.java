@@ -37,6 +37,7 @@ import org.springframework.scheduling.annotation.Scheduled;
  * when something changes.
  *
  * @author Nicola Ferraro
+ * @author Haytham Mohamed
  */
 public class PollingConfigurationChangeDetector extends ConfigurationChangeDetector {
 
@@ -47,10 +48,10 @@ public class PollingConfigurationChangeDetector extends ConfigurationChangeDetec
 	private SecretsPropertySourceLocator secretsPropertySourceLocator;
 
 	public PollingConfigurationChangeDetector(AbstractEnvironment environment,
-			ConfigReloadProperties properties, KubernetesClient kubernetesClient,
-			ConfigurationUpdateStrategy strategy,
-			ConfigMapPropertySourceLocator configMapPropertySourceLocator,
-			SecretsPropertySourceLocator secretsPropertySourceLocator) {
+		ConfigReloadProperties properties, KubernetesClient kubernetesClient,
+		ConfigurationUpdateStrategy strategy,
+		ConfigMapPropertySourceLocator configMapPropertySourceLocator,
+		SecretsPropertySourceLocator secretsPropertySourceLocator) {
 		super(environment, properties, kubernetesClient, strategy);
 
 		this.configMapPropertySourceLocator = configMapPropertySourceLocator;
@@ -63,30 +64,30 @@ public class PollingConfigurationChangeDetector extends ConfigurationChangeDetec
 	}
 
 	@Scheduled(initialDelayString = "${spring.cloud.kubernetes.reload.period:15000}",
-			fixedDelayString = "${spring.cloud.kubernetes.reload.period:15000}")
+		fixedDelayString = "${spring.cloud.kubernetes.reload.period:15000}")
 	public void executeCycle() {
 
 		boolean changedConfigMap = false;
 		if (this.properties.isMonitoringConfigMaps()) {
 			List<? extends MapPropertySource> currentConfigMapSources = findPropertySources(
-					ConfigMapPropertySource.class);
+				ConfigMapPropertySource.class);
 
 			if (!currentConfigMapSources.isEmpty()) {
 				changedConfigMap = changed(
-						locateMapPropertySources(this.configMapPropertySourceLocator,
-								this.environment),
-						currentConfigMapSources);
+					locateMapPropertySources(this.configMapPropertySourceLocator,
+						this.environment),
+					currentConfigMapSources);
 			}
 		}
 
 		boolean changedSecrets = false;
 		if (this.properties.isMonitoringSecrets()) {
-			MapPropertySource currentSecretSource = findPropertySource(
+			List<MapPropertySource> currentSecretSources = locateMapPropertySources(
+				this.secretsPropertySourceLocator, this.environment);
+			if (currentSecretSources != null && !currentSecretSources.isEmpty()) {
+				List<SecretsPropertySource> propertySources = findPropertySources(
 					SecretsPropertySource.class);
-			if (currentSecretSource != null) {
-				MapPropertySource newSecretSource = this.secretsPropertySourceLocator
-						.locate(this.environment);
-				changedSecrets = changed(currentSecretSource, newSecretSource);
+				changedSecrets = changed(currentSecretSources, propertySources);
 			}
 		}
 
