@@ -902,6 +902,39 @@ spec:
 </li>
 </ol>
 </div>
+<div class="paragraph">
+<p>As the case with <code>ConfigMap</code>, more advanced configuration is also possible where you can use multiple <code>Secret</code>
+instances. The <code>spring.cloud.kubernetes.secrets.sources</code> list makes this possible.
+For example, you could define the following <code>Secret</code> instances:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  application:
+    name: cloud-k8s-app
+  cloud:
+    kubernetes:
+      secrets:
+        name: default-name
+        namespace: default-namespace
+        sources:
+         # Spring Cloud Kubernetes looks up a Secret named s1 in namespace default-namespace
+         - name: s1
+         # Spring Cloud Kubernetes looks up a Secret named default-name in whatever namespace n2
+         - namespace: n2
+         # Spring Cloud Kubernetes looks up a Secret named s3 in namespace n3
+         - namespace: n3
+           name: s3</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>In the preceding example, if <code>spring.cloud.kubernetes.secrets.namespace</code> had not been set,
+the <code>Secret</code> named <code>s1</code> would be looked up in the namespace that the application runs.</p>
+</div>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 2. Properties:</caption>
 <colgroup>
