@@ -22,7 +22,8 @@ This can be skipped when we use the default unix socket on a Linux machine
 Here we will describe the steps that are needed to setup microk8s and the maven command we will use to run the integration
 tests against that microk8s cluster 
 
-## Install microk8s
+## Running tests with microk8s
+### Install microk8s
 
 ```bash
 sudo snap install microk8s --classic --channel=1.11/stable
@@ -73,8 +74,7 @@ Such a namespace called `istio-test` can easily be created using:
 microk8s.kubectl create -f .circleci/istio-test-namespace.yml
 ``` 
 
-
-## Launch tests
+### Launch tests
 
 ```bash
 cd spring-cloud-kubernetes-integration-tests
@@ -89,8 +89,25 @@ The command above will for each test project:
     - Deploy the application to the cluster
     - Launch the test code
     - Undeploy the application
-    
-    
+  
+## Running tests with Docker Desktop
+
+[Docker Desktop for Mac](https://docs.docker.com/docker-for-mac/) and [Docker Desktop for Windows](https://docs.docker.com/docker-for-windows/) 
+provide a Kubernetes server runs within a Docker container on your local system. This is similar to `microk8s` but is only currently available on Mac or Windows.
+
+### Configure Docker Desktop
+* Ensure you are running the Edge release of Docker Desktop
+** For Mac `brew cask install docker-edge`
+** For Windows `choco install docker-desktop --pre` 
+* Increase default resources as the defaults are not sufficient. Allocate 8GB of Ram
+![Docker Resources](https://istio.io/docs/setup/kubernetes/platform-setup/docker/dockerprefs.png)
+* [Enable Kubernetes cluster](https://docs.docker.com/docker-for-mac/#kubernetes)
+* Run a local insecure docker registry 
+** `docker run -d -p 5000:5000 --restart=always --name registry registry:2`
+* [Configure the Docker daemon to trust the local registry](https://docs.docker.com/docker-for-mac/#daemon) 
+* Export the docker config `kubectl config view --raw > /tmp/kubeconfig`
+* Run the tests `KUBECONFIG=/tmp/kubeconfig mvn -Ddocker.host='unix:///var/run/docker.sock' -Dimage.registry='127.0.0.1:5000' clean package fabric8:build verify -Pfmp,it,spring`
+
 ## Launching one of the applications manually
 
 Each of the test modules can also be launched manually. This can be very useful for debugging purposes.
