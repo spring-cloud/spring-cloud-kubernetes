@@ -22,6 +22,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.CommonsClientAutoConfiguration;
+import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.registry.KubernetesRegistration;
 import org.springframework.cloud.kubernetes.registry.KubernetesServiceRegistry;
@@ -32,8 +33,10 @@ import org.springframework.context.annotation.Configuration;
  * Auto configuration for discovery clients.
  *
  * @author Mauricio Salatino
+ * @author Tim Ysewyn
  */
 @Configuration
+@ConditionalOnDiscoveryEnabled
 @ConditionalOnProperty(name = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class,
 		CommonsClientAutoConfiguration.class })
@@ -81,13 +84,6 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	@Bean
 	public KubernetesDiscoveryProperties getKubernetesDiscoveryProperties() {
 		return new KubernetesDiscoveryProperties();
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	@ConditionalOnProperty(name = "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled", matchIfMissing = true)
-	public KubernetesCatalogWatch kubernetesCatalogWatch(KubernetesClient client) {
-		return new KubernetesCatalogWatch(client);
 	}
 
 }

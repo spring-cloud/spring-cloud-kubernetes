@@ -32,6 +32,7 @@ import static org.mockito.Mockito.mock;
 
 /**
  * @author Oleg Vyukov
+ * @author Tim Ysewyn
  */
 public class KubernetesCatalogServicesWatchConfigurationTest {
 
@@ -57,6 +58,12 @@ public class KubernetesCatalogServicesWatchConfigurationTest {
 	}
 
 	@Test
+	public void kubernetesCatalogWatchWhenServiceDiscoveryDisabled() throws Exception {
+		setup("spring.cloud.discovery.enabled=false");
+		assertThat(this.context.containsBean("kubernetesCatalogWatch")).isFalse();
+	}
+
+	@Test
 	public void kubernetesCatalogWatchDefaultEnabled() throws Exception {
 		setup();
 		assertThat(this.context.containsBean("kubernetesCatalogWatch")).isTrue();
@@ -66,6 +73,7 @@ public class KubernetesCatalogServicesWatchConfigurationTest {
 		this.context = new SpringApplicationBuilder(
 				PropertyPlaceholderAutoConfiguration.class,
 				KubernetesClientTestConfiguration.class,
+				KubernetesCatalogWatchAutoConfiguration.class,
 				KubernetesDiscoveryClientAutoConfiguration.class)
 						.web(WebApplicationType.NONE).properties(env).run();
 	}
