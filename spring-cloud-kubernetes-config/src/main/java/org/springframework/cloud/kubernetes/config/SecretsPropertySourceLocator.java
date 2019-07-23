@@ -55,7 +55,7 @@ public class SecretsPropertySourceLocator implements PropertySourceLocator {
 	private final SecretsConfigProperties properties;
 
 	public SecretsPropertySourceLocator(KubernetesClient client,
-		SecretsConfigProperties properties) {
+			SecretsConfigProperties properties) {
 		this.client = client;
 		this.properties = properties;
 	}
@@ -66,12 +66,12 @@ public class SecretsPropertySourceLocator implements PropertySourceLocator {
 			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
 
 			List<SecretsConfigProperties.NormalizedSource> sources = this.properties
-				.determineSources();
+					.determineSources();
 			CompositePropertySource composite = new CompositePropertySource(
-				"composite-secrets");
+					"composite-secrets");
 			if (this.properties.isEnableApi()) {
 				sources.forEach(s -> composite.addFirstPropertySource(
-					getKubernetesPropertySourceForSingleSecret(env, s)));
+						getKubernetesPropertySourceForSingleSecret(env, s)));
 			}
 
 			// read for secrets mount
@@ -83,28 +83,28 @@ public class SecretsPropertySourceLocator implements PropertySourceLocator {
 	}
 
 	private MapPropertySource getKubernetesPropertySourceForSingleSecret(
-		ConfigurableEnvironment environment,
-		SecretsConfigProperties.NormalizedSource normalizedSource) {
+			ConfigurableEnvironment environment,
+			SecretsConfigProperties.NormalizedSource normalizedSource) {
 
 		String configurationTarget = this.properties.getConfigurationTarget();
 		return new SecretsPropertySource(this.client, environment,
-			getApplicationName(environment, normalizedSource.getName(),
-				configurationTarget),
-			getApplicationNamespace(this.client, normalizedSource.getNamespace(),
-				configurationTarget),
-			normalizedSource.getLabels());
+				getApplicationName(environment, normalizedSource.getName(),
+						configurationTarget),
+				getApplicationNamespace(this.client, normalizedSource.getNamespace(),
+						configurationTarget),
+				normalizedSource.getLabels());
 	}
 
 	private void putPathConfig(CompositePropertySource composite) {
 		this.properties.getPaths().stream().map(Paths::get).filter(Files::exists)
-			.forEach(p -> putAll(p, composite));
+				.forEach(p -> putAll(p, composite));
 	}
 
 	private void putAll(Path path, CompositePropertySource composite) {
 		try {
 
 			Files.walk(path).filter(Files::isRegularFile)
-				.forEach(p -> readFile(p, composite));
+					.forEach(p -> readFile(p, composite));
 		}
 		catch (IOException e) {
 			LOG.warn("Error walking properties files", e);
@@ -115,10 +115,10 @@ public class SecretsPropertySourceLocator implements PropertySourceLocator {
 		try {
 			Map<String, Object> result = new HashMap<>();
 			result.put(path.getFileName().toString(),
-				new String(Files.readAllBytes(path)).trim());
+					new String(Files.readAllBytes(path)).trim());
 			if (!result.isEmpty()) {
 				composite.addFirstPropertySource(new MapPropertySource(
-					path.getFileName().toString().toLowerCase(), result));
+						path.getFileName().toString().toLowerCase(), result));
 			}
 		}
 		catch (IOException e) {

@@ -95,16 +95,16 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			return new ArrayList<SecretsConfigProperties.NormalizedSource>() {
 				{
 					add(new SecretsConfigProperties.NormalizedSource(
-						SecretsConfigProperties.this.name,
-						SecretsConfigProperties.this.namespace,
-						SecretsConfigProperties.this.labels));
+							SecretsConfigProperties.this.name,
+							SecretsConfigProperties.this.namespace,
+							SecretsConfigProperties.this.labels));
 				}
 			};
 		}
 
 		return this.sources.stream()
-			.map(s -> s.normalize(this.name, this.namespace, this.labels))
-			.collect(Collectors.toList());
+				.map(s -> s.normalize(this.name, this.namespace, this.labels))
+				.collect(Collectors.toList());
 	}
 
 	public static class Source {
@@ -162,16 +162,16 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		}
 
 		public SecretsConfigProperties.NormalizedSource normalize(String defaultName,
-			String defaultNamespace, Map<String, String> defaultLabels) {
+				String defaultNamespace, Map<String, String> defaultLabels) {
 			final String normalizedName = StringUtils.isEmpty(this.name) ? defaultName
-				: this.name;
+					: this.name;
 			final String normalizedNamespace = StringUtils.isEmpty(this.namespace)
-				? defaultNamespace : this.namespace;
+					? defaultNamespace : this.namespace;
 			final Map<String, String> normalizedLabels = this.labels.isEmpty()
-				? defaultLabels : this.labels;
+					? defaultLabels : this.labels;
 
 			return new SecretsConfigProperties.NormalizedSource(normalizedName,
-				normalizedNamespace, normalizedLabels);
+					normalizedNamespace, normalizedLabels);
 		}
 
 	}

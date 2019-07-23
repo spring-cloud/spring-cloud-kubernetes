@@ -40,7 +40,7 @@ public class KubernetesRibbonClientConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public ServerList<?> ribbonServerList(KubernetesClient client, IClientConfig config,
-		KubernetesRibbonProperties properties) {
+			KubernetesRibbonProperties properties) {
 		KubernetesServerList serverList;
 		if (properties.getMode() == KubernetesRibbonMode.SERVICE) {
 			serverList = new KubernetesServicesServerList(client, properties);

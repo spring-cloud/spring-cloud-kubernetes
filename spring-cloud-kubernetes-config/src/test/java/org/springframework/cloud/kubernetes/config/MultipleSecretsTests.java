@@ -41,8 +41,9 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * @author Haytham Mohamed
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = MultiSecretsApp.class, properties = {
-		"spring.cloud.bootstrap.name=multiple-secrets" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		classes = MultiSecretsApp.class,
+		properties = { "spring.cloud.bootstrap.name=multiple-secrets" })
 @AutoConfigureWebTestClient
 public class MultipleSecretsTests {
 

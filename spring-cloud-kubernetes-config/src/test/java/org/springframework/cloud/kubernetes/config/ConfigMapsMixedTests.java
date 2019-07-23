@@ -43,9 +43,7 @@ import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.read
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		classes = App.class,
-		properties = {
-				"spring.application.name="
-						+ ConfigMapsMixedTests.APPLICATION_NAME,
+		properties = { "spring.application.name=" + ConfigMapsMixedTests.APPLICATION_NAME,
 				"spring.cloud.kubernetes.config.enableApi=true",
 				"spring.cloud.kubernetes.config.paths="
 						+ ConfigMapsMixedTests.FILE_NAME_FULL_PATH })

@@ -32,6 +32,7 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * the KubernetesEndpointsServerList description.
+ *
  * @author wuzishu
  */
 public class KubernetesEndpointsServerList extends KubernetesServerList {
@@ -40,11 +41,11 @@ public class KubernetesEndpointsServerList extends KubernetesServerList {
 
 	/**
 	 * Instantiates a new Kubernetes endpoints server list.
-	 *
 	 * @param client the client
 	 * @param properties the properties
 	 */
-	KubernetesEndpointsServerList(KubernetesClient client, KubernetesRibbonProperties properties) {
+	KubernetesEndpointsServerList(KubernetesClient client,
+			KubernetesRibbonProperties properties) {
 		super(client, properties);
 	}
 
@@ -52,16 +53,16 @@ public class KubernetesEndpointsServerList extends KubernetesServerList {
 	public List<Server> getUpdatedListOfServers() {
 		List<Server> result = new ArrayList<>();
 		Endpoints endpoints = StringUtils.isNotBlank(this.getNamespace())
-			? this.getClient().endpoints().inNamespace(this.getNamespace())
-			.withName(this.getServiceId()).get()
-			: this.getClient().endpoints().withName(this.getServiceId()).get();
+				? this.getClient().endpoints().inNamespace(this.getNamespace())
+						.withName(this.getServiceId()).get()
+				: this.getClient().endpoints().withName(this.getServiceId()).get();
 		if (endpoints != null) {
 			if (LOG.isDebugEnabled()) {
 				LOG.debug(String.format(
-					"Found [%d] endpoints in l [%s] for name [%s] and portName [%s]",
-					endpoints.getSubsets().size(),
-					endpoints.getMetadata().getNamespace(), this.getServiceId(),
-					this.getPortName()));
+						"Found [%d] endpoints in l [%s] for name [%s] and portName [%s]",
+						endpoints.getSubsets().size(),
+						endpoints.getMetadata().getNamespace(), this.getServiceId(),
+						this.getPortName()));
 			}
 			for (EndpointSubset subset : endpoints.getSubsets()) {
 
@@ -74,10 +75,9 @@ public class KubernetesEndpointsServerList extends KubernetesServerList {
 				else {
 					for (EndpointPort port : subset.getPorts()) {
 						if (Utils.isNullOrEmpty(this.getPortName())
-							|| this.getPortName().endsWith(port.getName())) {
+								|| this.getPortName().endsWith(port.getName())) {
 							for (EndpointAddress address : subset.getAddresses()) {
-								result.add(
-									new Server(address.getIp(), port.getPort()));
+								result.add(new Server(address.getIp(), port.getPort()));
 							}
 						}
 					}
@@ -86,10 +86,11 @@ public class KubernetesEndpointsServerList extends KubernetesServerList {
 		}
 		if (result.isEmpty()) {
 			LOG.warn(String.format(
-				"Did not find any endpoints in ribbon in namespace [%s] for name [%s] and portName [%s]",
-				this.getNamespace(), this.getServiceId(), this.getPortName()));
+					"Did not find any endpoints in ribbon in namespace [%s] for name [%s] and portName [%s]",
+					this.getNamespace(), this.getServiceId(), this.getPortName()));
 		}
 
 		return result;
 	}
+
 }
