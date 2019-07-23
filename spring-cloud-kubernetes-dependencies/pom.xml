@@ -151,6 +151,10 @@
 						<groupId>com.fasterxml.jackson.core</groupId>
 						<artifactId>jackson-core</artifactId>
 					</exclusion>
+					<exclusion>
+						<artifactId>tools</artifactId>
+						<groupId>com.sun</groupId>
+					</exclusion>
 				</exclusions>
 			</dependency>
 
