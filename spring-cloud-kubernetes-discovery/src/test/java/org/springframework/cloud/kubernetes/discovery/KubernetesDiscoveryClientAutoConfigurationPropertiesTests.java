@@ -31,6 +31,7 @@ import static org.mockito.Mockito.mock;
 
 /**
  * @author Ryan Dawson
+ * @author Tim Ysewyn
  */
 public class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 
@@ -54,6 +55,13 @@ public class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 	@Test
 	public void kubernetesDiscoveryWhenKubernetesDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.enabled=false");
+		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class))
+				.isEmpty();
+	}
+
+	@Test
+	public void kubernetesDiscoveryWhenDiscoveryDisabled() throws Exception {
+		setup("spring.cloud.discovery.enabled=false");
 		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class))
 				.isEmpty();
 	}
