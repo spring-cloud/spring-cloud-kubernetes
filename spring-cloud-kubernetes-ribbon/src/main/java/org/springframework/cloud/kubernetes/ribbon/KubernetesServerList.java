@@ -32,6 +32,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Utils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Kubernetes {@link ServerList}.
@@ -52,10 +53,24 @@ public class KubernetesServerList extends AbstractServerList<Server>
 	private String namespace;
 
 	private String portName;
+	
+	@Autowired
+    private List<KubernetesServerFilter> listFilter;
 
+	private boolean isExclusion(EndpointAddress address) {
+		if(listFilter == null || listFilter.size() <1)
+			return false;
+		boolean isExclusion=false;
+		for(KubernetesServerFilter filter :listFilter) {
+			if(filter.isExclusion(address))isExclusion=true;
+		}		
+		return isExclusion;
+	}
 	public KubernetesServerList(KubernetesClient client) {
 		this.client = client;
 	}
+	
+	
 
 	public void initWithNiwsConfig(IClientConfig clientConfig) {
 		this.serviceId = clientConfig.getClientName();
@@ -88,7 +103,8 @@ public class KubernetesServerList extends AbstractServerList<Server>
 				if (subset.getPorts().size() == 1) {
 					EndpointPort port = subset.getPorts().get(FIRST);
 					for (EndpointAddress address : subset.getAddresses()) {
-						result.add(new Server(address.getIp(), port.getPort()));
+						if(!isExclusion(address))
+							result.add(new Server(address.getIp(), port.getPort()));
 					}
 				}
 				else {
@@ -96,7 +112,8 @@ public class KubernetesServerList extends AbstractServerList<Server>
 						if (Utils.isNullOrEmpty(this.portName)
 								|| this.portName.endsWith(port.getName())) {
 							for (EndpointAddress address : subset.getAddresses()) {
-								result.add(new Server(address.getIp(), port.getPort()));
+								if(!isExclusion(address))
+									result.add(new Server(address.getIp(), port.getPort()));
 							}
 						}
 					}
