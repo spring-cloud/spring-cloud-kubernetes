@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.client.utils.Utils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -40,9 +41,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class KubernetesEndpointsServerList extends KubernetesServerList {
 
 	private static final Log LOG = LogFactory.getLog(KubernetesEndpointsServerList.class);
-	
+
 	@Autowired
 	private List<KubernetesEndpointsServerFilter> filterList;
+
 	/**
 	 * Instantiates a new Kubernetes endpoints server list.
 	 * @param client the client
@@ -68,17 +70,14 @@ public class KubernetesEndpointsServerList extends KubernetesServerList {
 						endpoints.getMetadata().getNamespace(), this.getServiceId(),
 						this.getPortName()));
 			}
-
-			
 			for (EndpointSubset subset : endpoints.getSubsets()) {
-				List<EndpointAddress> filtersult= subset.getAddresses();
-				if(filterList!=null &&filterList.size()>0) {
-					for(KubernetesEndpointsServerFilter filter : filterList) {
-						filtersult=filtersult.stream()
-								.filter(address -> filter.isFilter(this.getServiceId(), address))
+				List<EndpointAddress> filtersult = subset.getAddresses();
+				if (filterList != null && filterList.size() > 0) {
+					for (KubernetesEndpointsServerFilter filter : filterList) {
+						filtersult = filtersult.stream().filter(
+								address -> filter.isFilter(this.getServiceId(), address))
 								.collect(Collectors.toList());
 					}
-					
 				}
 				if (subset.getPorts().size() == 1) {
 					EndpointPort port = subset.getPorts().get(getFIRST());
@@ -90,7 +89,7 @@ public class KubernetesEndpointsServerList extends KubernetesServerList {
 					for (EndpointPort port : subset.getPorts()) {
 						if (Utils.isNullOrEmpty(this.getPortName())
 								|| this.getPortName().endsWith(port.getName())) {
-							for (EndpointAddress address :filtersult) {
+							for (EndpointAddress address : filtersult) {
 								result.add(new Server(address.getIp(), port.getPort()));
 							}
 						}
