@@ -29,6 +29,8 @@ public abstract class AbstractConfigProperties {
 
 	protected String namespace;
 
+	protected RetryPolicy retryPolicy;
+
 	public abstract String getConfigurationTarget();
 
 	public boolean isEnabled() {
@@ -53,6 +55,14 @@ public abstract class AbstractConfigProperties {
 
 	public void setNamespace(String namespace) {
 		this.namespace = namespace;
+	}
+
+	public RetryPolicy getRetryPolicy() {
+		return retryPolicy;
+	}
+
+	public void setRetryPolicy(RetryPolicy retryPolicy) {
+		this.retryPolicy = retryPolicy;
 	}
 
 }

@@ -55,12 +55,13 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	private static final String PREFIX = "configmap";
 
 	public ConfigMapPropertySource(KubernetesClient client, String name) {
-		this(client, name, null, (Environment) null);
+		this(client, name, null, null, (Environment) null);
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
-			String[] profiles) {
-		this(client, name, namespace, createEnvironmentWithActiveProfiles(profiles));
+			RetryPolicy retryPolicy, String[] profiles) {
+		this(client, name, namespace, retryPolicy,
+				createEnvironmentWithActiveProfiles(profiles));
 	}
 
 	private static Environment createEnvironmentWithActiveProfiles(
@@ -71,9 +72,9 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
-			Environment environment) {
+			RetryPolicy retryPolicy, Environment environment) {
 		super(getName(client, name, namespace),
-				asObjectMap(getData(client, name, namespace, environment)));
+				asObjectMap(getData(client, name, namespace, retryPolicy, environment)));
 	}
 
 	private static String getName(KubernetesClient client, String name,
@@ -87,7 +88,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	private static Map<String, String> getData(KubernetesClient client, String name,
-			String namespace, Environment environment) {
+			String namespace, RetryPolicy retryPolicy, Environment environment) {
 		try {
 			Map<String, String> result = new HashMap<>();
 			ConfigMap map = StringUtils.isEmpty(namespace)

@@ -9,6 +9,9 @@ spring:
       config:
         name: defname
         namespace: defnamespace
+        retryPolicy:
+          maxAttempts: 3
+          delay: 500
         sources:
           - name: s1
           - namespace: s2
