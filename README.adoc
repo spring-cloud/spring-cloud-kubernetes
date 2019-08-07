@@ -162,6 +162,12 @@ your Spring application (as defined by its `spring.application.name` property) o
 
 However, more advanced configuration is possible where you can use multiple `ConfigMap` instances.
 The `spring.cloud.kubernetes.config.sources` list makes this possible.
+
+Optionally you can provide a general retry policy with `spring.cloud.kubernetes.config.retryPolicy` property to avoid some ephemeral network problems
+like ConnectionRefused or ConnectionTimeOut.
+
+
+
 For example, you could define the following `ConfigMap` instances:
 
 ====
@@ -175,6 +181,9 @@ spring:
       config:
         name: default-name
         namespace: default-namespace
+        retryPolicy:
+          maxAttempts: 3
+          delay: 500
         sources:
          # Spring Cloud Kubernetes looks up a ConfigMap named c1 in namespace default-namespace
          - name: c1
@@ -185,6 +194,24 @@ spring:
            name: c3
 ----
 ====
+
+About retry policy, there will be up to 3 retries and a delay of 500 milliseconds for each retry.
+
+For `spring.cloud.kubernetes.config.retryPolicy.maxAttempts` property:
+
+* maxAttempts: 1 (default value, no retries)
+* maxAttempts: 0 (is omitted and take default value)
+* maxAttempts: < 0 (infinite retries)
+* maxAttempts: > 1 (number maximum of retries)
+
+For `spring.cloud.kubernetes.config.retryPolicy.delay` property (in milliseconds):
+
+* delay: 1000 (default value). This property only applied if 0 < `maxAttempts` > 1
+* delay: < 0 (no wait for next attempt).
+* delay: > 0 (wait this number of milliseconds until next attempt)
+
+NOTE: Those properties about retry policy apply over general configuration `spring.cloud.kubernetes.config.namespace` and `spring.cloud.kubernetes.config.name`
+as each element defined in `spring.cloud.kubernetes.config.sources`.
 
 In the preceding example, if `spring.cloud.kubernetes.config.namespace` had not been set,
 the `ConfigMap` named `c1` would be looked up in the namespace that the application runs.
@@ -199,6 +226,8 @@ The single exception to the aforementioned flow is when the `ConfigMap` contains
 the file is a YAML or properties file. In that case, the name of the key does NOT have to be `application.yaml` or
 `application.properties` (it can be anything) and the value of the property is treated correctly.
 This features facilitates the use case where the `ConfigMap` was created by using something like the following:
+
+
 
 ====
 [source]
