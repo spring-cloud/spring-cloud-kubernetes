@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.discovery;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -53,10 +54,24 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	public KubernetesClientServicesFunction servicesFunction(
 			KubernetesDiscoveryProperties properties) {
 		if (properties.getServiceLabels().isEmpty()) {
-			return KubernetesClient::services;
+			if (properties.isAllNamespaces()) {
+				return (client) -> ((NamespacedKubernetesClient) client).inAnyNamespace()
+						.services();
+			}
+			else {
+				return KubernetesClient::services;
+			}
 		}
-
-		return (client) -> client.services().withLabels(properties.getServiceLabels());
+		else {
+			if (properties.isAllNamespaces()) {
+				return (client) -> ((NamespacedKubernetesClient) client).inAnyNamespace()
+						.services().withLabels(properties.getServiceLabels());
+			}
+			else {
+				return (client) -> client.services()
+						.withLabels(properties.getServiceLabels());
+			}
+		}
 	}
 
 	@Bean
