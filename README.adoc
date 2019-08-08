@@ -455,12 +455,14 @@ NOTE: You have to provide the full exact path to each property file, because dir
 .Properties:
 [options="header,footer"]
 |===
-| Name                                       | Type      | Default                      | Description
-| `spring.cloud.kubernetes.config.enabled`   | `Boolean` | `true`                       | Enable ConfigMaps `PropertySource`
-| `spring.cloud.kubernetes.config.name`      | `String`  | `${spring.application.name}` | Sets the name of `ConfigMap` to look up
-| `spring.cloud.kubernetes.config.namespace` | `String`  | Client namespace             | Sets the Kubernetes namespace where to lookup
-| `spring.cloud.kubernetes.config.paths`     | `List`    | `null`                       | Sets the paths where `ConfigMap` instances are mounted
-| `spring.cloud.kubernetes.config.enableApi` | `Boolean` | `true`                       | Enable or disable consuming `ConfigMap` instances through APIs
+| Name                                                     | Type      | Default                      | Description
+| `spring.cloud.kubernetes.config.enabled`                 | `Boolean` | `true`                       | Enable ConfigMaps `PropertySource`
+| `spring.cloud.kubernetes.config.name`                    | `String`  | `${spring.application.name}` | Sets the name of `ConfigMap` to look up
+| `spring.cloud.kubernetes.config.namespace`               | `String`  | Client namespace             | Sets the Kubernetes namespace where to lookup
+| `spring.cloud.kubernetes.config.retryPolicy.maxAttempts` | `Integer` | `1`                          | Set maximum number of attempts to read `ConfigMap`
+| `spring.cloud.kubernetes.config.retryPolicy.delay`       | `Long`    | `1000`                       | Set delay between each attempt
+| `spring.cloud.kubernetes.config.paths`                   | `List`    | `null`                       | Sets the paths where `ConfigMap` instances are mounted
+| `spring.cloud.kubernetes.config.enableApi`               | `Boolean` | `true`                       | Enable or disable consuming `ConfigMap` instances through APIs
 |===
 
 === Secrets PropertySource
