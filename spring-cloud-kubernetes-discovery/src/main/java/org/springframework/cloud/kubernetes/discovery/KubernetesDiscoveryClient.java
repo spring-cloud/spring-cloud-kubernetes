@@ -101,17 +101,14 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId,
 				"[Assertion failed] - the object argument must not be null");
-
 		List<Endpoints> endpointsList = this.properties.isAllNamespaces()
 				? this.client.endpoints().inAnyNamespace()
 						.withField("metadata.name", serviceId).list().getItems()
 				: Collections
 						.singletonList(this.client.endpoints().withName(serviceId).get());
-
 		List<EndpointSubset> subsets = endpointsList.stream()
 				.flatMap(endpoints -> getSubsetsFromEndpoints(endpoints).stream())
 				.collect(Collectors.toList());
-		// List<EndpointSubset> subsets = getSubsetsFromEndpoints(endpoints);
 		List<ServiceInstance> instances = new ArrayList<>();
 		if (!subsets.isEmpty()) {
 
