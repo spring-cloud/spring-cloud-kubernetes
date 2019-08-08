@@ -17,9 +17,7 @@
 package org.springframework.cloud.kubernetes.config;
 
 import java.util.HashMap;
-import java.util.Map;
 
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
@@ -66,38 +64,29 @@ public class MultipleConfigMapsTests {
 				"false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 
-		createConfigmap(server, "s1", "defnamespace", new HashMap<String, String>() {
-			{
-				put("bean.common-message", "c1");
-				put("bean.message1", "m1");
-			}
-		});
+		ConfigMapUtils.createConfigmap(server, "s1", "defnamespace",
+				new HashMap<String, String>() {
+					{
+						put("bean.common-message", "c1");
+						put("bean.message1", "m1");
+					}
+				});
 
-		createConfigmap(server, "defname", "s2", new HashMap<String, String>() {
-			{
-				put("bean.common-message", "c2");
-				put("bean.message2", "m2");
-			}
-		});
+		ConfigMapUtils.createConfigmap(server, "defname", "s2",
+				new HashMap<String, String>() {
+					{
+						put("bean.common-message", "c2");
+						put("bean.message2", "m2");
+					}
+				});
 
-		createConfigmap(server, "othername", "othernamespace",
+		ConfigMapUtils.createConfigmap(server, "othername", "othernamespace",
 				new HashMap<String, String>() {
 					{
 						put("bean.common-message", "c3");
 						put("bean.message3", "m3");
 					}
 				});
-	}
-
-	private static void createConfigmap(KubernetesServer server, String configMapName,
-			String namespace, Map<String, String> data) {
-
-		server.expect()
-				.withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace,
-						configMapName))
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
-						.withName(configMapName).endMetadata().addToData(data).build())
-				.always();
 	}
 
 	// the last confimap defined in 'multiplecms.yml' has the highest priority, so

@@ -16,47 +16,25 @@
 
 package org.springframework.cloud.kubernetes.config;
 
+import java.util.Map;
+
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+
 /**
- * Class to wrap some properties to define a retry policy.
- *
  * @author Andres Navidad
  */
-class RetryPolicy {
+public class ConfigMapUtils {
 
-	private int maxAttempts = 1;
+	private final static String PATH_CONFIGMAP = "/api/v1/namespaces/%s/configmaps/%s";
 
-	private long delay = 1000;
+	public static void createConfigmap(KubernetesServer server, String configMapName,
+			String namespace, Map<String, String> data) {
 
-	public int getMaxAttempts() {
-		return maxAttempts;
-	}
-
-	public void setMaxAttempts(int maxAttempts) {
-		this.maxAttempts = maxAttempts;
-	}
-
-	public long getDelay() {
-		return delay;
-	}
-
-	public void setDelay(long delay) {
-		this.delay = delay;
-	}
-
-	RetryPolicy() {
-	}
-
-	RetryPolicy(int maxAttempts, long delay) {
-		this.maxAttempts = maxAttempts;
-		this.delay = delay;
-	}
-
-	@Override
-	public String toString() {
-		return new StringBuilder("RetryPolicy {").append("maxAttempts=")
-				.append(maxAttempts).append(", delay=").append(delay).append('}')
-				.toString();
-
+		server.expect().withPath(String.format(PATH_CONFIGMAP, namespace, configMapName))
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
+						.withName(configMapName).endMetadata().addToData(data).build())
+				.always();
 	}
 
 }

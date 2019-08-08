@@ -1,0 +1,27 @@
+---
+spring:
+  application:
+    name: name-in-file
+  cloud:
+    kubernetes:
+      reload:
+        enabled: false
+      config:
+        retryPolicy:
+          maxAttempts: 5
+          delay: 500
+        name: defname
+        namespace: defnamespace
+        sources:
+          - name: name1
+            namespace: ns1
+          - name: name2
+            namespace: ns2
+          - name: name3
+            namespace: ns3
+          - name: name4
+            namespace: ns4
+          - name: name5
+            namespace: ns5
+          - name: name6
+            namespace: ns6

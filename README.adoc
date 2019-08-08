@@ -206,9 +206,11 @@ For `spring.cloud.kubernetes.config.retryPolicy.maxAttempts` property:
 
 For `spring.cloud.kubernetes.config.retryPolicy.delay` property (in milliseconds):
 
-* delay: 1000 (default value). This property only applied if 0 < `maxAttempts` > 1
+* delay: 1000 (default value).
 * delay: < 0 (no wait for next attempt).
 * delay: > 0 (wait this number of milliseconds until next attempt)
+
+NOTE: Notice that an excessively low delay could lead to send a lot of request to Kubernetes API.
 
 NOTE: Those properties about retry policy apply over general configuration `spring.cloud.kubernetes.config.namespace` and `spring.cloud.kubernetes.config.name`
 as each element defined in `spring.cloud.kubernetes.config.sources`.
