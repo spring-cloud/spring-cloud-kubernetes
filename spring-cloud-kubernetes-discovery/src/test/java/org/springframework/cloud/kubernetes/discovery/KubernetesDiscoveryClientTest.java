@@ -16,11 +16,16 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
+import io.fabric8.kubernetes.api.model.EndpointsList;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.api.model.ServiceListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -55,11 +60,92 @@ public class KubernetesDiscoveryClientTest {
 	}
 
 	@Test
+	public void getInstancesShouldBeAbleToHandleEndpointsFromMultipleNamespaces() {
+		Endpoints endPoints1 = new EndpointsBuilder().withNewMetadata()
+				.withName("endpoint").withNamespace("test").endMetadata().addNewSubset()
+				.addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
+				.endTargetRef().endAddress().addNewPort("http", 80, "TCP").endSubset()
+				.build();
+
+		Endpoints endpoints2 = new EndpointsBuilder().withNewMetadata()
+				.withName("endpoint").withNamespace("test2").endMetadata().addNewSubset()
+				.addNewAddress().withIp("ip2").withNewTargetRef().withUid("uid2")
+				.endTargetRef().endAddress().addNewPort("http", 80, "TCP").endSubset()
+				.build();
+
+		List<Endpoints> endpointsList = new ArrayList<>();
+		endpointsList.add(endPoints1);
+		endpointsList.add(endpoints2);
+
+		EndpointsList endpoints = new EndpointsList();
+		endpoints.setItems(endpointsList);
+
+		mockServer.expect().get()
+				.withPath("/api/v1/endpoints?fieldSelector=metadata.name%3Dendpoint")
+				.andReturn(200, endpoints).once();
+
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint")
+				.andReturn(200, endPoints1).once();
+
+		mockServer.expect().get().withPath("/api/v1/namespaces/test2/endpoints/endpoint")
+				.andReturn(200, endpoints2).once();
+
+		Service service1 = new ServiceBuilder().withNewMetadata().withName("endpoint")
+				.withNamespace("test").withLabels(new HashMap<String, String>() {
+					{
+						put("l", "v");
+					}
+				}).endMetadata().build();
+
+		Service service2 = new ServiceBuilder().withNewMetadata().withName("endpoint")
+				.withNamespace("test2").withLabels(new HashMap<String, String>() {
+					{
+						put("l", "v");
+					}
+				}).endMetadata().build();
+
+		List<Service> servicesList = new ArrayList<>();
+		servicesList.add(service1);
+		servicesList.add(service2);
+
+		ServiceList services = new ServiceList();
+		services.setItems(servicesList);
+
+		mockServer.expect().get()
+				.withPath("/api/v1/services?fieldSelector=metadata.name%3Dendpoint")
+				.andReturn(200, services).once();
+
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint")
+				.andReturn(200, service1).once();
+
+		mockServer.expect().get().withPath("/api/v1/namespaces/test2/services/endpoint")
+				.andReturn(200, service2).once();
+
+		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
+		properties.setAllNamespaces(true);
+		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+				properties, KubernetesClient::services,
+				new DefaultIsServicePortSecureResolver(properties));
+
+		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
+
+		assertThat(instances).hasSize(2);
+		assertThat(instances).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure())
+				.hasSize(1);
+		assertThat(instances).filteredOn(s -> s.getHost().equals("ip2") && !s.isSecure())
+				.hasSize(1);
+		assertThat(instances).filteredOn(s -> s.getInstanceId().equals("uid1"))
+				.hasSize(1);
+		assertThat(instances).filteredOn(s -> s.getInstanceId().equals("uid2"))
+				.hasSize(1);
+	}
+
+	@Test
 	public void getInstancesShouldBeAbleToHandleEndpointsSingleAddress() {
 		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint")
 				.andReturn(200, new EndpointsBuilder().withNewMetadata()
 						.withName("endpoint").endMetadata().addNewSubset().addNewAddress()
-						.withIp("ip1").withNewTargetRef().withUid("uid").endTargetRef()
+						.withIp("ip1").withNewTargetRef().withUid("uid1").endTargetRef()
 						.endAddress().addNewPort("http", 80, "TCP").endSubset().build())
 				.once();
 
@@ -81,7 +167,7 @@ public class KubernetesDiscoveryClientTest {
 
 		assertThat(instances).hasSize(1)
 				.filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("uid")).hasSize(1);
+				.filteredOn(s -> s.getInstanceId().equals("uid1")).hasSize(1);
 	}
 
 	@Test
