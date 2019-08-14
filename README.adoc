@@ -844,59 +844,7 @@ For earlier versions, it needs to be specified as an environment variable to the
 === Service Account
 
 For distributions of Kubernetes that support more fine-grained role-based access within the cluster, you need to make sure a pod that runs with `spring-cloud-kubernetes` has access to the Kubernetes API.
-For any service accounts you assign to a deployment or pod, you need to make sure they have the correct roles.
-
-Depending on the requirements, you'll need `get`, `list` and `watch` permission on the following resources:
-
-.Kubernetes Resource Permissions
-|===
-|Dependency | Resources
-
-
-|spring-cloud-starter-kubernetes
-|pods, services, endpoints
-
-|spring-cloud-starter-kubernetes-config
-|configmaps, secrets
-
-|spring-cloud-starter-kubernetes-ribbon
-|pods, services, endpoints
-|===
-
-For development purposes, you can add `cluster-reader` permissions to your `default` service account. On a production system you'll likely want to provide more granular permissions.
-
-The following Role and RoleBinding are an example for namespaced permissions for the `default` account:
-
-====
-[source,yaml]
-----
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  namespace: YOUR-NAME-SPACE
-  name: namespace-reader
-rules:
-  - apiGroups: ["", "extensions", "apps"]
-    resources: ["configmaps", "pods", "services", "endpoints", "secrets"]
-    verbs: ["get", "list", "watch"]
-
----
-
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: namespace-reader-binding
-  namespace: YOUR-NAME-SPACE
-subjects:
-- kind: ServiceAccount
-  name: default
-  apiGroup: ""
-roleRef:
-  kind: Role
-  name: namespace-reader
-  apiGroup: ""
-----
-====
+For any service accounts you assign to a deployment or pod, you need to make sure they have the correct roles. For example, you can add `cluster-reader` permissions to your `default` service account, depending on the project you're in.
 
 == Service Registry Implementation
 
