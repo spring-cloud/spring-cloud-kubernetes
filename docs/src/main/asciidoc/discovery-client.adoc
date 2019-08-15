@@ -44,6 +44,15 @@ private DiscoveryClient discoveryClient;
 ----
 ====
 
+You can choose to enable `DiscoveryClient` from all namespaces by setting the following property in `application.properties`:
+
+====
+[source]
+----
+spring.cloud.kubernetes.discovery.all-namespaces=true
+----
+====
+
 If, for any reason, you need to disable the `DiscoveryClient`, you can set the following property in `application.properties`:
 
 ====

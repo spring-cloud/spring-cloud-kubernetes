@@ -40,6 +40,9 @@ public class KubernetesDiscoveryProperties {
 	@Value("${spring.application.name:unknown}")
 	private String serviceName = "unknown";
 
+	/** If discovering all namespaces. */
+	private boolean allNamespaces = false;
+
 	/**
 	 * SpEL expression to filter services AFTER they have been retrieved from the
 	 * Kubernetes API server.
@@ -122,6 +125,14 @@ public class KubernetesDiscoveryProperties {
 
 	public void setMetadata(Metadata metadata) {
 		this.metadata = metadata;
+	}
+
+	public boolean isAllNamespaces() {
+		return allNamespaces;
+	}
+
+	public void setAllNamespaces(boolean allNamespaces) {
+		this.allNamespaces = allNamespaces;
 	}
 
 	@Override

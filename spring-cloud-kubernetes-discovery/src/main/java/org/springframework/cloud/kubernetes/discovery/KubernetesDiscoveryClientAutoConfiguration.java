@@ -53,10 +53,23 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	public KubernetesClientServicesFunction servicesFunction(
 			KubernetesDiscoveryProperties properties) {
 		if (properties.getServiceLabels().isEmpty()) {
-			return KubernetesClient::services;
+			if (properties.isAllNamespaces()) {
+				return (client) -> client.services().inAnyNamespace();
+			}
+			else {
+				return KubernetesClient::services;
+			}
 		}
-
-		return (client) -> client.services().withLabels(properties.getServiceLabels());
+		else {
+			if (properties.isAllNamespaces()) {
+				return (client) -> client.services().inAnyNamespace()
+						.withLabels(properties.getServiceLabels());
+			}
+			else {
+				return (client) -> client.services()
+						.withLabels(properties.getServiceLabels());
+			}
+		}
 	}
 
 	@Bean
