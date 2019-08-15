@@ -158,6 +158,18 @@ private DiscoveryClient discoveryClient;</code></pre>
 </div>
 </div>
 <div class="paragraph">
+<p>You can choose to enable <code>DiscoveryClient</code> from all namespaces by setting the following property in <code>application.properties</code>:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>spring.cloud.kubernetes.discovery.all-namespaces=true</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
 <p>If, for any reason, you need to disable the <code>DiscoveryClient</code>, you can set the following property in <code>application.properties</code>:</p>
 </div>
 <div class="exampleblock">
