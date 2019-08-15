@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.discovery;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,9 +101,14 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId,
 				"[Assertion failed] - the object argument must not be null");
-
-		Endpoints endpoints = this.client.endpoints().withName(serviceId).get();
-		List<EndpointSubset> subsets = getSubsetsFromEndpoints(endpoints);
+		List<Endpoints> endpointsList = this.properties.isAllNamespaces()
+				? this.client.endpoints().inAnyNamespace()
+						.withField("metadata.name", serviceId).list().getItems()
+				: Collections
+						.singletonList(this.client.endpoints().withName(serviceId).get());
+		List<EndpointSubset> subsets = endpointsList.stream()
+				.flatMap(endpoints -> getSubsetsFromEndpoints(endpoints).stream())
+				.collect(Collectors.toList());
 		List<ServiceInstance> instances = new ArrayList<>();
 		if (!subsets.isEmpty()) {
 
