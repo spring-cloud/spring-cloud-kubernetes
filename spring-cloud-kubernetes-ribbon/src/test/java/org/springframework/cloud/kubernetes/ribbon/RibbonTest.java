@@ -75,6 +75,7 @@ public class RibbonTest {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
 				"false");
+		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		// Configured
 		server.expect().get().withPath("/api/v1/namespaces/testns/endpoints/testapp")

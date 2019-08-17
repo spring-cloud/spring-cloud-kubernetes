@@ -76,6 +76,7 @@ public class MultipleSecretsTests {
 				"false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY,
 				DEFAULT_NAMESPACE);
+		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		Map<String, String> metadata1 = new HashMap() {
 			{

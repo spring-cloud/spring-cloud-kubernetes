@@ -57,6 +57,7 @@ public class KubernetesDiscoveryClientTest {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
 				"false");
+		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 	}
 
 	@Test

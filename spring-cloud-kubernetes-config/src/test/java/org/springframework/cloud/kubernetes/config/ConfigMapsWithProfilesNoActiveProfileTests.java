@@ -70,6 +70,7 @@ public class ConfigMapsWithProfilesNoActiveProfileTests {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
 				"false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
+		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("application.yml", readResourceFile("application-with-profiles.yaml"));

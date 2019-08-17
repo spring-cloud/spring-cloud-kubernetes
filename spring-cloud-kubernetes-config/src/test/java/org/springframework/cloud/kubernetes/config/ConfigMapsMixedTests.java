@@ -77,6 +77,7 @@ public class ConfigMapsMixedTests {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
 				"false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
+		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		Files.createDirectories(Paths.get(FILES_ROOT_PATH));
 		ConfigMapTestUtil.createFileWithContent(FILE_NAME_FULL_PATH,
