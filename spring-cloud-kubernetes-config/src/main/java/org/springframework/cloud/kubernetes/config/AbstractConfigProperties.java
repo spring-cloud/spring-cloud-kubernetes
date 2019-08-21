@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.config;
 
+import org.springframework.cloud.kubernetes.config.retry.RetryPolicy;
+
 /**
  * Abstraction over configuration properties.
  *

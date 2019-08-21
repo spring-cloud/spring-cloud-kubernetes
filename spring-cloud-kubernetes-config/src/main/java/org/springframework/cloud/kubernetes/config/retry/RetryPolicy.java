@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.config;
+package org.springframework.cloud.kubernetes.config.retry;
 
 /**
  * Class to wrap some properties to define a retry policy.
  *
  * @author Andres Navidad
  */
-class RetryPolicy {
+public class RetryPolicy {
 
 	private int maxAttempts = 1;
 
@@ -43,10 +43,10 @@ class RetryPolicy {
 		this.delay = delay;
 	}
 
-	RetryPolicy() {
+	public RetryPolicy() {
 	}
 
-	RetryPolicy(int maxAttempts, long delay) {
+	public RetryPolicy(int maxAttempts, long delay) {
 		this.maxAttempts = maxAttempts;
 		this.delay = delay;
 	}
