@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.config.ConfigMapConfigProperties.NormalizedSource;
+import org.springframework.cloud.kubernetes.config.retry.RetryPolicyOperations;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -58,10 +59,20 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 
 	private final ConfigMapConfigProperties properties;
 
+	private final RetryPolicyOperations retryPolicyOperations;
+
+	@Deprecated
 	public ConfigMapPropertySourceLocator(KubernetesClient client,
 			ConfigMapConfigProperties properties) {
+		this(client, properties, null);
+	}
+
+	public ConfigMapPropertySourceLocator(KubernetesClient client,
+			ConfigMapConfigProperties properties,
+			RetryPolicyOperations retryPolicyOperations) {
 		this.client = client;
 		this.properties = properties;
+		this.retryPolicyOperations = retryPolicyOperations;
 	}
 
 	@Override
@@ -94,7 +105,7 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 						configurationTarget),
 				getApplicationNamespace(this.client, normalizedSource.getNamespace(),
 						configurationTarget),
-				environment, this.properties.getRetryPolicy());
+				environment, this.retryPolicyOperations);
 	}
 
 	private void addPropertySourcesFromPaths(Environment environment,

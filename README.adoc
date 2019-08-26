@@ -210,10 +210,40 @@ For `spring.cloud.kubernetes.config.retryPolicy.delay` property (in milliseconds
 * delay: < 0 (no wait for next attempt).
 * delay: > 0 (wait this number of milliseconds until next attempt)
 
-NOTE: Notice that an excessively low delay could lead to send a lot of request to Kubernetes API.
+NOTE: Notice that an excessively low delay could lead to send a lot of requests to Kubernetes API.
 
 NOTE: Those properties about retry policy apply over general configuration `spring.cloud.kubernetes.config.namespace` and `spring.cloud.kubernetes.config.name`
 as each element defined in `spring.cloud.kubernetes.config.sources`.
+
+==== Advanced configuration for retry policy
+
+https://github.com/spring-projects/spring-retry[spring-retry] is used to implement retry logic.
+
+Out-of-box default implementation use a SimpleRetryPolicy and FixedBackOffPolicy to build
+a RetryTemplate bean. This behaviour can be override defining your own RetryTemplate.
+
+====
+[source,java]
+----
+@Bean
+public RetryTemplate retryTemplate(...) {
+	// ...
+}
+----
+====
+
+In case you don't want to use spring-retry and provide your own implementation for retry logic
+or use other library, you can define a custom implementation for RetryPolicyOperations interface.
+
+====
+[source,java]
+----
+@Bean
+public RetryPolicyOperations retryPolicyOperations(...) {
+	// ...
+}
+----
+====
 
 In the preceding example, if `spring.cloud.kubernetes.config.namespace` had not been set,
 the `ConfigMap` named `c1` would be looked up in the namespace that the application runs.

@@ -22,7 +22,6 @@ import java.util.stream.IntStream;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -34,8 +33,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.config.ConfigMapUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Andres Navidad
@@ -44,7 +46,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.cloud.bootstrap.name=retrypolicy" })
 @AutoConfigureWebTestClient
-public class RetryPolicyManagerTests {
+public class DefaultRetryPolicyTests {
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
@@ -53,6 +55,12 @@ public class RetryPolicyManagerTests {
 
 	@Autowired
 	private ConfigMapConfigProperties configMapConfigProperties;
+
+	@Autowired
+	RetryPolicyOperations retryPolicyOperations;
+
+	@Autowired
+	private ApplicationContext context;
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
@@ -83,62 +91,40 @@ public class RetryPolicyManagerTests {
 	public void testConfigMapNotExistWithCustomPolicy() {
 
 		ConfigMapPropertySource cfmps = new ConfigMapPropertySource(mockClient, "name2",
-				"not_exist", new StandardEnvironment(), new RetryPolicy(5, 100));
+				"not_exist", new StandardEnvironment(), retryPolicyOperations);
 
-		Assert.assertEquals(0, cfmps.getPropertyNames().length);
+		assertThat(cfmps.getPropertyNames().length).isEqualTo(0);
 	}
 
 	@Test
-	public void testNormalizeRetryPolicy() {
+	public void testGetConfigMapWithYamlDefinedPolicy() {
 
-		ConfigMapPropertySource cmps = new ConfigMapPropertySource(mockClient, "name3",
-				"ns3", new StandardEnvironment(),
-				configMapConfigProperties.getRetryPolicy());
+		assertThat(configMapConfigProperties.getRetryPolicy().getDelay()).isEqualTo(500);
+		assertThat(configMapConfigProperties.getRetryPolicy().getMaxAttempts())
+				.isEqualTo(5);
 
-		Assert.assertEquals(1, cmps.getPropertyNames().length);
-		Assert.assertEquals("value3", cmps.getProperty("some.message"));
+		ConfigMapPropertySource cfmps = new ConfigMapPropertySource(mockClient, "name1",
+				"ns1", new StandardEnvironment(), retryPolicyOperations);
 
-		RetryPolicy retryPolicy = new RetryPolicy(1000, -1);
-		RetryPolicy normalizedRP = RetryPolicyManager.normalizeRetryPolicy(retryPolicy);
+		assertThat(cfmps.getPropertyNames().length).isEqualTo(1);
+		assertThat(cfmps.getProperty("some.message")).isEqualTo("value1");
+	}
 
-		Assert.assertEquals(1000, normalizedRP.getMaxAttempts());
-		Assert.assertEquals(0, normalizedRP.getDelay());
+	@Test
+	public void testGetConfigMapWithCustomPolicy() {
 
-		RetryPolicy retryPolicy2 = new RetryPolicy(0, -1);
-		RetryPolicy normalizedRP2 = RetryPolicyManager.normalizeRetryPolicy(retryPolicy2);
+		ConfigMapPropertySource cfmps = new ConfigMapPropertySource(mockClient, "name2",
+				"ns2", new StandardEnvironment(), retryPolicyOperations);
 
-		Assert.assertEquals(1, normalizedRP2.getMaxAttempts());
-		Assert.assertEquals(0, normalizedRP2.getDelay());
+		assertThat(cfmps.getPropertyNames().length).isEqualTo(1);
+		assertThat(cfmps.getProperty("some.message")).isEqualTo("value2");
+	}
 
-		RetryPolicy retryPolicy3 = new RetryPolicy(1, -1);
-		RetryPolicy normalizedRP3 = RetryPolicyManager.normalizeRetryPolicy(retryPolicy3);
+	@Test
+	public void testExitsDefaultRetryPolicyBean() {
 
-		Assert.assertEquals(1, normalizedRP3.getMaxAttempts());
-		Assert.assertEquals(0, normalizedRP3.getDelay());
-
-		RetryPolicy retryPolicy4 = new RetryPolicy(-3, -1);
-		RetryPolicy normalizedRP4 = RetryPolicyManager.normalizeRetryPolicy(retryPolicy4);
-
-		Assert.assertEquals(-3, normalizedRP4.getMaxAttempts());
-		Assert.assertEquals(0, normalizedRP4.getDelay());
-
-		RetryPolicy retryPolicy5 = new RetryPolicy(-3, -5);
-		RetryPolicy normalizedRP5 = RetryPolicyManager.normalizeRetryPolicy(retryPolicy5);
-
-		Assert.assertEquals(-3, normalizedRP5.getMaxAttempts());
-		Assert.assertEquals(0, normalizedRP5.getDelay());
-
-		RetryPolicy retryPolicy6 = new RetryPolicy(-3, 0);
-		RetryPolicy normalizedRP6 = RetryPolicyManager.normalizeRetryPolicy(retryPolicy6);
-
-		Assert.assertEquals(-3, normalizedRP6.getMaxAttempts());
-		Assert.assertEquals(0, normalizedRP6.getDelay());
-
-		RetryPolicy retryPolicy7 = new RetryPolicy(-3, 5);
-		RetryPolicy normalizedRP7 = RetryPolicyManager.normalizeRetryPolicy(retryPolicy7);
-
-		Assert.assertEquals(-3, normalizedRP7.getMaxAttempts());
-		Assert.assertEquals(5, normalizedRP7.getDelay());
+		RetryPolicyOperations bean = context.getBean(RetryPolicyOperations.class);
+		assertThat(bean instanceof DefaultRetryPolicy).isTrue();
 	}
 
 }

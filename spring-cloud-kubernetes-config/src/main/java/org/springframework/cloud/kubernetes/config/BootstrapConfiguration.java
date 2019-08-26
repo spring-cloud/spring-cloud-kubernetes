@@ -21,13 +21,19 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.kubernetes.KubernetesAutoConfiguration;
+import org.springframework.cloud.kubernetes.config.retry.DefaultRetryPolicy;
+import org.springframework.cloud.kubernetes.config.retry.RetryPolicyOperations;
+import org.springframework.cloud.kubernetes.config.retry.RetryPolicyUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.retry.support.RetryTemplate;
 
 /**
  * Auto configuration that reuses Kubernetes config maps as property sources.
@@ -48,12 +54,16 @@ public class BootstrapConfiguration {
 		@Autowired
 		private KubernetesClient client;
 
+		@Autowired
+		private RetryPolicyOperations retryPolicyOperations;
+
 		@Bean
 		@ConditionalOnProperty(name = "spring.cloud.kubernetes.config.enabled",
 				matchIfMissing = true)
 		public ConfigMapPropertySourceLocator configMapPropertySourceLocator(
 				ConfigMapConfigProperties properties) {
-			return new ConfigMapPropertySourceLocator(this.client, properties);
+			return new ConfigMapPropertySourceLocator(this.client, properties,
+					this.retryPolicyOperations);
 		}
 
 		@Bean
@@ -62,6 +72,20 @@ public class BootstrapConfiguration {
 		public SecretsPropertySourceLocator secretsPropertySourceLocator(
 				SecretsConfigProperties properties) {
 			return new SecretsPropertySourceLocator(this.client, properties);
+		}
+
+		@Bean
+		@ConditionalOnMissingBean
+		public RetryTemplate retryTemplate(ConfigMapConfigProperties properties) {
+			return RetryPolicyUtils
+					.getRetryTemplateWithSimpleRetryPolicy(properties.getRetryPolicy());
+		}
+
+		@Bean
+		@ConditionalOnMissingBean
+		@ConditionalOnBean(RetryTemplate.class)
+		public RetryPolicyOperations retryPolicyOperations(RetryTemplate retryTemplate) {
+			return new DefaultRetryPolicy(retryTemplate);
 		}
 
 	}

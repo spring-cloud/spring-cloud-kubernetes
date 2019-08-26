@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.config;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -27,8 +28,10 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.kubernetes.config.retry.DefaultRetryPolicy;
 import org.springframework.cloud.kubernetes.config.retry.RetryPolicy;
-import org.springframework.cloud.kubernetes.config.retry.RetryPolicyManager;
+import org.springframework.cloud.kubernetes.config.retry.RetryPolicyOperations;
+import org.springframework.cloud.kubernetes.config.retry.RetryPolicyUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.StandardEnvironment;
@@ -75,14 +78,14 @@ public class ConfigMapPropertySource extends MapPropertySource {
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
 			Environment environment) {
-		this(client, name, namespace, environment, null);
+		this(client, name, namespace, environment, getOrCreateDefault(null));
 
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
-			Environment environment, RetryPolicy retryPolicy) {
-		super(getName(client, name, namespace),
-				asObjectMap(getData(client, name, namespace, environment, retryPolicy)));
+			Environment environment, RetryPolicyOperations retryPolicyOperations) {
+		super(getName(client, name, namespace), asObjectMap(
+				getData(client, name, namespace, environment, retryPolicyOperations)));
 	}
 
 	private static String getName(KubernetesClient client, String name,
@@ -96,11 +99,12 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	private static Map<String, String> getData(KubernetesClient client, String name,
-			String namespace, Environment environment, RetryPolicy retryPolicy) {
+			String namespace, Environment environment,
+			RetryPolicyOperations retryPolicyOperations) {
 		try {
 			Map<String, String> result = new HashMap<>();
-			ConfigMap map = RetryPolicyManager.tryRecoverConfigMap(client, name,
-					namespace, retryPolicy);
+			ConfigMap map = retryPolicyOperations.tryRecoverConfigMap(client, name,
+					namespace);
 
 			if (map != null) {
 				result.putAll(processAllEntries(map.getData(), environment));
@@ -111,8 +115,8 @@ public class ConfigMapPropertySource extends MapPropertySource {
 
 					String mapNameWithProfile = name + "-" + activeProfile;
 
-					ConfigMap mapWithProfile = RetryPolicyManager.tryRecoverConfigMap(
-							client, mapNameWithProfile, namespace, retryPolicy);
+					ConfigMap mapWithProfile = retryPolicyOperations
+							.tryRecoverConfigMap(client, mapNameWithProfile, namespace);
 
 					if (mapWithProfile != null) {
 						result.putAll(
@@ -200,6 +204,14 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	private static Map<String, Object> asObjectMap(Map<String, String> source) {
 		return source.entrySet().stream()
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+	}
+
+	private static RetryPolicyOperations getOrCreateDefault(
+			RetryPolicyOperations retryPolicyOperations) {
+
+		return Optional.ofNullable(retryPolicyOperations)
+				.orElseGet(() -> new DefaultRetryPolicy(RetryPolicyUtils
+						.getRetryTemplateWithSimpleRetryPolicy(new RetryPolicy())));
 	}
 
 }
