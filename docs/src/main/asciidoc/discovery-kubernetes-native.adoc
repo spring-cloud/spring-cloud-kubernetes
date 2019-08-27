@@ -9,3 +9,5 @@ Additionally, you can use Hystrix for:
 
 * Circuit breaker implementation on the caller side, by annotating the spring boot application class with `@EnableCircuitBreaker`
 * Fallback functionality, by annotating the respective method with `@HystrixCommand(fallbackMethod=`
+
+NOTE: In spring-cloud-kubernetes `spring.application.name` is not used as the name registered with the service discovery service.
