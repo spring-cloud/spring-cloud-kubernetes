@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -37,6 +38,7 @@ import org.springframework.context.annotation.Configuration;
  * Auto configuration for Kubernetes.
  *
  * @author Ioannis Canellos
+ * @author Eddú Meléndez
  */
 @Configuration
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
@@ -158,6 +160,7 @@ public class KubernetesAutoConfiguration {
 	protected static class KubernetesActuatorConfiguration {
 
 		@Bean
+		@ConditionalOnEnabledHealthIndicator("kubernetes")
 		public KubernetesHealthIndicator kubernetesHealthIndicator(PodUtils podUtils) {
 			return new KubernetesHealthIndicator(podUtils);
 		}
