@@ -36,8 +36,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
-		"management.health.kubernetes.enabled=false" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		classes = App.class,
+		properties = { "management.health.kubernetes.enabled=false" })
 public class HealthIndicatorDisabledTest {
 
 	@ClassRule
