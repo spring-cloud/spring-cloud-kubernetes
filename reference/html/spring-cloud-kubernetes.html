@@ -319,6 +319,18 @@ private DiscoveryClient discoveryClient;</code></pre>
 <p>Some Spring Cloud components use the <code>DiscoveryClient</code> in order to obtain information about the local service instance. For
 this to work, you need to align the Kubernetes service name with the <code>spring.application.name</code> property.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>spring.application.name</code> has no effect as far as the name registered for the application within Kubernetes
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>Spring Cloud Kubernetes can also watch the Kubernetes service catalog for changes and update the
 <code>DiscoveryClient</code> implementation accordingly.  In order to enable this functionality you need to add
