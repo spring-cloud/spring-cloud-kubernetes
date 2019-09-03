@@ -799,10 +799,15 @@ accessible by Spring Boot applications. You can explicitly enable or disable Thi
 </ol>
 </div>
 <div class="paragraph">
-<p>Note that, by default, consuming Secrets through the API (points 2 and 3 above) <strong>is not enabled</strong> for security reasons.
-Further, we recommend that containers share secrets through mounted volumes.
-If you enable consuming Secrets through the API, we recommend that you limit access to Secrets by using an
-[authorization policy, such as RBAC](<a href="https://kubernetes.io/docs/concepts/configuration/secret/#best-practices" class="bare">https://kubernetes.io/docs/concepts/configuration/secret/#best-practices</a>).</p>
+<p><strong>Note:</strong></p>
+</div>
+<div class="paragraph">
+<p>By default, consuming Secrets through the API (points 2 and 3 above) <strong>is not enabled</strong> for security reasons. The permission 'list' on secrets allows clients to inspect secrets values in the specified namespace.
+Further, we recommend that containers share secrets through mounted volumes.</p>
+</div>
+<div class="paragraph">
+<p>If you enable consuming Secrets through the API, we recommend that you limit access to Secrets by using an authorization policy, such as RBAC.
+For more information about risks and best practices when consuming Secrets through the API refer to <a href="https://kubernetes.io/docs/concepts/configuration/secret/#best-practices">this doc</a>.</p>
 </div>
 <div class="paragraph">
 <p>If the secrets are found, their data is made available to the application.</p>
@@ -1024,12 +1029,22 @@ the <code>Secret</code> named <code>s1</code> would be looked up in the namespac
 </tfoot>
 </table>
 <div class="paragraph">
-<p>Notes:
-* The <code>spring.cloud.kubernetes.secrets.labels</code> property behaves as defined by
-<a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding">Map-based binding</a>.
-* The <code>spring.cloud.kubernetes.secrets.paths</code> property behaves as defined by
-<a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#collection-based-binding">Collection-based binding</a>.
-* Access to secrets through the API may be restricted for security reasons. The preferred way is to mount secrets to the Pod.</p>
+<p>Notes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>spring.cloud.kubernetes.secrets.labels</code> property behaves as defined by
+<a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding">Map-based binding</a>.</p>
+</li>
+<li>
+<p>The <code>spring.cloud.kubernetes.secrets.paths</code> property behaves as defined by
+<a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#collection-based-binding">Collection-based binding</a>.</p>
+</li>
+<li>
+<p>Access to secrets through the API may be restricted for security reasons. The preferred way is to mount secrets to the Pod.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>You can find an example of an application that uses secrets (though it has not been updated to use the new <code>spring-cloud-kubernetes</code> project) at
