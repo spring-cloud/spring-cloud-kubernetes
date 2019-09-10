@@ -5,6 +5,22 @@ Edit the files in the src/main/asciidoc/ directory instead.
 ////
 
 = Spring Cloud Kubernetes
+:doctype: book
+:idprefix:
+:idseparator: -
+:toc: left
+:toclevels: 4
+:tabsize: 4
+:numbered:
+:sectanchors:
+:sectnums:
+:icons: font
+:hide-uri-scheme:
+:docinfo: shared,private
+
+:sc-ext: java
+:project-full-name: Spring Cloud Kubernetes
+:all: {asterisk}{asterisk}
 
 This reference guide covers how to use Spring Cloud Kubernetes.
 
@@ -132,6 +148,8 @@ spring.cloud.kubernetes.discovery.enabled=false
 
 Some Spring Cloud components use the `DiscoveryClient` in order to obtain information about the local service instance. For
 this to work, you need to align the Kubernetes service name with the `spring.application.name` property.
+
+NOTE:  `spring.application.name` has no effect as far as the name registered for the application within Kubernetes
 
 Spring Cloud Kubernetes can also watch the Kubernetes service catalog for changes and update the
 `DiscoveryClient` implementation accordingly.  In order to enable this functionality you need to add
@@ -453,10 +471,13 @@ When enabled, the `SecretsPropertySource` looks up Kubernetes for `Secrets` from
 . Named after the application (as defined by `spring.application.name`)
 . Matching some labels
 
-Note that, by default, consuming Secrets through the API (points 2 and 3 above) *is not enabled* for security reasons.
+*Note:*
+
+By default, consuming Secrets through the API (points 2 and 3 above) *is not enabled* for security reasons. The permission 'list' on secrets allows clients to inspect secrets values in the specified namespace.
 Further, we recommend that containers share secrets through mounted volumes.
-If you enable consuming Secrets through the API, we recommend that you limit access to Secrets by using an
-[authorization policy, such as RBAC](https://kubernetes.io/docs/concepts/configuration/secret/#best-practices).
+
+If you enable consuming Secrets through the API, we recommend that you limit access to Secrets by using an authorization policy, such as RBAC.
+For more information about risks and best practices when consuming Secrets through the API refer to https://kubernetes.io/docs/concepts/configuration/secret/#best-practices[this doc].
 
 If the secrets are found, their data is made available to the application.
 
@@ -602,6 +623,7 @@ the `Secret` named `s1` would be looked up in the namespace that the application
 |===
 
 Notes:
+
 * The `spring.cloud.kubernetes.secrets.labels` property behaves as defined by
 https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding[Map-based binding].
 * The `spring.cloud.kubernetes.secrets.paths` property behaves as defined by
@@ -940,6 +962,10 @@ This section lists other resources, such as presentations (slides) and videos ab
 
 
 Please feel free to submit other resources through pull requests to https://github.com/spring-cloud/spring-cloud-kubernetes[this repository].
+
+== Configuration properties
+
+To see the list of all Sleuth related configuration properties please check link:appendix.html[the Appendix page].
 
 == Building
 
