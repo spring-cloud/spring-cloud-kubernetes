@@ -130,8 +130,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		if (!subsets.isEmpty()) {
 			final Service service = this.client.services().inNamespace(namespace)
 					.withName(serviceId).get();
-			final Map<String, String> serviceMetadata = this.getServiceMetadata(namespace,
-					serviceId);
+			final Map<String, String> serviceMetadata = this.getServiceMetadata(service);
 			KubernetesDiscoveryProperties.Metadata metadataProps = this.properties
 					.getMetadata();
 
@@ -175,10 +174,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return instances;
 	}
 
-	private Map<String, String> getServiceMetadata(String namespace, String serviceId) {
-		final Service service = this.client.services().inNamespace(namespace)
-				.withName(serviceId).get();
-
+	private Map<String, String> getServiceMetadata(Service service) {
 		final Map<String, String> serviceMetadata = new HashMap<>();
 		KubernetesDiscoveryProperties.Metadata metadataProps = this.properties
 				.getMetadata();
