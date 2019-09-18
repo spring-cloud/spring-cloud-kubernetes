@@ -183,7 +183,7 @@ public class KubernetesDiscoveryClientTest {
 						.addNewPort("http", 80, "TCP").endSubset().build())
 				.once();
 
-		mockServer.expect().get().withPath("/api/v1/services/endpoint")
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint")
 				.andReturn(200, new ServiceBuilder().withNewMetadata()
 						.withName("endpoint").withLabels(new HashMap<String, String>() {
 							{
@@ -215,7 +215,7 @@ public class KubernetesDiscoveryClientTest {
 						.endAddress().addNewPort("https", 443, "TCP").endSubset().build())
 				.once();
 
-		mockServer.expect().get().withPath("/api/v1/services/endpoint")
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint")
 				.andReturn(200, new ServiceBuilder().withNewMetadata()
 						.withName("endpoint").withLabels(new HashMap<String, String>() {
 							{
