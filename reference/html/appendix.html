@@ -375,6 +375,71 @@ Also, you can define your own properties.
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.discovery.all-namespaces</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If discovering all namespaces.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.discovery.enabled</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If Kubernetes Discovery is enabled.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.discovery.filter</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SpEL expression to filter services AFTER they have been retrieved from the Kubernetes API server.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.discovery.known-secure-ports</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set the port numbers that are considered secure and use HTTPS.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.discovery.metadata.add-annotations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When set, the Kubernetes annotations of the services will be included as metadata of the returned ServiceInstance.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.discovery.metadata.add-labels</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When set, the Kubernetes labels of the services will be included as metadata of the returned ServiceInstance.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.discovery.metadata.add-ports</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When set, any named Kubernetes service ports will be included as metadata of the returned ServiceInstance.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.discovery.metadata.annotations-prefix</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When addAnnotations is set, then this will be used as a prefix to the key names in the metadata map.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.discovery.metadata.labels-prefix</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When addLabels is set, then this will be used as a prefix to the key names in the metadata map.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.discovery.metadata.ports-prefix</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">port.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">When addPorts is set, then this will be used as a prefix to the key names in the metadata map.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.discovery.primary-port-name</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If set then the port with a given name is used as primary when multiple ports are defined for a service.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.discovery.service-labels</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If set, then only the services matching these labels will be fetched from the Kubernetes API server.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.discovery.service-name</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">unknown</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The service name of the local instance.</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.reload.enabled</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Enables the Kubernetes configuration reload on change.</p></td>
