@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.EndpointsList;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceList;
@@ -48,6 +49,7 @@ import org.springframework.cloud.client.ServiceInstance;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -89,7 +91,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.isAddAnnotations()).thenReturn(false);
 		when(this.metadata.isAddPorts()).thenReturn(false);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId,
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
 				new HashMap<String, String>() {
 					{
 						put("l1", "lab");
@@ -119,7 +121,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.isAddAnnotations()).thenReturn(false);
 		when(this.metadata.isAddPorts()).thenReturn(false);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId,
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
 				new HashMap<String, String>() {
 					{
 						put("l1", "v1");
@@ -152,7 +154,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.isAddAnnotations()).thenReturn(false);
 		when(this.metadata.isAddPorts()).thenReturn(false);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId,
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
 				new HashMap<String, String>() {
 					{
 						put("l1", "v1");
@@ -184,7 +186,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.isAddAnnotations()).thenReturn(true);
 		when(this.metadata.isAddPorts()).thenReturn(false);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId,
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
 				new HashMap<String, String>() {
 					{
 						put("l1", "v1");
@@ -217,7 +219,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.getAnnotationsPrefix()).thenReturn("a_");
 		when(this.metadata.isAddPorts()).thenReturn(false);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId,
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
 				new HashMap<String, String>() {
 					{
 						put("l1", "v1");
@@ -249,7 +251,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.isAddAnnotations()).thenReturn(false);
 		when(this.metadata.isAddPorts()).thenReturn(true);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId,
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
 				new HashMap<String, String>() {
 					{
 						put("l1", "v1");
@@ -281,7 +283,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.isAddPorts()).thenReturn(true);
 		when(this.metadata.getPortsPrefix()).thenReturn("p_");
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId,
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
 				new HashMap<String, String>() {
 					{
 						put("l1", "v1");
@@ -315,7 +317,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.isAddPorts()).thenReturn(true);
 		when(this.metadata.getPortsPrefix()).thenReturn("p_");
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId,
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
 				new HashMap<String, String>() {
 					{
 						put("l1", "la1");
@@ -339,18 +341,24 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	}
 
 	private void setupServiceWithLabelsAndAnnotationsAndPorts(String serviceId,
-			Map<String, String> labels, Map<String, String> annotations,
+			String namespace, Map<String, String> labels, Map<String, String> annotations,
 			Map<Integer, String> ports) {
-		final Service service = new ServiceBuilder().withNewMetadata().withLabels(labels)
-				.withAnnotations(annotations).endMetadata().withNewSpec()
-				.withPorts(getServicePorts(ports)).endSpec().build();
+		final Service service = new ServiceBuilder().withNewMetadata()
+				.withNamespace(namespace).withLabels(labels).withAnnotations(annotations)
+				.endMetadata().withNewSpec().withPorts(getServicePorts(ports)).endSpec()
+				.build();
 		when(this.serviceOperation.withName(serviceId)).thenReturn(this.serviceResource);
 		when(this.serviceResource.get()).thenReturn(service);
 		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
+		when(this.kubernetesClient.services().inNamespace(anyString()))
+				.thenReturn(this.serviceOperation);
 
-		final Endpoints endpoints = new EndpointsBuilder().addNewSubset()
-				.addAllToPorts(getEndpointPorts(ports)).addNewAddress().endAddress()
-				.endSubset().build();
+		ObjectMeta objectMeta = new ObjectMeta();
+		objectMeta.setNamespace(namespace);
+
+		final Endpoints endpoints = new EndpointsBuilder().withMetadata(objectMeta)
+				.addNewSubset().addAllToPorts(getEndpointPorts(ports)).addNewAddress()
+				.endAddress().endSubset().build();
 
 		when(this.endpointsResource.get()).thenReturn(endpoints);
 		when(this.endpointsOperation.withName(serviceId))
