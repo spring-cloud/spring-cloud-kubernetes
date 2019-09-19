@@ -117,13 +117,14 @@ public class KubernetesDiscoveryClientTest {
 				.andReturn(200, services).once();
 
 		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint")
-				.andReturn(200, service1).once();
+				.andReturn(200, service1).always();
 
 		mockServer.expect().get().withPath("/api/v1/namespaces/test2/services/endpoint")
-				.andReturn(200, service2).once();
+				.andReturn(200, service2).always();
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		properties.setAllNamespaces(true);
+
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				properties, KubernetesClient::services,
 				new DefaultIsServicePortSecureResolver(properties));
@@ -150,16 +151,17 @@ public class KubernetesDiscoveryClientTest {
 						.endAddress().addNewPort("http", 80, "TCP").endSubset().build())
 				.once();
 
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint")
+		mockServer.expect().get().withPath("/api/v1/services/endpoint")
 				.andReturn(200, new ServiceBuilder().withNewMetadata()
 						.withName("endpoint").withLabels(new HashMap<String, String>() {
 							{
 								put("l", "v");
 							}
 						}).endMetadata().build())
-				.once();
+				.always();
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
+
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				properties, KubernetesClient::services,
 				new DefaultIsServicePortSecureResolver(properties));
@@ -188,7 +190,7 @@ public class KubernetesDiscoveryClientTest {
 								put("l", "v");
 							}
 						}).endMetadata().build())
-				.once();
+				.always();
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		properties.setPrimaryPortName("http");
@@ -220,7 +222,7 @@ public class KubernetesDiscoveryClientTest {
 								put("l", "v");
 							}
 						}).endMetadata().build())
-				.once();
+				.always();
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
