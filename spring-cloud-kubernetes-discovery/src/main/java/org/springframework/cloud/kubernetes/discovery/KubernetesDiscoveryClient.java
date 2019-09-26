@@ -101,40 +101,38 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId,
 				"[Assertion failed] - the object argument must not be null");
+
 		List<Endpoints> endpointsList = this.properties.isAllNamespaces()
 				? this.client.endpoints().inAnyNamespace()
 						.withField("metadata.name", serviceId).list().getItems()
 				: Collections
 						.singletonList(this.client.endpoints().withName(serviceId).get());
-		List<EndpointSubset> subsets = endpointsList.stream()
-				.flatMap(endpoints -> getSubsetsFromEndpoints(endpoints).stream())
+
+		List<EndpointSubsetNS> subsetsNS = endpointsList.stream()
+				.map(endpoints -> getSubsetsFromEndpoints(endpoints))
 				.collect(Collectors.toList());
+
+		List<ServiceInstance> instances = new ArrayList<>();
+		if (!subsetsNS.isEmpty()) {
+			for (EndpointSubsetNS es : subsetsNS) {
+				instances.addAll(this.getNamespaceServiceInstances(es, serviceId));
+			}
+		}
+
+		return instances;
+	}
+
+	private List<ServiceInstance> getNamespaceServiceInstances(EndpointSubsetNS es,
+			String serviceId) {
+		String namespace = es.getNamespace();
+		List<EndpointSubset> subsets = es.getEndpointSubset();
 		List<ServiceInstance> instances = new ArrayList<>();
 		if (!subsets.isEmpty()) {
-
-			final Service service = this.client.services().withName(serviceId).get();
-
-			final Map<String, String> serviceMetadata = new HashMap<>();
+			final Service service = this.client.services().inNamespace(namespace)
+					.withName(serviceId).get();
+			final Map<String, String> serviceMetadata = this.getServiceMetadata(service);
 			KubernetesDiscoveryProperties.Metadata metadataProps = this.properties
 					.getMetadata();
-			if (metadataProps.isAddLabels()) {
-				Map<String, String> labelMetadata = getMapWithPrefixedKeys(
-						service.getMetadata().getLabels(),
-						metadataProps.getLabelsPrefix());
-				if (log.isDebugEnabled()) {
-					log.debug("Adding label metadata: " + labelMetadata);
-				}
-				serviceMetadata.putAll(labelMetadata);
-			}
-			if (metadataProps.isAddAnnotations()) {
-				Map<String, String> annotationMetadata = getMapWithPrefixedKeys(
-						service.getMetadata().getAnnotations(),
-						metadataProps.getAnnotationsPrefix());
-				if (log.isDebugEnabled()) {
-					log.debug("Adding annotation metadata: " + annotationMetadata);
-				}
-				serviceMetadata.putAll(annotationMetadata);
-			}
 
 			for (EndpointSubset s : subsets) {
 				// Extend the service metadata map with per-endpoint port information (if
@@ -176,6 +174,31 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return instances;
 	}
 
+	private Map<String, String> getServiceMetadata(Service service) {
+		final Map<String, String> serviceMetadata = new HashMap<>();
+		KubernetesDiscoveryProperties.Metadata metadataProps = this.properties
+				.getMetadata();
+		if (metadataProps.isAddLabels()) {
+			Map<String, String> labelMetadata = getMapWithPrefixedKeys(
+					service.getMetadata().getLabels(), metadataProps.getLabelsPrefix());
+			if (log.isDebugEnabled()) {
+				log.debug("Adding label metadata: " + labelMetadata);
+			}
+			serviceMetadata.putAll(labelMetadata);
+		}
+		if (metadataProps.isAddAnnotations()) {
+			Map<String, String> annotationMetadata = getMapWithPrefixedKeys(
+					service.getMetadata().getAnnotations(),
+					metadataProps.getAnnotationsPrefix());
+			if (log.isDebugEnabled()) {
+				log.debug("Adding annotation metadata: " + annotationMetadata);
+			}
+			serviceMetadata.putAll(annotationMetadata);
+		}
+
+		return serviceMetadata;
+	}
+
 	private EndpointPort findEndpointPort(EndpointSubset s) {
 		List<EndpointPort> ports = s.getPorts();
 		EndpointPort endpointPort;
@@ -197,15 +220,17 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return endpointPort;
 	}
 
-	private List<EndpointSubset> getSubsetsFromEndpoints(Endpoints endpoints) {
-		if (endpoints == null) {
-			return new ArrayList<>();
-		}
-		if (endpoints.getSubsets() == null) {
-			return new ArrayList<>();
+	private EndpointSubsetNS getSubsetsFromEndpoints(Endpoints endpoints) {
+		EndpointSubsetNS es = new EndpointSubsetNS();
+		es.setNamespace(this.client.getNamespace()); // start with the default that comes
+														// with the client
+
+		if (endpoints != null && endpoints.getSubsets() != null) {
+			es.setNamespace(endpoints.getMetadata().getNamespace());
+			es.setEndpointSubset(endpoints.getSubsets());
 		}
 
-		return endpoints.getSubsets();
+		return es;
 	}
 
 	// returns a new map that contain all the entries of the original map
