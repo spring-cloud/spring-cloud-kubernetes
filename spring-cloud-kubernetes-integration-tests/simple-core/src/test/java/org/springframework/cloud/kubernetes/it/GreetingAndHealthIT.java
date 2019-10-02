@@ -46,7 +46,7 @@ public class GreetingAndHealthIT {
 	public void testHealthEndpoint() {
 		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT))
 				.contentType("application/json").get("actuator/health").then()
-				.statusCode(200).body("details.kubernetes.details.inside", is(true));
+				.statusCode(200).body("components.kubernetes.details.inside", is(true));
 	}
 
 }
