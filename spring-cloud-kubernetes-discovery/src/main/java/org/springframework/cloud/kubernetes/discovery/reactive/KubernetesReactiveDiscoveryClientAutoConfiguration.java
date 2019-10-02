@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.discovery.reactive;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 
-import org.springframework.boot.actuate.health.ReactiveHealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -65,7 +64,8 @@ public class KubernetesReactiveDiscoveryClientAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnClass(ReactiveHealthIndicator.class)
+	@ConditionalOnClass(
+			name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	public ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
 			KubernetesReactiveDiscoveryClient client,
