@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author Mauricio Salatino
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(value = "spring.cloud.istio.enabled", matchIfMissing = true)
 public class IstioAutoConfiguration {
 

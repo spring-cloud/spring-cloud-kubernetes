@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author Ioannis Canellos
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(KubernetesRibbonProperties.class)
 public class KubernetesRibbonClientConfiguration {
 

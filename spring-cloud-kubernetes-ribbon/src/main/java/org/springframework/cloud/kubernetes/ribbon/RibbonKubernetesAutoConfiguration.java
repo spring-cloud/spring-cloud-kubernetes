@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author Ioannis Canellos
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties
 @ConditionalOnBean(SpringClientFactory.class)
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.ribbon.enabled",

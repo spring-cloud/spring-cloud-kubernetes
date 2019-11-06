@@ -34,12 +34,12 @@ import org.springframework.context.annotation.Import;
  *
  * @author Ioannis Canellos
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
 @ConditionalOnClass({ ConfigMap.class, Secret.class })
 public class BootstrapConfiguration {
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@Import(KubernetesAutoConfiguration.class)
 	@EnableConfigurationProperties({ ConfigMapConfigProperties.class,
 			SecretsConfigProperties.class })

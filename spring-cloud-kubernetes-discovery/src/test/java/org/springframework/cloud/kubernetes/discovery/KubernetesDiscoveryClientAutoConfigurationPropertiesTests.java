@@ -82,7 +82,7 @@ public class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 						.properties(env).run();
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	static class KubernetesClientTestConfiguration {
 
 		@Bean

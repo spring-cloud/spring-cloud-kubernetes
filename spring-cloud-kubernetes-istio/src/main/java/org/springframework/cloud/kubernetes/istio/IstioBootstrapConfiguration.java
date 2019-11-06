@@ -37,7 +37,7 @@ import org.springframework.core.env.Environment;
  *
  * @author Mauricio Salatino
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(value = "spring.cloud.istio.enabled", matchIfMissing = true)
 @EnableConfigurationProperties(IstioClientProperties.class)
 public class IstioBootstrapConfiguration {

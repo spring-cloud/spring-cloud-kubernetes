@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author Tim Ysewyn
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnProperty(name = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
 @AutoConfigureAfter({ KubernetesAutoConfiguration.class })

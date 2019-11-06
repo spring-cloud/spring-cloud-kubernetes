@@ -43,7 +43,7 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author Tim Ysewyn
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnReactiveDiscoveryEnabled
 @ConditionalOnKubernetesEnabled

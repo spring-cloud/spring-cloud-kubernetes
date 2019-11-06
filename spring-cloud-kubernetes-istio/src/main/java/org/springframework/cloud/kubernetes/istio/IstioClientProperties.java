@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author Mauricio Salatino
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConfigurationProperties("spring.cloud.istio.client")
 public class IstioClientProperties {
 

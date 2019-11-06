@@ -46,7 +46,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  *
  * @author Nicolla Ferraro
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
 @ConditionalOnClass(EndpointAutoConfiguration.class)
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class,

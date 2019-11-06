@@ -40,7 +40,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Eddú Meléndez
  * @author Tim Ysewyn
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesEnabled
 @EnableConfigurationProperties(KubernetesClientProperties.class)
 public class KubernetesAutoConfiguration {
@@ -155,7 +155,7 @@ public class KubernetesAutoConfiguration {
 		return new StandardPodUtils(client);
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(HealthIndicator.class)
 	protected static class KubernetesActuatorConfiguration {
 

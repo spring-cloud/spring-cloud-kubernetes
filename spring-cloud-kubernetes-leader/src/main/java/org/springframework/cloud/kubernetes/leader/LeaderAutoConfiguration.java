@@ -38,7 +38,7 @@ import org.springframework.integration.leader.event.LeaderEventPublisher;
 /**
  * @author Gytis Trikleris
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(LeaderProperties.class)
 @ConditionalOnBean(KubernetesClient.class)
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled",

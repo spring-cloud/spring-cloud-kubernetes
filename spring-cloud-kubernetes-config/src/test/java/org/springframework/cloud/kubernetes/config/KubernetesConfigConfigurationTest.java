@@ -73,7 +73,7 @@ public class KubernetesConfigConfigurationTest {
 						.properties(env).run();
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	static class KubernetesClientTestConfiguration {
 
 		@Bean

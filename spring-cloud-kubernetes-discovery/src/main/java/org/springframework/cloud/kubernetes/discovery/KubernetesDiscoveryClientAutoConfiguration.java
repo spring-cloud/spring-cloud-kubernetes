@@ -38,7 +38,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Mauricio Salatino
  * @author Tim Ysewyn
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnKubernetesEnabled
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class,
@@ -92,7 +92,7 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		return new KubernetesDiscoveryProperties();
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnBlockingDiscoveryEnabled
 	@ConditionalOnKubernetesDiscoveryEnabled
 	public static class KubernetesDiscoveryClientConfiguration {
