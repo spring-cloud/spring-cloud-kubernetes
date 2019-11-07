@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-kubernetes</artifactId>
+    <version>1.1.0.BUILD-SNAPSHOT</version>
+  </parent>
+  <groupId>org.springframework.cloud</groupId>
+  <artifactId>spring-cloud-kubernetes-istio</artifactId>
+  <version>1.1.0.BUILD-SNAPSHOT</version>
+  <name>Spring Cloud Kubernetes :: Istio</name>
+  <description>Spring Cloud parent pom, managing plugins and dependencies for Spring
+		Cloud projects</description>
+  <url>https://cloud.spring.io/spring-cloud-kubernetes-istio</url>
+  <inceptionYear>2017</inceptionYear>
+  <organization>
+    <name>Pivotal Software, Inc.</name>
+    <url>https://www.spring.io</url>
+  </organization>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>dsyer</id>
+      <name>Dave Syer</name>
+      <email>dsyer at pivotal.io</email>
+      <organization>Pivotal Software, Inc.</organization>
+      <organizationUrl>https://www.spring.io</organizationUrl>
+      <roles>
+        <role>lead</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>sgibb</id>
+      <name>Spencer Gibb</name>
+      <email>sgibb at pivotal.io</email>
+      <organization>Pivotal Software, Inc.</organization>
+      <organizationUrl>https://www.spring.io</organizationUrl>
+      <roles>
+        <role>lead</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>mgrzejszczak</id>
+      <name>Marcin Grzejszczak</name>
+      <email>mgrzejszczak at pivotal.io</email>
+      <organization>Pivotal Software, Inc.</organization>
+      <organizationUrl>https://www.spring.io</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>rbaxter</id>
+      <name>Ryan Baxter</name>
+      <email>rbaxter at pivotal.io</email>
+      <organization>Pivotal Software, Inc.</organization>
+      <organizationUrl>https://www.spring.io</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>omaciaszeksharma</id>
+      <name>Olga Maciaszek-Sharma</name>
+      <email>omaciaszeksharma at pivotal.io</email>
+      <organization>Pivotal Software, Inc.</organization>
+      <organizationUrl>https://www.spring.io</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/spring-cloud-incubator/spring-cloud-kubernetes.git/spring-cloud-kubernetes-istio</connection>
+    <developerConnection>scm:git:ssh://git@github.com/spring-cloud-incubator/spring-cloud-kubernetes.git/spring-cloud-kubernetes-istio</developerConnection>
+    <url>https://github.com/spring-cloud-incubator/spring-cloud-kubernetes/spring-cloud-kubernetes-istio</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-kubernetes-core</artifactId>
+      <version>1.1.0.BUILD-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+      <version>5.2.1.RELEASE</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>me.snowdrop</groupId>
+      <artifactId>istio-client</artifactId>
+      <version>1.0.0</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+</project>
