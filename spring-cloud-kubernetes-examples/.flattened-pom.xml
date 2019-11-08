@@ -21,11 +21,11 @@
   <parent>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-kubernetes</artifactId>
-    <version>1.1.0.RC2</version>
+    <version>1.1.0.BUILD-SNAPSHOT</version>
   </parent>
   <groupId>org.springframework.cloud</groupId>
   <artifactId>spring-cloud-kubernetes-examples</artifactId>
-  <version>1.1.0.RC2</version>
+  <version>1.1.0.BUILD-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Spring Cloud Kubernetes :: Examples</name>
   <description>Examples showing how to use features of Spring Cloud Kubernetes.</description>
