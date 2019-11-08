@@ -5,11 +5,11 @@
   <parent>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>discovery-parent</artifactId>
-    <version>1.1.0.BUILD-SNAPSHOT</version>
+    <version>1.1.0.RC2</version>
   </parent>
   <groupId>org.springframework.cloud</groupId>
   <artifactId>tests</artifactId>
-  <version>1.1.0.BUILD-SNAPSHOT</version>
+  <version>1.1.0.RC2</version>
   <name>Spring Cloud Kubernetes :: Integration Tests :: Discovery Tests</name>
   <description>Integration tests where SCK applications are run inside a Kubernetes
 		cluster</description>

@@ -21,11 +21,11 @@
   <parent>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-kubernetes</artifactId>
-    <version>1.1.0.BUILD-SNAPSHOT</version>
+    <version>1.1.0.RC2</version>
   </parent>
   <groupId>org.springframework.cloud</groupId>
   <artifactId>spring-cloud-kubernetes-leader</artifactId>
-  <version>1.1.0.BUILD-SNAPSHOT</version>
+  <version>1.1.0.RC2</version>
   <name>Spring Cloud Kubernetes :: Leader</name>
   <description>Spring Cloud parent pom, managing plugins and dependencies for Spring
 		Cloud projects</description>
@@ -103,7 +103,7 @@
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-kubernetes-core</artifactId>
-      <version>1.1.0.BUILD-SNAPSHOT</version>
+      <version>1.1.0.RC2</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
