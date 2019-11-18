@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>kubernetes-circuitbreaker-ribbon-example</artifactId>
-		<version>1.0.4.RELEASE</version>
+		<version>1.0.4.BUILD-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>name-service</artifactId>
