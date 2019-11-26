@@ -26,7 +26,7 @@
   </parent>
   <groupId>org.springframework.cloud</groupId>
   <artifactId>spring-cloud-kubernetes</artifactId>
-  <version>1.1.0.RELEASE</version>
+  <version>1.1.0.BUILD-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Spring Cloud Kubernetes</name>
   <description>Spring Cloud parent pom, managing plugins and dependencies for Spring

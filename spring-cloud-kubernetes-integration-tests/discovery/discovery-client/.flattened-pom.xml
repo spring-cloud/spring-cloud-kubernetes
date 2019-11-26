@@ -5,11 +5,11 @@
   <parent>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>discovery-parent</artifactId>
-    <version>1.1.0.RELEASE</version>
+    <version>1.1.0.BUILD-SNAPSHOT</version>
   </parent>
   <groupId>org.springframework.cloud</groupId>
   <artifactId>discovery-client</artifactId>
-  <version>1.1.0.RELEASE</version>
+  <version>1.1.0.BUILD-SNAPSHOT</version>
   <name>Spring Cloud Kubernetes :: Integration Tests :: Discovery Client</name>
   <description>Integration tests where SCK applications are run inside a Kubernetes
 		cluster</description>
@@ -99,7 +99,7 @@
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-kubernetes-discovery</artifactId>
-      <version>1.1.0.RELEASE</version>
+      <version>1.1.0.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>
