@@ -5,11 +5,11 @@
   <parent>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-kubernetes</artifactId>
-    <version>1.1.0.BUILD-SNAPSHOT</version>
+    <version>1.1.1.BUILD-SNAPSHOT</version>
   </parent>
   <groupId>org.springframework.cloud</groupId>
   <artifactId>spring-cloud-kubernetes-docs</artifactId>
-  <version>1.1.0.BUILD-SNAPSHOT</version>
+  <version>1.1.1.BUILD-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Spring Cloud Kubernetes Docs</name>
   <description>Spring Cloud Kubernetes Docs</description>
@@ -87,25 +87,25 @@
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-kubernetes</artifactId>
-      <version>1.1.0.BUILD-SNAPSHOT</version>
+      <version>1.1.1.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-kubernetes-all</artifactId>
-      <version>1.1.0.BUILD-SNAPSHOT</version>
+      <version>1.1.1.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-kubernetes-config</artifactId>
-      <version>1.1.0.BUILD-SNAPSHOT</version>
+      <version>1.1.1.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-kubernetes-ribbon</artifactId>
-      <version>1.1.0.BUILD-SNAPSHOT</version>
+      <version>1.1.1.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

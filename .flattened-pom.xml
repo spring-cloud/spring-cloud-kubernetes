@@ -21,12 +21,12 @@
   <parent>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-build</artifactId>
-    <version>2.2.0.RELEASE</version>
+    <version>2.2.1.BUILD-SNAPSHOT</version>
     <relativePath></relativePath>
   </parent>
   <groupId>org.springframework.cloud</groupId>
   <artifactId>spring-cloud-kubernetes</artifactId>
-  <version>1.1.0.BUILD-SNAPSHOT</version>
+  <version>1.1.1.BUILD-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Spring Cloud Kubernetes</name>
   <description>Spring Cloud parent pom, managing plugins and dependencies for Spring

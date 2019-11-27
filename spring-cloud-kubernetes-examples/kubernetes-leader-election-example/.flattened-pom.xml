@@ -5,11 +5,11 @@
   <parent>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-kubernetes-examples</artifactId>
-    <version>1.1.0.BUILD-SNAPSHOT</version>
+    <version>1.1.1.BUILD-SNAPSHOT</version>
   </parent>
   <groupId>org.springframework.cloud</groupId>
   <artifactId>kubernetes-leader-election-example</artifactId>
-  <version>1.1.0.BUILD-SNAPSHOT</version>
+  <version>1.1.1.BUILD-SNAPSHOT</version>
   <name>Spring Cloud Kubernetes :: Examples :: Leader Election</name>
   <description>Leader election demonstration with Spring Integration and ConfigMap</description>
   <url>https://cloud.spring.io/spring-cloud-kubernetes-examples/kubernetes-leader-election-example</url>
@@ -98,7 +98,7 @@
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-kubernetes-leader</artifactId>
-      <version>1.1.0.BUILD-SNAPSHOT</version>
+      <version>1.1.1.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

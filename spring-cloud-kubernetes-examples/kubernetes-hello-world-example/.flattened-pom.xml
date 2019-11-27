@@ -5,11 +5,11 @@
   <parent>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-kubernetes-examples</artifactId>
-    <version>1.1.0.BUILD-SNAPSHOT</version>
+    <version>1.1.1.BUILD-SNAPSHOT</version>
   </parent>
   <groupId>org.springframework.cloud</groupId>
   <artifactId>kubernetes-hello-world</artifactId>
-  <version>1.1.0.BUILD-SNAPSHOT</version>
+  <version>1.1.1.BUILD-SNAPSHOT</version>
   <name>Spring Cloud Kubernetes :: Examples :: Hello World</name>
   <description>A simple example that demonstrates how to build and test a basic spring
 		cloud kubernetes app</description>
@@ -87,19 +87,19 @@
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-kubernetes-core</artifactId>
-      <version>1.1.0.BUILD-SNAPSHOT</version>
+      <version>1.1.1.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-kubernetes-discovery</artifactId>
-      <version>1.1.0.BUILD-SNAPSHOT</version>
+      <version>1.1.1.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-commons</artifactId>
-      <version>2.2.0.BUILD-SNAPSHOT</version>
+      <version>2.2.1.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
