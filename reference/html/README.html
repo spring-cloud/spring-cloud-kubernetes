@@ -126,7 +126,18 @@ $(addBlockSwitches);
 <li><a href="#examples">12. Examples</a></li>
 <li><a href="#other-resources">13. Other Resources</a></li>
 <li><a href="#configuration-properties">14. Configuration properties</a></li>
-<li><a href="#building">15. Building</a></li>
+<li><a href="#building">15. Building</a>
+<ul class="sectlevel2">
+<li><a href="#basic-compile-and-test">15.1. Basic Compile and Test</a></li>
+<li><a href="#documentation">15.2. Documentation</a></li>
+<li><a href="#working-with-the-code">15.3. Working with the code</a>
+<ul class="sectlevel3">
+<li><a href="#importing-into-eclipse-with-m2eclipse">15.3.1. Importing into eclipse with m2eclipse</a></li>
+<li><a href="#importing-into-eclipse-without-m2eclipse">15.3.2. Importing into eclipse without m2eclipse</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><a href="#contributing">16. Contributing</a>
 <ul class="sectlevel2">
 <li><a href="#sign-the-contributor-license-agreement">16.1. Sign the Contributor License Agreement</a></li>
@@ -1618,8 +1629,149 @@ The same applies for <code>PropertySourceLocator</code>, where you need to add t
 <div class="sect1">
 <h2 id="building"><a class="anchor" href="#building"></a><a class="link" href="#building">15. Building</a></h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="basic-compile-and-test"><a class="anchor" href="#basic-compile-and-test"></a><a class="link" href="#basic-compile-and-test">15.1. Basic Compile and Test</a></h3>
 <div class="paragraph">
-<p>Unresolved directive in spring-cloud-kubernetes.adoc - include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/building.adoc[]</p>
+<p>To build the source you will need to install JDK 1.7.</p>
+</div>
+<div class="paragraph">
+<p>Spring Cloud uses Maven for most build-related activities, and you
+should be able to get off the ground quite quickly by cloning the
+project you are interested in and typing</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>$ ./mvnw install</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+You can also install Maven (&gt;=3.3.3) yourself and run the <code>mvn</code> command
+in place of <code>./mvnw</code> in the examples below. If you do that you also
+might need to add <code>-P spring</code> if your local Maven settings do not
+contain repository declarations for spring pre-release artifacts.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Be aware that you might need to increase the amount of memory
+available to Maven by setting a <code>MAVEN_OPTS</code> environment variable with
+a value like <code>-Xmx512m -XX:MaxPermSize=128m</code>. We try to cover this in
+the <code>.mvn</code> configuration, so if you find you have to do it to make a
+build succeed, please raise a ticket to get the settings added to
+source control.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For hints on how to build the project look in <code>.travis.yml</code> if there
+is one. There should be a "script" and maybe "install" command. Also
+look at the "services" section to see if any services need to be
+running locally (e.g. mongo or rabbit).  Ignore the git-related bits
+that you might find in "before_install" since they&#8217;re related to setting git
+credentials and you already have those.</p>
+</div>
+<div class="paragraph">
+<p>The projects that require middleware generally include a
+<code>docker-compose.yml</code>, so consider using
+<a href="https://docs.docker.com/compose/">Docker Compose</a> to run the middeware servers
+in Docker containers. See the README in the
+<a href="https://github.com/spring-cloud-samples/scripts">scripts demo
+repository</a> for specific instructions about the common cases of mongo,
+rabbit and redis.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If all else fails, build with the command from <code>.travis.yml</code> (usually
+<code>./mvnw install</code>).
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="documentation"><a class="anchor" href="#documentation"></a><a class="link" href="#documentation">15.2. Documentation</a></h3>
+<div class="paragraph">
+<p>The spring-cloud-build module has a "docs" profile, and if you switch
+that on it will try to build asciidoc sources from
+<code>src/main/asciidoc</code>. As part of that process it will look for a
+<code>README.adoc</code> and process it by loading all the includes, but not
+parsing or rendering it, just copying it to <code>${main.basedir}</code>
+(defaults to <code>${basedir}</code>, i.e. the root of the project). If there are
+any changes in the README it will then show up after a Maven build as
+a modified file in the correct place. Just commit it and push the change.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="working-with-the-code"><a class="anchor" href="#working-with-the-code"></a><a class="link" href="#working-with-the-code">15.3. Working with the code</a></h3>
+<div class="paragraph">
+<p>If you don&#8217;t have an IDE preference we would recommend that you use
+<a href="https://www.springsource.com/developer/sts">Spring Tools Suite</a> or
+<a href="https://eclipse.org">Eclipse</a> when working with the code. We use the
+<a href="https://eclipse.org/m2e/">m2eclipse</a> eclipse plugin for maven support. Other IDEs and tools
+should also work without issue as long as they use Maven 3.3.3 or better.</p>
+</div>
+<div class="sect3">
+<h4 id="importing-into-eclipse-with-m2eclipse"><a class="anchor" href="#importing-into-eclipse-with-m2eclipse"></a><a class="link" href="#importing-into-eclipse-with-m2eclipse">15.3.1. Importing into eclipse with m2eclipse</a></h4>
+<div class="paragraph">
+<p>We recommend the <a href="https://eclipse.org/m2e/">m2eclipse</a> eclipse plugin when working with
+eclipse. If you don&#8217;t already have m2eclipse installed it is available from the "eclipse
+marketplace".</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Older versions of m2e do not support Maven 3.3, so once the
+projects are imported into Eclipse you will also need to tell
+m2eclipse to use the right profile for the projects.  If you
+see many different errors related to the POMs in the projects, check
+that you have an up to date installation.  If you can&#8217;t upgrade m2e,
+add the "spring" profile to your <code>settings.xml</code>. Alternatively you can
+copy the repository settings from the "spring" profile of the parent
+pom into your <code>settings.xml</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="importing-into-eclipse-without-m2eclipse"><a class="anchor" href="#importing-into-eclipse-without-m2eclipse"></a><a class="link" href="#importing-into-eclipse-without-m2eclipse">15.3.2. Importing into eclipse without m2eclipse</a></h4>
+<div class="paragraph">
+<p>If you prefer not to use m2eclipse you can generate eclipse project metadata using the
+following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>$ ./mvnw eclipse:eclipse</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The generated eclipse projects can be imported by selecting <code>import existing projects</code>
+from the <code>file</code> menu.</p>
+</div>
+</div>
 </div>
 </div>
 </div>
