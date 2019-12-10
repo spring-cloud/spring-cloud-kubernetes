@@ -1,6 +1,7 @@
 |===
 |Name | Default | Description
 
+|spring.cloud.kubernetes.enabled | true | If Kubernetes integration is enabled.
 |spring.cloud.kubernetes.client.api-version |  | 
 |spring.cloud.kubernetes.client.apiVersion | v1 | Kubernetes API Version
 |spring.cloud.kubernetes.client.ca-cert-data |  | 
