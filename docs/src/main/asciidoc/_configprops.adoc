@@ -1,7 +1,6 @@
 |===
 |Name | Default | Description
 
-|spring.cloud.kubernetes.enabled | true | If Kubernetes integration is enabled.
 |spring.cloud.kubernetes.client.api-version |  | 
 |spring.cloud.kubernetes.client.apiVersion | v1 | Kubernetes API Version
 |spring.cloud.kubernetes.client.ca-cert-data |  | 
@@ -63,6 +62,7 @@
 |spring.cloud.kubernetes.discovery.primary-port-name |  | If set then the port with a given name is used as primary when multiple ports are defined for a service.
 |spring.cloud.kubernetes.discovery.service-labels |  | If set, then only the services matching these labels will be fetched from the Kubernetes API server.
 |spring.cloud.kubernetes.discovery.service-name | unknown | The service name of the local instance.
+|spring.cloud.kubernetes.enabled | true | If Kubernetes integration is enabled.
 |spring.cloud.kubernetes.reload.enabled | false | Enables the Kubernetes configuration reload on change.
 |spring.cloud.kubernetes.reload.max-wait-for-restart | 2s | If Restart or Shutdown strategies are used, Spring Cloud Kubernetes waits a random amount of time before restarting. This is done in order to avoid having all instances of the same application restart at the same time. This property configures the maximum of amount of wait time from the moment the signal is received that a restart is needed until the moment the restart is actually triggered
 |spring.cloud.kubernetes.reload.mode |  | Sets the detection mode for Kubernetes configuration reload.
