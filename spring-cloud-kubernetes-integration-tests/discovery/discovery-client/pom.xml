@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>discovery-parent</artifactId>
-		<version>1.1.1.RELEASE</version>
+		<version>1.1.1.BUILD-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>discovery-client</artifactId>
