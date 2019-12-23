@@ -18,12 +18,12 @@ package org.springframework.cloud.kubernetes.ribbon;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.netflix.loadbalancer.Server;
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointPort;
-import io.fabric8.kubernetes.api.model.EndpointSubset;
-import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Utils;
 import org.apache.commons.lang.StringUtils;
@@ -52,10 +52,32 @@ public class KubernetesEndpointsServerList extends KubernetesServerList {
 	@Override
 	public List<Server> getUpdatedListOfServers() {
 		List<Server> result = new ArrayList<>();
-		Endpoints endpoints = StringUtils.isNotBlank(this.getNamespace())
-				? this.getClient().endpoints().inNamespace(this.getNamespace())
-						.withName(this.getServiceId()).get()
-				: this.getClient().endpoints().withName(this.getServiceId()).get();
+		Endpoints endpoints = null;
+		if (getProperties().getAllNamespaces()) {
+			// get list endpoints across all namespaces and filter by serviceId
+			List<Endpoints> listOfEndpoints = this.getClient().endpoints()
+					.inAnyNamespace().list().getItems().stream()
+					.filter(endpoint -> endpoint.getMetadata().getName()
+							.equals(this.getServiceId()))
+					.collect(Collectors.toList());
+			if (LOG.isDebugEnabled()) {
+				LOG.debug(String.format("Endpoints: %s", listOfEndpoints));
+			}
+			// prevent from the same service ids in different namespaces
+			if (listOfEndpoints.size() > 1) {
+				LOG.info(String.format(
+						"Communication disabled due to non unique service id [%s] across all namespaces",
+						this.getServiceId()));
+				return null;
+			}
+			endpoints = listOfEndpoints.size() > 0 ? listOfEndpoints.get(0) : null;
+		}
+		else {
+			endpoints = StringUtils.isNotBlank(this.getNamespace())
+					? this.getClient().endpoints().inNamespace(this.getNamespace())
+							.withName(this.getServiceId()).get()
+					: this.getClient().endpoints().withName(this.getServiceId()).get();
+		}
 		if (endpoints != null) {
 			if (LOG.isDebugEnabled()) {
 				LOG.debug(String.format(
