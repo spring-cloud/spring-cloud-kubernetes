@@ -41,7 +41,7 @@ public class KubernetesRibbonProperties {
 	private String clusterDomain = "cluster.local";
 
 	/**
-	 * Ribbon all namespaces discovery
+	 * Ribbon all namespaces discovery.
 	 */
 	private Boolean allNamespaces = false;
 
@@ -94,16 +94,16 @@ public class KubernetesRibbonProperties {
 	}
 
 	/**
-	 * Gets allNamespaces value
-	 * @return
+	 * Gets allNamespaces value.
+	 * @return the allNamespaces
 	 */
 	public Boolean getAllNamespaces() {
 		return allNamespaces;
 	}
 
 	/**
-	 * Sets allNamespaces enabled for Ribbon
-	 * @param allNamespaces
+	 * Sets allNamespaces enabled for Ribbon.
+	 * @param allNamespaces the allNamespaces
 	 */
 	public void setAllNamespaces(Boolean allNamespaces) {
 		this.allNamespaces = allNamespaces;
