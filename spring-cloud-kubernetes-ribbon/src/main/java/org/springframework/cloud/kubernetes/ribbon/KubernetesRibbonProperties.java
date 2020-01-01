@@ -43,7 +43,7 @@ public class KubernetesRibbonProperties {
 	/**
 	 * Ribbon all namespaces discovery
 	 */
-	private Boolean allNamespaces;
+	private Boolean allNamespaces = false;
 
 	/**
 	 * Get cluster domain.
