@@ -99,7 +99,7 @@ public abstract class ConfigurationChangeDetector {
 
 		if (l1.size() != l2.size()) {
 			this.log.debug(
-					"The current number of Confimap PropertySources does not match "
+					"The current number of Configmap PropertySources does not match "
 							+ "the ones loaded from the Kubernetes - No reload will take place");
 			return false;
 		}
