@@ -33,6 +33,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.expression.Expression;
@@ -102,34 +103,44 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		Assert.notNull(serviceId,
 				"[Assertion failed] - the object argument must not be null");
 
-		List<Endpoints> endpointsList = this.properties.isAllNamespaces()
-				? this.client.endpoints().inAnyNamespace()
-						.withField("metadata.name", serviceId).list().getItems()
+		List<Service> serviceList = this.properties.isAllNamespaces()
+				? client.services().inAnyNamespace().withField("metadata.name", serviceId)
+						.list().getItems()
 				: Collections
-						.singletonList(this.client.endpoints().withName(serviceId).get());
-
-		List<EndpointSubsetNS> subsetsNS = endpointsList.stream()
-				.map(endpoints -> getSubsetsFromEndpoints(endpoints))
-				.collect(Collectors.toList());
+						.singletonList(this.client.services().withName(serviceId).get());
 
 		List<ServiceInstance> instances = new ArrayList<>();
-		if (!subsetsNS.isEmpty()) {
-			for (EndpointSubsetNS es : subsetsNS) {
-				instances.addAll(this.getNamespaceServiceInstances(es, serviceId));
+
+		for (Service service : serviceList) {
+			if (service != null) {
+				if (service.getSpec() != null
+						&& "ExternalName".equals(service.getSpec().getType())) {
+					instances.add(new DefaultServiceInstance(serviceId, serviceId,
+							service.getSpec().getExternalName(), 0, false,
+							getServiceMetadata(service)));
+				}
+				else {
+					Endpoints endpoints = this.client.endpoints()
+							.inNamespace(service.getMetadata().getNamespace())
+							.withName(serviceId).get();
+
+					if (endpoints != null) {
+						EndpointSubsetNS subsetsNS = getSubsetsFromEndpoints(endpoints);
+						instances.addAll(this.getNamespaceServiceInstances(service,
+								subsetsNS, serviceId));
+					}
+				}
 			}
 		}
 
 		return instances;
 	}
 
-	private List<ServiceInstance> getNamespaceServiceInstances(EndpointSubsetNS es,
-			String serviceId) {
-		String namespace = es.getNamespace();
+	private List<ServiceInstance> getNamespaceServiceInstances(Service service,
+			EndpointSubsetNS es, String serviceId) {
 		List<EndpointSubset> subsets = es.getEndpointSubset();
 		List<ServiceInstance> instances = new ArrayList<>();
 		if (!subsets.isEmpty()) {
-			final Service service = this.client.services().inNamespace(namespace)
-					.withName(serviceId).get();
 			final Map<String, String> serviceMetadata = this.getServiceMetadata(service);
 			KubernetesDiscoveryProperties.Metadata metadataProps = this.properties
 					.getMetadata();

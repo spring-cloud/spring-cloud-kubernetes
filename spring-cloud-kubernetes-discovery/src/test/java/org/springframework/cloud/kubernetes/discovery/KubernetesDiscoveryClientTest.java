@@ -295,4 +295,29 @@ public class KubernetesDiscoveryClientTest {
 		assertThat(services).containsOnly("s1", "s2");
 	}
 
+	@Test
+	public void getExternalNameServiceShouldReturnSingleServiceInstance() {
+		mockServer.expect().get()
+				.withPath("/api/v1/namespaces/test/services/external-endpoint")
+				.andReturn(200,
+						new ServiceBuilder().withNewSpec().withType("ExternalName")
+								.withExternalName("my.endpoint.example.com").endSpec()
+								.withNewMetadata().endMetadata().build())
+				.once();
+
+		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
+		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+				properties, KubernetesClient::services);
+
+		final List<ServiceInstance> instances = discoveryClient
+				.getInstances("external-endpoint");
+
+		assertThat(instances).hasSize(1);
+		assertThat(instances.get(0)).satisfies(serviceInstance -> {
+			assertThat(serviceInstance.getHost()).isEqualTo("my.endpoint.example.com");
+			assertThat(serviceInstance.getPort()).isEqualTo(0);
+			assertThat(serviceInstance.isSecure()).isFalse();
+		});
+	}
+
 }

@@ -49,7 +49,6 @@ import org.springframework.cloud.client.ServiceInstance;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -350,8 +349,6 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.serviceOperation.withName(serviceId)).thenReturn(this.serviceResource);
 		when(this.serviceResource.get()).thenReturn(service);
 		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
-		when(this.kubernetesClient.services().inNamespace(anyString()))
-				.thenReturn(this.serviceOperation);
 
 		ObjectMeta objectMeta = new ObjectMeta();
 		objectMeta.setNamespace(namespace);
@@ -361,6 +358,8 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 				.endAddress().endSubset().build();
 
 		when(this.endpointsResource.get()).thenReturn(endpoints);
+		when(this.endpointsOperation.inNamespace(namespace))
+				.thenReturn(this.endpointsOperation);
 		when(this.endpointsOperation.withName(serviceId))
 				.thenReturn(this.endpointsResource);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
