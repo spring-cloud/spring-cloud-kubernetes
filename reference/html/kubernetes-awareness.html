@@ -118,7 +118,9 @@ as the code of the project relies on the
 communicate by using <code>http</code> protocol to the REST API of the Kubernetes Server.</p>
 </div>
 <div class="paragraph">
-<p>To disable the integration with Kubernetes you can set <code>spring.cloud.kubernetes.enabled</code> to <code>false</code>.</p>
+<p>To disable the integration with Kubernetes you can set <code>spring.cloud.kubernetes.enabled</code> to <code>false</code>. Please be aware that when <code>spring-cloud-kubernetes-config</code> is on the classpath,
+<code>spring.cloud.kubernetes.enabled</code> should be set in <code>bootstrap.{properties|yml}</code> (or the profile specific one)  otherwise it should be in <code>application.{properties|yml}</code> (or the profile specific one).
+Also note that these properties: <code>spring.cloud.kubernetes.config.enabled</code> and <code>spring.cloud.kubernetes.secrets.enabled</code> only take effect when set in <code>bootstrap.{properties|yml}</code></p>
 </div>
 <div class="sect2">
 <h3 id="_kubernetes_profile_autoconfiguration"><a class="link" href="#_kubernetes_profile_autoconfiguration">Kubernetes Profile Autoconfiguration</a></h3>
