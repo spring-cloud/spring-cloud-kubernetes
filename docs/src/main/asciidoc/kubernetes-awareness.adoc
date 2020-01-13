@@ -8,7 +8,9 @@ as the code of the project relies on the
 https://github.com/fabric8io/kubernetes-client[Fabric8 Kubernetes Java client], which is a fluent DSL that can
 communicate by using `http` protocol to the REST API of the Kubernetes Server.
 
-To disable the integration with Kubernetes you can set `spring.cloud.kubernetes.enabled` to `false`.
+To disable the integration with Kubernetes you can set `spring.cloud.kubernetes.enabled` to `false`. Please be aware that when `spring-cloud-kubernetes-config` is on the classpath,
+`spring.cloud.kubernetes.enabled` should be set in `bootstrap.{properties|yml}` (or the profile specific one)  otherwise it should be in `application.{properties|yml}` (or the profile specific one).
+Also note that these properties: `spring.cloud.kubernetes.config.enabled` and `spring.cloud.kubernetes.secrets.enabled` only take effect when set in `bootstrap.{properties|yml}`
 
 === Kubernetes Profile Autoconfiguration
 
