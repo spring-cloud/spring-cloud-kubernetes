@@ -24,13 +24,13 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>2.2.2.BUILD-SNAPSHOT</version>
+		<version>3.0.0.BUILD-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 
 	<groupId>org.springframework.cloud</groupId>
 	<artifactId>spring-cloud-kubernetes</artifactId>
-	<version>1.1.2.BUILD-SNAPSHOT</version>
+	<version>2.0.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes</name>
 
@@ -63,9 +63,9 @@
 
 	<properties>
 		<!-- Dependency Versions -->
-		<spring-cloud-commons.version>2.2.2.BUILD-SNAPSHOT</spring-cloud-commons.version>
-		<spring-cloud-netflix.version>2.2.2.BUILD-SNAPSHOT</spring-cloud-netflix.version>
-		<spring-cloud-config.version>2.2.2.BUILD-SNAPSHOT</spring-cloud-config.version>
+		<spring-cloud-commons.version>3.0.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
+		<spring-cloud-netflix.version>3.0.0.BUILD-SNAPSHOT</spring-cloud-netflix.version>
+		<spring-cloud-config.version>3.0.0.BUILD-SNAPSHOT</spring-cloud-config.version>
 
 		<!-- Maven Plugin Versions -->
 		<maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
@@ -89,10 +89,8 @@
 		<module>spring-cloud-kubernetes-core</module>
 		<module>spring-cloud-kubernetes-config</module>
 		<module>spring-cloud-kubernetes-discovery</module>
-		<module>spring-cloud-kubernetes-ribbon</module>
 		<module>spring-cloud-starter-kubernetes</module>
 		<module>spring-cloud-starter-kubernetes-config</module>
-		<module>spring-cloud-starter-kubernetes-ribbon</module>
 		<module>spring-cloud-starter-kubernetes-all</module>
 		<module>spring-cloud-kubernetes-examples</module>
 		<module>spring-cloud-kubernetes-leader</module>
