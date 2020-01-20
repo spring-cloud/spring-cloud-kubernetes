@@ -487,11 +487,11 @@ configuration. We can create a Kubernetes secret by using the following command:
 ====
 [source]
 ----
-oc create secret generic db-secret --from-literal=username=user --from-literal=password=p455w0rd
+kubectl create secret generic db-secret --from-literal=username=user --from-literal=password=p455w0rd
 ----
 ====
 
-The preceding command would create the following secret (which you can see by using `oc get secrets db-secret -o yaml`):
+The preceding command would create the following secret (which you can see by using `kubectl get secrets db-secret -o yaml`):
 
 ====
 [source,yaml]

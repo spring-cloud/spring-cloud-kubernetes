@@ -79,3 +79,5 @@ crashlytics-build.properties
 .project
 .classpath
 .factorypath
+.attach_pid*
+.vscode/
