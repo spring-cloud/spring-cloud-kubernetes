@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.8">
+<title>Kubernetes Ecosystem Awareness</title>
+<link rel="stylesheet" href="css/spring.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<style>
+.hidden {
+	display: none;
+}
+
+.switch {
+	border-width: 1px 1px 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+	display: inline-block;
+}
+
+.switch--item {
+	padding: 10px;
+	background-color: #ffffff;
+	color: #7a2518;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.switch--item:not(:first-child) {
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+}
+
+.switch--item.selected {
+	background-color: #7a2519;
+	color: #ffffff;
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/zepto/1.2.0/zepto.min.js"></script>
+<script type="text/javascript">
+function addBlockSwitches() {
+	$('.primary').each(function() {
+		primary = $(this);
+		createSwitchItem(primary, createBlockSwitch(primary)).item.addClass("selected");
+		primary.children('.title').remove();
+	});
+	$('.secondary').each(function(idx, node) {
+		secondary = $(node);
+		primary = findPrimary(secondary);
+		switchItem = createSwitchItem(secondary, primary.children('.switch'));
+		switchItem.content.addClass('hidden');
+		findPrimary(secondary).append(switchItem.content);
+		secondary.remove();
+	});
+}
+
+function createBlockSwitch(primary) {
+	blockSwitch = $('<div class="switch"></div>');
+	primary.prepend(blockSwitch);
+	return blockSwitch;
+}
+
+function findPrimary(secondary) {
+	candidate = secondary.prev();
+	while (!candidate.is('.primary')) {
+		candidate = candidate.prev();
+	}
+	return candidate;
+}
+
+function createSwitchItem(block, blockSwitch) {
+	blockName = block.children('.title').text();
+	content = block.children('.content').first().append(block.next('.colist'));
+	item = $('<div class="switch--item">' + blockName + '</div>');
+	item.on('click', '', content, function(e) {
+		$(this).addClass('selected');
+		$(this).siblings().removeClass('selected');
+		e.data.siblings('.content').addClass('hidden');
+		e.data.removeClass('hidden');
+	});
+	blockSwitch.append(item);
+	return {'item': item, 'content': content};
+}
+
+$(addBlockSwitches);
+</script>
+
+</head>
+<body class="book toc2 toc-left">
+<div id="header">
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_kubernetes_ecosystem_awareness">Kubernetes Ecosystem Awareness</a>
+<ul class="sectlevel2">
+<li><a href="#_kubernetes_profile_autoconfiguration">Kubernetes Profile Autoconfiguration</a></li>
+<li><a href="#_istio_awareness">Istio Awareness</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_kubernetes_ecosystem_awareness"><a class="link" href="#_kubernetes_ecosystem_awareness">Kubernetes Ecosystem Awareness</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All of the features described earlier in this guide work equally well, regardless of whether your application is running inside
+Kubernetes. This is really helpful for development and troubleshooting.
+From a development point of view, this lets you start your Spring Boot application and debug one
+of the modules that is part of this project. You need not deploy it in Kubernetes,
+as the code of the project relies on the
+<a href="https://github.com/fabric8io/kubernetes-client">Fabric8 Kubernetes Java client</a>, which is a fluent DSL that can
+communicate by using <code>http</code> protocol to the REST API of the Kubernetes Server.</p>
+</div>
+<div class="paragraph">
+<p>To disable the integration with Kubernetes you can set <code>spring.cloud.kubernetes.enabled</code> to <code>false</code>. Please be aware that when <code>spring-cloud-kubernetes-config</code> is on the classpath,
+<code>spring.cloud.kubernetes.enabled</code> should be set in <code>bootstrap.{properties|yml}</code> (or the profile specific one)  otherwise it should be in <code>application.{properties|yml}</code> (or the profile specific one).
+Also note that these properties: <code>spring.cloud.kubernetes.config.enabled</code> and <code>spring.cloud.kubernetes.secrets.enabled</code> only take effect when set in <code>bootstrap.{properties|yml}</code></p>
+</div>
+<div class="sect2">
+<h3 id="_kubernetes_profile_autoconfiguration"><a class="link" href="#_kubernetes_profile_autoconfiguration">Kubernetes Profile Autoconfiguration</a></h3>
+<div class="paragraph">
+<p>When the application runs as a pod inside Kubernetes, a Spring profile named <code>kubernetes</code> automatically gets activated.
+This lets you customize the configuration, to define beans that are applied when the Spring Boot application is deployed
+within the Kubernetes platform (for example, different development and production configuration).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_istio_awareness"><a class="link" href="#_istio_awareness">Istio Awareness</a></h3>
+<div class="paragraph">
+<p>When you include the <code>spring-cloud-kubernetes-istio</code> module in the application classpath, a new profile is added to the application,
+provided the application is running inside a Kubernetes Cluster with <a href="https://istio.io">Istio</a> installed. You can then use
+spring <code>@Profile("istio")</code> annotations in your Beans and <code>@Configuration</code> classes.</p>
+</div>
+<div class="paragraph">
+<p>The Istio awareness module uses  <code>me.snowdrop:istio-client</code> to interact with Istio APIs, letting us discover traffic rules, circuit breakers, and so on,
+making it easy for our Spring Boot applications to consume this data to dynamically configure themselves according to the environment.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script type="text/javascript" src="js/tocbot/tocbot.min.js"></script>
+<script type="text/javascript" src="js/toc.js"></script>
+<link rel="stylesheet" href="js/highlight/styles/atom-one-dark-reasonable.min.css">
+<script src="js/highlight/highlight.min.js"></script>
+<script>hljs.initHighlighting()</script>
+</body>
+</html>

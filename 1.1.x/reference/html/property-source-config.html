@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.8">
+<title>Kubernetes PropertySource implementations</title>
+<link rel="stylesheet" href="css/spring.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<style>
+.hidden {
+	display: none;
+}
+
+.switch {
+	border-width: 1px 1px 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+	display: inline-block;
+}
+
+.switch--item {
+	padding: 10px;
+	background-color: #ffffff;
+	color: #7a2518;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.switch--item:not(:first-child) {
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+}
+
+.switch--item.selected {
+	background-color: #7a2519;
+	color: #ffffff;
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/zepto/1.2.0/zepto.min.js"></script>
+<script type="text/javascript">
+function addBlockSwitches() {
+	$('.primary').each(function() {
+		primary = $(this);
+		createSwitchItem(primary, createBlockSwitch(primary)).item.addClass("selected");
+		primary.children('.title').remove();
+	});
+	$('.secondary').each(function(idx, node) {
+		secondary = $(node);
+		primary = findPrimary(secondary);
+		switchItem = createSwitchItem(secondary, primary.children('.switch'));
+		switchItem.content.addClass('hidden');
+		findPrimary(secondary).append(switchItem.content);
+		secondary.remove();
+	});
+}
+
+function createBlockSwitch(primary) {
+	blockSwitch = $('<div class="switch"></div>');
+	primary.prepend(blockSwitch);
+	return blockSwitch;
+}
+
+function findPrimary(secondary) {
+	candidate = secondary.prev();
+	while (!candidate.is('.primary')) {
+		candidate = candidate.prev();
+	}
+	return candidate;
+}
+
+function createSwitchItem(block, blockSwitch) {
+	blockName = block.children('.title').text();
+	content = block.children('.content').first().append(block.next('.colist'));
+	item = $('<div class="switch--item">' + blockName + '</div>');
+	item.on('click', '', content, function(e) {
+		$(this).addClass('selected');
+		$(this).siblings().removeClass('selected');
+		e.data.siblings('.content').addClass('hidden');
+		e.data.removeClass('hidden');
+	});
+	blockSwitch.append(item);
+	return {'item': item, 'content': content};
+}
+
+$(addBlockSwitches);
+</script>
+
+</head>
+<body class="book toc2 toc-left">
+<div id="header">
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_kubernetes_propertysource_implementations">Kubernetes PropertySource implementations</a>
+<ul class="sectlevel2">
+<li><a href="#configmap-propertysource">Using a <code>ConfigMap</code> <code>PropertySource</code></a></li>
+<li><a href="#_secrets_propertysource">Secrets PropertySource</a></li>
+<li><a href="#_propertysource_reload"><code>PropertySource</code> Reload</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_kubernetes_propertysource_implementations"><a class="link" href="#_kubernetes_propertysource_implementations">Kubernetes PropertySource implementations</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The most common approach to configuring your Spring Boot application is to create an <code>application.properties</code> or <code>application.yaml</code> or
+an <code>application-profile.properties</code> or <code>application-profile.yaml</code> file that contains key-value pairs that provide customization values to your
+application or Spring Boot starters. You can override these properties by specifying system properties or environment
+variables.</p>
+</div>
+<div class="sect2">
+<h3 id="configmap-propertysource"><a class="link" href="#configmap-propertysource">Using a <code>ConfigMap</code> <code>PropertySource</code></a></h3>
+<div class="paragraph">
+<p>Kubernetes provides a resource named <a href="https://kubernetes.io/docs/user-guide/configmap/"><code>ConfigMap</code></a> to externalize the
+parameters to pass to your application in the form of key-value pairs or embedded <code>application.properties</code> or <code>application.yaml</code> files.
+The <a href="./spring-cloud-kubernetes-config">Spring Cloud Kubernetes Config</a> project makes Kubernetes <code>ConfigMap</code> instances available
+during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on
+observed <code>ConfigMap</code> instances.</p>
+</div>
+<div class="paragraph">
+<p>The default behavior is to create a <code>ConfigMapPropertySource</code> based on a Kubernetes <code>ConfigMap</code> that has a <code>metadata.name</code> value of either the name of
+your Spring application (as defined by its <code>spring.application.name</code> property) or a custom name defined within the
+<code>bootstrap.properties</code> file under the following key: <code>spring.cloud.kubernetes.config.name</code>.</p>
+</div>
+<div class="paragraph">
+<p>However, more advanced configuration is possible where you can use multiple <code>ConfigMap</code> instances.
+The <code>spring.cloud.kubernetes.config.sources</code> list makes this possible.
+For example, you could define the following <code>ConfigMap</code> instances:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  application:
+    name: cloud-k8s-app
+  cloud:
+    kubernetes:
+      config:
+        name: default-name
+        namespace: default-namespace
+        sources:
+         # Spring Cloud Kubernetes looks up a ConfigMap named c1 in namespace default-namespace
+         - name: c1
+         # Spring Cloud Kubernetes looks up a ConfigMap named default-name in whatever namespace n2
+         - namespace: n2
+         # Spring Cloud Kubernetes looks up a ConfigMap named c3 in namespace n3
+         - namespace: n3
+           name: c3</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>In the preceding example, if <code>spring.cloud.kubernetes.config.namespace</code> had not been set,
+the <code>ConfigMap</code> named <code>c1</code> would be looked up in the namespace that the application runs.</p>
+</div>
+<div class="paragraph">
+<p>Any matching <code>ConfigMap</code> that is found is processed as follows:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Apply individual configuration properties.</p>
+</li>
+<li>
+<p>Apply as <code>yaml</code> the content of any property named <code>application.yaml</code>.</p>
+</li>
+<li>
+<p>Apply as a properties file the content of any property named <code>application.properties</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The single exception to the aforementioned flow is when the <code>ConfigMap</code> contains a <strong>single</strong> key that indicates
+the file is a YAML or properties file. In that case, the name of the key does NOT have to be <code>application.yaml</code> or
+<code>application.properties</code> (it can be anything) and the value of the property is treated correctly.
+This features facilitates the use case where the <code>ConfigMap</code> was created by using something like the following:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>kubectl create configmap game-config --from-file=/path/to/app-config.yaml</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>Assume that we have a Spring Boot application named <code>demo</code> that uses the following properties to read its thread pool
+configuration.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>pool.size.core</code></p>
+</li>
+<li>
+<p><code>pool.size.maximum</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This can be externalized to config map in <code>yaml</code> format as follows:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  pool.size.core: 1
+  pool.size.max: 16</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>Individual properties work fine for most cases. However, sometimes, embedded <code>yaml</code> is more convenient. In this case, we
+use a single property named <code>application.yaml</code> to embed our <code>yaml</code>, as follows:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  application.yaml: |-
+    pool:
+      size:
+        core: 1
+        max:16</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>The following example also works:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  custom-name.yaml: |-
+    pool:
+      size:
+        core: 1
+        max:16</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also configure Spring Boot applications differently depending on active profiles that are merged together
+when the <code>ConfigMap</code> is read. You can provide different property values for different profiles by using an
+<code>application.properties</code> or <code>application.yaml</code> property, specifying profile-specific values, each in their own document
+(indicated by the <code>---</code> sequence), as follows:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello to the World
+    farewell:
+      message: Say Goodbye
+    ---
+    spring:
+      profiles: development
+    greeting:
+      message: Say Hello to the Developers
+    farewell:
+      message: Say Goodbye to the Developers
+    ---
+    spring:
+      profiles: production
+    greeting:
+      message: Say Hello to the Ops</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>In the preceding case, the configuration loaded into your Spring Application with the <code>development</code> profile is as follows:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">  greeting:
+    message: Say Hello to the Developers
+  farewell:
+    message: Say Goodbye to the Developers</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>However, if the <code>production</code> profile is active, the configuration becomes:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">  greeting:
+    message: Say Hello to the Ops
+  farewell:
+    message: Say Goodbye</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>If both profiles are active, the property that appears last within the <code>ConfigMap</code> overwrites any preceding values.</p>
+</div>
+<div class="paragraph">
+<p>Another option is to create a different config map per profile and spring boot will automatically fetch it based
+on active profiles</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello to the World
+    farewell:
+      message: Say Goodbye</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-development
+data:
+  application.yml: |-
+    spring:
+      profiles: development
+    greeting:
+      message: Say Hello to the Developers
+    farewell:
+      message: Say Goodbye to the Developers</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-production
+data:
+  application.yml: |-
+    spring:
+      profiles: production
+    greeting:
+      message: Say Hello to the Ops
+    farewell:
+      message: Say Goodbye</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>To tell Spring Boot which <code>profile</code> should be enabled at bootstrap, you can pass <code>SPRING_PROFILES_ACTIVE</code> environment variable.
+ To do so, you can launch your Spring Boot application with an environment variable that you can define it in the PodSpec at the container specification.
+ Deployment resource file, as follows:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-name
+  labels:
+    app: deployment-name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deployment-name
+  template:
+    metadata:
+      labels:
+        app: deployment-name
+	spec:
+		containers:
+		- name: container-name
+		  image: your-image
+		  env:
+		  - name: SPRING_PROFILES_ACTIVE
+			value: "development"</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+You should check the security configuration section. To access config maps from inside a pod you need to have the correct
+Kubernetes service accounts, roles and role bindings.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Another option for using <code>ConfigMap</code> instances is to mount them into the Pod by running the Spring Cloud Kubernetes application
+and having Spring Cloud Kubernetes read them from the file system.
+This behavior is controlled by the <code>spring.cloud.kubernetes.config.paths</code> property. You can use it in
+addition to or instead of the mechanism described earlier.
+You can specify multiple (exact) file paths in <code>spring.cloud.kubernetes.config.paths</code> by using the <code>,</code> delimiter.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+You have to provide the full exact path to each property file, because directories are not being recursively parsed.
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Properties:</caption>
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.config.enabled</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable ConfigMaps <code>PropertySource</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.config.name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>${spring.application.name}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the name of <code>ConfigMap</code> to look up</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.config.namespace</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Client namespace</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the Kubernetes namespace where to lookup</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.config.paths</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>List</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the paths where <code>ConfigMap</code> instances are mounted</p></td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.config.enableApi</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable or disable consuming <code>ConfigMap</code> instances through APIs</p></td>
+</tr>
+</tfoot>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_secrets_propertysource"><a class="link" href="#_secrets_propertysource">Secrets PropertySource</a></h3>
+<div class="paragraph">
+<p>Kubernetes has the notion of <a href="https://kubernetes.io/docs/concepts/configuration/secret/">Secrets</a> for storing
+sensitive data such as passwords, OAuth tokens, and so on. This project provides integration with <code>Secrets</code> to make secrets
+accessible by Spring Boot applications. You can explicitly enable or disable This feature by setting the <code>spring.cloud.kubernetes.secrets.enabled</code> property.</p>
+</div>
+<div class="paragraph">
+<p>When enabled, the <code>SecretsPropertySource</code> looks up Kubernetes for <code>Secrets</code> from the following sources:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Reading recursively from secrets mounts</p>
+</li>
+<li>
+<p>Named after the application (as defined by <code>spring.application.name</code>)</p>
+</li>
+<li>
+<p>Matching some labels</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p><strong>Note:</strong></p>
+</div>
+<div class="paragraph">
+<p>By default, consuming Secrets through the API (points 2 and 3 above) <strong>is not enabled</strong> for security reasons. The permission 'list' on secrets allows clients to inspect secrets values in the specified namespace.
+Further, we recommend that containers share secrets through mounted volumes.</p>
+</div>
+<div class="paragraph">
+<p>If you enable consuming Secrets through the API, we recommend that you limit access to Secrets by using an authorization policy, such as RBAC.
+For more information about risks and best practices when consuming Secrets through the API refer to <a href="https://kubernetes.io/docs/concepts/configuration/secret/#best-practices">this doc</a>.</p>
+</div>
+<div class="paragraph">
+<p>If the secrets are found, their data is made available to the application.</p>
+</div>
+<div class="paragraph">
+<p>Assume that we have a spring boot application named <code>demo</code> that uses properties to read its database
+configuration. We can create a Kubernetes secret by using the following command:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>oc create secret generic db-secret --from-literal=username=user --from-literal=password=p455w0rd</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>The preceding command would create the following secret (which you can see by using <code>oc get secrets db-secret -o yaml</code>):</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+data:
+  password: cDQ1NXcwcmQ=
+  username: dXNlcg==
+kind: Secret
+metadata:
+  creationTimestamp: 2017-07-04T09:15:57Z
+  name: db-secret
+  namespace: default
+  resourceVersion: "357496"
+  selfLink: /api/v1/namespaces/default/secrets/db-secret
+  uid: 63c89263-6099-11e7-b3da-76d6186905a8
+type: Opaque</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the data contains Base64-encoded versions of the literal provided by the <code>create</code> command.</p>
+</div>
+<div class="paragraph">
+<p>Your application can then use this secret&#8201;&#8212;&#8201;for example, by exporting the secret&#8217;s value as environment variables:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+kind: Deployment
+metadata:
+  name: ${project.artifactId}
+spec:
+   template:
+     spec:
+       containers:
+         - env:
+            - name: DB_USERNAME
+              valueFrom:
+                 secretKeyRef:
+                   name: db-secret
+                   key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                 secretKeyRef:
+                   name: db-secret
+                   key: password</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>You can select the Secrets to consume in a number of ways:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>By listing the directories where secrets are mapped:</p>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">-Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/db-secret,etc/secrets/postgresql</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>If you have all the secrets mapped to a common root, you can set them like:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">-Dspring.cloud.kubernetes.secrets.paths=/etc/secrets</code></pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>By setting a named secret:</p>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">-Dspring.cloud.kubernetes.secrets.name=db-secret</code></pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>By defining a list of labels:</p>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">-Dspring.cloud.kubernetes.secrets.labels.broker=activemq
+-Dspring.cloud.kubernetes.secrets.labels.db=postgresql</code></pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>As the case with <code>ConfigMap</code>, more advanced configuration is also possible where you can use multiple <code>Secret</code>
+instances. The <code>spring.cloud.kubernetes.secrets.sources</code> list makes this possible.
+For example, you could define the following <code>Secret</code> instances:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  application:
+    name: cloud-k8s-app
+  cloud:
+    kubernetes:
+      secrets:
+        name: default-name
+        namespace: default-namespace
+        sources:
+         # Spring Cloud Kubernetes looks up a Secret named s1 in namespace default-namespace
+         - name: s1
+         # Spring Cloud Kubernetes looks up a Secret named default-name in whatever namespace n2
+         - namespace: n2
+         # Spring Cloud Kubernetes looks up a Secret named s3 in namespace n3
+         - namespace: n3
+           name: s3</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>In the preceding example, if <code>spring.cloud.kubernetes.secrets.namespace</code> had not been set,
+the <code>Secret</code> named <code>s1</code> would be looked up in the namespace that the application runs.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 2. Properties:</caption>
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.secrets.enabled</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable Secrets <code>PropertySource</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.secrets.name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>${spring.application.name}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the name of the secret to look up</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.secrets.namespace</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Client namespace</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the Kubernetes namespace where to look up</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.secrets.labels</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Map</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the labels used to lookup secrets</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.secrets.paths</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>List</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the paths where secrets are mounted (example 1)</p></td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.secrets.enableApi</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables consuming secrets through APIs (examples 2 and 3)</p></td>
+</tr>
+</tfoot>
+</table>
+<div class="paragraph">
+<p>Notes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>spring.cloud.kubernetes.secrets.labels</code> property behaves as defined by
+<a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding">Map-based binding</a>.</p>
+</li>
+<li>
+<p>The <code>spring.cloud.kubernetes.secrets.paths</code> property behaves as defined by
+<a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#collection-based-binding">Collection-based binding</a>.</p>
+</li>
+<li>
+<p>Access to secrets through the API may be restricted for security reasons. The preferred way is to mount secrets to the Pod.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can find an example of an application that uses secrets (though it has not been updated to use the new <code>spring-cloud-kubernetes</code> project) at
+<a href="https://github.com/fabric8-quickstarts/spring-boot-camel-config">spring-boot-camel-config</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_propertysource_reload"><a class="link" href="#_propertysource_reload"><code>PropertySource</code> Reload</a></h3>
+<div class="paragraph">
+<p>Some applications may need to detect changes on external property sources and update their internal status to reflect the new configuration.
+The reload feature of Spring Cloud Kubernetes is able to trigger an application reload when a related <code>ConfigMap</code> or
+<code>Secret</code> changes.</p>
+</div>
+<div class="paragraph">
+<p>By default, this feature is disabled. You can enable it by using the <code>spring.cloud.kubernetes.reload.enabled=true</code> configuration property (for example, in the <code>application.properties</code> file).</p>
+</div>
+<div class="paragraph">
+<p>The following levels of reload are supported (by setting the <code>spring.cloud.kubernetes.reload.strategy</code> property):
+* <code>refresh</code> (default): Only configuration beans annotated with <code>@ConfigurationProperties</code> or <code>@RefreshScope</code> are reloaded.
+This reload level leverages the refresh feature of Spring Cloud Context.
+* <code>restart_context</code>: the whole Spring <code>ApplicationContext</code> is gracefully restarted. Beans are recreated with the new configuration.
+* <code>shutdown</code>: the Spring <code>ApplicationContext</code> is shut down to activate a restart of the container.
+ When you use this level, make sure that the lifecycle of all non-daemon threads is bound to the <code>ApplicationContext</code>
+and that a replication controller or replica set is configured to restart the pod.</p>
+</div>
+<div class="paragraph">
+<p>Assuming that the reload feature is enabled with default settings (<code>refresh</code> mode), the following bean is refreshed when the config map changes:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre>@Configuration
+@ConfigurationProperties(prefix = "bean")
+public class MyConfig {
+
+    private String message = "a message that can be changed live";
+
+    // getter and setters
+
+}</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>To see that changes effectively happen, you can create another bean that prints the message periodically, as follows</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Component
+public class MyBean {
+
+    @Autowired
+    private MyConfig config;
+
+    @Scheduled(fixedDelay = 5000)
+    public void hello() {
+        System.out.println("The message is: " + config.getMessage());
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>You can change the message printed by the application by using a <code>ConfigMap</code>, as follows:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reload-example
+data:
+  application.properties: |-
+    bean.message=Hello World!</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>Any change to the property named <code>bean.message</code> in the <code>ConfigMap</code> associated with the pod is reflected in the
+output. More generally speaking, changes associated to properties prefixed with the value defined by the <code>prefix</code>
+field of the <code>@ConfigurationProperties</code> annotation are detected and reflected in the application.
+<a href="#configmap-propertysource">Associating a <code>ConfigMap</code> with a pod</a> is explained earlier in this chapter.</p>
+</div>
+<div class="paragraph">
+<p>The full example is available in <a href="https://github.com/fabric8io/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-examples/kubernetes-reload-example"><code>spring-cloud-kubernetes-reload-example</code></a>.</p>
+</div>
+<div class="paragraph">
+<p>The reload feature supports two operating modes:
+* Event (default): Watches for changes in config maps or secrets by using the Kubernetes API (web socket).
+Any event produces a re-check on the configuration and, in case of changes, a reload.
+The <code>view</code> role on the service account is required in order to listen for config map changes. A higher level role (such as <code>edit</code>) is required for secrets
+(by default, secrets are not monitored).
+* Polling: Periodically re-creates the configuration from config maps and secrets to see if it has changed.
+You can configure the polling period by using the <code>spring.cloud.kubernetes.reload.period</code> property and defaults to 15 seconds.
+It requires the same role as the monitored property source.
+This means, for example, that using polling on file-mounted secret sources does not require particular privileges.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 3. Properties:</caption>
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.reload.enabled</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables monitoring of property sources and configuration reload</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.reload.monitoring-config-maps</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Allow monitoring changes in config maps</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.reload.monitoring-secrets</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Allow monitoring changes in secrets</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.reload.strategy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Enum</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>refresh</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The strategy to use when firing a reload (<code>refresh</code>, <code>restart_context</code>, or <code>shutdown</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.reload.mode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Enum</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>event</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specifies how to listen for changes in property sources (<code>event</code> or <code>polling</code>)</p></td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>spring.cloud.kubernetes.reload.period</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Duration</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>15s</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The period for verifying changes when using the <code>polling</code> strategy</p></td>
+</tr>
+</tfoot>
+</table>
+<div class="paragraph">
+<p>Notes:
+* You should not use properties under <code>spring.cloud.kubernetes.reload</code> in config maps or secrets. Changing such properties at runtime may lead to unexpected results.
+* Deleting a property or the whole config map does not restore the original state of the beans when you use the <code>refresh</code> level.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script type="text/javascript" src="js/tocbot/tocbot.min.js"></script>
+<script type="text/javascript" src="js/toc.js"></script>
+<link rel="stylesheet" href="js/highlight/styles/atom-one-dark-reasonable.min.css">
+<script src="js/highlight/highlight.min.js"></script>
+<script>hljs.initHighlighting()</script>
+</body>
+</html>

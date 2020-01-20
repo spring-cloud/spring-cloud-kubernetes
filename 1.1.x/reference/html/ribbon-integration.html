@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.8">
+<title>Ribbon Discovery in Kubernetes</title>
+<link rel="stylesheet" href="css/spring.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<style>
+.hidden {
+	display: none;
+}
+
+.switch {
+	border-width: 1px 1px 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+	display: inline-block;
+}
+
+.switch--item {
+	padding: 10px;
+	background-color: #ffffff;
+	color: #7a2518;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.switch--item:not(:first-child) {
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+}
+
+.switch--item.selected {
+	background-color: #7a2519;
+	color: #ffffff;
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/zepto/1.2.0/zepto.min.js"></script>
+<script type="text/javascript">
+function addBlockSwitches() {
+	$('.primary').each(function() {
+		primary = $(this);
+		createSwitchItem(primary, createBlockSwitch(primary)).item.addClass("selected");
+		primary.children('.title').remove();
+	});
+	$('.secondary').each(function(idx, node) {
+		secondary = $(node);
+		primary = findPrimary(secondary);
+		switchItem = createSwitchItem(secondary, primary.children('.switch'));
+		switchItem.content.addClass('hidden');
+		findPrimary(secondary).append(switchItem.content);
+		secondary.remove();
+	});
+}
+
+function createBlockSwitch(primary) {
+	blockSwitch = $('<div class="switch"></div>');
+	primary.prepend(blockSwitch);
+	return blockSwitch;
+}
+
+function findPrimary(secondary) {
+	candidate = secondary.prev();
+	while (!candidate.is('.primary')) {
+		candidate = candidate.prev();
+	}
+	return candidate;
+}
+
+function createSwitchItem(block, blockSwitch) {
+	blockName = block.children('.title').text();
+	content = block.children('.content').first().append(block.next('.colist'));
+	item = $('<div class="switch--item">' + blockName + '</div>');
+	item.on('click', '', content, function(e) {
+		$(this).addClass('selected');
+		$(this).siblings().removeClass('selected');
+		e.data.siblings('.content').addClass('hidden');
+		e.data.removeClass('hidden');
+	});
+	blockSwitch.append(item);
+	return {'item': item, 'content': content};
+}
+
+$(addBlockSwitches);
+</script>
+
+</head>
+<body class="book toc2 toc-left">
+<div id="header">
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_ribbon_discovery_in_kubernetes">Ribbon Discovery in Kubernetes</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_ribbon_discovery_in_kubernetes"><a class="link" href="#_ribbon_discovery_in_kubernetes">Ribbon Discovery in Kubernetes</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Spring Cloud client applications that call a microservice should be interested on relying on a client load-balancing
+feature in order to automatically discover at which endpoint(s) it can reach a given service. This mechanism has been
+implemented within the <a href="https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-ribbon">spring-cloud-kubernetes-ribbon</a> project, where a
+Kubernetes client populates a <a href="https://github.com/Netflix/ribbon">Ribbon</a> <code>ServerList</code> that contains information
+about such endpoints.</p>
+</div>
+<div class="paragraph">
+<p>The implementation is part of the following starter that you can use by adding its dependency to your pom file:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-kubernetes-ribbon&lt;/artifactId&gt;
+    &lt;version&gt;${latest.version}&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>When the list of the endpoints is populated, the Kubernetes client searches the registered endpoints that live in
+the current namespace or project by matching the service name defined in the Ribbon Client annotation, as follows:</p>
+</div>
+<div class="exampleblock">
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RibbonClient(name = "name-service")</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>You can configure Ribbon&#8217;s behavior by providing properties in your <code>application.properties</code> (through your application&#8217;s
+dedicated <code>ConfigMap</code>) by using the following format: <code>&lt;name of your service&gt;.ribbon.&lt;Ribbon configuration key&gt;</code>, where:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>&lt;name of your service&gt;</code> corresponds to the service name you access over Ribbon, as configured by using the
+<code>@RibbonClient</code> annotation (such as <code>name-service</code> in the preceding example).</p>
+</li>
+<li>
+<p><code>&lt;Ribbon configuration key&gt;</code> is one of the Ribbon configuration keys defined by
+<a href="https://github.com/Netflix/ribbon/blob/master/ribbon-core/src/main/java/com/netflix/client/config/CommonClientConfigKey.java">Ribbon&#8217;s <code>CommonClientConfigKey</code> class</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Additionally, the <code>spring-cloud-kubernetes-ribbon</code> project defines two additional configuration keys to further
+control how Ribbon interacts with Kubernetes. In particular, if an endpoint defines multiple ports, the default
+behavior is to use the first one found. To select more specifically which port to use in a multi-port service, you can use
+the <code>PortName</code> key. If you want to specify in which Kubernetes namespace the target service should be looked up, you can use
+the <code>KubernetesNamespace</code> key, remembering in both instances to prefix these keys with your service name and
+<code>ribbon</code> prefix, as specified earlier.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Spring Cloud Kubernetes Ribbon Configuration</caption>
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property Key</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.ribbon.enabled</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.ribbon.mode</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KubernetesRibbonMode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POD</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.ribbon.cluster-domain</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">cluster.local</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p><code>spring.cloud.kubernetes.ribbon.mode</code> supports <code>POD</code> and <code>SERVICE</code> modes.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The POD mode is to achieve load balancing by obtaining the Pod IP address of Kubernetes and using Ribbon.
+POD mode uses the load balancing of the Ribbon Does not support Kubernetes load balancing, The traffic policy of <code>Istio</code> is not supported.</p>
+</li>
+<li>
+<p>the <code>SERVICE</code> mode is directly based on the <code>service name</code> of the Ribbon. Get
+The Kubernetes service is concatenated into <code>service-name.{namespace}.svc.{cluster.domain}:{port}</code> such as: <code>demo1.default.svc.cluster.local:8080</code>.
+the <code>SERVICE</code> mode uses load balancing of the Kubernetes service to support Istio&#8217;s traffic policy.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>spring.cloud.kubernetes.ribbon.cluster-domain</code> Set the custom Kubernetes cluster domain suffix. The default value is: 'cluster.local'</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The following examples use this module for ribbon discovery:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="./spring-cloud-kubernetes-examples/kubernetes-circuitbreaker-ribbon-example">Spring Cloud Circuitbreaker and Ribbon</a></p>
+</li>
+<li>
+<p><a href="https://github.com/fabric8-quickstarts/spring-boot-ribbon">fabric8-quickstarts - Spring Boot - Ribbon</a></p>
+</li>
+<li>
+<p><a href="https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank">Kubeflix - LoanBroker - Bank</a></p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+You can disable the Ribbon discovery client by setting the <code>spring.cloud.kubernetes.ribbon.enabled=false</code> key within the application properties file.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<script type="text/javascript" src="js/tocbot/tocbot.min.js"></script>
+<script type="text/javascript" src="js/toc.js"></script>
+<link rel="stylesheet" href="js/highlight/styles/atom-one-dark-reasonable.min.css">
+<script src="js/highlight/highlight.min.js"></script>
+<script>hljs.initHighlighting()</script>
+</body>
+</html>
