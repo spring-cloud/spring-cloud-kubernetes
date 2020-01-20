@@ -563,13 +563,13 @@ configuration. We can create a Kubernetes secret by using the following command:
 <div class="content">
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code>oc create secret generic db-secret --from-literal=username=user --from-literal=password=p455w0rd</code></pre>
+<pre class="highlightjs highlight"><code>kubectl create secret generic db-secret --from-literal=username=user --from-literal=password=p455w0rd</code></pre>
 </div>
 </div>
 </div>
 </div>
 <div class="paragraph">
-<p>The preceding command would create the following secret (which you can see by using <code>oc get secrets db-secret -o yaml</code>):</p>
+<p>The preceding command would create the following secret (which you can see by using <code>kubectl get secrets db-secret -o yaml</code>):</p>
 </div>
 <div class="exampleblock">
 <div class="content">
