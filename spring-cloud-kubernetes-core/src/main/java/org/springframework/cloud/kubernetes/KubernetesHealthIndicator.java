@@ -25,6 +25,7 @@ import org.springframework.boot.actuate.health.Health;
  * Kubernetes implementation of {@link AbstractHealthIndicator}.
  *
  * @author Ioannis Canellos
+ * @author Eddú Meléndez
  */
 public class KubernetesHealthIndicator extends AbstractHealthIndicator {
 
@@ -46,7 +47,8 @@ public class KubernetesHealthIndicator extends AbstractHealthIndicator {
 						.withDetail("serviceAccount",
 								current.getSpec().getServiceAccountName())
 						.withDetail("nodeName", current.getSpec().getNodeName())
-						.withDetail("hostIp", current.getStatus().getHostIP());
+						.withDetail("hostIp", current.getStatus().getHostIP())
+						.withDetail("labels", current.getMetadata().getLabels());
 			}
 			else {
 				builder.up().withDetail("inside", false);
