@@ -112,6 +112,15 @@ private DiscoveryClient discoveryClient;
 ----
 ====
 
+You can choose to enable `DiscoveryClient` from all namespaces by setting the following property in `application.properties`:
+
+====
+[source]
+----
+spring.cloud.kubernetes.discovery.all-namespaces=true
+----
+====
+
 If, for any reason, you need to disable the `DiscoveryClient`, you can set the following property in `application.properties`:
 
 ====
@@ -123,6 +132,8 @@ spring.cloud.kubernetes.discovery.enabled=false
 
 Some Spring Cloud components use the `DiscoveryClient` in order to obtain information about the local service instance. For
 this to work, you need to align the Kubernetes service name with the `spring.application.name` property.
+
+NOTE:  `spring.application.name` has no effect as far as the name registered for the application within Kubernetes
 
 Spring Cloud Kubernetes can also watch the Kubernetes service catalog for changes and update the
 `DiscoveryClient` implementation accordingly.  In order to enable this functionality you need to add
@@ -324,6 +335,59 @@ However, if the `production` profile is active, the configuration becomes:
 
 If both profiles are active, the property that appears last within the `ConfigMap` overwrites any preceding values.
 
+Another option is to create a different config map per profile and spring boot will automatically fetch it based
+on active profiles
+
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello to the World
+    farewell:
+      message: Say Goodbye
+----
+====
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-development
+data:
+  application.yml: |-
+    spring:
+      profiles: development
+    greeting:
+      message: Say Hello to the Developers
+    farewell:
+      message: Say Goodbye to the Developers
+----
+====
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-production
+data:
+  application.yml: |-
+    spring:
+      profiles: production
+    greeting:
+      message: Say Hello to the Ops
+    farewell:
+      message: Say Goodbye
+----
+====
+
 
 To tell Spring Boot which `profile` should be enabled at bootstrap, you can pass a system property to the Java
 command. To do so, you can launch your Spring Boot application with an environment variable that you can define with the OpenShift
@@ -362,7 +426,7 @@ NOTE: You have to provide the full exact path to each property file, because dir
 [options="header,footer"]
 |===
 | Name                                       | Type      | Default                      | Description
-| `spring.cloud.kubernetes.config.enabled`   | `Boolean` | `true`                       | Enable Secrets `PropertySource`
+| `spring.cloud.kubernetes.config.enabled`   | `Boolean` | `true`                       | Enable ConfigMaps `PropertySource`
 | `spring.cloud.kubernetes.config.name`      | `String`  | `${spring.application.name}` | Sets the name of `ConfigMap` to look up
 | `spring.cloud.kubernetes.config.namespace` | `String`  | Client namespace             | Sets the Kubernetes namespace where to lookup
 | `spring.cloud.kubernetes.config.paths`     | `List`    | `null`                       | Sets the paths where `ConfigMap` instances are mounted
@@ -381,10 +445,13 @@ When enabled, the `SecretsPropertySource` looks up Kubernetes for `Secrets` from
 . Named after the application (as defined by `spring.application.name`)
 . Matching some labels
 
-Note that, by default, consuming Secrets through the API (points 2 and 3 above) *is not enabled* for security reasons.
+*Note:*
+
+By default, consuming Secrets through the API (points 2 and 3 above) *is not enabled* for security reasons. The permission 'list' on secrets allows clients to inspect secrets values in the specified namespace.
 Further, we recommend that containers share secrets through mounted volumes.
-If you enable consuming Secrets through the API, we recommend that you limit access to Secrets by using an
-[authorization policy, such as RBAC](https://kubernetes.io/docs/concepts/configuration/secret/#best-practices).
+
+If you enable consuming Secrets through the API, we recommend that you limit access to Secrets by using an authorization policy, such as RBAC.
+For more information about risks and best practices when consuming Secrets through the API refer to https://kubernetes.io/docs/concepts/configuration/secret/#best-practices[this doc].
 
 If the secrets are found, their data is made available to the application.
 
@@ -500,6 +567,7 @@ If you have all the secrets mapped to a common root, you can set them like:
 |===
 
 Notes:
+
 * The `spring.cloud.kubernetes.secrets.labels` property behaves as defined by
 https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding[Map-based binding].
 * The `spring.cloud.kubernetes.secrets.paths` property behaves as defined by
@@ -673,6 +741,10 @@ of the modules that is part of this project. You need not deploy it in Kubernete
 as the code of the project relies on the
 https://github.com/fabric8io/kubernetes-client[Fabric8 Kubernetes Java client], which is a fluent DSL that can
 communicate by using `http` protocol to the REST API of the Kubernetes Server.
+
+To disable the integration with Kubernetes you can set `spring.cloud.kubernetes.enabled` to `false`. Please be aware that when `spring-cloud-kubernetes-config` is on the classpath,
+`spring.cloud.kubernetes.enabled` should be set in `bootstrap.{properties|yml}` (or the profile specific one)  otherwise it should be in `application.{properties|yml}` (or the profile specific one).
+Also note that these properties: `spring.cloud.kubernetes.config.enabled` and `spring.cloud.kubernetes.secrets.enabled` only take effect when set in `bootstrap.{properties|yml}`
 
 === Kubernetes Profile Autoconfiguration
 
@@ -987,6 +1059,7 @@ $ touch .springformat
 ==== Intellij IDEA
 
 In order to setup Intellij you should import our coding conventions, inspection profiles and set up the checkstyle plugin.
+The following files can be found in the https://github.com/spring-cloud/spring-cloud-build/tree/master/spring-cloud-build-tools[Spring Cloud Build] project.
 
 .spring-cloud-build-tools/
 ----
@@ -1027,7 +1100,7 @@ image::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/{spring
 
 Go to `File` -> `Settings` -> `Other settings` -> `Checkstyle`. There click on the `+` icon in the `Configuration file` section. There, you'll have to define where the checkstyle rules should be picked from. In the image above, we've picked the rules from the cloned Spring Cloud Build repository. However, you can point to the Spring Cloud Build's GitHub repository (e.g. for the `checkstyle.xml` : `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/main/resources/checkstyle.xml`). We need to provide the following variables:
 
-- `checkstyle.header.file` - please point it to the Spring Cloud Build's, `spring-cloud-build-tools/src/main/resources/checkstyle/checkstyle-header.txt` file either in your cloned repo or via the `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/main/resources/checkstyle-header.txt` URL.
+- `checkstyle.header.file` - please point it to the Spring Cloud Build's, `spring-cloud-build-tools/src/main/resources/checkstyle-header.txt` file either in your cloned repo or via the `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/main/resources/checkstyle-header.txt` URL.
 - `checkstyle.suppressions.file` - default suppressions. Please point it to the Spring Cloud Build's, `spring-cloud-build-tools/src/checkstyle/checkstyle-suppressions.xml` file either in your cloned repo or via the `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/checkstyle/checkstyle-suppressions.xml` URL.
 - `checkstyle.additional.suppressions.file` - this variable corresponds to suppressions in your local project. E.g. you're working on `spring-cloud-contract`. Then point to the `project-root/src/checkstyle/checkstyle-suppressions.xml` folder. Example for `spring-cloud-contract` would be: `/home/username/spring-cloud-contract/src/checkstyle/checkstyle-suppressions.xml`.
 
