@@ -5,6 +5,22 @@ Edit the files in the src/main/asciidoc/ directory instead.
 ////
 
 = Spring Cloud Kubernetes
+:doctype: book
+:idprefix:
+:idseparator: -
+:toc: left
+:toclevels: 4
+:tabsize: 4
+:numbered:
+:sectanchors:
+:sectnums:
+:icons: font
+:hide-uri-scheme:
+:docinfo: shared,private
+
+:sc-ext: java
+:project-full-name: Spring Cloud Kubernetes
+:all: {asterisk}{asterisk}
 
 This reference guide covers how to use Spring Cloud Kubernetes.
 
@@ -112,6 +128,15 @@ private DiscoveryClient discoveryClient;
 ----
 ====
 
+You can choose to enable `DiscoveryClient` from all namespaces by setting the following property in `application.properties`:
+
+====
+[source]
+----
+spring.cloud.kubernetes.discovery.all-namespaces=true
+----
+====
+
 If, for any reason, you need to disable the `DiscoveryClient`, you can set the following property in `application.properties`:
 
 ====
@@ -123,6 +148,12 @@ spring.cloud.kubernetes.discovery.enabled=false
 
 Some Spring Cloud components use the `DiscoveryClient` in order to obtain information about the local service instance. For
 this to work, you need to align the Kubernetes service name with the `spring.application.name` property.
+
+NOTE:  `spring.application.name` has no effect as far as the name registered for the application within Kubernetes
+
+Spring Cloud Kubernetes can also watch the Kubernetes service catalog for changes and update the
+`DiscoveryClient` implementation accordingly.  In order to enable this functionality you need to add
+`@EnableScheduling` on a configuration class in your application.
 
 == Kubernetes native service discovery
 
@@ -138,7 +169,7 @@ Additionally, you can use Hystrix for:
 
 == Kubernetes PropertySource implementations
 
-The most common approach to configuring your Spring Boot application is to create an `application.properties` or `applicaiton.yaml` or
+The most common approach to configuring your Spring Boot application is to create an `application.properties` or `application.yaml` or
 an `application-profile.properties` or `application-profile.yaml` file that contains key-value pairs that provide customization values to your
 application or Spring Boot starters. You can override these properties by specifying system properties or environment
 variables.
@@ -320,26 +351,89 @@ However, if the `production` profile is active, the configuration becomes:
 
 If both profiles are active, the property that appears last within the `ConfigMap` overwrites any preceding values.
 
-
-To tell Spring Boot which `profile` should be enabled at bootstrap, you can pass a system property to the Java
-command. To do so, you can launch your Spring Boot application with an environment variable that you can define with the OpenShift
-`DeploymentConfig` or Kubernetes `ReplicationConfig` resource file, as follows:
+Another option is to create a different config map per profile and spring boot will automatically fetch it based
+on active profiles
 
 ====
 [source,yaml]
 ----
+kind: ConfigMap
 apiVersion: v1
-kind: DeploymentConfig
+metadata:
+  name: demo
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello to the World
+    farewell:
+      message: Say Goodbye
+----
+====
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-development
+data:
+  application.yml: |-
+    spring:
+      profiles: development
+    greeting:
+      message: Say Hello to the Developers
+    farewell:
+      message: Say Goodbye to the Developers
+----
+====
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-production
+data:
+  application.yml: |-
+    spring:
+      profiles: production
+    greeting:
+      message: Say Hello to the Ops
+    farewell:
+      message: Say Goodbye
+----
+====
+
+
+To tell Spring Boot which `profile` should be enabled at bootstrap, you can pass `SPRING_PROFILES_ACTIVE` environment variable.
+ To do so, you can launch your Spring Boot application with an environment variable that you can define it in the PodSpec at the container specification.
+ Deployment resource file, as follows:
+
+====
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-name
+  labels:
+    app: deployment-name
 spec:
   replicas: 1
-  ...
-    spec:
-      containers:
-      - env:
-        - name: JAVA_APP_DIR
-          value: /deployments
-        - name: JAVA_OPTIONS
-          value: -Dspring.profiles.active=developer
+  selector:
+    matchLabels:
+      app: deployment-name
+  template:
+    metadata:
+      labels:
+        app: deployment-name
+	spec:
+		containers:
+		- name: container-name
+		  image: your-image
+		  env:
+		  - name: SPRING_PROFILES_ACTIVE
+			value: "development"
 ----
 ====
 
@@ -358,7 +452,7 @@ NOTE: You have to provide the full exact path to each property file, because dir
 [options="header,footer"]
 |===
 | Name                                       | Type      | Default                      | Description
-| `spring.cloud.kubernetes.config.enabled`   | `Boolean` | `true`                       | Enable Secrets `PropertySource`
+| `spring.cloud.kubernetes.config.enabled`   | `Boolean` | `true`                       | Enable ConfigMaps `PropertySource`
 | `spring.cloud.kubernetes.config.name`      | `String`  | `${spring.application.name}` | Sets the name of `ConfigMap` to look up
 | `spring.cloud.kubernetes.config.namespace` | `String`  | Client namespace             | Sets the Kubernetes namespace where to lookup
 | `spring.cloud.kubernetes.config.paths`     | `List`    | `null`                       | Sets the paths where `ConfigMap` instances are mounted
@@ -377,10 +471,13 @@ When enabled, the `SecretsPropertySource` looks up Kubernetes for `Secrets` from
 . Named after the application (as defined by `spring.application.name`)
 . Matching some labels
 
-Note that, by default, consuming Secrets through the API (points 2 and 3 above) *is not enabled* for security reasons.
+*Note:*
+
+By default, consuming Secrets through the API (points 2 and 3 above) *is not enabled* for security reasons. The permission 'list' on secrets allows clients to inspect secrets values in the specified namespace.
 Further, we recommend that containers share secrets through mounted volumes.
-If you enable consuming Secrets through the API, we recommend that you limit access to Secrets by using an
-[authorization policy, such as RBAC](https://kubernetes.io/docs/concepts/configuration/secret/#best-practices).
+
+If you enable consuming Secrets through the API, we recommend that you limit access to Secrets by using an authorization policy, such as RBAC.
+For more information about risks and best practices when consuming Secrets through the API refer to https://kubernetes.io/docs/concepts/configuration/secret/#best-practices[this doc].
 
 If the secrets are found, their data is made available to the application.
 
@@ -390,11 +487,11 @@ configuration. We can create a Kubernetes secret by using the following command:
 ====
 [source]
 ----
-oc create secret generic db-secret --from-literal=username=user --from-literal=password=p455w0rd
+kubectl create secret generic db-secret --from-literal=username=user --from-literal=password=p455w0rd
 ----
 ====
 
-The preceding command would create the following secret (which you can see by using `oc get secrets db-secret -o yaml`):
+The preceding command would create the following secret (which you can see by using `kubectl get secrets db-secret -o yaml`):
 
 ====
 [source,yaml]
@@ -483,6 +580,36 @@ If you have all the secrets mapped to a common root, you can set them like:
 ----
 ====
 
+As the case with `ConfigMap`, more advanced configuration is also possible where you can use multiple `Secret`
+instances. The `spring.cloud.kubernetes.secrets.sources` list makes this possible.
+For example, you could define the following `Secret` instances:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: cloud-k8s-app
+  cloud:
+    kubernetes:
+      secrets:
+        name: default-name
+        namespace: default-namespace
+        sources:
+         # Spring Cloud Kubernetes looks up a Secret named s1 in namespace default-namespace
+         - name: s1
+         # Spring Cloud Kubernetes looks up a Secret named default-name in whatever namespace n2
+         - namespace: n2
+         # Spring Cloud Kubernetes looks up a Secret named s3 in namespace n3
+         - namespace: n3
+           name: s3
+----
+====
+
+In the preceding example, if `spring.cloud.kubernetes.secrets.namespace` had not been set,
+the `Secret` named `s1` would be looked up in the namespace that the application runs.
+
+
 .Properties:
 [options="header,footer"]
 |===
@@ -496,6 +623,7 @@ If you have all the secrets mapped to a common root, you can set them like:
 |===
 
 Notes:
+
 * The `spring.cloud.kubernetes.secrets.labels` property behaves as defined by
 https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding[Map-based binding].
 * The `spring.cloud.kubernetes.secrets.paths` property behaves as defined by
@@ -584,7 +712,7 @@ The reload feature supports two operating modes:
 Any event produces a re-check on the configuration and, in case of changes, a reload.
 The `view` role on the service account is required in order to listen for config map changes. A higher level role (such as `edit`) is required for secrets
 (by default, secrets are not monitored).
-* Polling: Oeriodically re-creates the configuration from config maps and secrets to see if it has changed.
+* Polling: Periodically re-creates the configuration from config maps and secrets to see if it has changed.
 You can configure the polling period by using the `spring.cloud.kubernetes.reload.period` property and defaults to 15 seconds.
 It requires the same role as the monitored property source.
 This means, for example, that using polling on file-mounted secret sources does not require particular privileges.
@@ -596,7 +724,7 @@ This means, for example, that using polling on file-mounted secret sources does 
 | `spring.cloud.kubernetes.reload.enabled`                 | `Boolean` | `false`                      | Enables monitoring of property sources and configuration reload
 | `spring.cloud.kubernetes.reload.monitoring-config-maps`  | `Boolean` | `true`                       | Allow monitoring changes in config maps
 | `spring.cloud.kubernetes.reload.monitoring-secrets`      | `Boolean` | `false`                      | Allow monitoring changes in secrets
-| `spring.cloud.kubernetes.reload.strategy `               | `Enum`    | `refresh`                    | The strategy to use when firing a reload (`refresh`, `restart_context`, or `shutdown`)
+| `spring.cloud.kubernetes.reload.strategy`               | `Enum`    | `refresh`                    | The strategy to use when firing a reload (`refresh`, `restart_context`, or `shutdown`)
 | `spring.cloud.kubernetes.reload.mode`                    | `Enum`    | `event`                      | Specifies how to listen for changes in property sources (`event` or `polling`)
 | `spring.cloud.kubernetes.reload.period`                  | `Duration`| `15s`                        | The period for verifying changes when using the `polling` strategy
 |===
@@ -652,6 +780,32 @@ the `PortName` key. If you want to specify in which Kubernetes namespace the tar
 the `KubernetesNamespace` key, remembering in both instances to prefix these keys with your service name and
 `ribbon` prefix, as specified earlier.
 
+.Spring Cloud Kubernetes Ribbon Configuration
+|===
+|Property Key |Type |Default Value
+
+|spring.cloud.kubernetes.ribbon.enabled
+|boolean
+|true
+
+|spring.cloud.kubernetes.ribbon.mode
+|`KubernetesRibbonMode`
+|POD
+
+|spring.cloud.kubernetes.ribbon.cluster-domain
+|string
+|cluster.local
+|===
+
+* `spring.cloud.kubernetes.ribbon.mode` supports `POD` and `SERVICE` modes.
+** The POD mode is to achieve load balancing by obtaining the Pod IP address of Kubernetes and using Ribbon.
+   POD mode uses the load balancing of the Ribbon Does not support Kubernetes load balancing, The traffic policy of `Istio` is not supported.
+** the `SERVICE` mode is directly based on the `service name` of the Ribbon. Get
+The Kubernetes service is concatenated into `service-name.{namespace}.svc.{cluster.domain}:{port}` such as: `demo1.default.svc.cluster.local:8080`.
+the `SERVICE` mode uses load balancing of the Kubernetes service to support Istio's traffic policy.
+
+* `spring.cloud.kubernetes.ribbon.cluster-domain` Set the custom Kubernetes cluster domain suffix. The default value is: 'cluster.local'
+
 The following examples use this module for ribbon discovery:
 
 * link:./spring-cloud-kubernetes-examples/kubernetes-circuitbreaker-ribbon-example[Spring Cloud Circuitbreaker and Ribbon]
@@ -669,6 +823,10 @@ of the modules that is part of this project. You need not deploy it in Kubernete
 as the code of the project relies on the
 https://github.com/fabric8io/kubernetes-client[Fabric8 Kubernetes Java client], which is a fluent DSL that can
 communicate by using `http` protocol to the REST API of the Kubernetes Server.
+
+To disable the integration with Kubernetes you can set `spring.cloud.kubernetes.enabled` to `false`. Please be aware that when `spring-cloud-kubernetes-config` is on the classpath,
+`spring.cloud.kubernetes.enabled` should be set in `bootstrap.{properties|yml}` (or the profile specific one)  otherwise it should be in `application.{properties|yml}` (or the profile specific one).
+Also note that these properties: `spring.cloud.kubernetes.config.enabled` and `spring.cloud.kubernetes.secrets.enabled` only take effect when set in `bootstrap.{properties|yml}`
 
 === Kubernetes Profile Autoconfiguration
 
@@ -721,7 +879,59 @@ For earlier versions, it needs to be specified as an environment variable to the
 === Service Account
 
 For distributions of Kubernetes that support more fine-grained role-based access within the cluster, you need to make sure a pod that runs with `spring-cloud-kubernetes` has access to the Kubernetes API.
-For any service accounts you assign to a deployment or pod, you need to make sure they have the correct roles. For example, you can add `cluster-reader` permissions to your `default` service account, depending on the project you're in.
+For any service accounts you assign to a deployment or pod, you need to make sure they have the correct roles.
+
+Depending on the requirements, you'll need `get`, `list` and `watch` permission on the following resources:
+
+.Kubernetes Resource Permissions
+|===
+|Dependency | Resources
+
+
+|spring-cloud-starter-kubernetes
+|pods, services, endpoints
+
+|spring-cloud-starter-kubernetes-config
+|configmaps, secrets
+
+|spring-cloud-starter-kubernetes-ribbon
+|pods, services, endpoints
+|===
+
+For development purposes, you can add `cluster-reader` permissions to your `default` service account. On a production system you'll likely want to provide more granular permissions.
+
+The following Role and RoleBinding are an example for namespaced permissions for the `default` account:
+
+====
+[source,yaml]
+----
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: YOUR-NAME-SPACE
+  name: namespace-reader
+rules:
+  - apiGroups: ["", "extensions", "apps"]
+    resources: ["configmaps", "pods", "services", "endpoints", "secrets"]
+    verbs: ["get", "list", "watch"]
+
+---
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: namespace-reader-binding
+  namespace: YOUR-NAME-SPACE
+subjects:
+- kind: ServiceAccount
+  name: default
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: namespace-reader
+  apiGroup: ""
+----
+====
 
 == Service Registry Implementation
 
@@ -756,6 +966,10 @@ This section lists other resources, such as presentations (slides) and videos ab
 
 
 Please feel free to submit other resources through pull requests to https://github.com/spring-cloud/spring-cloud-kubernetes[this repository].
+
+== Configuration properties
+
+To see the list of all Sleuth related configuration properties please check link:appendix.html[the Appendix page].
 
 == Building
 
@@ -794,7 +1008,7 @@ credentials and you already have those.
 
 The projects that require middleware generally include a
 `docker-compose.yml`, so consider using
-http://compose.docker.io/[Docker Compose] to run the middeware servers
+https://docs.docker.com/compose/[Docker Compose] to run the middeware servers
 in Docker containers. See the README in the
 https://github.com/spring-cloud-samples/scripts[scripts demo
 repository] for specific instructions about the common cases of mongo,
@@ -816,13 +1030,13 @@ a modified file in the correct place. Just commit it and push the change.
 
 === Working with the code
 If you don't have an IDE preference we would recommend that you use
-http://www.springsource.com/developer/sts[Spring Tools Suite] or
-http://eclipse.org[Eclipse] when working with the code. We use the
-http://eclipse.org/m2e/[m2eclipse] eclipse plugin for maven support. Other IDEs and tools
+https://www.springsource.com/developer/sts[Spring Tools Suite] or
+https://eclipse.org[Eclipse] when working with the code. We use the
+https://eclipse.org/m2e/[m2eclipse] eclipse plugin for maven support. Other IDEs and tools
 should also work without issue as long as they use Maven 3.3.3 or better.
 
 ==== Importing into eclipse with m2eclipse
-We recommend the http://eclipse.org/m2e/[m2eclipse] eclipse plugin when working with
+We recommend the https://eclipse.org/m2e/[m2eclipse] eclipse plugin when working with
 eclipse. If you don't already have m2eclipse installed it is available from the "eclipse
 marketplace".
 
@@ -880,7 +1094,7 @@ added after the original pull request but before a merge.
   `eclipse-code-formatter.xml` file from the
   https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-dependencies-parent/eclipse-code-formatter.xml[Spring
   Cloud Build] project. If using IntelliJ, you can use the
-  http://plugins.jetbrains.com/plugin/6546[Eclipse Code Formatter
+  https://plugins.jetbrains.com/plugin/6546[Eclipse Code Formatter
   Plugin] to import the same file.
 * Make sure all new `.java` files to have a simple Javadoc class comment with at least an
   `@author` tag identifying you, and preferably at least a paragraph on what the class is
@@ -893,7 +1107,7 @@ added after the original pull request but before a merge.
 * A few unit tests would help a lot as well -- someone has to do it.
 * If no-one else is using your branch, please rebase it against the current master (or
   other target branch in the main project).
-* When writing a commit message please follow http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html[these conventions],
+* When writing a commit message please follow https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html[these conventions],
   if you are fixing an existing issue please add `Fixes gh-XXXX` at the end of the commit
   message (where XXXX is the issue number).
 
@@ -964,7 +1178,7 @@ If you need to suppress some rules (e.g. line length needs to be longer), then i
 <?xml version="1.0"?>
 <!DOCTYPE suppressions PUBLIC
 		"-//Puppy Crawl//DTD Suppressions 1.1//EN"
-		"http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+		"https://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 <suppressions>
 	<suppress files=".*ConfigServerApplication\.java" checks="HideUtilityClassConstructor"/>
 	<suppress files=".*ConfigClientWatch\.java" checks="LineLengthCheck"/>
@@ -983,6 +1197,7 @@ $ touch .springformat
 ==== Intellij IDEA
 
 In order to setup Intellij you should import our coding conventions, inspection profiles and set up the checkstyle plugin.
+The following files can be found in the https://github.com/spring-cloud/spring-cloud-build/tree/master/spring-cloud-build-tools[Spring Cloud Build] project.
 
 .spring-cloud-build-tools/
 ----
@@ -1023,7 +1238,7 @@ image::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/{spring
 
 Go to `File` -> `Settings` -> `Other settings` -> `Checkstyle`. There click on the `+` icon in the `Configuration file` section. There, you'll have to define where the checkstyle rules should be picked from. In the image above, we've picked the rules from the cloned Spring Cloud Build repository. However, you can point to the Spring Cloud Build's GitHub repository (e.g. for the `checkstyle.xml` : `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/main/resources/checkstyle.xml`). We need to provide the following variables:
 
-- `checkstyle.header.file` - please point it to the Spring Cloud Build's, `spring-cloud-build-tools/src/main/resources/checkstyle/checkstyle-header.txt` file either in your cloned repo or via the `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/main/resources/checkstyle-header.txt` URL.
+- `checkstyle.header.file` - please point it to the Spring Cloud Build's, `spring-cloud-build-tools/src/main/resources/checkstyle-header.txt` file either in your cloned repo or via the `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/main/resources/checkstyle-header.txt` URL.
 - `checkstyle.suppressions.file` - default suppressions. Please point it to the Spring Cloud Build's, `spring-cloud-build-tools/src/checkstyle/checkstyle-suppressions.xml` file either in your cloned repo or via the `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/checkstyle/checkstyle-suppressions.xml` URL.
 - `checkstyle.additional.suppressions.file` - this variable corresponds to suppressions in your local project. E.g. you're working on `spring-cloud-contract`. Then point to the `project-root/src/checkstyle/checkstyle-suppressions.xml` folder. Example for `spring-cloud-contract` would be: `/home/username/spring-cloud-contract/src/checkstyle/checkstyle-suppressions.xml`.
 

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,9 +31,11 @@ import org.springframework.cloud.client.ServiceInstance;
  */
 public class KubernetesServiceInstance implements ServiceInstance {
 
-	private static final String HTTP_PREFIX = "http://";
+	private static final String HTTP_PREFIX = "http";
 
-	private static final String HTTPS_PREFIX = "https://";
+	private static final String HTTPS_PREFIX = "https";
+
+	private static final String DSL = "//";
 
 	private static final String COLN = ":";
 
@@ -102,7 +104,8 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	@Override
 	public URI getUri() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(getScheme()).append(getHost()).append(COLN).append(getPort());
+		sb.append(getScheme()).append(COLN).append(DSL).append(getHost()).append(COLN)
+				.append(getPort());
 		return URI.create(sb.toString());
 	}
 

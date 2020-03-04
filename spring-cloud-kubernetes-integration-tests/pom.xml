@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xmlns="http://maven.apache.org/POM/4.0.0"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-kubernetes</artifactId>
-		<version>1.0.1.BUILD-SNAPSHOT</version>
+		<version>2.0.0.BUILD-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>spring-cloud-kubernetes-integration-tests</artifactId>
@@ -92,6 +92,7 @@
 							<systemPropertyVariables>
 								<service.host>localhost</service.host>
 								<service.port>${nodeport.value}</service.port>
+								<service.secure>false</service.secure>
 							</systemPropertyVariables>
 							<classesDirectory>${project.build.outputDirectory}
 							</classesDirectory>
@@ -130,7 +131,7 @@
 	<modules>
 		<module>simple-core</module>
 		<module>simple-configmap</module>
-		<module>istio</module>
+<!--		<module>istio</module>-->
 		<module>discovery</module>
 	</modules>
 

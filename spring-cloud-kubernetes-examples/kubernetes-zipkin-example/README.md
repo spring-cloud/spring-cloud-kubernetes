@@ -3,7 +3,7 @@
 This project demonstrates how a Spring Boot application generating statistics as Spring Cloud Sleuth Spans/Traces can send them to a ZipKin server deployed in Kubernetes without the need to
 configure the baseUrl of the ZipKin server deployed as the server will be discovered. The spans/traces generated can be viewed within the Zipkin dashboard under the `serviceName=sleuth-zipkin`
 
-The Zipkin server is deployed according to the steps described within the `Minishift` or `Minikube` section.
+The Zipkin server is deployed according to the steps described within the `Minikube` section.
 
 The project exposes under the `TraceController` 2 endpoints `/` and `/hi` that you can play with in order to generate traces. When you call the root endpoint `/`, then
 it will issue a call against the second endpoint `/hi` and you will receive `/hi/hello` as response. If you look to the Zipkin dashboard, you will be able to get 2 traces recorded.
@@ -31,7 +31,7 @@ it will issue a call against the second endpoint `/hi` and you will receive `/hi
 
 ### Running the example
 
-This project example runs on ALL the Kubernetes or OpenShift environments, but for development purposes you can use [Minishift - OpenShift](https://github.com/minishift/minishift) or [Minikube - Kubernetes](https://kubernetes.io/docs/getting-started-guides/minikube/) tool
+This project example runs on ALL the Kubernetes environments, but for development purposes you can use [Kind](https://github.com/kubernetes-sigs/kind) or [Minikube - Kubernetes](https://kubernetes.io/docs/getting-started-guides/minikube/) tool
 to install the platform locally within a virtual machine managed by VirtualBox, Xhyve or KVM, with no fuss.
 
 ### Build/Deploy using Minikube 
@@ -42,7 +42,7 @@ To deploy the Zipkin server and store the traces under a MySQL server, execute t
 and next to deploy the Zipkin application
 
 ```
-kubectl create -f http://repo1.maven.org/maven2/io/fabric8/zipkin/zipkin-starter-minimal/0.1.9/zipkin-starter-minimal-0.1.9-kubernetes.yml
+kubectl create -f https://repo1.maven.org/maven2/io/fabric8/zipkin/zipkin-starter-minimal/0.1.9/zipkin-starter-minimal-0.1.9-kubernetes.yml
 
 cat << EOF | kubectl create -f -
 kind: PersistentVolume
@@ -93,67 +93,6 @@ like also the endpoint to call to generate traces
 
 ```
 export ENDPOINT=$(minikube service kubernetes-zipkin --url)
-curl $ENDPOINT
-curl $ENDPOINT/hi
-```
-
-### Build/Deploy using Minishift
-
-First, create a new virtual machine provisioned with OpenShift on your laptop using the command `minishift start`.
-
-Next, log on to the OpenShift platform and next within your terminal use the `oc` client to create a project where
-we will install the circuit breaker and load balancing application
-
-```
-oc new-project zipkin
-```
-
-When using OpenShift, you must assign the `view` role to the *default* service account in the current project in order to allow our Java Kubernetes Api to access
-the API Server :
-
-```
-oc policy add-role-to-user view --serviceaccount=default
-```
-
-To deploy the Zipkin server and store the traces under a MySQL server, execute the following commands to deploy the Zipkin application
-
-```
-oc create -f http://repo1.maven.org/maven2/io/fabric8/zipkin/zipkin-starter-minimal/0.1.9/zipkin-starter-minimal-0.1.9-openshift.yml
-oc delete pvc/mysql-data
-
-cat << EOF | oc create -f - 
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-data
-  labels:
-    type: local
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-EOF
-```
-
-You can now compile your project and generate the OpenShift resources (yaml files containing the definition of the pod, deployment, build, service and route to be created)
-like also to deploy the application on the OpenShift platform in one maven line :
-
-```
-mvn clean install fabric8:deploy -Pkubernetes
-```
-
-You can find the address of the Zipkin server to be opened within your browser using this command
-
-```
-oc get route/zipkin --template='{{.spec.host}}'
-```
-
-like also the endpoint to call to generate traces
-
-```
-export ENDPOINT=$(oc get route/kubernetes-zipkin --template='{{.spec.host}}')
 curl $ENDPOINT
 curl $ENDPOINT/hi
 ```

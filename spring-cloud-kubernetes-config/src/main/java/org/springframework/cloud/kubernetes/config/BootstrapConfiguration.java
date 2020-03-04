@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,12 +34,12 @@ import org.springframework.context.annotation.Import;
  *
  * @author Ioannis Canellos
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
 @ConditionalOnClass({ ConfigMap.class, Secret.class })
 public class BootstrapConfiguration {
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@Import(KubernetesAutoConfiguration.class)
 	@EnableConfigurationProperties({ ConfigMapConfigProperties.class,
 			SecretsConfigProperties.class })
@@ -49,14 +49,16 @@ public class BootstrapConfiguration {
 		private KubernetesClient client;
 
 		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.kubernetes.config.enabled", matchIfMissing = true)
+		@ConditionalOnProperty(name = "spring.cloud.kubernetes.config.enabled",
+				matchIfMissing = true)
 		public ConfigMapPropertySourceLocator configMapPropertySourceLocator(
 				ConfigMapConfigProperties properties) {
 			return new ConfigMapPropertySourceLocator(this.client, properties);
 		}
 
 		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.kubernetes.secrets.enabled", matchIfMissing = true)
+		@ConditionalOnProperty(name = "spring.cloud.kubernetes.secrets.enabled",
+				matchIfMissing = true)
 		public SecretsPropertySourceLocator secretsPropertySourceLocator(
 				SecretsConfigProperties properties) {
 			return new SecretsPropertySourceLocator(this.client, properties);

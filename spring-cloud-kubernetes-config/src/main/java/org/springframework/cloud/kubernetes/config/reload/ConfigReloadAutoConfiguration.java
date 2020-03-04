@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.cloud.kubernetes.config.reload;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 
@@ -38,13 +40,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.util.Assert;
 
 /**
  * Definition of beans needed for the automatic reload of configuration.
  *
  * @author Nicolla Ferraro
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
 @ConditionalOnClass(EndpointAutoConfiguration.class)
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class,
@@ -110,20 +113,38 @@ public class ConfigReloadAutoConfiguration {
 		@ConditionalOnMissingBean
 		public ConfigurationUpdateStrategy configurationUpdateStrategy(
 				ConfigReloadProperties properties, ConfigurableApplicationContext ctx,
-				RestartEndpoint restarter, ContextRefresher refresher) {
+				@Autowired(required = false) RestartEndpoint restarter,
+				ContextRefresher refresher) {
 			switch (properties.getStrategy()) {
 			case RESTART_CONTEXT:
+				Assert.notNull(restarter, "Restart endpoint is not enabled");
 				return new ConfigurationUpdateStrategy(properties.getStrategy().name(),
-						restarter::restart);
+						() -> {
+							wait(properties);
+							restarter.restart();
+						});
 			case REFRESH:
 				return new ConfigurationUpdateStrategy(properties.getStrategy().name(),
 						refresher::refresh);
 			case SHUTDOWN:
 				return new ConfigurationUpdateStrategy(properties.getStrategy().name(),
-						ctx::close);
+						() -> {
+							wait(properties);
+							ctx.close();
+						});
 			}
 			throw new IllegalStateException("Unsupported configuration update strategy: "
 					+ properties.getStrategy());
+		}
+
+		private static void wait(ConfigReloadProperties properties) {
+			final long waitMillis = ThreadLocalRandom.current()
+					.nextLong(properties.getMaxWaitForRestart().toMillis());
+			try {
+				Thread.sleep(waitMillis);
+			}
+			catch (InterruptedException ignored) {
+			}
 		}
 
 	}

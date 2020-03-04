@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,17 +33,20 @@ public class GreetingAndHealthIT {
 	private static final Integer PORT = Integer
 			.valueOf(System.getProperty("service.port"));
 
+	private static final String PROTOCOL = "true"
+			.equalsIgnoreCase(System.getProperty("service.secure")) ? "https" : "http";
+
 	@Test
 	public void testGreetingEndpoint() {
-		given().baseUri(String.format("http://%s:%d", HOST, PORT)).get("greeting").then()
-				.statusCode(200).body("message", is("Hello Spring Boot"));
+		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).get("greeting")
+				.then().statusCode(200).body("message", is("Hello from k8s"));
 	}
 
 	@Test
 	public void testHealthEndpoint() {
-		given().baseUri(String.format("http://%s:%d", HOST, PORT))
+		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT))
 				.contentType("application/json").get("actuator/health").then()
-				.statusCode(200).body("details.kubernetes.details.inside", is(true));
+				.statusCode(200).body("components.kubernetes.details.inside", is(true));
 	}
 
 }

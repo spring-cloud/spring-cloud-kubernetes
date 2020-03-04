@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.it;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,9 +30,12 @@ public class SimpleCoreApplication {
 		SpringApplication.run(SimpleCoreApplication.class, args);
 	}
 
+	@Value("${greeting.message}")
+	private String message;
+
 	@GetMapping("/greeting")
 	public Greeting home() {
-		return new Greeting("Hello Spring Boot");
+		return new Greeting(message);
 	}
 
 	public static class Greeting {

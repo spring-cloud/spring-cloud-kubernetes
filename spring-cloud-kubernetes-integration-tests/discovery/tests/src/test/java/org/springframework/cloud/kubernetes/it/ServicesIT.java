@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,10 +35,13 @@ public class ServicesIT {
 	private static final Integer PORT = Integer
 			.valueOf(System.getProperty("service.port"));
 
+	private static final String PROTOCOL = "true"
+			.equalsIgnoreCase(System.getProperty("service.secure")) ? "https" : "http";
+
 	@Test
 	public void testServicesEndpoint() {
-		given().baseUri(String.format("http://%s:%d", HOST, PORT)).get("services").then()
-				.statusCode(200).body(new StringContains("service-a") {
+		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).get("services")
+				.then().statusCode(200).body(new StringContains(false, "service-a") {
 					@Override
 					protected boolean evalSubstringOf(String s) {
 						return s.contains("service-a") && s.contains("service-b");
@@ -48,7 +51,7 @@ public class ServicesIT {
 
 	@Test
 	public void testInstancesEndpoint() {
-		given().baseUri(String.format("http://%s:%d", HOST, PORT))
+		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT))
 				.get("services/discovery-service-a/instances").then().statusCode(200)
 				.body("instanceId", hasSize(1))
 				.body("serviceId", hasItems("discovery-service-a"));

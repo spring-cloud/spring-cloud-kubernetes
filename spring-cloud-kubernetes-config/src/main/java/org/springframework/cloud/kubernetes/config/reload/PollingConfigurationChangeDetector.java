@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,6 +37,7 @@ import org.springframework.scheduling.annotation.Scheduled;
  * when something changes.
  *
  * @author Nicola Ferraro
+ * @author Haytham Mohamed
  */
 public class PollingConfigurationChangeDetector extends ConfigurationChangeDetector {
 
@@ -62,7 +63,8 @@ public class PollingConfigurationChangeDetector extends ConfigurationChangeDetec
 		this.log.info("Kubernetes polling configuration change detector activated");
 	}
 
-	@Scheduled(initialDelayString = "${spring.cloud.kubernetes.reload.period:15000}", fixedDelayString = "${spring.cloud.kubernetes.reload.period:15000}")
+	@Scheduled(initialDelayString = "${spring.cloud.kubernetes.reload.period:15000}",
+			fixedDelayString = "${spring.cloud.kubernetes.reload.period:15000}")
 	public void executeCycle() {
 
 		boolean changedConfigMap = false;
@@ -80,12 +82,12 @@ public class PollingConfigurationChangeDetector extends ConfigurationChangeDetec
 
 		boolean changedSecrets = false;
 		if (this.properties.isMonitoringSecrets()) {
-			MapPropertySource currentSecretSource = findPropertySource(
-					SecretsPropertySource.class);
-			if (currentSecretSource != null) {
-				MapPropertySource newSecretSource = this.secretsPropertySourceLocator
-						.locate(this.environment);
-				changedSecrets = changed(currentSecretSource, newSecretSource);
+			List<MapPropertySource> currentSecretSources = locateMapPropertySources(
+					this.secretsPropertySourceLocator, this.environment);
+			if (currentSecretSources != null && !currentSecretSources.isEmpty()) {
+				List<SecretsPropertySource> propertySources = findPropertySources(
+						SecretsPropertySource.class);
+				changedSecrets = changed(currentSecretSources, propertySources);
 			}
 		}
 

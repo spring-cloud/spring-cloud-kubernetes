@@ -1,6 +1,6 @@
 == Kubernetes PropertySource implementations
 
-The most common approach to configuring your Spring Boot application is to create an `application.properties` or `applicaiton.yaml` or
+The most common approach to configuring your Spring Boot application is to create an `application.properties` or `application.yaml` or
 an `application-profile.properties` or `application-profile.yaml` file that contains key-value pairs that provide customization values to your
 application or Spring Boot starters. You can override these properties by specifying system properties or environment
 variables.
@@ -182,26 +182,89 @@ However, if the `production` profile is active, the configuration becomes:
 
 If both profiles are active, the property that appears last within the `ConfigMap` overwrites any preceding values.
 
-
-To tell Spring Boot which `profile` should be enabled at bootstrap, you can pass a system property to the Java
-command. To do so, you can launch your Spring Boot application with an environment variable that you can define with the OpenShift
-`DeploymentConfig` or Kubernetes `ReplicationConfig` resource file, as follows:
+Another option is to create a different config map per profile and spring boot will automatically fetch it based
+on active profiles
 
 ====
 [source,yaml]
 ----
+kind: ConfigMap
 apiVersion: v1
-kind: DeploymentConfig
+metadata:
+  name: demo
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello to the World
+    farewell:
+      message: Say Goodbye
+----
+====
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-development
+data:
+  application.yml: |-
+    spring:
+      profiles: development
+    greeting:
+      message: Say Hello to the Developers
+    farewell:
+      message: Say Goodbye to the Developers
+----
+====
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-production
+data:
+  application.yml: |-
+    spring:
+      profiles: production
+    greeting:
+      message: Say Hello to the Ops
+    farewell:
+      message: Say Goodbye
+----
+====
+
+
+To tell Spring Boot which `profile` should be enabled at bootstrap, you can pass `SPRING_PROFILES_ACTIVE` environment variable.
+ To do so, you can launch your Spring Boot application with an environment variable that you can define it in the PodSpec at the container specification.
+ Deployment resource file, as follows:
+
+====
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-name
+  labels:
+    app: deployment-name
 spec:
   replicas: 1
-  ...
-    spec:
-      containers:
-      - env:
-        - name: JAVA_APP_DIR
-          value: /deployments
-        - name: JAVA_OPTIONS
-          value: -Dspring.profiles.active=developer
+  selector:
+    matchLabels:
+      app: deployment-name
+  template:
+    metadata:
+      labels:
+        app: deployment-name
+	spec:
+		containers:
+		- name: container-name
+		  image: your-image
+		  env:
+		  - name: SPRING_PROFILES_ACTIVE
+			value: "development"
 ----
 ====
 
@@ -220,7 +283,7 @@ NOTE: You have to provide the full exact path to each property file, because dir
 [options="header,footer"]
 |===
 | Name                                       | Type      | Default                      | Description
-| `spring.cloud.kubernetes.config.enabled`   | `Boolean` | `true`                       | Enable Secrets `PropertySource`
+| `spring.cloud.kubernetes.config.enabled`   | `Boolean` | `true`                       | Enable ConfigMaps `PropertySource`
 | `spring.cloud.kubernetes.config.name`      | `String`  | `${spring.application.name}` | Sets the name of `ConfigMap` to look up
 | `spring.cloud.kubernetes.config.namespace` | `String`  | Client namespace             | Sets the Kubernetes namespace where to lookup
 | `spring.cloud.kubernetes.config.paths`     | `List`    | `null`                       | Sets the paths where `ConfigMap` instances are mounted
@@ -239,10 +302,13 @@ When enabled, the `SecretsPropertySource` looks up Kubernetes for `Secrets` from
 . Named after the application (as defined by `spring.application.name`)
 . Matching some labels
 
-Note that, by default, consuming Secrets through the API (points 2 and 3 above) *is not enabled* for security reasons.
+*Note:* 
+
+By default, consuming Secrets through the API (points 2 and 3 above) *is not enabled* for security reasons. The permission 'list' on secrets allows clients to inspect secrets values in the specified namespace.
 Further, we recommend that containers share secrets through mounted volumes.
-If you enable consuming Secrets through the API, we recommend that you limit access to Secrets by using an
-[authorization policy, such as RBAC](https://kubernetes.io/docs/concepts/configuration/secret/#best-practices).
+
+If you enable consuming Secrets through the API, we recommend that you limit access to Secrets by using an authorization policy, such as RBAC. 
+For more information about risks and best practices when consuming Secrets through the API refer to https://kubernetes.io/docs/concepts/configuration/secret/#best-practices[this doc].
 
 If the secrets are found, their data is made available to the application.
 
@@ -252,11 +318,11 @@ configuration. We can create a Kubernetes secret by using the following command:
 ====
 [source]
 ----
-oc create secret generic db-secret --from-literal=username=user --from-literal=password=p455w0rd
+kubectl create secret generic db-secret --from-literal=username=user --from-literal=password=p455w0rd
 ----
 ====
 
-The preceding command would create the following secret (which you can see by using `oc get secrets db-secret -o yaml`):
+The preceding command would create the following secret (which you can see by using `kubectl get secrets db-secret -o yaml`):
 
 ====
 [source,yaml]
@@ -345,6 +411,36 @@ If you have all the secrets mapped to a common root, you can set them like:
 ----
 ====
 
+As the case with `ConfigMap`, more advanced configuration is also possible where you can use multiple `Secret`
+instances. The `spring.cloud.kubernetes.secrets.sources` list makes this possible.
+For example, you could define the following `Secret` instances:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: cloud-k8s-app
+  cloud:
+    kubernetes:
+      secrets:
+        name: default-name
+        namespace: default-namespace
+        sources:
+         # Spring Cloud Kubernetes looks up a Secret named s1 in namespace default-namespace
+         - name: s1
+         # Spring Cloud Kubernetes looks up a Secret named default-name in whatever namespace n2
+         - namespace: n2
+         # Spring Cloud Kubernetes looks up a Secret named s3 in namespace n3
+         - namespace: n3
+           name: s3
+----
+====
+
+In the preceding example, if `spring.cloud.kubernetes.secrets.namespace` had not been set,
+the `Secret` named `s1` would be looked up in the namespace that the application runs.
+
+
 .Properties:
 [options="header,footer"]
 |===
@@ -358,6 +454,7 @@ If you have all the secrets mapped to a common root, you can set them like:
 |===
 
 Notes:
+
 * The `spring.cloud.kubernetes.secrets.labels` property behaves as defined by
 https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding[Map-based binding].
 * The `spring.cloud.kubernetes.secrets.paths` property behaves as defined by
@@ -446,7 +543,7 @@ The reload feature supports two operating modes:
 Any event produces a re-check on the configuration and, in case of changes, a reload.
 The `view` role on the service account is required in order to listen for config map changes. A higher level role (such as `edit`) is required for secrets
 (by default, secrets are not monitored).
-* Polling: Oeriodically re-creates the configuration from config maps and secrets to see if it has changed.
+* Polling: Periodically re-creates the configuration from config maps and secrets to see if it has changed.
 You can configure the polling period by using the `spring.cloud.kubernetes.reload.period` property and defaults to 15 seconds.
 It requires the same role as the monitored property source.
 This means, for example, that using polling on file-mounted secret sources does not require particular privileges.
@@ -458,7 +555,7 @@ This means, for example, that using polling on file-mounted secret sources does 
 | `spring.cloud.kubernetes.reload.enabled`                 | `Boolean` | `false`                      | Enables monitoring of property sources and configuration reload
 | `spring.cloud.kubernetes.reload.monitoring-config-maps`  | `Boolean` | `true`                       | Allow monitoring changes in config maps
 | `spring.cloud.kubernetes.reload.monitoring-secrets`      | `Boolean` | `false`                      | Allow monitoring changes in secrets
-| `spring.cloud.kubernetes.reload.strategy `               | `Enum`    | `refresh`                    | The strategy to use when firing a reload (`refresh`, `restart_context`, or `shutdown`)
+| `spring.cloud.kubernetes.reload.strategy`               | `Enum`    | `refresh`                    | The strategy to use when firing a reload (`refresh`, `restart_context`, or `shutdown`)
 | `spring.cloud.kubernetes.reload.mode`                    | `Enum`    | `event`                      | Specifies how to listen for changes in property sources (`event` or `polling`)
 | `spring.cloud.kubernetes.reload.period`                  | `Duration`| `15s`                        | The period for verifying changes when using the `polling` strategy
 |===

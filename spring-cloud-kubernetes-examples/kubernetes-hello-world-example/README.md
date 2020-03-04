@@ -44,13 +44,13 @@ minikube service kubernetes-hello-world --url
 And next you can curl the endpoint using the url returned by the previous command
 
 ``` 
-curl http://IP_OR_HOSTNAME/
+curl https://IP_OR_HOSTNAME/
 ```
 
 then
 
 ``` 
-curl http://IP_OR_HOSTNAME/services
+curl https://IP_OR_HOSTNAME/services
 ```     
 
 Should return you the list of available services discovered by the DiscoveryClient     

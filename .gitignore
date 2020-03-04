@@ -9,6 +9,7 @@ release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
+.flattened-pom.xml
 
 
 ### Java template
@@ -21,7 +22,7 @@ buildNumber.properties
 *.war
 *.ear
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# virtual machine crash logs, see https://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
 
@@ -78,3 +79,5 @@ crashlytics-build.properties
 .project
 .classpath
 .factorypath
+.attach_pid*
+.vscode/

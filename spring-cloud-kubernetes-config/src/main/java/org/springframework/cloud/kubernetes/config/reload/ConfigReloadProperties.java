@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,6 +58,16 @@ public class ConfigReloadProperties {
 	 */
 	private Duration period = Duration.ofMillis(15000L);
 
+	/**
+	 * If Restart or Shutdown strategies are used, Spring Cloud Kubernetes waits a random
+	 * amount of time before restarting. This is done in order to avoid having all
+	 * instances of the same application restart at the same time. This property
+	 * configures the maximum of amount of wait time from the moment the signal is
+	 * received that a restart is needed until the moment the restart is actually
+	 * triggered
+	 */
+	private Duration maxWaitForRestart = Duration.ofSeconds(2);
+
 	public ConfigReloadProperties() {
 	}
 
@@ -107,6 +117,14 @@ public class ConfigReloadProperties {
 
 	public void setPeriod(Duration period) {
 		this.period = period;
+	}
+
+	public Duration getMaxWaitForRestart() {
+		return maxWaitForRestart;
+	}
+
+	public void setMaxWaitForRestart(Duration maxWaitForRestart) {
+		this.maxWaitForRestart = maxWaitForRestart;
 	}
 
 	/**

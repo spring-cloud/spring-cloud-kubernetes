@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,6 +28,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -98,9 +99,8 @@ public abstract class ConfigurationChangeDetector {
 			List<? extends MapPropertySource> l2) {
 
 		if (l1.size() != l2.size()) {
-			this.log.debug(
-					"The current number of Confimap PropertySources does not match "
-							+ "the ones loaded from the Kubernetes - No reload will take place");
+			this.log.warn("The current number of Confimap PropertySources does not match "
+					+ "the ones loaded from the Kubernetes - No reload will take place");
 			return false;
 		}
 
@@ -149,6 +149,13 @@ public abstract class ConfigurationChangeDetector {
 			}
 			else if (sourceClass.isInstance(source)) {
 				managedSources.add(sourceClass.cast(source));
+			}
+			else if (BootstrapPropertySource.class.isInstance(source)) {
+				PropertySource propertySource = ((BootstrapPropertySource) source)
+						.getDelegate();
+				if (sourceClass.isInstance(propertySource)) {
+					sources.add(propertySource);
+				}
 			}
 		}
 

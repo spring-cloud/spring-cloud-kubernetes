@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,12 +36,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = TestApplication.class, properties = {
-		"spring.application.name=testapp",
-		"spring.cloud.kubernetes.client.namespace=testns",
-		"spring.cloud.kubernetes.client.trustCerts=true",
-		"spring.cloud.kubernetes.config.namespace=testns",
-		"spring.cloud.kubernetes.secrets.enableApi=true" })
+@SpringBootTest(classes = TestApplication.class,
+		properties = { "spring.application.name=testapp",
+				"spring.cloud.kubernetes.client.namespace=testns",
+				"spring.cloud.kubernetes.client.trustCerts=true",
+				"spring.cloud.kubernetes.config.namespace=testns",
+				"spring.cloud.kubernetes.secrets.enableApi=true" })
 public class CoreTest {
 
 	@ClassRule
@@ -88,6 +88,7 @@ public class CoreTest {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
 				"false");
+		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 	}
 
 	@Test

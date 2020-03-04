@@ -1,4 +1,5 @@
 = Spring Cloud Kubernetes
+include::_attributes.adoc[]
 
 This reference guide covers how to use Spring Cloud Kubernetes.
 
@@ -30,6 +31,10 @@ include::service-registry.adoc[]
 include::examples.adoc[]
 
 include::other-resources.adoc[]
+
+== Configuration properties
+
+To see the list of all Sleuth related configuration properties please check link:appendix.html[the Appendix page].
 
 == Building
 
