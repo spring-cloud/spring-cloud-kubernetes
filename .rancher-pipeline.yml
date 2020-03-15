@@ -1,0 +1,8 @@
+stages:
+- name: push
+  steps:
+  - runScriptConfig:
+      image: java:8
+      shellScript: 'mvn clean package fabric8  -Dcheckstyle.skip=true '
+timeout: 60
+notification: {}
