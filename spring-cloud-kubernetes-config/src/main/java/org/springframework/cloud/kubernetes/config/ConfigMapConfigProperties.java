@@ -36,6 +36,8 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 	private boolean enableApi = true;
 
+	private boolean enableVersioning = false;
+
 	private List<String> paths = new LinkedList<>();
 
 	private List<Source> sources = new LinkedList<>();
@@ -46,6 +48,14 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 	public void setEnableApi(boolean enableApi) {
 		this.enableApi = enableApi;
+	}
+
+	public boolean isEnableVersioning() {
+		return enableVersioning;
+	}
+
+	public void setEnableVersioning(boolean enableVersioning) {
+		this.enableVersioning = enableVersioning;
 	}
 
 	public List<String> getPaths() {
