@@ -1,4 +1,4 @@
-# Forked Version of Spring cloud KubernetesProject [![Twitter](https://img.shields.io/twitter/follow/piotr_minkowski.svg?style=social&logo=twitter&label=Follow%20Me)](https://twitter.com/piotr_minkowski)
+# Forked Version of Spring Cloud Kubernetes Project 
 
 In this project you may take an advantage of some interesting features which are not implemented in Spring Cloud Kubernetes. Currently these are:
 1. Ribbon load balancing accross multiple namespaces.
