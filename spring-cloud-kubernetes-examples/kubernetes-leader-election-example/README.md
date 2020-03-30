@@ -3,7 +3,7 @@
 ## Setting up the Environment
 
 This example uses a Fabric8 Maven Plugin to deploy an application to a Kubernetes cluster.
-To try it locally, download and install `[Minikube](https://kubernetes.io/docs/getting-started-guides/minikube/)`.
+To try it locally, download and install [Minikube](https://kubernetes.io/docs/getting-started-guides/minikube/).
 
 Once Minikube is downloaded, start it with the following command:
 ```
