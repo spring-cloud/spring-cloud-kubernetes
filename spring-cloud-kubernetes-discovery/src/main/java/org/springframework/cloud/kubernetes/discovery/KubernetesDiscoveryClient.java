@@ -280,4 +280,9 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				.collect(Collectors.toList());
 	}
 
+	@Override
+	public int getOrder() {
+		return this.properties.getOrder();
+	}
+
 }

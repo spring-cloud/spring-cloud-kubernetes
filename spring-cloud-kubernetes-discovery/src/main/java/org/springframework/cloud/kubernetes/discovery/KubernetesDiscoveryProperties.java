@@ -23,6 +23,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.core.style.ToStringCreator;
 
 /**
@@ -70,6 +71,8 @@ public class KubernetesDiscoveryProperties {
 	private String primaryPortName;
 
 	private Metadata metadata = new Metadata();
+
+	private int order = DiscoveryClient.DEFAULT_ORDER;
 
 	public boolean isEnabled() {
 		return this.enabled;
@@ -133,6 +136,14 @@ public class KubernetesDiscoveryProperties {
 
 	public void setAllNamespaces(boolean allNamespaces) {
 		this.allNamespaces = allNamespaces;
+	}
+
+	public int getOrder() {
+		return this.order;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
 	}
 
 	@Override
