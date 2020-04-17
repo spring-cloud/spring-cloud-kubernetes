@@ -64,7 +64,6 @@
 	<properties>
 		<!-- Dependency Versions -->
 		<spring-cloud-commons.version>3.0.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
-		<spring-cloud-netflix.version>3.0.0.BUILD-SNAPSHOT</spring-cloud-netflix.version>
 		<spring-cloud-config.version>3.0.0.BUILD-SNAPSHOT</spring-cloud-config.version>
 
 		<!-- Maven Plugin Versions -->
@@ -120,8 +119,8 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-netflix-dependencies</artifactId>
-				<version>${spring-cloud-netflix.version}</version>
+				<artifactId>spring-cloud-config-dependencies</artifactId>
+				<version>${spring-cloud-config.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
