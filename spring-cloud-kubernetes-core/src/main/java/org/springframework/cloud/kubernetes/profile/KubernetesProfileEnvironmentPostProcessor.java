@@ -49,9 +49,7 @@ public class KubernetesProfileEnvironmentPostProcessor
 			return;
 		}
 
-		final StandardPodUtils podUtils = new StandardPodUtils(
-				new DefaultKubernetesClient());
-		if (podUtils.isInsideKubernetes()) {
+		if (isInsideKubernetes()) {
 			if (hasKubernetesProfile(environment)) {
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("'kubernetes' already in list of active profiles");
@@ -69,6 +67,13 @@ public class KubernetesProfileEnvironmentPostProcessor
 				LOG.warn(
 						"Not running inside kubernetes. Skipping 'kubernetes' profile activation.");
 			}
+		}
+	}
+
+	private boolean isInsideKubernetes() {
+		try (DefaultKubernetesClient client = new DefaultKubernetesClient()) {
+			final StandardPodUtils podUtils = new StandardPodUtils(client);
+			return podUtils.isInsideKubernetes();
 		}
 	}
 
