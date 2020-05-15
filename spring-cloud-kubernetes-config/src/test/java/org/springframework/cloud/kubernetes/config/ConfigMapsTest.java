@@ -86,8 +86,8 @@ public class ConfigMapsTest {
 				this.server.getClient().inNamespace(namespace), configMapName);
 
 		assertThat(cmps.getProperty("dummy.property.string1")).isEqualTo("a");
-		assertThat(cmps.getProperty("dummy.property.int1")).isEqualTo(1);
-		assertThat(cmps.getProperty("dummy.property.bool1")).isEqualTo(true);
+		assertThat(cmps.getProperty("dummy.property.int1")).isEqualTo("1");
+		assertThat(cmps.getProperty("dummy.property.bool1")).isEqualTo("true");
 	}
 
 	@Test
@@ -193,8 +193,8 @@ public class ConfigMapsTest {
 
 		// application.properties should be read correctly
 		assertThat(cmps.getProperty("dummy.property.string1")).isEqualTo("a");
-		assertThat(cmps.getProperty("dummy.property.int1")).isEqualTo(1);
-		assertThat(cmps.getProperty("dummy.property.bool1")).isEqualTo(true);
+		assertThat(cmps.getProperty("dummy.property.int1")).isEqualTo("1");
+		assertThat(cmps.getProperty("dummy.property.bool1")).isEqualTo("true");
 
 		// the adhoc.properties file should not be parsed
 		assertThat(cmps.getProperty("dummy.property.bool2")).isNull();
