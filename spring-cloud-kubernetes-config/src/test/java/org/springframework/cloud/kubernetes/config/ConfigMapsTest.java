@@ -86,8 +86,8 @@ public class ConfigMapsTest {
 				this.server.getClient().inNamespace(namespace), configMapName);
 
 		assertThat(cmps.getProperty("dummy.property.string1")).isEqualTo("a");
-		assertThat(cmps.getProperty("dummy.property.int1")).isEqualTo("1");
-		assertThat(cmps.getProperty("dummy.property.bool1")).isEqualTo("true");
+		assertThat(cmps.getProperty("dummy.property.int1")).isEqualTo(1);
+		assertThat(cmps.getProperty("dummy.property.bool1")).isEqualTo(true);
 	}
 
 	@Test
@@ -109,8 +109,8 @@ public class ConfigMapsTest {
 				this.server.getClient().inNamespace(namespace), configMapName);
 
 		assertThat(cmps.getProperty("dummy.property.string2")).isEqualTo("a");
-		assertThat(cmps.getProperty("dummy.property.int2")).isEqualTo("1");
-		assertThat(cmps.getProperty("dummy.property.bool2")).isEqualTo("true");
+		assertThat(cmps.getProperty("dummy.property.int2")).isEqualTo(1);
+		assertThat(cmps.getProperty("dummy.property.bool2")).isEqualTo(true);
 	}
 
 	@Test
