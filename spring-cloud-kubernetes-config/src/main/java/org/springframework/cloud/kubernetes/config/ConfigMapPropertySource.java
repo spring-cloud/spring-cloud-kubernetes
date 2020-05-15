@@ -34,8 +34,8 @@ import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.KEY_VALUE_TO_PROPERTIES;
 import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.PROPERTIES_TO_MAP;
-import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.yamlParserGenerator;
 import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.throwingMerger;
+import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.yamlParserGenerator;
 
 /**
  * A {@link MapPropertySource} that uses Kubernetes config maps.
