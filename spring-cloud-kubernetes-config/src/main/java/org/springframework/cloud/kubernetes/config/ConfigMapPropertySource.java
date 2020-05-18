@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.config;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.KEY_VALUE_TO_PROPERTIES;
 import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.PROPERTIES_TO_MAP;
+import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.throwingMerger;
 import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.yamlParserGenerator;
 
 /**
@@ -41,6 +42,7 @@ import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.ya
  *
  * @author Ioannis Canellos
  * @author Ali Shahbour
+ * @author Michael Moudatsos
  */
 public class ConfigMapPropertySource extends MapPropertySource {
 
@@ -86,10 +88,10 @@ public class ConfigMapPropertySource extends MapPropertySource {
 				.toString();
 	}
 
-	private static Map<String, String> getData(KubernetesClient client, String name,
+	private static Map<String, Object> getData(KubernetesClient client, String name,
 			String namespace, Environment environment) {
 		try {
-			Map<String, String> result = new HashMap<>();
+			Map<String, Object> result = new LinkedHashMap<>();
 			ConfigMap map = StringUtils.isEmpty(namespace)
 					? client.configMaps().withName(name).get()
 					: client.configMaps().inNamespace(namespace).withName(name).get();
@@ -124,10 +126,10 @@ public class ConfigMapPropertySource extends MapPropertySource {
 					+ namespace + "]. Ignoring.", e);
 		}
 
-		return new HashMap<>();
+		return new LinkedHashMap<>();
 	}
 
-	private static Map<String, String> processAllEntries(Map<String, String> input,
+	private static Map<String, Object> processAllEntries(Map<String, String> input,
 			Environment environment) {
 
 		Set<Entry<String, String>> entrySet = input.entrySet();
@@ -163,16 +165,17 @@ public class ConfigMapPropertySource extends MapPropertySource {
 		return defaultProcessAllEntries(input, environment);
 	}
 
-	private static Map<String, String> defaultProcessAllEntries(Map<String, String> input,
+	private static Map<String, Object> defaultProcessAllEntries(Map<String, String> input,
 			Environment environment) {
 
 		return input.entrySet().stream()
 				.map(e -> extractProperties(e.getKey(), e.getValue(), environment))
 				.filter(m -> !m.isEmpty()).flatMap(m -> m.entrySet().stream())
-				.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+				.collect(Collectors.toMap(Entry::getKey, Entry::getValue,
+						throwingMerger(), LinkedHashMap::new));
 	}
 
-	private static Map<String, String> extractProperties(String resourceName,
+	private static Map<String, Object> extractProperties(String resourceName,
 			String content, Environment environment) {
 
 		if (resourceName.equals(APPLICATION_YAML)
@@ -184,16 +187,16 @@ public class ConfigMapPropertySource extends MapPropertySource {
 			return KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(content);
 		}
 
-		return new HashMap<String, String>() {
+		return new LinkedHashMap<String, Object>() {
 			{
 				put(resourceName, content);
 			}
 		};
 	}
 
-	private static Map<String, Object> asObjectMap(Map<String, String> source) {
-		return source.entrySet().stream()
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+	private static Map<String, Object> asObjectMap(Map<String, Object> source) {
+		return source.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+				Map.Entry::getValue, throwingMerger(), LinkedHashMap::new));
 	}
 
 }
