@@ -107,50 +107,49 @@ $(addBlockSwitches);
 <li><a href="#propertysource-reload">5.3. <code>PropertySource</code> Reload</a></li>
 </ul>
 </li>
-<li><a href="#ribbon-discovery-in-kubernetes">6. Ribbon Discovery in Kubernetes</a></li>
-<li><a href="#kubernetes-ecosystem-awareness">7. Kubernetes Ecosystem Awareness</a>
+<li><a href="#kubernetes-ecosystem-awareness">6. Kubernetes Ecosystem Awareness</a>
 <ul class="sectlevel2">
-<li><a href="#kubernetes-profile-autoconfiguration">7.1. Kubernetes Profile Autoconfiguration</a></li>
-<li><a href="#istio-awareness">7.2. Istio Awareness</a></li>
+<li><a href="#kubernetes-profile-autoconfiguration">6.1. Kubernetes Profile Autoconfiguration</a></li>
+<li><a href="#istio-awareness">6.2. Istio Awareness</a></li>
 </ul>
 </li>
-<li><a href="#pod-health-indicator">8. Pod Health Indicator</a></li>
-<li><a href="#leader-election">9. Leader Election</a></li>
-<li><a href="#security-configurations-inside-kubernetes">10. Security Configurations Inside Kubernetes</a>
+<li><a href="#pod-health-indicator">7. Pod Health Indicator</a></li>
+<li><a href="#leader-election">8. Leader Election</a></li>
+<li><a href="#security-configurations-inside-kubernetes">9. Security Configurations Inside Kubernetes</a>
 <ul class="sectlevel2">
-<li><a href="#namespace">10.1. Namespace</a></li>
-<li><a href="#service-account">10.2. Service Account</a></li>
+<li><a href="#namespace">9.1. Namespace</a></li>
+<li><a href="#service-account">9.2. Service Account</a></li>
 </ul>
 </li>
-<li><a href="#service-registry-implementation">11. Service Registry Implementation</a></li>
-<li><a href="#examples">12. Examples</a></li>
-<li><a href="#other-resources">13. Other Resources</a></li>
-<li><a href="#configuration-properties">14. Configuration properties</a></li>
-<li><a href="#building">15. Building</a>
+<li><a href="#service-registry-implementation">10. Service Registry Implementation</a></li>
+<li><a href="#examples">11. Examples</a></li>
+<li><a href="#other-resources">12. Other Resources</a></li>
+<li><a href="#configuration-properties">13. Configuration properties</a></li>
+<li><a href="#building">14. Building</a>
 <ul class="sectlevel2">
-<li><a href="#basic-compile-and-test">15.1. Basic Compile and Test</a></li>
-<li><a href="#documentation">15.2. Documentation</a></li>
-<li><a href="#working-with-the-code">15.3. Working with the code</a>
+<li><a href="#basic-compile-and-test">14.1. Basic Compile and Test</a></li>
+<li><a href="#documentation">14.2. Documentation</a></li>
+<li><a href="#working-with-the-code">14.3. Working with the code</a>
 <ul class="sectlevel3">
-<li><a href="#importing-into-eclipse-with-m2eclipse">15.3.1. Importing into eclipse with m2eclipse</a></li>
-<li><a href="#importing-into-eclipse-without-m2eclipse">15.3.2. Importing into eclipse without m2eclipse</a></li>
+<li><a href="#importing-into-eclipse-with-m2eclipse">14.3.1. Importing into eclipse with m2eclipse</a></li>
+<li><a href="#importing-into-eclipse-without-m2eclipse">14.3.2. Importing into eclipse without m2eclipse</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#contributing">16. Contributing</a>
+<li><a href="#contributing">15. Contributing</a>
 <ul class="sectlevel2">
-<li><a href="#sign-the-contributor-license-agreement">16.1. Sign the Contributor License Agreement</a></li>
-<li><a href="#code-of-conduct">16.2. Code of Conduct</a></li>
-<li><a href="#code-conventions-and-housekeeping">16.3. Code Conventions and Housekeeping</a></li>
-<li><a href="#checkstyle">16.4. Checkstyle</a>
+<li><a href="#sign-the-contributor-license-agreement">15.1. Sign the Contributor License Agreement</a></li>
+<li><a href="#code-of-conduct">15.2. Code of Conduct</a></li>
+<li><a href="#code-conventions-and-housekeeping">15.3. Code Conventions and Housekeeping</a></li>
+<li><a href="#checkstyle">15.4. Checkstyle</a>
 <ul class="sectlevel3">
-<li><a href="#checkstyle-configuration">16.4.1. Checkstyle configuration</a></li>
+<li><a href="#checkstyle-configuration">15.4.1. Checkstyle configuration</a></li>
 </ul>
 </li>
-<li><a href="#ide-setup">16.5. IDE setup</a>
+<li><a href="#ide-setup">15.5. IDE setup</a>
 <ul class="sectlevel3">
-<li><a href="#intellij-idea">16.5.1. Intellij IDEA</a></li>
+<li><a href="#intellij-idea">15.5.1. Intellij IDEA</a></li>
 </ul>
 </li>
 </ul>
@@ -226,18 +225,6 @@ Secret changes.</p></td>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-kubernetes-ribbon&lt;/artifactId&gt;
-&lt;/dependency&gt;</code></pre>
-</div>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#Ribbon discovery in Kubernetes">Ribbon</a> client-side load balancer with
-server list obtained from Kubernetes Endpoints.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
     &lt;artifactId&gt;spring-cloud-starter-kubernetes-all&lt;/artifactId&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -256,8 +243,7 @@ server list obtained from Kubernetes Endpoints.</p></td>
 for <a href="https://kubernetes.io">Kubernetes</a>.
 This client lets you query Kubernetes endpoints (see <a href="https://kubernetes.io/docs/user-guide/services/">services</a>) by name.
 A service is typically exposed by the Kubernetes API server as a collection of endpoints that represent <code>http</code> and <code>https</code> addresses and that a client can
-access from a Spring Boot application running as a pod. This discovery feature is also used by the Spring Cloud Kubernetes Ribbon project
-to fetch the list of the endpoints defined for an application to be load balanced.</p>
+access from a Spring Boot application running as a pod.</p>
 </div>
 <div class="paragraph">
 <p>This is something that you get for free by adding the following dependency inside your project:</p>
@@ -357,7 +343,7 @@ this to work, you need to align the Kubernetes service name with the <code>sprin
 <div class="sectionbody">
 <div class="paragraph">
 <p>Kubernetes itself is capable of (server side) service discovery (see: <a href="https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services" class="bare">kubernetes.io/docs/concepts/services-networking/service/#discovering-services</a>).
-Using native kubernetes service discovery ensures compatibility with additional tooling, such as Istio (<a href="https://istio.io" class="bare">istio.io</a>), a service mesh that is capable of load balancing, ribbon, circuit breaker, failover, and much more.</p>
+Using native kubernetes service discovery ensures compatibility with additional tooling, such as Istio (<a href="https://istio.io" class="bare">istio.io</a>), a service mesh that is capable of load balancing, circuit breaker, failover, and much more.</p>
 </div>
 <div class="paragraph">
 <p>The caller service then need only refer to names resolvable in a particular Kubernetes cluster. A simple implementation might use a spring <code>RestTemplate</code> that refers to a fully qualified domain name (FQDN), such as <code><a href="https://{service-name}.{namespace}.svc.{cluster}.local:{service-port}" class="bare">{service-name}.{namespace}.svc.{cluster}.local:{service-port}</a></code>.</p>
@@ -1230,155 +1216,7 @@ This means, for example, that using polling on file-mounted secret sources does 
 </div>
 </div>
 <div class="sect1">
-<h2 id="ribbon-discovery-in-kubernetes"><a class="anchor" href="#ribbon-discovery-in-kubernetes"></a><a class="link" href="#ribbon-discovery-in-kubernetes">6. Ribbon Discovery in Kubernetes</a></h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Spring Cloud client applications that call a microservice should be interested on relying on a client load-balancing
-feature in order to automatically discover at which endpoint(s) it can reach a given service. This mechanism has been
-implemented within the <a href="https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-ribbon">spring-cloud-kubernetes-ribbon</a> project, where a
-Kubernetes client populates a <a href="https://github.com/Netflix/ribbon">Ribbon</a> <code>ServerList</code> that contains information
-about such endpoints.</p>
-</div>
-<div class="paragraph">
-<p>The implementation is part of the following starter that you can use by adding its dependency to your pom file:</p>
-</div>
-<div class="exampleblock">
-<div class="content">
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-kubernetes-ribbon&lt;/artifactId&gt;
-    &lt;version&gt;${latest.version}&lt;/version&gt;
-&lt;/dependency&gt;</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="paragraph">
-<p>When the list of the endpoints is populated, the Kubernetes client searches the registered endpoints that live in
-the current namespace or project by matching the service name defined in the Ribbon Client annotation, as follows:</p>
-</div>
-<div class="exampleblock">
-<div class="content">
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RibbonClient(name = "name-service")</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="paragraph">
-<p>You can configure Ribbon&#8217;s behavior by providing properties in your <code>application.properties</code> (through your application&#8217;s
-dedicated <code>ConfigMap</code>) by using the following format: <code>&lt;name of your service&gt;.ribbon.&lt;Ribbon configuration key&gt;</code>, where:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>&lt;name of your service&gt;</code> corresponds to the service name you access over Ribbon, as configured by using the
-<code>@RibbonClient</code> annotation (such as <code>name-service</code> in the preceding example).</p>
-</li>
-<li>
-<p><code>&lt;Ribbon configuration key&gt;</code> is one of the Ribbon configuration keys defined by
-<a href="https://github.com/Netflix/ribbon/blob/master/ribbon-core/src/main/java/com/netflix/client/config/CommonClientConfigKey.java">Ribbon&#8217;s <code>CommonClientConfigKey</code> class</a>.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Additionally, the <code>spring-cloud-kubernetes-ribbon</code> project defines two additional configuration keys to further
-control how Ribbon interacts with Kubernetes. In particular, if an endpoint defines multiple ports, the default
-behavior is to use the first one found. To select more specifically which port to use in a multi-port service, you can use
-the <code>PortName</code> key. If you want to specify in which Kubernetes namespace the target service should be looked up, you can use
-the <code>KubernetesNamespace</code> key, remembering in both instances to prefix these keys with your service name and
-<code>ribbon</code> prefix, as specified earlier.</p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 4. Spring Cloud Kubernetes Ribbon Configuration</caption>
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Property Key</th>
-<th class="tableblock halign-left valign-top">Type</th>
-<th class="tableblock halign-left valign-top">Default Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.ribbon.enabled</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.ribbon.mode</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KubernetesRibbonMode</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">POD</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.kubernetes.ribbon.cluster-domain</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">cluster.local</p></td>
-</tr>
-</tbody>
-</table>
-<div class="ulist">
-<ul>
-<li>
-<p><code>spring.cloud.kubernetes.ribbon.mode</code> supports <code>POD</code> and <code>SERVICE</code> modes.</p>
-<div class="ulist">
-<ul>
-<li>
-<p>The POD mode is to achieve load balancing by obtaining the Pod IP address of Kubernetes and using Ribbon.
-POD mode uses the load balancing of the Ribbon Does not support Kubernetes load balancing, The traffic policy of <code>Istio</code> is not supported.</p>
-</li>
-<li>
-<p>the <code>SERVICE</code> mode is directly based on the <code>service name</code> of the Ribbon. Get
-The Kubernetes service is concatenated into <code>service-name.{namespace}.svc.{cluster.domain}:{port}</code> such as: <code>demo1.default.svc.cluster.local:8080</code>.
-the <code>SERVICE</code> mode uses load balancing of the Kubernetes service to support Istio&#8217;s traffic policy.</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p><code>spring.cloud.kubernetes.ribbon.cluster-domain</code> Set the custom Kubernetes cluster domain suffix. The default value is: 'cluster.local'</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>The following examples use this module for ribbon discovery:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="./spring-cloud-kubernetes-examples/kubernetes-circuitbreaker-ribbon-example">Spring Cloud Circuitbreaker and Ribbon</a></p>
-</li>
-<li>
-<p><a href="https://github.com/fabric8-quickstarts/spring-boot-ribbon">fabric8-quickstarts - Spring Boot - Ribbon</a></p>
-</li>
-<li>
-<p><a href="https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank">Kubeflix - LoanBroker - Bank</a></p>
-</li>
-</ul>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-You can disable the Ribbon discovery client by setting the <code>spring.cloud.kubernetes.ribbon.enabled=false</code> key within the application properties file.
-</td>
-</tr>
-</table>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="kubernetes-ecosystem-awareness"><a class="anchor" href="#kubernetes-ecosystem-awareness"></a><a class="link" href="#kubernetes-ecosystem-awareness">7. Kubernetes Ecosystem Awareness</a></h2>
+<h2 id="kubernetes-ecosystem-awareness"><a class="anchor" href="#kubernetes-ecosystem-awareness"></a><a class="link" href="#kubernetes-ecosystem-awareness">6. Kubernetes Ecosystem Awareness</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>All of the features described earlier in this guide work equally well, regardless of whether your application is running inside
@@ -1395,7 +1233,7 @@ communicate by using <code>http</code> protocol to the REST API of the Kubernete
 Also note that these properties: <code>spring.cloud.kubernetes.config.enabled</code> and <code>spring.cloud.kubernetes.secrets.enabled</code> only take effect when set in <code>bootstrap.{properties|yml}</code></p>
 </div>
 <div class="sect2">
-<h3 id="kubernetes-profile-autoconfiguration"><a class="anchor" href="#kubernetes-profile-autoconfiguration"></a><a class="link" href="#kubernetes-profile-autoconfiguration">7.1. Kubernetes Profile Autoconfiguration</a></h3>
+<h3 id="kubernetes-profile-autoconfiguration"><a class="anchor" href="#kubernetes-profile-autoconfiguration"></a><a class="link" href="#kubernetes-profile-autoconfiguration">6.1. Kubernetes Profile Autoconfiguration</a></h3>
 <div class="paragraph">
 <p>When the application runs as a pod inside Kubernetes, a Spring profile named <code>kubernetes</code> automatically gets activated.
 This lets you customize the configuration, to define beans that are applied when the Spring Boot application is deployed
@@ -1403,7 +1241,7 @@ within the Kubernetes platform (for example, different development and productio
 </div>
 </div>
 <div class="sect2">
-<h3 id="istio-awareness"><a class="anchor" href="#istio-awareness"></a><a class="link" href="#istio-awareness">7.2. Istio Awareness</a></h3>
+<h3 id="istio-awareness"><a class="anchor" href="#istio-awareness"></a><a class="link" href="#istio-awareness">6.2. Istio Awareness</a></h3>
 <div class="paragraph">
 <p>When you include the <code>spring-cloud-kubernetes-istio</code> module in the application classpath, a new profile is added to the application,
 provided the application is running inside a Kubernetes Cluster with <a href="https://istio.io">Istio</a> installed. You can then use
@@ -1417,7 +1255,7 @@ making it easy for our Spring Boot applications to consume this data to dynamica
 </div>
 </div>
 <div class="sect1">
-<h2 id="pod-health-indicator"><a class="anchor" href="#pod-health-indicator"></a><a class="link" href="#pod-health-indicator">8. Pod Health Indicator</a></h2>
+<h2 id="pod-health-indicator"><a class="anchor" href="#pod-health-indicator"></a><a class="link" href="#pod-health-indicator">7. Pod Health Indicator</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Spring Boot uses <a href="https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/HealthEndpoint.java"><code>HealthIndicator</code></a> to expose info about the health of an application.
@@ -1439,7 +1277,7 @@ That makes it really useful for exposing health-related information to the user 
 </div>
 </div>
 <div class="sect1">
-<h2 id="leader-election"><a class="anchor" href="#leader-election"></a><a class="link" href="#leader-election">9. Leader Election</a></h2>
+<h2 id="leader-election"><a class="anchor" href="#leader-election"></a><a class="link" href="#leader-election">8. Leader Election</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>&lt;TBD&gt;</p>
@@ -1447,10 +1285,10 @@ That makes it really useful for exposing health-related information to the user 
 </div>
 </div>
 <div class="sect1">
-<h2 id="security-configurations-inside-kubernetes"><a class="anchor" href="#security-configurations-inside-kubernetes"></a><a class="link" href="#security-configurations-inside-kubernetes">10. Security Configurations Inside Kubernetes</a></h2>
+<h2 id="security-configurations-inside-kubernetes"><a class="anchor" href="#security-configurations-inside-kubernetes"></a><a class="link" href="#security-configurations-inside-kubernetes">9. Security Configurations Inside Kubernetes</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="namespace"><a class="anchor" href="#namespace"></a><a class="link" href="#namespace">10.1. Namespace</a></h3>
+<h3 id="namespace"><a class="anchor" href="#namespace"></a><a class="link" href="#namespace">9.1. Namespace</a></h3>
 <div class="paragraph">
 <p>Most of the components provided in this project need to know the namespace. For Kubernetes (1.3+), the namespace is made available to the pod as part of the service account secret and is automatically detected by the client.
 For earlier versions, it needs to be specified as an environment variable to the pod. A quick way to do this is as follows:</p>
@@ -1470,7 +1308,7 @@ For earlier versions, it needs to be specified as an environment variable to the
 </div>
 </div>
 <div class="sect2">
-<h3 id="service-account"><a class="anchor" href="#service-account"></a><a class="link" href="#service-account">10.2. Service Account</a></h3>
+<h3 id="service-account"><a class="anchor" href="#service-account"></a><a class="link" href="#service-account">9.2. Service Account</a></h3>
 <div class="paragraph">
 <p>For distributions of Kubernetes that support more fine-grained role-based access within the cluster, you need to make sure a pod that runs with <code>spring-cloud-kubernetes</code> has access to the Kubernetes API.
 For any service accounts you assign to a deployment or pod, you need to make sure they have the correct roles.</p>
@@ -1479,7 +1317,7 @@ For any service accounts you assign to a deployment or pod, you need to make sur
 <p>Depending on the requirements, you&#8217;ll need <code>get</code>, <code>list</code> and <code>watch</code> permission on the following resources:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 5. Kubernetes Resource Permissions</caption>
+<caption class="title">Table 4. Kubernetes Resource Permissions</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -1498,10 +1336,6 @@ For any service accounts you assign to a deployment or pod, you need to make sur
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring-cloud-starter-kubernetes-config</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">configmaps, secrets</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">spring-cloud-starter-kubernetes-ribbon</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">pods, services, endpoints</p></td>
 </tr>
 </tbody>
 </table>
@@ -1548,7 +1382,7 @@ roleRef:
 </div>
 </div>
 <div class="sect1">
-<h2 id="service-registry-implementation"><a class="anchor" href="#service-registry-implementation"></a><a class="link" href="#service-registry-implementation">11. Service Registry Implementation</a></h2>
+<h2 id="service-registry-implementation"><a class="anchor" href="#service-registry-implementation"></a><a class="link" href="#service-registry-implementation">10. Service Registry Implementation</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>In Kubernetes service registration is controlled by the platform, the application itself does not control
@@ -1558,7 +1392,7 @@ or setting <code>@EnableDiscoveryClient(autoRegister=false)</code> will have no 
 </div>
 </div>
 <div class="sect1">
-<h2 id="examples"><a class="anchor" href="#examples"></a><a class="link" href="#examples">12. Examples</a></h2>
+<h2 id="examples"><a class="anchor" href="#examples"></a><a class="link" href="#examples">11. Examples</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Spring Cloud Kubernetes tries to make it transparent for your applications to consume Kubernetes Native Services by
@@ -1603,7 +1437,7 @@ The same applies for <code>PropertySourceLocator</code>, where you need to add t
 </div>
 </div>
 <div class="sect1">
-<h2 id="other-resources"><a class="anchor" href="#other-resources"></a><a class="link" href="#other-resources">13. Other Resources</a></h2>
+<h2 id="other-resources"><a class="anchor" href="#other-resources"></a><a class="link" href="#other-resources">12. Other Resources</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This section lists other resources, such as presentations (slides) and videos about Spring Cloud Kubernetes.</p>
@@ -1624,7 +1458,7 @@ The same applies for <code>PropertySourceLocator</code>, where you need to add t
 </div>
 </div>
 <div class="sect1">
-<h2 id="configuration-properties"><a class="anchor" href="#configuration-properties"></a><a class="link" href="#configuration-properties">14. Configuration properties</a></h2>
+<h2 id="configuration-properties"><a class="anchor" href="#configuration-properties"></a><a class="link" href="#configuration-properties">13. Configuration properties</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>To see the list of all Sleuth related configuration properties please check <a href="appendix.html">the Appendix page</a>.</p>
@@ -1632,10 +1466,10 @@ The same applies for <code>PropertySourceLocator</code>, where you need to add t
 </div>
 </div>
 <div class="sect1">
-<h2 id="building"><a class="anchor" href="#building"></a><a class="link" href="#building">15. Building</a></h2>
+<h2 id="building"><a class="anchor" href="#building"></a><a class="link" href="#building">14. Building</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="basic-compile-and-test"><a class="anchor" href="#basic-compile-and-test"></a><a class="link" href="#basic-compile-and-test">15.1. Basic Compile and Test</a></h3>
+<h3 id="basic-compile-and-test"><a class="anchor" href="#basic-compile-and-test"></a><a class="link" href="#basic-compile-and-test">14.1. Basic Compile and Test</a></h3>
 <div class="paragraph">
 <p>To build the source you will need to install JDK 1.7.</p>
 </div>
@@ -1713,7 +1547,7 @@ If all else fails, build with the command from <code>.travis.yml</code> (usually
 </div>
 </div>
 <div class="sect2">
-<h3 id="documentation"><a class="anchor" href="#documentation"></a><a class="link" href="#documentation">15.2. Documentation</a></h3>
+<h3 id="documentation"><a class="anchor" href="#documentation"></a><a class="link" href="#documentation">14.2. Documentation</a></h3>
 <div class="paragraph">
 <p>The spring-cloud-build module has a "docs" profile, and if you switch
 that on it will try to build asciidoc sources from
@@ -1726,7 +1560,7 @@ a modified file in the correct place. Just commit it and push the change.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="working-with-the-code"><a class="anchor" href="#working-with-the-code"></a><a class="link" href="#working-with-the-code">15.3. Working with the code</a></h3>
+<h3 id="working-with-the-code"><a class="anchor" href="#working-with-the-code"></a><a class="link" href="#working-with-the-code">14.3. Working with the code</a></h3>
 <div class="paragraph">
 <p>If you don&#8217;t have an IDE preference we would recommend that you use
 <a href="https://www.springsource.com/developer/sts">Spring Tools Suite</a> or
@@ -1735,7 +1569,7 @@ a modified file in the correct place. Just commit it and push the change.</p>
 should also work without issue as long as they use Maven 3.3.3 or better.</p>
 </div>
 <div class="sect3">
-<h4 id="importing-into-eclipse-with-m2eclipse"><a class="anchor" href="#importing-into-eclipse-with-m2eclipse"></a><a class="link" href="#importing-into-eclipse-with-m2eclipse">15.3.1. Importing into eclipse with m2eclipse</a></h4>
+<h4 id="importing-into-eclipse-with-m2eclipse"><a class="anchor" href="#importing-into-eclipse-with-m2eclipse"></a><a class="link" href="#importing-into-eclipse-with-m2eclipse">14.3.1. Importing into eclipse with m2eclipse</a></h4>
 <div class="paragraph">
 <p>We recommend the <a href="https://eclipse.org/m2e/">m2eclipse</a> eclipse plugin when working with
 eclipse. If you don&#8217;t already have m2eclipse installed it is available from the "eclipse
@@ -1762,7 +1596,7 @@ pom into your <code>settings.xml</code>.
 </div>
 </div>
 <div class="sect3">
-<h4 id="importing-into-eclipse-without-m2eclipse"><a class="anchor" href="#importing-into-eclipse-without-m2eclipse"></a><a class="link" href="#importing-into-eclipse-without-m2eclipse">15.3.2. Importing into eclipse without m2eclipse</a></h4>
+<h4 id="importing-into-eclipse-without-m2eclipse"><a class="anchor" href="#importing-into-eclipse-without-m2eclipse"></a><a class="link" href="#importing-into-eclipse-without-m2eclipse">14.3.2. Importing into eclipse without m2eclipse</a></h4>
 <div class="paragraph">
 <p>If you prefer not to use m2eclipse you can generate eclipse project metadata using the
 following command:</p>
@@ -1781,7 +1615,7 @@ from the <code>file</code> menu.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="contributing"><a class="anchor" href="#contributing"></a><a class="link" href="#contributing">16. Contributing</a></h2>
+<h2 id="contributing"><a class="anchor" href="#contributing"></a><a class="link" href="#contributing">15. Contributing</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Spring Cloud is released under the non-restrictive Apache 2.0 license,
@@ -1791,7 +1625,7 @@ to contribute even something trivial please do not hesitate, but
 follow the guidelines below.</p>
 </div>
 <div class="sect2">
-<h3 id="sign-the-contributor-license-agreement"><a class="anchor" href="#sign-the-contributor-license-agreement"></a><a class="link" href="#sign-the-contributor-license-agreement">16.1. Sign the Contributor License Agreement</a></h3>
+<h3 id="sign-the-contributor-license-agreement"><a class="anchor" href="#sign-the-contributor-license-agreement"></a><a class="link" href="#sign-the-contributor-license-agreement">15.1. Sign the Contributor License Agreement</a></h3>
 <div class="paragraph">
 <p>Before we accept a non-trivial patch or pull request we will need you to sign the
 <a href="https://cla.pivotal.io/sign/spring">Contributor License Agreement</a>.
@@ -1802,7 +1636,7 @@ given the ability to merge pull requests.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="code-of-conduct"><a class="anchor" href="#code-of-conduct"></a><a class="link" href="#code-of-conduct">16.2. Code of Conduct</a></h3>
+<h3 id="code-of-conduct"><a class="anchor" href="#code-of-conduct"></a><a class="link" href="#code-of-conduct">15.2. Code of Conduct</a></h3>
 <div class="paragraph">
 <p>This project adheres to the Contributor Covenant <a href="https://github.com/spring-cloud/spring-cloud-build/blob/master/docs/src/main/asciidoc/code-of-conduct.adoc">code of
 conduct</a>. By participating, you  are expected to uphold this code. Please report
@@ -1810,7 +1644,7 @@ unacceptable behavior to <a href="mailto:spring-code-of-conduct@pivotal.io">spri
 </div>
 </div>
 <div class="sect2">
-<h3 id="code-conventions-and-housekeeping"><a class="anchor" href="#code-conventions-and-housekeeping"></a><a class="link" href="#code-conventions-and-housekeeping">16.3. Code Conventions and Housekeeping</a></h3>
+<h3 id="code-conventions-and-housekeeping"><a class="anchor" href="#code-conventions-and-housekeeping"></a><a class="link" href="#code-conventions-and-housekeeping">15.3. Code Conventions and Housekeeping</a></h3>
 <div class="paragraph">
 <p>None of these is essential for a pull request, but they will all help.  They can also be
 added after the original pull request but before a merge.</p>
@@ -1858,7 +1692,7 @@ message (where XXXX is the issue number).</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="checkstyle"><a class="anchor" href="#checkstyle"></a><a class="link" href="#checkstyle">16.4. Checkstyle</a></h3>
+<h3 id="checkstyle"><a class="anchor" href="#checkstyle"></a><a class="link" href="#checkstyle">15.4. Checkstyle</a></h3>
 <div class="paragraph">
 <p>Spring Cloud Build comes with a set of checkstyle rules. You can find them in the <code>spring-cloud-build-tools</code> module. The most notable files under the module are:</p>
 </div>
@@ -1891,7 +1725,7 @@ message (where XXXX is the issue number).</p>
 </table>
 </div>
 <div class="sect3">
-<h4 id="checkstyle-configuration"><a class="anchor" href="#checkstyle-configuration"></a><a class="link" href="#checkstyle-configuration">16.4.1. Checkstyle configuration</a></h4>
+<h4 id="checkstyle-configuration"><a class="anchor" href="#checkstyle-configuration"></a><a class="link" href="#checkstyle-configuration">15.4.1. Checkstyle configuration</a></h4>
 <div class="paragraph">
 <p>Checkstyle rules are <strong>disabled by default</strong>. To add checkstyle to your project just define the following properties and plugins.</p>
 </div>
@@ -1981,9 +1815,9 @@ $ touch .springformat</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="ide-setup"><a class="anchor" href="#ide-setup"></a><a class="link" href="#ide-setup">16.5. IDE setup</a></h3>
+<h3 id="ide-setup"><a class="anchor" href="#ide-setup"></a><a class="link" href="#ide-setup">15.5. IDE setup</a></h3>
 <div class="sect3">
-<h4 id="intellij-idea"><a class="anchor" href="#intellij-idea"></a><a class="link" href="#intellij-idea">16.5.1. Intellij IDEA</a></h4>
+<h4 id="intellij-idea"><a class="anchor" href="#intellij-idea"></a><a class="link" href="#intellij-idea">15.5.1. Intellij IDEA</a></h4>
 <div class="paragraph">
 <p>In order to setup Intellij you should import our coding conventions, inspection profiles and set up the checkstyle plugin.
 The following files can be found in the <a href="https://github.com/spring-cloud/spring-cloud-build/tree/master/spring-cloud-build-tools">Spring Cloud Build</a> project.</p>

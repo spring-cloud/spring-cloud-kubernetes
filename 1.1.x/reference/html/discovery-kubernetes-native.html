@@ -105,7 +105,7 @@ $(addBlockSwitches);
 <div class="sectionbody">
 <div class="paragraph">
 <p>Kubernetes itself is capable of (server side) service discovery (see: <a href="https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services" class="bare">https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services</a>).
-Using native kubernetes service discovery ensures compatibility with additional tooling, such as Istio (<a href="https://istio.io" class="bare">https://istio.io</a>), a service mesh that is capable of load balancing, ribbon, circuit breaker, failover, and much more.</p>
+Using native kubernetes service discovery ensures compatibility with additional tooling, such as Istio (<a href="https://istio.io" class="bare">https://istio.io</a>), a service mesh that is capable of load balancing, circuit breaker, failover, and much more.</p>
 </div>
 <div class="paragraph">
 <p>The caller service then need only refer to names resolvable in a particular Kubernetes cluster. A simple implementation might use a spring <code>RestTemplate</code> that refers to a fully qualified domain name (FQDN), such as <code><a href="https://{service-name}.{namespace}.svc.{cluster}.local:{service-port}" class="bare">https://{service-name}.{namespace}.svc.{cluster}.local:{service-port}</a></code>.</p>
