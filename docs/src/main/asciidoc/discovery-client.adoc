@@ -4,8 +4,7 @@ This project provides an implementation of https://github.com/spring-cloud/sprin
 for https://kubernetes.io[Kubernetes].
 This client lets you query Kubernetes endpoints (see https://kubernetes.io/docs/user-guide/services/[services]) by name.
 A service is typically exposed by the Kubernetes API server as a collection of endpoints that represent `http` and `https` addresses and that a client can
-access from a Spring Boot application running as a pod. This discovery feature is also used by the Spring Cloud Kubernetes Ribbon project
-to fetch the list of the endpoints defined for an application to be load balanced.
+access from a Spring Boot application running as a pod.
 
 This is something that you get for free by adding the following dependency inside your project:
 

@@ -1,7 +1,7 @@
 == Kubernetes native service discovery
 
 Kubernetes itself is capable of (server side) service discovery (see: https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services).
-Using native kubernetes service discovery ensures compatibility with additional tooling, such as Istio (https://istio.io), a service mesh that is capable of load balancing, ribbon, circuit breaker, failover, and much more.
+Using native kubernetes service discovery ensures compatibility with additional tooling, such as Istio (https://istio.io), a service mesh that is capable of load balancing, circuit breaker, failover, and much more.
 
 The caller service then need only refer to names resolvable in a particular Kubernetes cluster. A simple implementation might use a spring `RestTemplate` that refers to a fully qualified domain name (FQDN), such as `https://{service-name}.{namespace}.svc.{cluster}.local:{service-port}`.
 
