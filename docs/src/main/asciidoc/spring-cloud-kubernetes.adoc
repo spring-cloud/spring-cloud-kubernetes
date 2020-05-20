@@ -16,8 +16,6 @@ include::discovery-kubernetes-native.adoc[]
 
 include::property-source-config.adoc[]
 
-include::ribbon-integration.adoc[]
-
 include::kubernetes-awareness.adoc[]
 
 include::pod-health-indicator.adoc[]
