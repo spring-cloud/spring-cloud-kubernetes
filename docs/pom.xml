@@ -18,6 +18,7 @@
 		<main.basedir>${basedir}/..</main.basedir>
 		<docs.whitelisted.branches>1.0.x,1.1.x</docs.whitelisted.branches>
 		<configprops.inclusionPattern>spring.cloud.kubernetes.*</configprops.inclusionPattern>
+		<upload-docs-zip.phase>deploy</upload-docs-zip.phase>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -47,9 +48,6 @@
 	<profiles>
 		<profile>
 			<id>docs</id>
-			<properties>
-				<upload-docs-zip.phase>deploy</upload-docs-zip.phase>
-			</properties>
 			<build>
 				<plugins>
 					<plugin>
