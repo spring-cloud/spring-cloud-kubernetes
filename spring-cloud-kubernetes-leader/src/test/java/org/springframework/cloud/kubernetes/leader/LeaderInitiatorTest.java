@@ -18,12 +18,12 @@ package org.springframework.cloud.kubernetes.leader;
 
 import java.time.Duration;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -33,7 +33,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.atLeastO
 /**
  * @author Gytis Trikleris
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LeaderInitiatorTest {
 
 	@Mock
@@ -53,14 +53,14 @@ public class LeaderInitiatorTest {
 
 	private LeaderInitiator leaderInitiator;
 
-	@Before
+	@BeforeEach
 	public void before() {
 		this.leaderInitiator = new LeaderInitiator(this.mockLeaderProperties,
 				this.mockLeadershipController, this.mockLeaderRecordWatcher,
 				this.mockPodReadinessWatcher);
 	}
 
-	@After
+	@AfterEach
 	public void after() {
 		this.leaderInitiator.stop();
 	}
