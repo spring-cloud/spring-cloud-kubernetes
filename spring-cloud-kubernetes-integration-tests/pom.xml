@@ -133,6 +133,7 @@
 		<module>simple-configmap</module>
 <!--		<module>istio</module>-->
 		<module>discovery</module>
+		<module>load-balancer</module>
 	</modules>
 
 
