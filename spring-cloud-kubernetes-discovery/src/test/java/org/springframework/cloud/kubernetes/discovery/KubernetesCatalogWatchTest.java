@@ -58,6 +58,9 @@ public class KubernetesCatalogWatchTest {
 	private KubernetesClient kubernetesClient;
 
 	@Mock
+	private KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
+
+	@Mock
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	@Mock
