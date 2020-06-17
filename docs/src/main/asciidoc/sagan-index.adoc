@@ -7,7 +7,6 @@ The main objective of the projects provided in this repository is to facilitate 
 * Kubernetes awareness
 * `DiscoveryClient` implementation
 * `PropertySource` objects configured via ConfigMaps
-* Client side loadbalancing via Netflix Ribbon
 
 ## Getting Started
 The easiest way to get started is by including the Spring Cloud BOM and then adding `spring-cloud-starter-kubernetes-all` to your application's classpath.  If you don't want to include all of the Spring Cloud Kubernetes features you can add individual starters for the features you would like.  By default Spring Cloud Kubernetes will enable the `kubernetes` profile when it detects it is running inside a Kubernetes cluster.  You can take advantage of this by creating a `kubernetes-application` configuration properties for anything specific to Kubernetes you might want to configure.  Once the starter is on the classpath the application should behave as any other Spring Cloud application.

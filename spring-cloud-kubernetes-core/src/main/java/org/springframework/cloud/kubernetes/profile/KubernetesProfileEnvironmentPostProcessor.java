@@ -43,15 +43,13 @@ public class KubernetesProfileEnvironmentPostProcessor
 	public void postProcessEnvironment(ConfigurableEnvironment environment,
 			SpringApplication application) {
 
-		final String enabledStr = environment
-				.getProperty("spring.cloud.kubernetes.enabled", "true");
-		if ("false".equals(enabledStr.toLowerCase())) {
+		final boolean kubernetesEnabled = environment
+				.getProperty("spring.cloud.kubernetes.enabled", Boolean.class, true);
+		if (!kubernetesEnabled) {
 			return;
 		}
 
-		final StandardPodUtils podUtils = new StandardPodUtils(
-				new DefaultKubernetesClient());
-		if (podUtils.isInsideKubernetes()) {
+		if (isInsideKubernetes()) {
 			if (hasKubernetesProfile(environment)) {
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("'kubernetes' already in list of active profiles");
@@ -69,6 +67,13 @@ public class KubernetesProfileEnvironmentPostProcessor
 				LOG.warn(
 						"Not running inside kubernetes. Skipping 'kubernetes' profile activation.");
 			}
+		}
+	}
+
+	private boolean isInsideKubernetes() {
+		try (DefaultKubernetesClient client = new DefaultKubernetesClient()) {
+			final StandardPodUtils podUtils = new StandardPodUtils(client);
+			return podUtils.isInsideKubernetes();
 		}
 	}
 

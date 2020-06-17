@@ -129,8 +129,8 @@ main() {
     # This creates the service account, role, and role binding necessary for Spring Cloud k8s apps
 	kubectl apply -f ./permissions.yaml
 
-	cd ${BIN_DIR}
-	curl -L https://istio.io/downloadIstio | sh -
+#	cd ${BIN_DIR}
+#	curl -L https://istio.io/downloadIstio | sh -
 	#"${ISTIOCTL}" install --set profile=demo
 
 	cd $CURRENT_DIR

@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,7 @@ import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus
  * Utility class to work with property sources.
  *
  * @author Georgios Andrianakis
+ * @author Michael Moudatsos
  */
 public final class PropertySourceUtils {
 
@@ -50,9 +52,9 @@ public final class PropertySourceUtils {
 			throw new IllegalArgumentException();
 		}
 	};
-	static final Function<Properties, Map<String, String>> PROPERTIES_TO_MAP = p -> p
+	static final Function<Properties, Map<String, Object>> PROPERTIES_TO_MAP = p -> p
 			.entrySet().stream().collect(Collectors.toMap(e -> String.valueOf(e.getKey()),
-					e -> String.valueOf(e.getValue())));
+					Map.Entry::getValue, throwingMerger(), java.util.LinkedHashMap::new));
 
 	private PropertySourceUtils() {
 		throw new IllegalStateException("Can't instantiate a utility class");
@@ -73,6 +75,12 @@ public final class PropertySourceUtils {
 			});
 			yamlFactory.setResources(new ByteArrayResource(s.getBytes()));
 			return yamlFactory.getObject();
+		};
+	}
+
+	static <T> BinaryOperator<T> throwingMerger() {
+		return (u, v) -> {
+			throw new IllegalStateException(String.format("Duplicate key %s", u));
 		};
 	}
 
