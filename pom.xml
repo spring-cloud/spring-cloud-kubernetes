@@ -66,6 +66,8 @@
 		<spring-cloud-commons.version>3.0.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-netflix.version>3.0.0.BUILD-SNAPSHOT</spring-cloud-netflix.version>
 		<spring-cloud-config.version>3.0.0.BUILD-SNAPSHOT</spring-cloud-config.version>
+		<spring-cloud-bus.version>3.0.0.BUILD-SNAPSHOT</spring-cloud-bus.version>
+		<spring-cloud-contract.version>3.0.0.BUILD-SNAPSHOT</spring-cloud-contract.version>
 
 		<!-- Maven Plugin Versions -->
 		<maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
@@ -95,6 +97,7 @@
 		<module>spring-cloud-kubernetes-examples</module>
 		<module>spring-cloud-kubernetes-leader</module>
 		<module>spring-cloud-kubernetes-istio</module>
+		<module>spring-cloud-kubernetes-controllers</module>
 		<module>spring-cloud-kubernetes-integration-tests</module>
 		<module>docs</module>
 	</modules>
@@ -122,6 +125,22 @@
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-netflix-dependencies</artifactId>
 				<version>${spring-cloud-netflix.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-bus-dependencies</artifactId>
+				<version>${spring-cloud-bus.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-contract-dependencies</artifactId>
+				<version>${spring-cloud-contract.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>

@@ -12,4 +12,5 @@
 	<suppress files=".*KubernetesDiscoveryClientFilterTest.*" checks="LineLength*"/>
 	<suppress files=".*PollingConfigurationChangeDetector.*" checks="LineLength*"/>
 	<suppress files=".*LeaderRecordWatcherTest.*" checks="LineLength*"/>
+	<suppress files=".*ConfigurationWatcherApplication\.java" checks="HideUtilityClassConstructor"/>
 </suppressions>

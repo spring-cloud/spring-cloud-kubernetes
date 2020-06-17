@@ -74,6 +74,10 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 							@Override
 							public void eventReceived(Action action,
 									ConfigMap configMap) {
+								if (log.isDebugEnabled()) {
+									log.debug(name + " received event for ConfigMap "
+											+ configMap.getMetadata().getName());
+								}
 								onEvent(configMap);
 							}
 
@@ -99,6 +103,10 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 						this.kubernetesClient.secrets().watch(new Watcher<Secret>() {
 							@Override
 							public void eventReceived(Action action, Secret secret) {
+								if (log.isDebugEnabled()) {
+									log.debug(name + " received and event for Secret "
+											+ secret.getMetadata().getName());
+								}
 								onEvent(secret);
 							}
 
@@ -138,7 +146,7 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 		}
 	}
 
-	private void onEvent(ConfigMap configMap) {
+	protected void onEvent(ConfigMap configMap) {
 		boolean changed = changed(
 				locateMapPropertySources(this.configMapPropertySourceLocator,
 						this.environment),
@@ -149,7 +157,7 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 		}
 	}
 
-	private void onEvent(Secret secret) {
+	protected void onEvent(Secret secret) {
 		boolean changed = changed(
 				locateMapPropertySources(this.secretsPropertySourceLocator,
 						this.environment),

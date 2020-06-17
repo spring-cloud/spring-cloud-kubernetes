@@ -107,6 +107,8 @@ jobs:
             export KUBECONFIG=/tmp/kubeconfig
             cd spring-cloud-kubernetes-integration-tests
             ../mvnw -Ddocker.host='unix:///var/snap/microk8s/current/docker.sock' -Dimage.registry='localhost:32000' clean package fabric8:build verify -Pfmp,it,spring
+            cd spring-cloud-kubernetes-configuration-watcher-it
+            ./run.sh
       - store_test_results:
           path: $HOME/artifacts/junit/
       - store_artifacts:
