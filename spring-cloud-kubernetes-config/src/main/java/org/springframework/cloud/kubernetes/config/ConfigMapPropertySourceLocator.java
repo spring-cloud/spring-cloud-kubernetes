@@ -95,7 +95,7 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 						configurationTarget),
 				getApplicationNamespace(this.client, normalizedSource.getNamespace(),
 						configurationTarget),
-				environment);
+				environment, properties.isEnableVersioning());
 	}
 
 	private void addPropertySourcesFromPaths(Environment environment,
