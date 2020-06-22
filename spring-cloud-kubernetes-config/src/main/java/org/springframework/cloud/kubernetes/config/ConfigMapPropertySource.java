@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.config;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,13 +57,18 @@ public class ConfigMapPropertySource extends MapPropertySource {
 
 	private static final String PREFIX = "configmap";
 
+	private static final String LABEL_VERSION = "version";
+
+	private static final String LABEL_APP = "app";
+
 	public ConfigMapPropertySource(KubernetesClient client, String name) {
-		this(client, name, null, (Environment) null);
+		this(client, name, null, (Environment) null, false);
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
-			String[] profiles) {
-		this(client, name, namespace, createEnvironmentWithActiveProfiles(profiles));
+			String[] profiles, boolean enableVersioning) {
+		this(client, name, namespace, createEnvironmentWithActiveProfiles(profiles),
+				enableVersioning);
 	}
 
 	private static Environment createEnvironmentWithActiveProfiles(
@@ -73,9 +79,9 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
-			Environment environment) {
-		super(getName(client, name, namespace),
-				asObjectMap(getData(client, name, namespace, environment)));
+			Environment environment, boolean enableVersioning) {
+		super(getName(client, name, namespace), asObjectMap(
+				getData(client, name, namespace, environment, enableVersioning)));
 	}
 
 	private static String getName(KubernetesClient client, String name,
@@ -89,12 +95,43 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	private static Map<String, Object> getData(KubernetesClient client, String name,
-			String namespace, Environment environment) {
+			String namespace, Environment environment, boolean enableVersioning) {
 		try {
 			Map<String, Object> result = new LinkedHashMap<>();
-			ConfigMap map = StringUtils.isEmpty(namespace)
-					? client.configMaps().withName(name).get()
-					: client.configMaps().inNamespace(namespace).withName(name).get();
+			ConfigMap map = null;
+			if (enableVersioning) {
+				String version = environment.getProperty("info.app.version");
+				Optional<ConfigMap> optMap = StringUtils.isEmpty(namespace)
+						? client.configMaps().list().getItems().stream()
+								.filter(configMap -> configMap.getMetadata().getLabels()
+										.containsKey(LABEL_APP)
+										&& configMap.getMetadata().getLabels()
+												.get(LABEL_APP).equals(name)
+										&& configMap.getMetadata().getLabels()
+												.containsKey(LABEL_VERSION)
+										&& configMap.getMetadata().getLabels()
+												.get(LABEL_VERSION).equals(version))
+								.findFirst()
+						: client.configMaps().inNamespace(namespace).list().getItems()
+								.stream()
+								.filter(configMap -> configMap.getMetadata().getLabels()
+										.containsKey(LABEL_APP)
+										&& configMap.getMetadata().getLabels()
+												.get(LABEL_APP).equals(name)
+										&& configMap.getMetadata().getLabels()
+												.containsKey(LABEL_VERSION)
+										&& configMap.getMetadata().getLabels()
+												.get(LABEL_VERSION).equals(version))
+								.findFirst();
+				if (optMap.isPresent()) {
+					map = optMap.get();
+				}
+			}
+			else {
+				map = StringUtils.isEmpty(namespace)
+						? client.configMaps().withName(name).get()
+						: client.configMaps().inNamespace(namespace).withName(name).get();
+			}
 
 			if (map != null) {
 				result.putAll(processAllEntries(map.getData(), environment));
