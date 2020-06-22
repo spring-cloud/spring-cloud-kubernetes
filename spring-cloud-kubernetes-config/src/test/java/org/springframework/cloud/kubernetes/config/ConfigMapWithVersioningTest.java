@@ -22,8 +22,6 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,22 +46,14 @@ public class ConfigMapWithVersioningTest {
 		String appName = "versioning-test";
 		String namespace = "app-props";
 		ConfigMap map = new ConfigMapBuilder().withNewMetadata()
-				.withName("versioning-test-1").withNamespace(namespace)
-				.addToLabels("app", appName).addToLabels("version", "1.0").endMetadata()
-				.addToData("KEY", "123").build();
+			.withName("versioning-test-1").withNamespace(namespace)
+			.addToLabels("app", appName).addToLabels("version", "1.0").endMetadata()
+			.addToData("KEY", "123").build();
 		server.getClient().configMaps().inNamespace(namespace).create(map);
 		ConfigMapPropertySource source = new ConfigMapPropertySource(
-				this.server.getClient().inNamespace(namespace), appName, namespace,
-				new String[] {}, true);
+			this.server.getClient().inNamespace(namespace), appName, namespace,
+			new String[] {}, true);
 		assertThat(source.getProperty("KEY")).isEqualTo("123");
-	}
-
-	private ConfigurableApplicationContext setup(String... env) {
-		return new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
-				KubernetesConfigConfigurationTest.KubernetesClientTestConfiguration.class,
-				BootstrapConfiguration.class)
-						.web(org.springframework.boot.WebApplicationType.NONE)
-						.properties(env).run();
 	}
 
 }
