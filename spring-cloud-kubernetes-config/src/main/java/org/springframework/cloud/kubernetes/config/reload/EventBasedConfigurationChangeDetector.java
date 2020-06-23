@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.kubernetes.config.reload;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -59,7 +59,7 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 
 		this.configMapPropertySourceLocator = configMapPropertySourceLocator;
 		this.secretsPropertySourceLocator = secretsPropertySourceLocator;
-		this.watches = new HashMap<>();
+		this.watches = new ConcurrentHashMap<>();
 	}
 
 	@PostConstruct
@@ -70,18 +70,7 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 				&& this.configMapPropertySourceLocator != null) {
 			try {
 				String name = "config-maps-watch";
-				this.watches.put(name, this.kubernetesClient.configMaps()
-						.watch(new Watcher<ConfigMap>() {
-							@Override
-							public void eventReceived(Action action,
-									ConfigMap configMap) {
-								onEvent(configMap);
-							}
-
-							@Override
-							public void onClose(KubernetesClientException e) {
-							}
-						}));
+				watchConfigMap(name);
 				activated = true;
 				this.log.info("Added new Kubernetes watch: " + name);
 			}
@@ -97,17 +86,7 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 			try {
 				activated = false;
 				String name = "secrets-watch";
-				this.watches.put(name,
-						this.kubernetesClient.secrets().watch(new Watcher<Secret>() {
-							@Override
-							public void eventReceived(Action action, Secret secret) {
-								onEvent(secret);
-							}
-
-							@Override
-							public void onClose(KubernetesClientException e) {
-							}
-						}));
+				watchSecret(name);
 				activated = true;
 				this.log.info("Added new Kubernetes watch: " + name);
 			}
@@ -138,6 +117,46 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 				}
 			}
 		}
+	}
+
+	private void watchConfigMap(final String name) {
+		Watcher<ConfigMap> watcher = new Watcher<ConfigMap>() {
+			@Override
+			public void eventReceived(Action action, ConfigMap configMap) {
+				onEvent(configMap);
+			}
+
+			@Override
+			public void onClose(KubernetesClientException error) {
+				if (error != null) {
+					if (log.isDebugEnabled()) {
+						log.warn("Try to re-watch: " + name, error);
+					}
+					watchConfigMap(name);
+				}
+			}
+		};
+		this.watches.put(name, this.kubernetesClient.configMaps().watch(watcher));
+	}
+
+	private void watchSecret(final String name) {
+		Watcher<Secret> watcher = new Watcher<Secret>() {
+			@Override
+			public void eventReceived(Action action, Secret secret) {
+				onEvent(secret);
+			}
+
+			@Override
+			public void onClose(KubernetesClientException error) {
+				if (error != null) {
+					if (log.isDebugEnabled()) {
+						log.warn("Try to re-watch: " + name, error);
+					}
+					watchSecret(name);
+				}
+			}
+		};
+		this.watches.put(name, this.kubernetesClient.secrets().watch(watcher));
 	}
 
 	private void onEvent(ConfigMap configMap) {
