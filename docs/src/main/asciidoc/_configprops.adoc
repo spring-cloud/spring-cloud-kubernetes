@@ -71,6 +71,9 @@
 |spring.cloud.kubernetes.reload.monitoring-secrets | false | Enables monitoring on secrets to detect changes.
 |spring.cloud.kubernetes.reload.period | 15000ms | Sets the polling period to use when the detection mode is POLLING.
 |spring.cloud.kubernetes.reload.strategy |  | Sets the reload strategy for Kubernetes configuration reload on change.
+|spring.cloud.kubernetes.ribbon.cluster-domain | cluster.local | cluster domain.
+|spring.cloud.kubernetes.ribbon.enabled | true | Ribbon enabled,default true.
+|spring.cloud.kubernetes.ribbon.mode |  | {@link KubernetesRibbonMode} setting ribbon server list with ip of pod or service name. default value is POD.
 |spring.cloud.kubernetes.secrets.enable-api | false | 
 |spring.cloud.kubernetes.secrets.enabled | true | Enable the Secrets property source locator.
 |spring.cloud.kubernetes.secrets.labels |  | 
