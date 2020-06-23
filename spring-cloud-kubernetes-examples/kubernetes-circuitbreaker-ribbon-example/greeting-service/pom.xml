@@ -21,25 +21,14 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<artifactId>spring-cloud-kubernetes</artifactId>
 		<groupId>org.springframework.cloud</groupId>
-		<version>1.1.4.BUILD-SNAPSHOT</version>
+		<artifactId>kubernetes-circuitbreaker-ribbon-example</artifactId>
+		<version>1.1.3.BUILD-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>spring-cloud-kubernetes-examples</artifactId>
-	<packaging>pom</packaging>
-
-	<name>Spring Cloud Kubernetes :: Examples</name>
-	<description>Examples showing how to use features of Spring Cloud Kubernetes.
-	</description>
-
-	<modules>
-		<module>kubernetes-reload-example</module>
-		<module>kubernetes-hello-world-example</module>
-		<module>kubernetes-leader-election-example</module>
-		<!-- <module>kubernetes-circuitbreaker-ribbon-example</module>
-		<module>kubernetes-zipkin-example</module> -->
-	</modules>
+	<artifactId>greeting-service</artifactId>
+	<name>Circuit Breaker &amp; Load Balancer :: Greeting Service</name>
+	<description>Circuit Breaker &amp; Load Balancer :: Greeting Service</description>
 
 	<build>
 		<plugins>
@@ -53,4 +42,32 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-kubernetes-ribbon</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+		</dependency>
+
+	</dependencies>
 </project>
