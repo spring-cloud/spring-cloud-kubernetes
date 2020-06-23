@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<include resource="org/springframework/boot/logging/logback/base.xml"/>
+	<logger name="org.hibernate.validator"
+			level="info"/> <!-- Validator prints a lot of debug messages during integration tests -->
+	<logger name="okhttp3.mockwebserver" level="debug"/>
+</configuration>

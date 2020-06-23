@@ -1,0 +1,5 @@
+testapp:
+  ribbon:
+    eureka:
+      enabled: false
+    ServerListRefreshInterval: 500
