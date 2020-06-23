@@ -34,16 +34,6 @@ Secret changes.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-ribbon</artifactId>
-</dependency>
-----
-| <<Ribbon discovery in Kubernetes,Ribbon>> client-side load balancer with
-server list obtained from Kubernetes Endpoints.
-
-| [source,xml]
-----
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-all</artifactId>
 </dependency>
 ----
