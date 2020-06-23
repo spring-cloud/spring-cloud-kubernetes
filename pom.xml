@@ -89,8 +89,10 @@
 		<module>spring-cloud-kubernetes-core</module>
 		<module>spring-cloud-kubernetes-config</module>
 		<module>spring-cloud-kubernetes-discovery</module>
+		<module>spring-cloud-kubernetes-ribbon</module>
 		<module>spring-cloud-starter-kubernetes</module>
 		<module>spring-cloud-starter-kubernetes-config</module>
+		<module>spring-cloud-starter-kubernetes-ribbon</module>
 		<module>spring-cloud-starter-kubernetes-all</module>
 		<module>spring-cloud-kubernetes-examples</module>
 		<module>spring-cloud-kubernetes-leader</module>
