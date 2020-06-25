@@ -115,7 +115,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return instances;
 	}
 
-	private List<Endpoints> getEndPointsList(String serviceId) {
+	public List<Endpoints> getEndPointsList(String serviceId) {
 		return this.properties.isAllNamespaces()
 				? this.client.endpoints().inAnyNamespace()
 						.withField("metadata.name", serviceId)
