@@ -473,9 +473,26 @@ The reload feature of Spring Cloud Kubernetes is able to trigger an application 
 By default, this feature is disabled. You can enable it by using the `spring.cloud.kubernetes.reload.enabled=true` configuration property (for example, in the `application.properties` file).
 
 The following levels of reload are supported (by setting the `spring.cloud.kubernetes.reload.strategy` property):
+
 * `refresh` (default): Only configuration beans annotated with `@ConfigurationProperties` or `@RefreshScope` are reloaded.
 This reload level leverages the refresh feature of Spring Cloud Context.
+
 * `restart_context`: the whole Spring `ApplicationContext` is gracefully restarted. Beans are recreated with the new configuration.
+In order for the restart context functionality to work properly you must enable and expose the restart actuator endpoint
+[source,yaml]
+====
+----
+management:
+  endpoint:
+    restart:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: restart
+----
+====
+
 * `shutdown`: the Spring `ApplicationContext` is shut down to activate a restart of the container.
  When you use this level, make sure that the lifecycle of all non-daemon threads is bound to the `ApplicationContext`
 and that a replication controller or replica set is configured to restart the pod.
