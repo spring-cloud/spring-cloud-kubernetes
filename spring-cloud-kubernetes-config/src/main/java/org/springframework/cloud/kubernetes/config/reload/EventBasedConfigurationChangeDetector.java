@@ -18,6 +18,10 @@ package org.springframework.cloud.kubernetes.config.reload;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -34,6 +38,9 @@ import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocato
 import org.springframework.cloud.kubernetes.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.util.backoff.BackOff;
+import org.springframework.util.backoff.BackOffExecution;
+import org.springframework.util.backoff.ExponentialBackOff;
 
 /**
  * A change detector that subscribes to changes in secrets and configmaps and fire a
@@ -50,6 +57,12 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 
 	private Map<String, Watch> watches;
 
+	private BackOff backOff;
+
+	private Map<String, BackOffExecution> backOffExecutions;
+
+	private AtomicReference<ScheduledExecutorService> executorReference;
+
 	public EventBasedConfigurationChangeDetector(AbstractEnvironment environment,
 			ConfigReloadProperties properties, KubernetesClient kubernetesClient,
 			ConfigurationUpdateStrategy strategy,
@@ -60,6 +73,9 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 		this.configMapPropertySourceLocator = configMapPropertySourceLocator;
 		this.secretsPropertySourceLocator = secretsPropertySourceLocator;
 		this.watches = new ConcurrentHashMap<>();
+		this.backOff = new ExponentialBackOff();
+		this.backOffExecutions = new ConcurrentHashMap<>();
+		this.executorReference = new AtomicReference<>();
 	}
 
 	@PostConstruct
@@ -117,12 +133,20 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 				}
 			}
 		}
+		backOffExecutions.clear();
+		executorReference.updateAndGet(current -> {
+			if (current != null) {
+				current.shutdown();
+			}
+			return null;
+		});
 	}
 
 	private void watchConfigMap(final String name) {
 		Watcher<ConfigMap> watcher = new Watcher<ConfigMap>() {
 			@Override
 			public void eventReceived(Action action, ConfigMap configMap) {
+				backOffExecutions.remove(name);
 				onEvent(configMap);
 			}
 
@@ -132,7 +156,7 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 					if (log.isDebugEnabled()) {
 						log.warn("Try to re-watch: " + name, error);
 					}
-					watchConfigMap(name);
+					retry(name, () -> watchConfigMap(name));
 				}
 			}
 		};
@@ -143,6 +167,7 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 		Watcher<Secret> watcher = new Watcher<Secret>() {
 			@Override
 			public void eventReceived(Action action, Secret secret) {
+				backOffExecutions.remove(name);
 				onEvent(secret);
 			}
 
@@ -152,11 +177,33 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 					if (log.isDebugEnabled()) {
 						log.warn("Try to re-watch: " + name, error);
 					}
-					watchSecret(name);
+					retry(name, () -> watchSecret(name));
 				}
 			}
 		};
 		this.watches.put(name, this.kubernetesClient.secrets().watch(watcher));
+	}
+
+	private void retry(String backOffKey, Runnable task) {
+		BackOffExecution exec = backOffExecutions.computeIfAbsent(backOffKey,
+				key -> backOff.start());
+		long waitInterval = exec.nextBackOff();
+		if (waitInterval != BackOffExecution.STOP) {
+			ScheduledExecutorService service = getExecutorService();
+			service.schedule(task, waitInterval, TimeUnit.MILLISECONDS);
+		}
+		else {
+			this.log.error("Give up to re-watch: " + backOffKey);
+		}
+	}
+
+	private ScheduledExecutorService getExecutorService() {
+		return executorReference.updateAndGet(current -> {
+			if (current != null) {
+				return current;
+			}
+			return Executors.newSingleThreadScheduledExecutor();
+		});
 	}
 
 	private void onEvent(ConfigMap configMap) {
