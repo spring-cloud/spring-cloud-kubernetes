@@ -66,7 +66,7 @@ import static org.junit.Assert.fail;
  * @author Ryan Baxter
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ActuatorRefreshTests {
+public class ActuatorRefreshIT {
 
 	private static final String KIND_REPO_HOST_PORT = "localhost:5000";
 

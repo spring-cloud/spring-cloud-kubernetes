@@ -136,7 +136,7 @@ main() {
 	cd $CURRENT_DIR
 
     # TODO: invoke your tests here
-    ../../mvnw clean package
+    ../../mvnw clean install -P it
     # teardown will happen automatically on exit
 }
 
