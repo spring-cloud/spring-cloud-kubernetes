@@ -99,9 +99,8 @@ public abstract class ConfigurationChangeDetector {
 			List<? extends MapPropertySource> l2) {
 
 		if (l1.size() != l2.size()) {
-			this.log.warn(
-					"The current number of ConfigMap PropertySources does not match "
-							+ "the ones loaded from the Kubernetes - No reload will take place");
+			this.log.warn("The current number of ConfigMap PropertySources does not match "
+					+ "the ones loaded from the Kubernetes - No reload will take place");
 			return false;
 		}
 
