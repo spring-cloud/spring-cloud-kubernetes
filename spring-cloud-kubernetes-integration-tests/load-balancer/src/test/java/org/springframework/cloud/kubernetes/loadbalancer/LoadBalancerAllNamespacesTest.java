@@ -29,16 +29,20 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.cloud.kubernetes.discovery.all-namespaces=true" })
 @RunWith(SpringRunner.class)
 public class LoadBalancerAllNamespacesTest {
 
 	@Autowired
 	RestTemplate restTemplate;
+
+	@LocalServerPort
+	int randomServerPort;
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer(true, true);
@@ -72,13 +76,13 @@ public class LoadBalancerAllNamespacesTest {
 		client.services().inNamespace(namespace).createNew().withNewMetadata()
 				.withName(name).withNamespace(namespace).endMetadata()
 				.withSpec(new ServiceSpecBuilder().withPorts(new ServicePortBuilder()
-						.withProtocol("TCP").withPort(8080).build()).build())
+						.withProtocol("TCP").withPort(randomServerPort).build()).build())
 				.done();
 		client.endpoints().inNamespace(namespace).createNew().withNewMetadata()
 				.withName("service-a").withNamespace(namespace).endMetadata()
 				.addNewSubset().addNewAddress().withIp("localhost").endAddress()
-				.addNewPort().withName("http").withPort(8080).endPort().endSubset()
-				.done();
+				.addNewPort().withName("http").withPort(randomServerPort).endPort()
+				.endSubset().done();
 	}
 
 }
