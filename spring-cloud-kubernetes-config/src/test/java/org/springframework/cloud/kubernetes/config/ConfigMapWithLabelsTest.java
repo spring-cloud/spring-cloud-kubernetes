@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.config;
 
-import java.util.HashMap;
+import java.util.Collections;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -24,38 +24,27 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.springframework.context.ConfigurableApplicationContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Piotr Minkowski
  */
-public class ConfigMapWithVersioningTest {
-
-	private static final String APP_NAME = "versioning-test";
-	private ConfigurableApplicationContext context;
-
-	static {
-		System.setProperty("info.app.version", "1.0");
-		System.setProperty("spring.application.name", APP_NAME);
-		System.setProperty("spring.cloud.kubernetes.config.enableVersioning", "true");
-	}
+public class ConfigMapWithLabelsTest {
 
 	@Rule
 	public KubernetesServer server = new KubernetesServer(true, true);
 
 	@Test
-	public void testVersioning() {
-		String namespace = "app-props";
+	public void testLabels() {
+		final String namespace = "app-props";
 		ConfigMap map = new ConfigMapBuilder().withNewMetadata()
-			.withName("versioning-test-1").withNamespace(namespace)
-			.addToLabels("app", APP_NAME).addToLabels("version", "1.0").endMetadata()
+			.withName("labels-test").withNamespace(namespace)
+			.addToLabels("test", "123").endMetadata()
 			.addToData("KEY", "123").build();
 		server.getClient().configMaps().inNamespace(namespace).create(map);
 		ConfigMapPropertySource source = new ConfigMapPropertySource(
-			this.server.getClient().inNamespace(namespace), APP_NAME, namespace,
-			new String[] {}, true, new HashMap<>());
+			this.server.getClient().inNamespace(namespace), "labels-name", namespace,
+			new String[] {}, false, Collections.singletonMap("test", "123"));
 		assertThat(source.getProperty("KEY")).isEqualTo("123");
 	}
 

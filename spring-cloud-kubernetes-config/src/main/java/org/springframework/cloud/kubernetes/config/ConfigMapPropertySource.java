@@ -59,6 +59,8 @@ public class ConfigMapPropertySource extends MapPropertySource {
 
 	private static final String LABEL_VERSION = "version";
 
+	private static final String LABEL_APP = "app";
+
 	public ConfigMapPropertySource(KubernetesClient client, String name) {
 		this(client, name, null, (Environment) null, false, null);
 	}
@@ -99,6 +101,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
 			Map<String, Object> result = new LinkedHashMap<>();
 			if (enableVersioning && !labels.containsKey(LABEL_VERSION)) {
 				labels.put(LABEL_VERSION, environment.getProperty("info.app.version"));
+				labels.put(LABEL_APP, environment.getProperty("spring.application.name"));
 			}
 			ConfigMap map = null;
 			if (!labels.isEmpty()) {
