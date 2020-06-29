@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.config;
 
+import java.util.HashMap;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
@@ -52,7 +54,7 @@ public class ConfigMapWithVersioningTest {
 		server.getClient().configMaps().inNamespace(namespace).create(map);
 		ConfigMapPropertySource source = new ConfigMapPropertySource(
 			this.server.getClient().inNamespace(namespace), appName, namespace,
-			new String[] {}, true);
+			new String[] {}, true, new HashMap<>());
 		assertThat(source.getProperty("KEY")).isEqualTo("123");
 	}
 

@@ -59,16 +59,14 @@ public class ConfigMapPropertySource extends MapPropertySource {
 
 	private static final String LABEL_VERSION = "version";
 
-	private static final String LABEL_APP = "app";
-
 	public ConfigMapPropertySource(KubernetesClient client, String name) {
-		this(client, name, null, (Environment) null, false);
+		this(client, name, null, (Environment) null, false, null);
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
-			String[] profiles, boolean enableVersioning) {
+			String[] profiles, boolean enableVersioning, Map<String, String> labels) {
 		this(client, name, namespace, createEnvironmentWithActiveProfiles(profiles),
-				enableVersioning);
+				enableVersioning, labels);
 	}
 
 	private static Environment createEnvironmentWithActiveProfiles(
@@ -79,9 +77,9 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
-			Environment environment, boolean enableVersioning) {
+			Environment environment, boolean enableVersioning, Map<String, String> labels) {
 		super(getName(client, name, namespace), asObjectMap(
-				getData(client, name, namespace, environment, enableVersioning)));
+				getData(client, name, namespace, environment, enableVersioning, labels)));
 	}
 
 	private static String getName(KubernetesClient client, String name,
@@ -95,33 +93,22 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	private static Map<String, Object> getData(KubernetesClient client, String name,
-			String namespace, Environment environment, boolean enableVersioning) {
+			String namespace, Environment environment, boolean enableVersioning,
+			Map<String, String> labels) {
 		try {
 			Map<String, Object> result = new LinkedHashMap<>();
+			if (enableVersioning && !labels.containsKey(LABEL_VERSION)) {
+				labels.put(LABEL_VERSION, environment.getProperty("info.app.version"));
+			}
 			ConfigMap map = null;
-			if (enableVersioning) {
-				String version = environment.getProperty("info.app.version");
+			if (!labels.isEmpty()) {
 				Optional<ConfigMap> optMap = StringUtils.isEmpty(namespace)
 						? client.configMaps().list().getItems().stream()
-								.filter(configMap -> configMap.getMetadata().getLabels()
-										.containsKey(LABEL_APP)
-										&& configMap.getMetadata().getLabels()
-												.get(LABEL_APP).equals(name)
-										&& configMap.getMetadata().getLabels()
-												.containsKey(LABEL_VERSION)
-										&& configMap.getMetadata().getLabels()
-												.get(LABEL_VERSION).equals(version))
+								.filter(configMap -> matchLabels(configMap, labels))
 								.findFirst()
 						: client.configMaps().inNamespace(namespace).list().getItems()
 								.stream()
-								.filter(configMap -> configMap.getMetadata().getLabels()
-										.containsKey(LABEL_APP)
-										&& configMap.getMetadata().getLabels()
-												.get(LABEL_APP).equals(name)
-										&& configMap.getMetadata().getLabels()
-												.containsKey(LABEL_VERSION)
-										&& configMap.getMetadata().getLabels()
-												.get(LABEL_VERSION).equals(version))
+								.filter(configMap -> matchLabels(configMap, labels))
 								.findFirst();
 				if (optMap.isPresent()) {
 					map = optMap.get();
@@ -234,6 +221,12 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	private static Map<String, Object> asObjectMap(Map<String, Object> source) {
 		return source.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
 				Map.Entry::getValue, throwingMerger(), LinkedHashMap::new));
+	}
+
+	private static boolean matchLabels(ConfigMap configMap, Map<String, String> labels) {
+		final Map<String, String> configMapLabels = configMap.getMetadata().getLabels();
+		return labels.keySet().stream().noneMatch(labelKey -> !configMapLabels.containsKey(labelKey) ||
+			!configMapLabels.get(labelKey).equals(labels.get(labelKey)));
 	}
 
 }
