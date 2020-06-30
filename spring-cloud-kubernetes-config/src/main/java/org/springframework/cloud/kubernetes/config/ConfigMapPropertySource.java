@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.config;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -62,7 +63,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	private static final String LABEL_APP = "app";
 
 	public ConfigMapPropertySource(KubernetesClient client, String name) {
-		this(client, name, null, (Environment) null, false, null);
+		this(client, name, null, (Environment) null, false, new HashMap<>(0));
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
@@ -79,7 +80,8 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
-			Environment environment, boolean enableVersioning, Map<String, String> labels) {
+			Environment environment, boolean enableVersioning,
+			Map<String, String> labels) {
 		super(getName(client, name, namespace), asObjectMap(
 				getData(client, name, namespace, environment, enableVersioning, labels)));
 	}
@@ -100,8 +102,9 @@ public class ConfigMapPropertySource extends MapPropertySource {
 		try {
 			Map<String, Object> result = new LinkedHashMap<>();
 			if (enableVersioning && !labels.containsKey(LABEL_VERSION)) {
-				labels.put(LABEL_VERSION, environment.getProperty("info.app.version"));
-				labels.put(LABEL_APP, environment.getProperty("spring.application.name"));
+				labels.put(LABEL_VERSION, environment.getProperty(Constants.APP_VERSION));
+				labels.put(LABEL_APP, ConfigUtils.getApplicationName(environment, "",
+						ConfigMapConfigProperties.TARGET));
 			}
 			ConfigMap map = null;
 			if (!labels.isEmpty()) {
@@ -228,8 +231,9 @@ public class ConfigMapPropertySource extends MapPropertySource {
 
 	private static boolean matchLabels(ConfigMap configMap, Map<String, String> labels) {
 		final Map<String, String> configMapLabels = configMap.getMetadata().getLabels();
-		return labels.keySet().stream().noneMatch(labelKey -> !configMapLabels.containsKey(labelKey) ||
-			!configMapLabels.get(labelKey).equals(labels.get(labelKey)));
+		return labels.keySet().stream()
+				.noneMatch(labelKey -> !configMapLabels.containsKey(labelKey)
+						|| !configMapLabels.get(labelKey).equals(labels.get(labelKey)));
 	}
 
 }

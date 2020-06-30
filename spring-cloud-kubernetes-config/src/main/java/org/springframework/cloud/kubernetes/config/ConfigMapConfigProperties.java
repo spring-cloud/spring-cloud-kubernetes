@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
 @ConfigurationProperties("spring.cloud.kubernetes.config")
 public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
-	private static final String TARGET = "Config Map";
+	protected static final String TARGET = "Config Map";
 
 	private boolean enableApi = true;
 

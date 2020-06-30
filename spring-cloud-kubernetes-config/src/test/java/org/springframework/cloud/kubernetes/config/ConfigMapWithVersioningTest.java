@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ConfigMapWithVersioningTest {
 
 	private static final String APP_NAME = "versioning-test";
+
 	private ConfigurableApplicationContext context;
 
 	static {
@@ -49,13 +50,13 @@ public class ConfigMapWithVersioningTest {
 	public void testVersioning() {
 		String namespace = "app-props";
 		ConfigMap map = new ConfigMapBuilder().withNewMetadata()
-			.withName("versioning-test-1").withNamespace(namespace)
-			.addToLabels("app", APP_NAME).addToLabels("version", "1.0").endMetadata()
-			.addToData("KEY", "123").build();
+				.withName("versioning-test-1").withNamespace(namespace)
+				.addToLabels("app", APP_NAME).addToLabels("version", "1.0").endMetadata()
+				.addToData("KEY", "123").build();
 		server.getClient().configMaps().inNamespace(namespace).create(map);
 		ConfigMapPropertySource source = new ConfigMapPropertySource(
-			this.server.getClient().inNamespace(namespace), APP_NAME, namespace,
-			new String[] {}, true, new HashMap<>());
+				this.server.getClient().inNamespace(namespace), APP_NAME, namespace,
+				new String[] {}, true, new HashMap<>());
 		assertThat(source.getProperty("KEY")).isEqualTo("123");
 	}
 

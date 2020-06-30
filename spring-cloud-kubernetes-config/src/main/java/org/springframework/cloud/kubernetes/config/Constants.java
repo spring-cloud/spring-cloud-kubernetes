@@ -21,6 +21,7 @@ final class Constants {
 	static final String SPRING_APPLICATION_NAME = "spring.application.name";
 	static final String FALLBACK_APPLICATION_NAME = "application";
 	static final String PROPERTY_SOURCE_NAME_SEPARATOR = ".";
+	static final String APP_VERSION = "info.app.version";
 
 	private Constants() {
 	}

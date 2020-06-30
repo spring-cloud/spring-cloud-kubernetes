@@ -17,6 +17,8 @@
 package org.springframework.cloud.kubernetes.config;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -37,15 +39,31 @@ public class ConfigMapWithLabelsTest {
 	@Test
 	public void testLabels() {
 		final String namespace = "app-props";
-		ConfigMap map = new ConfigMapBuilder().withNewMetadata()
-			.withName("labels-test").withNamespace(namespace)
-			.addToLabels("test", "123").endMetadata()
-			.addToData("KEY", "123").build();
+		ConfigMap map = new ConfigMapBuilder().withNewMetadata().withName("labels-test")
+				.withNamespace(namespace).addToLabels("test", "123").endMetadata()
+				.addToData("KEY", "123").build();
 		server.getClient().configMaps().inNamespace(namespace).create(map);
 		ConfigMapPropertySource source = new ConfigMapPropertySource(
-			this.server.getClient().inNamespace(namespace), "labels-name", namespace,
-			new String[] {}, false, Collections.singletonMap("test", "123"));
+				this.server.getClient().inNamespace(namespace), "labels-name", namespace,
+				new String[] {}, false, Collections.singletonMap("test", "123"));
 		assertThat(source.getProperty("KEY")).isEqualTo("123");
+	}
+
+	@Test
+	public void testLabelsNotMatched() {
+		final String namespace = "app-props";
+		ConfigMap map = new ConfigMapBuilder().withNewMetadata()
+				.withName("labels-test-not-matched").withNamespace(namespace)
+				.addToLabels("testNotMatched", "123").endMetadata()
+				.addToData("KEY", "123").build();
+		server.getClient().configMaps().inNamespace(namespace).create(map);
+		Map<String, String> labels = new HashMap<>();
+		labels.put("testNotMatched", "123");
+		labels.put("testNotMatched2", "456");
+		ConfigMapPropertySource source = new ConfigMapPropertySource(
+				this.server.getClient().inNamespace(namespace), "labels-name", namespace,
+				new String[] {}, false, labels);
+		assertThat(source.getProperty("KEY")).isNull();
 	}
 
 }
