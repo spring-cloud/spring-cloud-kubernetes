@@ -57,6 +57,11 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	}
 
 	@Override
+	public String getInstanceId() {
+		return instanceId;
+	}
+
+	@Override
 	public String getHost() {
 		return host;
 	}
