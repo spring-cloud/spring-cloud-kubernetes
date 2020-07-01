@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -63,13 +62,13 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	private static final String LABEL_APP = "app";
 
 	public ConfigMapPropertySource(KubernetesClient client, String name) {
-		this(client, name, null, (Environment) null, false, new HashMap<>(0));
+		this(client, name, null, (Environment) null, new HashMap<>(0));
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
 			String[] profiles, boolean enableVersioning, Map<String, String> labels) {
 		this(client, name, namespace, createEnvironmentWithActiveProfiles(profiles),
-				enableVersioning, labels);
+				labels);
 	}
 
 	private static Environment createEnvironmentWithActiveProfiles(
@@ -80,10 +79,9 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
-			Environment environment, boolean enableVersioning,
-			Map<String, String> labels) {
-		super(getName(client, name, namespace), asObjectMap(
-				getData(client, name, namespace, environment, enableVersioning, labels)));
+			Environment environment, Map<String, String> labels) {
+		super(getName(client, name, namespace),
+				asObjectMap(getData(client, name, namespace, environment, labels)));
 	}
 
 	private static String getName(KubernetesClient client, String name,
@@ -97,37 +95,28 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	private static Map<String, Object> getData(KubernetesClient client, String name,
-			String namespace, Environment environment, boolean enableVersioning,
-			Map<String, String> labels) {
+			String namespace, Environment environment, Map<String, String> labels) {
 		try {
 			Map<String, Object> result = new LinkedHashMap<>();
-			if (enableVersioning && !labels.containsKey(LABEL_VERSION)) {
-				labels.put(LABEL_VERSION, environment.getProperty(Constants.APP_VERSION));
-				labels.put(LABEL_APP, ConfigUtils.getApplicationName(environment, "",
-						ConfigMapConfigProperties.TARGET));
-			}
-			ConfigMap map = null;
-			if (!labels.isEmpty()) {
-				Optional<ConfigMap> optMap = StringUtils.isEmpty(namespace)
-						? client.configMaps().list().getItems().stream()
-								.filter(configMap -> matchLabels(configMap, labels))
-								.findFirst()
-						: client.configMaps().inNamespace(namespace).list().getItems()
-								.stream()
-								.filter(configMap -> matchLabels(configMap, labels))
-								.findFirst();
-				if (optMap.isPresent()) {
-					map = optMap.get();
-				}
-			}
-			else {
-				map = StringUtils.isEmpty(namespace)
-						? client.configMaps().withName(name).get()
-						: client.configMaps().inNamespace(namespace).withName(name).get();
-			}
 
+			ConfigMap map = StringUtils.isEmpty(namespace)
+					? client.configMaps().withName(name).get()
+					: client.configMaps().inNamespace(namespace).withName(name).get();
 			if (map != null) {
 				result.putAll(processAllEntries(map.getData(), environment));
+			}
+
+			if (!labels.isEmpty()) {
+				if (StringUtils.isEmpty(namespace)) {
+					client.configMaps().withLabels(labels).list().getItems()
+							.forEach(cm -> result.putAll(
+									processAllEntries(cm.getData(), environment)));
+				}
+				else {
+					client.configMaps().inNamespace(namespace).withLabels(labels).list()
+							.getItems().forEach(cm -> result.putAll(
+									processAllEntries(cm.getData(), environment)));
+				}
 			}
 
 			if (environment != null) {
@@ -227,13 +216,6 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	private static Map<String, Object> asObjectMap(Map<String, Object> source) {
 		return source.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
 				Map.Entry::getValue, throwingMerger(), LinkedHashMap::new));
-	}
-
-	private static boolean matchLabels(ConfigMap configMap, Map<String, String> labels) {
-		final Map<String, String> configMapLabels = configMap.getMetadata().getLabels();
-		return labels.keySet().stream()
-				.noneMatch(labelKey -> !configMapLabels.containsKey(labelKey)
-						|| !configMapLabels.get(labelKey).equals(labels.get(labelKey)));
 	}
 
 }
