@@ -40,6 +40,9 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	private Map<String, String> metadata;
 
+	KubernetesServiceInstance() {
+	}
+
 	KubernetesServiceInstance(String serviceId, String instanceId, int port,
 			boolean secure, String host, URI uri, Map<String, String> metadata) {
 		this.serviceId = serviceId;

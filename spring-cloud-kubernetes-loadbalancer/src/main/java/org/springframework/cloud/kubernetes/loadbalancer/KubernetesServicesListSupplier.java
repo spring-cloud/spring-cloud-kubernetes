@@ -25,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.core.env.Environment;
@@ -38,12 +39,16 @@ public class KubernetesServicesListSupplier implements ServiceInstanceListSuppli
 
 	private KubernetesClient kubernetesClient;
 
+	private KubernetesDiscoveryProperties discoveryProperties;
+
 	private KubernetesServiceInstanceMapper mapper;
 
 	KubernetesServicesListSupplier(Environment environment,
-			KubernetesClient kubernetesClient, KubernetesServiceInstanceMapper mapper) {
+			KubernetesClient kubernetesClient, KubernetesServiceInstanceMapper mapper,
+			KubernetesDiscoveryProperties discoveryProperties) {
 		this.environment = environment;
 		this.kubernetesClient = kubernetesClient;
+		this.discoveryProperties = discoveryProperties;
 		this.mapper = mapper;
 	}
 
@@ -55,13 +60,21 @@ public class KubernetesServicesListSupplier implements ServiceInstanceListSuppli
 	@Override
 	public Flux<List<ServiceInstance>> get() {
 		List<ServiceInstance> result = new ArrayList<>();
-		Service service = StringUtils.isNotBlank(this.kubernetesClient.getNamespace())
-				? this.kubernetesClient
-						.services().inNamespace(this.kubernetesClient.getNamespace())
-						.withName(this.getServiceId()).get()
-				: this.kubernetesClient.services().withName(this.getServiceId()).get();
-		if (service != null) {
-			result.add(mapper.map(service));
+		if (discoveryProperties.isAllNamespaces()) {
+			List<Service> services = this.kubernetesClient.services().inAnyNamespace()
+					.withField("metadata.name", this.getServiceId()).list().getItems();
+			services.forEach(service -> result.add(mapper.map(service)));
+		}
+		else {
+			Service service = StringUtils.isNotBlank(this.kubernetesClient.getNamespace())
+					? this.kubernetesClient.services()
+							.inNamespace(this.kubernetesClient.getNamespace())
+							.withName(this.getServiceId()).get()
+					: this.kubernetesClient.services().withName(this.getServiceId())
+							.get();
+			if (service != null) {
+				result.add(mapper.map(service));
+			}
 		}
 		return Flux.just(result);
 	}

@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.loadbalancer;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
@@ -33,8 +34,10 @@ public class KubernetesClientConfiguration {
 	@ConditionalOnProperty(name = "spring.cloud.kubernetes.loadbalancer.mode",
 			havingValue = "SERVICE")
 	KubernetesServicesListSupplier kubernetesServicesListSupplier(Environment environment,
-			KubernetesClient kubernetesClient, KubernetesServiceInstanceMapper mapper) {
-		return new KubernetesServicesListSupplier(environment, kubernetesClient, mapper);
+			KubernetesClient kubernetesClient, KubernetesServiceInstanceMapper mapper,
+			KubernetesDiscoveryProperties discoveryProperties) {
+		return new KubernetesServicesListSupplier(environment, kubernetesClient, mapper,
+				discoveryProperties);
 	}
 
 }
