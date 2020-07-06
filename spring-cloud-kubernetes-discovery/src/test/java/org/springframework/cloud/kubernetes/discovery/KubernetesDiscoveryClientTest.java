@@ -97,6 +97,52 @@ public class KubernetesDiscoveryClientTest {
 				.andReturn(200, service).always();
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
+		properties.setAllNamespaces(true);
+
+		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+				properties, KubernetesClient::services,
+				new DefaultIsServicePortSecureResolver(properties));
+
+		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
+
+		assertThat(instances).hasSize(2);
+		assertThat(instances).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure())
+				.hasSize(1);
+		assertThat(instances).filteredOn(s -> s.getHost().equals("ip2") && !s.isSecure())
+				.hasSize(1);
+		assertThat(instances)
+				.filteredOn(s -> s.getServiceId().contains("endpoint")
+						&& ((KubernetesServiceInstance) s).getNamespace().equals("test"))
+				.hasSize(1);
+		assertThat(instances)
+				.filteredOn(s -> s.getServiceId().contains("endpoint")
+						&& ((KubernetesServiceInstance) s).getNamespace().equals("test2"))
+				.hasSize(1);
+		assertThat(instances).filteredOn(s -> s.getInstanceId().equals("uid1"))
+				.hasSize(1);
+		assertThat(instances).filteredOn(s -> s.getInstanceId().equals("uid2"))
+				.hasSize(1);
+	}
+
+	@Test
+	public void getInstancesShouldBeAbleToHandleEndpointsSingleAddress() {
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint")
+				.andReturn(200, new EndpointsBuilder().withNewMetadata()
+						.withName("endpoint").endMetadata().addNewSubset().addNewAddress()
+						.withIp("ip1").withNewTargetRef().withUid("uid1").endTargetRef()
+						.endAddress().addNewPort("http", 80, "TCP").endSubset().build())
+				.once();
+
+		mockServer.expect().get().withPath("/api/v1/services/endpoint")
+				.andReturn(200, new ServiceBuilder().withNewMetadata()
+						.withName("endpoint").withLabels(new HashMap<String, String>() {
+							{
+								put("l", "v");
+							}
+						}).endMetadata().build())
+				.always();
+
+		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		properties.setServiceLabels(labels);
 		properties.getMetadata().setAddLabels(false);
 		properties.getMetadata().setAddAnnotations(false);
