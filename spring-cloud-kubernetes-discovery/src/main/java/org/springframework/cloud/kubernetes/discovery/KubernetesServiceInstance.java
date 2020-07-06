@@ -28,6 +28,11 @@ import org.springframework.cloud.client.ServiceInstance;
  */
 public class KubernetesServiceInstance implements ServiceInstance {
 
+	/**
+	 * Key of the namespace metadata.
+	 */
+	public static final String NAMESPACE_METADATA_KEY = "k8s_namespace";
+
 	private static final String HTTP_PREFIX = "http";
 
 	private static final String HTTPS_PREFIX = "https";
@@ -113,6 +118,10 @@ public class KubernetesServiceInstance implements ServiceInstance {
 		sb.append(scheme).append(COLON).append(DSL).append(host).append(COLON)
 				.append(port);
 		return URI.create(sb.toString());
+	}
+
+	public String getNamespace() {
+		return this.metadata != null ? this.metadata.get(NAMESPACE_METADATA_KEY) : null;
 	}
 
 }

@@ -377,6 +377,14 @@ public class KubernetesDiscoveryClientTest {
 				.hasSize(1);
 		assertThat(instances).filteredOn(s -> s.getHost().equals("ip2") && !s.isSecure())
 				.hasSize(1);
+		assertThat(instances)
+				.filteredOn(s -> s.getServiceId().contains("endpoint")
+						&& ((KubernetesServiceInstance) s).getNamespace().equals("test"))
+				.hasSize(1);
+		assertThat(instances)
+				.filteredOn(s -> s.getServiceId().contains("endpoint")
+						&& ((KubernetesServiceInstance) s).getNamespace().equals("test2"))
+				.hasSize(1);
 		assertThat(instances).filteredOn(s -> s.getInstanceId().equals("60")).hasSize(1);
 		assertThat(instances).filteredOn(s -> s.getInstanceId().equals("70")).hasSize(1);
 	}
