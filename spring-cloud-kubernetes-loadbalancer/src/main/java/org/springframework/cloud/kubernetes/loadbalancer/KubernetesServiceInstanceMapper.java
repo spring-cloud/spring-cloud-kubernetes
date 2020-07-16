@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.client.utils.Utils;
 import org.apache.commons.lang.StringUtils;
 
 import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
 
 /**
  * @author Piotr Minkowski
@@ -70,10 +71,8 @@ public class KubernetesServiceInstanceMapper {
 		}
 		final String host = createHost(service);
 		final boolean secure = isSecure(service, port);
-		return new KubernetesServiceInstance(meta.getName(), meta.getUid(),
-				port.getPort(), secure, host,
-				createUri(secure ? "https" : "http", host, port.getPort()),
-				getServiceMetadata(service));
+		return new KubernetesServiceInstance(meta.getUid(), meta.getName(), host,
+				port.getPort(), getServiceMetadata(service), secure);
 	}
 
 	private Map<String, String> getServiceMetadata(Service service) {

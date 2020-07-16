@@ -31,11 +31,6 @@ import org.springframework.context.annotation.Configuration;
 public class KubernetesLoadBalancerAutoConfiguration {
 
 	@Bean
-	KubernetesLoadBalancerProperties properties() {
-		return new KubernetesLoadBalancerProperties();
-	}
-
-	@Bean
 	KubernetesServiceInstanceMapper mapper(KubernetesLoadBalancerProperties properties,
 			KubernetesDiscoveryProperties discoveryProperties) {
 		return new KubernetesServiceInstanceMapper(properties, discoveryProperties);
