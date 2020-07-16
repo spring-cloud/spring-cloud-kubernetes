@@ -79,19 +79,17 @@ public class RibbonTest {
 
 		// Configured
 		server.expect().get().withPath("/api/v1/namespaces/testns/endpoints/testapp")
-				.andReturn(200,
-						new EndpointsBuilder().withNewMetadata().withName("testapp-a")
-								.endMetadata().addNewSubset().addNewAddress()
-								.withIp(mockEndpointA.getMockServer().getHostName())
-								.endAddress()
-								.addNewPort("http",
-										mockEndpointA.getMockServer().getPort(), "http")
-								.endSubset().addNewSubset().addNewAddress()
-								.withIp(mockEndpointB.getMockServer().getHostName())
-								.endAddress()
-								.addNewPort("http",
-										mockEndpointB.getMockServer().getPort(), "http")
-								.endSubset().build())
+				.andReturn(200, new EndpointsBuilder().withNewMetadata()
+						.withName("testapp-a").endMetadata().addNewSubset()
+						.addNewAddress()
+						.withIp(mockEndpointA.getMockServer().getHostName()).endAddress()
+						.addNewPort("http", "http_tcp",
+								mockEndpointA.getMockServer().getPort(), "http")
+						.endSubset().addNewSubset().addNewAddress()
+						.withIp(mockEndpointB.getMockServer().getHostName()).endAddress()
+						.addNewPort("http", "http_tcp",
+								mockEndpointB.getMockServer().getPort(), "http")
+						.endSubset().build())
 				.always();
 
 		mockEndpointA.expect().get().withPath("/greeting").andReturn(200, "Hello from A")

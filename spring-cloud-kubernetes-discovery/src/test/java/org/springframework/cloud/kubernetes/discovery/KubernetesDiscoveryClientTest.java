@@ -69,8 +69,8 @@ public class KubernetesDiscoveryClientTest {
 		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint")
 				.withNamespace("test").withLabels(labels).endMetadata().addNewSubset()
 				.addNewAddress().withIp("ip1").withNewTargetRef().withUid("10")
-				.endTargetRef().endAddress().addNewPort("http", 80, "TCP").endSubset()
-				.build();
+				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
+				.endSubset().build();
 
 		List<Endpoints> endpointsList = new ArrayList<>();
 		endpointsList.add(endPoint);
@@ -121,8 +121,8 @@ public class KubernetesDiscoveryClientTest {
 				.withName("endpoint").withNamespace("test").withLabels(labels)
 				.endMetadata().addNewSubset().addNewAddress().withIp("ip1")
 				.withNewTargetRef().withUid("20").endTargetRef().endAddress()
-				.addNewPort("mgmt", 900, "TCP").addNewPort("http", 80, "TCP").endSubset()
-				.build();
+				.addNewPort("mgmt", "mgmt_tcp", 900, "TCP")
+				.addNewPort("http", "http_tcp", 80, "TCP").endSubset().build();
 
 		List<Endpoints> endpointsList = new ArrayList<>();
 		endpointsList.add(endPoint1);
@@ -146,7 +146,7 @@ public class KubernetesDiscoveryClientTest {
 				.andReturn(200, service).always();
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
-		properties.setPrimaryPortName("http");
+		properties.setPrimaryPortName("http_tcp");
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				properties, KubernetesClient::services,
@@ -168,8 +168,8 @@ public class KubernetesDiscoveryClientTest {
 		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint")
 				.withNamespace("test").withLabels(labels).endMetadata().addNewSubset()
 				.addNewAddress().withIp("ip1").withNewTargetRef().withUid("30")
-				.endTargetRef().endAddress().addNewPort("http", 80, "TCP").endSubset()
-				.build();
+				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
+				.endSubset().build();
 
 		List<Endpoints> endpointsList = new ArrayList<>();
 		endpointsList.add(endPoint);
@@ -204,7 +204,7 @@ public class KubernetesDiscoveryClientTest {
 				.addNewAddress().withIp("ip1").withNewTargetRef().withUid("40")
 				.endTargetRef().endAddress().addNewAddress().withIp("ip2")
 				.withNewTargetRef().withUid("50").endTargetRef().endAddress()
-				.addNewPort("https", 443, "TCP").endSubset().build();
+				.addNewPort("https", "https_tcp", 443, "TCP").endSubset().build();
 
 		List<Endpoints> endpointsList = new ArrayList<>();
 		endpointsList.add(endPoint);
@@ -306,14 +306,14 @@ public class KubernetesDiscoveryClientTest {
 		Endpoints endPoints1 = new EndpointsBuilder().withNewMetadata()
 				.withName("endpoint").withNamespace("test").endMetadata().addNewSubset()
 				.addNewAddress().withIp("ip1").withNewTargetRef().withUid("60")
-				.endTargetRef().endAddress().addNewPort("http", 80, "TCP").endSubset()
-				.build();
+				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
+				.endSubset().build();
 
 		Endpoints endpoints2 = new EndpointsBuilder().withNewMetadata()
 				.withName("endpoint").withNamespace("test2").endMetadata().addNewSubset()
 				.addNewAddress().withIp("ip2").withNewTargetRef().withUid("70")
-				.endTargetRef().endAddress().addNewPort("http", 80, "TCP").endSubset()
-				.build();
+				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
+				.endSubset().build();
 
 		List<Endpoints> endpointsList = new ArrayList<>();
 		endpointsList.add(endPoints1);
