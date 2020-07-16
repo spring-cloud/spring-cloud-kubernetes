@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.discovery;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,13 +101,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		Assert.notNull(serviceId,
 				"[Assertion failed] - the object argument must not be null");
 
-		List<Endpoints> endpointsList = this.properties.isAllNamespaces()
-				? this.client.endpoints().inAnyNamespace()
-						.withField("metadata.name", serviceId).list().getItems()
-				: Collections
-						.singletonList(this.client.endpoints().withName(serviceId).get());
-
-		List<EndpointSubsetNS> subsetsNS = endpointsList.stream()
+		List<EndpointSubsetNS> subsetsNS = this.getEndPointsList(serviceId).stream()
 				.map(endpoints -> getSubsetsFromEndpoints(endpoints))
 				.collect(Collectors.toList());
 
@@ -120,6 +113,15 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		}
 
 		return instances;
+	}
+
+	public List<Endpoints> getEndPointsList(String serviceId) {
+		return this.properties.isAllNamespaces()
+				? this.client.endpoints().inAnyNamespace()
+						.withField("metadata.name", serviceId)
+						.withLabels(properties.getServiceLabels()).list().getItems()
+				: this.client.endpoints().withField("metadata.name", serviceId)
+						.withLabels(properties.getServiceLabels()).list().getItems();
 	}
 
 	private List<ServiceInstance> getNamespaceServiceInstances(EndpointSubsetNS es,
