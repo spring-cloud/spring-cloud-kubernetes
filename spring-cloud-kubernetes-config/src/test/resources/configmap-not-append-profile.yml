@@ -1,0 +1,14 @@
+---
+spring:
+  application:
+    name: configmap-not-append-profile
+  cloud:
+    kubernetes:
+      reload:
+        enabled: false
+      config:
+        sources:
+          - name: without-profile
+            append-profile: false
+          - name: with-profile
+            append-profile: true

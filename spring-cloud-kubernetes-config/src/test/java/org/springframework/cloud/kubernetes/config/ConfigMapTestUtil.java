@@ -20,7 +20,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Map;
 
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.fabric8.kubernetes.client.utils.IOHelpers;
 
 final class ConfigMapTestUtil {
@@ -42,6 +45,17 @@ final class ConfigMapTestUtil {
 
 	static void createFileWithContent(String file, String content) throws IOException {
 		Files.write(Paths.get(file), content.getBytes(), StandardOpenOption.CREATE);
+	}
+
+	static void createConfigmap(KubernetesServer server, String configMapName,
+			String namespace, Map<String, String> data) {
+
+		server.expect()
+				.withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace,
+						configMapName))
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
+						.withName(configMapName).endMetadata().addToData(data).build())
+				.always();
 	}
 
 }

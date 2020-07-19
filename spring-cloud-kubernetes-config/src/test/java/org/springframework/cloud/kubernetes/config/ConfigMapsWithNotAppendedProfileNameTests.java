@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,21 +29,23 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.config.example2.ExampleApp;
+import org.springframework.cloud.kubernetes.config.example.App;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.createConfigmap;
 
 /**
- * @author Charles Moulliard
+ * @author Andrey Shlykov
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = ExampleApp.class,
-		properties = { "spring.cloud.bootstrap.name=multiplecms" })
+		classes = App.class,
+		properties = { "spring.cloud.bootstrap.name=configmap-not-append-profile" })
+@ActiveProfiles("production")
 @AutoConfigureWebTestClient
-public class MultipleConfigMapsTests {
+public class ConfigMapsWithNotAppendedProfileNameTests {
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
@@ -67,54 +69,45 @@ public class MultipleConfigMapsTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		createConfigmap(server, "s1", "defnamespace", new HashMap<String, String>() {
+		createConfigmap(server, "without-profile", "test", new HashMap<String, String>() {
 			{
-				put("bean.common-message", "c1");
-				put("bean.message1", "m1");
+				put("bean.greeting", "Hello ConfigMap Without Profile Name, %s!");
 			}
 		});
 
-		createConfigmap(server, "defname", "s2", new HashMap<String, String>() {
-			{
-				put("bean.common-message", "c2");
-				put("bean.message2", "m2");
-			}
-		});
-
-		createConfigmap(server, "othername", "othernamespace",
+		createConfigmap(server, "without-profile-production", "test",
 				new HashMap<String, String>() {
 					{
-						put("bean.common-message", "c3");
-						put("bean.message3", "m3");
+						put("bean.greeting", "Hello ConfigMap With Profile Name, %s!");
+					}
+				});
+
+		createConfigmap(server, "with-profile", "test", new HashMap<String, String>() {
+			{
+				put("bean.farewell", "Goodbye ConfigMap Without Profile Name, %s!");
+			}
+		});
+
+		createConfigmap(server, "with-profile-production", "test",
+				new HashMap<String, String>() {
+					{
+						put("bean.farewell", "Goodbye ConfigMap With Profile Name, %s!");
 					}
 				});
 	}
 
-	// the last confimap defined in 'multiplecms.yml' has the highest priority, so
-	// the common property defined in all configmaps is taken from the last one defined
 	@Test
-	public void testCommonMessage() {
-		assertResponse("/common", "c3");
+	public void testGreetingEndpoint() {
+		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
+				.expectBody().jsonPath("content")
+				.isEqualTo("Hello ConfigMap Without Profile Name, World!");
 	}
 
 	@Test
-	public void testMessage1() {
-		assertResponse("/m1", "m1");
-	}
-
-	@Test
-	public void testMessage2() {
-		assertResponse("/m2", "m2");
-	}
-
-	@Test
-	public void testMessage3() {
-		assertResponse("/m3", "m3");
-	}
-
-	private void assertResponse(String path, String expectedMessage) {
-		this.webClient.get().uri(path).exchange().expectStatus().isOk().expectBody()
-				.jsonPath("message").isEqualTo(expectedMessage);
+	public void testFarewellEndpoint() {
+		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk()
+				.expectBody().jsonPath("content")
+				.isEqualTo("Goodbye ConfigMap With Profile Name, World!");
 	}
 
 }
