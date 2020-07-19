@@ -47,6 +47,7 @@ import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.ya
  * @author Ioannis Canellos
  * @author Ali Shahbour
  * @author Michael Moudatsos
+ * @author Andrey Shlykov
  */
 public class ConfigMapPropertySource extends MapPropertySource {
 
@@ -103,9 +104,11 @@ public class ConfigMapPropertySource extends MapPropertySource {
 		final String name = configMapSource.getName();
 		final String namespace = configMapSource.getNamespace();
 		try {
-			Stream<String> stream = environment != null ? Arrays
-					.stream(environment.getActiveProfiles()).map(profile -> "-" + profile)
-					: Stream.empty();
+			Stream<String> stream = environment != null
+					&& configMapSource.isAppendProfile()
+							? Arrays.stream(environment.getActiveProfiles())
+									.map(profile -> "-" + profile)
+							: Stream.empty();
 
 			return Stream.concat(Stream.of(""), stream)
 					.map(suffix -> processAllEntries(

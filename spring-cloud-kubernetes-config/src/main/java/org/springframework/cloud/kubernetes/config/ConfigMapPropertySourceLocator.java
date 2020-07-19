@@ -87,14 +87,13 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 	}
 
 	private MapPropertySource getMapPropertySourceForSingleConfigMap(
-			ConfigurableEnvironment environment, NormalizedSource normalizedSource) {
-
+			ConfigurableEnvironment environment, NormalizedSource source) {
 		String configurationTarget = this.properties.getConfigurationTarget();
-		normalizedSource = new NormalizedSource(
-				getApplicationName(environment, normalizedSource.getName(),
+		NormalizedSource normalizedSource = new NormalizedSource(
+				getApplicationName(environment, source.getName(), configurationTarget),
+				getApplicationNamespace(this.client, source.getNamespace(),
 						configurationTarget),
-				getApplicationNamespace(this.client, normalizedSource.getNamespace(),
-						configurationTarget));
+				source.isAppendProfile());
 		return new ConfigMapPropertySource(this.client, normalizedSource, environment);
 	}
 

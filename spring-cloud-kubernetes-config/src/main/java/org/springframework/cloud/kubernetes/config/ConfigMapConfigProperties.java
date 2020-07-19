@@ -28,6 +28,7 @@ import org.springframework.util.StringUtils;
  * Config map configuration properties.
  *
  * @author Ioannis Canellos
+ * @author Andrey Shlykov
  */
 @ConfigurationProperties("spring.cloud.kubernetes.config")
 public class ConfigMapConfigProperties extends AbstractConfigProperties {
@@ -106,6 +107,11 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		 */
 		private String namespace;
 
+		/**
+		 * Enable or disable appending a profile name to the ConfigMap name.
+		 */
+		private boolean appendProfile = true;
+
 		public Source() {
 		}
 
@@ -130,6 +136,14 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			this.namespace = namespace;
 		}
 
+		boolean isAppendProfile() {
+			return this.appendProfile;
+		}
+
+		void setAppendProfile(boolean appendProfile) {
+			this.appendProfile = appendProfile;
+		}
+
 		public boolean isEmpty() {
 			return StringUtils.isEmpty(this.name) && StringUtils.isEmpty(this.namespace);
 		}
@@ -140,7 +154,8 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			final String normalizedNamespace = StringUtils.isEmpty(this.namespace)
 					? defaultNamespace : this.namespace;
 
-			return new NormalizedSource(normalizedName, normalizedNamespace);
+			return new NormalizedSource(normalizedName, normalizedNamespace,
+					this.appendProfile);
 		}
 
 	}
@@ -151,9 +166,16 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		private final String namespace;
 
+		private final boolean appendProfile;
+
 		NormalizedSource(String name, String namespace) {
+			this(name, namespace, true);
+		}
+
+		NormalizedSource(String name, String namespace, boolean appendProfile) {
 			this.name = name;
 			this.namespace = namespace;
+			this.appendProfile = appendProfile;
 		}
 
 		public String getName() {
@@ -162,6 +184,10 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		public String getNamespace() {
 			return this.namespace;
+		}
+
+		boolean isAppendProfile() {
+			return this.appendProfile;
 		}
 
 	}
