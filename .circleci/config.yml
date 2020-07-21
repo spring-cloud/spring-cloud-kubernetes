@@ -14,12 +14,11 @@
 # limitations under the License.
 #
 
-version: 2
+orbs:
+  kube-orb: circleci/kubernetes@0.11.0
+version: 2.1
 jobs:
   build:
-    branches:
-      ignore:
-        - gh-pages
     machine: true
     environment:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
@@ -52,6 +51,12 @@ jobs:
           command: |
             sudo apt update
             sudo apt install snapd
+      - kube-orb/install-kubectl
+      - run:
+          name: Run Kind Integration Tests
+          command: |
+            cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-configuration-watcher-it
+            ./run.sh
       - run:
           name: Launch Kubernetes with microk8s
           command: |
