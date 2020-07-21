@@ -94,7 +94,7 @@ public class HttpBasedConfigurationWatchChangeDetector
 	}
 
 	private URI getActuatorUri(ServiceInstance si) {
-		String metadataUri = si.getMetadata().getOrDefault("boot.spring.io/actuator", "");
+		String metadataUri = si.getMetadata().getOrDefault(ANNOTATION_KEY, "");
 		if (log.isDebugEnabled()) {
 			log.debug("Metadata actuator uri is: " + metadataUri);
 		}
@@ -143,52 +143,6 @@ public class HttpBasedConfigurationWatchChangeDetector
 							});
 					return response;
 				});
-
-		// kubernetesDiscoveryClient.getInstances(objectMeta.getName()).stream()
-		// .forEach(si -> {
-		// URI actuatorUri = getActuatorUri(si);
-		// if (log.isDebugEnabled()) {
-		// log.debug("Sending refresh request for " + objectMeta.getName()
-		// + " to URI " + actuatorUri.toString());
-		// }
-		// webClient.post().uri(actuatorUri).retrieve().toBodilessEntity()
-		// .doOnSuccess(re -> {
-		// if (log.isDebugEnabled()) {
-		// log.debug("Refresh sent to " + objectMeta.getName()
-		// + " at URI address " + actuatorUri
-		// + " returned a "
-		// + re.getStatusCode().toString());
-		// }
-		// }).doOnError(t -> {
-		// log.warn("Refresh sent to " + objectMeta.getName()
-		// + " failed", t);
-		// }).subscribe();
-		// });
-		// List<Pod> pods = k8sClient.pods().list().getItems();
-		// log.debug("Total pods: " + pods.size());
-		// Stream<Pod> podStream = k8sClient.pods().list().getItems().stream()
-		// .filter(p -> objectMeta.getName().equalsIgnoreCase(
-		// p.getMetadata().getLabels().computeIfAbsent("app", (s) -> "")));
-		// podStream.forEach(pod -> {
-		// if (log.isDebugEnabled()) {
-		// log.debug("Sending refresh request for " + pod.getMetadata().getName()
-		// + " to IP " + pod.getStatus().getPodIP());
-		// }
-		// webClient.post()
-		// .uri("http://" + pod.getStatus().getPodIP()
-		// //TODO we need to get this information
-		// + ":8080/actuator/bus-refresh")
-		// .retrieve().toBodilessEntity().doOnSuccess(re -> {
-		// if (log.isDebugEnabled()) {
-		// log.debug("Refresh sent to " + pod.getMetadata().getName()
-		// + " at IP address " + pod.getStatus().getPodIP()
-		// + " returned a " + re.getStatusCode().toString());
-		// }
-		// }).doOnError(t -> {
-		// log.warn("Refresh sent to " + pod.getMetadata().getName()
-		// + "failed", t);
-		// }).subscribe();
-		// });
 	}
 
 	@Override
