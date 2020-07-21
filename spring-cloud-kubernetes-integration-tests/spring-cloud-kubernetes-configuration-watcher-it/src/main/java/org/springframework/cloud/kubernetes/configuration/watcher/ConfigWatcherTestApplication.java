@@ -16,14 +16,40 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
-public class ConfigWatcherTestApplication {
+@RestController
+public class ConfigWatcherTestApplication
+		implements ApplicationListener<RefreshRemoteApplicationEvent> {
+
+	protected Log log = LogFactory.getLog(getClass());
+
+	private boolean value = false;
 
 	public static void main(String[] args) {
 		SpringApplication.run(ConfigWatcherTestApplication.class, args);
+	}
+
+	@GetMapping("/")
+	public boolean index() {
+		log.warn("Current value: " + value);
+		return value;
+	}
+
+	@Override
+	public void onApplicationEvent(
+			RefreshRemoteApplicationEvent refreshRemoteApplicationEvent) {
+		log.warn("Received remote refresh event");
+		this.value = true;
 	}
 
 }

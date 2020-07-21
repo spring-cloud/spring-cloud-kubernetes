@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: it-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /it(/|$)(.*)
+            backend:
+              serviceName: spring-cloud-kubernetes-configuration-watcher-it
+              servicePort: 8080
