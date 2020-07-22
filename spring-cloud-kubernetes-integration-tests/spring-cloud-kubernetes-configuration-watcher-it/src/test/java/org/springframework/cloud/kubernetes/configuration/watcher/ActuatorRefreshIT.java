@@ -65,7 +65,7 @@ public class ActuatorRefreshIT {
 
 	private static final String IMAGE_TAG = "2.0.0-SNAPSHOT";
 
-	private static final String LOCAL_REPO = "docker.io/spring-cloud";
+	private static final String LOCAL_REPO = "docker.io/springcloud";
 
 	private static final String LOCAL_IMAGE = LOCAL_REPO + "/" + IMAGE + ":" + IMAGE_TAG;
 

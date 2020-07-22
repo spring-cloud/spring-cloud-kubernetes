@@ -4,7 +4,7 @@ metadata:
   name: spring-cloud-kubernetes-configuration-watcher
 build:
   artifacts:
-  - image: spring-cloud/spring-cloud-kubernetes-configuration-watcher
+  - image: springcloud/spring-cloud-kubernetes-configuration-watcher
     custom:
       buildCommand: "../../mvnw clean install"
       dependencies:

@@ -102,7 +102,7 @@
 				</property>
 			</activation>
 			<properties>
-				<env.IMAGE>spring-cloud/${project.artifactId}:${project.version}</env.IMAGE>
+				<env.IMAGE>springcloud/${project.artifactId}:${project.version}</env.IMAGE>
 			</properties>
 		</profile>
 		<profile>
