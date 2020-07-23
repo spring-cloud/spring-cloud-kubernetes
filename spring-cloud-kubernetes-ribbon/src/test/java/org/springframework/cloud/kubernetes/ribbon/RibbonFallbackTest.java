@@ -100,7 +100,7 @@ public class RibbonFallbackTest {
 				.addNewAddress()
 					.withIp(mockServer.getHostName())
 				.endAddress()
-				.addNewPort("http", mockServer.getPort(), "http")
+				.addNewPort("http", "http_tcp",mockServer.getPort(), "http")
 				.endSubset()
 			.build();
 		// @formatter:on
