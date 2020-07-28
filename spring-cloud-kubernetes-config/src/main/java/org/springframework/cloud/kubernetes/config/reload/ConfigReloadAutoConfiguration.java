@@ -48,7 +48,8 @@ import org.springframework.util.Assert;
  * @author Nicolla Ferraro
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
+@ConditionalOnProperty(name = "spring.cloud.kubernetes.config.enabled",
+		havingValue = "true")
 @ConditionalOnClass(EndpointAutoConfiguration.class)
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class,
 		RefreshEndpointAutoConfiguration.class, RefreshAutoConfiguration.class })
@@ -59,7 +60,8 @@ public class ConfigReloadAutoConfiguration {
 	/**
 	 * Configuration reload must be enabled explicitly.
 	 */
-	@ConditionalOnProperty("spring.cloud.kubernetes.reload.enabled")
+	@ConditionalOnProperty(name = "spring.cloud.kubernetes.reload.enabled",
+			havingValue = "true")
 	@ConditionalOnClass({ RestartEndpoint.class, ContextRefresher.class })
 	@EnableScheduling
 	@EnableAsync
