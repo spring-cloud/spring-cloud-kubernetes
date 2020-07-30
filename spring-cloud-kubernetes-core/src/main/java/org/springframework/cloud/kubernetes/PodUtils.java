@@ -29,7 +29,7 @@ public interface PodUtils {
 
 	/**
 	 * @return A supplier of the currentPod {@link Pod}. The supplier will hold the
-	 * currentPod {@Pod} if inside Kubernetes or false, otherwise.
+	 * currentPod {@link Pod} if inside Kubernetes or false, otherwise.
 	 */
 	Supplier<Pod> currentPod();
 
