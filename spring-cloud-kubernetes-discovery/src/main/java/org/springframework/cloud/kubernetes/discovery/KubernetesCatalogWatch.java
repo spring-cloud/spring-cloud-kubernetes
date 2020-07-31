@@ -71,8 +71,10 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 			// not all pods participate in the service discovery. only those that have
 			// endpoints.
 			List<Endpoints> endpoints = this.properties.isAllNamespaces()
-					? this.kubernetesClient.endpoints().inAnyNamespace().list().getItems()
-					: this.kubernetesClient.endpoints().list().getItems();
+					? this.kubernetesClient.endpoints().inAnyNamespace()
+							.withLabels(properties.getServiceLabels()).list().getItems()
+					: this.kubernetesClient.endpoints()
+							.withLabels(properties.getServiceLabels()).list().getItems();
 			List<String> endpointsPodNames = endpoints.stream().map(Endpoints::getSubsets)
 					.filter(Objects::nonNull).flatMap(Collection::stream)
 					.map(EndpointSubset::getAddresses).filter(Objects::nonNull)

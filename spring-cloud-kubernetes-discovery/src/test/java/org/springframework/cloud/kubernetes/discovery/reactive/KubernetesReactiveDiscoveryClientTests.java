@@ -160,8 +160,8 @@ class KubernetesReactiveDiscoveryClientTests {
 		Endpoints endPoints = new EndpointsBuilder().withNewMetadata()
 				.withName("endpoint").withNamespace("test").endMetadata().addNewSubset()
 				.addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
-				.endTargetRef().endAddress().addNewPort("http", 80, "TCP").endSubset()
-				.build();
+				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
+				.endSubset().build();
 
 		kubernetesServer.expect().get()
 				.withPath("/api/v1/namespaces/test/endpoints/existing-service")
@@ -204,8 +204,8 @@ class KubernetesReactiveDiscoveryClientTests {
 		Endpoints endPoints = new EndpointsBuilder().withNewMetadata()
 				.withName("endpoint").withNamespace("test").endMetadata().addNewSubset()
 				.addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
-				.endTargetRef().endAddress().addNewPort("http", 80, "TCP").endSubset()
-				.build();
+				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
+				.endSubset().build();
 
 		kubernetesServer.expect().get()
 				.withPath("/api/v1/namespaces/test/endpoints/existing-service")
@@ -251,8 +251,8 @@ class KubernetesReactiveDiscoveryClientTests {
 		Endpoints endPoints = new EndpointsBuilder().withNewMetadata()
 				.withName("endpoint").withNamespace("test").endMetadata().addNewSubset()
 				.addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
-				.endTargetRef().endAddress().addNewPort("http", 80, "TCP")
-				.addNewPort("https", 443, "TCP").endSubset().build();
+				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
+				.addNewPort("https", "https_tcp", 443, "TCP").endSubset().build();
 
 		kubernetesServer.expect().get()
 				.withPath("/api/v1/namespaces/test/endpoints/existing-service")
@@ -296,8 +296,8 @@ class KubernetesReactiveDiscoveryClientTests {
 		Endpoints endpoints = new EndpointsBuilder().withNewMetadata()
 				.withName("endpoint").withNamespace("test").endMetadata().addNewSubset()
 				.addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
-				.endTargetRef().endAddress().addNewPort("http", 80, "TCP")
-				.addNewPort("https", 443, "TCP").endSubset().build();
+				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
+				.addNewPort("https", "https_tcp", 443, "TCP").endSubset().build();
 
 		EndpointsList endpointsList = new EndpointsList();
 		endpointsList.setItems(singletonList(endpoints));

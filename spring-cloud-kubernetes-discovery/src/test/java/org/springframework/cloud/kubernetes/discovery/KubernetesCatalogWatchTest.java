@@ -44,6 +44,7 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,6 +54,9 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class KubernetesCatalogWatchTest {
+
+	@Mock
+	private KubernetesDiscoveryProperties properties;
 
 	@Mock
 	private KubernetesClient kubernetesClient;
@@ -84,7 +88,31 @@ public class KubernetesCatalogWatchTest {
 						createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
 				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod",
 						"api-pod"));
+		when(this.properties.isAllNamespaces()).thenReturn(false);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().withLabels(anyMap()))
+				.thenReturn(this.endpointsOperation);
+
+		this.underTest.catalogServicesWatch();
+		// second execution on shuffleServices
+		this.underTest.catalogServicesWatch();
+
+		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+	}
+
+	@Test
+	public void testRandomOrderChangePodsAllNamespaces() throws Exception {
+		when(this.endpointsOperation.list())
+				.thenReturn(
+						createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
+				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod",
+						"api-pod"));
+		when(this.properties.isAllNamespaces()).thenReturn(true);
+		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().inAnyNamespace())
+				.thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
+				.thenReturn(this.endpointsOperation);
 
 		this.underTest.catalogServicesWatch();
 		// second execution on shuffleServices
@@ -100,7 +128,31 @@ public class KubernetesCatalogWatchTest {
 						createEndpointsListByServiceName("api-service", "other-service"))
 				.thenReturn(
 						createEndpointsListByServiceName("other-service", "api-service"));
+		when(this.properties.isAllNamespaces()).thenReturn(false);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().withLabels(anyMap()))
+				.thenReturn(this.endpointsOperation);
+
+		this.underTest.catalogServicesWatch();
+		// second execution on shuffleServices
+		this.underTest.catalogServicesWatch();
+
+		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+	}
+
+	@Test
+	public void testRandomOrderChangeServicesAllNamespaces() throws Exception {
+		when(this.endpointsOperation.list())
+				.thenReturn(
+						createEndpointsListByServiceName("api-service", "other-service"))
+				.thenReturn(
+						createEndpointsListByServiceName("other-service", "api-service"));
+		when(this.properties.isAllNamespaces()).thenReturn(true);
+		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().inAnyNamespace())
+				.thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
+				.thenReturn(this.endpointsOperation);
 
 		this.underTest.catalogServicesWatch();
 		// second execution on shuffleServices
@@ -113,7 +165,33 @@ public class KubernetesCatalogWatchTest {
 	public void testEventBody() throws Exception {
 		when(this.endpointsOperation.list()).thenReturn(
 				createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
+		when(this.properties.isAllNamespaces()).thenReturn(false);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().withLabels(anyMap()))
+				.thenReturn(this.endpointsOperation);
+
+		this.underTest.catalogServicesWatch();
+
+		verify(this.applicationEventPublisher)
+				.publishEvent(this.heartbeatEventArgumentCaptor.capture());
+
+		HeartbeatEvent event = this.heartbeatEventArgumentCaptor.getValue();
+		assertThat(event.getValue()).isInstanceOf(List.class);
+
+		List<String> expectedPodsList = Arrays.asList("api-pod", "other-pod");
+		assertThat(event.getValue()).isEqualTo(expectedPodsList);
+	}
+
+	@Test
+	public void testEventBodyAllNamespaces() throws Exception {
+		when(this.endpointsOperation.list()).thenReturn(
+				createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
+		when(this.properties.isAllNamespaces()).thenReturn(true);
+		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().inAnyNamespace())
+				.thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
+				.thenReturn(this.endpointsOperation);
 
 		this.underTest.catalogServicesWatch();
 
@@ -132,8 +210,31 @@ public class KubernetesCatalogWatchTest {
 
 		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets();
 
+		when(this.properties.isAllNamespaces()).thenReturn(false);
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().withLabels(anyMap()))
+				.thenReturn(this.endpointsOperation);
+
+		this.underTest.catalogServicesWatch();
+		// second execution on shuffleServices
+		this.underTest.catalogServicesWatch();
+
+		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+	}
+
+	@Test
+	public void testEndpointsWithoutSubsetsAllNamespaces() {
+
+		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets();
+
+		when(this.properties.isAllNamespaces()).thenReturn(true);
+		when(this.endpointsOperation.list()).thenReturn(endpoints);
+		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().inAnyNamespace())
+				.thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
+				.thenReturn(this.endpointsOperation);
 
 		this.underTest.catalogServicesWatch();
 		// second execution on shuffleServices
@@ -148,8 +249,32 @@ public class KubernetesCatalogWatchTest {
 		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
 		endpoints.getItems().get(0).getSubsets().get(0).setAddresses(null);
 
+		when(this.properties.isAllNamespaces()).thenReturn(false);
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().withLabels(anyMap()))
+				.thenReturn(this.endpointsOperation);
+
+		this.underTest.catalogServicesWatch();
+		// second execution on shuffleServices
+		this.underTest.catalogServicesWatch();
+
+		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+	}
+
+	@Test
+	public void testEndpointsWithoutAddressesAllNamespaces() {
+
+		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
+		endpoints.getItems().get(0).getSubsets().get(0).setAddresses(null);
+
+		when(this.properties.isAllNamespaces()).thenReturn(true);
+		when(this.endpointsOperation.list()).thenReturn(endpoints);
+		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().inAnyNamespace())
+				.thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
+				.thenReturn(this.endpointsOperation);
 
 		this.underTest.catalogServicesWatch();
 		// second execution on shuffleServices
@@ -165,8 +290,33 @@ public class KubernetesCatalogWatchTest {
 		endpoints.getItems().get(0).getSubsets().get(0).getAddresses().get(0)
 				.setTargetRef(null);
 
+		when(this.properties.isAllNamespaces()).thenReturn(false);
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().withLabels(anyMap()))
+				.thenReturn(this.endpointsOperation);
+
+		this.underTest.catalogServicesWatch();
+		// second execution on shuffleServices
+		this.underTest.catalogServicesWatch();
+
+		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+	}
+
+	@Test
+	public void testEndpointsWithoutTargetRefsAllNamespaces() {
+
+		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
+		endpoints.getItems().get(0).getSubsets().get(0).getAddresses().get(0)
+				.setTargetRef(null);
+
+		when(this.properties.isAllNamespaces()).thenReturn(true);
+		when(this.endpointsOperation.list()).thenReturn(endpoints);
+		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().inAnyNamespace())
+				.thenReturn(this.endpointsOperation);
+		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
+				.thenReturn(this.endpointsOperation);
 
 		this.underTest.catalogServicesWatch();
 		// second execution on shuffleServices
