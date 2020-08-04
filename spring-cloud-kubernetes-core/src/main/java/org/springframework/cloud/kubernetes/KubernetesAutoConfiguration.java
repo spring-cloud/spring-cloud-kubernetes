@@ -16,15 +16,12 @@
 
 package org.springframework.cloud.kubernetes;
 
-import java.time.Duration;
-
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -32,6 +29,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.time.Duration;
 
 /**
  * Auto configuration for Kubernetes.
@@ -130,7 +129,7 @@ public class KubernetesAutoConfiguration {
 						base.getHttpsProxy()))
 				.withProxyUsername(or(kubernetesClientProperties.getProxyUsername(),
 						base.getProxyUsername()))
-				.withPassword(or(kubernetesClientProperties.getProxyPassword(),
+				.withProxyPassword(or(kubernetesClientProperties.getProxyPassword(),
 						base.getProxyPassword()))
 				.withNoProxy(
 						or(kubernetesClientProperties.getNoProxy(), base.getNoProxy()))
