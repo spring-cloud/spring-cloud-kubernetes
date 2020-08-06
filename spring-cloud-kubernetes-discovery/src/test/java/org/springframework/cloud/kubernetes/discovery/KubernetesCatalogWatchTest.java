@@ -88,7 +88,6 @@ public class KubernetesCatalogWatchTest {
 						createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
 				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod",
 						"api-pod"));
-		when(this.properties.isAllNamespaces()).thenReturn(false);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 		when(this.kubernetesClient.endpoints().withLabels(anyMap()))
 				.thenReturn(this.endpointsOperation);
@@ -128,7 +127,6 @@ public class KubernetesCatalogWatchTest {
 						createEndpointsListByServiceName("api-service", "other-service"))
 				.thenReturn(
 						createEndpointsListByServiceName("other-service", "api-service"));
-		when(this.properties.isAllNamespaces()).thenReturn(false);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 		when(this.kubernetesClient.endpoints().withLabels(anyMap()))
 				.thenReturn(this.endpointsOperation);
@@ -147,7 +145,6 @@ public class KubernetesCatalogWatchTest {
 						createEndpointsListByServiceName("api-service", "other-service"))
 				.thenReturn(
 						createEndpointsListByServiceName("other-service", "api-service"));
-		when(this.properties.isAllNamespaces()).thenReturn(true);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 		when(this.kubernetesClient.endpoints().inAnyNamespace())
 				.thenReturn(this.endpointsOperation);
@@ -186,7 +183,6 @@ public class KubernetesCatalogWatchTest {
 	public void testEventBodyAllNamespaces() throws Exception {
 		when(this.endpointsOperation.list()).thenReturn(
 				createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
-		when(this.properties.isAllNamespaces()).thenReturn(true);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 		when(this.kubernetesClient.endpoints().inAnyNamespace())
 				.thenReturn(this.endpointsOperation);
@@ -268,7 +264,6 @@ public class KubernetesCatalogWatchTest {
 		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
 		endpoints.getItems().get(0).getSubsets().get(0).setAddresses(null);
 
-		when(this.properties.isAllNamespaces()).thenReturn(true);
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 		when(this.kubernetesClient.endpoints().inAnyNamespace())
@@ -310,7 +305,6 @@ public class KubernetesCatalogWatchTest {
 		endpoints.getItems().get(0).getSubsets().get(0).getAddresses().get(0)
 				.setTargetRef(null);
 
-		when(this.properties.isAllNamespaces()).thenReturn(true);
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 		when(this.kubernetesClient.endpoints().inAnyNamespace())
