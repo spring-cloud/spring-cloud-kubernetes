@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import reactor.core.publisher.Flux;
@@ -112,6 +113,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	}
 
 	@Test
+	@Disabled // see gh-603
 	public void shouldReturnEmptyFluxForNonExistingService(
 			@Client KubernetesClient kubernetesClient) {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
@@ -122,6 +124,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	}
 
 	@Test
+	@Disabled // see gh-603
 	public void shouldReturnEmptyFluxWhenServiceHasNoSubsets(
 			@Client KubernetesClient kubernetesClient,
 			@Server KubernetesServer kubernetesServer) {
@@ -144,6 +147,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	}
 
 	@Test
+	@Disabled // see gh-603
 	public void shouldReturnFlux(@Client KubernetesClient kubernetesClient,
 			@Server KubernetesServer kubernetesServer) {
 		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
@@ -187,6 +191,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	}
 
 	@Test
+	@Disabled // see gh-603
 	public void shouldReturnFluxWithPrefixedMetadata(
 			@Client KubernetesClient kubernetesClient,
 			@Server KubernetesServer kubernetesServer) {
@@ -234,6 +239,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	}
 
 	@Test
+	@Disabled // see gh-603
 	public void shouldReturnFluxWhenServiceHasMultiplePortsAndPrimaryPortNameIsSet(
 			@Client KubernetesClient kubernetesClient,
 			@Server KubernetesServer kubernetesServer) {
