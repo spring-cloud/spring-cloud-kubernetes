@@ -221,7 +221,6 @@ public class KubernetesCatalogWatchTest {
 
 		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets();
 
-		when(this.properties.isAllNamespaces()).thenReturn(true);
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 		when(this.kubernetesClient.endpoints().inAnyNamespace())
@@ -242,7 +241,6 @@ public class KubernetesCatalogWatchTest {
 		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
 		endpoints.getItems().get(0).getSubsets().get(0).setAddresses(null);
 
-		when(this.properties.isAllNamespaces()).thenReturn(false);
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 		when(this.kubernetesClient.endpoints().withLabels(anyMap()))
