@@ -162,7 +162,6 @@ public class KubernetesCatalogWatchTest {
 	public void testEventBody() throws Exception {
 		when(this.endpointsOperation.list()).thenReturn(
 				createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
-		when(this.properties.isAllNamespaces()).thenReturn(false);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 		when(this.kubernetesClient.endpoints().withLabels(anyMap()))
 				.thenReturn(this.endpointsOperation);
@@ -206,7 +205,6 @@ public class KubernetesCatalogWatchTest {
 
 		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets();
 
-		when(this.properties.isAllNamespaces()).thenReturn(false);
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 		when(this.kubernetesClient.endpoints().withLabels(anyMap()))
@@ -285,7 +283,6 @@ public class KubernetesCatalogWatchTest {
 		endpoints.getItems().get(0).getSubsets().get(0).getAddresses().get(0)
 				.setTargetRef(null);
 
-		when(this.properties.isAllNamespaces()).thenReturn(false);
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 		when(this.kubernetesClient.endpoints().withLabels(anyMap()))
