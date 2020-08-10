@@ -106,7 +106,6 @@ public class KubernetesCatalogWatchTest {
 						createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
 				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod",
 						"api-pod"));
-		when(this.properties.isAllNamespaces()).thenReturn(true);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 		when(this.kubernetesClient.endpoints().inAnyNamespace())
 				.thenReturn(this.endpointsOperation);
