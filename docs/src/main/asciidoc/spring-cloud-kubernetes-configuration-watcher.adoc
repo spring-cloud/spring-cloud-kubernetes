@@ -11,7 +11,7 @@ actuator endpoint `/refresh` or via publishing a `RefreshRemoteApplicationEvent`
 To achieve this configuration refresh of a Spring Cloud app running on Kubernetes, you can deploy the Spring Cloud
 Kubernetes Configuration Watcher controller into your Kubernetes cluster.
 
-The application is published as a container and is available on Docker Hub.
+The application is published as a container and is available on https://hub.docker.com/repository/docker/springcloud/spring-cloud-kubernetes-configuration-watcher[Docker Hub].
 
 Spring Cloud Kubernetes Configuration Watcher can send refresh notifications to applications in two ways.
 
