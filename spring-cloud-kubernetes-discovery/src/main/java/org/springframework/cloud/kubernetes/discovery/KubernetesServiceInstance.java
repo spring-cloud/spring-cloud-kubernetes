@@ -34,7 +34,7 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	/**
 	 * Key of the namespace metadata.
 	 */
-	public static final String NAMESPACE_METADAT_KEY = "k8s_namespace";
+	public static final String NAMESPACE_METADATA_KEY = "k8s_namespace";
 
 	private static final String HTTP_PREFIX = "http";
 
@@ -124,7 +124,7 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	}
 
 	public String getNamespace() {
-		return this.metadata != null ? this.metadata.get(NAMESPACE_METADAT_KEY) : null;
+		return this.metadata != null ? this.metadata.get(NAMESPACE_METADATA_KEY) : null;
 	}
 
 }
