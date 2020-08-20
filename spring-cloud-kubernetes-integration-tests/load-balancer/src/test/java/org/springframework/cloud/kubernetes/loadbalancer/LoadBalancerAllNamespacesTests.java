@@ -33,9 +33,10 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		properties = { "spring.cloud.kubernetes.discovery.all-namespaces=true" })
 @RunWith(SpringRunner.class)
-public class LoadBalancerTest {
+public class LoadBalancerAllNamespacesTests {
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -63,31 +64,25 @@ public class LoadBalancerTest {
 	}
 
 	@Test
-	public void testLoadBalancerSameNamespace() {
-		createTestData("service-a", "test");
-		String response = restTemplate.getForObject("http://service-a/greeting",
+	public void testLoadBalancerDifferentNamespace() {
+		createTestData("service-b", "b");
+		String response = restTemplate.getForObject("http://service-b/greeting",
 				String.class);
 		Assertions.assertNotNull(response);
 		Assertions.assertEquals("greeting", response);
 	}
 
-	@Test
-	public void testLoadBalancerDifferentNamespace() {
-		createTestData("service-b", "b");
-		Assertions.assertThrows(IllegalStateException.class, () -> restTemplate
-				.getForObject("http://service-b/greeting", String.class));
-	}
-
 	private void createTestData(String name, String namespace) {
 		client.services().inNamespace(namespace).createNew().withNewMetadata()
-				.withName(name).endMetadata()
+				.withName(name).withNamespace(namespace).endMetadata()
 				.withSpec(new ServiceSpecBuilder().withPorts(new ServicePortBuilder()
 						.withProtocol("TCP").withPort(randomServerPort).build()).build())
 				.done();
 		client.endpoints().inNamespace(namespace).createNew().withNewMetadata()
-				.withName("service-a").endMetadata().addNewSubset().addNewAddress()
-				.withIp("localhost").endAddress().addNewPort().withName("http")
-				.withPort(randomServerPort).endPort().endSubset().done();
+				.withName("service-a").withNamespace(namespace).endMetadata()
+				.addNewSubset().addNewAddress().withIp("localhost").endAddress()
+				.addNewPort().withName("http").withPort(randomServerPort).endPort()
+				.endSubset().done();
 	}
 
 }

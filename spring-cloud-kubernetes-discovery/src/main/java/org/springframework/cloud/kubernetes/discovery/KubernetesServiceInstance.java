@@ -36,38 +36,28 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	private static final String COLON = ":";
 
-	private String instanceId;
+	private final String instanceId;
 
-	private String serviceId;
+	private final String serviceId;
 
-	private String host;
+	private final String host;
 
-	private int port;
+	private final int port;
 
-	private URI uri;
+	private final URI uri;
 
-	private Boolean secure;
+	private final Boolean secure;
 
-	private Map<String, String> metadata;
+	private final Map<String, String> metadata;
 
 	/**
+	 * @param instanceId the id of the instance.
 	 * @param serviceId the id of the service.
 	 * @param host the address where the service instance can be found.
 	 * @param port the port on which the service is running.
 	 * @param metadata a map containing metadata.
 	 * @param secure indicates whether or not the connection needs to be secure.
-	 * @deprecated - use other constructor
 	 */
-	@Deprecated
-	public KubernetesServiceInstance(String serviceId, String host, int port,
-			Map<String, String> metadata, Boolean secure) {
-		this(null, serviceId, host, port, metadata, secure);
-	}
-
-	public KubernetesServiceInstance() {
-
-	}
-
 	public KubernetesServiceInstance(String instanceId, String serviceId, String host,
 			int port, Map<String, String> metadata, Boolean secure) {
 		this.instanceId = instanceId;

@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.loadbalancer;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,13 +126,6 @@ public class KubernetesServiceInstanceMapper {
 				StringUtils.isNotBlank(service.getMetadata().getNamespace())
 						? service.getMetadata().getNamespace() : "default",
 				properties.getClusterDomain());
-	}
-
-	private URI createUri(String scheme, String host, int port) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(scheme).append(COLON).append(DSL).append(host).append(COLON)
-				.append(port);
-		return URI.create(sb.toString());
 	}
 
 }

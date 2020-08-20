@@ -44,7 +44,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class KubernetesServiceListSupplierTest {
+public class KubernetesServiceListSupplierTests {
 
 	@Mock
 	Environment environment;
@@ -71,7 +71,8 @@ public class KubernetesServiceListSupplierTest {
 	void testPositiveMatch() {
 		when(environment.getProperty("loadbalancer.client.name"))
 				.thenReturn("test-service");
-		when(mapper.map(any(Service.class))).thenReturn(new KubernetesServiceInstance());
+		when(mapper.map(any(Service.class)))
+				.thenReturn(new KubernetesServiceInstance("", "", "", 0, null, false));
 		when(this.client.getNamespace()).thenReturn("test");
 		when(this.client.services()).thenReturn(this.serviceOperation);
 		when(this.serviceOperation.inNamespace("test")).thenReturn(namespaceOperation);
@@ -89,7 +90,8 @@ public class KubernetesServiceListSupplierTest {
 	void testPositiveMatchAllNamespaces() {
 		when(environment.getProperty("loadbalancer.client.name"))
 				.thenReturn("test-service");
-		when(mapper.map(any(Service.class))).thenReturn(new KubernetesServiceInstance());
+		when(mapper.map(any(Service.class)))
+				.thenReturn(new KubernetesServiceInstance("", "", "", 0, null, false));
 		when(this.client.services()).thenReturn(this.serviceOperation);
 		when(this.serviceOperation.inAnyNamespace()).thenReturn(this.multiDeletable);
 		when(this.multiDeletable.withField("metadata.name", "test-service"))

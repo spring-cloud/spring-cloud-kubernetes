@@ -25,13 +25,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class KubernetesLoadBalancerProperties {
 
 	/**
-	 * Ribbon enabled,default true.
+	 * Load balancer enabled,default true.
 	 */
 	private Boolean enabled = true;
 
 	/**
-	 * {@link KubernetesLoadBalancerMode} setting ribbon server list with ip of pod or
-	 * service name. default value is POD.
+	 * {@link KubernetesLoadBalancerMode} setting load balancer server list with ip of pod
+	 * or service name. default value is POD.
 	 */
 	private KubernetesLoadBalancerMode mode = KubernetesLoadBalancerMode.POD;
 

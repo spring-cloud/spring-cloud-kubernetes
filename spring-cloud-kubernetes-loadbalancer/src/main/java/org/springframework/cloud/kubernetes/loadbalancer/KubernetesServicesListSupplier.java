@@ -35,13 +35,13 @@ import org.springframework.core.env.Environment;
  */
 public class KubernetesServicesListSupplier implements ServiceInstanceListSupplier {
 
-	private Environment environment;
+	private final Environment environment;
 
-	private KubernetesClient kubernetesClient;
+	private final KubernetesClient kubernetesClient;
 
-	private KubernetesDiscoveryProperties discoveryProperties;
+	private final KubernetesDiscoveryProperties discoveryProperties;
 
-	private KubernetesServiceInstanceMapper mapper;
+	private final KubernetesServiceInstanceMapper mapper;
 
 	KubernetesServicesListSupplier(Environment environment,
 			KubernetesClient kubernetesClient, KubernetesServiceInstanceMapper mapper,

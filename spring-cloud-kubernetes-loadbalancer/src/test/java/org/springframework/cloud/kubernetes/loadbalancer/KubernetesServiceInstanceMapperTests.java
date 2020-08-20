@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
 
-public class KubernetesServiceInstanceMapperTest {
+public class KubernetesServiceInstanceMapperTests {
 
 	@Test
 	public void testMapperSimple() {
