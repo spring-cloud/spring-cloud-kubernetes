@@ -26,11 +26,11 @@ import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Gytis Trikleris
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class PodReadinessWatcherTest {
 
 	private static final String POD_NAME = "test-pod";
@@ -70,18 +70,15 @@ public class PodReadinessWatcherTest {
 
 	private PodReadinessWatcher watcher;
 
-	@Before
+	@BeforeEach
 	public void before() {
 		this.watcher = new PodReadinessWatcher(POD_NAME, this.mockKubernetesClient,
 				this.mockLeadershipController);
-
-		given(this.mockKubernetesClient.pods()).willReturn(this.mockPodsOperation);
-		given(this.mockPodsOperation.withName(POD_NAME)).willReturn(this.mockPodResource);
-		given(this.mockPodResource.watch(this.watcher)).willReturn(this.mockWatch);
 	}
 
 	@Test
 	public void shouldStartOnce() {
+		initStubs();
 		this.watcher.start();
 		this.watcher.start();
 
@@ -90,6 +87,7 @@ public class PodReadinessWatcherTest {
 
 	@Test
 	public void shouldStopOnce() {
+		initStubs();
 		this.watcher.start();
 		this.watcher.stop();
 		this.watcher.stop();
@@ -99,6 +97,7 @@ public class PodReadinessWatcherTest {
 
 	@Test
 	public void shouldHandleEventWithStateChange() {
+		initStubs();
 		given(this.mockPodResource.isReady()).willReturn(true);
 		given(this.mockPod.getStatus()).willReturn(this.mockPodStatus);
 
@@ -110,6 +109,7 @@ public class PodReadinessWatcherTest {
 
 	@Test
 	public void shouldIgnoreEventIfStateDoesNotChange() {
+		initStubs();
 		given(this.mockPod.getStatus()).willReturn(this.mockPodStatus);
 
 		this.watcher.start();
@@ -120,6 +120,7 @@ public class PodReadinessWatcherTest {
 
 	@Test
 	public void shouldHandleClose() {
+		initStubs();
 		this.watcher.onClose(this.mockKubernetesClientException);
 
 		verify(this.mockPodResource).watch(this.watcher);
@@ -130,6 +131,12 @@ public class PodReadinessWatcherTest {
 		this.watcher.onClose(null);
 
 		verify(this.mockPodResource, times(0)).watch(this.watcher);
+	}
+
+	private void initStubs() {
+		given(this.mockKubernetesClient.pods()).willReturn(this.mockPodsOperation);
+		given(this.mockPodsOperation.withName(POD_NAME)).willReturn(this.mockPodResource);
+		given(this.mockPodResource.watch(this.watcher)).willReturn(this.mockWatch);
 	}
 
 }

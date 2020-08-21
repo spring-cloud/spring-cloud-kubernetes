@@ -1,0 +1,9 @@
+apiVersion: v1
+data:
+  application.properties: |-
+    # Set the refresh interval to 0 so the refresh event gets sent immediately
+    spring.cloud.kubernetes.configuration.watcher.refreshDelay=0
+    logging.level.org.springframework.cloud.kubernetes=TRACE
+kind: ConfigMap
+metadata:
+  name: spring-cloud-kubernetes-configuration-watcher

@@ -18,11 +18,11 @@ package org.springframework.cloud.kubernetes.leader;
 
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.integration.leader.Candidate;
 
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Gytis Trikleris
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LeaderContextTest {
 
 	@Mock
@@ -47,7 +47,7 @@ public class LeaderContextTest {
 
 	private LeaderContext leaderContext;
 
-	@Before
+	@BeforeEach
 	public void before() {
 		this.leaderContext = new LeaderContext(this.mockCandidate,
 				this.mockLeadershipController);
