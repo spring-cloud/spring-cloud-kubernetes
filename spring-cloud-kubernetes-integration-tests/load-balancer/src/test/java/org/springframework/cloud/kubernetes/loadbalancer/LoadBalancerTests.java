@@ -20,21 +20,18 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Assertions;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@RunWith(SpringRunner.class)
+@EnableKubernetesMockClient(https = true, crud = true)
 public class LoadBalancerTests {
 
 	@Autowired
@@ -43,15 +40,13 @@ public class LoadBalancerTests {
 	@LocalServerPort
 	int randomServerPort;
 
-	@ClassRule
-	public static KubernetesServer server = new KubernetesServer(true, true);
+	// @ClassRule
+	// public static KubernetesServer server = new KubernetesServer(true, true);
 
-	private static KubernetesClient client;
+	static KubernetesClient client;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setup() {
-		client = server.getClient();
-
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
 				client.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
