@@ -466,6 +466,10 @@ https://github.com/fabric8-quickstarts/spring-boot-camel-config[spring-boot-came
 
 === `PropertySource` Reload
 
+WARNING:  This functionality has been deprecated in the 2020.0 release.  Please see
+the <<spring-cloud-kubernetes-configuration-watcher>> controller for an alternative way
+to achieve the same functionality.
+
 Some applications may need to detect changes on external property sources and update their internal status to reflect the new configuration.
 The reload feature of Spring Cloud Kubernetes is able to trigger an application reload when a related `ConfigMap` or
 `Secret` changes.

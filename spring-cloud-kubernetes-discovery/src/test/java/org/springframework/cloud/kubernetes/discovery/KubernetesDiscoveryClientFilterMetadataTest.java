@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,9 @@ import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.Watch;
+import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
@@ -49,7 +53,9 @@ import org.springframework.cloud.client.ServiceInstance;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -78,6 +84,9 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 
 	@Mock
 	private Resource<Endpoints, DoneableEndpoints> endpointsResource;
+
+	@Mock
+	FilterWatchListDeletable<Endpoints, EndpointsList, Boolean, Watch, Watcher<Endpoints>> filter;
 
 	@InjectMocks
 	private KubernetesDiscoveryClient underTest;
@@ -360,10 +369,16 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 				.addNewSubset().addAllToPorts(getEndpointPorts(ports)).addNewAddress()
 				.endAddress().endSubset().build();
 
-		when(this.endpointsResource.get()).thenReturn(endpoints);
-		when(this.endpointsOperation.withName(serviceId))
-				.thenReturn(this.endpointsResource);
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
+
+		EndpointsList endpointsList = new EndpointsList(null,
+				Collections.singletonList(endpoints), null, null);
+		when(filter.list()).thenReturn(endpointsList);
+		when(filter.withLabels(anyMap())).thenReturn(filter);
+
+		when(this.kubernetesClient.endpoints().withField(eq("metadata.name"),
+				eq(serviceId))).thenReturn(filter);
+
 	}
 
 	private List<ServicePort> getServicePorts(Map<Integer, String> ports) {

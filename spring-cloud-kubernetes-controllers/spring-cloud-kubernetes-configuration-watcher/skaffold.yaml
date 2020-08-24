@@ -1,0 +1,20 @@
+apiVersion: skaffold/v2alpha3
+kind: Config
+metadata:
+  name: spring-cloud-kubernetes-configuration-watcher
+build:
+  artifacts:
+  - image: springcloud/spring-cloud-kubernetes-configuration-watcher
+    custom:
+      buildCommand: "../../mvnw clean install"
+      dependencies:
+        paths:
+          - src
+          - pom.xml
+#    jib: {
+#           args: ["-Pjib"]
+#    }
+deploy:
+  kubectl:
+    manifests:
+    - k8s/deployment.yaml

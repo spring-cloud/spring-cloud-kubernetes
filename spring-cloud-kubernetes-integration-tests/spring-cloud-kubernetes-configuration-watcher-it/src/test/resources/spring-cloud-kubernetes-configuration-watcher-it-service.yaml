@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: spring-cloud-kubernetes-configuration-watcher-it
+  name: spring-cloud-kubernetes-configuration-watcher-it
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: spring-cloud-kubernetes-configuration-watcher-it
+  type: ClusterIP

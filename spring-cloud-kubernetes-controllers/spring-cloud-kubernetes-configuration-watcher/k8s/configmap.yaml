@@ -1,0 +1,21 @@
+apiVersion: v1
+data:
+  application.yaml: |-
+    spring:
+      rabbitmq:
+        username: rbaxter
+        password: password
+    logging:
+      level:
+        org:
+          springframework:
+            cloud:
+              kubernetes: TRACE
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: "*"
+kind: ConfigMap
+metadata:
+  name: spring-cloud-kubernetes-configuration-watcher

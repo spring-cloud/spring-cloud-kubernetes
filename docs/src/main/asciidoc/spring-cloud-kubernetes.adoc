@@ -26,6 +26,8 @@ include::security-service-accounts.adoc[]
 
 include::service-registry.adoc[]
 
+include::spring-cloud-kubernetes-configuration-watcher.adoc[]
+
 include::examples.adoc[]
 
 include::other-resources.adoc[]
