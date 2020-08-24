@@ -332,4 +332,51 @@ class KubernetesReactiveDiscoveryClientTests {
 		StepVerifier.create(instances).expectNextCount(1).expectComplete().verify();
 	}
 
+	@Test
+	public void shouldReturnFluxOfServicesWithoutPortsAcrossAllNamespaces(
+		@Client KubernetesClient kubernetesClient,
+		@Server KubernetesServer kubernetesServer) {
+		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
+			.andReturn(200,
+				new ServiceListBuilder().addNewItem().withNewMetadata()
+					.withName("existing-service")
+					.withLabels(new HashMap<String, String>() {
+						{
+							put("label", "value");
+						}
+					}).endMetadata().endItem().build())
+			.once();
+
+		Endpoints endpoints = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint").withNamespace("test").endMetadata().addNewSubset()
+			.addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
+			.endTargetRef().endAddress().endSubset().build();
+
+		EndpointsList endpointsList = new EndpointsList();
+		endpointsList.setItems(singletonList(endpoints));
+
+		kubernetesServer.expect().get().withPath(
+			"/api/v1/endpoints?fieldSelector=metadata.name%3Dexisting-service")
+			.andReturn(200, endpointsList).once();
+
+		kubernetesServer.expect().get()
+			.withPath("/api/v1/namespaces/test/services/existing-service")
+			.andReturn(200,
+				new ServiceBuilder().withNewMetadata()
+					.withName("existing-service")
+					.withLabels(new HashMap<String, String>() {
+						{
+							put("label", "value");
+						}
+					}).endMetadata().build())
+			.once();
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
+		properties.setAllNamespaces(true);
+		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(
+			kubernetesClient, properties, KubernetesClient::services);
+		Flux<ServiceInstance> instances = client.getInstances("existing-service");
+		StepVerifier.create(instances).expectNextCount(1).expectComplete().verify();
+	}
+
 }
