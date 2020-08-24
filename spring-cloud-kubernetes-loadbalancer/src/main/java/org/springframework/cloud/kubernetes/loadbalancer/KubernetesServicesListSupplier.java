@@ -76,7 +76,7 @@ public class KubernetesServicesListSupplier implements ServiceInstanceListSuppli
 				result.add(mapper.map(service));
 			}
 		}
-		return Flux.just(result);
+		return Flux.defer(() -> Flux.just(result));
 	}
 
 }

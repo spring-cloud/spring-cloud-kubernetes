@@ -97,6 +97,7 @@
 		<module>spring-cloud-kubernetes-integration-tests</module>
 		<module>docs</module>
 		<module>spring-cloud-kubernetes-loadbalancer</module>
+		<module>spring-cloud-starter-kubernetes-loadbalancer</module>
 	</modules>
 
 	<dependencyManagement>

@@ -35,10 +35,6 @@ import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
  */
 public class KubernetesServiceInstanceMapper {
 
-	private static final String DSL = "//";
-
-	private static final String COLON = ":";
-
 	private final KubernetesLoadBalancerProperties properties;
 
 	private final KubernetesDiscoveryProperties discoveryProperties;

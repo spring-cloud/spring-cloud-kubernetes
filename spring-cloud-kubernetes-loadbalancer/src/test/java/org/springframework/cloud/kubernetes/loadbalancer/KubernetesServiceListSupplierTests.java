@@ -110,7 +110,7 @@ public class KubernetesServiceListSupplierTests {
 
 	private Service buildService(String name, int port) {
 		return new ServiceBuilder().withNewMetadata().withName(name).endMetadata()
-				.withNewSpec().addNewPort().withPort(8080).endPort().endSpec().build();
+				.withNewSpec().addNewPort().withPort(port).endPort().endSpec().build();
 	}
 
 }

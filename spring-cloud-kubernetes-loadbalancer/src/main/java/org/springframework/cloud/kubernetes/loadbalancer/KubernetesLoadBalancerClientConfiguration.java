@@ -28,7 +28,7 @@ import org.springframework.core.env.Environment;
  *
  * @author Piotr Minkowski
  */
-public class KubernetesClientConfiguration {
+public class KubernetesLoadBalancerClientConfiguration {
 
 	@Bean
 	@ConditionalOnProperty(name = "spring.cloud.kubernetes.loadbalancer.mode",

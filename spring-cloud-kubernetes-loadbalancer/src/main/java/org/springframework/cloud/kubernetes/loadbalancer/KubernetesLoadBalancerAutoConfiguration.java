@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.loadbalancer;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClients;
@@ -25,9 +26,10 @@ import org.springframework.context.annotation.Configuration;
 /**
  * @author Piotr Minkowski
  */
-@Configuration
-@EnableConfigurationProperties
-@LoadBalancerClients(defaultConfiguration = KubernetesClientConfiguration.class)
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(KubernetesLoadBalancerProperties.class)
+@ConditionalOnProperty("spring.cloud.kubernetes.loadbalancer.enabled")
+@LoadBalancerClients(defaultConfiguration = KubernetesLoadBalancerClientConfiguration.class)
 public class KubernetesLoadBalancerAutoConfiguration {
 
 	@Bean
