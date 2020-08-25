@@ -20,6 +20,8 @@ import java.util.HashMap;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServicePortBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -78,6 +80,7 @@ public class LoadBalancerWithServiceTests {
 								.get("/api/v1/namespaces/test/services/service-a")
 								.willReturn(success().body(
 										json(buildService("service-a", 8080, "test"))))));
+		createTestData("service-a", 8080, "test");
 		String response = restTemplate.getForObject("http://service-a/greeting",
 				String.class);
 		Assertions.assertNotNull(response);
@@ -89,6 +92,14 @@ public class LoadBalancerWithServiceTests {
 				.withNamespace(namespace).withLabels(new HashMap<>())
 				.withAnnotations(new HashMap<>()).endMetadata().withNewSpec().addNewPort()
 				.withPort(port).endPort().endSpec().build();
+	}
+
+	private void createTestData(String name, int port, String namespace) {
+		client.services().inNamespace(namespace).createNew().withNewMetadata()
+			.withName(name).endMetadata()
+			.withSpec(new ServiceSpecBuilder().withPorts(new ServicePortBuilder()
+				.withProtocol("TCP").withPort(port).build()).build())
+			.done();
 	}
 
 }
