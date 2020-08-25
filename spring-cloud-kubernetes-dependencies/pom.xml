@@ -34,6 +34,7 @@
 	<properties>
 		<arquillian.version>1.4.0.Final</arquillian.version>
 		<arquillian-cube.version>1.15.2</arquillian-cube.version>
+		<hoverfly.version>0.13.0</hoverfly.version>
 		<kubernetes-client.version>4.10.3</kubernetes-client.version>
 		<istio-client.version>1.1.1</istio-client.version>
 		<mockwebserver.version>0.1.2</mockwebserver.version>
@@ -140,6 +141,18 @@
 				<groupId>org.arquillian.cube</groupId>
 				<artifactId>arquillian-cube-openshift</artifactId>
 				<version>${arquillian-cube.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.specto</groupId>
+				<artifactId>hoverfly-java-junit5</artifactId>
+				<version>${hoverfly.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.specto</groupId>
+				<artifactId>hoverfly-java</artifactId>
+				<version>${hoverfly.version}</version>
 				<scope>test</scope>
 			</dependency>
 

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013-2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.kubernetes.loadbalancer;
 
 import java.util.HashMap;
@@ -26,10 +42,8 @@ import static io.specto.hoverfly.junit.dsl.HttpBodyConverter.json;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = {
-	"spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
-	"spring.cloud.kubernetes.loadbalancer.enabled=true"
-})
+@TestPropertySource(properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
+		"spring.cloud.kubernetes.loadbalancer.enabled=true" })
 @EnableKubernetesMockClient
 @ExtendWith(HoverflyExtension.class)
 public class LoadBalancerWithServiceTests {
@@ -40,50 +54,41 @@ public class LoadBalancerWithServiceTests {
 	static KubernetesClient client;
 
 	@BeforeAll
-	public static void setup() {
+	static void setup() {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
-			client.getConfiguration().getMasterUrl());
+				client.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
-			"false");
+				"false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 	}
 
 	@Test
-	public void testLoadBalancerInServiceMode(Hoverfly hoverfly) {
+	void testLoadBalancerInServiceMode(Hoverfly hoverfly) {
 		hoverfly.simulate(
-			dsl(service("http://service-a.test.svc.cluster.local:8080")
-				.get("/greeting")
-				.willReturn(success().body("greeting"))),
-			dsl(service(RequestFieldMatcher.newRegexMatcher("(kubernetes.docker.internal).*"))
-				.post("/api/v1/namespaces/test/services").anyBody()
-				.willReturn(success()
-					.body(json(buildService("service-a", 8080, "test"))))
-				.get("/api/v1/namespaces/test/services/service-a")
-				.willReturn(success()
-					.body(json(buildService("service-a", 8080, "test"))))));
+				dsl(service("http://service-a.test.svc.cluster.local:8080")
+						.get("/greeting").willReturn(success().body("greeting"))),
+				dsl(service(RequestFieldMatcher
+						.newRegexMatcher("(kubernetes.docker.internal).*"))
+								.post("/api/v1/namespaces/test/services").anyBody()
+								.willReturn(success().body(
+										json(buildService("service-a", 8080, "test"))))
+								.get("/api/v1/namespaces/test/services/service-a")
+								.willReturn(success().body(
+										json(buildService("service-a", 8080, "test"))))));
 		String response = restTemplate.getForObject("http://service-a/greeting",
-			String.class);
+				String.class);
 		Assertions.assertNotNull(response);
 		Assertions.assertEquals("greeting", response);
 	}
 
 	private Service buildService(String name, int port, String namespace) {
-		return new ServiceBuilder()
-			.withNewMetadata()
-			.withName(name)
-			.withNamespace(namespace)
-			.withLabels(new HashMap<>())
-			.withAnnotations(new HashMap<>())
-			.endMetadata()
-			.withNewSpec()
-			.addNewPort()
-			.withPort(port)
-			.endPort()
-			.endSpec()
-			.build();
+		return new ServiceBuilder().withNewMetadata().withName(name)
+				.withNamespace(namespace).withLabels(new HashMap<>())
+				.withAnnotations(new HashMap<>()).endMetadata().withNewSpec().addNewPort()
+				.withPort(port).endPort().endSpec().build();
 	}
 
 }

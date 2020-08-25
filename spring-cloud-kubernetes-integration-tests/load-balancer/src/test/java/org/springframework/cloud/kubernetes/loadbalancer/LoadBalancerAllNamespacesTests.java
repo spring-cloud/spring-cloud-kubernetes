@@ -45,7 +45,7 @@ public class LoadBalancerAllNamespacesTests {
 	static KubernetesClient client;
 
 	@BeforeAll
-	public static void setup() {
+	static void setup() {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
 				client.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -57,7 +57,7 @@ public class LoadBalancerAllNamespacesTests {
 	}
 
 	@Test
-	public void testLoadBalancerDifferentNamespace() {
+	void testLoadBalancerDifferentNamespace() {
 		createTestData("service-b", "b");
 		String response = restTemplate.getForObject("http://service-b/greeting",
 				String.class);

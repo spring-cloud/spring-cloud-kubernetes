@@ -43,7 +43,7 @@ public class LoadBalancerTests {
 	static KubernetesClient client;
 
 	@BeforeAll
-	public static void setup() {
+	static void setup() {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
 				client.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -55,7 +55,7 @@ public class LoadBalancerTests {
 	}
 
 	@Test
-	public void testLoadBalancerSameNamespace() {
+	void testLoadBalancerSameNamespace() {
 		createTestData("service-a", "test");
 		String response = restTemplate.getForObject("http://service-a/greeting",
 				String.class);
@@ -64,7 +64,7 @@ public class LoadBalancerTests {
 	}
 
 	@Test
-	public void testLoadBalancerDifferentNamespace() {
+	void testLoadBalancerDifferentNamespace() {
 		createTestData("service-b", "b");
 		Assertions.assertThrows(IllegalStateException.class, () -> restTemplate
 				.getForObject("http://service-b/greeting", String.class));
