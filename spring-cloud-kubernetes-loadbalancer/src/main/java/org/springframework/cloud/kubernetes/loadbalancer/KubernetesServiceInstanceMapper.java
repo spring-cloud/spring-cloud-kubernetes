@@ -31,6 +31,8 @@ import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryPropert
 import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
 
 /**
+ * Class for mapping Kubernetes Service object into {@link KubernetesServiceInstance}.
+ *
  * @author Piotr Minkowski
  */
 public class KubernetesServiceInstanceMapper {

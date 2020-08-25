@@ -17,6 +17,8 @@
 package org.springframework.cloud.kubernetes.loadbalancer;
 
 /**
+ * Kubernetes load balancer mode enum.
+ *
  * @author Piotr Minkowski
  */
 public enum KubernetesLoadBalancerMode {

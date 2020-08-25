@@ -19,6 +19,8 @@ package org.springframework.cloud.kubernetes.loadbalancer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
+ * Kubernetes load balancer client properties.
+ *
  * @author Piotr Minkowski
  */
 @ConfigurationProperties(prefix = "spring.cloud.kubernetes.loadbalancer")

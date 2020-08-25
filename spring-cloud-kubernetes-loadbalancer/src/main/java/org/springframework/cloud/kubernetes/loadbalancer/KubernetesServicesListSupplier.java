@@ -31,6 +31,9 @@ import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.core.env.Environment;
 
 /**
+ * Implementation of {@link ServiceInstanceListSupplier} for load balancer
+ * in SERVICE mode
+ *
  * @author Piotr Minkowski
  */
 public class KubernetesServicesListSupplier implements ServiceInstanceListSupplier {

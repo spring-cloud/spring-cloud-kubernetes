@@ -24,6 +24,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
+ * Kubernetes load balancer auto-configuration.
+ *
  * @author Piotr Minkowski
  */
 @Configuration(proxyBeanMethods = false)

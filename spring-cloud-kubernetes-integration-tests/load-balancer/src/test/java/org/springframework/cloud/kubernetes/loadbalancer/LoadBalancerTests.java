@@ -31,7 +31,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@EnableKubernetesMockClient(https = true, crud = true)
+@EnableKubernetesMockClient(crud = true)
 public class LoadBalancerTests {
 
 	@Autowired
@@ -39,9 +39,6 @@ public class LoadBalancerTests {
 
 	@LocalServerPort
 	int randomServerPort;
-
-	// @ClassRule
-	// public static KubernetesServer server = new KubernetesServer(true, true);
 
 	static KubernetesClient client;
 

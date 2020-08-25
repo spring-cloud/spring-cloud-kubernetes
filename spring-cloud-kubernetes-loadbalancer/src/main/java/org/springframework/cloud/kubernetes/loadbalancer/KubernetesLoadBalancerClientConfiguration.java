@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
 /**
- * Kubernetes load balancer client properties.
+ * Kubernetes load balancer client configuration.
  *
  * @author Piotr Minkowski
  */
