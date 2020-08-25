@@ -31,6 +31,18 @@
 			<artifactId>kubernetes-server-mock</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>io.specto</groupId>
+			<artifactId>hoverfly-java-junit5</artifactId>
+			<version>0.13.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.specto</groupId>
+			<artifactId>hoverfly-java</artifactId>
+			<version>0.13.0</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 </project>
