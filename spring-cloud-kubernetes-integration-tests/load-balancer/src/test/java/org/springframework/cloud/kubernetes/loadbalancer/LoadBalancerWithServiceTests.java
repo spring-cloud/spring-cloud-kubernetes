@@ -20,11 +20,8 @@ import java.util.HashMap;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServicePortBuilder;
-import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.specto.hoverfly.junit.core.Hoverfly;
 import io.specto.hoverfly.junit5.HoverflyExtension;
 import org.junit.jupiter.api.Assertions;
@@ -47,7 +44,6 @@ import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
 		"spring.cloud.kubernetes.loadbalancer.enabled=true" })
-@EnableKubernetesMockClient
 @ExtendWith(HoverflyExtension.class)
 public class LoadBalancerWithServiceTests {
 
@@ -55,14 +51,11 @@ public class LoadBalancerWithServiceTests {
 
 	@Autowired
 	RestTemplate restTemplate;
-
-	static KubernetesClient client;
+	@Autowired
+	KubernetesClient client;
 
 	@BeforeAll
 	static void setup() {
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
-				client.getConfiguration().getMasterUrl());
-		LOGGER.info("Master URL: {}", client.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
@@ -73,19 +66,16 @@ public class LoadBalancerWithServiceTests {
 
 	@Test
 	void testLoadBalancerInServiceMode(Hoverfly hoverfly) {
+		LOGGER.info("Master URL: {}", client.getConfiguration().getMasterUrl());
 		hoverfly.simulate(
 				dsl(service("http://service-a.test.svc.cluster.local:8080")
 						.get("/greeting").willReturn(success().body("greeting"))),
 				dsl(service(client.getConfiguration().getMasterUrl()
 					.replace("/", "")
 					.replace("https:", ""))
-//								.post("/api/v1/namespaces/test/services").anyBody()
-//								.willReturn(success().body(
-//										json(buildService("service-a", 8080, "test"))))
 								.get("/api/v1/namespaces/test/services/service-a")
 								.willReturn(success().body(
 										json(buildService("service-a", 8080, "test"))))));
-//		createTestData("service-a", 8080, "test");
 		String response = restTemplate.getForObject("http://service-a/greeting",
 				String.class);
 		Assertions.assertNotNull(response);
@@ -97,18 +87,6 @@ public class LoadBalancerWithServiceTests {
 				.withNamespace(namespace).withLabels(new HashMap<>())
 				.withAnnotations(new HashMap<>()).endMetadata().withNewSpec().addNewPort()
 				.withPort(port).endPort().endSpec().build();
-	}
-
-	private void createTestData(String name, int port, String namespace) {
-		client.services().inNamespace(namespace).createNew().withNewMetadata()
-			.withName(name).endMetadata()
-			.withSpec(new ServiceSpecBuilder().withPorts(new ServicePortBuilder()
-				.withProtocol("TCP").withPort(port).build()).build())
-			.done();
-		client.endpoints().inNamespace(namespace).createNew().withNewMetadata()
-			.withName(name).endMetadata().addNewSubset().addNewAddress()
-			.withIp("localhost").endAddress().addNewPort().withName("http")
-			.withPort(port).endPort().endSubset().done();
 	}
 
 }
