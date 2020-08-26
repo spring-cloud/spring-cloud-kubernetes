@@ -45,7 +45,7 @@ import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
 @TestPropertySource(properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
 		"spring.cloud.kubernetes.loadbalancer.enabled=true" })
 @ExtendWith(HoverflyExtension.class)
-public class LoadBalancerWithServiceTests {
+class LoadBalancerWithServiceTests {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LoadBalancerWithServiceTests.class);
 

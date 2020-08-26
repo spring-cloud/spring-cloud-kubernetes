@@ -32,7 +32,7 @@ import org.springframework.web.client.RestTemplate;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableKubernetesMockClient(crud = true)
-public class LoadBalancerTests {
+class LoadBalancerTests {
 
 	@Autowired
 	RestTemplate restTemplate;
