@@ -33,7 +33,7 @@ jobs:
       - run:
           name: dependencies
           command: |
-            ./mvnw -U --fail-never dependency:go-offline -Dservice.occurence=${_SERVICE_OCCURENCE} || true
+            ./mvnw -s .settings.xml -U --fail-never dependency:go-offline -Dservice.occurence=${_SERVICE_OCCURENCE} || true
       - save_cache:
           paths:
             - ~/.m2
@@ -41,7 +41,7 @@ jobs:
       - run:
           name: Run regular tests
           command: |
-            ./mvnw clean install -Dservice.occurence=${_SERVICE_OCCURENCE} #org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+            ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} #org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
             mkdir -p $HOME/artifacts/junit/
             find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
