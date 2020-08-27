@@ -64,6 +64,10 @@
 |spring.cloud.kubernetes.discovery.service-labels |  | If set, then only the services matching these labels will be fetched from the Kubernetes API server.
 |spring.cloud.kubernetes.discovery.service-name | unknown | The service name of the local instance.
 |spring.cloud.kubernetes.enabled | true | Whether to enable Kubernetes integration.
+|spring.cloud.kubernetes.loadbalancer.cluster-domain | cluster.local | cluster domain.
+|spring.cloud.kubernetes.loadbalancer.enabled | true | Load balancer enabled,default true.
+|spring.cloud.kubernetes.loadbalancer.mode |  | {@link KubernetesLoadBalancerMode} setting load balancer server list with ip of pod or service name. default value is POD.
+|spring.cloud.kubernetes.loadbalancer.port-name | http | service port name.
 |spring.cloud.kubernetes.reload.enabled | false | Enables the Kubernetes configuration reload on change.
 |spring.cloud.kubernetes.reload.max-wait-for-restart | 2s | If Restart or Shutdown strategies are used, Spring Cloud Kubernetes waits a random amount of time before restarting. This is done in order to avoid having all instances of the same application restart at the same time. This property configures the maximum of amount of wait time from the moment the signal is received that a restart is needed until the moment the restart is actually triggered
 |spring.cloud.kubernetes.reload.mode |  | Sets the detection mode for Kubernetes configuration reload.
