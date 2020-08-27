@@ -144,6 +144,7 @@
 		<module>simple-configmap</module>
 <!--		<module>istio</module>-->
 		<module>discovery</module>
+		<module>load-balancer</module>
         <!-- Add this module back once we convert everything over to kind -->
 <!--	<module>spring-cloud-kubernetes-configuration-watcher-it</module>-->
 	</modules>

@@ -99,7 +99,7 @@ public class HttpBasedConfigurationWatchChangeDetectorTests {
 		fooEndpointPort.setPort(wireMockRule.port());
 		List<ServiceInstance> instances = new ArrayList<>();
 		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance(
-				"foo", "foo", fooEndpointAddress, fooEndpointPort, new HashMap<>(),
+				"foo", "foo", fooEndpointAddress.getIp(), fooEndpointPort.getPort(), new HashMap<>(),
 				false);
 		instances.add(fooServiceInstance);
 		when(reactiveDiscoveryClient.getInstances(eq("foo")))
@@ -185,7 +185,7 @@ public class HttpBasedConfigurationWatchChangeDetectorTests {
 		fooEndpointPort.setPort(wireMockRule.port());
 		List<ServiceInstance> instances = new ArrayList<>();
 		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance(
-				"foo", "foo", fooEndpointAddress, fooEndpointPort, metadata, false);
+				"foo", "foo", fooEndpointAddress.getIp(), fooEndpointPort.getPort(), metadata, false);
 		instances.add(fooServiceInstance);
 		when(reactiveDiscoveryClient.getInstances(eq("foo")))
 				.thenReturn(Flux.fromIterable(instances));
@@ -211,7 +211,7 @@ public class HttpBasedConfigurationWatchChangeDetectorTests {
 		fooEndpointPort.setPort(wireMockRule.port());
 		List<ServiceInstance> instances = new ArrayList<>();
 		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance(
-				"foo", "foo", fooEndpointAddress, fooEndpointPort, metadata, false);
+				"foo", "foo", fooEndpointAddress.getIp(), fooEndpointPort.getPort(), metadata, false);
 		instances.add(fooServiceInstance);
 		when(reactiveDiscoveryClient.getInstances(eq("foo")))
 				.thenReturn(Flux.fromIterable(instances));
