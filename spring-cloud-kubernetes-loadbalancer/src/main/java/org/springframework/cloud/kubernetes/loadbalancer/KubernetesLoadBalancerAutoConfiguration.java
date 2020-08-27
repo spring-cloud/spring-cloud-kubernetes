@@ -30,7 +30,8 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(KubernetesLoadBalancerProperties.class)
-@ConditionalOnProperty("spring.cloud.kubernetes.loadbalancer.enabled")
+@ConditionalOnProperty(value = "spring.cloud.kubernetes.loadbalancer.enabled",
+		matchIfMissing = true)
 @LoadBalancerClients(
 		defaultConfiguration = KubernetesLoadBalancerClientConfiguration.class)
 public class KubernetesLoadBalancerAutoConfiguration {
