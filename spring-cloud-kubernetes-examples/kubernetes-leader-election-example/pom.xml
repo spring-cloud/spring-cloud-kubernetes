@@ -14,6 +14,12 @@
 	<description>Leader election demonstration with Spring Integration and ConfigMap
 	</description>
 
+	<properties>
+		<spring-boot.build-image.skip>true</spring-boot.build-image.skip>
+		<spring-boot.build-image.imageName>spring-cloud-kubernetes/${project.artifactId}:latest</spring-boot.build-image.imageName>
+		<jkube.generator.name>${spring-boot.build-image.imageName}</jkube.generator.name>
+	</properties>
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -75,6 +81,13 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build-image</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -97,6 +110,9 @@
 	<profiles>
 		<profile>
 			<id>kubernetes</id>
+			<properties>
+				<spring-boot.build-image.skip>false</spring-boot.build-image.skip>
+			</properties>
 			<build>
 				<plugins>
 					<plugin>
@@ -107,7 +123,6 @@
 								<id>jkube</id>
 								<goals>
 									<goal>resource</goal>
-									<goal>build</goal>
 								</goals>
 							</execution>
 						</executions>

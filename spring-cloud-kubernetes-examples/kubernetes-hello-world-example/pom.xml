@@ -16,6 +16,12 @@
 		cloud kubernetes app
 	</description>
 
+	<properties>
+		<spring-boot.build-image.skip>true</spring-boot.build-image.skip>
+		<spring-boot.build-image.imageName>spring-cloud-kubernetes/${project.artifactId}:latest</spring-boot.build-image.imageName>
+		<jkube.generator.name>${spring-boot.build-image.imageName}</jkube.generator.name>
+	</properties>
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -100,6 +106,7 @@
 					<execution>
 						<goals>
 							<goal>repackage</goal>
+							<goal>build-image</goal>
 						</goals>
 					</execution>
 				</executions>
@@ -143,33 +150,10 @@
 	<profiles>
 		<profile>
 			<id>kubernetes</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.eclipse.jkube</groupId>
-						<artifactId>kubernetes-maven-plugin</artifactId>
-						<version>${jkube.version}</version>
-						<executions>
-							<execution>
-								<id>jkube</id>
-								<goals>
-									<goal>resource</goal>
-									<goal>build</goal>
-								</goals>
-							</execution>
-						</executions>
-						<configuration>
-							<enricher>
-								<config>
-									<jkube-service>
-										<type>NodePort</type>
-									</jkube-service>
-								</config>
-							</enricher>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
+			<properties>
+				<spring-boot.build-image.skip>false</spring-boot.build-image.skip>
+				<jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
+			</properties>
 		</profile>
 		<profile>
 			<id>release</id>
@@ -195,22 +179,11 @@
 
 		<profile>
 			<id>integration</id>
+			<properties>
+				<spring-boot.build-image.skip>false</spring-boot.build-image.skip>
+			</properties>
 			<build>
 				<plugins>
-					<plugin>
-						<groupId>org.eclipse.jkube</groupId>
-						<artifactId>kubernetes-maven-plugin</artifactId>
-						<version>${jkube.version}</version>
-						<executions>
-							<execution>
-								<id>jkube</id>
-								<goals>
-									<goal>resource</goal>
-									<goal>build</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-failsafe-plugin</artifactId>
@@ -226,6 +199,8 @@
 							</execution>
 						</executions>
 						<configuration>
+							<!-- https://stackoverflow.com/a/52532095 -->
+							<classesDirectory>${project.build.outputDirectory}</classesDirectory>
 							<skipTests>false</skipTests>
 							<skipITs>false</skipITs>
 						</configuration>

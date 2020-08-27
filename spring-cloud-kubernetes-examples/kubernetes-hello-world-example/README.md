@@ -21,8 +21,9 @@ This will make sure that the docker images that you build are available to the m
 This Spring Boot application exposes an endpoint that we can call to receive a `Hello World` message as response. The application is configured using the 
 @RestController and the method returning the message is annotated with `@GetMapping("/")` 
 
-The uberjar of the Spring Boot application is packaged within a Docker image using [Eclipse JKube's Kubernetes Maven plugin](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin) and next deployed top of the Kubernetes management platform as a pod 
-using the Deployment created by the plugin.
+The uberjar of the Spring Boot application is packaged within a Docker image using Spring Boot Maven Plugin
+and next deployed on top of the Kubernetes management platform as a pod 
+using the Deployment created by [Eclipse JKube's Kubernetes Maven plugin](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin).
 
 
 Once you have the environment set up (minikube or kubectl configured against a kubernetes cluster)
