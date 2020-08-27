@@ -47,10 +47,12 @@ import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
 @ExtendWith(HoverflyExtension.class)
 class LoadBalancerWithServiceTests {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LoadBalancerWithServiceTests.class);
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(LoadBalancerWithServiceTests.class);
 
 	@Autowired
 	RestTemplate restTemplate;
+
 	@Autowired
 	KubernetesClient client;
 
@@ -70,9 +72,8 @@ class LoadBalancerWithServiceTests {
 		hoverfly.simulate(
 				dsl(service("http://service-a.test.svc.cluster.local:8080")
 						.get("/greeting").willReturn(success().body("greeting"))),
-				dsl(service(client.getConfiguration().getMasterUrl()
-					.replace("/", "")
-					.replace("https:", ""))
+				dsl(service(client.getConfiguration().getMasterUrl().replace("/", "")
+						.replace("https:", ""))
 								.get("/api/v1/namespaces/test/services/service-a")
 								.willReturn(success().body(
 										json(buildService("service-a", 8080, "test"))))));
