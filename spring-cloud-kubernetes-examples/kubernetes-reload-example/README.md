@@ -25,10 +25,10 @@ The application consists of a timed bean that periodically prints a message to t
 The message can be changed using a config map.
 
 ### Running the example
-Once you have your environment set up, you can deploy the application using the fabric8 maven plugin:
+Once you have your environment set up, you can deploy the application using the Eclipse JKube Kubernetes Maven Plugin:
 
 ```
-mvn clean install fabric8:build fabric8:deploy -Pintegration
+mvn clean install k8s:deploy -Pkubernetes
 ```
 
 ### Changing the configuration

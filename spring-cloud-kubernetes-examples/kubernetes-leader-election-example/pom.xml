@@ -60,9 +60,9 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
-					<groupId>io.fabric8</groupId>
-					<artifactId>fabric8-maven-plugin</artifactId>
-					<version>${fabric8.maven.plugin.version}</version>
+					<groupId>org.eclipse.jkube</groupId>
+					<artifactId>kubernetes-maven-plugin</artifactId>
+					<version>${jkube.version}</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -100,11 +100,11 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>io.fabric8</groupId>
-						<artifactId>fabric8-maven-plugin</artifactId>
+						<groupId>org.eclipse.jkube</groupId>
+						<artifactId>kubernetes-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>fmp</id>
+								<id>jkube</id>
 								<goals>
 									<goal>resource</goal>
 									<goal>build</goal>
@@ -114,9 +114,9 @@
 						<configuration>
 							<enricher>
 								<config>
-									<fmp-service>
+									<jkube-service>
 										<type>NodePort</type>
-									</fmp-service>
+									</jkube-service>
 								</config>
 							</enricher>
 						</configuration>

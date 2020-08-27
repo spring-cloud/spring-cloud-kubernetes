@@ -104,12 +104,12 @@
 			</plugin>
 
 			<plugin>
-				<groupId>io.fabric8</groupId>
-				<artifactId>fabric8-maven-plugin</artifactId>
-				<version>${fabric8.maven.plugin.version}</version>
+				<groupId>org.eclipse.jkube</groupId>
+				<artifactId>kubernetes-maven-plugin</artifactId>
+				<version>${jkube.version}</version>
 				<executions>
 					<execution>
-						<id>fmp</id>
+						<id>jkube</id>
 						<goals>
 							<goal>resource</goal>
 						</goals>
@@ -118,12 +118,12 @@
 				<configuration>
 					<enricher>
 						<config>
-							<fmp-controller>
+							<jkube-controller>
 								<name>spring-cloud-reload</name>
-							</fmp-controller>
-							<fmp-service>
+							</jkube-controller>
+							<jkube-service>
 								<name>spring-cloud-reload</name>
-							</fmp-service>
+							</jkube-service>
 						</config>
 					</enricher>
 				</configuration>
@@ -137,12 +137,12 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>io.fabric8</groupId>
-						<artifactId>fabric8-maven-plugin</artifactId>
-						<version>${fabric8.maven.plugin.version}</version>
+						<groupId>org.eclipse.jkube</groupId>
+						<artifactId>kubernetes-maven-plugin</artifactId>
+						<version>${jkube.version}</version>
 						<executions>
 							<execution>
-								<id>fmp</id>
+								<id>jkube</id>
 								<goals>
 									<goal>resource</goal>
 									<goal>build</goal>
@@ -152,13 +152,13 @@
 						<configuration>
 							<enricher>
 								<config>
-									<fmp-controller>
+									<jkube-controller>
 										<name>spring-cloud-reload</name>
-									</fmp-controller>
-									<fmp-service>
+									</jkube-controller>
+									<jkube-service>
 										<name>spring-cloud-reload</name>
 										<type>NodePort</type>
-									</fmp-service>
+									</jkube-service>
 								</config>
 							</enricher>
 						</configuration>
@@ -171,12 +171,12 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>io.fabric8</groupId>
-						<artifactId>fabric8-maven-plugin</artifactId>
-						<version>${fabric8.maven.plugin.version}</version>
+						<groupId>org.eclipse.jkube</groupId>
+						<artifactId>kubernetes-maven-plugin</artifactId>
+						<version>${jkube.version}</version>
 						<executions>
 							<execution>
-								<id>fmp</id>
+								<id>jkube</id>
 								<goals>
 									<goal>resource</goal>
 									<goal>helm</goal>
@@ -193,12 +193,12 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>io.fabric8</groupId>
-						<artifactId>fabric8-maven-plugin</artifactId>
-						<version>${fabric8.maven.plugin.version}</version>
+						<groupId>org.eclipse.jkube</groupId>
+						<artifactId>kubernetes-maven-plugin</artifactId>
+						<version>${jkube.version}</version>
 						<executions>
 							<execution>
-								<id>fmp</id>
+								<id>jkube</id>
 								<goals>
 									<goal>resource</goal>
 									<goal>helm</goal>
