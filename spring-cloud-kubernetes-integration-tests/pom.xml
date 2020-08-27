@@ -23,6 +23,7 @@
 		<arquillian-cube.version>1.18.2</arquillian-cube.version>
 		<arquillian.version>1.4.0.Final</arquillian.version>
 		<rest-assured.version>3.2.0</rest-assured.version>
+		<okhttptests.version>3.12.12</okhttptests.version>
 
 		<!--
           The port on localhost where the application will listen to from outside the cluster
@@ -124,6 +125,16 @@
 				<groupId>io.rest-assured</groupId>
 				<artifactId>rest-assured</artifactId>
 				<version>${rest-assured.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.squareup.okhttp3</groupId>
+				<artifactId>okhttp</artifactId>
+				<version>${okhttptests.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.squareup.okhttp3</groupId>
+				<artifactId>logging-interceptor</artifactId>
+				<version>${okhttptests.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
