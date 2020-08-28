@@ -33,10 +33,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = App.class,
-		properties = { "spring.cloud.kubernetes.client.password=mypassword",
-				"spring.cloud.kubernetes.client.proxy-password=myproxypassword" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
+		"spring.cloud.kubernetes.client.password=mypassword",
+		"spring.cloud.kubernetes.client.proxy-password=myproxypassword" })
 public class KubernetesAutoConfigurationTests {
 
 	@ClassRule
