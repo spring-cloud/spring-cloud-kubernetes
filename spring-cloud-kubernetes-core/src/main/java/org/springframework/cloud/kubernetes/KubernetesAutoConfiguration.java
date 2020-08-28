@@ -130,7 +130,7 @@ public class KubernetesAutoConfiguration {
 						base.getHttpsProxy()))
 				.withProxyUsername(or(kubernetesClientProperties.getProxyUsername(),
 						base.getProxyUsername()))
-				.withPassword(or(kubernetesClientProperties.getProxyPassword(),
+				.withProxyPassword(or(kubernetesClientProperties.getProxyPassword(),
 						base.getProxyPassword()))
 				.withNoProxy(
 						or(kubernetesClientProperties.getNoProxy(), base.getNoProxy()))

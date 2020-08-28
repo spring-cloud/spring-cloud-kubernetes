@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import static java.util.stream.Collectors.toMap;
+import static org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance.NAMESPACE_METADATA_KEY;
 
 /**
  * Kubeneretes implementation of {@link DiscoveryClient}.
@@ -151,6 +152,10 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 						log.debug("Adding port metadata: " + portMetadata);
 					}
 					endpointMetadata.putAll(portMetadata);
+				}
+
+				if (this.properties.isAllNamespaces()) {
+					endpointMetadata.put(NAMESPACE_METADATA_KEY, namespace);
 				}
 
 				List<EndpointAddress> addresses = s.getAddresses();
