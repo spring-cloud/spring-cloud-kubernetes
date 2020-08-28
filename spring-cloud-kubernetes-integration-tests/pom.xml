@@ -144,7 +144,6 @@
 		<module>simple-configmap</module>
 <!--		<module>istio</module>-->
 		<module>discovery</module>
-	</modules>
-
-
+		<module>load-balancer</module>
+      	</modules>
 </project>

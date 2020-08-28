@@ -23,6 +23,8 @@ include::pod-health-indicator.adoc[]
 
 include::leader-election.adoc[]
 
+include::load-balancer.adoc[]
+
 include::security-service-accounts.adoc[]
 
 include::service-registry.adoc[]

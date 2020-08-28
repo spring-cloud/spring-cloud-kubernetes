@@ -162,7 +162,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 					EndpointPort endpointPort = findEndpointPort(s);
 					instances.add(new KubernetesServiceInstance(instanceId, serviceId,
-							endpointAddress, endpointPort, endpointMetadata,
+							endpointAddress.getIp(), endpointPort.getPort(),
+							endpointMetadata,
 							this.isServicePortSecureResolver
 									.resolve(new DefaultIsServicePortSecureResolver.Input(
 											endpointPort.getPort(),

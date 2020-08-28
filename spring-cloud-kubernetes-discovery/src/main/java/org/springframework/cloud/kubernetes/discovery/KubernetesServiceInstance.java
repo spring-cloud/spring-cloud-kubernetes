@@ -19,9 +19,6 @@ package org.springframework.cloud.kubernetes.discovery;
 import java.net.URI;
 import java.util.Map;
 
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointPort;
-
 import org.springframework.cloud.client.ServiceInstance;
 
 /**
@@ -37,43 +34,39 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	private static final String DSL = "//";
 
-	private static final String COLN = ":";
+	private static final String COLON = ":";
 
 	private final String instanceId;
 
 	private final String serviceId;
 
-	private final EndpointAddress endpointAddress;
+	private final String host;
 
-	private final EndpointPort endpointPort;
+	private final int port;
+
+	private final URI uri;
 
 	private final Boolean secure;
 
 	private final Map<String, String> metadata;
 
 	/**
+	 * @param instanceId the id of the instance.
 	 * @param serviceId the id of the service.
-	 * @param endpointAddress the address where the service instance can be found.
-	 * @param endpointPort the port on which the service is running.
+	 * @param host the address where the service instance can be found.
+	 * @param port the port on which the service is running.
 	 * @param metadata a map containing metadata.
 	 * @param secure indicates whether or not the connection needs to be secure.
-	 * @deprecated - use other constructor
 	 */
-	@Deprecated
-	public KubernetesServiceInstance(String serviceId, EndpointAddress endpointAddress,
-			EndpointPort endpointPort, Map<String, String> metadata, Boolean secure) {
-		this(null, serviceId, endpointAddress, endpointPort, metadata, secure);
-	}
-
-	public KubernetesServiceInstance(String instanceId, String serviceId,
-			EndpointAddress endpointAddress, EndpointPort endpointPort,
-			Map<String, String> metadata, Boolean secure) {
+	public KubernetesServiceInstance(String instanceId, String serviceId, String host,
+			int port, Map<String, String> metadata, Boolean secure) {
 		this.instanceId = instanceId;
 		this.serviceId = serviceId;
-		this.endpointAddress = endpointAddress;
-		this.endpointPort = endpointPort;
+		this.host = host;
+		this.port = port;
 		this.metadata = metadata;
 		this.secure = secure;
+		this.uri = createUri(secure ? HTTPS_PREFIX : HTTP_PREFIX, host, port);
 	}
 
 	@Override
@@ -88,12 +81,12 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	@Override
 	public String getHost() {
-		return this.endpointAddress.getIp();
+		return this.host;
 	}
 
 	@Override
 	public int getPort() {
-		return this.endpointPort.getPort();
+		return this.port;
 	}
 
 	@Override
@@ -103,10 +96,7 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	@Override
 	public URI getUri() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(getScheme()).append(COLN).append(DSL).append(getHost()).append(COLN)
-				.append(getPort());
-		return URI.create(sb.toString());
+		return uri;
 	}
 
 	public Map<String, String> getMetadata() {
@@ -116,6 +106,13 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	@Override
 	public String getScheme() {
 		return isSecure() ? HTTPS_PREFIX : HTTP_PREFIX;
+	}
+
+	private URI createUri(String scheme, String host, int port) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(scheme).append(COLON).append(DSL).append(host).append(COLON)
+				.append(port);
+		return URI.create(sb.toString());
 	}
 
 }
