@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.annotation.PreDestroy;
@@ -77,22 +78,23 @@ public abstract class ConfigurationChangeDetector {
 
 	/**
 	 * Determines if two property sources are different.
-	 * @param mp1 map property sources 1
-	 * @param mp2 map property sources 2
+	 *
+	 * @param left
+	 *     map property sources 1
+	 * @param right
+	 *     map property sources 2
 	 * @return {@code true} if source has changed
 	 */
-	protected boolean changed(MapPropertySource mp1, MapPropertySource mp2) {
-		if (mp1 == mp2) {
+	protected boolean changed(MapPropertySource left, MapPropertySource right) {
+		if (left == right) {
 			return false;
 		}
-		if (mp1 == null && mp2 != null || mp1 != null && mp2 == null) {
+		if (left == null || right == null) {
 			return true;
 		}
-
-		Map<String, Object> s1 = mp1.getSource();
-		Map<String, Object> s2 = mp2.getSource();
-
-		return s1 == null ? s2 != null : !s1.equals(s2);
+		Map<String, Object> leftMap = left.getSource();
+		Map<String, Object> rightMap = right.getSource();
+		return !Objects.equals(leftMap, rightMap);
 	}
 
 	protected boolean changed(List<? extends MapPropertySource> l1,
