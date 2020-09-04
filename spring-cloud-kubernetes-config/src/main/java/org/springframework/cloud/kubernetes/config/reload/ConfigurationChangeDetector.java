@@ -148,8 +148,8 @@ public abstract class ConfigurationChangeDetector {
 			else if (sourceClass.isInstance(source)) {
 				managedSources.add(sourceClass.cast(source));
 			}
-			else if (BootstrapPropertySource.class.isInstance(source)) {
-				PropertySource propertySource = ((BootstrapPropertySource) source)
+			else if (source instanceof BootstrapPropertySource) {
+				PropertySource<?> propertySource = ((BootstrapPropertySource<?>) source)
 						.getDelegate();
 				if (sourceClass.isInstance(propertySource)) {
 					sources.add(propertySource);
@@ -161,7 +161,7 @@ public abstract class ConfigurationChangeDetector {
 	}
 
 	private <E> LinkedList<E> toLinkedList(Iterable<E> it) {
-		LinkedList<E> list = new LinkedList<E>();
+		LinkedList<E> list = new LinkedList<>();
 		for (E e : it) {
 			list.add(e);
 		}
@@ -180,7 +180,7 @@ public abstract class ConfigurationChangeDetector {
 			PropertySourceLocator propertySourceLocator, Environment environment) {
 
 		List<MapPropertySource> result = new ArrayList<>();
-		PropertySource propertySource = propertySourceLocator.locate(environment);
+		PropertySource<?> propertySource = propertySourceLocator.locate(environment);
 		if (propertySource instanceof MapPropertySource) {
 			result.add((MapPropertySource) propertySource);
 		}
