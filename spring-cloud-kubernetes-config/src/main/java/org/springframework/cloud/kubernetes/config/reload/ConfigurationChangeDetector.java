@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import java.util.stream.IntStream;
+
 import javax.annotation.PreDestroy;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -80,10 +80,8 @@ public abstract class ConfigurationChangeDetector {
 	/**
 	 * Determines if two property sources are different.
 	 *
-	 * @param left
-	 *     map property sources 1
-	 * @param right
-	 *     map property sources 2
+	 * @param left map property sources 1
+	 * @param right map property sources 2
 	 * @return {@code true} if source has changed
 	 */
 	protected boolean changed(MapPropertySource left, MapPropertySource right) {
@@ -99,15 +97,15 @@ public abstract class ConfigurationChangeDetector {
 	}
 
 	protected boolean changed(List<? extends MapPropertySource> left,
-							  List<? extends MapPropertySource> right) {
+			List<? extends MapPropertySource> right) {
+
 		if (left.size() != right.size()) {
-			log.warn(
-				"The current number of ConfigMap PropertySources does not match "
+			log.warn("The current number of ConfigMap PropertySources does not match "
 					+ "the ones loaded from the Kubernetes - No reload will take place");
 			return false;
 		}
 		return IntStream.range(0, left.size())
-						.allMatch(x -> changed(left.get(x), right.get(x)));
+				.allMatch(x -> changed(left.get(x), right.get(x)));
 	}
 
 	/**
