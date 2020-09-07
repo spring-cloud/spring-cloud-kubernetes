@@ -182,8 +182,10 @@ public abstract class ConfigurationChangeDetector {
 		}
 		else if (propertySource instanceof CompositePropertySource) {
 			result.addAll(((CompositePropertySource) propertySource).getPropertySources()
-					.stream().filter(p -> p instanceof MapPropertySource)
-					.map(p -> (MapPropertySource) p).collect(Collectors.toList()));
+					.stream()
+					.filter(p -> p instanceof MapPropertySource)
+					.map(p -> (MapPropertySource) p)
+					.collect(Collectors.toList()));
 		}
 		else {
 			this.log.debug("Found property source that cannot be handled: "
