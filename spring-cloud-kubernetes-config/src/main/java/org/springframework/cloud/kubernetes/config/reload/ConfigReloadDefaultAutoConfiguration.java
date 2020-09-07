@@ -20,6 +20,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -90,8 +92,6 @@ public class ConfigReloadDefaultAutoConfiguration {
 		/**
 		 * @param properties config reload properties
 		 * @param ctx application context
-		 * @param restarter restart endpoint
-		 * @param refresher context refresher
 		 * @return provides the action to execute when the configuration changes.
 		 */
 		@Bean
@@ -113,11 +113,8 @@ public class ConfigReloadDefaultAutoConfiguration {
 		private static void wait(ConfigReloadProperties properties) {
 			final long waitMillis = ThreadLocalRandom.current()
 					.nextLong(properties.getMaxWaitForRestart().toMillis());
-			try {
-				Thread.sleep(waitMillis);
-			}
-			catch (InterruptedException ignored) {
-			}
+
+			LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(waitMillis));
 		}
 
 	}
