@@ -39,7 +39,7 @@ public final class ConfigUtils {
 		throw new IllegalStateException("Can't instantiate a utility class");
 	}
 
-	public static <C extends AbstractConfigProperties> String getApplicationName(
+	public static String getApplicationName(
 			Environment env, String configName, String configurationTarget) {
 		String name = configName;
 		if (StringUtils.isEmpty(name)) {
@@ -57,7 +57,7 @@ public final class ConfigUtils {
 		return name;
 	}
 
-	public static <C extends AbstractConfigProperties> String getApplicationNamespace(
+	public static String getApplicationNamespace(
 			KubernetesClient client, String configNamespace, String configurationTarget) {
 		String namespace = configNamespace;
 		if (StringUtils.isEmpty(namespace)) {
