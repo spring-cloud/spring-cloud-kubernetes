@@ -41,8 +41,7 @@ public final class ConfigUtils {
 
 	public static String getApplicationName(
 			Environment env, String configName, String configurationTarget) {
-		String name = configName;
-		if (StringUtils.isEmpty(name)) {
+		if (StringUtils.isEmpty(configName)) {
 			// TODO: use relaxed binding
 			if (LOG.isDebugEnabled()) {
 				LOG.debug(configurationTarget
@@ -51,26 +50,25 @@ public final class ConfigUtils {
 						+ FALLBACK_APPLICATION_NAME + ")");
 			}
 
-			name = env.getProperty(SPRING_APPLICATION_NAME, FALLBACK_APPLICATION_NAME);
+			configName = env.getProperty(SPRING_APPLICATION_NAME, FALLBACK_APPLICATION_NAME);
 		}
 
-		return name;
+		return configName;
 	}
 
 	public static String getApplicationNamespace(
 			KubernetesClient client, String configNamespace, String configurationTarget) {
-		String namespace = configNamespace;
-		if (StringUtils.isEmpty(namespace)) {
+		if (StringUtils.isEmpty(configNamespace)) {
 			if (LOG.isDebugEnabled()) {
 				LOG.debug(configurationTarget
 						+ " namespace has not been set, taking it from client (ns="
 						+ client.getNamespace() + ")");
 			}
 
-			namespace = client.getNamespace();
+			configNamespace = client.getNamespace();
 		}
 
-		return namespace;
+		return configNamespace;
 	}
 
 }
