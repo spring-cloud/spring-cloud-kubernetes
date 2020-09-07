@@ -20,6 +20,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
@@ -140,11 +142,8 @@ public class ConfigReloadAutoConfiguration {
 		private static void wait(ConfigReloadProperties properties) {
 			final long waitMillis = ThreadLocalRandom.current()
 					.nextLong(properties.getMaxWaitForRestart().toMillis());
-			try {
-				Thread.sleep(waitMillis);
-			}
-			catch (InterruptedException ignored) {
-			}
+
+			LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(waitMillis));
 		}
 
 	}
