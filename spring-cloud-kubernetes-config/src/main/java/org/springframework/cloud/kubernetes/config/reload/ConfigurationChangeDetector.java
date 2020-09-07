@@ -94,18 +94,18 @@ public abstract class ConfigurationChangeDetector {
 		return !Objects.equals(leftMap, rightMap);
 	}
 
-	protected boolean changed(List<? extends MapPropertySource> l1,
-			List<? extends MapPropertySource> l2) {
+	protected boolean changed(List<? extends MapPropertySource> left,
+			List<? extends MapPropertySource> right) {
 
-		if (l1.size() != l2.size()) {
+		if (left.size() != right.size()) {
 			this.log.warn(
 					"The current number of ConfigMap PropertySources does not match "
 							+ "the ones loaded from the Kubernetes - No reload will take place");
 			return false;
 		}
 
-		for (int i = 0; i < l1.size(); i++) {
-			if (changed(l1.get(i), l2.get(i))) {
+		for (int i = 0; i < left.size(); i++) {
+			if (changed(left.get(i), right.get(i))) {
 				return true;
 			}
 		}
