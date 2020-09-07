@@ -75,13 +75,13 @@ public class MultipleConfigMapsTests {
 
 		Map<String, String> two = new HashMap<>();
 		two.put("bean.common-message", "c2");
-		two.put("bean.message1", "m2");
+		two.put("bean.message2", "m2");
 
 		createConfigmap(server, "defname", "s2", two);
 
 		Map<String, String> three = new HashMap<>();
 		three.put("bean.common-message", "c3");
-		three.put("bean.message1", "m3");
+		three.put("bean.message3", "m3");
 
 		createConfigmap(server, "othername", "othernamespace", three);
 	}
