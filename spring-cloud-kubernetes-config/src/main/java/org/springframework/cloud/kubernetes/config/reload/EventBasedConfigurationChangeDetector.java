@@ -44,11 +44,11 @@ import org.springframework.core.env.AbstractEnvironment;
  */
 public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDetector {
 
-	private ConfigMapPropertySourceLocator configMapPropertySourceLocator;
+	private final ConfigMapPropertySourceLocator configMapPropertySourceLocator;
 
-	private SecretsPropertySourceLocator secretsPropertySourceLocator;
+	private final SecretsPropertySourceLocator secretsPropertySourceLocator;
 
-	private Map<String, Watch> watches;
+	private final Map<String, Watch> watches;
 
 	public EventBasedConfigurationChangeDetector(AbstractEnvironment environment,
 			ConfigReloadProperties properties, KubernetesClient kubernetesClient,
