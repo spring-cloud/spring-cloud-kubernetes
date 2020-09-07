@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.config.reload;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -82,6 +83,45 @@ public class ConfigurationChangeDetectorTest {
 		MapPropertySource right = new MapPropertySource("right", rightMap);
 		boolean changed = stub.changed(left, right);
 		Assert.assertTrue(changed);
+	}
+
+	@Test
+	public void testChangedListSameSizesEqual() {
+		Object value = new Object();
+		Map<String, Object> leftMap = new HashMap<>();
+		leftMap.put("key", value);
+		Map<String, Object> rightMap = new HashMap<>();
+		leftMap.put("key", value);
+		List<MapPropertySource> left = Collections
+				.singletonList(new MapPropertySource("one", leftMap));
+		List<MapPropertySource> right = Collections
+				.singletonList(new MapPropertySource("two", rightMap));
+		boolean changed = stub.changed(left, right);
+		Assert.assertTrue(changed);
+	}
+
+	@Test
+	public void testChangedListSameSizesButNotEqual() {
+		Object value = new Object();
+		Map<String, Object> leftMap = new HashMap<>();
+		leftMap.put("key", value);
+		Map<String, Object> rightMap = new HashMap<>();
+		leftMap.put("anotherKey", value);
+		List<MapPropertySource> left = Collections
+				.singletonList(new MapPropertySource("one", leftMap));
+		List<MapPropertySource> right = Collections
+				.singletonList(new MapPropertySource("two", rightMap));
+		boolean changed = stub.changed(left, right);
+		Assert.assertTrue(changed);
+	}
+
+	@Test
+	public void testChangedListsDifferentSizes() {
+		List<MapPropertySource> left = Collections
+				.singletonList(new MapPropertySource("one", Collections.emptyMap()));
+		List<MapPropertySource> right = Collections.emptyList();
+		boolean changed = stub.changed(left, right);
+		Assert.assertFalse(changed);
 	}
 
 	/**
