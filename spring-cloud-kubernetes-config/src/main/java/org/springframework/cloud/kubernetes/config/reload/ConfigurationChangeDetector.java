@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.annotation.PreDestroy;
 
@@ -94,22 +95,18 @@ public abstract class ConfigurationChangeDetector {
 		return !Objects.equals(leftMap, rightMap);
 	}
 
-	protected boolean changed(List<? extends MapPropertySource> l1,
-			List<? extends MapPropertySource> l2) {
+	protected boolean changed(List<? extends MapPropertySource> left,
+			List<? extends MapPropertySource> right) {
 
-		if (l1.size() != l2.size()) {
+		if (left.size() != right.size()) {
 			this.log.warn(
 					"The current number of ConfigMap PropertySources does not match "
 							+ "the ones loaded from the Kubernetes - No reload will take place");
 			return false;
 		}
 
-		for (int i = 0; i < l1.size(); i++) {
-			if (changed(l1.get(i), l2.get(i))) {
-				return true;
-			}
-		}
-		return false;
+		return IntStream.range(0, left.size())
+				.allMatch(x -> changed(left.get(x), right.get(x)));
 	}
 
 	/**
