@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import javax.annotation.PreDestroy;
 
@@ -95,18 +94,22 @@ public abstract class ConfigurationChangeDetector {
 		return !Objects.equals(leftMap, rightMap);
 	}
 
-	protected boolean changed(List<? extends MapPropertySource> left,
-			List<? extends MapPropertySource> right) {
+	protected boolean changed(List<? extends MapPropertySource> l1,
+			List<? extends MapPropertySource> l2) {
 
-		if (left.size() != right.size()) {
+		if (l1.size() != l2.size()) {
 			this.log.warn(
 					"The current number of ConfigMap PropertySources does not match "
 							+ "the ones loaded from the Kubernetes - No reload will take place");
 			return false;
 		}
 
-		return IntStream.range(0, left.size())
-				.allMatch(x -> changed(left.get(x), right.get(x)));
+		for (int i = 0; i < l1.size(); i++) {
+			if (changed(l1.get(i), l2.get(i))) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -147,8 +150,8 @@ public abstract class ConfigurationChangeDetector {
 			else if (sourceClass.isInstance(source)) {
 				managedSources.add(sourceClass.cast(source));
 			}
-			else if (BootstrapPropertySource.class.isInstance(source)) {
-				PropertySource propertySource = ((BootstrapPropertySource) source)
+			else if (source instanceof BootstrapPropertySource) {
+				PropertySource<?> propertySource = ((BootstrapPropertySource<?>) source)
 						.getDelegate();
 				if (sourceClass.isInstance(propertySource)) {
 					sources.add(propertySource);
@@ -160,7 +163,7 @@ public abstract class ConfigurationChangeDetector {
 	}
 
 	private <E> LinkedList<E> toLinkedList(Iterable<E> it) {
-		LinkedList<E> list = new LinkedList<E>();
+		LinkedList<E> list = new LinkedList<>();
 		for (E e : it) {
 			list.add(e);
 		}
@@ -179,14 +182,16 @@ public abstract class ConfigurationChangeDetector {
 			PropertySourceLocator propertySourceLocator, Environment environment) {
 
 		List<MapPropertySource> result = new ArrayList<>();
-		PropertySource propertySource = propertySourceLocator.locate(environment);
+		PropertySource<?> propertySource = propertySourceLocator.locate(environment);
 		if (propertySource instanceof MapPropertySource) {
 			result.add((MapPropertySource) propertySource);
 		}
 		else if (propertySource instanceof CompositePropertySource) {
 			result.addAll(((CompositePropertySource) propertySource).getPropertySources()
-					.stream().filter(p -> p instanceof MapPropertySource)
-					.map(p -> (MapPropertySource) p).collect(Collectors.toList()));
+					.stream()
+					.filter(p -> p instanceof MapPropertySource)
+					.map(p -> (MapPropertySource) p)
+					.collect(Collectors.toList()));
 		}
 		else {
 			this.log.debug("Found property source that cannot be handled: "
