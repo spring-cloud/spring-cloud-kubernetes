@@ -20,9 +20,17 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
@@ -44,6 +52,7 @@ import static org.springframework.cloud.kubernetes.config.ConfigUtils.getApplica
  *
  * @author l burgazzoli
  * @author Haytham Mohamed
+ * @author wind57
  */
 @Order(1)
 public class SecretsPropertySourceLocator implements PropertySourceLocator {
@@ -61,7 +70,7 @@ public class SecretsPropertySourceLocator implements PropertySourceLocator {
 	}
 
 	@Override
-	public PropertySource locate(Environment environment) {
+	public PropertySource<?> locate(Environment environment) {
 		if (environment instanceof ConfigurableEnvironment) {
 			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
 
@@ -69,13 +78,14 @@ public class SecretsPropertySourceLocator implements PropertySourceLocator {
 					.determineSources();
 			CompositePropertySource composite = new CompositePropertySource(
 					"composite-secrets");
-			if (this.properties.isEnableApi()) {
-				sources.forEach(s -> composite.addFirstPropertySource(
-						getKubernetesPropertySourceForSingleSecret(env, s)));
-			}
 
 			// read for secrets mount
 			putPathConfig(composite);
+
+			if (this.properties.isEnableApi()) {
+				sources.forEach(s -> composite.addPropertySource(
+						getKubernetesPropertySourceForSingleSecret(env, s)));
+			}
 
 			return composite;
 		}
@@ -96,34 +106,77 @@ public class SecretsPropertySourceLocator implements PropertySourceLocator {
 	}
 
 	private void putPathConfig(CompositePropertySource composite) {
+
 		this.properties.getPaths().stream().map(Paths::get).filter(Files::exists)
-				.forEach(p -> putAll(p, composite));
+				.flatMap(x -> {
+					try {
+						return Files.walk(x);
+					}
+					catch (IOException e) {
+						LOG.warn("Error walking properties files", e);
+						return null;
+					}
+				})
+				.filter(Objects::nonNull)
+				.filter(Files::isRegularFile)
+				.collect(new MapPropertySourceCollector())
+				.forEach(composite::addPropertySource);
 	}
 
-	private void putAll(Path path, CompositePropertySource composite) {
-		try {
+	/**
+	 * @author wind57
+	 */
+	private static class MapPropertySourceCollector
+			implements Collector<Path, List<MapPropertySource>, List<MapPropertySource>> {
 
-			Files.walk(path).filter(Files::isRegularFile)
-					.forEach(p -> readFile(p, composite));
+		@Override
+		public Supplier<List<MapPropertySource>> supplier() {
+			return ArrayList::new;
 		}
-		catch (IOException e) {
-			LOG.warn("Error walking properties files", e);
-		}
-	}
 
-	private void readFile(Path path, CompositePropertySource composite) {
-		try {
-			Map<String, Object> result = new HashMap<>();
-			result.put(path.getFileName().toString(),
-					new String(Files.readAllBytes(path)).trim());
-			if (!result.isEmpty()) {
-				composite.addFirstPropertySource(new MapPropertySource(
-						path.getFileName().toString().toLowerCase(), result));
+		@Override
+		public BiConsumer<List<MapPropertySource>, Path> accumulator() {
+			return (list, filePath) -> {
+				MapPropertySource source = property(filePath);
+				if (source != null) {
+					list.add(source);
+				}
+			};
+		}
+
+		@Override
+		public BinaryOperator<List<MapPropertySource>> combiner() {
+			return (left, right) -> {
+				left.addAll(right);
+				return left;
+			};
+		}
+
+		@Override
+		public Function<List<MapPropertySource>, List<MapPropertySource>> finisher() {
+			return Function.identity();
+		}
+
+		@Override
+		public Set<Characteristics> characteristics() {
+			return EnumSet.of(Characteristics.UNORDERED, Characteristics.IDENTITY_FINISH);
+		}
+
+		private MapPropertySource property(Path filePath) {
+
+			String fileName = filePath.getFileName().toString();
+
+			try {
+				String content = new String(Files.readAllBytes(filePath)).trim();
+				return new MapPropertySource(fileName.toLowerCase(),
+						Collections.singletonMap(fileName, content));
+			}
+			catch (IOException e) {
+				LOG.warn("Error reading properties file", e);
+				return null;
 			}
 		}
-		catch (IOException e) {
-			LOG.warn("Error reading properties file", e);
-		}
+
 	}
 
 }
