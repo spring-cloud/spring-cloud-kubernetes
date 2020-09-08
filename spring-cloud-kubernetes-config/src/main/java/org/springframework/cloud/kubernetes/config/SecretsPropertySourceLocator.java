@@ -107,20 +107,24 @@ public class SecretsPropertySourceLocator implements PropertySourceLocator {
 
 	private void putPathConfig(CompositePropertySource composite) {
 
-		this.properties.getPaths().stream().map(Paths::get).filter(Files::exists)
-				.flatMap(x -> {
-					try {
-						return Files.walk(x);
-					}
-					catch (IOException e) {
-						LOG.warn("Error walking properties files", e);
-						return null;
-					}
-				})
-				.filter(Objects::nonNull)
-				.filter(Files::isRegularFile)
-				.collect(new MapPropertySourceCollector())
-				.forEach(composite::addPropertySource);
+		this.properties
+			.getPaths()
+			.stream()
+			.map(Paths::get)
+			.filter(Files::exists)
+			.flatMap(x -> {
+				try {
+					return Files.walk(x);
+				}
+				catch (IOException e) {
+					LOG.warn("Error walking properties files", e);
+					return null;
+				}
+			})
+			.filter(Objects::nonNull)
+			.filter(Files::isRegularFile)
+			.collect(new MapPropertySourceCollector())
+			.forEach(composite::addPropertySource);
 	}
 
 	/**
