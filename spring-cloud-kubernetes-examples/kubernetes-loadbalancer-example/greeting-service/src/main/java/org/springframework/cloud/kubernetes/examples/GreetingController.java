@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.examples;
 
-
 import reactor.core.publisher.Mono;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,9 +51,9 @@ public class GreetingController {
 	 */
 	@GetMapping("/greeting")
 	public Mono<String> getGreeting(
-		@RequestParam(value = "delay", defaultValue = "0") int delay) {
-		return Mono
-			.just(String.format("Hello from %s!", nameService.getName(delay)));
+			@RequestParam(value = "delay", defaultValue = "0") int delay) {
+		return nameService.getName(delay)
+				.map(name -> String.format("Hello from %s!", name));
 	}
 
 }

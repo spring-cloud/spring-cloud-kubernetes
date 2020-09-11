@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.examples;
 import reactor.core.publisher.Mono;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
@@ -37,10 +36,10 @@ public class NameService {
 		webClient = webClientBuilder.build();
 	}
 
-	public Mono<ClientResponse> getName(int delay) {
+	public Mono<String> getName(int delay) {
 		return webClient.get()
-			.uri("http://name-service/name?delay=%d", delay)
-			.exchange();
+				.uri(String.format("http://name-service/name?delay=%d", delay)).retrieve()
+				.bodyToMono(String.class);
 	}
 
 }
