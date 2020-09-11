@@ -16,8 +16,11 @@
 
 package org.springframework.cloud.kubernetes.examples;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * Service invoking name-service via REST and guarded by Hystrix.
@@ -28,15 +31,16 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class NameService {
 
-	private final RestTemplate restTemplate;
+	private final WebClient webClient;
 
-	public NameService(RestTemplate restTemplate) {
-		this.restTemplate = restTemplate;
+	public NameService(WebClient.Builder webClientBuilder) {
+		webClient = webClientBuilder.build();
 	}
 
-	public String getName(int delay) {
-		return this.restTemplate.getForObject(
-				String.format("http://name-service/name?delay=%d", delay), String.class);
+	public Mono<ClientResponse> getName(int delay) {
+		return webClient.get()
+			.uri("http://name-service/name?delay=%d", delay)
+			.exchange();
 	}
 
 }

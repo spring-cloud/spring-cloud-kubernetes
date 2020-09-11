@@ -18,8 +18,9 @@ package org.springframework.cloud.kubernetes.examples;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Mono;
 
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Name service controller.
  *
  * @author Gytis Trikleris
+ * @author Olga Maciaszek-Sharma
  */
 @RestController
 public class NameController {
@@ -35,10 +37,10 @@ public class NameController {
 
 	private final String hostName = System.getenv("HOSTNAME");
 
-	@RequestMapping("/")
+	@GetMapping("/")
 	public String ribbonPing() {
 		LOG.info("Ribbon ping");
-		return this.hostName;
+		return hostName;
 	}
 
 	/**
@@ -47,13 +49,13 @@ public class NameController {
 	 * @param delayValue Milliseconds for how long the response should be delayed.
 	 * @return Host name.
 	 */
-	@RequestMapping("/name")
-	public String getName(
-			@RequestParam(value = "delay", defaultValue = "0") int delayValue) {
-		LOG.info(String.format("Returning a name '%s' with a delay '%d'", this.hostName,
-				delayValue));
+	@GetMapping("/name")
+	public Mono<String> getName(
+		@RequestParam(value = "delay", defaultValue = "0") int delayValue) {
+		LOG.info(String.format("Returning a name '%s' with a delay '%d'", hostName,
+			delayValue));
 		delay(delayValue);
-		return this.hostName;
+		return Mono.just(hostName);
 	}
 
 	private void delay(int delayValue) {

@@ -16,7 +16,10 @@
 
 package org.springframework.cloud.kubernetes.examples;
 
-import org.springframework.web.bind.annotation.RequestMapping;
+
+import reactor.core.publisher.Mono;
+
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Greeting service controller.
  *
  * @author Gytis Trikleris
+ * @author Olga Maciaszek-Sharma
  */
 @RestController
 public class GreetingController {
@@ -46,10 +50,11 @@ public class GreetingController {
 	 * delayed.
 	 * @return Greeting string.
 	 */
-	@RequestMapping("/greeting")
-	public String getGreeting(
-			@RequestParam(value = "delay", defaultValue = "0") int delay) {
-		return String.format("Hello from %s!", this.nameService.getName(delay));
+	@GetMapping("/greeting")
+	public Mono<String> getGreeting(
+		@RequestParam(value = "delay", defaultValue = "0") int delay) {
+		return Mono
+			.just(String.format("Hello from %s!", nameService.getName(delay)));
 	}
 
 }
