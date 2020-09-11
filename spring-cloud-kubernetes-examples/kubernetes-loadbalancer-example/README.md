@@ -15,10 +15,10 @@ IMPORTANT: In order for this setup to work, you need to grant permissions to ret
 First, create a new virtual machine provisioned with Kubernetes on your laptop using the command `minikube start`.
 
 Next, you can compile your project and generate the Kubernetes resources (yaml files containing the definition of the pod, deployment, build, service and route to be created)
-like also to deploy the application on Kubernetes in one maven line by running the following command one by one in both `greeting-service` and `name-service`
+like also to deploy the application on Kubernetes in one maven line by running:
 
 ```
-./mvnw clean install fabric8:deploy -Dfabric8.generator.from=fabric8/java-jboss-openjdk8-jdk -Pkubernetes
+mvn clean install fabric8:deploy -Dfabric8.generator.from=fabric8/java-jboss-openjdk8-jdk -Pkubernetes
 ```
 
 ### Call the Greeting service
