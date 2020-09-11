@@ -8,16 +8,9 @@
 		<version>1.1.7.BUILD-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
-
-	<groupId>olgamaciaszek</groupId>
 	<artifactId>kubernetes-loadbalancer-example</artifactId>
 	<name>Spring Cloud LoadBalancer Example</name>
 	<packaging>pom</packaging>
-
-	<modules>
-		<module>name-service</module>
-		<module>greeting-service</module>
-	</modules>
 
 	<profiles>
 		<profile>
@@ -113,5 +106,10 @@
 			</build>
 		</profile>
 	</profiles>
+
+	<modules>
+		<module>name-service</module>
+		<module>greeting-service</module>
+	</modules>
 
 </project>

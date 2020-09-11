@@ -9,7 +9,6 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>olgamaciaszek</groupId>
 	<artifactId>greeting-service</artifactId>
 	<name>Spring Cloud LoadBalancer :: Greeting Service</name>
 	<description>Spring Cloud LoadBalancer :: Greeting Service</description>
