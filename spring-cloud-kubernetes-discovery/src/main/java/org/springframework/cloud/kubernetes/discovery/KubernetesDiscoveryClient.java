@@ -222,8 +222,10 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			else {
 				portPredicate = port -> true;
 			}
+			// if no port is found, return an empty object
+			// endpoints without ports are valid in Kubernetes
 			endpointPort = ports.stream().filter(portPredicate).findAny()
-					.orElseThrow(IllegalStateException::new);
+						.orElse(new EndpointPort());
 		}
 		return endpointPort;
 	}
