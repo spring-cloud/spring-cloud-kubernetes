@@ -279,6 +279,10 @@ You can specify multiple (exact) file paths in `spring.cloud.kubernetes.config.p
 
 NOTE: You have to provide the full exact path to each property file, because directories are not being recursively parsed.
 
+NOTE:  If you use `spring.cloud.kubernetes.config.paths` or `spring.cloud.kubernetes.secrets.path` the automatic reload
+functionality will not work.  You will need to make a `POST` request to the `/actuator/refresh` endpoint or
+restart/redeploy the application.
+
 .Properties:
 [options="header,footer"]
 |===
