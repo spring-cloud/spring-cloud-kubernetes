@@ -37,8 +37,7 @@ public class NameService {
 	}
 
 	public Mono<String> getName(int delay) {
-		return webClient.get()
-				.uri(String.format("http://name-service/name?delay=%d", delay)).retrieve()
+		return webClient.get().uri(String.format("http://name-service/name?delay=%d", delay)).retrieve()
 				.bodyToMono(String.class);
 	}
 

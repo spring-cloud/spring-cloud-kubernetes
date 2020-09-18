@@ -41,8 +41,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 /**
  * @author Ryan Baxter
  */
-public class HttpBasedConfigurationWatchChangeDetector
-		extends ConfigurationWatcherChangeDetector {
+public class HttpBasedConfigurationWatchChangeDetector extends ConfigurationWatcherChangeDetector {
 
 	/**
 	 * Annotation key for actuator port and path.
@@ -53,17 +52,15 @@ public class HttpBasedConfigurationWatchChangeDetector
 
 	private KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient;
 
-	public HttpBasedConfigurationWatchChangeDetector(AbstractEnvironment environment,
-			ConfigReloadProperties properties, KubernetesClient kubernetesClient,
-			ConfigurationUpdateStrategy strategy,
+	public HttpBasedConfigurationWatchChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
+			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator,
 			SecretsPropertySourceLocator secretsPropertySourceLocator,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor, WebClient webClient,
 			KubernetesReactiveDiscoveryClient k8sReactiveDiscoveryClient) {
-		super(environment, properties, kubernetesClient, strategy,
-				configMapPropertySourceLocator, secretsPropertySourceLocator,
-				k8SConfigurationProperties, threadPoolTaskExecutor);
+		super(environment, properties, kubernetesClient, strategy, configMapPropertySourceLocator,
+				secretsPropertySourceLocator, k8SConfigurationProperties, threadPoolTaskExecutor);
 		this.webClient = webClient;
 		this.kubernetesReactiveDiscoveryClient = k8sReactiveDiscoveryClient;
 	}
@@ -73,8 +70,7 @@ public class HttpBasedConfigurationWatchChangeDetector
 		return refresh(secret.getMetadata()).then();
 	}
 
-	private void setActuatorUriFromAnnotation(UriComponentsBuilder actuatorUriBuilder,
-			String metadataUri) {
+	private void setActuatorUriFromAnnotation(UriComponentsBuilder actuatorUriBuilder, String metadataUri) {
 		URI annotationUri = URI.create(metadataUri);
 		actuatorUriBuilder.path(annotationUri.getPath() + "/refresh");
 
@@ -84,8 +80,7 @@ public class HttpBasedConfigurationWatchChangeDetector
 		// 9090 in this case
 		if (annotationUri.getPort() < 0) {
 			if (annotationUri.getAuthority() != null) {
-				actuatorUriBuilder
-						.port(annotationUri.getAuthority().replaceFirst(":", ""));
+				actuatorUriBuilder.port(annotationUri.getAuthority().replaceFirst(":", ""));
 			}
 		}
 		else {
@@ -99,8 +94,8 @@ public class HttpBasedConfigurationWatchChangeDetector
 			log.debug("Metadata actuator uri is: " + metadataUri);
 		}
 
-		UriComponentsBuilder actuatorUriBuilder = UriComponentsBuilder.newInstance()
-				.scheme(si.getScheme()).host(si.getHost());
+		UriComponentsBuilder actuatorUriBuilder = UriComponentsBuilder.newInstance().scheme(si.getScheme())
+				.host(si.getHost());
 
 		if (!StringUtils.isEmpty(metadataUri)) {
 			if (log.isDebugEnabled()) {
@@ -111,8 +106,7 @@ public class HttpBasedConfigurationWatchChangeDetector
 		else {
 			Integer port = k8SConfigurationProperties.getActuatorPort() < 0 ? si.getPort()
 					: k8SConfigurationProperties.getActuatorPort();
-			actuatorUriBuilder = actuatorUriBuilder
-					.path(k8SConfigurationProperties.getActuatorPath() + "/refresh")
+			actuatorUriBuilder = actuatorUriBuilder.path(k8SConfigurationProperties.getActuatorPath() + "/refresh")
 					.port(port);
 		}
 
@@ -121,28 +115,22 @@ public class HttpBasedConfigurationWatchChangeDetector
 
 	protected Flux<ResponseEntity<Void>> refresh(ObjectMeta objectMeta) {
 
-		return kubernetesReactiveDiscoveryClient.getInstances(objectMeta.getName())
-				.flatMap(si -> {
-					URI actuatorUri = getActuatorUri(si);
-					if (log.isDebugEnabled()) {
-						log.debug("Sending refresh request for " + objectMeta.getName()
-								+ " to URI " + actuatorUri.toString());
-					}
-					Mono<ResponseEntity<Void>> response = webClient.post()
-							.uri(actuatorUri).retrieve().toBodilessEntity()
-							.doOnSuccess(re -> {
-								if (log.isDebugEnabled()) {
-									log.debug("Refresh sent to " + objectMeta.getName()
-											+ " at URI address " + actuatorUri
-											+ " returned a "
-											+ re.getStatusCode().toString());
-								}
-							}).doOnError(t -> {
-								log.warn("Refresh sent to " + objectMeta.getName()
-										+ " failed", t);
-							});
-					return response;
-				});
+		return kubernetesReactiveDiscoveryClient.getInstances(objectMeta.getName()).flatMap(si -> {
+			URI actuatorUri = getActuatorUri(si);
+			if (log.isDebugEnabled()) {
+				log.debug("Sending refresh request for " + objectMeta.getName() + " to URI " + actuatorUri.toString());
+			}
+			Mono<ResponseEntity<Void>> response = webClient.post().uri(actuatorUri).retrieve().toBodilessEntity()
+					.doOnSuccess(re -> {
+						if (log.isDebugEnabled()) {
+							log.debug("Refresh sent to " + objectMeta.getName() + " at URI address " + actuatorUri
+									+ " returned a " + re.getStatusCode().toString());
+						}
+					}).doOnError(t -> {
+						log.warn("Refresh sent to " + objectMeta.getName() + " failed", t);
+					});
+			return response;
+		});
 	}
 
 	@Override

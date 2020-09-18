@@ -52,9 +52,9 @@ public final class PropertySourceUtils {
 			throw new IllegalArgumentException();
 		}
 	};
-	static final Function<Properties, Map<String, Object>> PROPERTIES_TO_MAP = p -> p
-			.entrySet().stream().collect(Collectors.toMap(e -> String.valueOf(e.getKey()),
-					Map.Entry::getValue, throwingMerger(), java.util.LinkedHashMap::new));
+	static final Function<Properties, Map<String, Object>> PROPERTIES_TO_MAP = p -> p.entrySet().stream()
+			.collect(Collectors.toMap(e -> String.valueOf(e.getKey()), Map.Entry::getValue, throwingMerger(),
+					java.util.LinkedHashMap::new));
 
 	private PropertySourceUtils() {
 		throw new IllegalStateException("Can't instantiate a utility class");
@@ -66,8 +66,7 @@ public final class PropertySourceUtils {
 			yamlFactory.setDocumentMatchers(properties -> {
 				String profiles = properties.getProperty("spring.profiles");
 				if (environment != null && StringUtils.hasText(profiles)) {
-					return environment.acceptsProfiles(Profiles.of(profiles)) ? FOUND
-							: NOT_FOUND;
+					return environment.acceptsProfiles(Profiles.of(profiles)) ? FOUND : NOT_FOUND;
 				}
 				else {
 					return ABSTAIN;

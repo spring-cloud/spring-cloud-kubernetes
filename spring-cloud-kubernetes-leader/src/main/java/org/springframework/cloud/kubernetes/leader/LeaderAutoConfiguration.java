@@ -41,20 +41,17 @@ import org.springframework.integration.leader.event.LeaderEventPublisher;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(LeaderProperties.class)
 @ConditionalOnBean(KubernetesClient.class)
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled",
-		matchIfMissing = true)
+@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
 public class LeaderAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(LeaderEventPublisher.class)
-	public LeaderEventPublisher defaultLeaderEventPublisher(
-			ApplicationEventPublisher applicationEventPublisher) {
+	public LeaderEventPublisher defaultLeaderEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		return new DefaultLeaderEventPublisher(applicationEventPublisher);
 	}
 
 	@Bean
-	public Candidate candidate(LeaderProperties leaderProperties)
-			throws UnknownHostException {
+	public Candidate candidate(LeaderProperties leaderProperties) throws UnknownHostException {
 		String id = Inet4Address.getLocalHost().getHostName();
 		String role = leaderProperties.getRole();
 
@@ -62,41 +59,32 @@ public class LeaderAutoConfiguration {
 	}
 
 	@Bean
-	public LeadershipController leadershipController(Candidate candidate,
-			LeaderProperties leaderProperties, LeaderEventPublisher leaderEventPublisher,
-			KubernetesClient kubernetesClient) {
-		return new LeadershipController(candidate, leaderProperties, leaderEventPublisher,
-				kubernetesClient);
+	public LeadershipController leadershipController(Candidate candidate, LeaderProperties leaderProperties,
+			LeaderEventPublisher leaderEventPublisher, KubernetesClient kubernetesClient) {
+		return new LeadershipController(candidate, leaderProperties, leaderEventPublisher, kubernetesClient);
 	}
 
 	@Bean
 	public LeaderRecordWatcher leaderRecordWatcher(LeaderProperties leaderProperties,
-			LeadershipController leadershipController,
-			KubernetesClient kubernetesClient) {
-		return new LeaderRecordWatcher(leaderProperties, leadershipController,
-				kubernetesClient);
+			LeadershipController leadershipController, KubernetesClient kubernetesClient) {
+		return new LeaderRecordWatcher(leaderProperties, leadershipController, kubernetesClient);
 	}
 
 	@Bean
-	public PodReadinessWatcher hostPodWatcher(Candidate candidate,
-			KubernetesClient kubernetesClient,
+	public PodReadinessWatcher hostPodWatcher(Candidate candidate, KubernetesClient kubernetesClient,
 			LeadershipController leadershipController) {
-		return new PodReadinessWatcher(candidate.getId(), kubernetesClient,
-				leadershipController);
+		return new PodReadinessWatcher(candidate.getId(), kubernetesClient, leadershipController);
 	}
 
 	@Bean(destroyMethod = "stop")
-	public LeaderInitiator leaderInitiator(LeaderProperties leaderProperties,
-			LeadershipController leadershipController,
+	public LeaderInitiator leaderInitiator(LeaderProperties leaderProperties, LeadershipController leadershipController,
 			LeaderRecordWatcher leaderRecordWatcher, PodReadinessWatcher hostPodWatcher) {
-		return new LeaderInitiator(leaderProperties, leadershipController,
-				leaderRecordWatcher, hostPodWatcher);
+		return new LeaderInitiator(leaderProperties, leadershipController, leaderRecordWatcher, hostPodWatcher);
 	}
 
 	@Bean
 	@ConditionalOnClass(InfoContributor.class)
-	public LeaderInfoContributor leaderInfoContributor(
-			LeadershipController leadershipController, Candidate candidate) {
+	public LeaderInfoContributor leaderInfoContributor(LeadershipController leadershipController, Candidate candidate) {
 		return new LeaderInfoContributor(leadershipController, candidate);
 	}
 

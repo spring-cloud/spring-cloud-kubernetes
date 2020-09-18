@@ -51,21 +51,21 @@ public class KubernetesConfigConfigurationTest {
 	}
 
 	@Test
-	public void kubernetesWhenKubernetesConfigAndSecretDisabled() throws Exception {
+	public void kubernetesWhenKubernetesConfigAndSecretsDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.config.enabled=false", "spring.cloud.kubernetes.secrets.enabled=false");
 		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isFalse();
 	}
 
 	@Test
-	public void kubernetesWhenKubernetesConfigEnabledButSecretDisabled() throws Exception {
+	public void kubernetesWhenKubernetesConfigEnabledButSecretsDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.config.enabled=true", "spring.cloud.kubernetes.secrets.enabled=false");
 		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isFalse();
 	}
 
 	@Test
-	public void kubernetesWhenKubernetesConfigDisabledButSecretEnabled() throws Exception {
+	public void kubernetesWhenKubernetesConfigDisabledButSecretsEnabled() throws Exception {
 		setup("spring.cloud.kubernetes.config.enabled=false", "spring.cloud.kubernetes.secrets.enabled=true");
 		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isTrue();

@@ -50,10 +50,8 @@ public class NameController {
 	 * @return Host name.
 	 */
 	@GetMapping("/name")
-	public Mono<String> getName(
-			@RequestParam(value = "delay", defaultValue = "0") int delayValue) {
-		LOG.info(String.format("Returning a name '%s' with a delay '%d'", hostName,
-				delayValue));
+	public Mono<String> getName(@RequestParam(value = "delay", defaultValue = "0") int delayValue) {
+		LOG.info(String.format("Returning a name '%s' with a delay '%d'", hostName, delayValue));
 		delay(delayValue);
 		return Mono.just(hostName);
 	}

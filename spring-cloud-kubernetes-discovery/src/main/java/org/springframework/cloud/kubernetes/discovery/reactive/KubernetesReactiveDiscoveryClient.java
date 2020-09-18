@@ -37,8 +37,7 @@ public class KubernetesReactiveDiscoveryClient implements ReactiveDiscoveryClien
 
 	private final KubernetesDiscoveryClient kubernetesDiscoveryClient;
 
-	public KubernetesReactiveDiscoveryClient(KubernetesClient client,
-			KubernetesDiscoveryProperties properties,
+	public KubernetesReactiveDiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties properties,
 			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
 		this.kubernetesDiscoveryClient = new KubernetesDiscoveryClient(client, properties,
 				kubernetesClientServicesFunction);
@@ -51,18 +50,14 @@ public class KubernetesReactiveDiscoveryClient implements ReactiveDiscoveryClien
 
 	@Override
 	public Flux<ServiceInstance> getInstances(String serviceId) {
-		Assert.notNull(serviceId,
-				"[Assertion failed] - the object argument must not be null");
-		return Flux
-				.defer(() -> Flux
-						.fromIterable(kubernetesDiscoveryClient.getInstances(serviceId)))
+		Assert.notNull(serviceId, "[Assertion failed] - the object argument must not be null");
+		return Flux.defer(() -> Flux.fromIterable(kubernetesDiscoveryClient.getInstances(serviceId)))
 				.subscribeOn(Schedulers.boundedElastic());
 	}
 
 	@Override
 	public Flux<String> getServices() {
-		return Flux
-				.defer(() -> Flux.fromIterable(kubernetesDiscoveryClient.getServices()))
+		return Flux.defer(() -> Flux.fromIterable(kubernetesDiscoveryClient.getServices()))
 				.subscribeOn(Schedulers.boundedElastic());
 	}
 

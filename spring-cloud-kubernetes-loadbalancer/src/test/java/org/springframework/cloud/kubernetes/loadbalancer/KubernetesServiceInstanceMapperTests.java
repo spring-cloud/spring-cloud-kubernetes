@@ -39,8 +39,8 @@ class KubernetesServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties();
 		Service service = buildService("test", "abc", 8080, null, new HashMap<>());
-		KubernetesServiceInstance instance = new KubernetesServiceInstanceMapper(
-				properties, discoveryProperties).map(service);
+		KubernetesServiceInstance instance = new KubernetesServiceInstanceMapper(properties, discoveryProperties)
+				.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());
 		Assertions.assertEquals("abc", instance.getInstanceId());
@@ -55,8 +55,8 @@ class KubernetesServiceInstanceMapperTests {
 		ports.add(new ServicePortBuilder().withPort(8080).withName("web").build());
 		ports.add(new ServicePortBuilder().withPort(9000).withName("http").build());
 		Service service = buildService("test", "abc", ports, new HashMap<>());
-		KubernetesServiceInstance instance = new KubernetesServiceInstanceMapper(
-				properties, discoveryProperties).map(service);
+		KubernetesServiceInstance instance = new KubernetesServiceInstanceMapper(properties, discoveryProperties)
+				.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());
 		Assertions.assertEquals("abc", instance.getInstanceId());
@@ -68,8 +68,8 @@ class KubernetesServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties();
 		Service service = buildService("test", "abc", 443, null, new HashMap<>());
-		KubernetesServiceInstance instance = new KubernetesServiceInstanceMapper(
-				properties, discoveryProperties).map(service);
+		KubernetesServiceInstance instance = new KubernetesServiceInstanceMapper(properties, discoveryProperties)
+				.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());
 		Assertions.assertEquals("abc", instance.getInstanceId());
@@ -84,8 +84,8 @@ class KubernetesServiceInstanceMapperTests {
 		labels.put("secured", "true");
 		labels.put("label1", "123");
 		Service service = buildService("test", "abc", 8080, null, labels);
-		KubernetesServiceInstance instance = new KubernetesServiceInstanceMapper(
-				properties, discoveryProperties).map(service);
+		KubernetesServiceInstance instance = new KubernetesServiceInstanceMapper(properties, discoveryProperties)
+				.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());
 		Assertions.assertEquals("abc", instance.getInstanceId());
@@ -93,17 +93,13 @@ class KubernetesServiceInstanceMapperTests {
 		Assertions.assertEquals(2, instance.getMetadata().keySet().size());
 	}
 
-	private Service buildService(String name, String uid, List<ServicePort> ports,
-			Map<String, String> labels) {
-		return new ServiceBuilder().withNewMetadata().withName(name).withNewUid(uid)
-				.addToLabels(labels).addToAnnotations(new HashMap<>(0)).endMetadata()
-				.withNewSpec().addAllToPorts(ports).endSpec().build();
+	private Service buildService(String name, String uid, List<ServicePort> ports, Map<String, String> labels) {
+		return new ServiceBuilder().withNewMetadata().withName(name).withNewUid(uid).addToLabels(labels)
+				.addToAnnotations(new HashMap<>(0)).endMetadata().withNewSpec().addAllToPorts(ports).endSpec().build();
 	}
 
-	private Service buildService(String name, String uid, int port, String portName,
-			Map<String, String> labels) {
-		ServicePort servicePort = new ServicePortBuilder().withPort(port)
-				.withName(portName).build();
+	private Service buildService(String name, String uid, int port, String portName, Map<String, String> labels) {
+		ServicePort servicePort = new ServicePortBuilder().withPort(port).withName(portName).build();
 		return buildService(name, uid, Collections.singletonList(servicePort), labels);
 	}
 

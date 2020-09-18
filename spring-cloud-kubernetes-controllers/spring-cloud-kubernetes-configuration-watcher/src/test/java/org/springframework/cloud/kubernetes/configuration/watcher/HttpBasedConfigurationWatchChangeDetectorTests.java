@@ -98,21 +98,18 @@ public class HttpBasedConfigurationWatchChangeDetectorTests {
 		EndpointPort fooEndpointPort = new EndpointPort();
 		fooEndpointPort.setPort(wireMockRule.port());
 		List<ServiceInstance> instances = new ArrayList<>();
-		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance(
-				"foo", "foo", fooEndpointAddress.getIp(), fooEndpointPort.getPort(),
-				new HashMap<>(), false);
+		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance("foo", "foo",
+				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), new HashMap<>(), false);
 		instances.add(fooServiceInstance);
-		when(reactiveDiscoveryClient.getInstances(eq("foo")))
-				.thenReturn(Flux.fromIterable(instances));
+		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
 		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		WebClient webClient = WebClient.builder().build();
-		changeDetector = new HttpBasedConfigurationWatchChangeDetector(mockEnvironment,
-				configReloadProperties, client, updateStrategy,
-				configMapPropertySourceLocator, secretsPropertySourceLocator,
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor,
-				webClient, reactiveDiscoveryClient);
+		changeDetector = new HttpBasedConfigurationWatchChangeDetector(mockEnvironment, configReloadProperties, client,
+				updateStrategy, configMapPropertySourceLocator, secretsPropertySourceLocator,
+				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, webClient,
+				reactiveDiscoveryClient);
 	}
 
 	@Test
@@ -122,8 +119,7 @@ public class HttpBasedConfigurationWatchChangeDetectorTests {
 		objectMeta.setName("foo");
 		configMap.setMetadata(objectMeta);
 		WireMock.configureFor("localhost", wireMockRule.port());
-		stubFor(post(WireMock.urlEqualTo("/actuator/refresh"))
-				.willReturn(aResponse().withStatus(200)));
+		stubFor(post(WireMock.urlEqualTo("/actuator/refresh")).willReturn(aResponse().withStatus(200)));
 		StepVerifier.create(changeDetector.triggerRefresh(configMap)).verifyComplete();
 		verify(postRequestedFor(urlEqualTo("/actuator/refresh")));
 	}
@@ -135,40 +131,33 @@ public class HttpBasedConfigurationWatchChangeDetectorTests {
 		objectMeta.setName("foo");
 		secret.setMetadata(objectMeta);
 		WireMock.configureFor("localhost", wireMockRule.port());
-		stubFor(post(WireMock.urlEqualTo("/actuator/refresh"))
-				.willReturn(aResponse().withStatus(200)));
+		stubFor(post(WireMock.urlEqualTo("/actuator/refresh")).willReturn(aResponse().withStatus(200)));
 		StepVerifier.create(changeDetector.triggerRefresh(secret)).verifyComplete();
 		verify(postRequestedFor(urlEqualTo("/actuator/refresh")));
 	}
 
 	@Test
-	public void triggerConfigMapRefreshWithPropertiesBasedActuatorPath()
-			throws InterruptedException {
-		configurationWatcherConfigurationProperties
-				.setActuatorPath("/my/custom/actuator");
+	public void triggerConfigMapRefreshWithPropertiesBasedActuatorPath() throws InterruptedException {
+		configurationWatcherConfigurationProperties.setActuatorPath("/my/custom/actuator");
 		ConfigMap configMap = new ConfigMap();
 		ObjectMeta objectMeta = new ObjectMeta();
 		objectMeta.setName("foo");
 		configMap.setMetadata(objectMeta);
 		WireMock.configureFor("localhost", wireMockRule.port());
-		stubFor(post(WireMock.urlEqualTo("/my/custom/actuator/refresh"))
-				.willReturn(aResponse().withStatus(200)));
+		stubFor(post(WireMock.urlEqualTo("/my/custom/actuator/refresh")).willReturn(aResponse().withStatus(200)));
 		StepVerifier.create(changeDetector.triggerRefresh(configMap)).verifyComplete();
 		verify(postRequestedFor(urlEqualTo("/my/custom/actuator/refresh")));
 	}
 
 	@Test
-	public void triggerSecretRefreshWithPropertiesBasedActuatorPath()
-			throws InterruptedException {
-		configurationWatcherConfigurationProperties
-				.setActuatorPath("/my/custom/actuator");
+	public void triggerSecretRefreshWithPropertiesBasedActuatorPath() throws InterruptedException {
+		configurationWatcherConfigurationProperties.setActuatorPath("/my/custom/actuator");
 		Secret secret = new Secret();
 		ObjectMeta objectMeta = new ObjectMeta();
 		objectMeta.setName("foo");
 		secret.setMetadata(objectMeta);
 		WireMock.configureFor("localhost", wireMockRule.port());
-		stubFor(post(WireMock.urlEqualTo("/my/custom/actuator/refresh"))
-				.willReturn(aResponse().withStatus(200)));
+		stubFor(post(WireMock.urlEqualTo("/my/custom/actuator/refresh")).willReturn(aResponse().withStatus(200)));
 		StepVerifier.create(changeDetector.triggerRefresh(secret)).verifyComplete();
 		verify(postRequestedFor(urlEqualTo("/my/custom/actuator/refresh")));
 	}
@@ -176,26 +165,22 @@ public class HttpBasedConfigurationWatchChangeDetectorTests {
 	@Test
 	public void triggerConfigMapRefreshWithAnnotationActuatorPath() {
 		Map<String, String> metadata = new HashMap<>();
-		metadata.put(ANNOTATION_KEY,
-				"http://:" + wireMockRule.port() + "/my/custom/actuator");
+		metadata.put(ANNOTATION_KEY, "http://:" + wireMockRule.port() + "/my/custom/actuator");
 		EndpointAddress fooEndpointAddress = new EndpointAddress();
 		fooEndpointAddress.setIp("127.0.0.1");
 		fooEndpointAddress.setHostname("localhost");
 		EndpointPort fooEndpointPort = new EndpointPort();
 		fooEndpointPort.setPort(wireMockRule.port());
 		List<ServiceInstance> instances = new ArrayList<>();
-		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance(
-				"foo", "foo", fooEndpointAddress.getIp(), fooEndpointPort.getPort(),
-				metadata, false);
+		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance("foo", "foo",
+				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), metadata, false);
 		instances.add(fooServiceInstance);
-		when(reactiveDiscoveryClient.getInstances(eq("foo")))
-				.thenReturn(Flux.fromIterable(instances));
+		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
 		ConfigMap configMap = new ConfigMap();
 		ObjectMeta objectMeta = new ObjectMeta();
 		objectMeta.setName("foo");
 		configMap.setMetadata(objectMeta);
-		stubFor(post(WireMock.urlEqualTo("/my/custom/actuator/refresh"))
-				.willReturn(aResponse().withStatus(200)));
+		stubFor(post(WireMock.urlEqualTo("/my/custom/actuator/refresh")).willReturn(aResponse().withStatus(200)));
 		StepVerifier.create(changeDetector.triggerRefresh(configMap)).verifyComplete();
 		verify(postRequestedFor(urlEqualTo("/my/custom/actuator/refresh")));
 	}
@@ -203,26 +188,22 @@ public class HttpBasedConfigurationWatchChangeDetectorTests {
 	@Test
 	public void triggerSecretRefreshWithAnnotationActuatorPath() {
 		Map<String, String> metadata = new HashMap<>();
-		metadata.put(ANNOTATION_KEY,
-				"http://:" + wireMockRule.port() + "/my/custom/actuator");
+		metadata.put(ANNOTATION_KEY, "http://:" + wireMockRule.port() + "/my/custom/actuator");
 		EndpointAddress fooEndpointAddress = new EndpointAddress();
 		fooEndpointAddress.setIp("127.0.0.1");
 		fooEndpointAddress.setHostname("localhost");
 		EndpointPort fooEndpointPort = new EndpointPort();
 		fooEndpointPort.setPort(wireMockRule.port());
 		List<ServiceInstance> instances = new ArrayList<>();
-		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance(
-				"foo", "foo", fooEndpointAddress.getIp(), fooEndpointPort.getPort(),
-				metadata, false);
+		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance("foo", "foo",
+				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), metadata, false);
 		instances.add(fooServiceInstance);
-		when(reactiveDiscoveryClient.getInstances(eq("foo")))
-				.thenReturn(Flux.fromIterable(instances));
+		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
 		Secret secret = new Secret();
 		ObjectMeta objectMeta = new ObjectMeta();
 		objectMeta.setName("foo");
 		secret.setMetadata(objectMeta);
-		stubFor(post(WireMock.urlEqualTo("/my/custom/actuator/refresh"))
-				.willReturn(aResponse().withStatus(200)));
+		stubFor(post(WireMock.urlEqualTo("/my/custom/actuator/refresh")).willReturn(aResponse().withStatus(200)));
 		StepVerifier.create(changeDetector.triggerRefresh(secret)).verifyComplete();
 		verify(postRequestedFor(urlEqualTo("/my/custom/actuator/refresh")));
 	}

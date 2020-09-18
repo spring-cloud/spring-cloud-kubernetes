@@ -54,9 +54,8 @@ public abstract class ConfigurationChangeDetector {
 
 	protected ConfigurationUpdateStrategy strategy;
 
-	public ConfigurationChangeDetector(ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, KubernetesClient kubernetesClient,
-			ConfigurationUpdateStrategy strategy) {
+	public ConfigurationChangeDetector(ConfigurableEnvironment environment, ConfigReloadProperties properties,
+			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy) {
 		this.environment = environment;
 		this.properties = properties;
 		this.kubernetesClient = kubernetesClient;
@@ -95,13 +94,11 @@ public abstract class ConfigurationChangeDetector {
 		return s1 == null ? s2 != null : !s1.equals(s2);
 	}
 
-	protected boolean changed(List<? extends MapPropertySource> l1,
-			List<? extends MapPropertySource> l2) {
+	protected boolean changed(List<? extends MapPropertySource> l1, List<? extends MapPropertySource> l2) {
 
 		if (l1.size() != l2.size()) {
-			this.log.warn(
-					"The current number of ConfigMap PropertySources does not match "
-							+ "the ones loaded from the Kubernetes - No reload will take place");
+			this.log.warn("The current number of ConfigMap PropertySources does not match "
+					+ "the ones loaded from the Kubernetes - No reload will take place");
 			return false;
 		}
 
@@ -136,12 +133,10 @@ public abstract class ConfigurationChangeDetector {
 	 * @param sourceClass class for which property sources will be found
 	 * @return finds all registered property sources of the given type
 	 */
-	protected <S extends PropertySource<?>> List<S> findPropertySources(
-			Class<S> sourceClass) {
+	protected <S extends PropertySource<?>> List<S> findPropertySources(Class<S> sourceClass) {
 		List<S> managedSources = new LinkedList<>();
 
-		LinkedList<PropertySource<?>> sources = toLinkedList(
-				this.environment.getPropertySources());
+		LinkedList<PropertySource<?>> sources = toLinkedList(this.environment.getPropertySources());
 		while (!sources.isEmpty()) {
 			PropertySource<?> source = sources.pop();
 			if (source instanceof CompositePropertySource) {
@@ -152,8 +147,7 @@ public abstract class ConfigurationChangeDetector {
 				managedSources.add(sourceClass.cast(source));
 			}
 			else if (BootstrapPropertySource.class.isInstance(source)) {
-				PropertySource propertySource = ((BootstrapPropertySource) source)
-						.getDelegate();
+				PropertySource propertySource = ((BootstrapPropertySource) source).getDelegate();
 				if (sourceClass.isInstance(propertySource)) {
 					sources.add(propertySource);
 				}
@@ -179,8 +173,8 @@ public abstract class ConfigurationChangeDetector {
 	 * @return a list of MapPropertySource that correspond to the current state of the
 	 * system
 	 */
-	protected List<MapPropertySource> locateMapPropertySources(
-			PropertySourceLocator propertySourceLocator, Environment environment) {
+	protected List<MapPropertySource> locateMapPropertySources(PropertySourceLocator propertySourceLocator,
+			Environment environment) {
 
 		List<MapPropertySource> result = new ArrayList<>();
 		PropertySource propertySource = propertySourceLocator.locate(environment);
@@ -188,13 +182,12 @@ public abstract class ConfigurationChangeDetector {
 			result.add((MapPropertySource) propertySource);
 		}
 		else if (propertySource instanceof CompositePropertySource) {
-			result.addAll(((CompositePropertySource) propertySource).getPropertySources()
-					.stream().filter(p -> p instanceof MapPropertySource)
-					.map(p -> (MapPropertySource) p).collect(Collectors.toList()));
+			result.addAll(((CompositePropertySource) propertySource).getPropertySources().stream()
+					.filter(p -> p instanceof MapPropertySource).map(p -> (MapPropertySource) p)
+					.collect(Collectors.toList()));
 		}
 		else {
-			this.log.debug("Found property source that cannot be handled: "
-					+ propertySource.getClass());
+			this.log.debug("Found property source that cannot be handled: " + propertySource.getClass());
 		}
 
 		return result;

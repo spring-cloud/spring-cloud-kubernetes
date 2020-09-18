@@ -46,12 +46,10 @@ class LoadBalancerAllNamespacesTests {
 
 	@BeforeAll
 	static void setup() {
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
-				client.getConfiguration().getMasterUrl());
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, client.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
-				"false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 	}
@@ -59,23 +57,21 @@ class LoadBalancerAllNamespacesTests {
 	@Test
 	void testLoadBalancerDifferentNamespace() {
 		createTestData("service-b", "b");
-		String response = restTemplate.getForObject("http://service-b/greeting",
-				String.class);
+		String response = restTemplate.getForObject("http://service-b/greeting", String.class);
 		Assertions.assertNotNull(response);
 		Assertions.assertEquals("greeting", response);
 	}
 
 	private void createTestData(String name, String namespace) {
-		client.services().inNamespace(namespace).createNew().withNewMetadata()
-				.withName(name).withNamespace(namespace).endMetadata()
-				.withSpec(new ServiceSpecBuilder().withPorts(new ServicePortBuilder()
-						.withProtocol("TCP").withPort(randomServerPort).build()).build())
+		client.services().inNamespace(namespace).createNew().withNewMetadata().withName(name).withNamespace(namespace)
+				.endMetadata()
+				.withSpec(new ServiceSpecBuilder()
+						.withPorts(new ServicePortBuilder().withProtocol("TCP").withPort(randomServerPort).build())
+						.build())
 				.done();
-		client.endpoints().inNamespace(namespace).createNew().withNewMetadata()
-				.withName("service-a").withNamespace(namespace).endMetadata()
-				.addNewSubset().addNewAddress().withIp("localhost").endAddress()
-				.addNewPort().withName("http").withPort(randomServerPort).endPort()
-				.endSubset().done();
+		client.endpoints().inNamespace(namespace).createNew().withNewMetadata().withName("service-a")
+				.withNamespace(namespace).endMetadata().addNewSubset().addNewAddress().withIp("localhost").endAddress()
+				.addNewPort().withName("http").withPort(randomServerPort).endPort().endSubset().done();
 	}
 
 }
