@@ -76,65 +76,41 @@ public class KubernetesAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(Config.class)
-	public Config kubernetesClientConfig(
-			KubernetesClientProperties kubernetesClientProperties) {
+	public Config kubernetesClientConfig(KubernetesClientProperties kubernetesClientProperties) {
 		Config base = Config.autoConfigure(null);
 		Config properties = new ConfigBuilder(base)
 				// Only set values that have been explicitly specified
-				.withMasterUrl(or(kubernetesClientProperties.getMasterUrl(),
-						base.getMasterUrl()))
-				.withApiVersion(or(kubernetesClientProperties.getApiVersion(),
-						base.getApiVersion()))
-				.withNamespace(or(kubernetesClientProperties.getNamespace(),
-						base.getNamespace()))
-				.withUsername(
-						or(kubernetesClientProperties.getUsername(), base.getUsername()))
-				.withPassword(
-						or(kubernetesClientProperties.getPassword(), base.getPassword()))
+				.withMasterUrl(or(kubernetesClientProperties.getMasterUrl(), base.getMasterUrl()))
+				.withApiVersion(or(kubernetesClientProperties.getApiVersion(), base.getApiVersion()))
+				.withNamespace(or(kubernetesClientProperties.getNamespace(), base.getNamespace()))
+				.withUsername(or(kubernetesClientProperties.getUsername(), base.getUsername()))
+				.withPassword(or(kubernetesClientProperties.getPassword(), base.getPassword()))
 
-				.withCaCertFile(or(kubernetesClientProperties.getCaCertFile(),
-						base.getCaCertFile()))
-				.withCaCertData(or(kubernetesClientProperties.getCaCertData(),
-						base.getCaCertData()))
+				.withCaCertFile(or(kubernetesClientProperties.getCaCertFile(), base.getCaCertFile()))
+				.withCaCertData(or(kubernetesClientProperties.getCaCertData(), base.getCaCertData()))
 
-				.withClientKeyFile(or(kubernetesClientProperties.getClientKeyFile(),
-						base.getClientKeyFile()))
-				.withClientKeyData(or(kubernetesClientProperties.getClientKeyData(),
-						base.getClientKeyData()))
+				.withClientKeyFile(or(kubernetesClientProperties.getClientKeyFile(), base.getClientKeyFile()))
+				.withClientKeyData(or(kubernetesClientProperties.getClientKeyData(), base.getClientKeyData()))
 
-				.withClientCertFile(or(kubernetesClientProperties.getClientCertFile(),
-						base.getClientCertFile()))
-				.withClientCertData(or(kubernetesClientProperties.getClientCertData(),
-						base.getClientCertData()))
+				.withClientCertFile(or(kubernetesClientProperties.getClientCertFile(), base.getClientCertFile()))
+				.withClientCertData(or(kubernetesClientProperties.getClientCertData(), base.getClientCertData()))
 
 				// No magic is done for the properties below so we leave them as is.
-				.withClientKeyAlgo(or(kubernetesClientProperties.getClientKeyAlgo(),
-						base.getClientKeyAlgo()))
+				.withClientKeyAlgo(or(kubernetesClientProperties.getClientKeyAlgo(), base.getClientKeyAlgo()))
 				.withClientKeyPassphrase(
-						or(kubernetesClientProperties.getClientKeyPassphrase(),
-								base.getClientKeyPassphrase()))
+						or(kubernetesClientProperties.getClientKeyPassphrase(), base.getClientKeyPassphrase()))
 				.withConnectionTimeout(
-						orDurationInt(kubernetesClientProperties.getConnectionTimeout(),
-								base.getConnectionTimeout()))
+						orDurationInt(kubernetesClientProperties.getConnectionTimeout(), base.getConnectionTimeout()))
 				.withRequestTimeout(
-						orDurationInt(kubernetesClientProperties.getRequestTimeout(),
-								base.getRequestTimeout()))
+						orDurationInt(kubernetesClientProperties.getRequestTimeout(), base.getRequestTimeout()))
 				.withRollingTimeout(
-						orDurationLong(kubernetesClientProperties.getRollingTimeout(),
-								base.getRollingTimeout()))
-				.withTrustCerts(or(kubernetesClientProperties.isTrustCerts(),
-						base.isTrustCerts()))
-				.withHttpProxy(or(kubernetesClientProperties.getHttpProxy(),
-						base.getHttpProxy()))
-				.withHttpsProxy(or(kubernetesClientProperties.getHttpsProxy(),
-						base.getHttpsProxy()))
-				.withProxyUsername(or(kubernetesClientProperties.getProxyUsername(),
-						base.getProxyUsername()))
-				.withProxyPassword(or(kubernetesClientProperties.getProxyPassword(),
-						base.getProxyPassword()))
-				.withNoProxy(
-						or(kubernetesClientProperties.getNoProxy(), base.getNoProxy()))
-				.build();
+						orDurationLong(kubernetesClientProperties.getRollingTimeout(), base.getRollingTimeout()))
+				.withTrustCerts(or(kubernetesClientProperties.isTrustCerts(), base.isTrustCerts()))
+				.withHttpProxy(or(kubernetesClientProperties.getHttpProxy(), base.getHttpProxy()))
+				.withHttpsProxy(or(kubernetesClientProperties.getHttpsProxy(), base.getHttpsProxy()))
+				.withProxyUsername(or(kubernetesClientProperties.getProxyUsername(), base.getProxyUsername()))
+				.withProxyPassword(or(kubernetesClientProperties.getProxyPassword(), base.getProxyPassword()))
+				.withNoProxy(or(kubernetesClientProperties.getNoProxy(), base.getNoProxy())).build();
 
 		if (properties.getNamespace() == null || properties.getNamespace().isEmpty()) {
 			LOG.warn("No namespace has been detected. Please specify "

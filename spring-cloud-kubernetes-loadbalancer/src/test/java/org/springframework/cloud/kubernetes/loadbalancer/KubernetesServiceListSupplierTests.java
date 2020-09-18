@@ -69,18 +69,15 @@ class KubernetesServiceListSupplierTests {
 
 	@Test
 	void testPositiveMatch() {
-		when(environment.getProperty("loadbalancer.client.name"))
-				.thenReturn("test-service");
-		when(mapper.map(any(Service.class)))
-				.thenReturn(new KubernetesServiceInstance("", "", "", 0, null, false));
+		when(environment.getProperty("loadbalancer.client.name")).thenReturn("test-service");
+		when(mapper.map(any(Service.class))).thenReturn(new KubernetesServiceInstance("", "", "", 0, null, false));
 		when(this.client.getNamespace()).thenReturn("test");
 		when(this.client.services()).thenReturn(this.serviceOperation);
 		when(this.serviceOperation.inNamespace("test")).thenReturn(namespaceOperation);
-		when(this.namespaceOperation.withName("test-service"))
-				.thenReturn(this.serviceResource);
+		when(this.namespaceOperation.withName("test-service")).thenReturn(this.serviceResource);
 		when(this.serviceResource.get()).thenReturn(buildService("test-service", 8080));
-		KubernetesServicesListSupplier supplier = new KubernetesServicesListSupplier(
-				environment, client, mapper, new KubernetesDiscoveryProperties());
+		KubernetesServicesListSupplier supplier = new KubernetesServicesListSupplier(environment, client, mapper,
+				new KubernetesDiscoveryProperties());
 		List<ServiceInstance> instances = supplier.get().blockFirst();
 		assert instances != null;
 		Assertions.assertEquals(1, instances.size());
@@ -88,29 +85,26 @@ class KubernetesServiceListSupplierTests {
 
 	@Test
 	void testPositiveMatchAllNamespaces() {
-		when(environment.getProperty("loadbalancer.client.name"))
-				.thenReturn("test-service");
-		when(mapper.map(any(Service.class)))
-				.thenReturn(new KubernetesServiceInstance("", "", "", 0, null, false));
+		when(environment.getProperty("loadbalancer.client.name")).thenReturn("test-service");
+		when(mapper.map(any(Service.class))).thenReturn(new KubernetesServiceInstance("", "", "", 0, null, false));
 		when(this.client.services()).thenReturn(this.serviceOperation);
 		when(this.serviceOperation.inAnyNamespace()).thenReturn(this.multiDeletable);
-		when(this.multiDeletable.withField("metadata.name", "test-service"))
-				.thenReturn(this.multiDeletable);
+		when(this.multiDeletable.withField("metadata.name", "test-service")).thenReturn(this.multiDeletable);
 		ServiceList serviceList = new ServiceList();
 		serviceList.getItems().add(buildService("test-service", 8080));
 		when(this.multiDeletable.list()).thenReturn(serviceList);
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties();
 		discoveryProperties.setAllNamespaces(true);
-		KubernetesServicesListSupplier supplier = new KubernetesServicesListSupplier(
-				environment, client, mapper, discoveryProperties);
+		KubernetesServicesListSupplier supplier = new KubernetesServicesListSupplier(environment, client, mapper,
+				discoveryProperties);
 		List<ServiceInstance> instances = supplier.get().blockFirst();
 		assert instances != null;
 		Assertions.assertEquals(1, instances.size());
 	}
 
 	private Service buildService(String name, int port) {
-		return new ServiceBuilder().withNewMetadata().withName(name).endMetadata()
-				.withNewSpec().addNewPort().withPort(port).endPort().endSpec().build();
+		return new ServiceBuilder().withNewMetadata().withName(name).endMetadata().withNewSpec().addNewPort()
+				.withPort(port).endPort().endSpec().build();
 	}
 
 }

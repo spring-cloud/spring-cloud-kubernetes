@@ -35,45 +35,41 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author Ryan Baxter
  */
-public class BusEventBasedConfigurationWatcherChangeDetector extends
-		ConfigurationWatcherChangeDetector implements ApplicationEventPublisherAware {
+public class BusEventBasedConfigurationWatcherChangeDetector extends ConfigurationWatcherChangeDetector
+		implements ApplicationEventPublisherAware {
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private BusProperties busProperties;
 
-	public BusEventBasedConfigurationWatcherChangeDetector(
-			AbstractEnvironment environment, ConfigReloadProperties properties,
-			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
+	public BusEventBasedConfigurationWatcherChangeDetector(AbstractEnvironment environment,
+			ConfigReloadProperties properties, KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator,
-			SecretsPropertySourceLocator secretsPropertySourceLocator,
-			BusProperties busProperties,
+			SecretsPropertySourceLocator secretsPropertySourceLocator, BusProperties busProperties,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(environment, properties, kubernetesClient, strategy,
-				configMapPropertySourceLocator, secretsPropertySourceLocator,
-				k8SConfigurationProperties, threadPoolTaskExecutor);
+		super(environment, properties, kubernetesClient, strategy, configMapPropertySourceLocator,
+				secretsPropertySourceLocator, k8SConfigurationProperties, threadPoolTaskExecutor);
 
 		this.busProperties = busProperties;
 	}
 
 	@Override
 	protected Mono<Void> triggerRefresh(Secret secret) {
-		this.applicationEventPublisher.publishEvent(new RefreshRemoteApplicationEvent(
-				secret, busProperties.getId(), secret.getMetadata().getName()));
+		this.applicationEventPublisher.publishEvent(
+				new RefreshRemoteApplicationEvent(secret, busProperties.getId(), secret.getMetadata().getName()));
 		return Mono.empty();
 	}
 
 	@Override
 	protected Mono<Void> triggerRefresh(ConfigMap configMap) {
-		this.applicationEventPublisher.publishEvent(new RefreshRemoteApplicationEvent(
-				configMap, busProperties.getId(), configMap.getMetadata().getName()));
+		this.applicationEventPublisher.publishEvent(
+				new RefreshRemoteApplicationEvent(configMap, busProperties.getId(), configMap.getMetadata().getName()));
 		return Mono.empty();
 	}
 
 	@Override
-	public void setApplicationEventPublisher(
-			ApplicationEventPublisher applicationEventPublisher) {
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 

@@ -50,10 +50,8 @@ public class GreetingController {
 	 * @return Greeting string.
 	 */
 	@GetMapping("/greeting")
-	public Mono<String> getGreeting(
-			@RequestParam(value = "delay", defaultValue = "0") int delay) {
-		return nameService.getName(delay)
-				.map(name -> String.format("Hello from %s!", name));
+	public Mono<String> getGreeting(@RequestParam(value = "delay", defaultValue = "0") int delay) {
+		return nameService.getName(delay).map(name -> String.format("Hello from %s!", name));
 	}
 
 }

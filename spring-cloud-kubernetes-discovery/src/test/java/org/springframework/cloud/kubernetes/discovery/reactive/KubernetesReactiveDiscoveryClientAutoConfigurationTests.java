@@ -35,93 +35,69 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 
-	private ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
-					ReactiveCommonsClientAutoConfiguration.class,
-					KubernetesAutoConfiguration.class,
-					KubernetesDiscoveryClientAutoConfiguration.class,
+	private ApplicationContextRunner contextRunner = new ApplicationContextRunner().withConfiguration(
+			AutoConfigurations.of(UtilAutoConfiguration.class, ReactiveCommonsClientAutoConfiguration.class,
+					KubernetesAutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class,
 					KubernetesReactiveDiscoveryClientAutoConfiguration.class));
 
 	@Test
 	public void shouldWorkWithDefaults() {
 		contextRunner.run(context -> {
 			assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
-			assertThat(context)
-					.hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
 		});
 	}
 
 	@Test
 	public void shouldNotHaveDiscoveryClientWhenDiscoveryDisabled() {
-		contextRunner.withPropertyValues("spring.cloud.discovery.enabled=false")
-				.run(context -> {
-					assertThat(context)
-							.doesNotHaveBean("kubernetesReactiveDiscoveryClient");
-					assertThat(context).doesNotHaveBean(ReactiveDiscoveryClient.class);
-					assertThat(context).doesNotHaveBean(
-							ReactiveDiscoveryClientHealthIndicator.class);
-				});
+		contextRunner.withPropertyValues("spring.cloud.discovery.enabled=false").run(context -> {
+			assertThat(context).doesNotHaveBean("kubernetesReactiveDiscoveryClient");
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+		});
 	}
 
 	@Test
 	public void shouldNotHaveDiscoveryClientWhenReactiveDiscoveryDisabled() {
-		contextRunner.withPropertyValues("spring.cloud.discovery.reactive.enabled=false")
-				.run(context -> {
-					assertThat(context)
-							.doesNotHaveBean("kubernetesReactiveDiscoveryClient");
-					assertThat(context).doesNotHaveBean(ReactiveDiscoveryClient.class);
-					assertThat(context).doesNotHaveBean(
-							ReactiveDiscoveryClientHealthIndicator.class);
-				});
+		contextRunner.withPropertyValues("spring.cloud.discovery.reactive.enabled=false").run(context -> {
+			assertThat(context).doesNotHaveBean("kubernetesReactiveDiscoveryClient");
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+		});
 	}
 
 	@Test
 	public void shouldNotHaveDiscoveryClientWhenKubernetesDisabled() {
-		contextRunner.withPropertyValues("spring.cloud.kubernetes.enabled=false")
-				.run(context -> {
-					assertThat(context)
-							.doesNotHaveBean("kubernetesReactiveDiscoveryClient");
-					assertThat(context).doesNotHaveBean(ReactiveDiscoveryClient.class);
-					assertThat(context).doesNotHaveBean(
-							ReactiveDiscoveryClientHealthIndicator.class);
-				});
+		contextRunner.withPropertyValues("spring.cloud.kubernetes.enabled=false").run(context -> {
+			assertThat(context).doesNotHaveBean("kubernetesReactiveDiscoveryClient");
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+		});
 	}
 
 	@Test
 	public void shouldNotHaveDiscoveryClientWhenKubernetesDiscoveryDisabled() {
-		contextRunner
-				.withPropertyValues("spring.cloud.kubernetes.discovery.enabled=false")
-				.run(context -> {
-					assertThat(context)
-							.doesNotHaveBean("kubernetesReactiveDiscoveryClient");
-					assertThat(context).doesNotHaveBean(ReactiveDiscoveryClient.class);
-					assertThat(context).doesNotHaveBean(
-							ReactiveDiscoveryClientHealthIndicator.class);
-				});
+		contextRunner.withPropertyValues("spring.cloud.kubernetes.discovery.enabled=false").run(context -> {
+			assertThat(context).doesNotHaveBean("kubernetesReactiveDiscoveryClient");
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+		});
 	}
 
 	@Test
 	public void worksWithoutWebflux() {
-		contextRunner
-				.withClassLoader(
-						new FilteredClassLoader("org.springframework.web.reactive"))
-				.run(context -> {
-					assertThat(context).doesNotHaveBean(ReactiveDiscoveryClient.class);
-					assertThat(context).doesNotHaveBean(
-							ReactiveDiscoveryClientHealthIndicator.class);
-				});
+		contextRunner.withClassLoader(new FilteredClassLoader("org.springframework.web.reactive")).run(context -> {
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+		});
 	}
 
 	@Test
 	public void worksWithoutActuator() {
-		contextRunner
-				.withClassLoader(
-						new FilteredClassLoader("org.springframework.boot.actuate"))
-				.run(context -> {
-					assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
-					assertThat(context).doesNotHaveBean(
-							ReactiveDiscoveryClientHealthIndicator.class);
-				});
+		contextRunner.withClassLoader(new FilteredClassLoader("org.springframework.boot.actuate")).run(context -> {
+			assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+		});
 	}
 
 }

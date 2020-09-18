@@ -36,24 +36,22 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author Ryan Baxter
  */
-public abstract class ConfigurationWatcherChangeDetector
-		extends EventBasedConfigurationChangeDetector {
+public abstract class ConfigurationWatcherChangeDetector extends EventBasedConfigurationChangeDetector {
 
 	private ScheduledExecutorService executorService;
 
 	protected ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
 
-	public ConfigurationWatcherChangeDetector(AbstractEnvironment environment,
-			ConfigReloadProperties properties, KubernetesClient kubernetesClient,
-			ConfigurationUpdateStrategy strategy,
+	public ConfigurationWatcherChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
+			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator,
 			SecretsPropertySourceLocator secretsPropertySourceLocator,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(environment, properties, kubernetesClient, strategy,
-				configMapPropertySourceLocator, secretsPropertySourceLocator);
-		this.executorService = Executors.newScheduledThreadPool(
-				k8SConfigurationProperties.getThreadPoolSize(), threadPoolTaskExecutor);
+		super(environment, properties, kubernetesClient, strategy, configMapPropertySourceLocator,
+				secretsPropertySourceLocator);
+		this.executorService = Executors.newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(),
+				threadPoolTaskExecutor);
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
 	}
 
@@ -63,38 +61,33 @@ public abstract class ConfigurationWatcherChangeDetector
 			if (log.isDebugEnabled()) {
 				log.debug("Scheduling remote refresh event to be published for ConfigMap "
 						+ configMap.getMetadata().getName() + " to be published in "
-						+ k8SConfigurationProperties.getRefreshDelay().toMillis()
-						+ " milliseconds");
+						+ k8SConfigurationProperties.getRefreshDelay().toMillis() + " milliseconds");
 			}
 			executorService.schedule(() -> triggerRefresh(configMap).subscribe(),
-					k8SConfigurationProperties.getRefreshDelay().toMillis(),
-					TimeUnit.MILLISECONDS);
+					k8SConfigurationProperties.getRefreshDelay().toMillis(), TimeUnit.MILLISECONDS);
 		}
 		else {
 			if (log.isDebugEnabled()) {
-				log.debug("Not publishing event. ConfigMap "
-						+ configMap.getMetadata().getName()
-						+ " does not contain the label "
-						+ k8SConfigurationProperties.getConfigLabel());
+				log.debug("Not publishing event. ConfigMap " + configMap.getMetadata().getName()
+						+ " does not contain the label " + k8SConfigurationProperties.getConfigLabel());
 			}
 		}
 	}
 
 	protected boolean isSpringCloudKubernetesConfig(ConfigMap configMap) {
-		if (configMap.getMetadata() == null
-				|| configMap.getMetadata().getLabels() == null) {
+		if (configMap.getMetadata() == null || configMap.getMetadata().getLabels() == null) {
 			return false;
 		}
-		return Boolean.parseBoolean(configMap.getMetadata().getLabels()
-				.getOrDefault(k8SConfigurationProperties.getConfigLabel(), "false"));
+		return Boolean.parseBoolean(
+				configMap.getMetadata().getLabels().getOrDefault(k8SConfigurationProperties.getConfigLabel(), "false"));
 	}
 
 	protected boolean isSpringCloudKubernetesSecret(Secret secret) {
 		if (secret.getMetadata() == null || secret.getMetadata().getLabels() == null) {
 			return false;
 		}
-		return Boolean.parseBoolean(secret.getMetadata().getLabels()
-				.getOrDefault(k8SConfigurationProperties.getSecretLabel(), "false"));
+		return Boolean.parseBoolean(
+				secret.getMetadata().getLabels().getOrDefault(k8SConfigurationProperties.getSecretLabel(), "false"));
 	}
 
 	protected abstract Mono<Void> triggerRefresh(Secret secret);
@@ -105,20 +98,17 @@ public abstract class ConfigurationWatcherChangeDetector
 	protected void onEvent(Secret secret) {
 		if (isSpringCloudKubernetesSecret(secret)) {
 			if (log.isDebugEnabled()) {
-				log.debug("Scheduling remote refresh event to be published for Secret "
-						+ secret.getMetadata().getName() + " to be published in "
-						+ k8SConfigurationProperties.getRefreshDelay().toMillis()
+				log.debug("Scheduling remote refresh event to be published for Secret " + secret.getMetadata().getName()
+						+ " to be published in " + k8SConfigurationProperties.getRefreshDelay().toMillis()
 						+ " milliseconds");
 			}
 			executorService.schedule(() -> triggerRefresh(secret).subscribe(),
-					k8SConfigurationProperties.getRefreshDelay().toMillis(),
-					TimeUnit.MILLISECONDS);
+					k8SConfigurationProperties.getRefreshDelay().toMillis(), TimeUnit.MILLISECONDS);
 		}
 		else {
 			if (log.isDebugEnabled()) {
 				log.debug("Not publishing event. Secret " + secret.getMetadata().getName()
-						+ " does not contain the label "
-						+ k8SConfigurationProperties.getSecretLabel());
+						+ " does not contain the label " + k8SConfigurationProperties.getSecretLabel());
 			}
 		}
 	}

@@ -54,10 +54,8 @@ public class KubernetesServiceInstanceMapper {
 		if (ports.size() == 1) {
 			port = ports.get(0);
 		}
-		else if (ports.size() > 1
-				&& Utils.isNotNullOrEmpty(this.properties.getPortName())) {
-			Optional<ServicePort> optPort = ports.stream()
-					.filter(it -> properties.getPortName().endsWith(it.getName()))
+		else if (ports.size() > 1 && Utils.isNotNullOrEmpty(this.properties.getPortName())) {
+			Optional<ServicePort> optPort = ports.stream().filter(it -> properties.getPortName().endsWith(it.getName()))
 					.findAny();
 			if (optPort.isPresent()) {
 				port = optPort.get();
@@ -68,22 +66,20 @@ public class KubernetesServiceInstanceMapper {
 		}
 		final String host = createHost(service);
 		final boolean secure = isSecure(service, port);
-		return new KubernetesServiceInstance(meta.getUid(), meta.getName(), host,
-				port.getPort(), getServiceMetadata(service), secure);
+		return new KubernetesServiceInstance(meta.getUid(), meta.getName(), host, port.getPort(),
+				getServiceMetadata(service), secure);
 	}
 
 	private Map<String, String> getServiceMetadata(Service service) {
 		final Map<String, String> serviceMetadata = new HashMap<>();
-		KubernetesDiscoveryProperties.Metadata metadataProps = this.discoveryProperties
-				.getMetadata();
+		KubernetesDiscoveryProperties.Metadata metadataProps = this.discoveryProperties.getMetadata();
 		if (metadataProps.isAddLabels()) {
-			Map<String, String> labelMetadata = getMapWithPrefixedKeys(
-					service.getMetadata().getLabels(), metadataProps.getLabelsPrefix());
+			Map<String, String> labelMetadata = getMapWithPrefixedKeys(service.getMetadata().getLabels(),
+					metadataProps.getLabelsPrefix());
 			serviceMetadata.putAll(labelMetadata);
 		}
 		if (metadataProps.isAddAnnotations()) {
-			Map<String, String> annotationMetadata = getMapWithPrefixedKeys(
-					service.getMetadata().getAnnotations(),
+			Map<String, String> annotationMetadata = getMapWithPrefixedKeys(service.getMetadata().getAnnotations(),
 					metadataProps.getAnnotationsPrefix());
 			serviceMetadata.putAll(annotationMetadata);
 		}
@@ -91,8 +87,7 @@ public class KubernetesServiceInstanceMapper {
 		return serviceMetadata;
 	}
 
-	private Map<String, String> getMapWithPrefixedKeys(Map<String, String> map,
-			String prefix) {
+	private Map<String, String> getMapWithPrefixedKeys(Map<String, String> map, String prefix) {
 		if (map == null) {
 			return new HashMap<>();
 		}
@@ -105,13 +100,11 @@ public class KubernetesServiceInstanceMapper {
 	}
 
 	private boolean isSecure(Service service, ServicePort port) {
-		final String securedLabelValue = service.getMetadata().getLabels()
-				.getOrDefault("secured", "false");
+		final String securedLabelValue = service.getMetadata().getLabels().getOrDefault("secured", "false");
 		if (securedLabelValue.equals("true")) {
 			return true;
 		}
-		final String securedAnnotationValue = service.getMetadata().getAnnotations()
-				.getOrDefault("secured", "false");
+		final String securedAnnotationValue = service.getMetadata().getAnnotations().getOrDefault("secured", "false");
 		if (securedAnnotationValue.equals("true")) {
 			return true;
 		}
@@ -121,8 +114,8 @@ public class KubernetesServiceInstanceMapper {
 
 	private String createHost(Service service) {
 		return String.format("%s.%s.svc.%s", service.getMetadata().getName(),
-				StringUtils.isNotBlank(service.getMetadata().getNamespace())
-						? service.getMetadata().getNamespace() : "default",
+				StringUtils.isNotBlank(service.getMetadata().getNamespace()) ? service.getMetadata().getNamespace()
+						: "default",
 				properties.getClusterDomain());
 	}
 

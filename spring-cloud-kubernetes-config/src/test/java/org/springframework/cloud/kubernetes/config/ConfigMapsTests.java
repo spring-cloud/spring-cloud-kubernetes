@@ -41,9 +41,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Charles Moulliard
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = App.class, properties = { "spring.application.name=configmap-example",
-				"spring.cloud.kubernetes.reload.enabled=false" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+		properties = { "spring.application.name=configmap-example", "spring.cloud.kubernetes.reload.enabled=false" })
 @AutoConfigureWebTestClient
 public class ConfigMapsTests {
 
@@ -65,42 +64,38 @@ public class ConfigMapsTests {
 		mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
-				mockClient.getConfiguration().getMasterUrl());
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
-				"false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("bean.greeting", "Hello ConfigMap, %s!");
 		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME)
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
-						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
+						.addToData(data).build())
 				.always();
 	}
 
 	@Test
 	public void testConfig() {
-		assertThat(mockClient.getConfiguration().getMasterUrl())
-				.isEqualTo(this.config.getMasterUrl());
+		assertThat(mockClient.getConfiguration().getMasterUrl()).isEqualTo(this.config.getMasterUrl());
 		assertThat(mockClient.getNamespace()).isEqualTo(this.config.getNamespace());
 	}
 
 	@Test
 	public void testConfigMap() {
-		ConfigMap configmap = mockClient.configMaps().inNamespace("test")
-				.withName(APPLICATION_NAME).get();
+		ConfigMap configmap = mockClient.configMaps().inNamespace("test").withName(APPLICATION_NAME).get();
 		HashMap<String, String> keys = (HashMap<String, String>) configmap.getData();
 		assertThat("Hello ConfigMap, %s!").isEqualTo(keys.get("bean.greeting"));
 	}
 
 	@Test
 	public void testGreetingEndpoint() {
-		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
-				.expectBody().jsonPath("content").isEqualTo("Hello ConfigMap, World!");
+		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk().expectBody().jsonPath("content")
+				.isEqualTo("Hello ConfigMap, World!");
 	}
 
 }
