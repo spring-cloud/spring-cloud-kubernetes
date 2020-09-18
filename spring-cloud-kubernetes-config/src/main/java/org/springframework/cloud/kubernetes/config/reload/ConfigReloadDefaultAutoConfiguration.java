@@ -56,10 +56,10 @@ public class ConfigReloadDefaultAutoConfiguration {
 		@Autowired
 		private KubernetesClient kubernetesClient;
 
-		@Autowired
+		@Autowired(required = false)
 		private ConfigMapPropertySourceLocator configMapPropertySourceLocator;
 
-		@Autowired
+		@Autowired(required = false)
 		private SecretsPropertySourceLocator secretsPropertySourceLocator;
 
 		/**
