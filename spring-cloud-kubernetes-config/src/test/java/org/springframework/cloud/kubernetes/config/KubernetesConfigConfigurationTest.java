@@ -52,8 +52,7 @@ public class KubernetesConfigConfigurationTest {
 
 	@Test
 	public void kubernetesWhenKubernetesConfigDisabled() throws Exception {
-		setup("spring.cloud.kubernetes.config.enabled=false",
-				"spring.cloud.kubernetes.secrets.enabled=false");
+		setup("spring.cloud.kubernetes.config.enabled=false", "spring.cloud.kubernetes.secrets.enabled=false");
 		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isFalse();
 	}
@@ -66,11 +65,9 @@ public class KubernetesConfigConfigurationTest {
 	}
 
 	private void setup(String... env) {
-		this.context = new SpringApplicationBuilder(
-				PropertyPlaceholderAutoConfiguration.class,
+		this.context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
 				KubernetesClientTestConfiguration.class, BootstrapConfiguration.class)
-						.web(org.springframework.boot.WebApplicationType.NONE)
-						.properties(env).run();
+						.web(org.springframework.boot.WebApplicationType.NONE).properties(env).run();
 	}
 
 	@Configuration(proxyBeanMethods = false)

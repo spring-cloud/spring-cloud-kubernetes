@@ -82,8 +82,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			};
 		}
 
-		return this.sources.stream().map(s -> s.normalize(this.name, this.namespace))
-				.collect(Collectors.toList());
+		return this.sources.stream().map(s -> s.normalize(this.name, this.namespace)).collect(Collectors.toList());
 	}
 
 	@Override
@@ -135,10 +134,8 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		}
 
 		public NormalizedSource normalize(String defaultName, String defaultNamespace) {
-			final String normalizedName = StringUtils.isEmpty(this.name) ? defaultName
-					: this.name;
-			final String normalizedNamespace = StringUtils.isEmpty(this.namespace)
-					? defaultNamespace : this.namespace;
+			final String normalizedName = StringUtils.isEmpty(this.name) ? defaultName : this.name;
+			final String normalizedNamespace = StringUtils.isEmpty(this.namespace) ? defaultNamespace : this.namespace;
 
 			return new NormalizedSource(normalizedName, normalizedNamespace);
 		}

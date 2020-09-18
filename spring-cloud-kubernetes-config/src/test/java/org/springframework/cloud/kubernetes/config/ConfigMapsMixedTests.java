@@ -41,12 +41,10 @@ import static org.assertj.core.util.Lists.newArrayList;
 import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.readResourceFile;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = App.class,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "spring.application.name=" + ConfigMapsMixedTests.APPLICATION_NAME,
 				"spring.cloud.kubernetes.config.enableApi=true",
-				"spring.cloud.kubernetes.config.paths="
-						+ ConfigMapsMixedTests.FILE_NAME_FULL_PATH })
+				"spring.cloud.kubernetes.config.paths=" + ConfigMapsMixedTests.FILE_NAME_FULL_PATH })
 public class ConfigMapsMixedTests {
 
 	protected static final String FILES_ROOT_PATH = "/tmp/scktests";
@@ -70,24 +68,21 @@ public class ConfigMapsMixedTests {
 		mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
-				mockClient.getConfiguration().getMasterUrl());
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
-				"false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		Files.createDirectories(Paths.get(FILES_ROOT_PATH));
-		ConfigMapTestUtil.createFileWithContent(FILE_NAME_FULL_PATH,
-				readResourceFile("application-path.yaml"));
+		ConfigMapTestUtil.createFileWithContent(FILE_NAME_FULL_PATH, readResourceFile("application-path.yaml"));
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("bean.morning", "Buenos Dias ConfigMap, %s");
 		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME)
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
-						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
+						.addToData(data).build())
 				.always();
 	}
 
@@ -104,22 +99,19 @@ public class ConfigMapsMixedTests {
 
 	@Test
 	public void greetingInputShouldReturnPropertyFromFile() {
-		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
-				.expectBody().jsonPath("content")
+		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk().expectBody().jsonPath("content")
 				.isEqualTo("Hello ConfigMap, World from path");
 	}
 
 	@Test
 	public void farewellInputShouldReturnPropertyFromFile() {
-		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk()
-				.expectBody().jsonPath("content")
+		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk().expectBody().jsonPath("content")
 				.isEqualTo("Bye ConfigMap, World from path");
 	}
 
 	@Test
 	public void morningInputShouldReturnPropertyFromApi() {
-		this.webClient.get().uri("/api/morning").exchange().expectStatus().isOk()
-				.expectBody().jsonPath("content")
+		this.webClient.get().uri("/api/morning").exchange().expectStatus().isOk().expectBody().jsonPath("content")
 				.isEqualTo("Buenos Dias ConfigMap, World");
 	}
 

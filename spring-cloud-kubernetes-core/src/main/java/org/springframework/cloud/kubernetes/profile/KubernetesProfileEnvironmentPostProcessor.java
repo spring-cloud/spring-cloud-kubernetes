@@ -28,11 +28,9 @@ import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
-public class KubernetesProfileEnvironmentPostProcessor
-		implements EnvironmentPostProcessor, Ordered {
+public class KubernetesProfileEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered {
 
-	private static final Log LOG = LogFactory
-			.getLog(KubernetesProfileEnvironmentPostProcessor.class);
+	private static final Log LOG = LogFactory.getLog(KubernetesProfileEnvironmentPostProcessor.class);
 
 	// Before ConfigFileApplicationListener so values there can use these ones
 	private static final int ORDER = ConfigFileApplicationListener.DEFAULT_ORDER - 1;
@@ -40,11 +38,10 @@ public class KubernetesProfileEnvironmentPostProcessor
 	private static final String KUBERNETES_PROFILE = "kubernetes";
 
 	@Override
-	public void postProcessEnvironment(ConfigurableEnvironment environment,
-			SpringApplication application) {
+	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
 
-		final boolean kubernetesEnabled = environment
-				.getProperty("spring.cloud.kubernetes.enabled", Boolean.class, true);
+		final boolean kubernetesEnabled = environment.getProperty("spring.cloud.kubernetes.enabled", Boolean.class,
+				true);
 		if (!kubernetesEnabled) {
 			return;
 		}
@@ -64,8 +61,7 @@ public class KubernetesProfileEnvironmentPostProcessor
 		}
 		else {
 			if (LOG.isDebugEnabled()) {
-				LOG.warn(
-						"Not running inside kubernetes. Skipping 'kubernetes' profile activation.");
+				LOG.warn("Not running inside kubernetes. Skipping 'kubernetes' profile activation.");
 			}
 		}
 	}

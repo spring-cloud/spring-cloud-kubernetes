@@ -40,10 +40,8 @@ import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.read
  * @author Charles Moulliard
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = App.class,
-		properties = {
-				"spring.application.name=configmap-with-profile-no-active-profiles-example",
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+		properties = { "spring.application.name=configmap-with-profile-no-active-profiles-example",
 				"spring.cloud.kubernetes.reload.enabled=false" })
 @AutoConfigureWebTestClient
 public class ConfigMapsWithProfilesNoActiveProfileTests {
@@ -63,34 +61,30 @@ public class ConfigMapsWithProfilesNoActiveProfileTests {
 		mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
-				mockClient.getConfiguration().getMasterUrl());
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
-				"false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("application.yml", readResourceFile("application-with-profiles.yaml"));
 		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME)
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
-						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
+						.addToData(data).build())
 				.always();
 	}
 
 	@Test
 	public void testGreetingEndpoint() {
-		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk()
-				.expectBody().jsonPath("content")
+		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk().expectBody().jsonPath("content")
 				.isEqualTo("Hello ConfigMap default, World!");
 	}
 
 	@Test
 	public void testFarewellEndpoint() {
-		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk()
-				.expectBody().jsonPath("content")
+		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk().expectBody().jsonPath("content")
 				.isEqualTo("Goodbye ConfigMap default, World!");
 	}
 

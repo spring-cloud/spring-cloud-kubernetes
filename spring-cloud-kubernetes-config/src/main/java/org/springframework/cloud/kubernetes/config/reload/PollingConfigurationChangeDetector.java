@@ -47,9 +47,8 @@ public class PollingConfigurationChangeDetector extends ConfigurationChangeDetec
 
 	private SecretsPropertySourceLocator secretsPropertySourceLocator;
 
-	public PollingConfigurationChangeDetector(AbstractEnvironment environment,
-			ConfigReloadProperties properties, KubernetesClient kubernetesClient,
-			ConfigurationUpdateStrategy strategy,
+	public PollingConfigurationChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
+			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator,
 			SecretsPropertySourceLocator secretsPropertySourceLocator) {
 		super(environment, properties, kubernetesClient, strategy);
@@ -74,19 +73,17 @@ public class PollingConfigurationChangeDetector extends ConfigurationChangeDetec
 
 			if (!currentConfigMapSources.isEmpty()) {
 				changedConfigMap = changed(
-						locateMapPropertySources(this.configMapPropertySourceLocator,
-								this.environment),
+						locateMapPropertySources(this.configMapPropertySourceLocator, this.environment),
 						currentConfigMapSources);
 			}
 		}
 
 		boolean changedSecrets = false;
 		if (this.properties.isMonitoringSecrets()) {
-			List<MapPropertySource> currentSecretSources = locateMapPropertySources(
-					this.secretsPropertySourceLocator, this.environment);
+			List<MapPropertySource> currentSecretSources = locateMapPropertySources(this.secretsPropertySourceLocator,
+					this.environment);
 			if (currentSecretSources != null && !currentSecretSources.isEmpty()) {
-				List<SecretsPropertySource> propertySources = findPropertySources(
-						SecretsPropertySource.class);
+				List<SecretsPropertySource> propertySources = findPropertySources(SecretsPropertySource.class);
 				changedSecrets = changed(currentSecretSources, propertySources);
 			}
 		}

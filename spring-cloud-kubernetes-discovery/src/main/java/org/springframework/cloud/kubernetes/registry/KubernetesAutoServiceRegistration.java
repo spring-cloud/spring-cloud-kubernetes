@@ -38,11 +38,9 @@ import org.springframework.core.Ordered;
  */
 @Deprecated
 // TODO Remove this class in 2.x as it is not used or necessary in Kubernetes
-public class KubernetesAutoServiceRegistration
-		implements AutoServiceRegistration, SmartLifecycle, Ordered {
+public class KubernetesAutoServiceRegistration implements AutoServiceRegistration, SmartLifecycle, Ordered {
 
-	private static final Log log = LogFactory
-			.getLog(KubernetesAutoServiceRegistration.class);
+	private static final Log log = LogFactory.getLog(KubernetesAutoServiceRegistration.class);
 
 	private AtomicBoolean running = new AtomicBoolean(false);
 
@@ -56,8 +54,7 @@ public class KubernetesAutoServiceRegistration
 
 	private KubernetesRegistration registration;
 
-	public KubernetesAutoServiceRegistration(ApplicationContext context,
-			KubernetesServiceRegistry serviceRegistry,
+	public KubernetesAutoServiceRegistration(ApplicationContext context, KubernetesServiceRegistry serviceRegistry,
 			KubernetesRegistration registration) {
 		this.context = context;
 		this.serviceRegistry = serviceRegistry;
@@ -79,8 +76,7 @@ public class KubernetesAutoServiceRegistration
 	public void start() {
 		this.serviceRegistry.register(this.registration);
 
-		this.context.publishEvent(
-				new InstanceRegisteredEvent<>(this, this.registration.getProperties()));
+		this.context.publishEvent(new InstanceRegisteredEvent<>(this, this.registration.getProperties()));
 		this.running.set(true);
 	}
 

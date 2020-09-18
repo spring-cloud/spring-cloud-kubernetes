@@ -32,8 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 public class PodReadinessWatcher implements Watcher<Pod> {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(PodReadinessWatcher.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(PodReadinessWatcher.class);
 
 	private final Object lock = new Object();
 
@@ -59,8 +58,7 @@ public class PodReadinessWatcher implements Watcher<Pod> {
 			synchronized (this.lock) {
 				if (this.watch == null) {
 					LOGGER.debug("Starting pod readiness watcher for '{}'", this.podName);
-					PodResource<Pod, DoneablePod> podResource = this.kubernetesClient
-							.pods().withName(this.podName);
+					PodResource<Pod, DoneablePod> podResource = this.kubernetesClient.pods().withName(this.podName);
 					this.previousState = podResource.isReady();
 					this.watch = podResource.watch(this);
 				}
@@ -86,9 +84,8 @@ public class PodReadinessWatcher implements Watcher<Pod> {
 		if (this.previousState != currentState) {
 			synchronized (this.lock) {
 				if (this.previousState != currentState) {
-					LOGGER.debug(
-							"'{}' readiness status changed to '{}', triggering leadership update",
-							this.podName, currentState);
+					LOGGER.debug("'{}' readiness status changed to '{}', triggering leadership update", this.podName,
+							currentState);
 					this.previousState = currentState;
 					this.leadershipController.update();
 				}

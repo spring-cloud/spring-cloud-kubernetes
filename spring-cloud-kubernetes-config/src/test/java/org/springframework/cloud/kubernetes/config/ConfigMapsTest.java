@@ -51,11 +51,9 @@ public class ConfigMapsTest {
 
 	@Test
 	public void testConfigMapGet() {
-		this.server.expect().withPath("/api/v1/namespaces/ns2/configmaps")
-				.andReturn(200,
-						new ConfigMapBuilder().withNewMetadata()
-								.withName("reload-example").endMetadata()
-								.addToData("KEY", "123").build())
+		this.server
+				.expect().withPath("/api/v1/namespaces/ns2/configmaps").andReturn(200, new ConfigMapBuilder()
+						.withNewMetadata().withName("reload-example").endMetadata().addToData("KEY", "123").build())
 				.once();
 
 		KubernetesClient client = this.server.getClient();
@@ -63,8 +61,7 @@ public class ConfigMapsTest {
 		assertThat(configMapList).isNotNull();
 		assertThat(configMapList.getAdditionalProperties()).containsKey("data");
 		@SuppressWarnings("unchecked")
-		Map<String, String> data = (Map<String, String>) configMapList
-				.getAdditionalProperties().get("data");
+		Map<String, String> data = (Map<String, String>) configMapList.getAdditionalProperties().get("data");
 		assertThat(data.get("KEY")).isEqualTo("123");
 	}
 
@@ -72,18 +69,13 @@ public class ConfigMapsTest {
 	public void testConfigMapFromSingleApplicationProperties() {
 		String configMapName = "app-properties-test";
 		String namespace = "app-props";
-		this.server.expect()
-				.withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace,
-						configMapName))
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
-						.withName(configMapName).endMetadata()
-						.addToData("application.properties",
-								readResourceFile("application.properties"))
-						.build())
+		this.server.expect().withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, configMapName))
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
+						.addToData("application.properties", readResourceFile("application.properties")).build())
 				.once();
 
-		ConfigMapPropertySource cmps = new ConfigMapPropertySource(
-				this.server.getClient().inNamespace(namespace), configMapName);
+		ConfigMapPropertySource cmps = new ConfigMapPropertySource(this.server.getClient().inNamespace(namespace),
+				configMapName);
 
 		assertThat(cmps.getProperty("dummy.property.string1")).isEqualTo("a");
 		assertThat(cmps.getProperty("dummy.property.int1")).isEqualTo("1");
@@ -94,19 +86,13 @@ public class ConfigMapsTest {
 	public void testConfigMapFromSingleApplicationYaml() {
 		String configMapName = "app-yaml-test";
 		String namespace = "app-props";
-		this.server.expect()
-				.withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace,
-						configMapName))
-				.andReturn(200,
-						new ConfigMapBuilder().withNewMetadata().withName(configMapName)
-								.endMetadata()
-								.addToData("application.yaml",
-										readResourceFile("application.yaml"))
-								.build())
+		this.server.expect().withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, configMapName))
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
+						.addToData("application.yaml", readResourceFile("application.yaml")).build())
 				.once();
 
-		ConfigMapPropertySource cmps = new ConfigMapPropertySource(
-				this.server.getClient().inNamespace(namespace), configMapName);
+		ConfigMapPropertySource cmps = new ConfigMapPropertySource(this.server.getClient().inNamespace(namespace),
+				configMapName);
 
 		assertThat(cmps.getProperty("dummy.property.string2")).isEqualTo("a");
 		assertThat(cmps.getProperty("dummy.property.int2")).isEqualTo(1);
@@ -117,16 +103,13 @@ public class ConfigMapsTest {
 	public void testConfigMapFromSingleNonStandardFileName() {
 		String configMapName = "single-non-standard-test";
 		String namespace = "app-props";
-		this.server.expect()
-				.withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace,
-						configMapName))
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
-						.withName(configMapName).endMetadata()
+		this.server.expect().withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, configMapName))
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
 						.addToData("adhoc.yml", readResourceFile("adhoc.yml")).build())
 				.once();
 
-		ConfigMapPropertySource cmps = new ConfigMapPropertySource(
-				this.server.getClient().inNamespace(namespace), configMapName);
+		ConfigMapPropertySource cmps = new ConfigMapPropertySource(this.server.getClient().inNamespace(namespace),
+				configMapName);
 
 		assertThat(cmps.getProperty("dummy.property.string3")).isEqualTo("a");
 		assertThat(cmps.getProperty("dummy.property.int3")).isEqualTo(1);
@@ -137,17 +120,12 @@ public class ConfigMapsTest {
 	public void testConfigMapFromSingleInvalidPropertiesContent() {
 		String configMapName = "single-unparseable-properties-test";
 		String namespace = "app-props";
-		this.server.expect()
-				.withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace,
-						configMapName))
-				.andReturn(200,
-						new ConfigMapBuilder().withNewMetadata().withName(configMapName)
-								.endMetadata()
-								.addToData("application.properties", "somevalue").build())
+		this.server.expect().withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, configMapName))
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
+						.addToData("application.properties", "somevalue").build())
 				.once();
 
-		new ConfigMapPropertySource(this.server.getClient().inNamespace(namespace),
-				configMapName);
+		new ConfigMapPropertySource(this.server.getClient().inNamespace(namespace), configMapName);
 
 		// no exception is thrown for unparseable content
 	}
@@ -156,17 +134,12 @@ public class ConfigMapsTest {
 	public void testConfigMapFromSingleInvalidYamlContent() {
 		String configMapName = "single-unparseable-yaml-test";
 		String namespace = "app-props";
-		this.server.expect()
-				.withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace,
-						configMapName))
-				.andReturn(200,
-						new ConfigMapBuilder().withNewMetadata().withName(configMapName)
-								.endMetadata().addToData("application.yaml", "somevalue")
-								.build())
+		this.server.expect().withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, configMapName))
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
+						.addToData("application.yaml", "somevalue").build())
 				.once();
 
-		new ConfigMapPropertySource(this.server.getClient().inNamespace(namespace),
-				configMapName);
+		new ConfigMapPropertySource(this.server.getClient().inNamespace(namespace), configMapName);
 
 		// no exception is thrown for unparseable content
 	}
@@ -175,21 +148,15 @@ public class ConfigMapsTest {
 	public void testConfigMapFromMultipleApplicationProperties() {
 		String configMapName = "app-multiple-properties-test";
 		String namespace = "app-props";
-		this.server.expect()
-				.withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace,
-						configMapName))
+		this.server.expect().withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, configMapName))
 				.andReturn(200,
-						new ConfigMapBuilder().withNewMetadata().withName(configMapName)
-								.endMetadata()
-								.addToData("application.properties",
-										readResourceFile("application.properties"))
-								.addToData("adhoc.properties",
-										readResourceFile("adhoc.properties"))
-								.build())
+						new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
+								.addToData("application.properties", readResourceFile("application.properties"))
+								.addToData("adhoc.properties", readResourceFile("adhoc.properties")).build())
 				.once();
 
-		ConfigMapPropertySource cmps = new ConfigMapPropertySource(
-				this.server.getClient().inNamespace(namespace), configMapName);
+		ConfigMapPropertySource cmps = new ConfigMapPropertySource(this.server.getClient().inNamespace(namespace),
+				configMapName);
 
 		// application.properties should be read correctly
 		assertThat(cmps.getProperty("dummy.property.string1")).isEqualTo("a");

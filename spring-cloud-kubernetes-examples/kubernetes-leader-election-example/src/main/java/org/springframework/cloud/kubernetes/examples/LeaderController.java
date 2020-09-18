@@ -50,12 +50,10 @@ public class LeaderController {
 	@GetMapping
 	public String getInfo() {
 		if (this.context == null) {
-			return String.format("I am '%s' but I am not a leader of the '%s'", this.host,
-					this.role);
+			return String.format("I am '%s' but I am not a leader of the '%s'", this.host, this.role);
 		}
 
-		return String.format("I am '%s' and I am the leader of the '%s'", this.host,
-				this.role);
+		return String.format("I am '%s' and I am the leader of the '%s'", this.host, this.role);
 	}
 
 	/**
@@ -68,8 +66,7 @@ public class LeaderController {
 	@PutMapping
 	public ResponseEntity<String> revokeLeadership() {
 		if (this.context == null) {
-			String message = String.format(
-					"Cannot revoke leadership because '%s' is not a leader", this.host);
+			String message = String.format("Cannot revoke leadership because '%s' is not a leader", this.host);
 			return ResponseEntity.badRequest().body(message);
 		}
 

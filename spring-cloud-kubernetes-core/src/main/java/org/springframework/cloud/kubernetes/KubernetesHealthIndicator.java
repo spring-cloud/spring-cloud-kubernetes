@@ -40,12 +40,10 @@ public class KubernetesHealthIndicator extends AbstractHealthIndicator {
 		try {
 			Pod current = this.utils.currentPod().get();
 			if (current != null) {
-				builder.up().withDetail("inside", true)
-						.withDetail("namespace", current.getMetadata().getNamespace())
+				builder.up().withDetail("inside", true).withDetail("namespace", current.getMetadata().getNamespace())
 						.withDetail("podName", current.getMetadata().getName())
 						.withDetail("podIp", current.getStatus().getPodIP())
-						.withDetail("serviceAccount",
-								current.getSpec().getServiceAccountName())
+						.withDetail("serviceAccount", current.getSpec().getServiceAccountName())
 						.withDetail("nodeName", current.getSpec().getNodeName())
 						.withDetail("hostIp", current.getStatus().getHostIP())
 						.withDetail("labels", current.getMetadata().getLabels());

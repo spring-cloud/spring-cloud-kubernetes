@@ -69,22 +69,17 @@ public class ConfigReloadDefaultAutoConfiguration {
 		 */
 		@Bean
 		@ConditionalOnMissingBean
-		public ConfigurationChangeDetector propertyChangeWatcher(
-				ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy) {
+		public ConfigurationChangeDetector propertyChangeWatcher(ConfigReloadProperties properties,
+				ConfigurationUpdateStrategy strategy) {
 			switch (properties.getMode()) {
 			case POLLING:
-				return new PollingConfigurationChangeDetector(this.environment,
-						properties, this.kubernetesClient, strategy,
-						this.configMapPropertySourceLocator,
-						this.secretsPropertySourceLocator);
+				return new PollingConfigurationChangeDetector(this.environment, properties, this.kubernetesClient,
+						strategy, this.configMapPropertySourceLocator, this.secretsPropertySourceLocator);
 			case EVENT:
-				return new EventBasedConfigurationChangeDetector(this.environment,
-						properties, this.kubernetesClient, strategy,
-						this.configMapPropertySourceLocator,
-						this.secretsPropertySourceLocator);
+				return new EventBasedConfigurationChangeDetector(this.environment, properties, this.kubernetesClient,
+						strategy, this.configMapPropertySourceLocator, this.secretsPropertySourceLocator);
 			}
-			throw new IllegalStateException(
-					"Unsupported configuration reload mode: " + properties.getMode());
+			throw new IllegalStateException("Unsupported configuration reload mode: " + properties.getMode());
 		}
 
 		/**
@@ -96,23 +91,20 @@ public class ConfigReloadDefaultAutoConfiguration {
 		 */
 		@Bean
 		@ConditionalOnMissingBean
-		public ConfigurationUpdateStrategy configurationUpdateStrategy(
-				ConfigReloadProperties properties, ConfigurableApplicationContext ctx) {
+		public ConfigurationUpdateStrategy configurationUpdateStrategy(ConfigReloadProperties properties,
+				ConfigurableApplicationContext ctx) {
 			switch (properties.getStrategy()) {
 			case SHUTDOWN:
-				return new ConfigurationUpdateStrategy(properties.getStrategy().name(),
-						() -> {
-							wait(properties);
-							ctx.close();
-						});
+				return new ConfigurationUpdateStrategy(properties.getStrategy().name(), () -> {
+					wait(properties);
+					ctx.close();
+				});
 			}
-			throw new IllegalStateException("Unsupported configuration update strategy: "
-					+ properties.getStrategy());
+			throw new IllegalStateException("Unsupported configuration update strategy: " + properties.getStrategy());
 		}
 
 		private static void wait(ConfigReloadProperties properties) {
-			final long waitMillis = ThreadLocalRandom.current()
-					.nextLong(properties.getMaxWaitForRestart().toMillis());
+			final long waitMillis = ThreadLocalRandom.current().nextLong(properties.getMaxWaitForRestart().toMillis());
 			try {
 				Thread.sleep(waitMillis);
 			}

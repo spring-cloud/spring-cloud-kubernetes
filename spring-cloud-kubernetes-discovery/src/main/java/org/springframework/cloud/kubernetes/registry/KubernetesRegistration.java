@@ -41,8 +41,7 @@ public class KubernetesRegistration implements Registration, Closeable {
 
 	private AtomicBoolean running = new AtomicBoolean(false);
 
-	public KubernetesRegistration(KubernetesClient client,
-			KubernetesDiscoveryProperties properties) {
+	public KubernetesRegistration(KubernetesClient client, KubernetesDiscoveryProperties properties) {
 		this.client = client;
 		this.properties = properties;
 	}
@@ -94,8 +93,8 @@ public class KubernetesRegistration implements Registration, Closeable {
 
 	@Override
 	public String toString() {
-		return "KubernetesRegistration{" + "client=" + this.client + ", properties="
-				+ this.properties + ", running=" + this.running + '}';
+		return "KubernetesRegistration{" + "client=" + this.client + ", properties=" + this.properties + ", running="
+				+ this.running + '}';
 	}
 
 }

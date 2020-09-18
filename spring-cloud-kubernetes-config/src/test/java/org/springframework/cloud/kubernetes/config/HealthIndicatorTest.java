@@ -35,8 +35,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import static org.hamcrest.Matchers.containsString;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = App.class,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "management.endpoint.health.show-details=always" })
 public class HealthIndicatorTest {
 
@@ -56,12 +55,10 @@ public class HealthIndicatorTest {
 		mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
-				mockClient.getConfiguration().getMasterUrl());
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
-				"false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 	}
@@ -69,8 +66,8 @@ public class HealthIndicatorTest {
 	@Test
 	public void healthEndpointShouldContainKubernetes() {
 		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk()
-				.expectBody(String.class).value(containsString("kubernetes"));
+				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
+				.value(containsString("kubernetes"));
 	}
 
 }
