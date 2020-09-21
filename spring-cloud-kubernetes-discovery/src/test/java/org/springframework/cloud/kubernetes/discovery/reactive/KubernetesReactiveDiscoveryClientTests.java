@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.kubernetes.discovery.reactive;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.EndpointsList;
@@ -28,21 +32,18 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
+
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.discovery.support.KubernetesExtension;
 import org.springframework.cloud.kubernetes.discovery.support.KubernetesExtension.Client;
 import org.springframework.cloud.kubernetes.discovery.support.KubernetesExtension.Server;
-import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-import static java.util.Collections.*;
-import static org.assertj.core.api.Assertions.*;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Tim Ysewyn
