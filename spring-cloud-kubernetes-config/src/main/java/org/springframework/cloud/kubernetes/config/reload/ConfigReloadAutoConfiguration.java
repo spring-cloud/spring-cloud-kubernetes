@@ -25,6 +25,7 @@ import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfi
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -84,6 +85,7 @@ public class ConfigReloadAutoConfiguration {
 		 */
 		@Bean
 		@ConditionalOnMissingBean
+		@ConditionalOnExpression("${spring.cloud.kubernetes.config.enabled:true} or ${spring.cloud.kubernetes.secrets.enabled:true}")
 		public ConfigurationChangeDetector propertyChangeWatcher(
 				ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy) {
 			switch (properties.getMode()) {
