@@ -51,22 +51,27 @@ public class KubernetesConfigConfigurationTest {
 	}
 
 	@Test
-	public void kubernetesWhenKubernetesConfigAndSecretsDisabled() throws Exception {
-		setup("spring.cloud.kubernetes.config.enabled=false", "spring.cloud.kubernetes.secrets.enabled=false");
+	public void kubernetesWhenKubernetesConfigAndSecretDisabled() throws Exception {
+		setup("spring.cloud.kubernetes.config.enabled=false",
+				"spring.cloud.kubernetes.secrets.enabled=false");
 		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isFalse();
 	}
 
 	@Test
-	public void kubernetesWhenKubernetesConfigEnabledButSecretsDisabled() throws Exception {
-		setup("spring.cloud.kubernetes.config.enabled=true", "spring.cloud.kubernetes.secrets.enabled=false");
+	public void kubernetesWhenKubernetesConfigEnabledButSecretDisabled()
+			throws Exception {
+		setup("spring.cloud.kubernetes.config.enabled=true",
+				"spring.cloud.kubernetes.secrets.enabled=false");
 		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isFalse();
 	}
 
 	@Test
-	public void kubernetesWhenKubernetesConfigDisabledButSecretsEnabled() throws Exception {
-		setup("spring.cloud.kubernetes.config.enabled=false", "spring.cloud.kubernetes.secrets.enabled=true");
+	public void kubernetesWhenKubernetesConfigDisabledButSecretEnabled()
+			throws Exception {
+		setup("spring.cloud.kubernetes.config.enabled=false",
+				"spring.cloud.kubernetes.secrets.enabled=true");
 		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isTrue();
 	}
@@ -79,9 +84,11 @@ public class KubernetesConfigConfigurationTest {
 	}
 
 	private void setup(String... env) {
-		this.context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
+		this.context = new SpringApplicationBuilder(
+				PropertyPlaceholderAutoConfiguration.class,
 				KubernetesClientTestConfiguration.class, BootstrapConfiguration.class)
-						.web(org.springframework.boot.WebApplicationType.NONE).properties(env).run();
+						.web(org.springframework.boot.WebApplicationType.NONE)
+						.properties(env).run();
 	}
 
 	@Configuration(proxyBeanMethods = false)
