@@ -89,8 +89,6 @@ public class KubernetesConfigConfigurationTest {
 	public void kubernetesReloadEnabled() throws Exception {
 		setup("spring.cloud.kubernetes.enabled=true",
 				"spring.cloud.kubernetes.reload.enabled=true");
-		System.out.println(
-				"bean names == " + Arrays.asList(this.context.getBeanDefinitionNames()));
 		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isTrue();
 		assertThat(this.context.containsBean("propertyChangeWatcher")).isTrue();
