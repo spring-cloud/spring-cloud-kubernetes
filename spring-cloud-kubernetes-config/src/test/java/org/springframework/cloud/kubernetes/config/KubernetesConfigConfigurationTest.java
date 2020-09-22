@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.kubernetes.config;
 
-import java.util.Arrays;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.After;
 import org.junit.Test;
