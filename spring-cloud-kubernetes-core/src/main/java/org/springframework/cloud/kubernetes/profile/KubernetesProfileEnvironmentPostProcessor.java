@@ -28,11 +28,9 @@ import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
-public class KubernetesProfileEnvironmentPostProcessor
-		implements EnvironmentPostProcessor, Ordered {
+public class KubernetesProfileEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered {
 
-	private static final Log LOG = LogFactory
-			.getLog(KubernetesProfileEnvironmentPostProcessor.class);
+	private static final Log LOG = LogFactory.getLog(KubernetesProfileEnvironmentPostProcessor.class);
 
 	// Before ConfigFileApplicationListener so values there can use these ones
 	private static final int ORDER = ConfigFileApplicationListener.DEFAULT_ORDER - 1;
@@ -40,18 +38,15 @@ public class KubernetesProfileEnvironmentPostProcessor
 	private static final String KUBERNETES_PROFILE = "kubernetes";
 
 	@Override
-	public void postProcessEnvironment(ConfigurableEnvironment environment,
-			SpringApplication application) {
+	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
 
-		final String enabledStr = environment
-				.getProperty("spring.cloud.kubernetes.enabled", "true");
-		if ("false".equals(enabledStr.toLowerCase())) {
+		final boolean kubernetesEnabled = environment.getProperty("spring.cloud.kubernetes.enabled", Boolean.class,
+				true);
+		if (!kubernetesEnabled) {
 			return;
 		}
 
-		final StandardPodUtils podUtils = new StandardPodUtils(
-				new DefaultKubernetesClient());
-		if (podUtils.isInsideKubernetes()) {
+		if (isInsideKubernetes()) {
 			if (hasKubernetesProfile(environment)) {
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("'kubernetes' already in list of active profiles");
@@ -66,9 +61,15 @@ public class KubernetesProfileEnvironmentPostProcessor
 		}
 		else {
 			if (LOG.isDebugEnabled()) {
-				LOG.warn(
-						"Not running inside kubernetes. Skipping 'kubernetes' profile activation.");
+				LOG.warn("Not running inside kubernetes. Skipping 'kubernetes' profile activation.");
 			}
+		}
+	}
+
+	private boolean isInsideKubernetes() {
+		try (DefaultKubernetesClient client = new DefaultKubernetesClient()) {
+			final StandardPodUtils podUtils = new StandardPodUtils(client);
+			return podUtils.isInsideKubernetes();
 		}
 	}
 

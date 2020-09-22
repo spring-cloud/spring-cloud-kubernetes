@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: greeting-service
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
+
+server:
+  port: 8080

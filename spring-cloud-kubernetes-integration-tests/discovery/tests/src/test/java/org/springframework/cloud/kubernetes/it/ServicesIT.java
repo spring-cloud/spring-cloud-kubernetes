@@ -32,16 +32,15 @@ public class ServicesIT {
 
 	private static final String HOST = System.getProperty("service.host");
 
-	private static final Integer PORT = Integer
-			.valueOf(System.getProperty("service.port"));
+	private static final Integer PORT = Integer.valueOf(System.getProperty("service.port"));
 
-	private static final String PROTOCOL = "true"
-			.equalsIgnoreCase(System.getProperty("service.secure")) ? "https" : "http";
+	private static final String PROTOCOL = "true".equalsIgnoreCase(System.getProperty("service.secure")) ? "https"
+			: "http";
 
 	@Test
 	public void testServicesEndpoint() {
-		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).get("services")
-				.then().statusCode(200).body(new StringContains(false, "service-a") {
+		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).get("services").then().statusCode(200)
+				.body(new StringContains(false, "service-a") {
 					@Override
 					protected boolean evalSubstringOf(String s) {
 						return s.contains("service-a") && s.contains("service-b");
@@ -51,9 +50,8 @@ public class ServicesIT {
 
 	@Test
 	public void testInstancesEndpoint() {
-		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT))
-				.get("services/discovery-service-a/instances").then().statusCode(200)
-				.body("instanceId", hasSize(1))
+		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).get("services/discovery-service-a/instances")
+				.then().statusCode(200).body("instanceId", hasSize(1))
 				.body("serviceId", hasItems("discovery-service-a"));
 	}
 

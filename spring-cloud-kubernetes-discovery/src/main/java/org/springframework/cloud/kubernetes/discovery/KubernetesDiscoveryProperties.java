@@ -23,6 +23,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.core.style.ToStringCreator;
 
 /**
@@ -70,6 +71,8 @@ public class KubernetesDiscoveryProperties {
 	private String primaryPortName;
 
 	private Metadata metadata = new Metadata();
+
+	private int order = DiscoveryClient.DEFAULT_ORDER;
 
 	public boolean isEnabled() {
 		return this.enabled;
@@ -135,13 +138,19 @@ public class KubernetesDiscoveryProperties {
 		this.allNamespaces = allNamespaces;
 	}
 
+	public int getOrder() {
+		return this.order;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
+	}
+
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("enabled", this.enabled)
-				.append("serviceName", this.serviceName).append("filter", this.filter)
-				.append("knownSecurePorts", this.knownSecurePorts)
-				.append("serviceLabels", this.serviceLabels)
-				.append("metadata", this.metadata).toString();
+		return new ToStringCreator(this).append("enabled", this.enabled).append("serviceName", this.serviceName)
+				.append("filter", this.filter).append("knownSecurePorts", this.knownSecurePorts)
+				.append("serviceLabels", this.serviceLabels).append("metadata", this.metadata).toString();
 	}
 
 	/**
@@ -236,10 +245,8 @@ public class KubernetesDiscoveryProperties {
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("addLabels", this.addLabels)
-					.append("labelsPrefix", this.labelsPrefix)
-					.append("addAnnotations", this.addAnnotations)
-					.append("annotationsPrefix", this.annotationsPrefix)
-					.append("addPorts", this.addPorts)
+					.append("labelsPrefix", this.labelsPrefix).append("addAnnotations", this.addAnnotations)
+					.append("annotationsPrefix", this.annotationsPrefix).append("addPorts", this.addPorts)
 					.append("portsPrefix", this.portsPrefix).toString();
 		}
 

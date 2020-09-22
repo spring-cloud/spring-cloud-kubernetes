@@ -4,6 +4,7 @@ Manual changes to this file will be lost when it is generated again.
 Edit the files in the src/main/asciidoc/ directory instead.
 ////
 
+
 = Spring Cloud Kubernetes
 :doctype: book
 :idprefix:
@@ -26,8 +27,7 @@ This reference guide covers how to use Spring Cloud Kubernetes.
 
 == Why do you need Spring Cloud Kubernetes?
 
-Spring Cloud Kubernetes provide Spring Cloud common interface implementations that consume Kubernetes native services.
-The main objective of the projects provided in this repository is to facilitate the integration of Spring Cloud and Spring Boot applications running inside Kubernetes.
+Spring Cloud Kubernetes provides implementations of well known Spring Cloud interfaces allowing developers to build and run Spring Cloud applications on Kubernetes.  While this project may be useful to you when building a cloud native application, it is also not a requirement in order to deploy a Spring Boot app on Kubernetes.  If you are just getting started in your journey to running your Spring Boot app on Kubernetes you can accomplish a lot with nothing more than a basic Spring Boot app and Kubernetes itself.  To learn more, you can get started by reading the https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#cloud-deployment-kubernetes[Spring Boot reference documentation for deploying to Kubernetes ] and also working through the workshop material https://hackmd.io/@ryanjbaxter/spring-on-k8s-workshop[Spring and Kubernetes].
 
 == Starters
 
@@ -65,16 +65,6 @@ Secret changes.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-ribbon</artifactId>
-</dependency>
-----
-| <<Ribbon discovery in Kubernetes,Ribbon>> client-side load balancer with
-server list obtained from Kubernetes Endpoints.
-
-| [source,xml]
-----
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-all</artifactId>
 </dependency>
 ----
@@ -88,8 +78,7 @@ This project provides an implementation of https://github.com/spring-cloud/sprin
 for https://kubernetes.io[Kubernetes].
 This client lets you query Kubernetes endpoints (see https://kubernetes.io/docs/user-guide/services/[services]) by name.
 A service is typically exposed by the Kubernetes API server as a collection of endpoints that represent `http` and `https` addresses and that a client can
-access from a Spring Boot application running as a pod. This discovery feature is also used by the Spring Cloud Kubernetes Ribbon project
-to fetch the list of the endpoints defined for an application to be load balanced.
+access from a Spring Boot application running as a pod.
 
 This is something that you get for free by adding the following dependency inside your project:
 
@@ -158,7 +147,7 @@ Spring Cloud Kubernetes can also watch the Kubernetes service catalog for change
 == Kubernetes native service discovery
 
 Kubernetes itself is capable of (server side) service discovery (see: https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services).
-Using native kubernetes service discovery ensures compatibility with additional tooling, such as Istio (https://istio.io), a service mesh that is capable of load balancing, ribbon, circuit breaker, failover, and much more.
+Using native kubernetes service discovery ensures compatibility with additional tooling, such as Istio (https://istio.io), a service mesh that is capable of load balancing, circuit breaker, failover, and much more.
 
 The caller service then need only refer to names resolvable in a particular Kubernetes cluster. A simple implementation might use a spring `RestTemplate` that refers to a fully qualified domain name (FQDN), such as `https://{service-name}.{namespace}.svc.{cluster}.local:{service-port}`.
 
@@ -427,13 +416,13 @@ spec:
     metadata:
       labels:
         app: deployment-name
-	spec:
-		containers:
-		- name: container-name
-		  image: your-image
-		  env:
-		  - name: SPRING_PROFILES_ACTIVE
-			value: "development"
+    spec:
+        containers:
+        - name: container-name
+          image: your-image
+          env:
+          - name: SPRING_PROFILES_ACTIVE
+            value: "development"
 ----
 ====
 
@@ -447,6 +436,10 @@ addition to or instead of the mechanism described earlier.
 You can specify multiple (exact) file paths in `spring.cloud.kubernetes.config.paths` by using the `,` delimiter.
 
 NOTE: You have to provide the full exact path to each property file, because directories are not being recursively parsed.
+
+NOTE:  If you use `spring.cloud.kubernetes.config.paths` or `spring.cloud.kubernetes.secrets.path` the automatic reload
+functionality will not work.  You will need to make a `POST` request to the `/actuator/refresh` endpoint or
+restart/redeploy the application.
 
 .Properties:
 [options="header,footer"]
@@ -635,6 +628,10 @@ https://github.com/fabric8-quickstarts/spring-boot-camel-config[spring-boot-came
 
 === `PropertySource` Reload
 
+WARNING:  This functionality has been deprecated in the 2020.0 release.  Please see
+the <<spring-cloud-kubernetes-configuration-watcher>> controller for an alternative way
+to achieve the same functionality.
+
 Some applications may need to detect changes on external property sources and update their internal status to reflect the new configuration.
 The reload feature of Spring Cloud Kubernetes is able to trigger an application reload when a related `ConfigMap` or
 `Secret` changes.
@@ -642,9 +639,26 @@ The reload feature of Spring Cloud Kubernetes is able to trigger an application 
 By default, this feature is disabled. You can enable it by using the `spring.cloud.kubernetes.reload.enabled=true` configuration property (for example, in the `application.properties` file).
 
 The following levels of reload are supported (by setting the `spring.cloud.kubernetes.reload.strategy` property):
+
 * `refresh` (default): Only configuration beans annotated with `@ConfigurationProperties` or `@RefreshScope` are reloaded.
 This reload level leverages the refresh feature of Spring Cloud Context.
+
 * `restart_context`: the whole Spring `ApplicationContext` is gracefully restarted. Beans are recreated with the new configuration.
+In order for the restart context functionality to work properly you must enable and expose the restart actuator endpoint
+[source,yaml]
+====
+----
+management:
+  endpoint:
+    restart:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: restart
+----
+====
+
 * `shutdown`: the Spring `ApplicationContext` is shut down to activate a restart of the container.
  When you use this level, make sure that the lifecycle of all non-daemon threads is bound to the `ApplicationContext`
 and that a replication controller or replica set is configured to restart the pod.
@@ -733,87 +747,6 @@ Notes:
 * You should not use properties under `spring.cloud.kubernetes.reload` in config maps or secrets. Changing such properties at runtime may lead to unexpected results.
 * Deleting a property or the whole config map does not restore the original state of the beans when you use the `refresh` level.
 
-== Ribbon Discovery in Kubernetes
-
-
-Spring Cloud client applications that call a microservice should be interested on relying on a client load-balancing
-feature in order to automatically discover at which endpoint(s) it can reach a given service. This mechanism has been
-implemented within the https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-ribbon[spring-cloud-kubernetes-ribbon] project, where a
-Kubernetes client populates a https://github.com/Netflix/ribbon[Ribbon] `ServerList` that contains information
-about such endpoints.
-
-The implementation is part of the following starter that you can use by adding its dependency to your pom file:
-
-====
-[source,xml]
-----
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-ribbon</artifactId>
-    <version>${latest.version}</version>
-</dependency>
-----
-====
-
-When the list of the endpoints is populated, the Kubernetes client searches the registered endpoints that live in
-the current namespace or project by matching the service name defined in the Ribbon Client annotation, as follows:
-
-====
-[source,java]
-----
-@RibbonClient(name = "name-service")
-----
-====
-
-You can configure Ribbon's behavior by providing properties in your `application.properties` (through your application's
-dedicated `ConfigMap`) by using the following format: `<name of your service>.ribbon.<Ribbon configuration key>`, where:
-
-* `<name of your service>` corresponds to the service name you access over Ribbon, as configured by using the
-`@RibbonClient` annotation (such as `name-service` in the preceding example).
-* `<Ribbon configuration key>` is one of the Ribbon configuration keys defined by
-https://github.com/Netflix/ribbon/blob/master/ribbon-core/src/main/java/com/netflix/client/config/CommonClientConfigKey.java[Ribbon's `CommonClientConfigKey` class].
-
-Additionally, the `spring-cloud-kubernetes-ribbon` project defines two additional configuration keys to further
-control how Ribbon interacts with Kubernetes. In particular, if an endpoint defines multiple ports, the default
-behavior is to use the first one found. To select more specifically which port to use in a multi-port service, you can use
-the `PortName` key. If you want to specify in which Kubernetes namespace the target service should be looked up, you can use
-the `KubernetesNamespace` key, remembering in both instances to prefix these keys with your service name and
-`ribbon` prefix, as specified earlier.
-
-.Spring Cloud Kubernetes Ribbon Configuration
-|===
-|Property Key |Type |Default Value
-
-|spring.cloud.kubernetes.ribbon.enabled
-|boolean
-|true
-
-|spring.cloud.kubernetes.ribbon.mode
-|`KubernetesRibbonMode`
-|POD
-
-|spring.cloud.kubernetes.ribbon.cluster-domain
-|string
-|cluster.local
-|===
-
-* `spring.cloud.kubernetes.ribbon.mode` supports `POD` and `SERVICE` modes.
-** The POD mode is to achieve load balancing by obtaining the Pod IP address of Kubernetes and using Ribbon.
-   POD mode uses the load balancing of the Ribbon Does not support Kubernetes load balancing, The traffic policy of `Istio` is not supported.
-** the `SERVICE` mode is directly based on the `service name` of the Ribbon. Get
-The Kubernetes service is concatenated into `service-name.{namespace}.svc.{cluster.domain}:{port}` such as: `demo1.default.svc.cluster.local:8080`.
-the `SERVICE` mode uses load balancing of the Kubernetes service to support Istio's traffic policy.
-
-* `spring.cloud.kubernetes.ribbon.cluster-domain` Set the custom Kubernetes cluster domain suffix. The default value is: 'cluster.local'
-
-The following examples use this module for ribbon discovery:
-
-* link:./spring-cloud-kubernetes-examples/kubernetes-circuitbreaker-ribbon-example[Spring Cloud Circuitbreaker and Ribbon]
-* https://github.com/fabric8-quickstarts/spring-boot-ribbon[fabric8-quickstarts - Spring Boot - Ribbon]
-* https://github.com/fabric8io/kubeflix/tree/master/examples/loanbroker/bank[Kubeflix - LoanBroker - Bank]
-
-NOTE: You can disable the Ribbon discovery client by setting the `spring.cloud.kubernetes.ribbon.enabled=false` key within the application properties file.
-
 == Kubernetes Ecosystem Awareness
 
 All of the features described earlier in this guide work equally well, regardless of whether your application is running inside
@@ -857,6 +790,35 @@ The Kubernetes health indicator (which is part of the core module) exposes the f
 
 <TBD>
 
+== LoadBalancer for Kubernetes
+This project includes Spring Cloud Load Balancer for load balancing based on Kubernetes Endpoints and provides implementation of load balancer based on Kubernetes Service.
+To include it to your project add the following dependency.
+====
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-loadbalancer</artifactId>
+</dependency>
+----
+====
+
+To enable load balancing based on Kubernetes Service name use the following property. Then load balancer would try to call application using address, for example `service-a.default.svc.cluster.local`
+====
+[source]
+----
+spring.cloud.kubernetes.loadbalancer.mode=SERVICE
+----
+====
+
+To enabled load balancing across all namespaces use the following property. Property from `spring-cloud-kubernetes-discovery` module is respected.
+====
+[source]
+----
+spring.cloud.kubernetes.discovery.all-namespaces=true
+----
+====
+
 == Security Configurations Inside Kubernetes
 
 
@@ -893,9 +855,6 @@ Depending on the requirements, you'll need `get`, `list` and `watch` permission 
 
 |spring-cloud-starter-kubernetes-config
 |configmaps, secrets
-
-|spring-cloud-starter-kubernetes-ribbon
-|pods, services, endpoints
 |===
 
 For development purposes, you can add `cluster-reader` permissions to your `default` service account. On a production system you'll likely want to provide more granular permissions.
@@ -938,6 +897,187 @@ roleRef:
 In Kubernetes service registration is controlled by the platform, the application itself does not control
 registration as it may do in other platforms.  For this reason using `spring.cloud.service-registry.auto-registration.enabled`
 or setting `@EnableDiscoveryClient(autoRegister=false)` will have no effect in Spring Cloud Kubernetes.
+
+[#spring-cloud-kubernetes-configuration-watcher]
+## Spring Cloud Kubernetes Configuration Watcher
+
+Kubernetes provides the ability to https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#add-configmap-data-to-a-volume[mount a ConfigMap or Secret as a volume]
+in the container of your application.  When the contents of the ConfigMap or Secret changes, the https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#mounted-configmaps-are-updated-automatically[mounted volume will be updated with those changes].
+
+However, Spring Boot will not automatically update those changes unless you restart the application.  Spring Cloud
+provides the ability refresh the application context without restarting the application by either hitting the
+actuator endpoint `/refresh` or via publishing a `RefreshRemoteApplicationEvent` using Spring Cloud Bus.
+
+To achieve this configuration refresh of a Spring Cloud app running on Kubernetes, you can deploy the Spring Cloud
+Kubernetes Configuration Watcher controller into your Kubernetes cluster.
+
+The application is published as a container and is available on https://hub.docker.com/repository/docker/springcloud/spring-cloud-kubernetes-configuration-watcher[Docker Hub].
+
+Spring Cloud Kubernetes Configuration Watcher can send refresh notifications to applications in two ways.
+
+1.  Over HTTP in which case the application being notified must of the `/refresh` actuator endpoint exposed and accessible from within the cluster
+2.  Using Spring Cloud Bus, in which case you will need a message broker deployed to your custer for the application to use.
+
+### Deployment YAML
+
+Below is a sample deployment YAML you can use to deploy the Kubernetes Configuration Watcher to Kubernetes.
+
+====
+[source,yaml]
+----
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-configuration-watcher
+      name: spring-cloud-kubernetes-configuration-watcher
+    spec:
+      ports:
+        - name: http
+          port: 8888
+          targetPort: 8888
+      selector:
+        app: spring-cloud-kubernetes-configuration-watcher
+      type: ClusterIP
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-configuration-watcher
+      name: spring-cloud-kubernetes-configuration-watcher
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-configuration-watcher
+      name: spring-cloud-kubernetes-configuration-watcher:view
+    roleRef:
+      kind: Role
+      apiGroup: rbac.authorization.k8s.io
+      name: namespace-reader
+    subjects:
+      - kind: ServiceAccount
+        name: spring-cloud-kubernetes-configuration-watcher
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      namespace: default
+      name: namespace-reader
+    rules:
+      - apiGroups: ["", "extensions", "apps"]
+        resources: ["configmaps", "pods", "services", "endpoints", "secrets"]
+        verbs: ["get", "list", "watch"]
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: spring-cloud-kubernetes-configuration-watcher-deployment
+    spec:
+      selector:
+        matchLabels:
+          app: spring-cloud-kubernetes-configuration-watcher
+      template:
+        metadata:
+          labels:
+            app: spring-cloud-kubernetes-configuration-watcher
+        spec:
+          serviceAccount: spring-cloud-kubernetes-configuration-watcher
+          containers:
+          - name: spring-cloud-kubernetes-configuration-watcher
+            image: springcloud/spring-cloud-kubernetes-configuration-watcher:2.0.0-SNAPSHOT
+            imagePullPolicy: IfNotPresent
+            readinessProbe:
+              httpGet:
+                port: 8888
+                path: /actuator/health/readiness
+            livenessProbe:
+              httpGet:
+                port: 8888
+                path: /actuator/health/liveness
+            ports:
+            - containerPort: 8888
+
+----
+====
+
+The Service Account and associated Role Binding is important for Spring Cloud Kubernetes Configuration to work properly.
+The controller needs access to read data about ConfigMaps, Pods, Services, Endpoints and Secrets in the Kubernetes cluster.
+
+### Monitoring ConfigMaps and Secrets
+
+Spring Cloud Kubernetes Configuration Watcher will react to changes in ConfigMaps with a label of `spring.cloud.kubernetes.config` with the value `true`
+or any Secret with a label of `spring.cloud.kubernetes.secret` with the value `true`.  If the ConfigMap or Secret does not have either of those labels
+or the values of those labels is not `true` then any changes will be ignored.
+
+The labels Spring Cloud Kubernetes Configuration Watcher looks for on ConfigMaps and Secrets can be changed by setting
+`spring.cloud.kubernetes.configuration.watcher.configLabel` and `spring.cloud.kubernetes.configuration.watcher.secretLabel` respectively.
+
+If a change is made to a ConfigMap or Secret with valid labels then Spring Cloud Kubernetes Configuration Watcher will take the name of the ConfigMap or Secret
+and send a notification to the application with that name.
+
+### HTTP Implementation
+
+The HTTP implementation is what is used by default.  When this implementation is used Spring Cloud Kubernetes Configuration Watcher and a
+change to a ConfigMap or Secret occurs then the HTTP implementation will use the Spring Cloud Kubernetes Discovery Client to fetch all
+instances of the application which match the name of the ConfigMap or Secret and send an HTTP POST request to the application's actuator
+`/refresh` endpoint.  By default it will send the post request to `/actuator/refresh` using the port registered in the discovery client.
+
+#### Non-Default Management Port and Actuator Path
+
+If the application is using a non-default actuator path and/or using a different port for the management endpoints, the Kubernetes service for the application
+can add an annotation called `boot.spring.io/actuator` and set its value to the path and port used by the application.  For example
+
+====
+[source,yaml]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: config-map-demo
+  name: config-map-demo
+  annotations:
+    boot.spring.io/actuator: http://:9090/myactuator/home
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: config-map-demo
+----
+====
+
+
+Another way you can choose to configure the actuator path and/or management port is by setting
+`spring.cloud.kubernetes.configuration.watcher.actuatorPath` and `spring.cloud.kubernetes.configuration.watcher.actuatorPort`.
+
+### Messaging Implementation
+
+The messaging implementation can be enabled by setting the profile `bus` when the Spring Cloud Kubernetes Configuration Watcher
+application is deployed to Kubernetes.
+
+WARNING: Currently the only supported message broker is RabbitMQ
+
+### Configuring RabbitMQ
+
+When the `bus` profile is enabled you will need to configure Spring RabbitMQ to point it to the location of the RabbitMQ
+instance you would like to use as well as any credentials necessary to authenticate.  This can be done
+by setting the standard Spring RabbitMQ properties, for example
+
+====
+[source,yaml]
+----
+spring:
+  rabbitmq:
+    username: user
+    password: password
+    host: rabbitmq
+----
+====
 
 == Examples
 
@@ -1034,6 +1174,11 @@ https://www.springsource.com/developer/sts[Spring Tools Suite] or
 https://eclipse.org[Eclipse] when working with the code. We use the
 https://eclipse.org/m2e/[m2eclipse] eclipse plugin for maven support. Other IDEs and tools
 should also work without issue as long as they use Maven 3.3.3 or better.
+
+==== Activate the Spring Maven profile
+Spring Cloud projects require the 'spring' Maven profile to be activated to resolve
+the spring milestone and snapshot repositories. Use your preferred IDE to set this
+profile to be active, or you may experience build errors.
 
 ==== Importing into eclipse with m2eclipse
 We recommend the https://eclipse.org/m2e/[m2eclipse] eclipse plugin when working with

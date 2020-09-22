@@ -47,19 +47,18 @@ import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.ya
  * A {@link PropertySourceLocator} that uses config maps.
  *
  * @author Ioannis Canellos
+ * @author Michael Moudatsos
  */
 @Order(0)
 public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 
-	private static final Log LOG = LogFactory
-			.getLog(ConfigMapPropertySourceLocator.class);
+	private static final Log LOG = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
 
 	private final KubernetesClient client;
 
 	private final ConfigMapConfigProperties properties;
 
-	public ConfigMapPropertySourceLocator(KubernetesClient client,
-			ConfigMapConfigProperties properties) {
+	public ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties) {
 		this.client = client;
 		this.properties = properties;
 	}
@@ -69,13 +68,10 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 		if (environment instanceof ConfigurableEnvironment) {
 			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
 
-			List<ConfigMapConfigProperties.NormalizedSource> sources = this.properties
-					.determineSources();
-			CompositePropertySource composite = new CompositePropertySource(
-					"composite-configmap");
+			List<ConfigMapConfigProperties.NormalizedSource> sources = this.properties.determineSources();
+			CompositePropertySource composite = new CompositePropertySource("composite-configmap");
 			if (this.properties.isEnableApi()) {
-				sources.forEach(s -> composite.addFirstPropertySource(
-						getMapPropertySourceForSingleConfigMap(env, s)));
+				sources.forEach(s -> composite.addFirstPropertySource(getMapPropertySourceForSingleConfigMap(env, s)));
 			}
 
 			addPropertySourcesFromPaths(environment, composite);
@@ -85,20 +81,17 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 		return null;
 	}
 
-	private MapPropertySource getMapPropertySourceForSingleConfigMap(
-			ConfigurableEnvironment environment, NormalizedSource normalizedSource) {
+	private MapPropertySource getMapPropertySourceForSingleConfigMap(ConfigurableEnvironment environment,
+			NormalizedSource normalizedSource) {
 
 		String configurationTarget = this.properties.getConfigurationTarget();
 		return new ConfigMapPropertySource(this.client,
-				getApplicationName(environment, normalizedSource.getName(),
-						configurationTarget),
-				getApplicationNamespace(this.client, normalizedSource.getNamespace(),
-						configurationTarget),
+				getApplicationName(environment, normalizedSource.getName(), configurationTarget),
+				getApplicationNamespace(this.client, normalizedSource.getNamespace(), configurationTarget),
 				environment);
 	}
 
-	private void addPropertySourcesFromPaths(Environment environment,
-			CompositePropertySource composite) {
+	private void addPropertySourcesFromPaths(Environment environment, CompositePropertySource composite) {
 		this.properties.getPaths().stream().map(Paths::get).peek(p -> {
 			if (!Files.exists(p)) {
 				LOG.warn("Configured input path: " + p
@@ -106,23 +99,18 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 			}
 		}).filter(Files::exists).peek(p -> {
 			if (!Files.isRegularFile(p)) {
-				LOG.warn("Configured input path: " + p
-						+ " will be ignored because it is not a regular file");
+				LOG.warn("Configured input path: " + p + " will be ignored because it is not a regular file");
 			}
 		}).filter(Files::isRegularFile).forEach(p -> {
 			try {
 				String content = new String(Files.readAllBytes(p)).trim();
 				String filename = p.getFileName().toString().toLowerCase();
 				if (filename.endsWith(".properties")) {
-					addPropertySourceIfNeeded(
-							c -> PROPERTIES_TO_MAP
-									.apply(KEY_VALUE_TO_PROPERTIES.apply(c)),
-							content, filename, composite);
+					addPropertySourceIfNeeded(c -> PROPERTIES_TO_MAP.apply(KEY_VALUE_TO_PROPERTIES.apply(c)), content,
+							filename, composite);
 				}
 				else if (filename.endsWith(".yml") || filename.endsWith(".yaml")) {
-					addPropertySourceIfNeeded(
-							c -> PROPERTIES_TO_MAP
-									.apply(yamlParserGenerator(environment).apply(c)),
+					addPropertySourceIfNeeded(c -> PROPERTIES_TO_MAP.apply(yamlParserGenerator(environment).apply(c)),
 							content, filename, composite);
 				}
 			}
@@ -132,15 +120,13 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 		});
 	}
 
-	private void addPropertySourceIfNeeded(
-			Function<String, Map<String, String>> contentToMapFunction, String content,
+	private void addPropertySourceIfNeeded(Function<String, Map<String, Object>> contentToMapFunction, String content,
 			String name, CompositePropertySource composite) {
 
 		Map<String, Object> map = new HashMap<>();
 		map.putAll(contentToMapFunction.apply(content));
 		if (map.isEmpty()) {
-			LOG.warn("Property source: " + name
-					+ "will be ignored because no properties could be found");
+			LOG.warn("Property source: " + name + "will be ignored because no properties could be found");
 		}
 		else {
 			composite.addFirstPropertySource(new MapPropertySource(name, map));

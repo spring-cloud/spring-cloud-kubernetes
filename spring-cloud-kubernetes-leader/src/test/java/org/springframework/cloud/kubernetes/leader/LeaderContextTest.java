@@ -18,11 +18,11 @@ package org.springframework.cloud.kubernetes.leader;
 
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.integration.leader.Candidate;
 
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Gytis Trikleris
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LeaderContextTest {
 
 	@Mock
@@ -47,16 +47,14 @@ public class LeaderContextTest {
 
 	private LeaderContext leaderContext;
 
-	@Before
+	@BeforeEach
 	public void before() {
-		this.leaderContext = new LeaderContext(this.mockCandidate,
-				this.mockLeadershipController);
+		this.leaderContext = new LeaderContext(this.mockCandidate, this.mockLeadershipController);
 	}
 
 	@Test
 	public void testIsLeaderWithoutLeader() {
-		given(this.mockLeadershipController.getLocalLeader())
-				.willReturn(Optional.empty());
+		given(this.mockLeadershipController.getLocalLeader()).willReturn(Optional.empty());
 
 		boolean result = this.leaderContext.isLeader();
 
@@ -65,8 +63,7 @@ public class LeaderContextTest {
 
 	@Test
 	public void testIsLeaderWithAnotherLeader() {
-		given(this.mockLeadershipController.getLocalLeader())
-				.willReturn(Optional.of(this.mockLeader));
+		given(this.mockLeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
 
 		boolean result = this.leaderContext.isLeader();
 
@@ -75,8 +72,7 @@ public class LeaderContextTest {
 
 	@Test
 	public void testIsLeaderWhenLeader() {
-		given(this.mockLeadershipController.getLocalLeader())
-				.willReturn(Optional.of(this.mockLeader));
+		given(this.mockLeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
 		given(this.mockLeader.isCandidate(this.mockCandidate)).willReturn(true);
 
 		boolean result = this.leaderContext.isLeader();

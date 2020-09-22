@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  labels:
+    component: rabbitmq
+  name: rabbitmq-controller
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: taskQueue
+        component: rabbitmq
+    spec:
+      containers:
+        - image: rabbitmq:3-management
+          name: rabbitmq
+          ports:
+            - name: amqp
+              containerPort: 5672
+            - name: http-stats
+              containerPort: 15672
+          readinessProbe:
+            httpGet:
+              port: 15672
+              path: /api/healthchecks/node
+              httpHeaders:
+                - name: Authorization
+                  value: Basic Z3Vlc3Q6Z3Vlc3Q=
+#          livenessProbe:
+#            httpGet:
+#              port: 15672
+#              path: /api/healthchecks/node
+#              httpHeaders:
+#                - name: Authorization
+#                  value: Basic Z3Vlc3Q6Z3Vlc3Q=

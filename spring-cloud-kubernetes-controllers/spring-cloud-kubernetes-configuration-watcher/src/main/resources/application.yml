@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: spring-cloud-kubernetes-configuration-watcher
+  cloud:
+    kubernetes:
+      reload:
+        enabled: true
+        monitoring-secrets: true
+        strategy: shutdown
+    bus:
+      enabled: false
+server:
+  port: 8888
+---
+spring:
+  profiles: bus
+  cloud:
+    bus:
+      enabled: true

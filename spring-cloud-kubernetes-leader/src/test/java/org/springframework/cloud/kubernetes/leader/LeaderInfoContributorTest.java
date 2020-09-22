@@ -19,11 +19,11 @@ package org.springframework.cloud.kubernetes.leader;
 import java.util.Map;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.boot.actuate.info.Info;
 import org.springframework.integration.leader.Candidate;
@@ -31,7 +31,7 @@ import org.springframework.integration.leader.Candidate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LeaderInfoContributorTest {
 
 	@Mock
@@ -45,10 +45,9 @@ public class LeaderInfoContributorTest {
 
 	private LeaderInfoContributor leaderInfoContributor;
 
-	@Before
+	@BeforeEach
 	public void before() {
-		this.leaderInfoContributor = new LeaderInfoContributor(
-				this.mockLeadershipController, this.mockCandidate);
+		this.leaderInfoContributor = new LeaderInfoContributor(this.mockLeadershipController, this.mockCandidate);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -58,16 +57,14 @@ public class LeaderInfoContributorTest {
 
 		leaderInfoContributor.contribute(builder);
 
-		Map<String, Object> details = (Map<String, Object>) builder.build()
-				.get("leaderElection");
+		Map<String, Object> details = (Map<String, Object>) builder.build().get("leaderElection");
 		assertThat(details).containsEntry("leaderId", "Unknown");
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void infoWhenLeader() {
-		given(this.mockLeadershipController.getLocalLeader())
-				.willReturn(Optional.of(this.mockLeader));
+		given(this.mockLeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
 		given(this.mockLeader.isCandidate(this.mockCandidate)).willReturn(true);
 		given(this.mockLeader.getRole()).willReturn("testRole");
 		given(this.mockLeader.getId()).willReturn("id");
@@ -75,8 +72,7 @@ public class LeaderInfoContributorTest {
 
 		leaderInfoContributor.contribute(builder);
 
-		Map<String, Object> details = (Map<String, Object>) builder.build()
-				.get("leaderElection");
+		Map<String, Object> details = (Map<String, Object>) builder.build().get("leaderElection");
 		assertThat(details).containsEntry("isLeader", true);
 		assertThat(details).containsEntry("leaderId", "id");
 		assertThat(details).containsEntry("role", "testRole");
@@ -85,16 +81,14 @@ public class LeaderInfoContributorTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void infoWhenAnotherIsLeader() {
-		given(this.mockLeadershipController.getLocalLeader())
-				.willReturn(Optional.of(this.mockLeader));
+		given(this.mockLeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
 		given(this.mockLeader.getRole()).willReturn("testRole");
 		given(this.mockLeader.getId()).willReturn("id");
 		Info.Builder builder = new Info.Builder();
 
 		leaderInfoContributor.contribute(builder);
 
-		Map<String, Object> details = (Map<String, Object>) builder.build()
-				.get("leaderElection");
+		Map<String, Object> details = (Map<String, Object>) builder.build().get("leaderElection");
 		assertThat(details).containsEntry("isLeader", false);
 		assertThat(details).containsEntry("leaderId", "id");
 		assertThat(details).containsEntry("role", "testRole");

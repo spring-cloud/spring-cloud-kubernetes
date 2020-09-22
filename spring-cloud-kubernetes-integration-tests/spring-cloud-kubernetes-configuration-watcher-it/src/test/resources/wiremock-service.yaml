@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: config-watcher-wiremock
+  name: config-watcher-wiremock
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: config-watcher-wiremock
+  type: ClusterIP

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-watcher-wiremock-deployment
+spec:
+  selector:
+    matchLabels:
+      app: config-watcher-wiremock
+  template:
+    metadata:
+      labels:
+        app: config-watcher-wiremock
+    spec:
+      containers:
+        - name: config-watcher-wiremock
+          image: rodolpheche/wiremock
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /__admin/mappings
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /__admin/mappings
+          ports:
+            - containerPort: 8080

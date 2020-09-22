@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2013-2018 the original author or authors.
+  ~ Copyright 2013-2020 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,21 +23,22 @@
 	<parent>
 		<artifactId>spring-cloud-dependencies-parent</artifactId>
 		<groupId>org.springframework.cloud</groupId>
-		<version>3.0.0.BUILD-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 	<artifactId>spring-cloud-kubernetes-dependencies</artifactId>
-	<version>2.0.0.BUILD-SNAPSHOT</version>
+	<version>2.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes :: Dependencies</name>
 	<description>Spring Cloud Kubernetes Dependencies</description>
 	<properties>
 		<arquillian.version>1.4.0.Final</arquillian.version>
 		<arquillian-cube.version>1.15.2</arquillian-cube.version>
-		<kubernetes-client.version>4.4.1</kubernetes-client.version>
-		<istio-client.version>1.0.0</istio-client.version>
+		<hoverfly.version>0.13.0</hoverfly.version>
+		<kubernetes-client.version>4.10.3</kubernetes-client.version>
+		<istio-client.version>1.1.1</istio-client.version>
 		<mockwebserver.version>0.1.2</mockwebserver.version>
-		<okhttp.version>3.12.0</okhttp.version>
+		<okhttp.version>3.14.4</okhttp.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -82,13 +83,13 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-kubernetes-ribbon</artifactId>
+				<artifactId>spring-cloud-kubernetes-leader</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-kubernetes-leader</artifactId>
+				<artifactId>spring-cloud-kubernetes-loadbalancer</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -107,7 +108,7 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-kubernetes-ribbon</artifactId>
+				<artifactId>spring-cloud-starter-kubernetes-loadbalancer</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -140,6 +141,18 @@
 				<groupId>org.arquillian.cube</groupId>
 				<artifactId>arquillian-cube-openshift</artifactId>
 				<version>${arquillian-cube.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.specto</groupId>
+				<artifactId>hoverfly-java-junit5</artifactId>
+				<version>${hoverfly.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.specto</groupId>
+				<artifactId>hoverfly-java</artifactId>
+				<version>${hoverfly.version}</version>
 				<scope>test</scope>
 			</dependency>
 

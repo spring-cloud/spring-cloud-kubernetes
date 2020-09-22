@@ -19,11 +19,11 @@ package org.springframework.cloud.kubernetes.examples;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +36,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LeaderControllerTest {
 
 	@Mock
@@ -52,7 +52,7 @@ public class LeaderControllerTest {
 
 	private LeaderController leaderController;
 
-	@Before
+	@BeforeEach
 	public void before() throws UnknownHostException {
 		this.host = InetAddress.getLocalHost().getHostName();
 		this.leaderController = new LeaderController();
@@ -60,8 +60,7 @@ public class LeaderControllerTest {
 
 	@Test
 	public void shouldGetNonLeaderInfo() {
-		String message = String.format("I am '%s' but I am not a leader of the 'null'",
-				this.host);
+		String message = String.format("I am '%s' but I am not a leader of the 'null'", this.host);
 		assertThat(this.leaderController.getInfo()).isEqualTo(message);
 	}
 
@@ -71,8 +70,7 @@ public class LeaderControllerTest {
 
 		this.leaderController.handleEvent(this.mockOnGrantedEvent);
 
-		String message = String.format("I am '%s' and I am the leader of the 'null'",
-				this.host);
+		String message = String.format("I am '%s' and I am the leader of the 'null'", this.host);
 		assertThat(this.leaderController.getInfo()).isEqualTo(message);
 	}
 
@@ -83,8 +81,7 @@ public class LeaderControllerTest {
 		this.leaderController.handleEvent(this.mockOnGrantedEvent);
 		this.leaderController.handleEvent(this.mockOnRevokedEvent);
 
-		String message = String.format("I am '%s' but I am not a leader of the 'null'",
-				this.host);
+		String message = String.format("I am '%s' but I am not a leader of the 'null'", this.host);
 		assertThat(this.leaderController.getInfo()).isEqualTo(message);
 	}
 
@@ -105,8 +102,7 @@ public class LeaderControllerTest {
 	public void shouldNotRevokeLeadershipIfNotLeader() {
 		ResponseEntity<String> responseEntity = this.leaderController.revokeLeadership();
 
-		String message = String.format(
-				"Cannot revoke leadership because '%s' is not a leader", this.host);
+		String message = String.format("Cannot revoke leadership because '%s' is not a leader", this.host);
 		assertThat(responseEntity.getBody()).isEqualTo(message);
 		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 		verify(this.mockContext, times(0)).yield();

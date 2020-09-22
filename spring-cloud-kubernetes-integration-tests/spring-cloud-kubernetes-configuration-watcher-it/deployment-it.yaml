@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: k8s-demo-app
+  name: k8s-demo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-demo-app
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: k8s-demo-app
+    spec:
+      containers:
+      - image: docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher-it:2.0.0-SNAPSHOT
+        name: spring-cloud-kubernetes-configuration-watcher-it
+        resources: {}
+        env:
+          - name: SPRING_RABBITMQ_HOST
+            value: rabbitmq-service
+status: {}
