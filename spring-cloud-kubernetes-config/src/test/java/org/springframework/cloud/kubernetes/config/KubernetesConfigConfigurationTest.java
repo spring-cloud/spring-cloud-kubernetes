@@ -22,6 +22,8 @@ import org.junit.Test;
 
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
+import org.springframework.cloud.kubernetes.config.reload.ConfigReloadAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -95,7 +97,8 @@ public class KubernetesConfigConfigurationTest {
 	private void setup(String... env) {
 		this.context = new SpringApplicationBuilder(
 				PropertyPlaceholderAutoConfiguration.class,
-				KubernetesClientTestConfiguration.class, BootstrapConfiguration.class)
+				KubernetesClientTestConfiguration.class, BootstrapConfiguration.class,
+				ConfigReloadAutoConfiguration.class, RefreshAutoConfiguration.class)
 						.web(org.springframework.boot.WebApplicationType.NONE)
 						.properties(env).run();
 	}
