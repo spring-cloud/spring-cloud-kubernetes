@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.config;
 
+import java.util.Arrays;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.After;
 import org.junit.Test;
@@ -81,6 +83,17 @@ public class KubernetesConfigConfigurationTest {
 		setup("spring.cloud.kubernetes.enabled=true");
 		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isTrue();
+	}
+
+	@Test
+	public void kubernetesReloadEnabled() throws Exception {
+		setup("spring.cloud.kubernetes.enabled=true",
+				"spring.cloud.kubernetes.reload.enabled=true");
+		System.out.println(
+				"bean names == " + Arrays.asList(this.context.getBeanDefinitionNames()));
+		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isTrue();
+		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isTrue();
+		assertThat(this.context.containsBean("propertyChangeWatcher")).isTrue();
 	}
 
 	private void setup(String... env) {

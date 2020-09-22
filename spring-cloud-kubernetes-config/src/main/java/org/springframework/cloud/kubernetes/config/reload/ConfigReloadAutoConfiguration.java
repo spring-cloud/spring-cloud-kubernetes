@@ -24,8 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -72,12 +72,6 @@ public class ConfigReloadAutoConfiguration {
 		@Autowired
 		private KubernetesClient kubernetesClient;
 
-		@Autowired(required = false)
-		private ConfigMapPropertySourceLocator configMapPropertySourceLocator;
-
-		@Autowired(required = false)
-		private SecretsPropertySourceLocator secretsPropertySourceLocator;
-
 		/**
 		 * @param properties config reload properties
 		 * @param strategy configuration update strategy
@@ -85,20 +79,24 @@ public class ConfigReloadAutoConfiguration {
 		 */
 		@Bean
 		@ConditionalOnMissingBean
-		@ConditionalOnExpression("${spring.cloud.kubernetes.config.enabled:true} or ${spring.cloud.kubernetes.secrets.enabled:true}")
+		@ConditionalOnBean({ ConfigMapPropertySourceLocator.class,
+				SecretsPropertySourceLocator.class })
 		public ConfigurationChangeDetector propertyChangeWatcher(
-				ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy) {
+				ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+				@Autowired(
+						required = false) ConfigMapPropertySourceLocator configMapPropertySourceLocator,
+				@Autowired(
+						required = false) SecretsPropertySourceLocator secretsPropertySourceLocator) {
+			System.out.println("init propertyChangeWatcher");
 			switch (properties.getMode()) {
 			case POLLING:
 				return new PollingConfigurationChangeDetector(this.environment,
 						properties, this.kubernetesClient, strategy,
-						this.configMapPropertySourceLocator,
-						this.secretsPropertySourceLocator);
+						configMapPropertySourceLocator, secretsPropertySourceLocator);
 			case EVENT:
 				return new EventBasedConfigurationChangeDetector(this.environment,
 						properties, this.kubernetesClient, strategy,
-						this.configMapPropertySourceLocator,
-						this.secretsPropertySourceLocator);
+						configMapPropertySourceLocator, secretsPropertySourceLocator);
 			}
 			throw new IllegalStateException(
 					"Unsupported configuration reload mode: " + properties.getMode());
