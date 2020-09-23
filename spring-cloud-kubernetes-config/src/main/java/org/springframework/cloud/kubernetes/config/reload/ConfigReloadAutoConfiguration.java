@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -37,6 +38,7 @@ import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocato
 import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -78,16 +80,13 @@ public class ConfigReloadAutoConfiguration {
 		 * @return a bean that listen to configuration changes and fire a reload.
 		 */
 		@Bean
-		@ConditionalOnMissingBean
-		@ConditionalOnBean({ ConfigMapPropertySourceLocator.class,
-				SecretsPropertySourceLocator.class })
+		@Conditional(OnConfigEnabledOrSecretsEnabled.class)
 		public ConfigurationChangeDetector propertyChangeWatcher(
 				ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 				@Autowired(
 						required = false) ConfigMapPropertySourceLocator configMapPropertySourceLocator,
 				@Autowired(
 						required = false) SecretsPropertySourceLocator secretsPropertySourceLocator) {
-			System.out.println("init propertyChangeWatcher");
 			switch (properties.getMode()) {
 			case POLLING:
 				return new PollingConfigurationChangeDetector(this.environment,
@@ -145,6 +144,24 @@ public class ConfigReloadAutoConfiguration {
 			}
 			catch (InterruptedException ignored) {
 			}
+		}
+
+		private static class OnConfigEnabledOrSecretsEnabled extends AnyNestedCondition {
+
+			OnConfigEnabledOrSecretsEnabled() {
+				super(ConfigurationPhase.REGISTER_BEAN);
+			}
+
+			@ConditionalOnBean(ConfigMapPropertySourceLocator.class)
+			static class configEnabled {
+
+			}
+
+			@ConditionalOnBean(SecretsPropertySourceLocator.class)
+			static class secretsEnabled {
+
+			}
+
 		}
 
 	}
