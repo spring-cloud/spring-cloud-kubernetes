@@ -67,7 +67,7 @@ public class PollingConfigurationChangeDetector extends ConfigurationChangeDetec
 	public void executeCycle() {
 
 		boolean changedConfigMap = false;
-		if (this.properties.isMonitoringConfigMaps()) {
+		if (this.properties.isMonitoringConfigMaps() && this.configMapPropertySourceLocator != null) {
 			List<? extends MapPropertySource> currentConfigMapSources = findPropertySources(
 					ConfigMapPropertySource.class);
 
