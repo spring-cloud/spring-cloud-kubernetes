@@ -138,8 +138,6 @@ public class ConfigReloadDefaultAutoConfiguration {
 		/**
 		 * @param properties config reload properties
 		 * @param ctx application context
-		 * @param restarter restart endpoint
-		 * @param refresher context refresher
 		 * @return provides the action to execute when the configuration changes.
 		 */
 		@Bean
