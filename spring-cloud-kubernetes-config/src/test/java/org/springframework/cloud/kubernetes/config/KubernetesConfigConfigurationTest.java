@@ -33,6 +33,7 @@ import static org.mockito.Mockito.mock;
 
 /**
  * @author Ryan Dawson
+ * @author Kris Iyer - Add tests for #643
  */
 public class KubernetesConfigConfigurationTest {
 
@@ -85,7 +86,8 @@ public class KubernetesConfigConfigurationTest {
 		setup("spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.reload.enabled=true");
 		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isTrue();
-		assertThat(this.context.containsBean("propertyChangeWatcher")).isTrue();
+		assertThat(this.context.containsBean("configMapPropertyChangeEventWatcher")).isTrue();
+		assertThat(this.context.containsBean("secretsPropertyChangeEventWatcher")).isTrue();
 	}
 
 	@Test
@@ -94,7 +96,8 @@ public class KubernetesConfigConfigurationTest {
 				"spring.cloud.kubernetes.secrets.enabled=false", "spring.cloud.kubernetes.reload.enabled=true");
 		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isFalse();
-		assertThat(this.context.containsBean("propertyChangeWatcher")).isTrue();
+		assertThat(this.context.containsBean("configMapPropertyChangeEventWatcher")).isTrue();
+		assertThat(this.context.containsBean("secretsPropertyChangeEventWatcher")).isFalse();
 	}
 
 	@Test
@@ -103,7 +106,8 @@ public class KubernetesConfigConfigurationTest {
 				"spring.cloud.kubernetes.secrets.enabled=false", "spring.cloud.kubernetes.reload.enabled=true");
 		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isFalse();
-		assertThat(this.context.containsBean("propertyChangeWatcher")).isFalse();
+		assertThat(this.context.containsBean("configMapPropertyChangeEventWatcher")).isFalse();
+		assertThat(this.context.containsBean("secretsPropertyChangeEventWatcher")).isFalse();
 	}
 
 	private void setup(String... env) {

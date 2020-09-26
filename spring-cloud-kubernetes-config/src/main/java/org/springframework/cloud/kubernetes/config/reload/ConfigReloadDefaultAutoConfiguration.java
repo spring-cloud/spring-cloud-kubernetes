@@ -21,13 +21,17 @@ import java.util.concurrent.ThreadLocalRandom;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.config.reload.condition.EventReloadDetectionMode;
+import org.springframework.cloud.kubernetes.config.reload.condition.PollingReloadDetectionMode;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -35,6 +39,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * @author Ryan Baxter
+ * @author Kris Iyer
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
@@ -63,23 +68,71 @@ public class ConfigReloadDefaultAutoConfiguration {
 		private SecretsPropertySourceLocator secretsPropertySourceLocator;
 
 		/**
+		 * Polling configMap ConfigurationChangeDetector.
 		 * @param properties config reload properties
 		 * @param strategy configuration update strategy
+		 * @param configMapPropertySourceLocator configMap property source locator
 		 * @return a bean that listen to configuration changes and fire a reload.
 		 */
 		@Bean
-		@ConditionalOnMissingBean
-		public ConfigurationChangeDetector propertyChangeWatcher(ConfigReloadProperties properties,
-				ConfigurationUpdateStrategy strategy) {
-			switch (properties.getMode()) {
-			case POLLING:
-				return new PollingConfigurationChangeDetector(this.environment, properties, this.kubernetesClient,
-						strategy, this.configMapPropertySourceLocator, this.secretsPropertySourceLocator);
-			case EVENT:
-				return new EventBasedConfigurationChangeDetector(this.environment, properties, this.kubernetesClient,
-						strategy, this.configMapPropertySourceLocator, this.secretsPropertySourceLocator);
-			}
-			throw new IllegalStateException("Unsupported configuration reload mode: " + properties.getMode());
+		@ConditionalOnBean(ConfigMapPropertySourceLocator.class)
+		@Conditional(PollingReloadDetectionMode.class)
+		public ConfigurationChangeDetector configMapPropertyChangePollingWatcher(ConfigReloadProperties properties,
+				ConfigurationUpdateStrategy strategy, ConfigMapPropertySourceLocator configMapPropertySourceLocator) {
+
+			return new PollingConfigMapChangeDetector(this.environment, properties, this.kubernetesClient, strategy,
+					configMapPropertySourceLocator);
+		}
+
+		/**
+		 * Polling secrets ConfigurationChangeDetector.
+		 * @param properties config reload properties
+		 * @param strategy configuration update strategy
+		 * @param secretsPropertySourceLocator secrets property source locator
+		 * @return a bean that listen to configuration changes and fire a reload.
+		 */
+		@Bean
+		@ConditionalOnBean(SecretsPropertySourceLocator.class)
+		@Conditional(PollingReloadDetectionMode.class)
+		public ConfigurationChangeDetector secretsPropertyChangePollingWatcher(ConfigReloadProperties properties,
+				ConfigurationUpdateStrategy strategy, SecretsPropertySourceLocator secretsPropertySourceLocator) {
+
+			return new PollingSecretsChangeDetector(this.environment, properties, this.kubernetesClient, strategy,
+					secretsPropertySourceLocator);
+		}
+
+		/**
+		 * Event Based configMap ConfigurationChangeDetector.
+		 * @param properties config reload properties
+		 * @param strategy configuration update strategy
+		 * @param configMapPropertySourceLocator configMap property source locator
+		 * @return a bean that listen to configMap change events and fire a reload.
+		 */
+		@Bean
+		@ConditionalOnBean(ConfigMapPropertySourceLocator.class)
+		@Conditional(EventReloadDetectionMode.class)
+		public ConfigurationChangeDetector configMapPropertyChangeEventWatcher(ConfigReloadProperties properties,
+				ConfigurationUpdateStrategy strategy, ConfigMapPropertySourceLocator configMapPropertySourceLocator) {
+
+			return new EventBasedConfigMapChangeDetector(this.environment, properties, this.kubernetesClient, strategy,
+					configMapPropertySourceLocator);
+		}
+
+		/**
+		 * Event Based secrets ConfigurationChangeDetector.
+		 * @param properties config reload properties
+		 * @param strategy configuration update strategy
+		 * @param secretsPropertySourceLocator secrets property source locator
+		 * @return a bean that listen to secrets change events and fire a reload.
+		 */
+		@Bean
+		@ConditionalOnBean(SecretsPropertySourceLocator.class)
+		@Conditional(EventReloadDetectionMode.class)
+		public ConfigurationChangeDetector secretsPropertyChangeEventWatcher(ConfigReloadProperties properties,
+				ConfigurationUpdateStrategy strategy, SecretsPropertySourceLocator secretsPropertySourceLocator) {
+
+			return new EventBasedSecretsChangeDetector(this.environment, properties, this.kubernetesClient, strategy,
+					secretsPropertySourceLocator);
 		}
 
 		/**
