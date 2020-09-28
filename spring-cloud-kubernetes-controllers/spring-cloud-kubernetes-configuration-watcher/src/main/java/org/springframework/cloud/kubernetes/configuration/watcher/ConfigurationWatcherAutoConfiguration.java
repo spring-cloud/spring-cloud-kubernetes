@@ -17,8 +17,6 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.actuate.autoconfigure.amqp.RabbitHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -45,8 +43,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ ConfigurationWatcherConfigurationProperties.class })
 public class ConfigurationWatcherAutoConfiguration {
-
-	protected Log log = LogFactory.getLog(getClass());
 
 	@Bean
 	@ConditionalOnMissingBean
