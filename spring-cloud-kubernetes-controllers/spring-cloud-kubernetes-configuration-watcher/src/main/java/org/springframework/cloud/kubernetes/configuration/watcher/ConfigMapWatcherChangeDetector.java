@@ -24,6 +24,8 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import reactor.core.publisher.Mono;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.config.reload.ConfigurationUpdateStrategy;
@@ -37,6 +39,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  */
 public abstract class ConfigMapWatcherChangeDetector extends EventBasedConfigMapChangeDetector {
 
+	protected Log log = LogFactory.getLog(getClass());
+	
 	private ScheduledExecutorService executorService;
 
 	protected ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;

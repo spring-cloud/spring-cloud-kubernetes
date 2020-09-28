@@ -24,6 +24,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.config.reload.ConfigReloadProperties;
@@ -42,6 +44,8 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public class HttpBasedSecretsWatchChangeDetector extends SecretsWatcherChangeDetector {
 
+	protected Log log = LogFactory.getLog(getClass());
+	
 	/**
 	 * Annotation key for actuator port and path.
 	 */
