@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.KEY_VALUE_TO_PROPERTIES;
@@ -43,6 +44,7 @@ import static org.springframework.cloud.kubernetes.config.PropertySourceUtils.ya
  * @author Ioannis Canellos
  * @author Ali Shahbour
  * @author Michael Moudatsos
+ * @author Roy Jacobs
  */
 public class ConfigMapPropertySource extends MapPropertySource {
 
@@ -71,7 +73,11 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace, Environment environment) {
-		super(getName(client, name, namespace), asObjectMap(getData(client, name, namespace, environment)));
+		this(client, name, namespace, environment, null);
+	}
+
+	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace, Environment environment, ConfigMapRetryTemplateFactory configMapRetryTemplateFactory) {
+		super(getName(client, name, namespace), asObjectMap(getData(client, name, namespace, environment, configMapRetryTemplateFactory)));
 	}
 
 	private static String getName(KubernetesClient client, String name, String namespace) {
@@ -81,40 +87,57 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	private static Map<String, Object> getData(KubernetesClient client, String name, String namespace,
-			Environment environment) {
+											   Environment environment, ConfigMapRetryTemplateFactory configMapRetryTemplateFactory) {
 		try {
-			Map<String, Object> result = new LinkedHashMap<>();
-			ConfigMap map = StringUtils.isEmpty(namespace) ? client.configMaps().withName(name).get()
-					: client.configMaps().inNamespace(namespace).withName(name).get();
-
-			if (map != null) {
-				result.putAll(processAllEntries(map.getData(), environment));
-			}
-
-			if (environment != null) {
-				for (String activeProfile : environment.getActiveProfiles()) {
-
-					String mapNameWithProfile = name + "-" + activeProfile;
-
-					ConfigMap mapWithProfile = StringUtils.isEmpty(namespace)
-							? client.configMaps().withName(mapNameWithProfile).get()
-							: client.configMaps().inNamespace(namespace).withName(mapNameWithProfile).get();
-
-					if (mapWithProfile != null) {
-						result.putAll(processAllEntries(mapWithProfile.getData(), environment));
+			if (configMapRetryTemplateFactory == null) {
+				return tryGetData(client, name, namespace, environment);
+			} else {
+				final RetryTemplate retryTemplate = configMapRetryTemplateFactory.getRetryTemplate();
+				return retryTemplate.execute(ctx -> {
+					try {
+						return tryGetData(client, name, namespace, environment);
 					}
-
-				}
+					catch (Exception e) {
+						LOG.warn("Can't read configMap with name: [" + name + "] in namespace:[" + namespace + "]. Retrying.", e);
+						throw e;
+					}
+				});
 			}
-
-			return result;
-
 		}
 		catch (Exception e) {
 			LOG.warn("Can't read configMap with name: [" + name + "] in namespace:[" + namespace + "]. Ignoring.", e);
 		}
 
 		return new LinkedHashMap<>();
+	}
+
+	private static Map<String, Object> tryGetData(KubernetesClient client, String name, String namespace,
+											   Environment environment) {
+		Map<String, Object> result = new LinkedHashMap<>();
+		ConfigMap map = StringUtils.isEmpty(namespace) ? client.configMaps().withName(name).get()
+				: client.configMaps().inNamespace(namespace).withName(name).get();
+
+		if (map != null) {
+			result.putAll(processAllEntries(map.getData(), environment));
+		}
+
+		if (environment != null) {
+			for (String activeProfile : environment.getActiveProfiles()) {
+
+				String mapNameWithProfile = name + "-" + activeProfile;
+
+				ConfigMap mapWithProfile = StringUtils.isEmpty(namespace)
+						? client.configMaps().withName(mapNameWithProfile).get()
+						: client.configMaps().inNamespace(namespace).withName(mapNameWithProfile).get();
+
+				if (mapWithProfile != null) {
+					result.putAll(processAllEntries(mapWithProfile.getData(), environment));
+				}
+
+			}
+		}
+
+		return result;
 	}
 
 	private static Map<String, Object> processAllEntries(Map<String, String> input, Environment environment) {

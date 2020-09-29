@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.config;
 
 import java.util.Collections;
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,7 @@ import org.springframework.util.StringUtils;
  * Config map configuration properties.
  *
  * @author Ioannis Canellos
+ * @author Roy Jacobs
  */
 @ConfigurationProperties("spring.cloud.kubernetes.config")
 public class ConfigMapConfigProperties extends AbstractConfigProperties {
@@ -38,6 +40,8 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	private List<String> paths = Collections.emptyList();
 
 	private List<Source> sources = Collections.emptyList();
+
+	private Retry retry = new Retry();
 
 	public boolean isEnableApi() {
 		return this.enableApi;
@@ -61,6 +65,14 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 	public void setSources(List<Source> sources) {
 		this.sources = sources;
+	}
+
+	public Retry getRetry() {
+		return retry;
+	}
+
+	public void setRetry(Retry retry) {
+		this.retry = retry;
 	}
 
 	/**
@@ -136,6 +148,38 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			return new NormalizedSource(normalizedName, normalizedNamespace);
 		}
 
+	}
+
+	public static class Retry {
+
+		/**
+		 * The amount of times to try contacting Kubernetes to load config maps.
+		 */
+		private int maxAttempts = 3;
+
+		/**
+		 * The delay in between attempts to load config maps.
+		 */
+		private Duration backoff = Duration.ofSeconds(1);
+
+		public Retry() {
+		}
+
+		public int getMaxAttempts() {
+			return maxAttempts;
+		}
+
+		public void setMaxAttempts(int maxAttempts) {
+			this.maxAttempts = maxAttempts;
+		}
+
+		public Duration getBackoff() {
+			return backoff;
+		}
+
+		public void setBackoff(Duration backoff) {
+			this.backoff = backoff;
+		}
 	}
 
 	static class NormalizedSource {
