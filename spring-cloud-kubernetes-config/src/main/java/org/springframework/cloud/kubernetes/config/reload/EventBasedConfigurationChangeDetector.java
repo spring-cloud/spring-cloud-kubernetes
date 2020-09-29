@@ -79,10 +79,18 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 
 					@Override
 					public void onClose(KubernetesClientException e) {
+						log.info("Exit to force restart");
+						// we will exit the application if there was a watching exception,
+						// because of the bug in fabric8 client
+						// see https://github.com/fabric8io/kubernetes-client/issues/1318
+						// Note that this should not happen normally, since fabric8 client
+						// handles reconnect.
+						// In case it tries to reconnect this method is not called.
+						System.exit(1);
 					}
 				}));
 				activated = true;
-				this.log.info("Added new Kubernetes watch: " + name);
+				this.log.info("Internal: Added new Kubernetes watch: " + name);
 			}
 			catch (Exception e) {
 				this.log.error(
@@ -106,10 +114,18 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 
 					@Override
 					public void onClose(KubernetesClientException e) {
+						log.info("Exit to force restart");
+						// we will exit the application if there was a watching exception,
+						// because of the bug in fabric8 client
+						// see https://github.com/fabric8io/kubernetes-client/issues/1318
+						// Note that this should not happen normally, since fabric8 client
+						// handles reconnect.
+						// In case it tries to reconnect this method is not called.
+						System.exit(1);
 					}
 				}));
 				activated = true;
-				this.log.info("Added new Kubernetes watch: " + name);
+				this.log.info("Internal: Added new Kubernetes watch: " + name);
 			}
 			catch (Exception e) {
 				this.log.error("Error while establishing a connection to watch secrets: configuration may remain stale",
