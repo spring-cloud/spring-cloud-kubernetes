@@ -39,8 +39,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * @author Charles Moulliard
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = ExampleApp.class,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = ExampleApp.class,
 		properties = { "spring.cloud.bootstrap.name=multiplecms" })
 @AutoConfigureWebTestClient
 public class MultipleConfigMapsTests {
@@ -58,12 +57,10 @@ public class MultipleConfigMapsTests {
 		mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
-				mockClient.getConfiguration().getMasterUrl());
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
-				"false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
@@ -86,14 +83,12 @@ public class MultipleConfigMapsTests {
 		createConfigmap(server, "othername", "othernamespace", three);
 	}
 
-	private static void createConfigmap(KubernetesServer server, String configMapName,
-			String namespace, Map<String, String> data) {
+	private static void createConfigmap(KubernetesServer server, String configMapName, String namespace,
+			Map<String, String> data) {
 
-		server.expect()
-				.withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace,
-						configMapName))
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
-						.withName(configMapName).endMetadata().addToData(data).build())
+		server.expect().withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, configMapName))
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
+						.addToData(data).build())
 				.always();
 	}
 
@@ -120,8 +115,8 @@ public class MultipleConfigMapsTests {
 	}
 
 	private void assertResponse(String path, String expectedMessage) {
-		this.webClient.get().uri(path).exchange().expectStatus().isOk().expectBody()
-				.jsonPath("message").isEqualTo(expectedMessage);
+		this.webClient.get().uri(path).exchange().expectStatus().isOk().expectBody().jsonPath("message")
+				.isEqualTo(expectedMessage);
 	}
 
 }

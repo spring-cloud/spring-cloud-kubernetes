@@ -34,16 +34,15 @@ public class GreetingIT {
 
 	private static final String HOST = System.getProperty("service.host");
 
-	private static final Integer PORT = Integer
-			.valueOf(System.getProperty("service.port"));
+	private static final Integer PORT = Integer.valueOf(System.getProperty("service.port"));
 
-	private static final String PROTOCOL = "true"
-			.equalsIgnoreCase(System.getProperty("service.secure")) ? "https" : "http";
+	private static final String PROTOCOL = "true".equalsIgnoreCase(System.getProperty("service.secure")) ? "https"
+			: "http";
 
 	@Test
 	public void firstTestThatTheDefaultMessageIsReturned() {
-		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).get("greeting")
-				.then().statusCode(200).body("message", is("This is a dummy message"));
+		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).get("greeting").then().statusCode(200)
+				.body("message", is("This is a dummy message"));
 	}
 
 	@Test
@@ -51,8 +50,7 @@ public class GreetingIT {
 	public void thenApplyAConfigMapAndEnsureThatTheMessageIsUpdated() {
 		waitForApplicationToReload();
 
-		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).get("greeting")
-				.then().statusCode(200)
+		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).get("greeting").then().statusCode(200)
 				.body("message", is("Hello from Spring Cloud Kubernetes!"));
 	}
 

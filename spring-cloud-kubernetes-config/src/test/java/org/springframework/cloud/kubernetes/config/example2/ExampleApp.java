@@ -27,8 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ExampleApp {
 
 	public static void main(String[] args) {
-		SpringApplication
-				.run(org.springframework.cloud.kubernetes.config.example.App.class, args);
+		SpringApplication.run(org.springframework.cloud.kubernetes.config.example.App.class, args);
 	}
 
 	@RestController

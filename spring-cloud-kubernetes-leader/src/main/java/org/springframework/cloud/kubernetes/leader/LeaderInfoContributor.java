@@ -30,8 +30,7 @@ public class LeaderInfoContributor implements InfoContributor {
 
 	private final Candidate candidate;
 
-	public LeaderInfoContributor(LeadershipController leadershipController,
-			Candidate candidate) {
+	public LeaderInfoContributor(LeadershipController leadershipController, Candidate candidate) {
 		this.leadershipController = leadershipController;
 		this.candidate = candidate;
 	}

@@ -26,8 +26,8 @@ import org.springframework.context.annotation.Configuration;
  * @author Ryan Baxter
  */
 @Configuration(proxyBeanMethods = false)
-@SpringBootApplication(exclude = { ContextFunctionCatalogAutoConfiguration.class,
-		RabbitHealthContributorAutoConfiguration.class })
+@SpringBootApplication(
+		exclude = { ContextFunctionCatalogAutoConfiguration.class, RabbitHealthContributorAutoConfiguration.class })
 public class ConfigurationWatcherApplication {
 
 	public static void main(String[] args) {

@@ -39,12 +39,11 @@ public class KubernetesDiscoveryClientAutoConfigurationTests {
 
 	@Test
 	public void kubernetesDiscoveryClientCreated() {
-		assertThat(this.discoveryClient).isNotNull()
-				.isInstanceOf(CompositeDiscoveryClient.class);
+		assertThat(this.discoveryClient).isNotNull().isInstanceOf(CompositeDiscoveryClient.class);
 
 		CompositeDiscoveryClient composite = (CompositeDiscoveryClient) this.discoveryClient;
-		assertThat(composite.getDiscoveryClients().stream()
-				.anyMatch(dc -> dc instanceof KubernetesDiscoveryClient)).isTrue();
+		assertThat(composite.getDiscoveryClients().stream().anyMatch(dc -> dc instanceof KubernetesDiscoveryClient))
+				.isTrue();
 	}
 
 	@SpringBootConfiguration

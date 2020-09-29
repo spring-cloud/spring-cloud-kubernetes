@@ -60,22 +60,15 @@ public class EventBasedConfigurationChangeDetectorTests {
 		when(mixedOperation.withName(eq("myconfigmap"))).thenReturn(resource);
 		when(k8sClient.configMaps()).thenReturn(mixedOperation);
 
-		ConfigMapPropertySource configMapPropertySource = new ConfigMapPropertySource(
-				k8sClient, "myconfigmap");
-		env.getPropertySources()
-				.addFirst(new BootstrapPropertySource(configMapPropertySource));
+		ConfigMapPropertySource configMapPropertySource = new ConfigMapPropertySource(k8sClient, "myconfigmap");
+		env.getPropertySources().addFirst(new BootstrapPropertySource(configMapPropertySource));
 
-		ConfigurationUpdateStrategy configurationUpdateStrategy = mock(
-				ConfigurationUpdateStrategy.class);
-		ConfigMapPropertySourceLocator configMapLocator = mock(
-				ConfigMapPropertySourceLocator.class);
-		SecretsPropertySourceLocator secretsLocator = mock(
-				SecretsPropertySourceLocator.class);
-		EventBasedConfigurationChangeDetector detector = new EventBasedConfigurationChangeDetector(
-				env, configReloadProperties, k8sClient, configurationUpdateStrategy,
-				configMapLocator, secretsLocator);
-		List<ConfigMapPropertySource> sources = detector
-				.findPropertySources(ConfigMapPropertySource.class);
+		ConfigurationUpdateStrategy configurationUpdateStrategy = mock(ConfigurationUpdateStrategy.class);
+		ConfigMapPropertySourceLocator configMapLocator = mock(ConfigMapPropertySourceLocator.class);
+		SecretsPropertySourceLocator secretsLocator = mock(SecretsPropertySourceLocator.class);
+		EventBasedConfigurationChangeDetector detector = new EventBasedConfigurationChangeDetector(env,
+				configReloadProperties, k8sClient, configurationUpdateStrategy, configMapLocator, secretsLocator);
+		List<ConfigMapPropertySource> sources = detector.findPropertySources(ConfigMapPropertySource.class);
 		assertThat(sources.size()).isEqualTo(1);
 		assertThat(sources.get(0).getProperty("foo")).isEqualTo("bar");
 	}

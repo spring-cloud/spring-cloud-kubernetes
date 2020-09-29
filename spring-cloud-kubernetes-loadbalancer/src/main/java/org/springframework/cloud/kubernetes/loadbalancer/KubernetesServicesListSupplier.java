@@ -46,9 +46,8 @@ public class KubernetesServicesListSupplier implements ServiceInstanceListSuppli
 
 	private final KubernetesServiceInstanceMapper mapper;
 
-	KubernetesServicesListSupplier(Environment environment,
-			KubernetesClient kubernetesClient, KubernetesServiceInstanceMapper mapper,
-			KubernetesDiscoveryProperties discoveryProperties) {
+	KubernetesServicesListSupplier(Environment environment, KubernetesClient kubernetesClient,
+			KubernetesServiceInstanceMapper mapper, KubernetesDiscoveryProperties discoveryProperties) {
 		this.environment = environment;
 		this.kubernetesClient = kubernetesClient;
 		this.discoveryProperties = discoveryProperties;
@@ -70,11 +69,9 @@ public class KubernetesServicesListSupplier implements ServiceInstanceListSuppli
 		}
 		else {
 			Service service = StringUtils.isNotBlank(this.kubernetesClient.getNamespace())
-					? this.kubernetesClient.services()
-							.inNamespace(this.kubernetesClient.getNamespace())
+					? this.kubernetesClient.services().inNamespace(this.kubernetesClient.getNamespace())
 							.withName(this.getServiceId()).get()
-					: this.kubernetesClient.services().withName(this.getServiceId())
-							.get();
+					: this.kubernetesClient.services().withName(this.getServiceId()).get();
 			if (service != null) {
 				result.add(mapper.map(service));
 			}

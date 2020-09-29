@@ -47,7 +47,6 @@ public final class ConfigUtils {
 					+ " name has not been set, taking it from property/env "
 					+ SPRING_APPLICATION_NAME + " (default=" + FALLBACK_APPLICATION_NAME
 					+ ")");
-
 			configName = env.getProperty(SPRING_APPLICATION_NAME,
 					FALLBACK_APPLICATION_NAME);
 		}
@@ -61,7 +60,6 @@ public final class ConfigUtils {
 			LOG.debug(configurationTarget
 					+ " namespace has not been set, taking it from client (ns="
 					+ client.getNamespace() + ")");
-
 			configNamespace = client.getNamespace();
 		}
 
