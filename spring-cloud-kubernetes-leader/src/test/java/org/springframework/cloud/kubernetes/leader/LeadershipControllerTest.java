@@ -50,9 +50,8 @@ public class LeadershipControllerTest {
 
 	@BeforeEach
 	public void before() {
-		this.leadershipController = new LeadershipController(this.mockCandidate,
-				this.mockLeaderProperties, this.mockLeaderEventPublisher,
-				this.mockKubernetesClient);
+		this.leadershipController = new LeadershipController(this.mockCandidate, this.mockLeaderProperties,
+				this.mockLeaderEventPublisher, this.mockKubernetesClient);
 	}
 
 	@Test

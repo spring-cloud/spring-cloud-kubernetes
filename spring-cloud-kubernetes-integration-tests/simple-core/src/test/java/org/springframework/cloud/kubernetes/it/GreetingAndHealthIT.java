@@ -30,23 +30,21 @@ public class GreetingAndHealthIT {
 
 	private static final String HOST = System.getProperty("service.host");
 
-	private static final Integer PORT = Integer
-			.valueOf(System.getProperty("service.port"));
+	private static final Integer PORT = Integer.valueOf(System.getProperty("service.port"));
 
-	private static final String PROTOCOL = "true"
-			.equalsIgnoreCase(System.getProperty("service.secure")) ? "https" : "http";
+	private static final String PROTOCOL = "true".equalsIgnoreCase(System.getProperty("service.secure")) ? "https"
+			: "http";
 
 	@Test
 	public void testGreetingEndpoint() {
-		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).get("greeting")
-				.then().statusCode(200).body("message", is("Hello from k8s"));
+		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).get("greeting").then().statusCode(200)
+				.body("message", is("Hello from k8s"));
 	}
 
 	@Test
 	public void testHealthEndpoint() {
-		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT))
-				.contentType("application/json").get("actuator/health").then()
-				.statusCode(200).body("components.kubernetes.details.inside", is(true));
+		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).contentType("application/json")
+				.get("actuator/health").then().statusCode(200).body("components.kubernetes.details.inside", is(true));
 	}
 
 }

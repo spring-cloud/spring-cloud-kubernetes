@@ -39,8 +39,7 @@ import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = App.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
 @TestPropertySource("classpath:/application-secrets.properties")
 public class SecretsPropertySourceTest {
 
@@ -62,20 +61,15 @@ public class SecretsPropertySourceTest {
 		KubernetesClient mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
-				mockClient.getConfiguration().getMasterUrl());
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
-				"false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, NAMESPACE);
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		Secret secret = new SecretBuilder().withNewMetadata()
-				.withLabels(singletonMap("foo", "bar")).endMetadata()
-				.addToData("secretName",
-						Base64.getEncoder().encodeToString(SECRET_VALUE.getBytes()))
-				.build();
+		Secret secret = new SecretBuilder().withNewMetadata().withLabels(singletonMap("foo", "bar")).endMetadata()
+				.addToData("secretName", Base64.getEncoder().encodeToString(SECRET_VALUE.getBytes())).build();
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 	}
 

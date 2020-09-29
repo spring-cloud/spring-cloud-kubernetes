@@ -63,8 +63,8 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	 * @param metadata a map containing metadata.
 	 * @param secure indicates whether or not the connection needs to be secure.
 	 */
-	public KubernetesServiceInstance(String instanceId, String serviceId, String host,
-			int port, Map<String, String> metadata, Boolean secure) {
+	public KubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
+			Map<String, String> metadata, Boolean secure) {
 		this.instanceId = instanceId;
 		this.serviceId = serviceId;
 		this.host = host;
@@ -115,8 +115,7 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	private URI createUri(String scheme, String host, int port) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(scheme).append(COLON).append(DSL).append(host).append(COLON)
-				.append(port);
+		sb.append(scheme).append(COLON).append(DSL).append(host).append(COLON).append(port);
 		return URI.create(sb.toString());
 	}
 

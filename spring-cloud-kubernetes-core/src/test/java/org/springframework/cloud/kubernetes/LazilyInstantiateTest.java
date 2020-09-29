@@ -53,8 +53,7 @@ public class LazilyInstantiateTest {
 
 	@Test
 	public void factoryReturnsSingletonFromSupplier() {
-		LazilyInstantiate<String> lazyStringFactory = LazilyInstantiate
-				.using(this.mockSupplier);
+		LazilyInstantiate<String> lazyStringFactory = LazilyInstantiate.using(this.mockSupplier);
 		String singletonString = lazyStringFactory.get();
 
 		// verify
@@ -63,8 +62,7 @@ public class LazilyInstantiateTest {
 
 	@Test
 	public void factoryOnlyCallsSupplierOnce() {
-		LazilyInstantiate<String> lazyStringFactory = LazilyInstantiate
-				.using(this.mockSupplier);
+		LazilyInstantiate<String> lazyStringFactory = LazilyInstantiate.using(this.mockSupplier);
 		lazyStringFactory.get();
 
 		// mock will throw exception if it is called more than once

@@ -33,8 +33,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = App.class,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "spring.cloud.kubernetes.client.password=mypassword",
 				"spring.cloud.kubernetes.client.proxy-password=myproxypassword" })
 public class KubernetesAutoConfigurationTests {
@@ -50,12 +49,10 @@ public class KubernetesAutoConfigurationTests {
 		KubernetesClient mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
-				mockClient.getConfiguration().getMasterUrl());
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
-				"false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 	}
@@ -65,10 +62,8 @@ public class KubernetesAutoConfigurationTests {
 		assertThat(context.getBeanNamesForType(Config.class)).hasSize(1);
 		assertThat(context.getBeanNamesForType(KubernetesClient.class)).hasSize(1);
 		assertThat(context.getBeanNamesForType(StandardPodUtils.class)).hasSize(1);
-		assertThat(context.getBeanNamesForType(KubernetesHealthIndicator.class))
-				.hasSize(1);
-		assertThat(context.getBeanNamesForType(KubernetesInfoContributor.class))
-				.hasSize(1);
+		assertThat(context.getBeanNamesForType(KubernetesHealthIndicator.class)).hasSize(1);
+		assertThat(context.getBeanNamesForType(KubernetesInfoContributor.class)).hasSize(1);
 
 		Config config = context.getBean(Config.class);
 		assertThat(config.getPassword()).isEqualTo("mypassword");

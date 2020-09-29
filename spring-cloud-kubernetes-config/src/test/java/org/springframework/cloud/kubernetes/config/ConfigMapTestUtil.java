@@ -31,8 +31,7 @@ final class ConfigMapTestUtil {
 	static String readResourceFile(String file) {
 		String resource;
 		try {
-			resource = IOHelpers.readFully(
-					ConfigMapTestUtil.class.getClassLoader().getResourceAsStream(file));
+			resource = IOHelpers.readFully(ConfigMapTestUtil.class.getClassLoader().getResourceAsStream(file));
 		}
 		catch (IOException e) {
 			resource = "";

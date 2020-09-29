@@ -35,8 +35,7 @@ import org.apache.commons.logging.LogFactory;
  */
 class DefaultIsServicePortSecureResolver {
 
-	private static final Log log = LogFactory
-			.getLog(DefaultIsServicePortSecureResolver.class);
+	private static final Log log = LogFactory.getLog(DefaultIsServicePortSecureResolver.class);
 
 	private static final Set<String> TRUTHY_STRINGS = new HashSet<String>() {
 		{
@@ -54,33 +53,27 @@ class DefaultIsServicePortSecureResolver {
 	}
 
 	boolean resolve(Input input) {
-		final String securedLabelValue = input.getServiceLabels().getOrDefault("secured",
-				"false");
+		final String securedLabelValue = input.getServiceLabels().getOrDefault("secured", "false");
 		if (TRUTHY_STRINGS.contains(securedLabelValue)) {
 			if (log.isDebugEnabled()) {
-				log.debug("Considering service with name: " + input.getServiceName()
-						+ " and port " + input.getPort()
+				log.debug("Considering service with name: " + input.getServiceName() + " and port " + input.getPort()
 						+ " is secure since the service contains a true value for the 'secured' label");
 			}
 			return true;
 		}
 
-		final String securedAnnotationValue = input.getServiceAnnotations()
-				.getOrDefault("secured", "false");
+		final String securedAnnotationValue = input.getServiceAnnotations().getOrDefault("secured", "false");
 		if (TRUTHY_STRINGS.contains(securedAnnotationValue)) {
 			if (log.isDebugEnabled()) {
-				log.debug("Considering service with name: " + input.getServiceName()
-						+ " and port " + input.getPort()
+				log.debug("Considering service with name: " + input.getServiceName() + " and port " + input.getPort()
 						+ " is secure since the service contains a true value for the 'secured' annotation");
 			}
 			return true;
 		}
 
-		if (input.getPort() != null
-				&& this.properties.getKnownSecurePorts().contains(input.getPort())) {
+		if (input.getPort() != null && this.properties.getKnownSecurePorts().contains(input.getPort())) {
 			if (log.isDebugEnabled()) {
-				log.debug("Considering service with name: " + input.getServiceName()
-						+ " and port " + input.getPort()
+				log.debug("Considering service with name: " + input.getServiceName() + " and port " + input.getPort()
 						+ " is secure due to the port being a known https port");
 			}
 			return true;
@@ -109,8 +102,7 @@ class DefaultIsServicePortSecureResolver {
 			this.port = port;
 			this.serviceName = serviceName;
 			this.serviceLabels = serviceLabels == null ? new HashMap<>() : serviceLabels;
-			this.serviceAnnotations = serviceAnnotations == null ? new HashMap<>()
-					: serviceAnnotations;
+			this.serviceAnnotations = serviceAnnotations == null ? new HashMap<>() : serviceAnnotations;
 		}
 
 		public String getServiceName() {
