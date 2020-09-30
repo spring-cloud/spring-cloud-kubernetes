@@ -39,26 +39,21 @@ public final class ConfigUtils {
 		throw new IllegalStateException("Can't instantiate a utility class");
 	}
 
-	public static String getApplicationName(Environment env, String configName,
-			String configurationTarget) {
+	public static String getApplicationName(Environment env, String configName, String configurationTarget) {
 		if (StringUtils.isEmpty(configName)) {
 			// TODO: use relaxed binding
-			LOG.debug(configurationTarget
-					+ " name has not been set, taking it from property/env "
-					+ SPRING_APPLICATION_NAME + " (default=" + FALLBACK_APPLICATION_NAME
-					+ ")");
-			configName = env.getProperty(SPRING_APPLICATION_NAME,
-					FALLBACK_APPLICATION_NAME);
+			LOG.debug(configurationTarget + " name has not been set, taking it from property/env "
+					+ SPRING_APPLICATION_NAME + " (default=" + FALLBACK_APPLICATION_NAME + ")");
+			configName = env.getProperty(SPRING_APPLICATION_NAME, FALLBACK_APPLICATION_NAME);
 		}
 
 		return configName;
 	}
 
-	public static String getApplicationNamespace(KubernetesClient client,
-			String configNamespace, String configurationTarget) {
+	public static String getApplicationNamespace(KubernetesClient client, String configNamespace,
+			String configurationTarget) {
 		if (StringUtils.isEmpty(configNamespace)) {
-			LOG.debug(configurationTarget
-					+ " namespace has not been set, taking it from client (ns="
+			LOG.debug(configurationTarget + " namespace has not been set, taking it from client (ns="
 					+ client.getNamespace() + ")");
 			configNamespace = client.getNamespace();
 		}

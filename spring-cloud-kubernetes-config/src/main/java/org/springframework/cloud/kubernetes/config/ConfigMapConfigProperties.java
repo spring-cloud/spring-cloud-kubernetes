@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.kubernetes.config;
 
-import java.util.Collections;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -85,9 +85,8 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	 */
 	public List<NormalizedSource> determineSources() {
 		if (this.sources.isEmpty()) {
-			return Collections.singletonList(
-					new NormalizedSource(ConfigMapConfigProperties.this.name,
-							ConfigMapConfigProperties.this.namespace));
+			return Collections.singletonList(new NormalizedSource(ConfigMapConfigProperties.this.name,
+					ConfigMapConfigProperties.this.namespace));
 		}
 
 		return this.sources.stream().map(s -> s.normalize(this.name, this.namespace)).collect(Collectors.toList());

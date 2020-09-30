@@ -93,13 +93,11 @@ public abstract class ConfigurationChangeDetector {
 		return !Objects.equals(leftMap, rightMap);
 	}
 
-	protected boolean changed(List<? extends MapPropertySource> left,
-			List<? extends MapPropertySource> right) {
+	protected boolean changed(List<? extends MapPropertySource> left, List<? extends MapPropertySource> right) {
 
 		if (left.size() != right.size()) {
-			this.log.warn(
-					"The current number of ConfigMap PropertySources does not match "
-							+ "the ones loaded from the Kubernetes - No reload will take place");
+			this.log.warn("The current number of ConfigMap PropertySources does not match "
+					+ "the ones loaded from the Kubernetes - No reload will take place");
 			return false;
 		}
 
@@ -148,8 +146,7 @@ public abstract class ConfigurationChangeDetector {
 				managedSources.add(sourceClass.cast(source));
 			}
 			else if (source instanceof BootstrapPropertySource) {
-				PropertySource<?> propertySource = ((BootstrapPropertySource<?>) source)
-						.getDelegate();
+				PropertySource<?> propertySource = ((BootstrapPropertySource<?>) source).getDelegate();
 				if (sourceClass.isInstance(propertySource)) {
 					sources.add(propertySource);
 				}
@@ -184,10 +181,8 @@ public abstract class ConfigurationChangeDetector {
 			result.add((MapPropertySource) propertySource);
 		}
 		else if (propertySource instanceof CompositePropertySource) {
-			result.addAll(((CompositePropertySource) propertySource).getPropertySources()
-					.stream()
-					.filter(p -> p instanceof MapPropertySource)
-					.map(p -> (MapPropertySource) p)
+			result.addAll(((CompositePropertySource) propertySource).getPropertySources().stream()
+					.filter(p -> p instanceof MapPropertySource).map(p -> (MapPropertySource) p)
 					.collect(Collectors.toList()));
 		}
 		else {
