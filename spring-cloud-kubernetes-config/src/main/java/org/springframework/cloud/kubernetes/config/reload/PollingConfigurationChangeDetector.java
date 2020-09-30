@@ -43,9 +43,9 @@ public class PollingConfigurationChangeDetector extends ConfigurationChangeDetec
 
 	protected Log log = LogFactory.getLog(getClass());
 
-	private ConfigMapPropertySourceLocator configMapPropertySourceLocator;
+	private final ConfigMapPropertySourceLocator configMapPropertySourceLocator;
 
-	private SecretsPropertySourceLocator secretsPropertySourceLocator;
+	private final SecretsPropertySourceLocator secretsPropertySourceLocator;
 
 	public PollingConfigurationChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
