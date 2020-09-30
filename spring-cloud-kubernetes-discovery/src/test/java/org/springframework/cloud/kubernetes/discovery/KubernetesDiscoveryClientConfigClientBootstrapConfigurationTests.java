@@ -29,7 +29,7 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.config.client.ConfigClientProperties;
 import org.springframework.cloud.config.client.DiscoveryClientConfigServiceBootstrapConfiguration;
-import org.springframework.cloud.kubernetes.KubernetesAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -73,12 +73,13 @@ public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 		AnnotationConfigApplicationContext parent = new AnnotationConfigApplicationContext();
 		TestPropertyValues.of(env).applyTo(parent);
 		parent.register(UtilAutoConfiguration.class, PropertyPlaceholderAutoConfiguration.class,
-				EnvironmentKnobbler.class, KubernetesDiscoveryClientConfigClientBootstrapConfiguration.class,
+				EnvironmentKnobbler.class, KubernetesCommonsAutoConfiguration.class,
+				KubernetesDiscoveryClientConfigClientBootstrapConfiguration.class,
 				DiscoveryClientConfigServiceBootstrapConfiguration.class, ConfigClientProperties.class);
 		parent.refresh();
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.setParent(parent);
-		this.context.register(PropertyPlaceholderAutoConfiguration.class, KubernetesAutoConfiguration.class,
+		this.context.register(PropertyPlaceholderAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
 				KubernetesDiscoveryClientAutoConfiguration.class);
 		this.context.refresh();
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.discovery;
+package org.springframework.cloud.kubernetes.commons;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,31 +22,36 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClient;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @author Ryan Baxter
+ */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-public class KubernetesDiscoveryClientAutoConfigurationTests {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+		classes = KubernetesCommonsAutoConfigurationTests.App.class,
+		properties = { "spring.cloud.kubernetes.client.password=mypassword",
+				"spring.cloud.kubernetes.client.proxy-password=myproxypassword" })
+public class KubernetesCommonsAutoConfigurationTests {
 
-	@Autowired(required = false)
-	private DiscoveryClient discoveryClient;
+	@Autowired
+	ConfigurableApplicationContext context;
 
 	@Test
-	public void kubernetesDiscoveryClientCreated() {
-		assertThat(this.discoveryClient).isNotNull().isInstanceOf(CompositeDiscoveryClient.class);
+	public void beansAreCreated() {
+		assertThat(context.getBeansOfType(KubernetesClientProperties.class)).hasSize(1);
 
-		CompositeDiscoveryClient composite = (CompositeDiscoveryClient) this.discoveryClient;
-		assertThat(composite.getDiscoveryClients().stream().anyMatch(dc -> dc instanceof KubernetesDiscoveryClient))
-				.isTrue();
+		KubernetesClientProperties properties = context.getBeansOfType(KubernetesClientProperties.class).values()
+				.stream().findFirst().get();
+		assertThat(properties.getPassword()).isEqualTo("mypassword");
+		assertThat(properties.getProxyPassword()).isEqualTo("myproxypassword");
 	}
 
 	@SpringBootApplication
-	protected static class TestConfig {
+	static class App {
 
 	}
 

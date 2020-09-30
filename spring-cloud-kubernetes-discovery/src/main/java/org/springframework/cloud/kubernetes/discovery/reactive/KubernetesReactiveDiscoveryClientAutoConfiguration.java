@@ -30,7 +30,7 @@ import org.springframework.cloud.client.discovery.composite.reactive.ReactiveCom
 import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIndicatorProperties;
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.ConditionalOnKubernetesEnabled;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.discovery.KubernetesClientServicesFunction;
 import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryClientAutoConfiguration;

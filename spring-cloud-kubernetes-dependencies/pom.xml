@@ -89,6 +89,12 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-kubernetes-commons</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-kubernetes-loadbalancer</artifactId>
 				<version>${project.version}</version>
 			</dependency>

@@ -27,9 +27,12 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
+import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -42,7 +45,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesEnabled
-@EnableConfigurationProperties(KubernetesClientProperties.class)
+@AutoConfigureAfter(KubernetesCommonsAutoConfiguration.class)
 public class KubernetesAutoConfiguration {
 
 	private static final Log LOG = LogFactory.getLog(KubernetesAutoConfiguration.class);
