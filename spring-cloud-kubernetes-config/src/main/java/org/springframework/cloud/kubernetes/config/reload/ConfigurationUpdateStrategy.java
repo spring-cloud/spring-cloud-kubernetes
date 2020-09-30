@@ -26,15 +26,13 @@ import java.util.Objects;
  */
 public class ConfigurationUpdateStrategy {
 
-	private String name;
+	private final String name;
 
-	private Runnable reloadProcedure;
+	private final Runnable reloadProcedure;
 
 	public ConfigurationUpdateStrategy(String name, Runnable reloadProcedure) {
-		Objects.requireNonNull(name, "name cannot be null");
-		Objects.requireNonNull(reloadProcedure, "reloadProcedure cannot be null");
-		this.name = name;
-		this.reloadProcedure = reloadProcedure;
+		this.name = Objects.requireNonNull(name, "name cannot be null");
+		this.reloadProcedure = Objects.requireNonNull(reloadProcedure, "reloadProcedure cannot be null");
 	}
 
 	public String getName() {
@@ -47,10 +45,7 @@ public class ConfigurationUpdateStrategy {
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("ConfigurationUpdateStrategy{");
-		sb.append("name='").append(this.name).append('\'');
-		sb.append('}');
-		return sb.toString();
+		return "ConfigurationUpdateStrategy{name='" + this.name + "'}";
 	}
 
 }

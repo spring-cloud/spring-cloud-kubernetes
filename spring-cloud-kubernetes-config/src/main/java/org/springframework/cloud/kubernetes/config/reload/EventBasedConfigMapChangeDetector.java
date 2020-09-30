@@ -42,9 +42,9 @@ import org.springframework.core.env.AbstractEnvironment;
  */
 public class EventBasedConfigMapChangeDetector extends ConfigurationChangeDetector {
 
-	private ConfigMapPropertySourceLocator configMapPropertySourceLocator;
+	private final ConfigMapPropertySourceLocator configMapPropertySourceLocator;
 
-	private Map<String, Watch> watches;
+	private final Map<String, Watch> watches;
 
 	public EventBasedConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
