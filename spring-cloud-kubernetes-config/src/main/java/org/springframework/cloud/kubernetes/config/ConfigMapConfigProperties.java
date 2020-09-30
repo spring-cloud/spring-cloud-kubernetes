@@ -180,6 +180,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		public void setBackoff(Duration backoff) {
 			this.backoff = backoff;
 		}
+
 	}
 
 	static class NormalizedSource {

@@ -65,7 +65,8 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 		this(client, properties, null);
 	}
 
-	public ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties, ConfigMapRetryTemplateFactory configMapRetryTemplateFactory) {
+	public ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties,
+			ConfigMapRetryTemplateFactory configMapRetryTemplateFactory) {
 		this.client = client;
 		this.properties = properties;
 		this.configMapRetryTemplateFactory = configMapRetryTemplateFactory;
@@ -95,8 +96,8 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 		String configurationTarget = this.properties.getConfigurationTarget();
 		return new ConfigMapPropertySource(this.client,
 				getApplicationName(environment, normalizedSource.getName(), configurationTarget),
-				getApplicationNamespace(this.client, normalizedSource.getNamespace(), configurationTarget),
-				environment, configMapRetryTemplateFactory);
+				getApplicationNamespace(this.client, normalizedSource.getNamespace(), configurationTarget), environment,
+				configMapRetryTemplateFactory);
 	}
 
 	private void addPropertySourcesFromPaths(Environment environment, CompositePropertySource composite) {

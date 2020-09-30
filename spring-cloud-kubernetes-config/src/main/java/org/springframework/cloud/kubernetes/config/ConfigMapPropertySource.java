@@ -76,8 +76,10 @@ public class ConfigMapPropertySource extends MapPropertySource {
 		this(client, name, namespace, environment, null);
 	}
 
-	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace, Environment environment, ConfigMapRetryTemplateFactory configMapRetryTemplateFactory) {
-		super(getName(client, name, namespace), asObjectMap(getData(client, name, namespace, environment, configMapRetryTemplateFactory)));
+	public ConfigMapPropertySource(KubernetesClient client, String name, String namespace, Environment environment,
+			ConfigMapRetryTemplateFactory configMapRetryTemplateFactory) {
+		super(getName(client, name, namespace),
+				asObjectMap(getData(client, name, namespace, environment, configMapRetryTemplateFactory)));
 	}
 
 	private static String getName(KubernetesClient client, String name, String namespace) {
@@ -87,18 +89,20 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	private static Map<String, Object> getData(KubernetesClient client, String name, String namespace,
-											   Environment environment, ConfigMapRetryTemplateFactory configMapRetryTemplateFactory) {
+			Environment environment, ConfigMapRetryTemplateFactory configMapRetryTemplateFactory) {
 		try {
 			if (configMapRetryTemplateFactory == null) {
 				return tryGetData(client, name, namespace, environment);
-			} else {
+			}
+			else {
 				final RetryTemplate retryTemplate = configMapRetryTemplateFactory.getRetryTemplate();
 				return retryTemplate.execute(ctx -> {
 					try {
 						return tryGetData(client, name, namespace, environment);
 					}
 					catch (Exception e) {
-						LOG.warn("Can't read configMap with name: [" + name + "] in namespace:[" + namespace + "]. Retrying.", e);
+						LOG.warn("Can't read configMap with name: [" + name + "] in namespace:[" + namespace
+								+ "]. Retrying.", e);
 						throw e;
 					}
 				});
@@ -112,7 +116,7 @@ public class ConfigMapPropertySource extends MapPropertySource {
 	}
 
 	private static Map<String, Object> tryGetData(KubernetesClient client, String name, String namespace,
-											   Environment environment) {
+			Environment environment) {
 		Map<String, Object> result = new LinkedHashMap<>();
 		ConfigMap map = StringUtils.isEmpty(namespace) ? client.configMaps().withName(name).get()
 				: client.configMaps().inNamespace(namespace).withName(name).get();

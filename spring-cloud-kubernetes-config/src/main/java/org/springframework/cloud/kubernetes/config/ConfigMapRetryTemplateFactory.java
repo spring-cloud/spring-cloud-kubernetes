@@ -19,14 +19,16 @@ package org.springframework.cloud.kubernetes.config;
 import org.springframework.retry.support.RetryTemplate;
 
 /**
- * This interface determines which retry logic to apply if there are any errors during the loading of config maps
- * at application startup.
+ * This interface determines which retry logic to apply if there are any errors during the
+ * loading of config maps at application startup.
  *
  * @author Roy Jacobs
  */
 public interface ConfigMapRetryTemplateFactory {
+
 	/**
 	 * @return the {@link RetryTemplate} to use when loading config maps.
 	 */
 	RetryTemplate getRetryTemplate();
+
 }

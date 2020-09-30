@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.config;
 
+import java.util.Optional;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -30,8 +32,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.retry.support.RetryTemplate;
-
-import java.util.Optional;
 
 /**
  * Auto configuration that reuses Kubernetes config maps as property sources.
@@ -53,8 +53,10 @@ public class BootstrapConfiguration {
 
 		@Bean
 		@ConditionalOnProperty(name = "spring.cloud.kubernetes.config.enabled", matchIfMissing = true)
-		public ConfigMapPropertySourceLocator configMapPropertySourceLocator(ConfigMapConfigProperties properties, Optional<ConfigMapRetryTemplateFactory> configMapRetryTemplateFactory) {
-			return new ConfigMapPropertySourceLocator(this.client, properties, configMapRetryTemplateFactory.orElse(null));
+		public ConfigMapPropertySourceLocator configMapPropertySourceLocator(ConfigMapConfigProperties properties,
+				Optional<ConfigMapRetryTemplateFactory> configMapRetryTemplateFactory) {
+			return new ConfigMapPropertySourceLocator(this.client, properties,
+					configMapRetryTemplateFactory.orElse(null));
 		}
 
 		@Bean
@@ -67,13 +69,11 @@ public class BootstrapConfiguration {
 		@ConditionalOnMissingBean
 		@ConditionalOnClass(RetryTemplate.class)
 		public ConfigMapRetryTemplateFactory configMapRetryPolicyFactory(ConfigMapConfigProperties properties) {
-			final RetryTemplate template = RetryTemplate.builder()
-				.maxAttempts(properties.getRetry().getMaxAttempts())
-				.fixedBackoff(properties.getRetry().getBackoff().toMillis())
-				.retryOn(Exception.class)
-				.build();
+			final RetryTemplate template = RetryTemplate.builder().maxAttempts(properties.getRetry().getMaxAttempts())
+					.fixedBackoff(properties.getRetry().getBackoff().toMillis()).retryOn(Exception.class).build();
 			return () -> template;
 		}
+
 	}
 
 }
