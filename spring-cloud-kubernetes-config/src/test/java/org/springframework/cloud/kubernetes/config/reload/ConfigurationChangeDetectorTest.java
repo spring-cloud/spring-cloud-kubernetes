@@ -33,8 +33,7 @@ import org.springframework.core.env.MapPropertySource;
  */
 public class ConfigurationChangeDetectorTest {
 
-	private final ConfigurationChangeDetectorStub stub = new ConfigurationChangeDetectorStub(
-			null, null, null, null);
+	private final ConfigurationChangeDetectorStub stub = new ConfigurationChangeDetectorStub(null, null, null, null);
 
 	@Test
 	public void testChangedTwoNulls() {
@@ -44,16 +43,14 @@ public class ConfigurationChangeDetectorTest {
 
 	@Test
 	public void testChangedLeftNullRightNonNull() {
-		MapPropertySource right = new MapPropertySource("rightNonNull",
-				Collections.emptyMap());
+		MapPropertySource right = new MapPropertySource("rightNonNull", Collections.emptyMap());
 		boolean changed = stub.changed(null, right);
 		Assert.assertTrue(changed);
 	}
 
 	@Test
 	public void testChangedLeftNonNullRightNull() {
-		MapPropertySource left = new MapPropertySource("leftNonNull",
-				Collections.emptyMap());
+		MapPropertySource left = new MapPropertySource("leftNonNull", Collections.emptyMap());
 		boolean changed = stub.changed(left, null);
 		Assert.assertTrue(changed);
 	}
@@ -87,8 +84,7 @@ public class ConfigurationChangeDetectorTest {
 
 	@Test
 	public void testChangedListsDifferentSizes() {
-		List<MapPropertySource> left = Collections
-				.singletonList(new MapPropertySource("one", Collections.emptyMap()));
+		List<MapPropertySource> left = Collections.singletonList(new MapPropertySource("one", Collections.emptyMap()));
 		List<MapPropertySource> right = Collections.emptyList();
 		boolean changed = stub.changed(left, right);
 		Assert.assertFalse(changed);
@@ -101,10 +97,8 @@ public class ConfigurationChangeDetectorTest {
 		leftMap.put("key", value);
 		Map<String, Object> rightMap = new HashMap<>();
 		leftMap.put("anotherKey", value);
-		List<MapPropertySource> left = Collections
-				.singletonList(new MapPropertySource("one", leftMap));
-		List<MapPropertySource> right = Collections
-				.singletonList(new MapPropertySource("two", rightMap));
+		List<MapPropertySource> left = Collections.singletonList(new MapPropertySource("one", leftMap));
+		List<MapPropertySource> right = Collections.singletonList(new MapPropertySource("two", rightMap));
 		boolean changed = stub.changed(left, right);
 		Assert.assertTrue(changed);
 	}
@@ -116,10 +110,8 @@ public class ConfigurationChangeDetectorTest {
 		leftMap.put("key", value);
 		Map<String, Object> rightMap = new HashMap<>();
 		leftMap.put("key", value);
-		List<MapPropertySource> left = Collections
-				.singletonList(new MapPropertySource("one", leftMap));
-		List<MapPropertySource> right = Collections
-				.singletonList(new MapPropertySource("two", rightMap));
+		List<MapPropertySource> left = Collections.singletonList(new MapPropertySource("one", leftMap));
+		List<MapPropertySource> right = Collections.singletonList(new MapPropertySource("two", rightMap));
 		boolean changed = stub.changed(left, right);
 		Assert.assertTrue(changed);
 	}
@@ -127,12 +119,10 @@ public class ConfigurationChangeDetectorTest {
 	/**
 	 * only needed to test some protected methods it defines
 	 */
-	private static final class ConfigurationChangeDetectorStub
-			extends ConfigurationChangeDetector {
+	private static final class ConfigurationChangeDetectorStub extends ConfigurationChangeDetector {
 
-		private ConfigurationChangeDetectorStub(ConfigurableEnvironment environment,
-				ConfigReloadProperties properties, KubernetesClient kubernetesClient,
-				ConfigurationUpdateStrategy strategy) {
+		private ConfigurationChangeDetectorStub(ConfigurableEnvironment environment, ConfigReloadProperties properties,
+				KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy) {
 			super(environment, properties, kubernetesClient, strategy);
 		}
 
