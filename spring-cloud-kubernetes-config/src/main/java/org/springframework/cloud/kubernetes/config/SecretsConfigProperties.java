@@ -94,16 +94,13 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		if (this.sources.isEmpty()) {
 			return new ArrayList<SecretsConfigProperties.NormalizedSource>() {
 				{
-					add(new SecretsConfigProperties.NormalizedSource(
-							SecretsConfigProperties.this.name,
-							SecretsConfigProperties.this.namespace,
-							SecretsConfigProperties.this.labels));
+					add(new SecretsConfigProperties.NormalizedSource(SecretsConfigProperties.this.name,
+							SecretsConfigProperties.this.namespace, SecretsConfigProperties.this.labels));
 				}
 			};
 		}
 
-		return this.sources.stream()
-				.map(s -> s.normalize(this.name, this.namespace, this.labels))
+		return this.sources.stream().map(s -> s.normalize(this.name, this.namespace, this.labels))
 				.collect(Collectors.toList());
 	}
 
@@ -161,17 +158,13 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			return StringUtils.isEmpty(this.name) && StringUtils.isEmpty(this.namespace);
 		}
 
-		public SecretsConfigProperties.NormalizedSource normalize(String defaultName,
-				String defaultNamespace, Map<String, String> defaultLabels) {
-			final String normalizedName = StringUtils.isEmpty(this.name) ? defaultName
-					: this.name;
-			final String normalizedNamespace = StringUtils.isEmpty(this.namespace)
-					? defaultNamespace : this.namespace;
-			final Map<String, String> normalizedLabels = this.labels.isEmpty()
-					? defaultLabels : this.labels;
+		public SecretsConfigProperties.NormalizedSource normalize(String defaultName, String defaultNamespace,
+				Map<String, String> defaultLabels) {
+			final String normalizedName = StringUtils.isEmpty(this.name) ? defaultName : this.name;
+			final String normalizedNamespace = StringUtils.isEmpty(this.namespace) ? defaultNamespace : this.namespace;
+			final Map<String, String> normalizedLabels = this.labels.isEmpty() ? defaultLabels : this.labels;
 
-			return new SecretsConfigProperties.NormalizedSource(normalizedName,
-					normalizedNamespace, normalizedLabels);
+			return new SecretsConfigProperties.NormalizedSource(normalizedName, normalizedNamespace, normalizedLabels);
 		}
 
 	}

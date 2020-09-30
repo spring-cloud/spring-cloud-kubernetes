@@ -63,8 +63,7 @@ public class SecretsPropertySourceLocator implements PropertySourceLocator {
 
 	private final SecretsConfigProperties properties;
 
-	public SecretsPropertySourceLocator(KubernetesClient client,
-			SecretsConfigProperties properties) {
+	public SecretsPropertySourceLocator(KubernetesClient client, SecretsConfigProperties properties) {
 		this.client = client;
 		this.properties = properties;
 	}
@@ -78,7 +77,6 @@ public class SecretsPropertySourceLocator implements PropertySourceLocator {
 					.determineSources();
 			CompositePropertySource composite = new CompositePropertySource(
 					"composite-secrets");
-
 			// read for secrets mount
 			putPathConfig(composite);
 
@@ -92,16 +90,13 @@ public class SecretsPropertySourceLocator implements PropertySourceLocator {
 		return null;
 	}
 
-	private MapPropertySource getKubernetesPropertySourceForSingleSecret(
-			ConfigurableEnvironment environment,
+	private MapPropertySource getKubernetesPropertySourceForSingleSecret(ConfigurableEnvironment environment,
 			SecretsConfigProperties.NormalizedSource normalizedSource) {
 
 		String configurationTarget = this.properties.getConfigurationTarget();
 		return new SecretsPropertySource(this.client, environment,
-				getApplicationName(environment, normalizedSource.getName(),
-						configurationTarget),
-				getApplicationNamespace(this.client, normalizedSource.getNamespace(),
-						configurationTarget),
+				getApplicationName(environment, normalizedSource.getName(), configurationTarget),
+				getApplicationNamespace(this.client, normalizedSource.getNamespace(), configurationTarget),
 				normalizedSource.getLabels());
 	}
 

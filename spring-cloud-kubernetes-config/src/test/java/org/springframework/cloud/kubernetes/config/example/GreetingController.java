@@ -35,20 +35,17 @@ public class GreetingController {
 	}
 
 	@RequestMapping("/api/greeting")
-	public ResponseMessage greeting(
-			@RequestParam(value = "name", defaultValue = "World") String name) {
+	public ResponseMessage greeting(@RequestParam(value = "name", defaultValue = "World") String name) {
 		return new ResponseMessage(String.format(this.properties.getGreeting(), name));
 	}
 
 	@RequestMapping("/api/farewell")
-	public ResponseMessage farewell(
-			@RequestParam(value = "name", defaultValue = "World") String name) {
+	public ResponseMessage farewell(@RequestParam(value = "name", defaultValue = "World") String name) {
 		return new ResponseMessage(String.format(this.properties.getFarewell(), name));
 	}
 
 	@RequestMapping("/api/morning")
-	public ResponseMessage morning(
-			@RequestParam(value = "name", defaultValue = "World") String name) {
+	public ResponseMessage morning(@RequestParam(value = "name", defaultValue = "World") String name) {
 		return new ResponseMessage(String.format(this.properties.getMorning(), name));
 	}
 

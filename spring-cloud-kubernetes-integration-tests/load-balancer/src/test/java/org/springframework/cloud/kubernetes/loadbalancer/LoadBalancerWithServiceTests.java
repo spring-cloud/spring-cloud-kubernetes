@@ -47,8 +47,7 @@ import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
 @ExtendWith(HoverflyExtension.class)
 class LoadBalancerWithServiceTests {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(LoadBalancerWithServiceTests.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(LoadBalancerWithServiceTests.class);
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -60,8 +59,7 @@ class LoadBalancerWithServiceTests {
 	static void setup() {
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
-				"false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 	}
@@ -70,23 +68,19 @@ class LoadBalancerWithServiceTests {
 	void testLoadBalancerInServiceMode(Hoverfly hoverfly) {
 		LOGGER.info("Master URL: {}", client.getConfiguration().getMasterUrl());
 		hoverfly.simulate(
-				dsl(service("http://service-a.test.svc.cluster.local:8080")
-						.get("/greeting").willReturn(success().body("greeting"))),
-				dsl(service(client.getConfiguration().getMasterUrl().replace("/", "")
-						.replace("https:", ""))
-								.get("/api/v1/namespaces/test/services/service-a")
-								.willReturn(success().body(
-										json(buildService("service-a", 8080, "test"))))));
-		String response = restTemplate.getForObject("http://service-a/greeting",
-				String.class);
+				dsl(service("http://service-a.test.svc.cluster.local:8080").get("/greeting")
+						.willReturn(success().body("greeting"))),
+				dsl(service(client.getConfiguration().getMasterUrl().replace("/", "").replace("https:", ""))
+						.get("/api/v1/namespaces/test/services/service-a")
+						.willReturn(success().body(json(buildService("service-a", 8080, "test"))))));
+		String response = restTemplate.getForObject("http://service-a/greeting", String.class);
 		Assertions.assertNotNull(response);
 		Assertions.assertEquals("greeting", response);
 	}
 
 	private Service buildService(String name, int port, String namespace) {
-		return new ServiceBuilder().withNewMetadata().withName(name)
-				.withNamespace(namespace).withLabels(new HashMap<>())
-				.withAnnotations(new HashMap<>()).endMetadata().withNewSpec().addNewPort()
+		return new ServiceBuilder().withNewMetadata().withName(name).withNamespace(namespace)
+				.withLabels(new HashMap<>()).withAnnotations(new HashMap<>()).endMetadata().withNewSpec().addNewPort()
 				.withPort(port).endPort().endSpec().build();
 	}
 

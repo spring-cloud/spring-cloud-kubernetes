@@ -76,11 +76,9 @@ public class BusEventBasedConfigurationWatcherChangeDetectorTests {
 		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
 		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		busProperties = new BusProperties();
-		changeDetector = new BusEventBasedConfigurationWatcherChangeDetector(
-				mockEnvironment, configReloadProperties, client, updateStrategy,
-				configMapPropertySourceLocator, secretsPropertySourceLocator,
-				busProperties, configurationWatcherConfigurationProperties,
-				threadPoolTaskExecutor);
+		changeDetector = new BusEventBasedConfigurationWatcherChangeDetector(mockEnvironment, configReloadProperties,
+				client, updateStrategy, configMapPropertySourceLocator, secretsPropertySourceLocator, busProperties,
+				configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
 		changeDetector.setApplicationEventPublisher(applicationEventPublisher);
 	}
 
@@ -95,8 +93,7 @@ public class BusEventBasedConfigurationWatcherChangeDetectorTests {
 				.forClass(RefreshRemoteApplicationEvent.class);
 		verify(applicationEventPublisher).publishEvent(argumentCaptor.capture());
 		assertThat(argumentCaptor.getValue().getSource()).isEqualTo(configMap);
-		assertThat(argumentCaptor.getValue().getOriginService())
-				.isEqualTo(busProperties.getId());
+		assertThat(argumentCaptor.getValue().getOriginService()).isEqualTo(busProperties.getId());
 		assertThat(argumentCaptor.getValue().getDestinationService()).isEqualTo("foo:**");
 	}
 
@@ -111,8 +108,7 @@ public class BusEventBasedConfigurationWatcherChangeDetectorTests {
 				.forClass(RefreshRemoteApplicationEvent.class);
 		verify(applicationEventPublisher).publishEvent(argumentCaptor.capture());
 		assertThat(argumentCaptor.getValue().getSource()).isEqualTo(secret);
-		assertThat(argumentCaptor.getValue().getOriginService())
-				.isEqualTo(busProperties.getId());
+		assertThat(argumentCaptor.getValue().getOriginService()).isEqualTo(busProperties.getId());
 		assertThat(argumentCaptor.getValue().getDestinationService()).isEqualTo("foo:**");
 	}
 

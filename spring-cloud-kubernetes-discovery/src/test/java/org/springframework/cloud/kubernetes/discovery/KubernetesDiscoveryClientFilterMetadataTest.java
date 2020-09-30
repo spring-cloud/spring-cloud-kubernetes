@@ -100,21 +100,20 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.isAddAnnotations()).thenReturn(false);
 		when(this.metadata.isAddPorts()).thenReturn(false);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
-				new HashMap<String, String>() {
-					{
-						put("l1", "lab");
-					}
-				}, new HashMap<String, String>() {
-					{
-						put("l1", "lab");
-					}
-				}, new HashMap<Integer, String>() {
-					{
-						put(80, "http");
-						put(5555, "");
-					}
-				});
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
+			{
+				put("l1", "lab");
+			}
+		}, new HashMap<String, String>() {
+			{
+				put("l1", "lab");
+			}
+		}, new HashMap<Integer, String>() {
+			{
+				put(80, "http");
+				put(5555, "");
+			}
+		});
 
 		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -130,27 +129,25 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.isAddAnnotations()).thenReturn(false);
 		when(this.metadata.isAddPorts()).thenReturn(false);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
-				new HashMap<String, String>() {
-					{
-						put("l1", "v1");
-						put("l2", "v2");
-					}
-				}, new HashMap<String, String>() {
-					{
-						put("l1", "lab");
-					}
-				}, new HashMap<Integer, String>() {
-					{
-						put(80, "http");
-						put(5555, "");
-					}
-				});
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
+			{
+				put("l1", "v1");
+				put("l2", "v2");
+			}
+		}, new HashMap<String, String>() {
+			{
+				put("l1", "lab");
+			}
+		}, new HashMap<Integer, String>() {
+			{
+				put(80, "http");
+				put(5555, "");
+			}
+		});
 
 		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l1", "v1"),
-				entry("l2", "v2"));
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l1", "v1"), entry("l2", "v2"));
 	}
 
 	@Test
@@ -163,27 +160,25 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.isAddAnnotations()).thenReturn(false);
 		when(this.metadata.isAddPorts()).thenReturn(false);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
-				new HashMap<String, String>() {
-					{
-						put("l1", "v1");
-						put("l2", "v2");
-					}
-				}, new HashMap<String, String>() {
-					{
-						put("l1", "lab");
-					}
-				}, new HashMap<Integer, String>() {
-					{
-						put(80, "http");
-						put(5555, "");
-					}
-				});
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
+			{
+				put("l1", "v1");
+				put("l2", "v2");
+			}
+		}, new HashMap<String, String>() {
+			{
+				put("l1", "lab");
+			}
+		}, new HashMap<Integer, String>() {
+			{
+				put(80, "http");
+				put(5555, "");
+			}
+		});
 
 		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l_l1", "v1"),
-				entry("l_l2", "v2"));
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l_l1", "v1"), entry("l_l2", "v2"));
 	}
 
 	@Test
@@ -195,27 +190,25 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.isAddAnnotations()).thenReturn(true);
 		when(this.metadata.isAddPorts()).thenReturn(false);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
-				new HashMap<String, String>() {
-					{
-						put("l1", "v1");
-					}
-				}, new HashMap<String, String>() {
-					{
-						put("a1", "v1");
-						put("a2", "v2");
-					}
-				}, new HashMap<Integer, String>() {
-					{
-						put(80, "http");
-						put(5555, "");
-					}
-				});
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
+			{
+				put("l1", "v1");
+			}
+		}, new HashMap<String, String>() {
+			{
+				put("a1", "v1");
+				put("a2", "v2");
+			}
+		}, new HashMap<Integer, String>() {
+			{
+				put(80, "http");
+				put(5555, "");
+			}
+		});
 
 		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a1", "v1"),
-				entry("a2", "v2"));
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a1", "v1"), entry("a2", "v2"));
 	}
 
 	@Test
@@ -228,27 +221,25 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.getAnnotationsPrefix()).thenReturn("a_");
 		when(this.metadata.isAddPorts()).thenReturn(false);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
-				new HashMap<String, String>() {
-					{
-						put("l1", "v1");
-					}
-				}, new HashMap<String, String>() {
-					{
-						put("a1", "v1");
-						put("a2", "v2");
-					}
-				}, new HashMap<Integer, String>() {
-					{
-						put(80, "http");
-						put(5555, "");
-					}
-				});
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
+			{
+				put("l1", "v1");
+			}
+		}, new HashMap<String, String>() {
+			{
+				put("a1", "v1");
+				put("a2", "v2");
+			}
+		}, new HashMap<Integer, String>() {
+			{
+				put(80, "http");
+				put(5555, "");
+			}
+		});
 
 		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "v1"),
-				entry("a_a2", "v2"));
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "v1"), entry("a_a2", "v2"));
 	}
 
 	@Test
@@ -260,22 +251,21 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.isAddAnnotations()).thenReturn(false);
 		when(this.metadata.isAddPorts()).thenReturn(true);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
-				new HashMap<String, String>() {
-					{
-						put("l1", "v1");
-					}
-				}, new HashMap<String, String>() {
-					{
-						put("a1", "v1");
-						put("a2", "v2");
-					}
-				}, new HashMap<Integer, String>() {
-					{
-						put(80, "http");
-						put(5555, "");
-					}
-				});
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
+			{
+				put("l1", "v1");
+			}
+		}, new HashMap<String, String>() {
+			{
+				put("a1", "v1");
+				put("a2", "v2");
+			}
+		}, new HashMap<Integer, String>() {
+			{
+				put(80, "http");
+				put(5555, "");
+			}
+		});
 
 		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -292,22 +282,21 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.isAddPorts()).thenReturn(true);
 		when(this.metadata.getPortsPrefix()).thenReturn("p_");
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
-				new HashMap<String, String>() {
-					{
-						put("l1", "v1");
-					}
-				}, new HashMap<String, String>() {
-					{
-						put("a1", "v1");
-						put("a2", "v2");
-					}
-				}, new HashMap<Integer, String>() {
-					{
-						put(80, "http");
-						put(5555, "");
-					}
-				});
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
+			{
+				put("l1", "v1");
+			}
+		}, new HashMap<String, String>() {
+			{
+				put("a1", "v1");
+				put("a2", "v2");
+			}
+		}, new HashMap<Integer, String>() {
+			{
+				put(80, "http");
+				put(5555, "");
+			}
+		});
 
 		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -326,58 +315,51 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		when(this.metadata.isAddPorts()).thenReturn(true);
 		when(this.metadata.getPortsPrefix()).thenReturn("p_");
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns",
-				new HashMap<String, String>() {
-					{
-						put("l1", "la1");
-					}
-				}, new HashMap<String, String>() {
-					{
-						put("a1", "an1");
-						put("a2", "an2");
-					}
-				}, new HashMap<Integer, String>() {
-					{
-						put(80, "http");
-						put(5555, "");
-					}
-				});
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
+			{
+				put("l1", "la1");
+			}
+		}, new HashMap<String, String>() {
+			{
+				put("a1", "an1");
+				put("a2", "an2");
+			}
+		}, new HashMap<Integer, String>() {
+			{
+				put(80, "http");
+				put(5555, "");
+			}
+		});
 
 		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "an1"),
-				entry("a_a2", "an2"), entry("l_l1", "la1"), entry("p_http", "80"));
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "an1"), entry("a_a2", "an2"),
+				entry("l_l1", "la1"), entry("p_http", "80"));
 	}
 
-	private void setupServiceWithLabelsAndAnnotationsAndPorts(String serviceId,
-			String namespace, Map<String, String> labels, Map<String, String> annotations,
-			Map<Integer, String> ports) {
-		final Service service = new ServiceBuilder().withNewMetadata()
-				.withNamespace(namespace).withLabels(labels).withAnnotations(annotations)
-				.endMetadata().withNewSpec().withPorts(getServicePorts(ports)).endSpec()
+	private void setupServiceWithLabelsAndAnnotationsAndPorts(String serviceId, String namespace,
+			Map<String, String> labels, Map<String, String> annotations, Map<Integer, String> ports) {
+		final Service service = new ServiceBuilder().withNewMetadata().withNamespace(namespace).withLabels(labels)
+				.withAnnotations(annotations).endMetadata().withNewSpec().withPorts(getServicePorts(ports)).endSpec()
 				.build();
 		when(this.serviceOperation.withName(serviceId)).thenReturn(this.serviceResource);
 		when(this.serviceResource.get()).thenReturn(service);
 		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
-		when(this.kubernetesClient.services().inNamespace(anyString()))
-				.thenReturn(this.serviceOperation);
+		when(this.kubernetesClient.services().inNamespace(anyString())).thenReturn(this.serviceOperation);
 
 		ObjectMeta objectMeta = new ObjectMeta();
 		objectMeta.setNamespace(namespace);
 
-		final Endpoints endpoints = new EndpointsBuilder().withMetadata(objectMeta)
-				.addNewSubset().addAllToPorts(getEndpointPorts(ports)).addNewAddress()
-				.endAddress().endSubset().build();
+		final Endpoints endpoints = new EndpointsBuilder().withMetadata(objectMeta).addNewSubset()
+				.addAllToPorts(getEndpointPorts(ports)).addNewAddress().endAddress().endSubset().build();
 
 		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
 
-		EndpointsList endpointsList = new EndpointsList(null,
-				Collections.singletonList(endpoints), null, null);
+		EndpointsList endpointsList = new EndpointsList(null, Collections.singletonList(endpoints), null, null);
 		when(filter.list()).thenReturn(endpointsList);
 		when(filter.withLabels(anyMap())).thenReturn(filter);
 
-		when(this.kubernetesClient.endpoints().withField(eq("metadata.name"),
-				eq(serviceId))).thenReturn(filter);
+		when(this.kubernetesClient.endpoints().withField(eq("metadata.name"), eq(serviceId))).thenReturn(filter);
 
 	}
 

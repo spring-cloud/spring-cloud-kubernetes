@@ -123,7 +123,8 @@ main() {
     kubectl cluster-info --context kind-kind
 
 	#setup nginx ingress
-    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
+#    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
+    kubectl apply -fhttps://raw.githubusercontent.com/kubernetes/ingress-nginx/12150e318b972a03fb49d827e6cabb8ef62247ef/deploy/static/provider/kind/deploy.yaml
     kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=360s
 
     # This creates the service account, role, and role binding necessary for Spring Cloud k8s apps

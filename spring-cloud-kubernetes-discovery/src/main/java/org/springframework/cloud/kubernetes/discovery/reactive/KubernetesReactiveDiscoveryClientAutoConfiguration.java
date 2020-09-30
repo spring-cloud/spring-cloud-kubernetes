@@ -56,20 +56,17 @@ public class KubernetesReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(
-			KubernetesClient client, KubernetesDiscoveryProperties properties,
+	public KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(KubernetesClient client,
+			KubernetesDiscoveryProperties properties,
 			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
-		return new KubernetesReactiveDiscoveryClient(client, properties,
-				kubernetesClientServicesFunction);
+		return new KubernetesReactiveDiscoveryClient(client, properties, kubernetesClientServicesFunction);
 	}
 
 	@Bean
-	@ConditionalOnClass(
-			name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
+	@ConditionalOnClass(name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	public ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
-			KubernetesReactiveDiscoveryClient client,
-			DiscoveryClientHealthIndicatorProperties properties) {
+			KubernetesReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties) {
 		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
 	}
 

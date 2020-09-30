@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.kubernetes.config;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,9 +35,9 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 	private boolean enableApi = true;
 
-	private List<String> paths = new LinkedList<>();
+	private List<String> paths = Collections.emptyList();
 
-	private List<Source> sources = new LinkedList<>();
+	private List<Source> sources = Collections.emptyList();
 
 	public boolean isEnableApi() {
 		return this.enableApi;
@@ -74,16 +73,11 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	 */
 	public List<NormalizedSource> determineSources() {
 		if (this.sources.isEmpty()) {
-			return new ArrayList<NormalizedSource>() {
-				{
-					add(new NormalizedSource(ConfigMapConfigProperties.this.name,
-							ConfigMapConfigProperties.this.namespace));
-				}
-			};
+			return Collections.singletonList(new NormalizedSource(ConfigMapConfigProperties.this.name,
+					ConfigMapConfigProperties.this.namespace));
 		}
 
-		return this.sources.stream().map(s -> s.normalize(this.name, this.namespace))
-				.collect(Collectors.toList());
+		return this.sources.stream().map(s -> s.normalize(this.name, this.namespace)).collect(Collectors.toList());
 	}
 
 	@Override
@@ -135,10 +129,8 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		}
 
 		public NormalizedSource normalize(String defaultName, String defaultNamespace) {
-			final String normalizedName = StringUtils.isEmpty(this.name) ? defaultName
-					: this.name;
-			final String normalizedNamespace = StringUtils.isEmpty(this.namespace)
-					? defaultNamespace : this.namespace;
+			final String normalizedName = StringUtils.isEmpty(this.name) ? defaultName : this.name;
+			final String normalizedNamespace = StringUtils.isEmpty(this.namespace) ? defaultNamespace : this.namespace;
 
 			return new NormalizedSource(normalizedName, normalizedNamespace);
 		}

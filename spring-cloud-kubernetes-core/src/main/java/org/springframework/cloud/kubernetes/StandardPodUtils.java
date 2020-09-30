@@ -47,8 +47,7 @@ public class StandardPodUtils implements PodUtils {
 
 	public StandardPodUtils(KubernetesClient client) {
 		if (client == null) {
-			throw new IllegalArgumentException(
-					"Must provide an instance of KubernetesClient");
+			throw new IllegalArgumentException("Must provide an instance of KubernetesClient");
 		}
 
 		this.client = client;
@@ -76,10 +75,8 @@ public class StandardPodUtils implements PodUtils {
 			}
 		}
 		catch (Throwable t) {
-			LOG.warn("Failed to get pod with name:[" + this.hostName
-					+ "]. You should look into this if things aren't"
-					+ " working as you expect. Are you missing serviceaccount permissions?",
-					t);
+			LOG.warn("Failed to get pod with name:[" + this.hostName + "]. You should look into this if things aren't"
+					+ " working as you expect. Are you missing serviceaccount permissions?", t);
 			return null;
 		}
 	}
@@ -90,8 +87,7 @@ public class StandardPodUtils implements PodUtils {
 
 	private boolean isServiceAccountFound() {
 		return Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH).toFile().exists()
-				&& Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH).toFile()
-						.exists();
+				&& Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH).toFile().exists();
 	}
 
 }

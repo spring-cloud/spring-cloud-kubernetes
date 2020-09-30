@@ -31,13 +31,11 @@ import org.springframework.core.env.Environment;
 public class KubernetesLoadBalancerClientConfiguration {
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.kubernetes.loadbalancer.mode",
-			havingValue = "SERVICE")
+	@ConditionalOnProperty(name = "spring.cloud.kubernetes.loadbalancer.mode", havingValue = "SERVICE")
 	KubernetesServicesListSupplier kubernetesServicesListSupplier(Environment environment,
 			KubernetesClient kubernetesClient, KubernetesServiceInstanceMapper mapper,
 			KubernetesDiscoveryProperties discoveryProperties) {
-		return new KubernetesServicesListSupplier(environment, kubernetesClient, mapper,
-				discoveryProperties);
+		return new KubernetesServicesListSupplier(environment, kubernetesClient, mapper, discoveryProperties);
 	}
 
 }
