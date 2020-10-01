@@ -16,14 +16,12 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
-import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.config.reload.ConfigurationUpdateStrategy;
@@ -34,22 +32,22 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author Ryan Baxter
+ * @author Kris Iyer
  */
-public class BusEventBasedConfigurationWatcherChangeDetector extends ConfigurationWatcherChangeDetector
+public class BusEventBasedSecretsWatcherChangeDetector extends SecretsWatcherChangeDetector
 		implements ApplicationEventPublisherAware {
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private BusProperties busProperties;
 
-	public BusEventBasedConfigurationWatcherChangeDetector(AbstractEnvironment environment,
-			ConfigReloadProperties properties, KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			ConfigMapPropertySourceLocator configMapPropertySourceLocator,
+	public BusEventBasedSecretsWatcherChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
+			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			SecretsPropertySourceLocator secretsPropertySourceLocator, BusProperties busProperties,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(environment, properties, kubernetesClient, strategy, configMapPropertySourceLocator,
-				secretsPropertySourceLocator, k8SConfigurationProperties, threadPoolTaskExecutor);
+		super(environment, properties, kubernetesClient, strategy, secretsPropertySourceLocator,
+				k8SConfigurationProperties, threadPoolTaskExecutor);
 
 		this.busProperties = busProperties;
 	}
@@ -58,13 +56,6 @@ public class BusEventBasedConfigurationWatcherChangeDetector extends Configurati
 	protected Mono<Void> triggerRefresh(Secret secret) {
 		this.applicationEventPublisher.publishEvent(
 				new RefreshRemoteApplicationEvent(secret, busProperties.getId(), secret.getMetadata().getName()));
-		return Mono.empty();
-	}
-
-	@Override
-	protected Mono<Void> triggerRefresh(ConfigMap configMap) {
-		this.applicationEventPublisher.publishEvent(
-				new RefreshRemoteApplicationEvent(configMap, busProperties.getId(), configMap.getMetadata().getName()));
 		return Mono.empty();
 	}
 

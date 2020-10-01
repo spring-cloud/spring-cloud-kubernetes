@@ -20,66 +20,40 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.config.reload.EventBasedConfigurationChangeDetector;
+import org.springframework.cloud.kubernetes.config.reload.EventBasedSecretsChangeDetector;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author Ryan Baxter
+ * @author Kris Iyer
  */
-public abstract class ConfigurationWatcherChangeDetector extends EventBasedConfigurationChangeDetector {
+public abstract class SecretsWatcherChangeDetector extends EventBasedSecretsChangeDetector {
+
+	protected Log log = LogFactory.getLog(getClass());
 
 	private ScheduledExecutorService executorService;
 
 	protected ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
 
-	public ConfigurationWatcherChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
+	public SecretsWatcherChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			ConfigMapPropertySourceLocator configMapPropertySourceLocator,
 			SecretsPropertySourceLocator secretsPropertySourceLocator,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(environment, properties, kubernetesClient, strategy, configMapPropertySourceLocator,
-				secretsPropertySourceLocator);
+		super(environment, properties, kubernetesClient, strategy, secretsPropertySourceLocator);
 		this.executorService = Executors.newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(),
 				threadPoolTaskExecutor);
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
-	}
-
-	@Override
-	protected void onEvent(ConfigMap configMap) {
-		if (isSpringCloudKubernetesConfig(configMap)) {
-			if (log.isDebugEnabled()) {
-				log.debug("Scheduling remote refresh event to be published for ConfigMap "
-						+ configMap.getMetadata().getName() + " to be published in "
-						+ k8SConfigurationProperties.getRefreshDelay().toMillis() + " milliseconds");
-			}
-			executorService.schedule(() -> triggerRefresh(configMap).subscribe(),
-					k8SConfigurationProperties.getRefreshDelay().toMillis(), TimeUnit.MILLISECONDS);
-		}
-		else {
-			if (log.isDebugEnabled()) {
-				log.debug("Not publishing event. ConfigMap " + configMap.getMetadata().getName()
-						+ " does not contain the label " + k8SConfigurationProperties.getConfigLabel());
-			}
-		}
-	}
-
-	protected boolean isSpringCloudKubernetesConfig(ConfigMap configMap) {
-		if (configMap.getMetadata() == null || configMap.getMetadata().getLabels() == null) {
-			return false;
-		}
-		return Boolean.parseBoolean(
-				configMap.getMetadata().getLabels().getOrDefault(k8SConfigurationProperties.getConfigLabel(), "false"));
 	}
 
 	protected boolean isSpringCloudKubernetesSecret(Secret secret) {
@@ -91,8 +65,6 @@ public abstract class ConfigurationWatcherChangeDetector extends EventBasedConfi
 	}
 
 	protected abstract Mono<Void> triggerRefresh(Secret secret);
-
-	protected abstract Mono<Void> triggerRefresh(ConfigMap configMap);
 
 	@Override
 	protected void onEvent(Secret secret) {
