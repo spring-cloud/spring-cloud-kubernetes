@@ -16,10 +16,13 @@
 
 package org.springframework.cloud.kubernetes;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import io.fabric8.kubernetes.api.model.Pod;
 
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
-import org.springframework.boot.actuate.health.Health;
+import org.springframework.cloud.kubernetes.commons.AbstractKubernetesHealthIndicator;
 
 /**
  * Kubernetes implementation of {@link AbstractHealthIndicator}.
@@ -27,7 +30,7 @@ import org.springframework.boot.actuate.health.Health;
  * @author Ioannis Canellos
  * @author Eddú Meléndez
  */
-public class KubernetesHealthIndicator extends AbstractHealthIndicator {
+public class KubernetesHealthIndicator extends AbstractKubernetesHealthIndicator {
 
 	private PodUtils utils;
 
@@ -36,25 +39,23 @@ public class KubernetesHealthIndicator extends AbstractHealthIndicator {
 	}
 
 	@Override
-	protected void doHealthCheck(Health.Builder builder) throws Exception {
-		try {
-			Pod current = this.utils.currentPod().get();
-			if (current != null) {
-				builder.up().withDetail("inside", true).withDetail("namespace", current.getMetadata().getNamespace())
-						.withDetail("podName", current.getMetadata().getName())
-						.withDetail("podIp", current.getStatus().getPodIP())
-						.withDetail("serviceAccount", current.getSpec().getServiceAccountName())
-						.withDetail("nodeName", current.getSpec().getNodeName())
-						.withDetail("hostIp", current.getStatus().getHostIP())
-						.withDetail("labels", current.getMetadata().getLabels());
-			}
-			else {
-				builder.up().withDetail("inside", false);
-			}
+	protected Map<String, Object> getDetails() throws Exception {
+		Map<String, Object> details = new HashMap<>();
+		Pod current = this.utils.currentPod().get();
+		if (current != null) {
+			details.put(INSIDE, true);
+			details.put(NAMESPACE, current.getMetadata().getNamespace());
+			details.put(POD_NAME, current.getMetadata().getName());
+			details.put(POD_IP, current.getStatus().getPodIP());
+			details.put(SERVICE_ACCOUNT, current.getSpec().getServiceAccountName());
+			details.put(NODE_NAME, current.getSpec().getNodeName());
+			details.put(HOST_IP, current.getStatus().getHostIP());
+			details.put(LABELS, current.getMetadata().getLabels());
 		}
-		catch (Exception e) {
-			builder.down(e);
+		else {
+			details.put(INSIDE, false);
 		}
+		return details;
 	}
 
 }

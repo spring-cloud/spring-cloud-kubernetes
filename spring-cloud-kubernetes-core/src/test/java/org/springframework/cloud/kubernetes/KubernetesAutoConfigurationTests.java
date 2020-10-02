@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.example.App;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -64,6 +65,7 @@ public class KubernetesAutoConfigurationTests {
 		assertThat(context.getBeanNamesForType(StandardPodUtils.class)).hasSize(1);
 		assertThat(context.getBeanNamesForType(KubernetesHealthIndicator.class)).hasSize(1);
 		assertThat(context.getBeanNamesForType(KubernetesInfoContributor.class)).hasSize(1);
+		assertThat(context.getBeanNamesForType(KubernetesClientProperties.class)).hasSize(1);
 
 		Config config = context.getBean(Config.class);
 		assertThat(config.getPassword()).isEqualTo("mypassword");

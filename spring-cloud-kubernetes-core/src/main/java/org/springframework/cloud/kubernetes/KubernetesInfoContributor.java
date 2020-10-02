@@ -20,20 +20,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Pod;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
-import org.springframework.boot.actuate.info.Info.Builder;
 import org.springframework.boot.actuate.info.InfoContributor;
+import org.springframework.cloud.kubernetes.commons.AbstractKubernetesInfoContributor;
 
 /**
  * Kubernetes implementation of {@link InfoContributor}.
  *
  * @author Mark Anderson
  */
-public class KubernetesInfoContributor implements InfoContributor {
-
-	private static final Log LOG = LogFactory.getLog(KubernetesInfoContributor.class);
+public class KubernetesInfoContributor extends AbstractKubernetesInfoContributor {
 
 	private PodUtils utils;
 
@@ -42,27 +38,20 @@ public class KubernetesInfoContributor implements InfoContributor {
 	}
 
 	@Override
-	public void contribute(Builder builder) {
-		try {
-			Pod current = this.utils.currentPod().get();
-			Map<String, Object> details = new HashMap<>();
-			if (current != null) {
-				details.put("inside", true);
-				details.put("namespace", current.getMetadata().getNamespace());
-				details.put("podName", current.getMetadata().getName());
-				details.put("podIp", current.getStatus().getPodIP());
-				details.put("serviceAccount", current.getSpec().getServiceAccountName());
-				details.put("nodeName", current.getSpec().getNodeName());
-				details.put("hostIp", current.getStatus().getHostIP());
-			}
-			else {
-				details.put("inside", false);
-			}
-			builder.withDetail("kubernetes", details);
+	public Map<String, Object> getDetails() {
+		Pod current = this.utils.currentPod().get();
+		Map<String, Object> details = new HashMap<>();
+		boolean inside = current != null;
+		details.put(INSIDE, inside);
+		if (inside) {
+			details.put(NAMESPACE, current.getMetadata().getNamespace());
+			details.put(POD_NAME, current.getMetadata().getName());
+			details.put(POD_IP, current.getStatus().getPodIP());
+			details.put(SERVICE_ACCOUNT, current.getSpec().getServiceAccountName());
+			details.put(NODE_NAME, current.getSpec().getNodeName());
+			details.put(HOST_IP, current.getStatus().getHostIP());
 		}
-		catch (Exception e) {
-			LOG.warn("Failed to get pod details", e);
-		}
+		return details;
 	}
 
 }

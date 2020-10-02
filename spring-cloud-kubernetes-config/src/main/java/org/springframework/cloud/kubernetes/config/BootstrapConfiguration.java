@@ -25,6 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.kubernetes.KubernetesAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -40,7 +41,7 @@ import org.springframework.context.annotation.Import;
 public class BootstrapConfiguration {
 
 	@Configuration(proxyBeanMethods = false)
-	@Import(KubernetesAutoConfiguration.class)
+	@Import({ KubernetesCommonsAutoConfiguration.class, KubernetesAutoConfiguration.class })
 	@EnableConfigurationProperties({ ConfigMapConfigProperties.class, SecretsConfigProperties.class })
 	protected static class KubernetesPropertySourceConfiguration {
 
