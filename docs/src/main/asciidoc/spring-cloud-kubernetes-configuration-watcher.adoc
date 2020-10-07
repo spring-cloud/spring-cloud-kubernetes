@@ -157,14 +157,12 @@ Another way you can choose to configure the actuator path and/or management port
 
 ### Messaging Implementation
 
-The messaging implementation can be enabled by setting the profile `bus` when the Spring Cloud Kubernetes Configuration Watcher
+The messaging implementation can be enabled by setting profile to either `bus-amqp` (RabbitMQ) or `bus-kafka` (Kafka) when the Spring Cloud Kubernetes Configuration Watcher
 application is deployed to Kubernetes.
-
-WARNING: Currently the only supported message broker is RabbitMQ
 
 ### Configuring RabbitMQ
 
-When the `bus` profile is enabled you will need to configure Spring RabbitMQ to point it to the location of the RabbitMQ
+When the `bus-amqp` profile is enabled you will need to configure Spring RabbitMQ to point it to the location of the RabbitMQ
 instance you would like to use as well as any credentials necessary to authenticate.  This can be done
 by setting the standard Spring RabbitMQ properties, for example
 
@@ -176,5 +174,20 @@ spring:
     username: user
     password: password
     host: rabbitmq
+----
+====
+
+### Configuring Kafka
+
+When the `bus-kafka` profile is enabled you will need to configure Spring Kafka to point it to the location of the Kafka Broker
+instance you would like to use.  This can be done by setting the standard Spring Kafka properties, for example
+
+====
+[source,yaml]
+----
+spring:
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
 ----
 ====
