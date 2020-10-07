@@ -13,7 +13,17 @@ server:
   port: 8888
 ---
 spring:
-  profiles: bus
+  profiles: bus-amqp
   cloud:
     bus:
       enabled: true
+    stream:
+      default-binder: rabbit
+---
+spring:
+  profiles: bus-kafka
+  cloud:
+    bus:
+      enabled: true
+    stream:
+      default-binder: kafka
