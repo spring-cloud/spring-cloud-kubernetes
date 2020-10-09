@@ -20,7 +20,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.boot.actuate.autoconfigure.amqp.RabbitHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.function.context.config.ContextFunctionCatalogAutoConfiguration;
