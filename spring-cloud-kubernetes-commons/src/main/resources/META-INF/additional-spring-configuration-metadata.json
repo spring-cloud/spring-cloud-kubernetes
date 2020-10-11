@@ -37,6 +37,12 @@
 			"defaultValue": ""
 		},
 		{
+			"name": "spring.cloud.kubernetes.client.oauthToken",
+			"type": "java.lang.String",
+			"description": "Kubernetes API Oauth Token",
+			"defaultValue": ""
+		},
+		{
 			"name": "spring.cloud.kubernetes.client.caCertFile",
 			"type": "java.lang.String",
 			"description": "Kubernetes API CACertFile",

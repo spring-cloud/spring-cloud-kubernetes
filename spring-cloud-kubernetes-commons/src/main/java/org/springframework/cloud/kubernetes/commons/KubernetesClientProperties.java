@@ -76,6 +76,8 @@ public class KubernetesClientProperties {
 
 	private String proxyPassword;
 
+	private String oauthToken;
+
 	private String[] noProxy;
 
 	public String getClientCertData() {
@@ -280,6 +282,14 @@ public class KubernetesClientProperties {
 
 	public void setNoProxy(String[] noProxy) {
 		this.noProxy = noProxy;
+	}
+
+	public String getOauthToken() {
+		return this.oauthToken;
+	}
+
+	public void setOauthToken(String oauthToken) {
+		this.oauthToken = oauthToken;
 	}
 
 }

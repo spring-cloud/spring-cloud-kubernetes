@@ -89,6 +89,7 @@ public class KubernetesAutoConfiguration {
 				.withUsername(or(kubernetesClientProperties.getUsername(), base.getUsername()))
 				.withPassword(or(kubernetesClientProperties.getPassword(), base.getPassword()))
 
+				.withOauthToken(or(kubernetesClientProperties.getOauthToken(), base.getOauthToken()))
 				.withCaCertFile(or(kubernetesClientProperties.getCaCertFile(), base.getCaCertFile()))
 				.withCaCertData(or(kubernetesClientProperties.getCaCertData(), base.getCaCertData()))
 
