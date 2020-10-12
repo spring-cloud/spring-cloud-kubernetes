@@ -14,28 +14,39 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes;
+package org.springframework.cloud.kubernetes.commons;
 
 import java.util.function.Supplier;
 
-import io.fabric8.kubernetes.api.model.Pod;
-
 /**
- * Utility interface to retrieve {@link Pod} related information.
+ * Lazy instantiation utility class.
  *
+ * @param <T> return type
  * @author Ioannis Canellos
  */
-public interface PodUtils {
+public final class LazilyInstantiate<T> implements Supplier<T> {
 
-	/**
-	 * @return A supplier of the currentPod {@link Pod}. The supplier will hold the
-	 * currentPod {@Pod} if inside Kubernetes or false, otherwise.
-	 */
-	Supplier<Pod> currentPod();
+	private final Supplier<T> supplier;
 
-	/**
-	 * @return true if called from within Kubernetes, false otherwise.
-	 */
-	Boolean isInsideKubernetes();
+	private Supplier<T> current;
+
+	private LazilyInstantiate(Supplier<T> supplier) {
+		this.supplier = supplier;
+		this.current = () -> swapper();
+	}
+
+	public static <T> LazilyInstantiate<T> using(Supplier<T> supplier) {
+		return new LazilyInstantiate<T>(supplier);
+	}
+
+	public synchronized T get() {
+		return this.current.get();
+	}
+
+	private T swapper() {
+		T obj = this.supplier.get();
+		this.current = () -> obj;
+		return obj;
+	}
 
 }

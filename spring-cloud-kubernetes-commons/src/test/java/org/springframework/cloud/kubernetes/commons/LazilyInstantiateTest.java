@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes;
+package org.springframework.cloud.kubernetes.commons;
 
 import java.util.function.Supplier;
 

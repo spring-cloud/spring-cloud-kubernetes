@@ -33,6 +33,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

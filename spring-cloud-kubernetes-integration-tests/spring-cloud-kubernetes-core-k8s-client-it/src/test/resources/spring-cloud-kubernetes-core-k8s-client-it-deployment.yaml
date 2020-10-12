@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-cloud-kubernetes-core-k8s-client-it-deployment
+spec:
+  selector:
+    matchLabels:
+      app: spring-cloud-kubernetes-core-k8s-client-it
+  template:
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-core-k8s-client-it
+    spec:
+      serviceAccountName: spring-cloud-kubernetes-serviceaccount
+      containers:
+        - name: spring-cloud-kubernetes-core-k8s-client-it
+          image: localhost:5000/spring-cloud-kubernetes-core-k8s-client-it:2.0.0-SNAPSHOT
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/liveness
+          ports:
+            - containerPort: 8080

@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.cloud.kubernetes.commons.AbstractKubernetesInfoContributor;
+import org.springframework.cloud.kubernetes.commons.PodUtils;
 
 /**
  * Kubernetes implementation of {@link InfoContributor}.
@@ -31,9 +32,9 @@ import org.springframework.cloud.kubernetes.commons.AbstractKubernetesInfoContri
  */
 public class KubernetesInfoContributor extends AbstractKubernetesInfoContributor {
 
-	private PodUtils utils;
+	private PodUtils<Pod> utils;
 
-	public KubernetesInfoContributor(PodUtils utils) {
+	public KubernetesInfoContributor(PodUtils<Pod> utils) {
 		this.utils = utils;
 	}
 

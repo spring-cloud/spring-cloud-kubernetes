@@ -25,12 +25,15 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.kubernetes.commons.LazilyInstantiate;
+import org.springframework.cloud.kubernetes.commons.PodUtils;
+
 /**
  * Utility class to work with pods.
  *
  * @author Ioannis Canellos
  */
-public class StandardPodUtils implements PodUtils {
+public class StandardPodUtils implements PodUtils<Pod> {
 
 	/**
 	 * Hostname environment variable name.

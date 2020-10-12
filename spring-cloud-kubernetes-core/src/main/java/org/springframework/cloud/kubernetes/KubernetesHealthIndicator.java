@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.cloud.kubernetes.commons.AbstractKubernetesHealthIndicator;
+import org.springframework.cloud.kubernetes.commons.PodUtils;
 
 /**
  * Kubernetes implementation of {@link AbstractHealthIndicator}.
@@ -32,9 +33,9 @@ import org.springframework.cloud.kubernetes.commons.AbstractKubernetesHealthIndi
  */
 public class KubernetesHealthIndicator extends AbstractKubernetesHealthIndicator {
 
-	private PodUtils utils;
+	private PodUtils<Pod> utils;
 
-	public KubernetesHealthIndicator(PodUtils utils) {
+	public KubernetesHealthIndicator(PodUtils<Pod> utils) {
 		this.utils = utils;
 	}
 

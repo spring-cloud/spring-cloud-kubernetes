@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.configuration.watcher;
+package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -26,19 +26,19 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import io.kubernetes.client.ApiException;
-import io.kubernetes.client.apis.AppsV1Api;
-import io.kubernetes.client.apis.CoreV1Api;
-import io.kubernetes.client.models.V1Deployment;
-import io.kubernetes.client.models.V1DeploymentBuilder;
-import io.kubernetes.client.models.V1DeploymentList;
-import io.kubernetes.client.models.V1Endpoints;
-import io.kubernetes.client.models.V1EndpointsList;
-import io.kubernetes.client.models.V1EnvVar;
-import io.kubernetes.client.models.V1ReplicationController;
-import io.kubernetes.client.models.V1ReplicationControllerList;
-import io.kubernetes.client.models.V1Service;
-import io.kubernetes.client.models.V1ServiceBuilder;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1DeploymentBuilder;
+import io.kubernetes.client.openapi.models.V1DeploymentList;
+import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1EndpointsList;
+import io.kubernetes.client.openapi.models.V1EnvVar;
+import io.kubernetes.client.openapi.models.V1ReplicationController;
+import io.kubernetes.client.openapi.models.V1ReplicationControllerList;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import io.kubernetes.client.util.Yaml;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -104,41 +104,30 @@ public class K8SUtils {
 		return yamlObj;
 	}
 
-	public V1Service createService(String name, Map<String, String> labels,
-			Map<String, String> specSelectors, String type, String portName, int port,
-			int targetPort, String namespace) throws ApiException {
-		V1Service wiremockService = new V1ServiceBuilder().editOrNewMetadata()
-				.withName(name).addToLabels(labels).endMetadata().editOrNewSpec()
-				.addToSelector(specSelectors).withNewType(type).addNewPort()
-				.withName(portName).withPort(port).withNewTargetPort(targetPort).endPort()
-				.endSpec().build();
+	public V1Service createService(String name, Map<String, String> labels, Map<String, String> specSelectors,
+			String type, String portName, int port, int targetPort, String namespace) throws ApiException {
+		V1Service wiremockService = new V1ServiceBuilder().editOrNewMetadata().withName(name).addToLabels(labels)
+				.endMetadata().editOrNewSpec().addToSelector(specSelectors).withNewType(type).addNewPort()
+				.withName(portName).withPort(port).withNewTargetPort(targetPort).endPort().endSpec().build();
 		return api.createNamespacedService(namespace, wiremockService, null, null, null);
 	}
 
-	public V1Deployment createDeployment(String name,
-			Map<String, String> selectorMatchLabels,
-			Map<String, String> templateMetadataLabels, String containerName,
-			String image, String pullPolicy, int containerPort, int readinessProbePort,
-			String readinessProbePath, int livenessProbePort, String livenessProbePath,
-			String serviceAccountName, Collection<V1EnvVar> envVars, String namespace)
+	public V1Deployment createDeployment(String name, Map<String, String> selectorMatchLabels,
+			Map<String, String> templateMetadataLabels, String containerName, String image, String pullPolicy,
+			int containerPort, int readinessProbePort, String readinessProbePath, int livenessProbePort,
+			String livenessProbePath, String serviceAccountName, Collection<V1EnvVar> envVars, String namespace)
 			throws ApiException {
 
-		V1Deployment wiremockDeployment = new V1DeploymentBuilder().editOrNewMetadata()
-				.withName(name).endMetadata().editOrNewSpec().withNewSelector()
-				.addToMatchLabels(selectorMatchLabels).endSelector().editOrNewTemplate()
-				.editOrNewMetadata().addToLabels(templateMetadataLabels).endMetadata()
-				.editOrNewSpec().withServiceAccountName(serviceAccountName)
-				.addNewContainer().withName(containerName).withImage(image)
-				.withImagePullPolicy(pullPolicy).addNewPort()
-				.withContainerPort(containerPort).endPort().editOrNewReadinessProbe()
-				.editOrNewHttpGet().withNewPort(readinessProbePort)
-				.withNewPath(readinessProbePath).endHttpGet().endReadinessProbe()
-				.editOrNewLivenessProbe().editOrNewHttpGet()
-				.withNewPort(livenessProbePort).withNewPath(livenessProbePath)
-				.endHttpGet().endLivenessProbe().addAllToEnv(envVars).endContainer()
-				.endSpec().endTemplate().endSpec().build();
-		return appsApi.createNamespacedDeployment(namespace, wiremockDeployment, null,
-				null, null);
+		V1Deployment wiremockDeployment = new V1DeploymentBuilder().editOrNewMetadata().withName(name).endMetadata()
+				.editOrNewSpec().withNewSelector().addToMatchLabels(selectorMatchLabels).endSelector()
+				.editOrNewTemplate().editOrNewMetadata().addToLabels(templateMetadataLabels).endMetadata()
+				.editOrNewSpec().withServiceAccountName(serviceAccountName).addNewContainer().withName(containerName)
+				.withImage(image).withImagePullPolicy(pullPolicy).addNewPort().withContainerPort(containerPort)
+				.endPort().editOrNewReadinessProbe().editOrNewHttpGet().withNewPort(readinessProbePort)
+				.withNewPath(readinessProbePath).endHttpGet().endReadinessProbe().editOrNewLivenessProbe()
+				.editOrNewHttpGet().withNewPort(livenessProbePort).withNewPath(livenessProbePath).endHttpGet()
+				.endLivenessProbe().addAllToEnv(envVars).endContainer().endSpec().endTemplate().endSpec().build();
+		return appsApi.createNamespacedDeployment(namespace, wiremockDeployment, null, null, null);
 
 	}
 
@@ -148,8 +137,8 @@ public class K8SUtils {
 	}
 
 	public boolean isEndpointReady(String name, String namespace) throws ApiException {
-		V1EndpointsList endpoints = api.listNamespacedEndpoints(namespace, null, null,
-				"metadata.name=" + name, null, null, null, null, null);
+		V1EndpointsList endpoints = api.listNamespacedEndpoints(namespace, null, null, null, "metadata.name=" + name,
+				null, null, null, null, null);
 		if (endpoints.getItems().isEmpty()) {
 			fail("no endpoints for " + name);
 		}
@@ -162,18 +151,15 @@ public class K8SUtils {
 				.until(() -> isReplicationControllerReady(name, namespace));
 	}
 
-	public boolean isReplicationControllerReady(String name, String namespace)
-			throws ApiException {
-		V1ReplicationControllerList controllerList = api
-				.listNamespacedReplicationController(namespace, null, null,
-						"metadata.name=" + name, null, null, null, null, null);
+	public boolean isReplicationControllerReady(String name, String namespace) throws ApiException {
+		V1ReplicationControllerList controllerList = api.listNamespacedReplicationController(namespace, null, null,
+				null, "metadata.name=" + name, null, null, null, null, null);
 		if (controllerList.getItems().size() < 1) {
 			fail("Replication controller with name " + name + "could not be found");
 		}
 
 		V1ReplicationController replicationController = controllerList.getItems().get(0);
-		Integer availableReplicas = replicationController.getStatus()
-				.getAvailableReplicas();
+		Integer availableReplicas = replicationController.getStatus().getAvailableReplicas();
 		log.info("Available replicas for " + name + ": " + availableReplicas);
 		return availableReplicas != null && availableReplicas >= 1;
 
@@ -184,10 +170,9 @@ public class K8SUtils {
 				.until(() -> isDeployentReady(deploymentName, namespace));
 	}
 
-	public boolean isDeployentReady(String deploymentName, String namespace)
-			throws ApiException {
-		V1DeploymentList deployments = appsApi.listNamespacedDeployment(namespace, null,
-				null, "metadata.name=" + deploymentName, null, null, null, null, null);
+	public boolean isDeployentReady(String deploymentName, String namespace) throws ApiException {
+		V1DeploymentList deployments = appsApi.listNamespacedDeployment(namespace, null, null, null,
+				"metadata.name=" + deploymentName, null, null, null, null, null);
 		if (deployments.getItems().size() < 1) {
 			fail("No deployments with the name " + deploymentName);
 		}

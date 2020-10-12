@@ -28,6 +28,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("spring.cloud.kubernetes.client")
 public class KubernetesClientProperties {
 
+	/**
+	 * Default path for namespace file.
+	 */
+	public static final String SERVICE_ACCOUNT_NAMESPACE_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/namespace";
+
 	private Boolean trustCerts;
 
 	private String masterUrl;
@@ -77,6 +82,16 @@ public class KubernetesClientProperties {
 	private String proxyPassword;
 
 	private String[] noProxy;
+
+	private String serviceAccountNamespacePath = SERVICE_ACCOUNT_NAMESPACE_PATH;
+
+	public String getServiceAccountNamespacePath() {
+		return serviceAccountNamespacePath;
+	}
+
+	public void setServiceAccountNamespacePath(String serviceAccountNamespacePath) {
+		this.serviceAccountNamespacePath = serviceAccountNamespacePath;
+	}
 
 	public String getClientCertData() {
 		return this.clientCertData;

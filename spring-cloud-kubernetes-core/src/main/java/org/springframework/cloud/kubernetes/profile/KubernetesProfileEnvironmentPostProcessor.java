@@ -20,11 +20,12 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 
 import org.springframework.cloud.kubernetes.StandardPodUtils;
 import org.springframework.cloud.kubernetes.commons.profile.AbstractKubernetesProfileEnvironmentPostProcessor;
+import org.springframework.core.env.Environment;
 
 public class KubernetesProfileEnvironmentPostProcessor extends AbstractKubernetesProfileEnvironmentPostProcessor {
 
 	@Override
-	protected boolean isInsideKubernetes() {
+	protected boolean isInsideKubernetes(Environment environment) {
 		try (DefaultKubernetesClient client = new DefaultKubernetesClient()) {
 			final StandardPodUtils podUtils = new StandardPodUtils(client);
 			return podUtils.isInsideKubernetes();
