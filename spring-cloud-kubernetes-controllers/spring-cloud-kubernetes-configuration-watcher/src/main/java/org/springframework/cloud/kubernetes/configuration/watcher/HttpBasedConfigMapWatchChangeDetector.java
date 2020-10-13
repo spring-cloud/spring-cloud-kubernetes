@@ -20,14 +20,14 @@ import java.net.URI;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.discovery.reactive.KubernetesReactiveDiscoveryClient;
@@ -40,8 +40,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author Ryan Baxter
+ * @author Kris Iyer
  */
-public class HttpBasedConfigurationWatchChangeDetector extends ConfigurationWatcherChangeDetector {
+public class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatcherChangeDetector {
+
+	private Log log = LogFactory.getLog(getClass());
 
 	/**
 	 * Annotation key for actuator port and path.
@@ -52,22 +55,16 @@ public class HttpBasedConfigurationWatchChangeDetector extends ConfigurationWatc
 
 	private KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient;
 
-	public HttpBasedConfigurationWatchChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
+	public HttpBasedConfigMapWatchChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator,
-			SecretsPropertySourceLocator secretsPropertySourceLocator,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor, WebClient webClient,
 			KubernetesReactiveDiscoveryClient k8sReactiveDiscoveryClient) {
 		super(environment, properties, kubernetesClient, strategy, configMapPropertySourceLocator,
-				secretsPropertySourceLocator, k8SConfigurationProperties, threadPoolTaskExecutor);
+				k8SConfigurationProperties, threadPoolTaskExecutor);
 		this.webClient = webClient;
 		this.kubernetesReactiveDiscoveryClient = k8sReactiveDiscoveryClient;
-	}
-
-	@Override
-	protected Mono<Void> triggerRefresh(Secret secret) {
-		return refresh(secret.getMetadata()).then();
 	}
 
 	private void setActuatorUriFromAnnotation(UriComponentsBuilder actuatorUriBuilder, String metadataUri) {

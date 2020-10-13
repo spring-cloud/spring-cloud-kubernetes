@@ -31,7 +31,6 @@ import org.junit.Test;
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,9 +64,8 @@ public class EventBasedConfigurationChangeDetectorTests {
 
 		ConfigurationUpdateStrategy configurationUpdateStrategy = mock(ConfigurationUpdateStrategy.class);
 		ConfigMapPropertySourceLocator configMapLocator = mock(ConfigMapPropertySourceLocator.class);
-		SecretsPropertySourceLocator secretsLocator = mock(SecretsPropertySourceLocator.class);
-		EventBasedConfigurationChangeDetector detector = new EventBasedConfigurationChangeDetector(env,
-				configReloadProperties, k8sClient, configurationUpdateStrategy, configMapLocator, secretsLocator);
+		EventBasedConfigMapChangeDetector detector = new EventBasedConfigMapChangeDetector(env, configReloadProperties,
+				k8sClient, configurationUpdateStrategy, configMapLocator);
 		List<ConfigMapPropertySource> sources = detector.findPropertySources(ConfigMapPropertySource.class);
 		assertThat(sources.size()).isEqualTo(1);
 		assertThat(sources.get(0).getProperty("foo")).isEqualTo("bar");

@@ -27,6 +27,8 @@ public class GreetingProperties {
 
 	private String morning = "Good morning, %s!";
 
+	private String bonjour = "Bonjour, %s!";
+
 	public String getGreeting() {
 		return this.greeting;
 	}
@@ -49,6 +51,14 @@ public class GreetingProperties {
 
 	public void setMorning(String morning) {
 		this.morning = morning;
+	}
+
+	public String getBonjour() {
+		return this.bonjour;
+	}
+
+	public void setBonjour(String bonjour) {
+		this.bonjour = bonjour;
 	}
 
 }
