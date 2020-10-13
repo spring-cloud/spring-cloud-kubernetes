@@ -14,8 +14,6 @@
 
 	<properties>
 		<wiremock.version>2.26.3</wiremock.version>
-		<docker-java.version>3.2.2</docker-java.version>
-		<awaitility.version>4.0.3</awaitility.version>
 	</properties>
 
 	<dependencies>
@@ -65,19 +63,11 @@
 		<dependency>
 			<groupId>com.github.docker-java</groupId>
 			<artifactId>docker-java-core</artifactId>
-			<version>${docker-java.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.github.docker-java</groupId>
 			<artifactId>docker-java-transport-httpclient5</artifactId>
-			<version>${docker-java.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.awaitility</groupId>
-			<artifactId>awaitility</artifactId>
-			<version>${awaitility.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

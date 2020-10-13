@@ -12,7 +12,6 @@
 	<artifactId>spring-cloud-kubernetes-test-support</artifactId>
 
 	<properties>
-		<docker-java.version>3.2.2</docker-java.version>
 		<awaitility.version>4.0.3</awaitility.version>
 	</properties>
 	<dependencies>

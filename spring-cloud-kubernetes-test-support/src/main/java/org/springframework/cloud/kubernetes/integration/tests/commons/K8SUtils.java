@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.Duration;
@@ -86,22 +85,7 @@ public class K8SUtils {
 	public Object readYamlFromClasspath(String fileName) throws Exception {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File file = new File(classLoader.getResource(fileName).getFile());
-		BufferedReader reader = null;
-		Object yamlObj = null;
-		try {
-			// open the url stream, wrap it an a few "readers"
-			reader = new BufferedReader(new FileReader(file));
-			yamlObj = Yaml.load(reader);
-		}
-		catch (Exception e) {
-			throw e;
-		}
-		finally {
-			if (reader != null) {
-				reader.close();
-			}
-		}
-		return yamlObj;
+		return Yaml.load(file);
 	}
 
 	public V1Service createService(String name, Map<String, String> labels, Map<String, String> specSelectors,
