@@ -107,7 +107,7 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-kubernetes-core-k8s-client</artifactId>
+				<artifactId>spring-cloud-kubernetes-client-autoconfig</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -149,7 +149,7 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-kubernetes-k8s-client-all</artifactId>
+				<artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 

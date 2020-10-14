@@ -9,12 +9,12 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-starter-kubernetes-k8s-client-all</artifactId>
+	<artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-kubernetes-core-k8s-client</artifactId>
+			<artifactId>spring-cloud-kubernetes-client-autoconfig</artifactId>
 		</dependency>
 	</dependencies>
 
