@@ -31,7 +31,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-kubernetes-core</artifactId>
+			<artifactId>spring-cloud-kubernetes-fabric8-autoconfig</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
