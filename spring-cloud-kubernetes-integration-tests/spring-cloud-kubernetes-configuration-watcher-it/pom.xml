@@ -14,9 +14,6 @@
 
 	<properties>
 		<wiremock.version>2.26.3</wiremock.version>
-		<kubernetes-client.version>6.0.1</kubernetes-client.version>
-		<docker-java.version>3.2.2</docker-java.version>
-		<awaitility.version>4.0.3</awaitility.version>
 	</properties>
 
 	<dependencies>
@@ -43,6 +40,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-kubernetes-test-support</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.github.tomakehurst</groupId>
 			<artifactId>wiremock-jre8</artifactId>
 			<version>${wiremock.version}</version>
@@ -51,31 +53,21 @@
 		<dependency>
 			<groupId>io.kubernetes</groupId>
 			<artifactId>client-java</artifactId>
-			<version>${kubernetes-client.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.kubernetes</groupId>
 			<artifactId>client-java-extended</artifactId>
-			<version>${kubernetes-client.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.github.docker-java</groupId>
 			<artifactId>docker-java-core</artifactId>
-			<version>${docker-java.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.github.docker-java</groupId>
 			<artifactId>docker-java-transport-httpclient5</artifactId>
-			<version>${docker-java.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.awaitility</groupId>
-			<artifactId>awaitility</artifactId>
-			<version>${awaitility.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

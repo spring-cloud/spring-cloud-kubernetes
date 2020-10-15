@@ -28,8 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
-public class ConfigWatcherTestApplication
-		implements ApplicationListener<RefreshRemoteApplicationEvent> {
+public class ConfigWatcherTestApplication implements ApplicationListener<RefreshRemoteApplicationEvent> {
 
 	protected Log log = LogFactory.getLog(getClass());
 
@@ -46,8 +45,7 @@ public class ConfigWatcherTestApplication
 	}
 
 	@Override
-	public void onApplicationEvent(
-			RefreshRemoteApplicationEvent refreshRemoteApplicationEvent) {
+	public void onApplicationEvent(RefreshRemoteApplicationEvent refreshRemoteApplicationEvent) {
 		log.warn("Received remote refresh event");
 		this.value = true;
 	}
