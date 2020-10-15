@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.annotation.PreDestroy;
@@ -76,34 +77,32 @@ public abstract class ConfigurationChangeDetector {
 
 	/**
 	 * Determines if two property sources are different.
-	 * @param mp1 map property sources 1
-	 * @param mp2 map property sources 2
+	 * @param left left map property sources
+	 * @param right right map property sources
 	 * @return {@code true} if source has changed
 	 */
-	protected boolean changed(MapPropertySource mp1, MapPropertySource mp2) {
-		if (mp1 == mp2) {
+	protected boolean changed(MapPropertySource left, MapPropertySource right) {
+		if (left == right) {
 			return false;
 		}
-		if (mp1 == null && mp2 != null || mp1 != null && mp2 == null) {
+		if (left == null || right == null) {
 			return true;
 		}
-
-		Map<String, Object> s1 = mp1.getSource();
-		Map<String, Object> s2 = mp2.getSource();
-
-		return s1 == null ? s2 != null : !s1.equals(s2);
+		Map<String, Object> leftMap = left.getSource();
+		Map<String, Object> rightMap = right.getSource();
+		return !Objects.equals(leftMap, rightMap);
 	}
 
-	protected boolean changed(List<? extends MapPropertySource> l1, List<? extends MapPropertySource> l2) {
+	protected boolean changed(List<? extends MapPropertySource> left, List<? extends MapPropertySource> right) {
 
-		if (l1.size() != l2.size()) {
+		if (left.size() != right.size()) {
 			this.log.warn("The current number of ConfigMap PropertySources does not match "
 					+ "the ones loaded from the Kubernetes - No reload will take place");
 			return false;
 		}
 
-		for (int i = 0; i < l1.size(); i++) {
-			if (changed(l1.get(i), l2.get(i))) {
+		for (int i = 0; i < left.size(); i++) {
+			if (changed(left.get(i), right.get(i))) {
 				return true;
 			}
 		}
@@ -146,8 +145,8 @@ public abstract class ConfigurationChangeDetector {
 			else if (sourceClass.isInstance(source)) {
 				managedSources.add(sourceClass.cast(source));
 			}
-			else if (BootstrapPropertySource.class.isInstance(source)) {
-				PropertySource propertySource = ((BootstrapPropertySource) source).getDelegate();
+			else if (source instanceof BootstrapPropertySource) {
+				PropertySource<?> propertySource = ((BootstrapPropertySource<?>) source).getDelegate();
 				if (sourceClass.isInstance(propertySource)) {
 					sources.add(propertySource);
 				}
@@ -158,7 +157,7 @@ public abstract class ConfigurationChangeDetector {
 	}
 
 	private <E> LinkedList<E> toLinkedList(Iterable<E> it) {
-		LinkedList<E> list = new LinkedList<E>();
+		LinkedList<E> list = new LinkedList<>();
 		for (E e : it) {
 			list.add(e);
 		}
@@ -177,7 +176,7 @@ public abstract class ConfigurationChangeDetector {
 			Environment environment) {
 
 		List<MapPropertySource> result = new ArrayList<>();
-		PropertySource propertySource = propertySourceLocator.locate(environment);
+		PropertySource<?> propertySource = propertySourceLocator.locate(environment);
 		if (propertySource instanceof MapPropertySource) {
 			result.add((MapPropertySource) propertySource);
 		}

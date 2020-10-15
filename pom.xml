@@ -87,12 +87,16 @@
 
 	<modules>
 		<module>spring-cloud-kubernetes-dependencies</module>
-		<module>spring-cloud-kubernetes-core</module>
+		<module>spring-cloud-kubernetes-commons</module>
+		<module>spring-cloud-kubernetes-test-support</module>
+		<module>spring-cloud-kubernetes-client-autoconfig</module>
+		<module>spring-cloud-kubernetes-fabric8-autoconfig</module>
 		<module>spring-cloud-kubernetes-config</module>
 		<module>spring-cloud-kubernetes-discovery</module>
 		<module>spring-cloud-starter-kubernetes</module>
 		<module>spring-cloud-starter-kubernetes-config</module>
 		<module>spring-cloud-starter-kubernetes-all</module>
+		<module>spring-cloud-starter-kubernetes-client-all</module>
 		<module>spring-cloud-kubernetes-examples</module>
 		<module>spring-cloud-kubernetes-leader</module>
 		<module>spring-cloud-kubernetes-istio</module>

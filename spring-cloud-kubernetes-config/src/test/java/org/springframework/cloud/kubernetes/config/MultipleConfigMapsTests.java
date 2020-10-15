@@ -64,26 +64,23 @@ public class MultipleConfigMapsTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		createConfigmap(server, "s1", "defnamespace", new HashMap<String, String>() {
-			{
-				put("bean.common-message", "c1");
-				put("bean.message1", "m1");
-			}
-		});
+		Map<String, String> one = new HashMap<>();
+		one.put("bean.common-message", "c1");
+		one.put("bean.message1", "m1");
 
-		createConfigmap(server, "defname", "s2", new HashMap<String, String>() {
-			{
-				put("bean.common-message", "c2");
-				put("bean.message2", "m2");
-			}
-		});
+		createConfigmap(server, "s1", "defnamespace", one);
 
-		createConfigmap(server, "othername", "othernamespace", new HashMap<String, String>() {
-			{
-				put("bean.common-message", "c3");
-				put("bean.message3", "m3");
-			}
-		});
+		Map<String, String> two = new HashMap<>();
+		two.put("bean.common-message", "c2");
+		two.put("bean.message2", "m2");
+
+		createConfigmap(server, "defname", "s2", two);
+
+		Map<String, String> three = new HashMap<>();
+		three.put("bean.common-message", "c3");
+		three.put("bean.message3", "m3");
+
+		createConfigmap(server, "othername", "othernamespace", three);
 	}
 
 	private static void createConfigmap(KubernetesServer server, String configMapName, String namespace,

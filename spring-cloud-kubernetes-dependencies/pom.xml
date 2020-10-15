@@ -36,6 +36,7 @@
 		<arquillian-cube.version>1.15.2</arquillian-cube.version>
 		<hoverfly.version>0.13.0</hoverfly.version>
 		<kubernetes-client.version>4.10.3</kubernetes-client.version>
+		<kubernetes-java-client.version>10.0.0</kubernetes-java-client.version>
 		<istio-client.version>1.1.1</istio-client.version>
 		<mockwebserver.version>0.1.2</mockwebserver.version>
 		<okhttp.version>3.14.4</okhttp.version>
@@ -51,6 +52,17 @@
 			</dependency>
 
 			<dependency>
+				<groupId>io.kubernetes</groupId>
+				<artifactId>client-java</artifactId>
+				<version>${kubernetes-java-client.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.kubernetes</groupId>
+				<artifactId>client-java-extended</artifactId>
+				<version>${kubernetes-java-client.version}</version>
+			</dependency>
+
+			<dependency>
 				<groupId>me.snowdrop</groupId>
 				<artifactId>istio-client</artifactId>
 				<version>${istio-client.version}</version>
@@ -59,7 +71,7 @@
 			<!-- Own dependencies -->
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-kubernetes-core</artifactId>
+				<artifactId>spring-cloud-kubernetes-fabric8-autoconfig</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -89,7 +101,24 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-kubernetes-commons</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-kubernetes-client-autoconfig</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-kubernetes-loadbalancer</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-kubernetes-test-support</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -115,6 +144,12 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-kubernetes-all</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 

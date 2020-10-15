@@ -25,8 +25,9 @@ import org.springframework.cloud.client.ReactiveCommonsClientAutoConfiguration;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.commons.util.UtilAutoConfiguration;
-import org.springframework.cloud.kubernetes.KubernetesAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,9 +36,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 
-	private ApplicationContextRunner contextRunner = new ApplicationContextRunner().withConfiguration(
-			AutoConfigurations.of(UtilAutoConfiguration.class, ReactiveCommonsClientAutoConfiguration.class,
-					KubernetesAutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class,
+	private ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
+					ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+					Fabric8AutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class,
 					KubernetesReactiveDiscoveryClientAutoConfiguration.class));
 
 	@Test

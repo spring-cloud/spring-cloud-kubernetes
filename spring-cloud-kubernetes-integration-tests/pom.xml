@@ -24,6 +24,7 @@
 		<arquillian.version>1.4.0.Final</arquillian.version>
 		<rest-assured.version>3.2.0</rest-assured.version>
 		<okhttptests.version>3.12.12</okhttptests.version>
+		<docker-java.version>3.2.2</docker-java.version>
 
 		<!--
           The port on localhost where the application will listen to from outside the cluster
@@ -136,7 +137,20 @@
 				<artifactId>logging-interceptor</artifactId>
 				<version>${okhttptests.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>com.github.docker-java</groupId>
+				<artifactId>docker-java-core</artifactId>
+				<version>${docker-java.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.github.docker-java</groupId>
+				<artifactId>docker-java-transport-httpclient5</artifactId>
+				<version>${docker-java.version}</version>
+				<scope>test</scope>
+			</dependency>
 		</dependencies>
+
 	</dependencyManagement>
 
 	<modules>
