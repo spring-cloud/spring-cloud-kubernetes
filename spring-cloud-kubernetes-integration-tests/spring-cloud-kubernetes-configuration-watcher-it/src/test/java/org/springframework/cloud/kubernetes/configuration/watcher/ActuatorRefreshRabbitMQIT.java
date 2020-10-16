@@ -245,7 +245,7 @@ public class ActuatorRefreshRabbitMQIT {
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) k8SUtils.readYamlFromClasspath(
-				"spring-cloud-kubernetes-configuration-watcher-bus-deployment.yaml");
+				"spring-cloud-kubernetes-configuration-watcher-bus-amqp-deployment.yaml");
 		return deployment;
 	}
 
