@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.boot.actuate.autoconfigure.amqp.RabbitHealthContributorAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.bus.BusProperties;
@@ -52,6 +53,7 @@ public class ConfigurationWatcherAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
+	@ConditionalOnBean(ConfigMapPropertySourceLocator.class)
 	public ConfigMapWatcherChangeDetector httpBasedConfigMapWatchChangeDetector(AbstractEnvironment environment,
 			KubernetesClient kubernetesClient, ConfigMapPropertySourceLocator configMapPropertySourceLocator,
 			SecretsPropertySourceLocator secretsPropertySourceLocator, ConfigReloadProperties properties,
@@ -66,6 +68,7 @@ public class ConfigurationWatcherAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
+	@ConditionalOnBean(SecretsPropertySourceLocator.class)
 	public SecretsWatcherChangeDetector httpBasedSecretsWatchChangeDetector(AbstractEnvironment environment,
 			KubernetesClient kubernetesClient, SecretsPropertySourceLocator secretsPropertySourceLocator,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
@@ -84,6 +87,7 @@ public class ConfigurationWatcherAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
+		@ConditionalOnBean(ConfigMapPropertySourceLocator.class)
 		public ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(BusProperties busProperties,
 				AbstractEnvironment environment, KubernetesClient kubernetesClient,
 				ConfigMapPropertySourceLocator configMapPropertySourceLocator, ConfigReloadProperties properties,
@@ -96,6 +100,7 @@ public class ConfigurationWatcherAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
+		@ConditionalOnBean(SecretsPropertySourceLocator.class)
 		public SecretsWatcherChangeDetector busSecretsChangeWatcher(BusProperties busProperties,
 				AbstractEnvironment environment, KubernetesClient kubernetesClient,
 				SecretsPropertySourceLocator secretsPropertySourceLocator, ConfigReloadProperties properties,
@@ -115,6 +120,7 @@ public class ConfigurationWatcherAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
+		@ConditionalOnBean(ConfigMapPropertySourceLocator.class)
 		public ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(BusProperties busProperties,
 				AbstractEnvironment environment, KubernetesClient kubernetesClient,
 				ConfigMapPropertySourceLocator configMapPropertySourceLocator, ConfigReloadProperties properties,
@@ -127,6 +133,7 @@ public class ConfigurationWatcherAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
+		@ConditionalOnBean(SecretsPropertySourceLocator.class)
 		public SecretsWatcherChangeDetector busSecretsChangeWatcher(BusProperties busProperties,
 				AbstractEnvironment environment, KubernetesClient kubernetesClient,
 				SecretsPropertySourceLocator secretsPropertySourceLocator, ConfigReloadProperties properties,
