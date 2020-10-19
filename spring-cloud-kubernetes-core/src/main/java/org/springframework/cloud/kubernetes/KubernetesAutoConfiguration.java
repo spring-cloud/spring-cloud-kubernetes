@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
+import org.springframework.boot.actuate.autoconfigure.info.ConditionalOnEnabledInfoContributor;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -166,6 +167,7 @@ public class KubernetesAutoConfiguration {
 		}
 
 		@Bean
+		@ConditionalOnEnabledInfoContributor("kubernetes")
 		public KubernetesInfoContributor kubernetesInfoContributor(PodUtils podUtils) {
 			return new KubernetesInfoContributor(podUtils);
 		}
