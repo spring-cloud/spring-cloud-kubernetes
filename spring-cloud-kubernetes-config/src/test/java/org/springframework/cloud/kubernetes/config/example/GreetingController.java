@@ -54,7 +54,7 @@ public class GreetingController {
 
 	@RequestMapping("/api/bonjour")
 	public ResponseMessage bonjour(
-		@RequestParam(value = "name", defaultValue = "World") String name) {
+			@RequestParam(value = "name", defaultValue = "World") String name) {
 		return new ResponseMessage(String.format(this.properties.getBonjour(), name));
 	}
 
