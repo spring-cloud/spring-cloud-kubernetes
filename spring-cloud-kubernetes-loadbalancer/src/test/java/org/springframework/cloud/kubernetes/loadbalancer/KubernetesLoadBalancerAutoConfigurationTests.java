@@ -74,4 +74,5 @@ class KubernetesLoadBalancerAutoConfigurationTests {
 				KubernetesDiscoveryProperties.class).web(org.springframework.boot.WebApplicationType.NONE)
 						.properties(env).run();
 	}
+
 }
