@@ -76,7 +76,7 @@ public class KubernetesServicesServerList extends KubernetesServerList {
 			}
 			else {
 				for (ServicePort servicePort : service.getSpec().getPorts()) {
-					if (Utils.isNotNullOrEmpty(this.getPortName())
+					if (Utils.isNullOrEmpty(this.getPortName())
 							|| this.getPortName().endsWith(servicePort.getName())) {
 						result.add(new Server(concatServiceFQDN(service),
 								servicePort.getPort()));
