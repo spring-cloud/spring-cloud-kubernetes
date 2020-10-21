@@ -28,9 +28,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
-import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -52,7 +52,7 @@ public class BusEventBasedConfigMapWatcherChangeDetectorTests {
 	private ConfigurationUpdateStrategy updateStrategy;
 
 	@Mock
-	private ConfigMapPropertySourceLocator configMapPropertySourceLocator;
+	private Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator;
 
 	@Mock
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
@@ -73,7 +73,7 @@ public class BusEventBasedConfigMapWatcherChangeDetectorTests {
 		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		busProperties = new BusProperties();
 		changeDetector = new BusEventBasedConfigMapWatcherChangeDetector(mockEnvironment, configReloadProperties,
-				client, updateStrategy, configMapPropertySourceLocator, busProperties,
+				client, updateStrategy, fabric8ConfigMapPropertySourceLocator, busProperties,
 				configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
 		changeDetector.setApplicationEventPublisher(applicationEventPublisher);
 	}

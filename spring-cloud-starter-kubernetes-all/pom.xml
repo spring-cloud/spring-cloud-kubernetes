@@ -38,7 +38,7 @@
 
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-kubernetes-config</artifactId>
+			<artifactId>spring-cloud-kubernetes-fabric8-config</artifactId>
 		</dependency>
 
 		<dependency>
