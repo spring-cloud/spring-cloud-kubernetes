@@ -9,6 +9,12 @@ spring:
         strategy: shutdown
     bus:
       enabled: false
+management:
+  health:
+    rabbit:
+      enabled: false
+    probes:
+      enabled: true
 server:
   port: 8888
 ---
@@ -19,6 +25,10 @@ spring:
       enabled: true
     stream:
       default-binder: rabbit
+management:
+  health:
+    rabbit:
+      enabled: true
 ---
 spring:
   profiles: bus-kafka
