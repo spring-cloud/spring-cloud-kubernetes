@@ -36,6 +36,7 @@
 |spring.cloud.kubernetes.client.requestTimeout | 10s | Request timeout
 |spring.cloud.kubernetes.client.rolling-timeout |  | 
 |spring.cloud.kubernetes.client.rollingTimeout | 900s | Rolling timeout
+|spring.cloud.kubernetes.client.service-account-namespace-path | /var/run/secrets/kubernetes.io/serviceaccount/namespace | 
 |spring.cloud.kubernetes.client.trust-certs |  | 
 |spring.cloud.kubernetes.client.trustCerts | false | Kubernetes API Trust Certificates
 |spring.cloud.kubernetes.client.username |  | Kubernetes API Username

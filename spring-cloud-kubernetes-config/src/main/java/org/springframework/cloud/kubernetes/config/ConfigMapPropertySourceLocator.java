@@ -104,7 +104,7 @@ public class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 		}).filter(Files::isRegularFile).forEach(p -> {
 			try {
 				String content = new String(Files.readAllBytes(p)).trim();
-				String filename = p.getFileName().toString().toLowerCase();
+				String filename = p.toAbsolutePath().toString().toLowerCase();
 				if (filename.endsWith(".properties")) {
 					addPropertySourceIfNeeded(c -> PROPERTIES_TO_MAP.apply(KEY_VALUE_TO_PROPERTIES.apply(c)), content,
 							filename, composite);

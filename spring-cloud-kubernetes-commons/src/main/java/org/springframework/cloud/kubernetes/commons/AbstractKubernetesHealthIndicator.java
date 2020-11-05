@@ -69,7 +69,7 @@ public abstract class AbstractKubernetesHealthIndicator extends AbstractHealthIn
 	@Override
 	protected void doHealthCheck(Health.Builder builder) throws Exception {
 		try {
-			builder.withDetails(getDetails());
+			builder.up().withDetails(getDetails());
 		}
 		catch (Exception e) {
 			builder.down(e);
