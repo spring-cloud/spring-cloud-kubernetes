@@ -33,7 +33,6 @@ import io.kubernetes.client.openapi.models.NetworkingV1beta1Ingress;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1ReplicationController;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.util.Config;
 import org.apache.commons.logging.Log;
@@ -45,6 +44,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
