@@ -106,6 +106,7 @@
 		<module>docs</module>
 		<module>spring-cloud-kubernetes-loadbalancer</module>
 		<module>spring-cloud-starter-kubernetes-loadbalancer</module>
+		<module>spring-cloud-kubernetes-client-discovery</module>
 	</modules>
 
 	<dependencyManagement>
