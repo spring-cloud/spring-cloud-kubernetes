@@ -30,7 +30,7 @@
 
 	<groupId>org.springframework.cloud</groupId>
 	<artifactId>spring-cloud-kubernetes</artifactId>
-	<version>1.1.7.BUILD-SNAPSHOT</version>
+	<version>1.1.7.RELEASE</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes</name>
 
@@ -63,9 +63,9 @@
 
 	<properties>
 		<!-- Dependency Versions -->
-		<spring-cloud-commons.version>2.2.6.BUILD-SNAPSHOT</spring-cloud-commons.version>
-		<spring-cloud-netflix.version>2.2.6.BUILD-SNAPSHOT</spring-cloud-netflix.version>
-		<spring-cloud-config.version>2.2.6.BUILD-SNAPSHOT</spring-cloud-config.version>
+		<spring-cloud-commons.version>2.2.6.RELEASE</spring-cloud-commons.version>
+		<spring-cloud-netflix.version>2.2.6.RELEASE</spring-cloud-netflix.version>
+		<spring-cloud-config.version>2.2.6.RELEASE</spring-cloud-config.version>
 
 		<!-- Maven Plugin Versions -->
 		<maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
