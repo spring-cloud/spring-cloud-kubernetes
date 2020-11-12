@@ -102,6 +102,12 @@ main() {
 	reg_port='5000'
 	running="$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)"
 	if [ "${running}" != 'true' ]; then
+		# If the container is not running but has exited remove it before trying to start it
+  		if [ "$(docker ps -aq -f status=exited -f name=${reg_name})" ]; then
+			# cleanup
+			docker rm "${reg_name}"
+  		fi
+
   		docker run \
     	-d --restart=always -p "${reg_port}:5000" --name "${reg_name}" \
     	registry:2
