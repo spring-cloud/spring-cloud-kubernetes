@@ -59,7 +59,7 @@ To discover service endpoint addresses that are not marked as "ready" by the kub
 ----
 spring.cloud.kubernetes.discovery.include-not-ready-addresses=true
 ----
-NOTE: This might be useful when discovering services for monitoring purposes, using a tool like https://codecentric.github.io/spring-boot-admin/current/[spring-boot-admin].
+NOTE: This might be useful when discovering services for monitoring purposes, and would enable inspecting the `/health` endpoint of not-ready service instances.
 ====
 
 If, for any reason, you need to disable the `DiscoveryClient`, you can set the following property in `application.properties`:
