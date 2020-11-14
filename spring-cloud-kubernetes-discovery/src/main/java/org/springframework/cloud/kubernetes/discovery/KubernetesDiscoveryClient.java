@@ -38,6 +38,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import static java.util.stream.Collectors.toMap;
@@ -150,6 +151,15 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				}
 
 				List<EndpointAddress> addresses = s.getAddresses();
+
+				if (this.properties.isIncludeNotReadyAddresses()
+						&& !CollectionUtils.isEmpty(s.getNotReadyAddresses())) {
+					if (addresses == null) {
+						addresses = new ArrayList<EndpointAddress>();
+					}
+					addresses.addAll(s.getNotReadyAddresses());
+				}
+
 				for (EndpointAddress endpointAddress : addresses) {
 					String instanceId = null;
 					if (endpointAddress.getTargetRef() != null) {

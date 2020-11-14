@@ -44,6 +44,9 @@ public class KubernetesDiscoveryProperties {
 	/** If discovering all namespaces. */
 	private boolean allNamespaces = false;
 
+	/** If endpoint addresses not marked 'ready' by the k8s api server should be discovered */
+	private boolean includeNotReadyAddresses = false;
+
 	/**
 	 * SpEL expression to filter services AFTER they have been retrieved from the
 	 * Kubernetes API server.
@@ -136,6 +139,14 @@ public class KubernetesDiscoveryProperties {
 
 	public void setAllNamespaces(boolean allNamespaces) {
 		this.allNamespaces = allNamespaces;
+	}
+
+	public boolean isIncludeNotReadyAddresses() {
+		return includeNotReadyAddresses;
+	}
+
+	public void setIncludeNotReadyAddresses(boolean includeNotReadyAddresses) {
+		this.includeNotReadyAddresses = includeNotReadyAddresses;
 	}
 
 	public int getOrder() {
