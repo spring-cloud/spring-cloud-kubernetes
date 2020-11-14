@@ -44,7 +44,10 @@ public class KubernetesDiscoveryProperties {
 	/** If discovering all namespaces. */
 	private boolean allNamespaces = false;
 
-	/** If endpoint addresses not marked 'ready' by the k8s api server should be discovered */
+	/**
+	 * If endpoint addresses not marked 'ready' by the k8s api server should be
+	 * discovered.
+	 */
 	private boolean includeNotReadyAddresses = false;
 
 	/**
