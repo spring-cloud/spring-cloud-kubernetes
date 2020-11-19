@@ -1,87 +1,87 @@
 |===
 |Name | Default | Description
 
-|spring.cloud.kubernetes.client.api-version | `` | 
+|spring.cloud.kubernetes.client.api-version |  | 
 |spring.cloud.kubernetes.client.apiVersion | `v1` | Kubernetes API Version
-|spring.cloud.kubernetes.client.ca-cert-data | `` | 
-|spring.cloud.kubernetes.client.ca-cert-file | `` | 
-|spring.cloud.kubernetes.client.caCertData | `` | Kubernetes API CACertData
-|spring.cloud.kubernetes.client.caCertFile | `` | Kubernetes API CACertFile
-|spring.cloud.kubernetes.client.client-cert-data | `` | 
-|spring.cloud.kubernetes.client.client-cert-file | `` | 
-|spring.cloud.kubernetes.client.client-key-algo | `` | 
-|spring.cloud.kubernetes.client.client-key-data | `` | 
-|spring.cloud.kubernetes.client.client-key-file | `` | 
-|spring.cloud.kubernetes.client.client-key-passphrase | `` | 
-|spring.cloud.kubernetes.client.clientCertData | `` | Kubernetes API ClientCertData
-|spring.cloud.kubernetes.client.clientCertFile | `` | Kubernetes API ClientCertFile
+|spring.cloud.kubernetes.client.ca-cert-data |  | 
+|spring.cloud.kubernetes.client.ca-cert-file |  | 
+|spring.cloud.kubernetes.client.caCertData |  | Kubernetes API CACertData
+|spring.cloud.kubernetes.client.caCertFile |  | Kubernetes API CACertFile
+|spring.cloud.kubernetes.client.client-cert-data |  | 
+|spring.cloud.kubernetes.client.client-cert-file |  | 
+|spring.cloud.kubernetes.client.client-key-algo |  | 
+|spring.cloud.kubernetes.client.client-key-data |  | 
+|spring.cloud.kubernetes.client.client-key-file |  | 
+|spring.cloud.kubernetes.client.client-key-passphrase |  | 
+|spring.cloud.kubernetes.client.clientCertData |  | Kubernetes API ClientCertData
+|spring.cloud.kubernetes.client.clientCertFile |  | Kubernetes API ClientCertFile
 |spring.cloud.kubernetes.client.clientKeyAlgo | `RSA` | Kubernetes API ClientKeyAlgo
-|spring.cloud.kubernetes.client.clientKeyData | `` | Kubernetes API ClientKeyData
-|spring.cloud.kubernetes.client.clientKeyFile | `` | Kubernetes API ClientKeyFile
+|spring.cloud.kubernetes.client.clientKeyData |  | Kubernetes API ClientKeyData
+|spring.cloud.kubernetes.client.clientKeyFile |  | Kubernetes API ClientKeyFile
 |spring.cloud.kubernetes.client.clientKeyPassphrase | `changeit` | Kubernetes API ClientKeyPassphrase
-|spring.cloud.kubernetes.client.connection-timeout | `` | 
+|spring.cloud.kubernetes.client.connection-timeout |  | 
 |spring.cloud.kubernetes.client.connectionTimeout | `10s` | Connection timeout
-|spring.cloud.kubernetes.client.http-proxy | `` | 
-|spring.cloud.kubernetes.client.https-proxy | `` | 
-|spring.cloud.kubernetes.client.logging-interval | `` | 
+|spring.cloud.kubernetes.client.http-proxy |  | 
+|spring.cloud.kubernetes.client.https-proxy |  | 
+|spring.cloud.kubernetes.client.logging-interval |  | 
 |spring.cloud.kubernetes.client.loggingInterval | `20s` | Logging interval
-|spring.cloud.kubernetes.client.master-url | `` | 
+|spring.cloud.kubernetes.client.master-url |  | 
 |spring.cloud.kubernetes.client.masterUrl | `https://kubernetes.default.svc` | Kubernetes API Master Node URL
 |spring.cloud.kubernetes.client.namespace | `true` | Kubernetes Namespace
-|spring.cloud.kubernetes.client.no-proxy | `` | 
-|spring.cloud.kubernetes.client.password | `` | Kubernetes API Password
-|spring.cloud.kubernetes.client.proxy-password | `` | 
-|spring.cloud.kubernetes.client.proxy-username | `` | 
-|spring.cloud.kubernetes.client.request-timeout | `` | 
+|spring.cloud.kubernetes.client.no-proxy |  | 
+|spring.cloud.kubernetes.client.password |  | Kubernetes API Password
+|spring.cloud.kubernetes.client.proxy-password |  | 
+|spring.cloud.kubernetes.client.proxy-username |  | 
+|spring.cloud.kubernetes.client.request-timeout |  | 
 |spring.cloud.kubernetes.client.requestTimeout | `10s` | Request timeout
-|spring.cloud.kubernetes.client.rolling-timeout | `` | 
+|spring.cloud.kubernetes.client.rolling-timeout |  | 
 |spring.cloud.kubernetes.client.rollingTimeout | `900s` | Rolling timeout
 |spring.cloud.kubernetes.client.service-account-namespace-path | `/var/run/secrets/kubernetes.io/serviceaccount/namespace` | 
-|spring.cloud.kubernetes.client.trust-certs | `` | 
+|spring.cloud.kubernetes.client.trust-certs |  | 
 |spring.cloud.kubernetes.client.trustCerts | `false` | Kubernetes API Trust Certificates
-|spring.cloud.kubernetes.client.username | `` | Kubernetes API Username
-|spring.cloud.kubernetes.client.watch-reconnect-interval | `` | 
-|spring.cloud.kubernetes.client.watch-reconnect-limit | `` | 
+|spring.cloud.kubernetes.client.username |  | Kubernetes API Username
+|spring.cloud.kubernetes.client.watch-reconnect-interval |  | 
+|spring.cloud.kubernetes.client.watch-reconnect-limit |  | 
 |spring.cloud.kubernetes.client.watchReconnectInterval | `1s` | Reconnect Interval
 |spring.cloud.kubernetes.client.watchReconnectLimit | `-1` | Reconnect Interval limit retries
 |spring.cloud.kubernetes.config.enable-api | `true` | 
 |spring.cloud.kubernetes.config.enabled | `true` | Enable the ConfigMap property source locator.
-|spring.cloud.kubernetes.config.name | `` | 
-|spring.cloud.kubernetes.config.namespace | `` | 
-|spring.cloud.kubernetes.config.paths | `` | 
-|spring.cloud.kubernetes.config.sources | `` | 
+|spring.cloud.kubernetes.config.name |  | 
+|spring.cloud.kubernetes.config.namespace |  | 
+|spring.cloud.kubernetes.config.paths |  | 
+|spring.cloud.kubernetes.config.sources |  | 
 |spring.cloud.kubernetes.discovery.all-namespaces | `false` | If discovering all namespaces.
 |spring.cloud.kubernetes.discovery.enabled | `true` | If Kubernetes Discovery is enabled.
-|spring.cloud.kubernetes.discovery.filter | `` | SpEL expression to filter services AFTER they have been retrieved from the Kubernetes API server.
-|spring.cloud.kubernetes.discovery.known-secure-ports | `` | Set the port numbers that are considered secure and use HTTPS.
+|spring.cloud.kubernetes.discovery.filter |  | SpEL expression to filter services AFTER they have been retrieved from the Kubernetes API server.
+|spring.cloud.kubernetes.discovery.known-secure-ports |  | Set the port numbers that are considered secure and use HTTPS.
 |spring.cloud.kubernetes.discovery.metadata.add-annotations | `true` | When set, the Kubernetes annotations of the services will be included as metadata of the returned ServiceInstance.
 |spring.cloud.kubernetes.discovery.metadata.add-labels | `true` | When set, the Kubernetes labels of the services will be included as metadata of the returned ServiceInstance.
 |spring.cloud.kubernetes.discovery.metadata.add-ports | `true` | When set, any named Kubernetes service ports will be included as metadata of the returned ServiceInstance.
-|spring.cloud.kubernetes.discovery.metadata.annotations-prefix | `` | When addAnnotations is set, then this will be used as a prefix to the key names in the metadata map.
-|spring.cloud.kubernetes.discovery.metadata.labels-prefix | `` | When addLabels is set, then this will be used as a prefix to the key names in the metadata map.
+|spring.cloud.kubernetes.discovery.metadata.annotations-prefix |  | When addAnnotations is set, then this will be used as a prefix to the key names in the metadata map.
+|spring.cloud.kubernetes.discovery.metadata.labels-prefix |  | When addLabels is set, then this will be used as a prefix to the key names in the metadata map.
 |spring.cloud.kubernetes.discovery.metadata.ports-prefix | `port.` | When addPorts is set, then this will be used as a prefix to the key names in the metadata map.
-|spring.cloud.kubernetes.discovery.order | `` | 
-|spring.cloud.kubernetes.discovery.primary-port-name | `` | If set then the port with a given name is used as primary when multiple ports are defined for a service.
-|spring.cloud.kubernetes.discovery.service-labels | `` | If set, then only the services matching these labels will be fetched from the Kubernetes API server.
+|spring.cloud.kubernetes.discovery.order |  | 
+|spring.cloud.kubernetes.discovery.primary-port-name |  | If set then the port with a given name is used as primary when multiple ports are defined for a service.
+|spring.cloud.kubernetes.discovery.service-labels |  | If set, then only the services matching these labels will be fetched from the Kubernetes API server.
 |spring.cloud.kubernetes.discovery.service-name | `unknown` | The service name of the local instance.
 |spring.cloud.kubernetes.enabled | `true` | Whether to enable Kubernetes integration.
 |spring.cloud.kubernetes.loadbalancer.cluster-domain | `cluster.local` | cluster domain.
 |spring.cloud.kubernetes.loadbalancer.enabled | `true` | Load balancer enabled,default true.
-|spring.cloud.kubernetes.loadbalancer.mode | `` | {@link KubernetesLoadBalancerMode} setting load balancer server list with ip of pod or service name. default value is POD.
+|spring.cloud.kubernetes.loadbalancer.mode |  | {@link KubernetesLoadBalancerMode} setting load balancer server list with ip of pod or service name. default value is POD.
 |spring.cloud.kubernetes.loadbalancer.port-name | `http` | service port name.
 |spring.cloud.kubernetes.reload.enabled | `false` | Enables the Kubernetes configuration reload on change.
 |spring.cloud.kubernetes.reload.max-wait-for-restart | `2s` | If Restart or Shutdown strategies are used, Spring Cloud Kubernetes waits a random amount of time before restarting. This is done in order to avoid having all instances of the same application restart at the same time. This property configures the maximum of amount of wait time from the moment the signal is received that a restart is needed until the moment the restart is actually triggered
-|spring.cloud.kubernetes.reload.mode | `` | Sets the detection mode for Kubernetes configuration reload.
+|spring.cloud.kubernetes.reload.mode |  | Sets the detection mode for Kubernetes configuration reload.
 |spring.cloud.kubernetes.reload.monitoring-config-maps | `true` | Enables monitoring on config maps to detect changes.
 |spring.cloud.kubernetes.reload.monitoring-secrets | `false` | Enables monitoring on secrets to detect changes.
 |spring.cloud.kubernetes.reload.period | `15000ms` | Sets the polling period to use when the detection mode is POLLING.
-|spring.cloud.kubernetes.reload.strategy | `` | Sets the reload strategy for Kubernetes configuration reload on change.
+|spring.cloud.kubernetes.reload.strategy |  | Sets the reload strategy for Kubernetes configuration reload on change.
 |spring.cloud.kubernetes.secrets.enable-api | `false` | 
 |spring.cloud.kubernetes.secrets.enabled | `true` | Enable the Secrets property source locator.
-|spring.cloud.kubernetes.secrets.labels | `` | 
-|spring.cloud.kubernetes.secrets.name | `` | 
-|spring.cloud.kubernetes.secrets.namespace | `` | 
-|spring.cloud.kubernetes.secrets.paths | `` | 
-|spring.cloud.kubernetes.secrets.sources | `` | 
+|spring.cloud.kubernetes.secrets.labels |  | 
+|spring.cloud.kubernetes.secrets.name |  | 
+|spring.cloud.kubernetes.secrets.namespace |  | 
+|spring.cloud.kubernetes.secrets.paths |  | 
+|spring.cloud.kubernetes.secrets.sources |  | 
 
 |===
