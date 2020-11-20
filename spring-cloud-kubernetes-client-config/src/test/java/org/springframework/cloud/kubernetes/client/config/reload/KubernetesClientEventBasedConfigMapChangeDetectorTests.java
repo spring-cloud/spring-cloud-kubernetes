@@ -57,8 +57,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -153,7 +153,7 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		controllerThread.start();
 		await().timeout(Duration.ofSeconds(5))
 				.until(() -> Mockito.mockingDetails(strategy).getInvocations().size() > 4);
-		verify(strategy, times(4)).reload();
+		verify(strategy, atLeast(3)).reload();
 	}
 
 }
