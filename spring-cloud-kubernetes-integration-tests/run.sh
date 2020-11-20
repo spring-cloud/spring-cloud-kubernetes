@@ -140,6 +140,9 @@ main() {
     cd spring-cloud-kubernetes-core-k8s-client-it
     ../../mvnw clean install -P it
     cd ../
+     cd spring-cloud-kubernetes-client-config-it
+    ../../mvnw clean install -P it
+    cd ../
     cd spring-cloud-kubernetes-configuration-watcher-it
     ../../mvnw clean install -P it
     # teardown will happen automatically on exit

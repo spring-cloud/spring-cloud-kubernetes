@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.reload;
+package org.springframework.cloud.kubernetes.commons.config.reload;
 
 import java.util.List;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySource;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
+import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -46,24 +40,16 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 
 	protected Log log = LogFactory.getLog(getClass());
 
-	private final Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator;
+	private final PropertySourceLocator propertySourceLocator;
 
-	private KubernetesClient kubernetesClient;
+	private Class propertySourceClass;
 
 	public PollingSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
-			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator) {
+			ConfigurationUpdateStrategy strategy, Class propertySourceClass,
+			PropertySourceLocator propertySourceLocator) {
 		super(environment, properties, strategy);
-		this.kubernetesClient = kubernetesClient;
-
-		this.fabric8SecretsPropertySourceLocator = fabric8SecretsPropertySourceLocator;
-	}
-
-	@PreDestroy
-	public void shutdown() {
-		// Ensure the kubernetes client is cleaned up from spare threads when shutting
-		// down
-		this.kubernetesClient.close();
+		this.propertySourceClass = propertySourceClass;
+		this.propertySourceLocator = propertySourceLocator;
 	}
 
 	@PostConstruct
@@ -80,11 +66,10 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 			if (log.isDebugEnabled()) {
 				log.debug("Polling for changes in secrets");
 			}
-			List<MapPropertySource> currentSecretSources = locateMapPropertySources(
-					this.fabric8SecretsPropertySourceLocator, this.environment);
+			List<MapPropertySource> currentSecretSources = locateMapPropertySources(this.propertySourceLocator,
+					this.environment);
 			if (currentSecretSources != null && !currentSecretSources.isEmpty()) {
-				List<Fabric8SecretsPropertySource> propertySources = findPropertySources(
-						Fabric8SecretsPropertySource.class);
+				List<MapPropertySource> propertySources = findPropertySources(this.propertySourceClass);
 				changedSecrets = changed(currentSecretSources, propertySources);
 			}
 		}

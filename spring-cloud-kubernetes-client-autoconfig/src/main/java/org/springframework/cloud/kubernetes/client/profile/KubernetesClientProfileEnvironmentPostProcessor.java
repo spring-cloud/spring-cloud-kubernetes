@@ -32,7 +32,6 @@ public class KubernetesClientProfileEnvironmentPostProcessor extends AbstractKub
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientPodUtils utils = new KubernetesClientPodUtils(api, environment.getProperty(NAMESPACE_PROPERTY));
 		return utils.isInsideKubernetes();
-
 	}
 
 }

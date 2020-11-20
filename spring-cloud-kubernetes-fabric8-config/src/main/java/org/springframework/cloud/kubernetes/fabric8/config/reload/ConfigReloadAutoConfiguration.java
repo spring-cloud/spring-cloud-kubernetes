@@ -36,6 +36,8 @@ import org.springframework.cloud.context.restart.RestartEndpoint;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.commons.config.reload.PollingConfigMapChangeDetector;
+import org.springframework.cloud.kubernetes.commons.config.reload.PollingSecretsChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.condition.EventReloadDetectionMode;
 import org.springframework.cloud.kubernetes.commons.config.reload.condition.PollingReloadDetectionMode;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
@@ -92,8 +94,8 @@ public class ConfigReloadAutoConfiguration {
 				ConfigurationUpdateStrategy strategy,
 				Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator) {
 
-			return new PollingConfigMapChangeDetector(this.environment, properties, this.kubernetesClient, strategy,
-					fabric8ConfigMapPropertySourceLocator);
+			return new PollingConfigMapChangeDetector(this.environment, properties, strategy,
+					Fabric8ConfigMapPropertySourceLocator.class, fabric8ConfigMapPropertySourceLocator);
 		}
 
 		/**
@@ -110,8 +112,8 @@ public class ConfigReloadAutoConfiguration {
 				ConfigurationUpdateStrategy strategy,
 				Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator) {
 
-			return new PollingSecretsChangeDetector(this.environment, properties, this.kubernetesClient, strategy,
-					fabric8SecretsPropertySourceLocator);
+			return new PollingSecretsChangeDetector(this.environment, properties, strategy,
+					Fabric8SecretsPropertySourceLocator.class, fabric8SecretsPropertySourceLocator);
 		}
 
 		/**

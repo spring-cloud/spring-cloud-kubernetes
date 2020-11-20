@@ -90,6 +90,7 @@
 		<module>spring-cloud-kubernetes-commons</module>
 		<module>spring-cloud-kubernetes-test-support</module>
 		<module>spring-cloud-kubernetes-client-autoconfig</module>
+		<module>spring-cloud-kubernetes-client-config</module>
 		<module>spring-cloud-kubernetes-fabric8-autoconfig</module>
 		<module>spring-cloud-kubernetes-fabric8-config</module>
 		<module>spring-cloud-kubernetes-discovery</module>

@@ -154,6 +154,15 @@ public class K8SUtils {
 				.until(() -> isDeployentReady(deploymentName, namespace));
 	}
 
+	public void waitForDeploymentToBeDeleted(String deploymentName, String namespace) {
+		await().timeout(
+				Duration.ofSeconds(90)).until(
+						() -> appsApi
+								.listNamespacedDeployment(namespace, null, null, null,
+										"metadata.name=" + deploymentName, null, null, null, null, null)
+								.getItems().isEmpty());
+	}
+
 	public boolean isDeployentReady(String deploymentName, String namespace) throws ApiException {
 		V1DeploymentList deployments = appsApi.listNamespacedDeployment(namespace, null, null, null,
 				"metadata.name=" + deploymentName, null, null, null, null, null);

@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.reload;
+package org.springframework.cloud.kubernetes.commons.config.reload;
 
 import java.util.List;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySource;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
+import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -46,24 +40,16 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 
 	protected Log log = LogFactory.getLog(getClass());
 
-	private Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator;
+	private PropertySourceLocator propertySourceLocator;
 
-	private KubernetesClient kubernetesClient;
+	private Class propertySourceClass;
 
 	public PollingConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
-			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator) {
+			ConfigurationUpdateStrategy strategy, Class propertySourceClass,
+			PropertySourceLocator propertySourceLocator) {
 		super(environment, properties, strategy);
-		this.kubernetesClient = kubernetesClient;
-
-		this.fabric8ConfigMapPropertySourceLocator = fabric8ConfigMapPropertySourceLocator;
-	}
-
-	@PreDestroy
-	public void shutdown() {
-		// Ensure the kubernetes client is cleaned up from spare threads when shutting
-		// down
-		this.kubernetesClient.close();
+		this.propertySourceLocator = propertySourceLocator;
+		this.propertySourceClass = propertySourceClass;
 	}
 
 	@PostConstruct
@@ -80,12 +66,10 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 			if (log.isDebugEnabled()) {
 				log.debug("Polling for changes in config maps");
 			}
-			List<? extends MapPropertySource> currentConfigMapSources = findPropertySources(
-					Fabric8ConfigMapPropertySource.class);
+			List<? extends MapPropertySource> currentConfigMapSources = findPropertySources(propertySourceClass);
 
 			if (!currentConfigMapSources.isEmpty()) {
-				changedConfigMap = changed(
-						locateMapPropertySources(this.fabric8ConfigMapPropertySourceLocator, this.environment),
+				changedConfigMap = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
 						currentConfigMapSources);
 			}
 		}
