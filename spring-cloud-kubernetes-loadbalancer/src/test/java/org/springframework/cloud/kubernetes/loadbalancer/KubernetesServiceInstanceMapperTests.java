@@ -77,6 +77,21 @@ class KubernetesServiceInstanceMapperTests {
 	}
 
 	@Test
+	void testMapperSecureNullLabelsAndAnnotations() {
+		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties();
+		List<ServicePort> ports = new ArrayList<>();
+		ports.add(new ServicePortBuilder().withPort(443).build());
+		Service service = buildService("test", "abc", ports, null, null);
+		KubernetesServiceInstance instance = new KubernetesServiceInstanceMapper(
+				properties, discoveryProperties).map(service);
+		Assertions.assertNotNull(instance);
+		Assertions.assertEquals("test", instance.getServiceId());
+		Assertions.assertEquals("abc", instance.getInstanceId());
+		Assertions.assertTrue(instance.isSecure());
+	}
+
+	@Test
 	void testMapperSecureWithLabels() {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties();
@@ -93,18 +108,23 @@ class KubernetesServiceInstanceMapperTests {
 		Assertions.assertEquals(2, instance.getMetadata().keySet().size());
 	}
 
-	private Service buildService(String name, String uid, List<ServicePort> ports,
-			Map<String, String> labels) {
-		return new ServiceBuilder().withNewMetadata().withName(name).withNewUid(uid)
-				.addToLabels(labels).addToAnnotations(new HashMap<>(0)).endMetadata()
-				.withNewSpec().addAllToPorts(ports).endSpec().build();
-	}
-
 	private Service buildService(String name, String uid, int port, String portName,
 			Map<String, String> labels) {
 		ServicePort servicePort = new ServicePortBuilder().withPort(port)
 				.withName(portName).build();
 		return buildService(name, uid, Collections.singletonList(servicePort), labels);
+	}
+
+	private Service buildService(String name, String uid, List<ServicePort> ports,
+			Map<String, String> labels, Map<String, String> annotations) {
+		return new ServiceBuilder().withNewMetadata().withName(name).withNewUid(uid)
+				.addToLabels(labels).withAnnotations(annotations).endMetadata()
+				.withNewSpec().addAllToPorts(ports).endSpec().build();
+	}
+
+	private Service buildService(String name, String uid, List<ServicePort> ports,
+			Map<String, String> labels) {
+		return buildService(name, uid, ports, labels, new HashMap<>(0));
 	}
 
 }
