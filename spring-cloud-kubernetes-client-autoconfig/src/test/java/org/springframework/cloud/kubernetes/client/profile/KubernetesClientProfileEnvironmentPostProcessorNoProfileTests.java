@@ -25,17 +25,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.env.Environment;
 
-import static io.kubernetes.client.util.Config.ENV_SERVICE_HOST;
-import static io.kubernetes.client.util.Config.ENV_SERVICE_PORT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.commons.profile.AbstractKubernetesProfileEnvironmentPostProcessor.KUBERNETES_PROFILE;
 
 /**
- * @author Thomas Vitale
+ * @author Ryan Baxter
  */
-@SpringBootTest(properties = { ENV_SERVICE_HOST + "=10.0.0.1", ENV_SERVICE_PORT + "=80" },
-		classes = { KubernetesClientProfileEnvironmentPostProcessorTests.App.class })
-class KubernetesClientProfileEnvironmentPostProcessorTests {
+@SpringBootTest(classes = { KubernetesClientProfileEnvironmentPostProcessorNoProfileTests.App.class })
+class KubernetesClientProfileEnvironmentPostProcessorNoProfileTests {
 
 	@Autowired
 	Environment environment;
@@ -44,8 +41,9 @@ class KubernetesClientProfileEnvironmentPostProcessorTests {
 	CoreV1Api coreV1Api;
 
 	@Test
-	void whenKubernetesEnvironmentAndNoApiAccessThenProfileEnabled() {
-		assertThat(environment.getActiveProfiles()).contains(KUBERNETES_PROFILE);
+	void whenNoKubernetesEnvironmentAndNoApiAccessThenNoProfileEnabled() {
+
+		assertThat(environment.getActiveProfiles()).doesNotContain(KUBERNETES_PROFILE);
 	}
 
 	@SpringBootApplication
