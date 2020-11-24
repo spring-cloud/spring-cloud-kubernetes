@@ -24,15 +24,17 @@ import org.springframework.core.env.Environment;
 
 /**
  * @author Ryan Baxter
+ * @author Thomas Vitale
  */
 public class KubernetesClientProfileEnvironmentPostProcessor extends AbstractKubernetesProfileEnvironmentPostProcessor {
+
+	protected static final String KUBERNETES_SERVICE_ENV_VAR = "KUBERNETES_SERVICE_HOST";
 
 	@Override
 	protected boolean isInsideKubernetes(Environment environment) {
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientPodUtils utils = new KubernetesClientPodUtils(api, environment.getProperty(NAMESPACE_PROPERTY));
-		return utils.isInsideKubernetes();
-
+		return environment.containsProperty(KUBERNETES_SERVICE_ENV_VAR) || utils.isInsideKubernetes();
 	}
 
 }
