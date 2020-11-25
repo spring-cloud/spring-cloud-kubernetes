@@ -38,11 +38,11 @@ import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
-import org.springframework.cloud.kubernetes.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.discovery.reactive.KubernetesReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -74,7 +74,7 @@ public class HttpBasedSecretsWatchChangeDetectorTests {
 	private ConfigurationUpdateStrategy updateStrategy;
 
 	@Mock
-	private SecretsPropertySourceLocator secretsPropertySourceLocator;
+	private Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator;
 
 	@Mock
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
@@ -103,7 +103,7 @@ public class HttpBasedSecretsWatchChangeDetectorTests {
 		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		WebClient webClient = WebClient.builder().build();
 		changeDetector = new HttpBasedSecretsWatchChangeDetector(mockEnvironment, configReloadProperties, client,
-				updateStrategy, secretsPropertySourceLocator, configurationWatcherConfigurationProperties,
+				updateStrategy, fabric8SecretsPropertySourceLocator, configurationWatcherConfigurationProperties,
 				threadPoolTaskExecutor, webClient, reactiveDiscoveryClient);
 	}
 

@@ -22,9 +22,9 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
-import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
-import org.springframework.cloud.kubernetes.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.env.AbstractEnvironment;
@@ -43,10 +43,10 @@ public class BusEventBasedSecretsWatcherChangeDetector extends SecretsWatcherCha
 
 	public BusEventBasedSecretsWatcherChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			SecretsPropertySourceLocator secretsPropertySourceLocator, BusProperties busProperties,
+			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator, BusProperties busProperties,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(environment, properties, kubernetesClient, strategy, secretsPropertySourceLocator,
+		super(environment, properties, kubernetesClient, strategy, fabric8SecretsPropertySourceLocator,
 				k8SConfigurationProperties, threadPoolTaskExecutor);
 
 		this.busProperties = busProperties;

@@ -26,10 +26,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.config.reload.EventBasedConfigMapChangeDetector;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.fabric8.config.reload.EventBasedConfigMapChangeDetector;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -47,10 +47,10 @@ public abstract class ConfigMapWatcherChangeDetector extends EventBasedConfigMap
 
 	public ConfigMapWatcherChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			ConfigMapPropertySourceLocator configMapPropertySourceLocator,
+			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(environment, properties, kubernetesClient, strategy, configMapPropertySourceLocator);
+		super(environment, properties, kubernetesClient, strategy, fabric8ConfigMapPropertySourceLocator);
 		this.executorService = Executors.newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(),
 				threadPoolTaskExecutor);
 		this.k8SConfigurationProperties = k8SConfigurationProperties;

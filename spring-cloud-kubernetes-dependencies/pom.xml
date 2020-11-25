@@ -77,7 +77,13 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-kubernetes-config</artifactId>
+				<artifactId>spring-cloud-kubernetes-fabric8-config</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-kubernetes-client-config</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
