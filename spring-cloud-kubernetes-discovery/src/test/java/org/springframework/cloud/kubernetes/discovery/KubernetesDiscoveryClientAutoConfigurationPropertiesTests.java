@@ -48,38 +48,31 @@ public class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 	public void kubernetesDiscoveryDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.discovery.enabled=false",
 				"spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false");
-		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class))
-				.isEmpty();
+		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
 	}
 
 	@Test
 	public void kubernetesDiscoveryWhenKubernetesDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.enabled=false");
-		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class))
-				.isEmpty();
+		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
 	}
 
 	@Test
 	public void kubernetesDiscoveryWhenDiscoveryDisabled() throws Exception {
 		setup("spring.cloud.discovery.enabled=false");
-		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class))
-				.isEmpty();
+		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
 	}
 
 	@Test
 	public void kubernetesDiscoveryDefaultEnabled() throws Exception {
 		setup("spring.cloud.kubernetes.enabled=true");
-		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class))
-				.hasSize(1);
+		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class)).hasSize(1);
 	}
 
 	private void setup(String... env) {
-		this.context = new SpringApplicationBuilder(
-				PropertyPlaceholderAutoConfiguration.class,
-				KubernetesClientTestConfiguration.class,
-				KubernetesDiscoveryClientAutoConfiguration.class)
-						.web(org.springframework.boot.WebApplicationType.NONE)
-						.properties(env).run();
+		this.context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
+				KubernetesClientTestConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class)
+						.web(org.springframework.boot.WebApplicationType.NONE).properties(env).run();
 	}
 
 	@Configuration(proxyBeanMethods = false)

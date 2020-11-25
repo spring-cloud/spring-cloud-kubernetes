@@ -59,8 +59,7 @@ public class IstioBootstrapConfiguration {
 
 		private final ConfigurableEnvironment environment;
 
-		public IstioDetectionConfiguration(MeshUtils utils,
-				ConfigurableEnvironment environment) {
+		public IstioDetectionConfiguration(MeshUtils utils, ConfigurableEnvironment environment) {
 			this.utils = utils;
 			this.environment = environment;
 		}
@@ -86,15 +85,13 @@ public class IstioBootstrapConfiguration {
 			}
 			else {
 				if (LOG.isDebugEnabled()) {
-					LOG.debug(
-							"Not running inside kubernetes with istio enabled. Skipping 'istio' profile activation.");
+					LOG.debug("Not running inside kubernetes with istio enabled. Skipping 'istio' profile activation.");
 				}
 			}
 		}
 
 		private boolean hasIstioProfile(Environment environment) {
-			return Arrays.stream(environment.getActiveProfiles())
-					.anyMatch(ISTIO_PROFILE::equalsIgnoreCase);
+			return Arrays.stream(environment.getActiveProfiles()).anyMatch(ISTIO_PROFILE::equalsIgnoreCase);
 		}
 
 	}

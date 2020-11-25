@@ -55,7 +55,7 @@ jobs:
       - run:
           name: Run Kind Integration Tests
           command: |
-            cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-configuration-watcher-it
+            cd spring-cloud-kubernetes-integration-tests
             ./run.sh
       - run:
           name: Launch Kubernetes with microk8s
@@ -112,10 +112,19 @@ jobs:
             export KUBECONFIG=/tmp/kubeconfig
             cd spring-cloud-kubernetes-integration-tests
             ../mvnw -Ddocker.host='unix:///var/snap/microk8s/current/docker.sock' -Dimage.registry='localhost:32000' clean package fabric8:build verify -Pfmp,it,spring
-      - store_test_results:
-          path: $HOME/artifacts/junit/
+      - run:
+          name: "Aggregate test results"
+          when: always
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} ~/junit/ \;
+            bash <(curl -s https://codecov.io/bash)
       - store_artifacts:
-          path: $HOME/artifacts/
+          path: ~/junit/
+          destination: artifacts
+      - store_test_results:
+          path: ~/junit/
+          destination: testartifacts
 notify:
   webhooks:
     - url: https://webhooks.gitter.im/e/22e6bb4eb945dd61ba54

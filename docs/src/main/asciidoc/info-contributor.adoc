@@ -1,0 +1,7 @@
+== Info Contributor
+
+Spring Cloud Kubernetes includes an `InfoContributor` which adds Pod information to
+Spring Boot's `/info` Acturator endpoint.
+
+You can disable this `InfoContributor` by setting `management.info.kubernetes.enabled`
+to `false` in `bootstrap.[properties | yaml]`.

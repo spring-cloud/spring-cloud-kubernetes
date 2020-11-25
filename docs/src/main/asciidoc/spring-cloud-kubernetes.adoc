@@ -5,8 +5,7 @@ This reference guide covers how to use Spring Cloud Kubernetes.
 
 == Why do you need Spring Cloud Kubernetes?
 
-Spring Cloud Kubernetes provide Spring Cloud common interface implementations that consume Kubernetes native services.
-The main objective of the projects provided in this repository is to facilitate the integration of Spring Cloud and Spring Boot applications running inside Kubernetes.
+Spring Cloud Kubernetes provides implementations of well known Spring Cloud interfaces allowing developers to build and run Spring Cloud applications on Kubernetes.  While this project may be useful to you when building a cloud native application, it is also not a requirement in order to deploy a Spring Boot app on Kubernetes.  If you are just getting started in your journey to running your Spring Boot app on Kubernetes you can accomplish a lot with nothing more than a basic Spring Boot app and Kubernetes itself.  To learn more, you can get started by reading the https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#cloud-deployment-kubernetes[Spring Boot reference documentation for deploying to Kubernetes ] and also working through the workshop material https://hackmd.io/@ryanjbaxter/spring-on-k8s-workshop[Spring and Kubernetes].
 
 include::getting-started.adoc[]
 
@@ -20,7 +19,11 @@ include::kubernetes-awareness.adoc[]
 
 include::pod-health-indicator.adoc[]
 
+include::info-contributor.adoc[]
+
 include::leader-election.adoc[]
+
+include::load-balancer.adoc[]
 
 include::security-service-accounts.adoc[]
 

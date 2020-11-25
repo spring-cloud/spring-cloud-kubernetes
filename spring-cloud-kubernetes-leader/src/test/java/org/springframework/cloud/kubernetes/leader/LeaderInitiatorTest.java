@@ -55,9 +55,8 @@ public class LeaderInitiatorTest {
 
 	@BeforeEach
 	public void before() {
-		this.leaderInitiator = new LeaderInitiator(this.mockLeaderProperties,
-				this.mockLeadershipController, this.mockLeaderRecordWatcher,
-				this.mockPodReadinessWatcher);
+		this.leaderInitiator = new LeaderInitiator(this.mockLeaderProperties, this.mockLeadershipController,
+				this.mockLeaderRecordWatcher, this.mockPodReadinessWatcher);
 	}
 
 	@AfterEach
@@ -74,8 +73,7 @@ public class LeaderInitiatorTest {
 
 	@Test
 	public void shouldStart() throws InterruptedException {
-		given(this.mockLeaderProperties.getUpdatePeriod())
-				.willReturn(Duration.ofMillis(1L));
+		given(this.mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(1L));
 
 		this.leaderInitiator.start();
 
@@ -88,8 +86,7 @@ public class LeaderInitiatorTest {
 
 	@Test
 	public void shouldStartOnlyOnce() {
-		given(this.mockLeaderProperties.getUpdatePeriod())
-				.willReturn(Duration.ofMillis(10000L));
+		given(this.mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
 
 		this.leaderInitiator.start();
 		this.leaderInitiator.start();
@@ -99,8 +96,7 @@ public class LeaderInitiatorTest {
 
 	@Test
 	public void shouldStop() {
-		given(this.mockLeaderProperties.getUpdatePeriod())
-				.willReturn(Duration.ofMillis(10000L));
+		given(this.mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
 
 		this.leaderInitiator.start();
 		this.leaderInitiator.stop();
@@ -113,8 +109,7 @@ public class LeaderInitiatorTest {
 
 	@Test
 	public void shouldStopOnlyOnce() {
-		given(this.mockLeaderProperties.getUpdatePeriod())
-				.willReturn(Duration.ofMillis(10000L));
+		given(this.mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
 
 		this.leaderInitiator.start();
 		this.leaderInitiator.stop();
@@ -125,8 +120,7 @@ public class LeaderInitiatorTest {
 
 	@Test
 	public void shouldStopAndExecuteCallback() {
-		given(this.mockLeaderProperties.getUpdatePeriod())
-				.willReturn(Duration.ofMillis(10000L));
+		given(this.mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
 
 		this.leaderInitiator.start();
 		this.leaderInitiator.stop(this.mockRunnable);

@@ -54,8 +54,8 @@ public class KubernetesDiscoveryClientFilterTest {
 
 	@Before
 	public void setUp() {
-		this.underTest = new KubernetesDiscoveryClient(this.kubernetesClient,
-				this.properties, this.kubernetesClientServicesFunction);
+		this.underTest = new KubernetesDiscoveryClient(this.kubernetesClient, this.properties,
+				this.kubernetesClientServicesFunction);
 	}
 
 	@Test
@@ -75,8 +75,7 @@ public class KubernetesDiscoveryClientFilterTest {
 		when(this.serviceOperation.list()).thenReturn(serviceList);
 		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
-		when(this.properties.getFilter())
-				.thenReturn("metadata.additionalProperties['spring-boot']");
+		when(this.properties.getFilter()).thenReturn("metadata.additionalProperties['spring-boot']");
 
 		List<String> filteredServices = this.underTest.getServices();
 
@@ -87,8 +86,7 @@ public class KubernetesDiscoveryClientFilterTest {
 
 	@Test
 	public void testFilteredServicesByPrefix() {
-		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB",
-				"serviceC");
+		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB", "serviceC");
 		List<Service> services = createSpringBootServiceByName(springBootServiceNames);
 
 		// Add non spring boot service
@@ -103,8 +101,7 @@ public class KubernetesDiscoveryClientFilterTest {
 		when(this.serviceOperation.list()).thenReturn(serviceList);
 		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
-		when(this.properties.getFilter())
-				.thenReturn("metadata.name.startsWith('service')");
+		when(this.properties.getFilter()).thenReturn("metadata.name.startsWith('service')");
 
 		List<String> filteredServices = this.underTest.getServices();
 
@@ -115,8 +112,7 @@ public class KubernetesDiscoveryClientFilterTest {
 
 	@Test
 	public void testNoExpression() {
-		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB",
-				"serviceC");
+		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB", "serviceC");
 		List<Service> services = createSpringBootServiceByName(springBootServiceNames);
 
 		ServiceList serviceList = new ServiceList();

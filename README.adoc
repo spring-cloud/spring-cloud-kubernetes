@@ -27,8 +27,7 @@ This reference guide covers how to use Spring Cloud Kubernetes.
 
 == Why do you need Spring Cloud Kubernetes?
 
-Spring Cloud Kubernetes provide Spring Cloud common interface implementations that consume Kubernetes native services.
-The main objective of the projects provided in this repository is to facilitate the integration of Spring Cloud and Spring Boot applications running inside Kubernetes.
+Spring Cloud Kubernetes provides implementations of well known Spring Cloud interfaces allowing developers to build and run Spring Cloud applications on Kubernetes.  While this project may be useful to you when building a cloud native application, it is also not a requirement in order to deploy a Spring Boot app on Kubernetes.  If you are just getting started in your journey to running your Spring Boot app on Kubernetes you can accomplish a lot with nothing more than a basic Spring Boot app and Kubernetes itself.  To learn more, you can get started by reading the https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#cloud-deployment-kubernetes[Spring Boot reference documentation for deploying to Kubernetes ] and also working through the workshop material https://hackmd.io/@ryanjbaxter/spring-on-k8s-workshop[Spring and Kubernetes].
 
 == Starters
 
@@ -58,8 +57,8 @@ resolves service names to Kubernetes Services.
 </dependency>
 ----
 | Load application properties from Kubernetes
-<<ConfigMap PropertySource,ConfigMaps>> and <<Secrets PropertySource,Secrets>>.
-<<PropertySource Reload,Reload>> application properties when a ConfigMap or
+<<configmap-propertysource,ConfigMaps>> and <<Secrets PropertySource,Secrets>>.
+<<propertysource-reload,Reload>> application properties when a ConfigMap or
 Secret changes.
 
 | [source,xml]
@@ -173,7 +172,7 @@ The link:./spring-cloud-kubernetes-config[Spring Cloud Kubernetes Config] projec
 during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on
 observed `ConfigMap` instances.
 
-The default behavior is to create a `ConfigMapPropertySource` based on a Kubernetes `ConfigMap` that has a `metadata.name` value of either the name of
+The default behavior is to create a `Fabric8ConfigMapPropertySource` based on a Kubernetes `ConfigMap` that has a `metadata.name` value of either the name of
 your Spring application (as defined by its `spring.application.name` property) or a custom name defined within the
 `bootstrap.properties` file under the following key: `spring.cloud.kubernetes.config.name`.
 
@@ -438,6 +437,10 @@ You can specify multiple (exact) file paths in `spring.cloud.kubernetes.config.p
 
 NOTE: You have to provide the full exact path to each property file, because directories are not being recursively parsed.
 
+NOTE:  If you use `spring.cloud.kubernetes.config.paths` or `spring.cloud.kubernetes.secrets.path` the automatic reload
+functionality will not work.  You will need to make a `POST` request to the `/actuator/refresh` endpoint or
+restart/redeploy the application.
+
 .Properties:
 [options="header,footer"]
 |===
@@ -455,7 +458,7 @@ Kubernetes has the notion of https://kubernetes.io/docs/concepts/configuration/s
 sensitive data such as passwords, OAuth tokens, and so on. This project provides integration with `Secrets` to make secrets
 accessible by Spring Boot applications. You can explicitly enable or disable This feature by setting the `spring.cloud.kubernetes.secrets.enabled` property.
 
-When enabled, the `SecretsPropertySource` looks up Kubernetes for `Secrets` from the following sources:
+When enabled, the `Fabric8SecretsPropertySource` looks up Kubernetes for `Secrets` from the following sources:
 
 . Reading recursively from secrets mounts
 . Named after the application (as defined by `spring.application.name`)
@@ -783,9 +786,46 @@ The Kubernetes health indicator (which is part of the core module) exposes the f
 * Pod name, IP address, namespace, service account, node name, and its IP address
 * A flag that indicates whether the Spring Boot application is internal or external to Kubernetes
 
+== Info Contributor
+
+Spring Cloud Kubernetes includes an `InfoContributor` which adds Pod information to
+Spring Boot's `/info` Acturator endpoint.
+
+You can disable this `InfoContributor` by setting `management.info.kubernetes.enabled`
+to `false` in `bootstrap.[properties | yaml]`.
+
 == Leader Election
 
 <TBD>
+
+== LoadBalancer for Kubernetes
+This project includes Spring Cloud Load Balancer for load balancing based on Kubernetes Endpoints and provides implementation of load balancer based on Kubernetes Service.
+To include it to your project add the following dependency.
+====
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-loadbalancer</artifactId>
+</dependency>
+----
+====
+
+To enable load balancing based on Kubernetes Service name use the following property. Then load balancer would try to call application using address, for example `service-a.default.svc.cluster.local`
+====
+[source]
+----
+spring.cloud.kubernetes.loadbalancer.mode=SERVICE
+----
+====
+
+To enabled load balancing across all namespaces use the following property. Property from `spring-cloud-kubernetes-discovery` module is respected.
+====
+[source]
+----
+spring.cloud.kubernetes.discovery.all-namespaces=true
+----
+====
 
 == Security Configurations Inside Kubernetes
 
@@ -879,7 +919,7 @@ actuator endpoint `/refresh` or via publishing a `RefreshRemoteApplicationEvent`
 To achieve this configuration refresh of a Spring Cloud app running on Kubernetes, you can deploy the Spring Cloud
 Kubernetes Configuration Watcher controller into your Kubernetes cluster.
 
-The application is published as a container and is available on Docker Hub.
+The application is published as a container and is available on https://hub.docker.com/repository/docker/springcloud/spring-cloud-kubernetes-configuration-watcher[Docker Hub].
 
 Spring Cloud Kubernetes Configuration Watcher can send refresh notifications to applications in two ways.
 
