@@ -16,15 +16,27 @@ spec:
           image: localhost:5000/spring-cloud-kubernetes-configuration-watcher-it:2.0.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           env:
-            - name: SPRING_RABBITMQ_HOST
-              value: rabbitmq-service
+            - name: SPRING_PROFILES_ACTIVE
+              value: bus-kafka          
+            - name: spring.kafka.bootstrap-servers
+              value: kafka:9092
           readinessProbe:
             httpGet:
               port: 8080
               path: /actuator/health/readiness
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
           livenessProbe:
             httpGet:
               port: 8080
               path: /actuator/health/liveness
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
           ports:
             - containerPort: 8080

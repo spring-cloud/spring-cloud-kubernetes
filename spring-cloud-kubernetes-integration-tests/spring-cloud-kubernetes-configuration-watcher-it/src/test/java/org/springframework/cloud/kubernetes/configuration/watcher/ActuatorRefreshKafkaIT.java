@@ -33,7 +33,6 @@ import io.kubernetes.client.openapi.models.NetworkingV1beta1Ingress;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1ReplicationController;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.util.Config;
 import org.apache.commons.logging.Log;
@@ -52,10 +51,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 /**
- * @author Ryan Baxter
+ * @author Kris Iyer
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ActuatorRefreshRabbitMQIT {
+public class ActuatorRefreshKafkaIT {
 
 	private Log log = LogFactory.getLog(getClass());
 
@@ -92,7 +91,13 @@ public class ActuatorRefreshRabbitMQIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static final String RABBIT_MQ_CONTROLLER_NAME = "rabbitmq-controller";
+	private static final String KAFKA_BROKER = "kafka-broker";
+
+	private static final String KAFKA_SERVICE = "kafka";
+
+	private static final String ZOOKEEPER_SERVICE = "zookeeper";
+
+	private static final String ZOOKEEPER_DEPLOYMENT = "zookeeper";
 
 	private ApiClient client;
 
@@ -107,7 +112,7 @@ public class ActuatorRefreshRabbitMQIT {
 	@Before
 	public void setup() throws Exception {
 		this.client = Config.defaultClient();
-		// client.setDebugging(true);
+		client.setDebugging(true);
 		Configuration.setDefaultApiClient(client);
 		this.api = new CoreV1Api();
 		this.appsApi = new AppsV1Api();
@@ -126,9 +131,13 @@ public class ActuatorRefreshRabbitMQIT {
 		dockerClient.tagImageCmd(CONFIG_WATCHER_IT_LOCAL_IMAGE, CONFIG_WATCHER_IT_KIND_IMAGE, IMAGE_TAG).exec();
 		dockerClient.pushImageCmd(CONFIG_WATCHER_IT_KIND_IMAGE_WITH_TAG).start();
 
-		deployRabbitMQ();
+		deployZookeeper();
 
-		k8SUtils.waitForReplicationController(RABBIT_MQ_CONTROLLER_NAME, NAMESPACE);
+		k8SUtils.waitForDeployment(ZOOKEEPER_DEPLOYMENT, NAMESPACE);
+
+		deployKafka();
+
+		k8SUtils.waitForDeployment(KAFKA_BROKER, NAMESPACE);
 
 		deployTestApp();
 
@@ -160,7 +169,11 @@ public class ActuatorRefreshRabbitMQIT {
 
 	@After
 	public void after() throws Exception {
-		api.deleteNamespacedService("rabbitmq-service", NAMESPACE, null, null, null, null, null, null);
+		appsApi.deleteNamespacedDeployment(KAFKA_BROKER, NAMESPACE, null, null, null, null, null, null);
+		api.deleteNamespacedService(KAFKA_SERVICE, NAMESPACE, null, null, null, null, null, null);
+		appsApi.deleteNamespacedDeployment(ZOOKEEPER_DEPLOYMENT, NAMESPACE, null, null, null, null, null, null);
+		api.deleteNamespacedService(ZOOKEEPER_SERVICE, NAMESPACE, null, null, null, null, null, null);
+
 		api.deleteNamespacedService(CONFIG_WATCHER_IT_IMAGE, NAMESPACE, null, null, null, null, null, null);
 		api.deleteNamespacedService(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
 				null);
@@ -169,18 +182,6 @@ public class ActuatorRefreshRabbitMQIT {
 				null, null, null);
 		appsApi.deleteNamespacedDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE, null, null,
 				null, null, null, null);
-
-		try {
-			api.deleteNamespacedReplicationController(RABBIT_MQ_CONTROLLER_NAME, NAMESPACE, null, null, null, null,
-					null, null);
-		}
-		catch (Exception e) {
-			// swallowing this exception, the delete does actually happen, its a problem
-			// downstream from the k8s
-			// client
-			// see
-			// https://github.com/kubernetes-client/java/issues/86#issuecomment-411234259
-		}
 
 		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
 
@@ -202,9 +203,20 @@ public class ActuatorRefreshRabbitMQIT {
 		api.createNamespacedService(NAMESPACE, getConfigWatcherService(), null, null, null);
 	}
 
-	private void deployRabbitMQ() throws Exception {
-		api.createNamespacedService(NAMESPACE, getRabbitMQService(), null, null, null);
-		api.createNamespacedReplicationController(NAMESPACE, getRabbitMQRepplicationController(), null, null, null);
+	private void deployZookeeper() throws Exception {
+		System.out.println("deploy deployZookeeper");
+		api.createNamespacedService(NAMESPACE, getZookeeperService(), null, null, null);
+		System.out.println("created  getZookeeperService");
+		appsApi.createNamespacedDeployment(NAMESPACE, getZookeeperDeployment(), null, null, null);
+		System.out.println("created  getZookeeperDeployment");
+	}
+
+	private void deployKafka() throws Exception {
+		System.out.println("deploy kafka");
+		api.createNamespacedService(NAMESPACE, getKafkaService(), null, null, null);
+		System.out.println("created  getKafkaService");
+		appsApi.createNamespacedDeployment(NAMESPACE, getKafkaDeployment(), null, null, null);
+		System.out.println("created  getKafkaDeployment");
 	}
 
 	private V1Service getConfigWatcherService() throws Exception {
@@ -221,7 +233,7 @@ public class ActuatorRefreshRabbitMQIT {
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) k8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-bus-amqp-deployment.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-bus-kafka-deployment.yaml");
 		return deployment;
 	}
 
@@ -232,7 +244,7 @@ public class ActuatorRefreshRabbitMQIT {
 	}
 
 	private V1Deployment getItDeployment() throws Exception {
-		String urlString = "spring-cloud-kubernetes-configuration-watcher-it-bus-amqp-deployment.yaml";
+		String urlString = "spring-cloud-kubernetes-configuration-watcher-it-bus-kafka-deployment.yaml";
 		V1Deployment deployment = (V1Deployment) k8SUtils.readYamlFromClasspath(urlString);
 		return deployment;
 	}
@@ -243,15 +255,26 @@ public class ActuatorRefreshRabbitMQIT {
 		return ingress;
 	}
 
-	private V1ReplicationController getRabbitMQRepplicationController() throws Exception {
-		String urlString = "rabbitmq-controller.yaml";
-		V1ReplicationController replicationController = (V1ReplicationController) k8SUtils
-				.readYamlFromClasspath(urlString);
-		return replicationController;
+	private V1Deployment getKafkaDeployment() throws Exception {
+		String urlString = "kafka-deployment.yaml";
+		V1Deployment deployment = (V1Deployment) k8SUtils.readYamlFromClasspath(urlString);
+		return deployment;
 	}
 
-	private V1Service getRabbitMQService() throws Exception {
-		String urlString = "rabbitmq-service.yaml";
+	private V1Service getKafkaService() throws Exception {
+		String urlString = "kafka-service.yaml";
+		V1Service service = (V1Service) k8SUtils.readYamlFromClasspath(urlString);
+		return service;
+	}
+
+	private V1Deployment getZookeeperDeployment() throws Exception {
+		String urlString = "zookeeper-deployment.yaml";
+		V1Deployment deployment = (V1Deployment) k8SUtils.readYamlFromClasspath(urlString);
+		return deployment;
+	}
+
+	private V1Service getZookeeperService() throws Exception {
+		String urlString = "zookeeper-service.yaml";
 		V1Service service = (V1Service) k8SUtils.readYamlFromClasspath(urlString);
 		return service;
 	}

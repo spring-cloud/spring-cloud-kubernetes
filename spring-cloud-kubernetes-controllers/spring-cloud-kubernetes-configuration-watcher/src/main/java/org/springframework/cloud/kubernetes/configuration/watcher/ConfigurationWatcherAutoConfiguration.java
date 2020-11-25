@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.boot.actuate.autoconfigure.amqp.RabbitHealthContributorAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.bus.BusProperties;
@@ -52,6 +53,7 @@ public class ConfigurationWatcherAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
+	@ConditionalOnBean(ConfigMapPropertySourceLocator.class)
 	public ConfigMapWatcherChangeDetector httpBasedConfigMapWatchChangeDetector(AbstractEnvironment environment,
 			KubernetesClient kubernetesClient,
 			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
@@ -67,6 +69,7 @@ public class ConfigurationWatcherAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
+	@ConditionalOnBean(SecretsPropertySourceLocator.class)
 	public SecretsWatcherChangeDetector httpBasedSecretsWatchChangeDetector(AbstractEnvironment environment,
 			KubernetesClient kubernetesClient, Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
@@ -79,12 +82,13 @@ public class ConfigurationWatcherAutoConfiguration {
 	}
 
 	@Configuration
-	@Profile("bus")
+	@Profile("bus-amqp")
 	@Import({ ContextFunctionCatalogAutoConfiguration.class, RabbitHealthContributorAutoConfiguration.class })
-	static class BusConfiguration {
+	static class BusRabbitConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
+		@ConditionalOnBean(ConfigMapPropertySourceLocator.class)
 		public ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(BusProperties busProperties,
 				AbstractEnvironment environment, KubernetesClient kubernetesClient,
 				Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
@@ -97,6 +101,40 @@ public class ConfigurationWatcherAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
+		@ConditionalOnBean(SecretsPropertySourceLocator.class)
+		public SecretsWatcherChangeDetector busSecretsChangeWatcher(BusProperties busProperties,
+				AbstractEnvironment environment, KubernetesClient kubernetesClient,
+				SecretsPropertySourceLocator secretsPropertySourceLocator, ConfigReloadProperties properties,
+				ConfigurationUpdateStrategy strategy,
+				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
+				ThreadPoolTaskExecutor threadFactory) {
+			return new BusEventBasedSecretsWatcherChangeDetector(environment, properties, kubernetesClient, strategy,
+					secretsPropertySourceLocator, busProperties, k8SConfigurationProperties, threadFactory);
+		}
+
+	}
+
+	@Configuration
+	@Profile("bus-kafka")
+	@Import({ ContextFunctionCatalogAutoConfiguration.class })
+	static class BusKafkaConfiguration {
+
+		@Bean
+		@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
+		@ConditionalOnBean(ConfigMapPropertySourceLocator.class)
+		public ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(BusProperties busProperties,
+				AbstractEnvironment environment, KubernetesClient kubernetesClient,
+				ConfigMapPropertySourceLocator configMapPropertySourceLocator, ConfigReloadProperties properties,
+				ConfigurationUpdateStrategy strategy,
+				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
+				ThreadPoolTaskExecutor threadFactory) {
+			return new BusEventBasedConfigMapWatcherChangeDetector(environment, properties, kubernetesClient, strategy,
+					configMapPropertySourceLocator, busProperties, k8SConfigurationProperties, threadFactory);
+		}
+
+		@Bean
+		@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
+		@ConditionalOnBean(SecretsPropertySourceLocator.class)
 		public SecretsWatcherChangeDetector busSecretsChangeWatcher(BusProperties busProperties,
 				AbstractEnvironment environment, KubernetesClient kubernetesClient,
 				Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,

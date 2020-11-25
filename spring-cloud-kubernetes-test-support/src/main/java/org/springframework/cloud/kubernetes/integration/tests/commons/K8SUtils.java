@@ -116,7 +116,7 @@ public class K8SUtils {
 	}
 
 	public void waitForEndpointReady(String name, String namespace) throws Exception {
-		await().pollInterval(Duration.ofSeconds(1)).atMost(90, TimeUnit.SECONDS)
+		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS)
 				.until(() -> isEndpointReady(name, namespace));
 	}
 
@@ -131,7 +131,7 @@ public class K8SUtils {
 	}
 
 	public void waitForReplicationController(String name, String namespace) {
-		await().pollInterval(Duration.ofSeconds(1)).atMost(90, TimeUnit.SECONDS)
+		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS)
 				.until(() -> isReplicationControllerReady(name, namespace));
 	}
 
@@ -150,7 +150,7 @@ public class K8SUtils {
 	}
 
 	public void waitForDeployment(String deploymentName, String namespace) {
-		await().pollInterval(Duration.ofSeconds(1)).atMost(90, TimeUnit.SECONDS)
+		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS)
 				.until(() -> isDeployentReady(deploymentName, namespace));
 	}
 
