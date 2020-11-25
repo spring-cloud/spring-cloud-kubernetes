@@ -110,9 +110,9 @@ public class ConfigMapAndSecretIT {
 		k8SUtils = new K8SUtils(api, appsApi);
 
 		DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-			.withRegistryUrl(KIND_REPO_URL).build();
+				.withRegistryUrl(KIND_REPO_URL).build();
 		DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder().dockerHost(config.getDockerHost())
-			.sslConfig(config.getSSLConfig()).build();
+				.sslConfig(config.getSSLConfig()).build();
 
 		DockerClient dockerClient = DockerClientImpl.getInstance(config, httpClient);
 		dockerClient.tagImageCmd(LOCAL_IMAGE, KIND_IMAGE, IMAGE_TAG).exec();
@@ -122,7 +122,7 @@ public class ConfigMapAndSecretIT {
 	@After
 	public void after() throws Exception {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-			"metadata.name=" + K8S_CONFIG_CLIENT_IT_NAME, null, null, null, null, null, null, null, null);
+				"metadata.name=" + K8S_CONFIG_CLIENT_IT_NAME, null, null, null, null, null, null, null, null);
 		api.deleteNamespacedService(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, NAMESPACE, null, null, null, null, null, null);
 		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
 		api.deleteNamespacedConfigMap(APP_NAME, NAMESPACE, null, null, null, null, null, null);
@@ -148,9 +148,10 @@ public class ConfigMapAndSecretIT {
 			}
 		});
 
-		//Sometimes the NGINX ingress takes a bit to catch up and realize the service is available and we get a 503, we just need to wait a bit
+		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
+		// available and we get a 503, we just need to wait a bit
 		await().timeout(Duration.ofSeconds(60))
-			.until(() -> rest.getForEntity(MYPROPERTY_URL, String.class).getStatusCode().is2xxSuccessful());
+				.until(() -> rest.getForEntity(MYPROPERTY_URL, String.class).getStatusCode().is2xxSuccessful());
 
 		String myProperty = rest.getForObject(MYPROPERTY_URL, String.class);
 		assertThat(myProperty).isEqualTo("from-config-map");
@@ -163,17 +164,17 @@ public class ConfigMapAndSecretIT {
 		configMap.data(data);
 		api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null);
 		await().timeout(Duration.ofSeconds(15))
-			.until(() -> rest.getForObject(MYPROPERTY_URL, String.class).equals("from-unit-test"));
+				.until(() -> rest.getForObject(MYPROPERTY_URL, String.class).equals("from-unit-test"));
 		myProperty = rest.getForObject(MYPROPERTY_URL, String.class);
 		assertThat(myProperty).isEqualTo("from-unit-test");
 
 		V1Secret secret = getConfigK8sClientItCSecret();
 		Map<String, byte[]> secretData = secret.getData();
-		secretData.replace("my.config.mySecret", "p455w1rd" .getBytes());
+		secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
 		secret.setData(secretData);
 		api.replaceNamespacedSecret(APP_NAME, NAMESPACE, secret, null, null, null);
 		await().timeout(Duration.ofSeconds(15))
-			.until(() -> rest.getForObject(MYSECRET_URL, String.class).equals("p455w1rd"));
+				.until(() -> rest.getForObject(MYSECRET_URL, String.class).equals("p455w1rd"));
 		mySecret = rest.getForObject(MYSECRET_URL, String.class);
 		assertThat(mySecret).isEqualTo("p455w1rd");
 
@@ -217,37 +218,37 @@ public class ConfigMapAndSecretIT {
 
 	private static V1Deployment getConfigK8sClientItDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) k8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-deployment.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-deployment.yaml");
 		return deployment;
 	}
 
 	private static V1Deployment getConfigK8sClientItPollingDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) k8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-polling-deployment.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-polling-deployment.yaml");
 		return deployment;
 	}
 
 	private static V1Service getConfigK8sClientItService() throws Exception {
 		V1Service service = (V1Service) k8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-service.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-service.yaml");
 		return service;
 	}
 
 	private static NetworkingV1beta1Ingress getConfigK8sClientItIngress() throws Exception {
 		NetworkingV1beta1Ingress ingress = (NetworkingV1beta1Ingress) k8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-ingress.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-ingress.yaml");
 		return ingress;
 	}
 
 	private static V1ConfigMap getConfigK8sClientItConfigMap() throws Exception {
 		V1ConfigMap configmap = (V1ConfigMap) k8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-configmap.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-configmap.yaml");
 		return configmap;
 	}
 
 	private static V1Secret getConfigK8sClientItCSecret() throws Exception {
 		V1Secret secret = (V1Secret) k8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-secret.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-secret.yaml");
 		return secret;
 	}
 
