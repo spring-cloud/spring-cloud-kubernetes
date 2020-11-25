@@ -221,7 +221,7 @@ public class ActuatorRefreshRabbitMQIT {
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) k8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-bus-deployment.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-bus-amqp-deployment.yaml");
 		return deployment;
 	}
 
@@ -232,7 +232,7 @@ public class ActuatorRefreshRabbitMQIT {
 	}
 
 	private V1Deployment getItDeployment() throws Exception {
-		String urlString = "spring-cloud-kubernetes-configuration-watcher-it-deployment.yaml";
+		String urlString = "spring-cloud-kubernetes-configuration-watcher-it-bus-amqp-deployment.yaml";
 		V1Deployment deployment = (V1Deployment) k8SUtils.readYamlFromClasspath(urlString);
 		return deployment;
 	}

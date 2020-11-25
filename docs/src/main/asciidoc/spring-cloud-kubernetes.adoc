@@ -19,6 +19,8 @@ include::kubernetes-awareness.adoc[]
 
 include::pod-health-indicator.adoc[]
 
+include::info-contributor.adoc[]
+
 include::leader-election.adoc[]
 
 include::load-balancer.adoc[]

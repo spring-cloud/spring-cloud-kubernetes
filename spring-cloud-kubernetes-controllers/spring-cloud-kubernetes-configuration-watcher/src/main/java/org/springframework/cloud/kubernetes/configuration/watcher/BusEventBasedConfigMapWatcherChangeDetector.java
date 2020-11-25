@@ -22,9 +22,9 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
-import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.env.AbstractEnvironment;
@@ -43,10 +43,10 @@ public class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatche
 
 	public BusEventBasedConfigMapWatcherChangeDetector(AbstractEnvironment environment,
 			ConfigReloadProperties properties, KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			ConfigMapPropertySourceLocator configMapPropertySourceLocator, BusProperties busProperties,
+			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator, BusProperties busProperties,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(environment, properties, kubernetesClient, strategy, configMapPropertySourceLocator,
+		super(environment, properties, kubernetesClient, strategy, fabric8ConfigMapPropertySourceLocator,
 				k8SConfigurationProperties, threadPoolTaskExecutor);
 
 		this.busProperties = busProperties;

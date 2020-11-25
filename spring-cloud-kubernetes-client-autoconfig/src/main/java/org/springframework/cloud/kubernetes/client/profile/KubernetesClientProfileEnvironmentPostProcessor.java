@@ -22,8 +22,11 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
 import org.springframework.cloud.kubernetes.commons.profile.AbstractKubernetesProfileEnvironmentPostProcessor;
 import org.springframework.core.env.Environment;
 
+import static io.kubernetes.client.util.Config.ENV_SERVICE_HOST;
+
 /**
  * @author Ryan Baxter
+ * @author Thomas Vitale
  */
 public class KubernetesClientProfileEnvironmentPostProcessor extends AbstractKubernetesProfileEnvironmentPostProcessor {
 
@@ -31,8 +34,7 @@ public class KubernetesClientProfileEnvironmentPostProcessor extends AbstractKub
 	protected boolean isInsideKubernetes(Environment environment) {
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientPodUtils utils = new KubernetesClientPodUtils(api, environment.getProperty(NAMESPACE_PROPERTY));
-		return utils.isInsideKubernetes();
-
+		return environment.containsProperty(ENV_SERVICE_HOST) || utils.isInsideKubernetes();
 	}
 
 }

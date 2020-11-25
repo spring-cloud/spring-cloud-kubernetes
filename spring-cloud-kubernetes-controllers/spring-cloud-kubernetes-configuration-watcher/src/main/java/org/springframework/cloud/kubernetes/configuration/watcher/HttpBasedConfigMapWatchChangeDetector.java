@@ -27,10 +27,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.discovery.reactive.KubernetesReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -57,11 +57,11 @@ public class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatcherChang
 
 	public HttpBasedConfigMapWatchChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			ConfigMapPropertySourceLocator configMapPropertySourceLocator,
+			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor, WebClient webClient,
 			KubernetesReactiveDiscoveryClient k8sReactiveDiscoveryClient) {
-		super(environment, properties, kubernetesClient, strategy, configMapPropertySourceLocator,
+		super(environment, properties, kubernetesClient, strategy, fabric8ConfigMapPropertySourceLocator,
 				k8SConfigurationProperties, threadPoolTaskExecutor);
 		this.webClient = webClient;
 		this.kubernetesReactiveDiscoveryClient = k8sReactiveDiscoveryClient;

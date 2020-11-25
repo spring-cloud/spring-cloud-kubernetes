@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
+import org.springframework.boot.actuate.autoconfigure.info.ConditionalOnEnabledInfoContributor;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -146,6 +147,7 @@ public class Fabric8AutoConfiguration {
 		}
 
 		@Bean
+		@ConditionalOnEnabledInfoContributor("kubernetes")
 		public Fabric8InfoContributor kubernetesInfoContributor(PodUtils podUtils) {
 			return new Fabric8InfoContributor(podUtils);
 		}
