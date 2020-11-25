@@ -57,8 +57,8 @@ resolves service names to Kubernetes Services.
 </dependency>
 ----
 | Load application properties from Kubernetes
-<<ConfigMap PropertySource,ConfigMaps>> and <<Secrets PropertySource,Secrets>>.
-<<PropertySource Reload,Reload>> application properties when a ConfigMap or
+<<configmap-propertysource,ConfigMaps>> and <<Secrets PropertySource,Secrets>>.
+<<propertysource-reload,Reload>> application properties when a ConfigMap or
 Secret changes.
 
 | [source,xml]

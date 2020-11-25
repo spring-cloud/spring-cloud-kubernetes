@@ -100,13 +100,19 @@ public class KubernetesServiceInstanceMapper {
 	}
 
 	private boolean isSecure(Service service, ServicePort port) {
-		final String securedLabelValue = service.getMetadata().getLabels().getOrDefault("secured", "false");
-		if (securedLabelValue.equals("true")) {
-			return true;
+		if (service.getMetadata().getLabels() != null) {
+			final String securedLabelValue = service.getMetadata().getLabels().getOrDefault("secured", "false");
+			if (securedLabelValue.equals("true")) {
+				return true;
+			}
 		}
-		final String securedAnnotationValue = service.getMetadata().getAnnotations().getOrDefault("secured", "false");
-		if (securedAnnotationValue.equals("true")) {
-			return true;
+
+		if (service.getMetadata().getAnnotations() != null) {
+			final String securedAnnotationValue = service.getMetadata().getAnnotations().getOrDefault("secured",
+					"false");
+			if (securedAnnotationValue.equals("true")) {
+				return true;
+			}
 		}
 		return (port.getName() != null && port.getName().endsWith("https"))
 				|| port.getPort().toString().endsWith("443");
