@@ -1,0 +1,9 @@
+apiVersion: v1
+data:
+  application.yaml: |-
+    my:
+      config:
+        myProperty: from-config-map
+kind: ConfigMap
+metadata:
+  name: spring-cloud-kubernetes-client-config-it

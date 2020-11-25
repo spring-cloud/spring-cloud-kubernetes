@@ -26,8 +26,7 @@ import org.springframework.cloud.client.serviceregistry.ServiceRegistry;
  *
  * @author Mauricio Salatino
  */
-public class KubernetesServiceRegistry
-		implements ServiceRegistry<KubernetesRegistration> {
+public class KubernetesServiceRegistry implements ServiceRegistry<KubernetesRegistration> {
 
 	private static final Log log = LogFactory.getLog(KubernetesServiceRegistry.class);
 

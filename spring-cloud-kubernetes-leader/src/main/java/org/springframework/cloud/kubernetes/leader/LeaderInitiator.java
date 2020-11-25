@@ -44,8 +44,7 @@ public class LeaderInitiator implements SmartLifecycle {
 
 	private boolean isRunning;
 
-	public LeaderInitiator(LeaderProperties leaderProperties,
-			LeadershipController leadershipController,
+	public LeaderInitiator(LeaderProperties leaderProperties, LeadershipController leadershipController,
 			LeaderRecordWatcher leaderRecordWatcher, PodReadinessWatcher hostPodWatcher) {
 		this.leaderProperties = leaderProperties;
 		this.leadershipController = leadershipController;
@@ -65,11 +64,9 @@ public class LeaderInitiator implements SmartLifecycle {
 			this.leaderRecordWatcher.start();
 			this.hostPodWatcher.start();
 			this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-			this.scheduledExecutorService.scheduleAtFixedRate(
-					this.leadershipController::update,
+			this.scheduledExecutorService.scheduleAtFixedRate(this.leadershipController::update,
 					this.leaderProperties.getUpdatePeriod().toMillis(),
-					this.leaderProperties.getUpdatePeriod().toMillis(),
-					TimeUnit.MILLISECONDS);
+					this.leaderProperties.getUpdatePeriod().toMillis(), TimeUnit.MILLISECONDS);
 			this.isRunning = true;
 		}
 	}

@@ -33,20 +33,16 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 /**
  * @author Tim Ysewyn
  */
-public class KubernetesExtension
-		implements ParameterResolver, BeforeEachCallback, AfterEachCallback {
+public class KubernetesExtension implements ParameterResolver, BeforeEachCallback, AfterEachCallback {
 
 	private final KubernetesServer mockServer = new KubernetesServer();
 
 	@Override
-	public boolean supportsParameter(ParameterContext parameterContext,
-			ExtensionContext context) {
+	public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext context) {
 		return (parameterContext.getParameter().isAnnotationPresent(Server.class)
-				&& KubernetesServer.class
-						.isAssignableFrom(parameterContext.getParameter().getType()))
+				&& KubernetesServer.class.isAssignableFrom(parameterContext.getParameter().getType()))
 				|| (parameterContext.getParameter().isAnnotationPresent(Client.class)
-						&& KubernetesClient.class.isAssignableFrom(
-								parameterContext.getParameter().getType()));
+						&& KubernetesClient.class.isAssignableFrom(parameterContext.getParameter().getType()));
 	}
 
 	@Override
@@ -60,8 +56,8 @@ public class KubernetesExtension
 	}
 
 	@Override
-	public Object resolveParameter(ParameterContext parameterContext,
-			ExtensionContext extensionContext) throws ParameterResolutionException {
+	public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
+			throws ParameterResolutionException {
 		if (parameterContext.getParameter().isAnnotationPresent(Client.class)) {
 			return mockServer.getClient();
 		}

@@ -29,8 +29,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LeaderRecordWatcher implements Watcher<ConfigMap> {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(LeaderRecordWatcher.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(LeaderRecordWatcher.class);
 
 	private final Object lock = new Object();
 
@@ -42,8 +41,7 @@ public class LeaderRecordWatcher implements Watcher<ConfigMap> {
 
 	private Watch watch;
 
-	public LeaderRecordWatcher(LeaderProperties leaderProperties,
-			LeadershipController leadershipController,
+	public LeaderRecordWatcher(LeaderProperties leaderProperties, LeadershipController leadershipController,
 			KubernetesClient kubernetesClient) {
 		this.leadershipController = leadershipController;
 		this.leaderProperties = leaderProperties;
@@ -56,10 +54,8 @@ public class LeaderRecordWatcher implements Watcher<ConfigMap> {
 				if (this.watch == null) {
 					LOGGER.debug("Starting leader record watcher");
 					this.watch = this.kubernetesClient.configMaps()
-							.inNamespace(this.leaderProperties
-									.getNamespace(this.kubernetesClient.getNamespace()))
-							.withName(this.leaderProperties.getConfigMapName())
-							.watch(this);
+							.inNamespace(this.leaderProperties.getNamespace(this.kubernetesClient.getNamespace()))
+							.withName(this.leaderProperties.getConfigMapName()).watch(this);
 				}
 			}
 		}

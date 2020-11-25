@@ -1,0 +1,11 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+#logging:
+#  level:
+#    org:
+#      springframework:
+#        cloud:
+#          kubernetes: DEBUG

@@ -29,7 +29,7 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.config.client.ConfigClientProperties;
 import org.springframework.cloud.config.client.DiscoveryClientConfigServiceBootstrapConfiguration;
-import org.springframework.cloud.kubernetes.KubernetesAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -60,31 +60,26 @@ public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 	@Test
 	public void onWhenRequested() throws Exception {
 		setup("server.port=7000", "spring.cloud.config.discovery.enabled=true",
-				"spring.cloud.kubernetes.discovery.enabled:true",
-				"spring.cloud.kubernetes.enabled:true", "spring.application.name:test",
-				"spring.cloud.config.discovery.service-id:configserver");
-		assertEquals(1, this.context.getParent()
-				.getBeanNamesForType(DiscoveryClient.class).length);
+				"spring.cloud.kubernetes.discovery.enabled:true", "spring.cloud.kubernetes.enabled:true",
+				"spring.application.name:test", "spring.cloud.config.discovery.service-id:configserver");
+		assertEquals(1, this.context.getParent().getBeanNamesForType(DiscoveryClient.class).length);
 		DiscoveryClient client = this.context.getParent().getBean(DiscoveryClient.class);
 		verify(client, atLeast(2)).getInstances("configserver");
-		ConfigClientProperties locator = this.context
-				.getBean(ConfigClientProperties.class);
+		ConfigClientProperties locator = this.context.getBean(ConfigClientProperties.class);
 		assertEquals("http://fake:8888/", locator.getUri()[0]);
 	}
 
 	private void setup(String... env) {
 		AnnotationConfigApplicationContext parent = new AnnotationConfigApplicationContext();
 		TestPropertyValues.of(env).applyTo(parent);
-		parent.register(UtilAutoConfiguration.class,
-				PropertyPlaceholderAutoConfiguration.class, EnvironmentKnobbler.class,
+		parent.register(UtilAutoConfiguration.class, PropertyPlaceholderAutoConfiguration.class,
+				EnvironmentKnobbler.class, KubernetesCommonsAutoConfiguration.class,
 				KubernetesDiscoveryClientConfigClientBootstrapConfiguration.class,
-				DiscoveryClientConfigServiceBootstrapConfiguration.class,
-				ConfigClientProperties.class);
+				DiscoveryClientConfigServiceBootstrapConfiguration.class, ConfigClientProperties.class);
 		parent.refresh();
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.setParent(parent);
-		this.context.register(PropertyPlaceholderAutoConfiguration.class,
-				KubernetesAutoConfiguration.class,
+		this.context.register(PropertyPlaceholderAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
 				KubernetesDiscoveryClientAutoConfiguration.class);
 		this.context.refresh();
 	}
@@ -95,10 +90,8 @@ public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 		@Bean
 		public KubernetesDiscoveryClient kubernetesDiscoveryClient() {
 			KubernetesDiscoveryClient client = mock(KubernetesDiscoveryClient.class);
-			ServiceInstance instance = new DefaultServiceInstance("configserver1",
-					"configserver", "fake", 8888, false);
-			given(client.getInstances("configserver"))
-					.willReturn(Collections.singletonList(instance));
+			ServiceInstance instance = new DefaultServiceInstance("configserver1", "configserver", "fake", 8888, false);
+			given(client.getInstances("configserver")).willReturn(Collections.singletonList(instance));
 			return client;
 		}
 

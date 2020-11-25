@@ -36,8 +36,8 @@ public class KubernetesServiceInstanceTests {
 		address.setIp("1.2.3.4");
 		EndpointPort port = new EndpointPort();
 		port.setPort(8080);
-		KubernetesServiceInstance instance = new KubernetesServiceInstance("123",
-				"myservice", address, port, Collections.emptyMap(), secure);
+		KubernetesServiceInstance instance = new KubernetesServiceInstance("123", "myservice", address.getIp(),
+				port.getPort(), Collections.emptyMap(), secure);
 
 		assertThat(instance.getInstanceId()).isEqualTo("123");
 		assertThat(instance.getServiceId()).isEqualTo("myservice");
