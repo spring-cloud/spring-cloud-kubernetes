@@ -53,7 +53,7 @@ public class ConfigurationWatcherAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
-	@ConditionalOnBean(ConfigMapPropertySourceLocator.class)
+	@ConditionalOnBean(Fabric8ConfigMapPropertySourceLocator.class)
 	public ConfigMapWatcherChangeDetector httpBasedConfigMapWatchChangeDetector(AbstractEnvironment environment,
 			KubernetesClient kubernetesClient,
 			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
@@ -69,7 +69,7 @@ public class ConfigurationWatcherAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
-	@ConditionalOnBean(SecretsPropertySourceLocator.class)
+	@ConditionalOnBean(Fabric8SecretsPropertySourceLocator.class)
 	public SecretsWatcherChangeDetector httpBasedSecretsWatchChangeDetector(AbstractEnvironment environment,
 			KubernetesClient kubernetesClient, Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
@@ -88,7 +88,7 @@ public class ConfigurationWatcherAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
-		@ConditionalOnBean(ConfigMapPropertySourceLocator.class)
+		@ConditionalOnBean(Fabric8ConfigMapPropertySourceLocator.class)
 		public ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(BusProperties busProperties,
 				AbstractEnvironment environment, KubernetesClient kubernetesClient,
 				Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
@@ -101,10 +101,10 @@ public class ConfigurationWatcherAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
-		@ConditionalOnBean(SecretsPropertySourceLocator.class)
+		@ConditionalOnBean(Fabric8SecretsPropertySourceLocator.class)
 		public SecretsWatcherChangeDetector busSecretsChangeWatcher(BusProperties busProperties,
 				AbstractEnvironment environment, KubernetesClient kubernetesClient,
-				SecretsPropertySourceLocator secretsPropertySourceLocator, ConfigReloadProperties properties,
+				Fabric8SecretsPropertySourceLocator secretsPropertySourceLocator, ConfigReloadProperties properties,
 				ConfigurationUpdateStrategy strategy,
 				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 				ThreadPoolTaskExecutor threadFactory) {
@@ -121,10 +121,10 @@ public class ConfigurationWatcherAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
-		@ConditionalOnBean(ConfigMapPropertySourceLocator.class)
+		@ConditionalOnBean(Fabric8ConfigMapPropertySourceLocator.class)
 		public ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(BusProperties busProperties,
 				AbstractEnvironment environment, KubernetesClient kubernetesClient,
-				ConfigMapPropertySourceLocator configMapPropertySourceLocator, ConfigReloadProperties properties,
+				Fabric8ConfigMapPropertySourceLocator configMapPropertySourceLocator, ConfigReloadProperties properties,
 				ConfigurationUpdateStrategy strategy,
 				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 				ThreadPoolTaskExecutor threadFactory) {
@@ -134,7 +134,7 @@ public class ConfigurationWatcherAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
-		@ConditionalOnBean(SecretsPropertySourceLocator.class)
+		@ConditionalOnBean(Fabric8SecretsPropertySourceLocator.class)
 		public SecretsWatcherChangeDetector busSecretsChangeWatcher(BusProperties busProperties,
 				AbstractEnvironment environment, KubernetesClient kubernetesClient,
 				Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
