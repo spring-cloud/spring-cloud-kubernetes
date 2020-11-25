@@ -1,0 +1,19 @@
+apiVersion: skaffold/v2alpha3
+kind: Config
+metadata:
+  name: spring-cloud-kubernetes-core-k8s-client-it
+build:
+  artifacts:
+  - image: springcloud/spring-cloud-kubernetes-core-k8s-client-it
+    custom:
+      buildCommand: "../../mvnw clean install"
+      dependencies:
+        paths:
+          - src
+          - pom.xml
+deploy:
+  kubectl:
+    manifests:
+    - k8s/deployment-it.yaml
+    - k8s/service-it.yaml
+    - ../permissions.yaml

@@ -50,26 +50,21 @@ public class MeshUtils {
 			// Check if Istio Envoy proxy is installed. Notice that the check is done to
 			// localhost.
 			// TODO: We can improve this initial detection if better methods are found.
-			String resource = "http://localhost:"
-					+ this.istioClientProperties.getEnvoyPort();
-			ResponseEntity<String> response = this.restTemplate.getForEntity(
-					resource + "/" + this.istioClientProperties.getTestPath(),
-					String.class);
+			String resource = "http://localhost:" + this.istioClientProperties.getEnvoyPort();
+			ResponseEntity<String> response = this.restTemplate
+					.getForEntity(resource + "/" + this.istioClientProperties.getTestPath(), String.class);
 			if (response.getStatusCode().is2xxSuccessful()) {
 				LOG.info("Istio Resources Found.");
 				return true;
 			}
-			LOG.warn("Although Envoy proxy did respond at port"
-					+ this.istioClientProperties.getEnvoyPort()
-					+ ", it did not respond with HTTP 200 to path: "
-					+ this.istioClientProperties.getTestPath()
+			LOG.warn("Although Envoy proxy did respond at port" + this.istioClientProperties.getEnvoyPort()
+					+ ", it did not respond with HTTP 200 to path: " + this.istioClientProperties.getTestPath()
 					+ ". You may need to tweak the test path in order to get proper Istio support");
 			return false;
 		}
 		catch (Throwable t) {
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("Envoy proxy could not be located at port: "
-						+ this.istioClientProperties.getEnvoyPort()
+				LOG.debug("Envoy proxy could not be located at port: " + this.istioClientProperties.getEnvoyPort()
 						+ ". Assuming that the application is not running inside the Istio Service Mesh");
 			}
 			return false;

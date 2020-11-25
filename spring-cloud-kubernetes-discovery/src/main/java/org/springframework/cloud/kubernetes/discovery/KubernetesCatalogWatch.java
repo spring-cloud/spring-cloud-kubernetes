@@ -40,8 +40,7 @@ import org.springframework.scheduling.annotation.Scheduled;
  */
 public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(KubernetesCatalogWatch.class);
+	private static final Logger logger = LoggerFactory.getLogger(KubernetesCatalogWatch.class);
 
 	private final KubernetesClient kubernetesClient;
 
@@ -51,8 +50,7 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private ApplicationEventPublisher publisher;
 
-	public KubernetesCatalogWatch(KubernetesClient kubernetesClient,
-			KubernetesDiscoveryProperties properties) {
+	public KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties) {
 		this.kubernetesClient = kubernetesClient;
 		this.properties = properties;
 	}
@@ -62,8 +60,7 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 		this.publisher = publisher;
 	}
 
-	@Scheduled(
-			fixedDelayString = "${spring.cloud.kubernetes.discovery.catalogServicesWatchDelay:30000}")
+	@Scheduled(fixedDelayString = "${spring.cloud.kubernetes.discovery.catalogServicesWatchDelay:30000}")
 	public void catalogServicesWatch() {
 		try {
 			List<String> previousState = this.catalogEndpointsState.get();
@@ -71,22 +68,21 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 			// not all pods participate in the service discovery. only those that have
 			// endpoints.
 			List<Endpoints> endpoints = this.properties.isAllNamespaces()
-					? this.kubernetesClient.endpoints().inAnyNamespace().list().getItems()
-					: this.kubernetesClient.endpoints().list().getItems();
-			List<String> endpointsPodNames = endpoints.stream().map(Endpoints::getSubsets)
-					.filter(Objects::nonNull).flatMap(Collection::stream)
-					.map(EndpointSubset::getAddresses).filter(Objects::nonNull)
-					.flatMap(Collection::stream).map(EndpointAddress::getTargetRef)
-					.filter(Objects::nonNull).map(ObjectReference::getName) // pod name
-																			// unique in
-																			// namespace
+					? this.kubernetesClient.endpoints().inAnyNamespace().withLabels(properties.getServiceLabels())
+							.list().getItems()
+					: this.kubernetesClient.endpoints().withLabels(properties.getServiceLabels()).list().getItems();
+			List<String> endpointsPodNames = endpoints.stream().map(Endpoints::getSubsets).filter(Objects::nonNull)
+					.flatMap(Collection::stream).map(EndpointSubset::getAddresses).filter(Objects::nonNull)
+					.flatMap(Collection::stream).map(EndpointAddress::getTargetRef).filter(Objects::nonNull)
+					.map(ObjectReference::getName) // pod name
+													// unique in
+													// namespace
 					.sorted(String::compareTo).collect(Collectors.toList());
 
 			this.catalogEndpointsState.set(endpointsPodNames);
 
 			if (!endpointsPodNames.equals(previousState)) {
-				logger.trace("Received endpoints update from kubernetesClient: {}",
-						endpointsPodNames);
+				logger.trace("Received endpoints update from kubernetesClient: {}", endpointsPodNames);
 				this.publisher.publishEvent(new HeartbeatEvent(this, endpointsPodNames));
 			}
 		}

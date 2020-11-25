@@ -17,7 +17,7 @@
 package org.springframework.cloud.kubernetes.discovery;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.kubernetes.KubernetesAutoConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -28,8 +28,7 @@ import org.springframework.context.annotation.Import;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty("spring.cloud.config.discovery.enabled")
-@Import({ KubernetesAutoConfiguration.class,
-		KubernetesDiscoveryClientAutoConfiguration.class })
+@Import({ Fabric8AutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class })
 public class KubernetesDiscoveryClientConfigClientBootstrapConfiguration {
 
 }

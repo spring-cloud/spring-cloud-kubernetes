@@ -1,0 +1,6 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration\
+
+
+org.springframework.boot.env.EnvironmentPostProcessor=\
+org.springframework.cloud.kubernetes.fabric8.profile.Fabric8ProfileEnvironmentPostProcessor

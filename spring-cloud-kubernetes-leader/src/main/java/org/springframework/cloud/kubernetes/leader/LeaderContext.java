@@ -35,8 +35,7 @@ public class LeaderContext implements Context {
 
 	@Override
 	public boolean isLeader() {
-		return this.leadershipController.getLocalLeader()
-				.filter(l -> l.isCandidate(this.candidate)).isPresent();
+		return this.leadershipController.getLocalLeader().filter(l -> l.isCandidate(this.candidate)).isPresent();
 	}
 
 	@Override

@@ -45,8 +45,7 @@ public class LeadershipController {
 
 	private static final String KIND = "leaders";
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(LeadershipController.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(LeadershipController.class);
 
 	private final Candidate candidate;
 
@@ -61,8 +60,7 @@ public class LeadershipController {
 	private PodReadinessWatcher leaderReadinessWatcher;
 
 	public LeadershipController(Candidate candidate, LeaderProperties leaderProperties,
-			LeaderEventPublisher leaderEventPublisher,
-			KubernetesClient kubernetesClient) {
+			LeaderEventPublisher leaderEventPublisher, KubernetesClient kubernetesClient) {
 		this.candidate = candidate;
 		this.leaderProperties = leaderProperties;
 		this.leaderEventPublisher = leaderEventPublisher;
@@ -109,8 +107,7 @@ public class LeadershipController {
 			handleLeaderChange(null);
 		}
 		catch (KubernetesClientException e) {
-			LOGGER.warn("Failure when revoking leadership for '{}': {}", this.candidate,
-					e.getMessage());
+			LOGGER.warn("Failure when revoking leadership for '{}': {}", this.candidate, e.getMessage());
 		}
 	}
 
@@ -118,9 +115,7 @@ public class LeadershipController {
 		LOGGER.debug("Trying to acquire leadership for '{}'", this.candidate);
 
 		if (!isPodReady(this.candidate.getId())) {
-			LOGGER.debug(
-					"Pod of '{}' is not ready at the moment, cannot acquire leadership",
-					this.candidate);
+			LOGGER.debug("Pod of '{}' is not ready at the moment, cannot acquire leadership", this.candidate);
 			return;
 		}
 
@@ -133,13 +128,11 @@ public class LeadershipController {
 				updateConfigMapEntry(configMap, data);
 			}
 
-			Leader newLeader = new Leader(this.candidate.getRole(),
-					this.candidate.getId());
+			Leader newLeader = new Leader(this.candidate.getRole(), this.candidate.getId());
 			handleLeaderChange(newLeader);
 		}
 		catch (KubernetesClientException e) {
-			LOGGER.warn("Failure when acquiring leadership for '{}': {}", this.candidate,
-					e.getMessage());
+			LOGGER.warn("Failure when acquiring leadership for '{}': {}", this.candidate, e.getMessage());
 			notifyOnFailedToAcquire();
 		}
 	}
@@ -169,8 +162,7 @@ public class LeadershipController {
 		LOGGER.debug("Leadership has been granted for '{}'", this.candidate);
 
 		Context context = new LeaderContext(this.candidate, this);
-		this.leaderEventPublisher.publishOnGranted(this, context,
-				this.candidate.getRole());
+		this.leaderEventPublisher.publishOnGranted(this, context, this.candidate.getRole());
 		try {
 			this.candidate.onGranted(context);
 		}
@@ -184,16 +176,14 @@ public class LeadershipController {
 		LOGGER.debug("Leadership has been revoked for '{}'", this.candidate);
 
 		Context context = new LeaderContext(this.candidate, this);
-		this.leaderEventPublisher.publishOnRevoked(this, context,
-				this.candidate.getRole());
+		this.leaderEventPublisher.publishOnRevoked(this, context, this.candidate.getRole());
 		this.candidate.onRevoked(context);
 	}
 
 	private void notifyOnFailedToAcquire() {
 		if (this.leaderProperties.isPublishFailedEvents()) {
 			Context context = new LeaderContext(this.candidate, this);
-			this.leaderEventPublisher.publishOnFailedToAcquire(this, context,
-					this.candidate.getRole());
+			this.leaderEventPublisher.publishOnFailedToAcquire(this, context, this.candidate.getRole());
 		}
 	}
 
@@ -204,8 +194,8 @@ public class LeadershipController {
 		}
 
 		if (this.localLeader != null && !this.localLeader.isCandidate(this.candidate)) {
-			this.leaderReadinessWatcher = new PodReadinessWatcher(
-					this.localLeader.getId(), this.kubernetesClient, this);
+			this.leaderReadinessWatcher = new PodReadinessWatcher(this.localLeader.getId(), this.kubernetesClient,
+					this);
 			this.leaderReadinessWatcher.start();
 		}
 	}
@@ -240,8 +230,7 @@ public class LeadershipController {
 
 	private ConfigMap getConfigMap() {
 		return this.kubernetesClient.configMaps()
-				.inNamespace(this.leaderProperties
-						.getNamespace(this.kubernetesClient.getNamespace()))
+				.inNamespace(this.leaderProperties.getNamespace(this.kubernetesClient.getNamespace()))
 				.withName(this.leaderProperties.getConfigMapName()).get();
 	}
 
@@ -249,21 +238,18 @@ public class LeadershipController {
 		LOGGER.debug("Creating new config map with data: {}", data);
 
 		ConfigMap newConfigMap = new ConfigMapBuilder().withNewMetadata()
-				.withName(this.leaderProperties.getConfigMapName())
-				.addToLabels(PROVIDER_KEY, PROVIDER).addToLabels(KIND_KEY, KIND)
-				.endMetadata().addToData(data).build();
+				.withName(this.leaderProperties.getConfigMapName()).addToLabels(PROVIDER_KEY, PROVIDER)
+				.addToLabels(KIND_KEY, KIND).endMetadata().addToData(data).build();
 
 		this.kubernetesClient.configMaps()
-				.inNamespace(this.leaderProperties
-						.getNamespace(this.kubernetesClient.getNamespace()))
+				.inNamespace(this.leaderProperties.getNamespace(this.kubernetesClient.getNamespace()))
 				.create(newConfigMap);
 	}
 
 	private void updateConfigMapEntry(ConfigMap configMap, Map<String, String> newData) {
 		LOGGER.debug("Adding new data to config map: {}", newData);
 
-		ConfigMap newConfigMap = new ConfigMapBuilder(configMap).addToData(newData)
-				.build();
+		ConfigMap newConfigMap = new ConfigMapBuilder(configMap).addToData(newData).build();
 
 		updateConfigMap(configMap, newConfigMap);
 	}
@@ -271,19 +257,16 @@ public class LeadershipController {
 	private void removeConfigMapEntry(ConfigMap configMap, String key) {
 		LOGGER.debug("Removing config map entry '{}'", key);
 
-		ConfigMap newConfigMap = new ConfigMapBuilder(configMap).removeFromData(key)
-				.build();
+		ConfigMap newConfigMap = new ConfigMapBuilder(configMap).removeFromData(key).build();
 
 		updateConfigMap(configMap, newConfigMap);
 	}
 
 	private void updateConfigMap(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
 		this.kubernetesClient.configMaps()
-				.inNamespace(this.leaderProperties
-						.getNamespace(this.kubernetesClient.getNamespace()))
+				.inNamespace(this.leaderProperties.getNamespace(this.kubernetesClient.getNamespace()))
 				.withName(this.leaderProperties.getConfigMapName())
-				.lockResourceVersion(oldConfigMap.getMetadata().getResourceVersion())
-				.replace(newConfigMap);
+				.lockResourceVersion(oldConfigMap.getMetadata().getResourceVersion()).replace(newConfigMap);
 	}
 
 }

@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: spring-cloud-kubernetes-client-config-it
+  cloud:
+    kubernetes:
+      enabled: false
+

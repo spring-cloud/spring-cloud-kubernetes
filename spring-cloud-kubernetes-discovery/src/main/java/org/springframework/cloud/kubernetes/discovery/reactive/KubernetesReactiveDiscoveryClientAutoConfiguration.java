@@ -30,7 +30,7 @@ import org.springframework.cloud.client.discovery.composite.reactive.ReactiveCom
 import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIndicatorProperties;
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.ConditionalOnKubernetesEnabled;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.discovery.KubernetesClientServicesFunction;
 import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryClientAutoConfiguration;
@@ -56,20 +56,17 @@ public class KubernetesReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(
-			KubernetesClient client, KubernetesDiscoveryProperties properties,
+	public KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(KubernetesClient client,
+			KubernetesDiscoveryProperties properties,
 			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
-		return new KubernetesReactiveDiscoveryClient(client, properties,
-				kubernetesClientServicesFunction);
+		return new KubernetesReactiveDiscoveryClient(client, properties, kubernetesClientServicesFunction);
 	}
 
 	@Bean
-	@ConditionalOnClass(
-			name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
+	@ConditionalOnClass(name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	public ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
-			KubernetesReactiveDiscoveryClient client,
-			DiscoveryClientHealthIndicatorProperties properties) {
+			KubernetesReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties) {
 		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
 	}
 

@@ -49,14 +49,12 @@ public class LeaderContextTest {
 
 	@BeforeEach
 	public void before() {
-		this.leaderContext = new LeaderContext(this.mockCandidate,
-				this.mockLeadershipController);
+		this.leaderContext = new LeaderContext(this.mockCandidate, this.mockLeadershipController);
 	}
 
 	@Test
 	public void testIsLeaderWithoutLeader() {
-		given(this.mockLeadershipController.getLocalLeader())
-				.willReturn(Optional.empty());
+		given(this.mockLeadershipController.getLocalLeader()).willReturn(Optional.empty());
 
 		boolean result = this.leaderContext.isLeader();
 
@@ -65,8 +63,7 @@ public class LeaderContextTest {
 
 	@Test
 	public void testIsLeaderWithAnotherLeader() {
-		given(this.mockLeadershipController.getLocalLeader())
-				.willReturn(Optional.of(this.mockLeader));
+		given(this.mockLeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
 
 		boolean result = this.leaderContext.isLeader();
 
@@ -75,8 +72,7 @@ public class LeaderContextTest {
 
 	@Test
 	public void testIsLeaderWhenLeader() {
-		given(this.mockLeadershipController.getLocalLeader())
-				.willReturn(Optional.of(this.mockLeader));
+		given(this.mockLeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
 		given(this.mockLeader.isCandidate(this.mockCandidate)).willReturn(true);
 
 		boolean result = this.leaderContext.isLeader();
