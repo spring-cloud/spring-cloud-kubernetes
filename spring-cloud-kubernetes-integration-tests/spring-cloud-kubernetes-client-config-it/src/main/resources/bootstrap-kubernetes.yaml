@@ -1,0 +1,15 @@
+spring:
+  cloud:
+    kubernetes:
+      enabled: true
+      secrets:
+        enable-api: true
+      reload:
+        enabled: true
+        monitoring-secrets: true
+logging:
+  level:
+    org:
+      springframework:
+        cloud:
+          kubernetes: DEBUG

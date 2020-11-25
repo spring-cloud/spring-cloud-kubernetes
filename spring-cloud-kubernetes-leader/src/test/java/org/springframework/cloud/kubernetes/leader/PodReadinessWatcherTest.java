@@ -72,8 +72,7 @@ public class PodReadinessWatcherTest {
 
 	@BeforeEach
 	public void before() {
-		this.watcher = new PodReadinessWatcher(POD_NAME, this.mockKubernetesClient,
-				this.mockLeadershipController);
+		this.watcher = new PodReadinessWatcher(POD_NAME, this.mockKubernetesClient, this.mockLeadershipController);
 	}
 
 	@Test

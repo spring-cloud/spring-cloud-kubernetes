@@ -70,12 +70,9 @@ public class KubernetesCatalogServicesWatchConfigurationTest {
 	}
 
 	private void setup(String... env) {
-		this.context = new SpringApplicationBuilder(
-				PropertyPlaceholderAutoConfiguration.class,
-				KubernetesClientTestConfiguration.class,
-				KubernetesCatalogWatchAutoConfiguration.class,
-				KubernetesDiscoveryClientAutoConfiguration.class)
-						.web(WebApplicationType.NONE).properties(env).run();
+		this.context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
+				KubernetesClientTestConfiguration.class, KubernetesCatalogWatchAutoConfiguration.class,
+				KubernetesDiscoveryClientAutoConfiguration.class).web(WebApplicationType.NONE).properties(env).run();
 	}
 
 	@Configuration(proxyBeanMethods = false)

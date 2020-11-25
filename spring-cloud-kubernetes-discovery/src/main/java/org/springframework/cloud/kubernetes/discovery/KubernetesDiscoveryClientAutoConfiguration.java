@@ -25,8 +25,8 @@ import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.ConditionalOnKubernetesEnabled;
-import org.springframework.cloud.kubernetes.KubernetesAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
+import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.cloud.kubernetes.registry.KubernetesRegistration;
 import org.springframework.cloud.kubernetes.registry.KubernetesServiceRegistry;
 import org.springframework.context.annotation.Bean;
@@ -41,21 +41,18 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnKubernetesEnabled
-@AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class,
-		CommonsClientAutoConfiguration.class })
-@AutoConfigureAfter({ KubernetesAutoConfiguration.class })
+@AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
+@AutoConfigureAfter({ Fabric8AutoConfiguration.class })
 public class KubernetesDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public DefaultIsServicePortSecureResolver isServicePortSecureResolver(
-			KubernetesDiscoveryProperties properties) {
+	public DefaultIsServicePortSecureResolver isServicePortSecureResolver(KubernetesDiscoveryProperties properties) {
 		return new DefaultIsServicePortSecureResolver(properties);
 	}
 
 	@Bean
-	public KubernetesClientServicesFunction servicesFunction(
-			KubernetesDiscoveryProperties properties) {
+	public KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties) {
 		if (properties.getServiceLabels().isEmpty()) {
 			if (properties.isAllNamespaces()) {
 				return (client) -> client.services().inAnyNamespace();
@@ -66,12 +63,10 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		}
 		else {
 			if (properties.isAllNamespaces()) {
-				return (client) -> client.services().inAnyNamespace()
-						.withLabels(properties.getServiceLabels());
+				return (client) -> client.services().inAnyNamespace().withLabels(properties.getServiceLabels());
 			}
 			else {
-				return (client) -> client.services()
-						.withLabels(properties.getServiceLabels());
+				return (client) -> client.services().withLabels(properties.getServiceLabels());
 			}
 		}
 	}
@@ -82,8 +77,7 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	}
 
 	@Bean
-	public KubernetesRegistration getRegistration(KubernetesClient client,
-			KubernetesDiscoveryProperties properties) {
+	public KubernetesRegistration getRegistration(KubernetesClient client, KubernetesDiscoveryProperties properties) {
 		return new KubernetesRegistration(client, properties);
 	}
 
@@ -99,12 +93,12 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean
-		public KubernetesDiscoveryClient kubernetesDiscoveryClient(
-				KubernetesClient client, KubernetesDiscoveryProperties properties,
+		public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
+				KubernetesDiscoveryProperties properties,
 				KubernetesClientServicesFunction kubernetesClientServicesFunction,
 				DefaultIsServicePortSecureResolver isServicePortSecureResolver) {
-			return new KubernetesDiscoveryClient(client, properties,
-					kubernetesClientServicesFunction, isServicePortSecureResolver);
+			return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction,
+					isServicePortSecureResolver);
 		}
 
 	}

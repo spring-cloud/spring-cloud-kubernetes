@@ -87,18 +87,25 @@
 
 	<modules>
 		<module>spring-cloud-kubernetes-dependencies</module>
-		<module>spring-cloud-kubernetes-core</module>
-		<module>spring-cloud-kubernetes-config</module>
+		<module>spring-cloud-kubernetes-commons</module>
+		<module>spring-cloud-kubernetes-test-support</module>
+		<module>spring-cloud-kubernetes-client-autoconfig</module>
+		<module>spring-cloud-kubernetes-client-config</module>
+		<module>spring-cloud-kubernetes-fabric8-autoconfig</module>
+		<module>spring-cloud-kubernetes-fabric8-config</module>
 		<module>spring-cloud-kubernetes-discovery</module>
 		<module>spring-cloud-starter-kubernetes</module>
 		<module>spring-cloud-starter-kubernetes-config</module>
 		<module>spring-cloud-starter-kubernetes-all</module>
+		<module>spring-cloud-starter-kubernetes-client-all</module>
 		<module>spring-cloud-kubernetes-examples</module>
 		<module>spring-cloud-kubernetes-leader</module>
 		<module>spring-cloud-kubernetes-istio</module>
 		<module>spring-cloud-kubernetes-controllers</module>
 		<module>spring-cloud-kubernetes-integration-tests</module>
 		<module>docs</module>
+		<module>spring-cloud-kubernetes-loadbalancer</module>
+		<module>spring-cloud-starter-kubernetes-loadbalancer</module>
 	</modules>
 
 	<dependencyManagement>
@@ -222,7 +229,7 @@
 				<repository>
 					<id>spring-snapshots</id>
 					<name>Spring Snapshots</name>
-					<url>https://repo.spring.io/libs-snapshot-local</url>
+					<url>https://repo.spring.io/snapshot</url>
 					<snapshots>
 						<enabled>true</enabled>
 					</snapshots>
@@ -233,7 +240,7 @@
 				<repository>
 					<id>spring-milestones</id>
 					<name>Spring Milestones</name>
-					<url>https://repo.spring.io/libs-milestone-local</url>
+					<url>https://repo.spring.io/milestone</url>
 					<snapshots>
 						<enabled>false</enabled>
 					</snapshots>
@@ -251,7 +258,7 @@
 				<pluginRepository>
 					<id>spring-snapshots</id>
 					<name>Spring Snapshots</name>
-					<url>https://repo.spring.io/libs-snapshot-local</url>
+					<url>https://repo.spring.io/snapshot</url>
 					<snapshots>
 						<enabled>true</enabled>
 					</snapshots>
@@ -262,7 +269,7 @@
 				<pluginRepository>
 					<id>spring-milestones</id>
 					<name>Spring Milestones</name>
-					<url>https://repo.spring.io/libs-milestone-local</url>
+					<url>https://repo.spring.io/milestone</url>
 					<snapshots>
 						<enabled>false</enabled>
 					</snapshots>
@@ -270,7 +277,7 @@
 				<pluginRepository>
 					<id>spring-releases</id>
 					<name>Spring Releases</name>
-					<url>https://repo.spring.io/libs-release-local</url>
+					<url>https://repo.spring.io/release</url>
 					<snapshots>
 						<enabled>false</enabled>
 					</snapshots>

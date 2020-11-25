@@ -73,8 +73,8 @@ public class LeaderRecordWatcherTest {
 
 	@BeforeEach
 	public void before() {
-		this.watcher = new LeaderRecordWatcher(this.mockLeaderProperties,
-				this.mockLeadershipController, this.mockKubernetesClient);
+		this.watcher = new LeaderRecordWatcher(this.mockLeaderProperties, this.mockLeadershipController,
+				this.mockKubernetesClient);
 	}
 
 	@Test
@@ -128,12 +128,9 @@ public class LeaderRecordWatcherTest {
 	}
 
 	private void initStubs() {
-		given(this.mockKubernetesClient.configMaps())
-				.willReturn(this.mockConfigMapsOperation);
-		given(this.mockConfigMapsOperation.inNamespace(null))
-				.willReturn(this.mockInNamespaceOperation);
-		given(this.mockInNamespaceOperation.withName(null))
-				.willReturn(this.mockWithNameResource);
+		given(this.mockKubernetesClient.configMaps()).willReturn(this.mockConfigMapsOperation);
+		given(this.mockConfigMapsOperation.inNamespace(null)).willReturn(this.mockInNamespaceOperation);
+		given(this.mockInNamespaceOperation.withName(null)).willReturn(this.mockWithNameResource);
 		given(this.mockWithNameResource.watch(this.watcher)).willReturn(this.mockWatch);
 	}
 

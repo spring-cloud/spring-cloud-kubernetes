@@ -148,11 +148,9 @@ public class KubernetesDiscoveryProperties {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("enabled", this.enabled)
-				.append("serviceName", this.serviceName).append("filter", this.filter)
-				.append("knownSecurePorts", this.knownSecurePorts)
-				.append("serviceLabels", this.serviceLabels)
-				.append("metadata", this.metadata).toString();
+		return new ToStringCreator(this).append("enabled", this.enabled).append("serviceName", this.serviceName)
+				.append("filter", this.filter).append("knownSecurePorts", this.knownSecurePorts)
+				.append("serviceLabels", this.serviceLabels).append("metadata", this.metadata).toString();
 	}
 
 	/**
@@ -247,10 +245,8 @@ public class KubernetesDiscoveryProperties {
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("addLabels", this.addLabels)
-					.append("labelsPrefix", this.labelsPrefix)
-					.append("addAnnotations", this.addAnnotations)
-					.append("annotationsPrefix", this.annotationsPrefix)
-					.append("addPorts", this.addPorts)
+					.append("labelsPrefix", this.labelsPrefix).append("addAnnotations", this.addAnnotations)
+					.append("annotationsPrefix", this.annotationsPrefix).append("addPorts", this.addPorts)
 					.append("portsPrefix", this.portsPrefix).toString();
 		}
 

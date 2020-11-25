@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: spring-cloud-kubernetes-core-k8s-client-it
+  name: spring-cloud-kubernetes-core-k8s-client-it-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-cloud-kubernetes-core-k8s-client-it
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: spring-cloud-kubernetes-core-k8s-client-it
+    spec:
+      serviceAccountName: spring-cloud-kubernetes-serviceaccount
+      containers:
+      - image: springcloud/spring-cloud-kubernetes-core-k8s-client-it:2.0.0-SNAPSHOT
+        imagePullPolicy: IfNotPresent
+        name: spring-cloud-kubernetes-core-k8s-client-it
+        resources: {}
+status: {}
