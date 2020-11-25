@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: zookeeper
-        image: wurstmeister/zookeeper:latest
+        image: zookeeper:3.6.2
         ports:
         - containerPort: 2181
         env:
