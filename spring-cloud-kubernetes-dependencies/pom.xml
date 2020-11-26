@@ -32,7 +32,7 @@
 	<name>Spring Cloud Kubernetes :: Dependencies</name>
 	<description>Spring Cloud Kubernetes Dependencies</description>
 	<properties>
-		<arquillian.version>1.4.0.Final</arquillian.version>
+		<arquillian.version>1.6.0.Final</arquillian.version>
 		<arquillian-cube.version>1.15.2</arquillian-cube.version>
 		<hoverfly.version>0.13.0</hoverfly.version>
 		<kubernetes-client.version>4.10.3</kubernetes-client.version>
