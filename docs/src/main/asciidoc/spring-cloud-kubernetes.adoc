@@ -37,7 +37,7 @@ include::other-resources.adoc[]
 
 == Configuration properties
 
-To see the list of all Sleuth related configuration properties please check link:appendix.html[the Appendix page].
+To see the list of all Kubernetes related configuration properties please check link:appendix.html[the Appendix page].
 
 == Building
 
