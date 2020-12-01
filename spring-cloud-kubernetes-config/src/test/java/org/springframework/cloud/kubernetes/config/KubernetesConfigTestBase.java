@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import org.junit.After;
 import org.junit.ClassRule;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -34,20 +35,13 @@ import org.springframework.context.annotation.Configuration;
  **/
 public class KubernetesConfigTestBase {
 
-	private static ConfigurableApplicationContext context;
-
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
+	private static ConfigurableApplicationContext context;
+
 	protected static ConfigurableApplicationContext getContext() {
 		return context;
-	}
-
-	@After
-	public void close() {
-		if (this.context != null) {
-			this.context.close();
-		}
 	}
 
 	protected static void setup(String... env) {
@@ -56,6 +50,13 @@ public class KubernetesConfigTestBase {
 				ConfigReloadAutoConfiguration.class, RefreshAutoConfiguration.class)
 						.web(org.springframework.boot.WebApplicationType.NONE)
 						.properties(env).run();
+	}
+
+	@After
+	public void close() {
+		if (this.context != null) {
+			this.context.close();
+		}
 	}
 
 	@Configuration(proxyBeanMethods = false)

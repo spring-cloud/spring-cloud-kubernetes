@@ -16,16 +16,17 @@
 
 package org.springframework.cloud.kubernetes.config.reload;
 
+import java.util.HashMap;
+
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import org.springframework.cloud.kubernetes.config.KubernetesConfigTestBase;
 
-import java.util.HashMap;
-
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Haytham Mohamed
@@ -37,6 +38,35 @@ import static org.assertj.core.api.Assertions.*;
 public class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase {
 
 	private static final String APPLICATION_NAME = "application";
+
+	@BeforeClass
+	public static void setUpBeforeClass() {
+
+		setup();
+		KubernetesClient mockClient = getContext().getBean(KubernetesClient.class);
+
+		// Configure the kubernetes master url to point to the mock server
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
+				mockClient.getConfiguration().getMasterUrl());
+		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
+				"false");
+		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
+		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
+
+		HashMap<String, String> data = new HashMap<>();
+		data.put("bean.greeting", "Hello ConfigMap, %s!");
+		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME)
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
+						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
+				.always();
+		server.expect()
+				.withPath("/api/v1/namespaces/spring/configmaps/" + APPLICATION_NAME)
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
+						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
+				.always();
+	}
 
 	@Test
 	public void kubernetesConfigReloadDisabled() throws Exception {
@@ -102,35 +132,6 @@ public class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase 
 		assertThat(this.getContext().containsBean("secretsPropertySourceLocator"))
 				.isFalse();
 		assertThat(this.getContext().containsBean("propertyChangeWatcher")).isFalse();
-	}
-
-	@BeforeClass
-	public static void setUpBeforeClass() {
-
-		setup();
-		KubernetesClient mockClient = getContext().getBean(KubernetesClient.class);
-
-		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
-				mockClient.getConfiguration().getMasterUrl());
-		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
-				"false");
-		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
-		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
-
-		HashMap<String, String> data = new HashMap<>();
-		data.put("bean.greeting", "Hello ConfigMap, %s!");
-		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME)
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
-						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
-				.always();
-		server.expect()
-				.withPath("/api/v1/namespaces/spring/configmaps/" + APPLICATION_NAME)
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
-						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
-				.always();
 	}
 
 }
