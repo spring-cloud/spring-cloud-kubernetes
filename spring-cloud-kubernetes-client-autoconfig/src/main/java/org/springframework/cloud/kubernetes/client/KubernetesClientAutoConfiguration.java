@@ -46,10 +46,16 @@ public class KubernetesClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public CoreV1Api coreApi() throws IOException {
+	public ApiClient apiClient() throws IOException {
 		ApiClient apiClient = kubernetesApiClient();
 		io.kubernetes.client.openapi.Configuration.setDefaultApiClient(apiClient);
-		return new CoreV1Api();
+		return apiClient;
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public CoreV1Api coreApi(ApiClient apiClient) throws IOException {
+		return new CoreV1Api(apiClient);
 	}
 
 	@Bean

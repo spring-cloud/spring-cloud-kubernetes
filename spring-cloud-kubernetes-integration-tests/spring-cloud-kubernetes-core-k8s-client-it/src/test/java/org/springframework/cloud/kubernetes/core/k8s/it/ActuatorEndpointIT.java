@@ -105,9 +105,9 @@ public class ActuatorEndpointIT {
 		k8SUtils = new K8SUtils(api, appsApi);
 
 		DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-			.withRegistryUrl(KIND_REPO_URL).build();
+				.withRegistryUrl(KIND_REPO_URL).build();
 		DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder().dockerHost(config.getDockerHost())
-			.sslConfig(config.getSSLConfig()).build();
+				.sslConfig(config.getSSLConfig()).build();
 
 		DockerClient dockerClient = DockerClientImpl.getInstance(config, httpClient);
 		dockerClient.tagImageCmd(LOCAL_IMAGE, KIND_IMAGE, IMAGE_TAG).exec();
@@ -127,19 +127,19 @@ public class ActuatorEndpointIT {
 
 	private static V1Deployment getCoreK8sClientItDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) k8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-core-k8s-client-it-deployment.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-core-k8s-client-it-deployment.yaml");
 		return deployment;
 	}
 
 	private static V1Service getCoreK8sClientItService() throws Exception {
 		V1Service service = (V1Service) k8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-core-k8s-client-it-service.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-core-k8s-client-it-service.yaml");
 		return service;
 	}
 
 	private static NetworkingV1beta1Ingress getCoreK8sClientItIngress() throws Exception {
 		NetworkingV1beta1Ingress ingress = (NetworkingV1beta1Ingress) k8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-core-k8s-client-it-ingress.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-core-k8s-client-it-ingress.yaml");
 		return ingress;
 	}
 
@@ -163,13 +163,14 @@ public class ActuatorEndpointIT {
 			}
 		});
 
-		//Sometimes the NGINX ingress takes a bit to catch up and realize the service is available and we get a 503, we just need to wait a bit
+		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
+		// available and we get a 503, we just need to wait a bit
 		await().timeout(Duration.ofSeconds(60))
-			.until(() -> rest.getForEntity("http://localhost:80/core-k8s-client-it/actuator/health", String.class)
-				.getStatusCode().is2xxSuccessful());
+				.until(() -> rest.getForEntity("http://localhost:80/core-k8s-client-it/actuator/health", String.class)
+						.getStatusCode().is2xxSuccessful());
 
 		Map<String, Object> health = rest.getForObject("http://localhost:80/core-k8s-client-it/actuator/health",
-			Map.class);
+				Map.class);
 		Map<String, Object> components = (Map) health.get("components");
 		assertThat(components.containsKey("kubernetes")).isTrue();
 		Map<String, Object> kubernetes = (Map) components.get("kubernetes");
@@ -189,7 +190,6 @@ public class ActuatorEndpointIT {
 	public void testInfo() {
 		RestTemplate rest = new RestTemplateBuilder().build();
 
-
 		rest.setErrorHandler(new ResponseErrorHandler() {
 			@Override
 			public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
@@ -206,10 +206,11 @@ public class ActuatorEndpointIT {
 			}
 		});
 
-		//Sometimes the NGINX ingress takes a bit to catch up and realize the service is available and we get a 503, we just need to wait a bit
+		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
+		// available and we get a 503, we just need to wait a bit
 		await().timeout(Duration.ofSeconds(60))
-			.until(() -> rest.getForEntity("http://localhost:80/core-k8s-client-it/actuator/info", String.class)
-				.getStatusCode().is2xxSuccessful());
+				.until(() -> rest.getForEntity("http://localhost:80/core-k8s-client-it/actuator/info", String.class)
+						.getStatusCode().is2xxSuccessful());
 
 		Map<String, Object> info = rest.getForObject("http://localhost:80/core-k8s-client-it/actuator/info", Map.class);
 		Map<String, Object> kubernetes = (Map) info.get("kubernetes");
@@ -225,7 +226,7 @@ public class ActuatorEndpointIT {
 	@AfterClass
 	public static void after() throws Exception {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-			"metadata.name=" + K8S_CONFIG_CLIENT_IT_NAME, null, null, null, null, null, null, null, null);
+				"metadata.name=" + K8S_CONFIG_CLIENT_IT_NAME, null, null, null, null, null, null, null, null);
 		api.deleteNamespacedService(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, NAMESPACE, null, null, null, null, null, null);
 		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
 	}

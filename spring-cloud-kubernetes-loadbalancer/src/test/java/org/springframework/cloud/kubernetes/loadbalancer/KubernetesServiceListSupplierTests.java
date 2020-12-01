@@ -36,8 +36,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.core.env.Environment;
 
 import static org.mockito.ArgumentMatchers.any;

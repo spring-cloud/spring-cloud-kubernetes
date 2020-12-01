@@ -93,7 +93,8 @@
 		<module>spring-cloud-kubernetes-client-config</module>
 		<module>spring-cloud-kubernetes-fabric8-autoconfig</module>
 		<module>spring-cloud-kubernetes-fabric8-config</module>
-		<module>spring-cloud-kubernetes-discovery</module>
+		<module>spring-cloud-kubernetes-fabric8-discovery</module>
+		<module>spring-cloud-kubernetes-client-discovery</module>
 		<module>spring-cloud-starter-kubernetes</module>
 		<module>spring-cloud-starter-kubernetes-config</module>
 		<module>spring-cloud-starter-kubernetes-all</module>

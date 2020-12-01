@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.profile;
 
+import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.junit.jupiter.api.Test;
 
@@ -39,6 +40,9 @@ class KubernetesClientProfileEnvironmentPostProcessorNoProfileTests {
 
 	@MockBean
 	CoreV1Api coreV1Api;
+
+	@MockBean
+	ApiClient apiClient;
 
 	@Test
 	void whenNoKubernetesEnvironmentAndNoApiAccessThenNoProfileEnabled() {
