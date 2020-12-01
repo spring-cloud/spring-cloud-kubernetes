@@ -168,7 +168,7 @@ variables.
 
 Kubernetes provides a resource named https://kubernetes.io/docs/user-guide/configmap/[`ConfigMap`] to externalize the
 parameters to pass to your application in the form of key-value pairs or embedded `application.properties` or `application.yaml` files.
-The link:./spring-cloud-kubernetes-config[Spring Cloud Kubernetes Config] project makes Kubernetes `ConfigMap` instances available
+The link:https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-fabric8-config[Spring Cloud Kubernetes Config] project makes Kubernetes `ConfigMap` instances available
 during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on
 observed `ConfigMap` instances.
 
@@ -1130,7 +1130,7 @@ Please feel free to submit other resources through pull requests to https://gith
 
 == Configuration properties
 
-To see the list of all Sleuth related configuration properties please check link:appendix.html[the Appendix page].
+To see the list of all Kubernetes related configuration properties please check link:appendix.html[the Appendix page].
 
 == Building
 
