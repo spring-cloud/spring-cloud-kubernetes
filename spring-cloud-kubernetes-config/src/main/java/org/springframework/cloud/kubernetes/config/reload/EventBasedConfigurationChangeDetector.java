@@ -66,7 +66,8 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 	public void watch() {
 		boolean activated = false;
 
-		if (this.properties.isMonitoringConfigMaps()) {
+		if (this.properties.isMonitoringConfigMaps()
+				&& this.configMapPropertySourceLocator != null) {
 			try {
 				String name = "config-maps-watch";
 				this.watches.put(name, this.kubernetesClient.configMaps()
@@ -91,7 +92,8 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 			}
 		}
 
-		if (this.properties.isMonitoringSecrets()) {
+		if (this.properties.isMonitoringSecrets()
+				&& this.secretsPropertySourceLocator != null) {
 			try {
 				activated = false;
 				String name = "secrets-watch";

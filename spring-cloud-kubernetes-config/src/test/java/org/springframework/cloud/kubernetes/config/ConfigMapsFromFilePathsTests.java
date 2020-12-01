@@ -45,10 +45,13 @@ import static org.springframework.cloud.kubernetes.config.ConfigMapTestUtil.crea
 				"spring.cloud.kubernetes.config.enableApi=false",
 				"spring.cloud.kubernetes.config.paths="
 						+ ConfigMapsFromFilePathsTests.FIRST_FILE_NAME_FULL_PATH + ","
-						+ ConfigMapsFromFilePathsTests.SECOND_FILE_NAME_FULL_PATH })
+						+ ConfigMapsFromFilePathsTests.SECOND_FILE_NAME_FULL_PATH + ","
+						+ ConfigMapsFromFilePathsTests.FIRST_FILE_NAME_DUPLICATED_FULL_PATH })
 public class ConfigMapsFromFilePathsTests {
 
 	protected static final String FILES_ROOT_PATH = "/tmp/scktests";
+
+	protected static final String FILES_SUB_PATH = "another-directory";
 
 	protected static final String FIRST_FILE_NAME = "application.properties";
 
@@ -64,6 +67,9 @@ public class ConfigMapsFromFilePathsTests {
 
 	protected static final String UNUSED_FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/"
 			+ UNUSED_FILE_NAME;
+
+	protected static final String FIRST_FILE_NAME_DUPLICATED_FULL_PATH = FILES_ROOT_PATH
+			+ "/" + FILES_SUB_PATH + "/" + FIRST_FILE_NAME;
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
@@ -87,12 +93,14 @@ public class ConfigMapsFromFilePathsTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		Files.createDirectories(Paths.get(FILES_ROOT_PATH));
+		Files.createDirectories(Paths.get(FILES_ROOT_PATH + "/" + FILES_SUB_PATH));
 		createFileWithContent(FIRST_FILE_NAME_FULL_PATH,
 				"bean.greeting=Hello from path!");
 		createFileWithContent(SECOND_FILE_NAME_FULL_PATH, "bean.farewell=Bye from path!");
 		createFileWithContent(UNUSED_FILE_NAME_FULL_PATH,
 				"bean.morning=Morning from path!");
+		createFileWithContent(FIRST_FILE_NAME_DUPLICATED_FULL_PATH,
+				"bean.bonjour=Bonjour from path!");
 	}
 
 	@AfterClass
@@ -123,6 +131,12 @@ public class ConfigMapsFromFilePathsTests {
 	public void morningInputShouldReturnDefaultValue() {
 		this.webClient.get().uri("/api/morning").exchange().expectStatus().isOk()
 				.expectBody().jsonPath("content").isEqualTo("Good morning, World!");
+	}
+
+	@Test
+	public void bonjourInputShouldReturnPropertyFromDuplicatedFile() {
+		this.webClient.get().uri("/api/bonjour").exchange().expectStatus().isOk()
+				.expectBody().jsonPath("content").isEqualTo("Bonjour from path!");
 	}
 
 }

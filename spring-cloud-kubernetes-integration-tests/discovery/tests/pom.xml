@@ -7,13 +7,21 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>discovery-parent</artifactId>
-		<version>1.1.5.BUILD-SNAPSHOT</version>
+		<version>1.1.8.BUILD-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>tests</artifactId>
 	<name>Spring Cloud Kubernetes :: Integration Tests :: Discovery Tests</name>
 
 	<dependencies>
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>logging-interceptor</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>

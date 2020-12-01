@@ -52,4 +52,10 @@ public class GreetingController {
 		return new ResponseMessage(String.format(this.properties.getMorning(), name));
 	}
 
+	@RequestMapping("/api/bonjour")
+	public ResponseMessage bonjour(
+			@RequestParam(value = "name", defaultValue = "World") String name) {
+		return new ResponseMessage(String.format(this.properties.getBonjour(), name));
+	}
+
 }
