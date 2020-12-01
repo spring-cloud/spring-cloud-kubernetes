@@ -34,6 +34,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -70,8 +73,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("",
 				sharedInformerFactory, serviceLister, null, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getServices().toArray())
-			.containsOnly(testService1.getMetadata().getName(), testService2.getMetadata().getName());
+		assertThat(discoveryClient.getServices().toArray()).containsOnly(testService1.getMetadata().getName(),
+				testService2.getMetadata().getName());
 
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 	}
@@ -85,8 +88,7 @@ public class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 				sharedInformerFactory, serviceLister, null, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getServices().toArray())
-			.containsOnly(testService1.getMetadata().getName());
+		assertThat(discoveryClient.getServices().toArray()).containsOnly(testService1.getMetadata().getName());
 
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 	}
@@ -99,10 +101,10 @@ public class KubernetesInformerDiscoveryClientTests {
 		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(true);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("",
-			sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
+				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(
-			new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false));
+		assertThat(discoveryClient.getInstances("test-svc-1"))
+				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false));
 
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 	}
@@ -115,10 +117,10 @@ public class KubernetesInformerDiscoveryClientTests {
 		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(false);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
-			sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
+				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(
-			new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false));
+		assertThat(discoveryClient.getInstances("test-svc-1"))
+				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false));
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 	}
 

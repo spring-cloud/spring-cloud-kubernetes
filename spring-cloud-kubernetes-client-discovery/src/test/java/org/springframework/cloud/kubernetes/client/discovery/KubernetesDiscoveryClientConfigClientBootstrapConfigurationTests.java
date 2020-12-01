@@ -18,6 +18,9 @@ package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.util.Collections;
 
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.JSON;
+import okhttp3.OkHttpClient;
 import org.junit.After;
 import org.junit.Test;
 
@@ -42,10 +45,11 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty("spring.cloud.config.discovery.enabled")
-@Import({ KubernetesClientAutoConfiguration.class, KubernetesReactiveDiscoveryClientAutoConfiguration.class })
+@Import({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class })
 public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 
 	private AnnotationConfigApplicationContext context;
@@ -78,18 +82,26 @@ public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 		TestPropertyValues.of(env).applyTo(parent);
 		parent.register(UtilAutoConfiguration.class, PropertyPlaceholderAutoConfiguration.class,
 				EnvironmentKnobbler.class, KubernetesCommonsAutoConfiguration.class,
-				KubernetesClientAutoConfiguration.class, KubernetesReactiveDiscoveryClientAutoConfiguration.class,
+				KubernetesClientAutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class,
 				DiscoveryClientConfigServiceBootstrapConfiguration.class, ConfigClientProperties.class);
 		parent.refresh();
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.setParent(parent);
 		this.context.register(PropertyPlaceholderAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-				KubernetesReactiveDiscoveryClientAutoConfiguration.class);
+				KubernetesDiscoveryClientAutoConfiguration.class);
 		this.context.refresh();
 	}
 
 	@Configuration(proxyBeanMethods = false)
 	protected static class EnvironmentKnobbler {
+
+		@Bean
+		public ApiClient apiClient() {
+			ApiClient apiClient = mock(ApiClient.class);
+			when(apiClient.getJSON()).thenReturn(new JSON());
+			when(apiClient.getHttpClient()).thenReturn(new OkHttpClient.Builder().build());
+			return apiClient;
+		}
 
 		@Bean
 		public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient() {

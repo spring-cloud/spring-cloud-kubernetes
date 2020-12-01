@@ -20,6 +20,8 @@ import java.util.Collections;
 
 import org.junit.Test;
 
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class KubernetesServiceInstanceTests {

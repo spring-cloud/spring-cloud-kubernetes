@@ -27,8 +27,8 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.client.utils.Utils;
 import org.apache.commons.lang.StringUtils;
 
-import org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 
 /**
  * Class for mapping Kubernetes Service object into {@link KubernetesServiceInstance}.

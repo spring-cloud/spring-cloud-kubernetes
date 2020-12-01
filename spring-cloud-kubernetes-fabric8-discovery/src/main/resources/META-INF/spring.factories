@@ -1,0 +1,6 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesCatalogWatchAutoConfiguration, \
+org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientAutoConfiguration, \
+org.springframework.cloud.kubernetes.fabric8.discovery.reactive.KubernetesReactiveDiscoveryClientAutoConfiguration
+org.springframework.cloud.bootstrap.BootstrapConfiguration=\
+org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientConfigClientBootstrapConfiguration

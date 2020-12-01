@@ -37,6 +37,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.util.Assert;
 
 public class KubernetesInformerDiscoveryClient implements DiscoveryClient, InitializingBean {
@@ -140,17 +142,18 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		this.sharedInformerFactory.startAllRegisteredInformers();
-		if (!Wait.poll(Duration.ofSeconds(1), Duration
-			.ofSeconds(this.properties.getCacheLoadingTimeoutSeconds()), () -> {
-			log.info("Waiting for the cache of informers to be fully loaded..");
-			return this.informersReadyFunc.get();
-		})) {
+		if (!Wait.poll(Duration.ofSeconds(1), Duration.ofSeconds(this.properties.getCacheLoadingTimeoutSeconds()),
+				() -> {
+					log.info("Waiting for the cache of informers to be fully loaded..");
+					return this.informersReadyFunc.get();
+				})) {
 			if (this.properties.isWaitCacheReady()) {
 				throw new IllegalStateException(
-					"Timeout waiting for informers cache to be ready, is the kubernetes service up?");
+						"Timeout waiting for informers cache to be ready, is the kubernetes service up?");
 			}
 			else {
-				log.warn("Timeout waiting for informers cache to be ready, ignoring the failure because waitForInformerCacheReady property is false");
+				log.warn(
+						"Timeout waiting for informers cache to be ready, ignoring the failure because waitForInformerCacheReady property is false");
 			}
 		}
 		log.info("Cache fully loaded (total " + serviceLister.list().size()
