@@ -16,48 +16,41 @@
 
 package org.springframework.cloud.kubernetes.config;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.junit.After;
 import org.junit.Test;
 
-import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
-import org.springframework.cloud.kubernetes.config.reload.ConfigReloadAutoConfiguration;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Ryan Dawson
  */
-public class KubernetesConfigConfigurationTest {
+public class KubernetesConfigConfigurationTest extends KubernetesConfigTestBase {
 
-	private ConfigurableApplicationContext context;
-
-	@After
-	public void close() {
-		if (this.context != null) {
-			this.context.close();
-		}
+	@Test
+	public void kubernetesWhenKubernetesDefaultEnabled() throws Exception {
+		setup("spring.cloud.kubernetes.enabled=true");
+		assertThat(this.getContext().containsBean("configMapPropertySourceLocator"))
+				.isTrue();
+		assertThat(this.getContext().containsBean("secretsPropertySourceLocator"))
+				.isTrue();
 	}
 
 	@Test
 	public void kubernetesWhenKubernetesDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.enabled=false");
-		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isFalse();
-		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isFalse();
+		assertThat(this.getContext().containsBean("configMapPropertySourceLocator"))
+				.isFalse();
+		assertThat(this.getContext().containsBean("secretsPropertySourceLocator"))
+				.isFalse();
 	}
 
 	@Test
 	public void kubernetesWhenKubernetesConfigAndSecretDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.config.enabled=false",
 				"spring.cloud.kubernetes.secrets.enabled=false");
-		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isFalse();
-		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isFalse();
+		assertThat(this.getContext().containsBean("configMapPropertySourceLocator"))
+				.isFalse();
+		assertThat(this.getContext().containsBean("secretsPropertySourceLocator"))
+				.isFalse();
 	}
 
 	@Test
@@ -65,8 +58,10 @@ public class KubernetesConfigConfigurationTest {
 			throws Exception {
 		setup("spring.cloud.kubernetes.config.enabled=true",
 				"spring.cloud.kubernetes.secrets.enabled=false");
-		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isTrue();
-		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isFalse();
+		assertThat(this.getContext().containsBean("configMapPropertySourceLocator"))
+				.isTrue();
+		assertThat(this.getContext().containsBean("secretsPropertySourceLocator"))
+				.isFalse();
 	}
 
 	@Test
@@ -74,65 +69,30 @@ public class KubernetesConfigConfigurationTest {
 			throws Exception {
 		setup("spring.cloud.kubernetes.config.enabled=false",
 				"spring.cloud.kubernetes.secrets.enabled=true");
-		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isFalse();
-		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isTrue();
+		assertThat(this.getContext().containsBean("configMapPropertySourceLocator"))
+				.isFalse();
+		assertThat(this.getContext().containsBean("secretsPropertySourceLocator"))
+				.isTrue();
 	}
 
 	@Test
-	public void kubernetesDefaultEnabled() throws Exception {
-		setup("spring.cloud.kubernetes.enabled=true");
-		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isTrue();
-		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isTrue();
+	public void kubernetesConfigwhenKubenretesEnabledAndKubernetsConfigEnabled()
+			throws Exception {
+		setup("spring.cloud.kubernetes.config.enabled=true",
+				"spring.cloud.kubernetes.secrets.enabled=true");
+		assertThat(this.getContext().containsBean("configMapPropertySourceLocator"))
+				.isTrue();
+		assertThat(this.getContext().containsBean("secretsPropertySourceLocator"))
+				.isTrue();
 	}
 
 	@Test
-	public void kubernetesReloadEnabled() throws Exception {
+	public void kubernetesConfigwhenKubenretesEnabledAndKubernetsConfigDisabled()
+			throws Exception {
 		setup("spring.cloud.kubernetes.enabled=true",
-				"spring.cloud.kubernetes.reload.enabled=true");
-		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isTrue();
-		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isTrue();
-		assertThat(this.context.containsBean("propertyChangeWatcher")).isTrue();
-	}
-
-	@Test
-	public void kubernetesReloadEnabledButSecretDisabled() throws Exception {
-		setup("spring.cloud.kubernetes.enabled=true",
-				"spring.cloud.kubernetes.config.enabled=true",
-				"spring.cloud.kubernetes.secrets.enabled=false",
-				"spring.cloud.kubernetes.reload.enabled=true");
-		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isTrue();
-		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isFalse();
-		assertThat(this.context.containsBean("propertyChangeWatcher")).isTrue();
-	}
-
-	@Test
-	public void kubernetesReloadEnabledButSecretAndConfigDisabled() throws Exception {
-		setup("spring.cloud.kubernetes.enabled=true",
-				"spring.cloud.kubernetes.config.enabled=false",
-				"spring.cloud.kubernetes.secrets.enabled=false",
-				"spring.cloud.kubernetes.reload.enabled=true");
-		assertThat(this.context.containsBean("configMapPropertySourceLocator")).isFalse();
-		assertThat(this.context.containsBean("secretsPropertySourceLocator")).isFalse();
-		assertThat(this.context.containsBean("propertyChangeWatcher")).isFalse();
-	}
-
-	private void setup(String... env) {
-		this.context = new SpringApplicationBuilder(
-				PropertyPlaceholderAutoConfiguration.class,
-				KubernetesClientTestConfiguration.class, BootstrapConfiguration.class,
-				ConfigReloadAutoConfiguration.class, RefreshAutoConfiguration.class)
-						.web(org.springframework.boot.WebApplicationType.NONE)
-						.properties(env).run();
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	static class KubernetesClientTestConfiguration {
-
-		@Bean
-		KubernetesClient kubernetesClient() {
-			return mock(KubernetesClient.class);
-		}
-
+				"spring.cloud.kubernetes.config.enabled=false");
+		assertThat(this.getContext().containsBean("configMapPropertySourceLocator"))
+				.isFalse();
 	}
 
 }
