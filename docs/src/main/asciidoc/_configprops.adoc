@@ -51,6 +51,7 @@
 |spring.cloud.kubernetes.config.paths |  | 
 |spring.cloud.kubernetes.config.sources |  | 
 |spring.cloud.kubernetes.discovery.all-namespaces | `false` | If discovering all namespaces.
+|spring.cloud.kubernetes.discovery.cache-loading-timeout-seconds | `60` | Timeout for initializing discovery cache, will abort the application if exceeded.
 |spring.cloud.kubernetes.discovery.enabled | `true` | If Kubernetes Discovery is enabled.
 |spring.cloud.kubernetes.discovery.filter |  | SpEL expression to filter services AFTER they have been retrieved from the Kubernetes API server.
 |spring.cloud.kubernetes.discovery.known-secure-ports |  | Set the port numbers that are considered secure and use HTTPS.
@@ -64,6 +65,7 @@
 |spring.cloud.kubernetes.discovery.primary-port-name |  | If set then the port with a given name is used as primary when multiple ports are defined for a service.
 |spring.cloud.kubernetes.discovery.service-labels |  | If set, then only the services matching these labels will be fetched from the Kubernetes API server.
 |spring.cloud.kubernetes.discovery.service-name | `unknown` | The service name of the local instance.
+|spring.cloud.kubernetes.discovery.wait-cache-ready | `true` | 
 |spring.cloud.kubernetes.enabled | `true` | Whether to enable Kubernetes integration.
 |spring.cloud.kubernetes.loadbalancer.cluster-domain | `cluster.local` | cluster domain.
 |spring.cloud.kubernetes.loadbalancer.enabled | `true` | Load balancer enabled,default true.
