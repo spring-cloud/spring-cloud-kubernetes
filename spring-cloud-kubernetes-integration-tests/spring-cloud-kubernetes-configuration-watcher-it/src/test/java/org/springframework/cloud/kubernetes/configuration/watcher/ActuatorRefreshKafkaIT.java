@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import java.time.Duration;
 
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1beta1Api;
@@ -28,7 +27,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.util.Config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
@@ -43,6 +41,7 @@ import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
 
 /**
  * @author Kris Iyer
@@ -105,10 +104,7 @@ public class ActuatorRefreshKafkaIT {
 
 	@Before
 	public void setup() throws Exception {
-		this.client = Config.defaultClient();
-		// client.setDebugging(true);
-		this.client.setHttpClient(this.client.getHttpClient().newBuilder().readTimeout(Duration.ofSeconds(15)).build());
-		Configuration.setDefaultApiClient(client);
+		this.client = createApiClient();
 		this.api = new CoreV1Api();
 		this.appsApi = new AppsV1Api();
 		this.networkingApi = new NetworkingV1beta1Api();

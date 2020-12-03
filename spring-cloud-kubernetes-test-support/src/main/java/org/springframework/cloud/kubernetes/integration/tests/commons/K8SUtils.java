@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.Duration;
@@ -25,7 +26,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
@@ -38,6 +41,7 @@ import io.kubernetes.client.openapi.models.V1ReplicationController;
 import io.kubernetes.client.openapi.models.V1ReplicationControllerList;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
+import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.Yaml;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -55,6 +59,18 @@ public class K8SUtils {
 	private CoreV1Api api;
 
 	private AppsV1Api appsApi;
+
+	public static ApiClient createApiClient() throws IOException {
+		return createApiClient(false, Duration.ofSeconds(15));
+	}
+
+	public static ApiClient createApiClient(boolean debug, Duration readTimeout) throws IOException {
+		ApiClient client = Config.defaultClient();
+		client.setHttpClient(client.getHttpClient().newBuilder().readTimeout(readTimeout).build());
+		client.setDebugging(debug);
+		Configuration.setDefaultApiClient(client);
+		return client;
+	}
 
 	public K8SUtils(CoreV1Api api, AppsV1Api appsApi) {
 		this.api = api;

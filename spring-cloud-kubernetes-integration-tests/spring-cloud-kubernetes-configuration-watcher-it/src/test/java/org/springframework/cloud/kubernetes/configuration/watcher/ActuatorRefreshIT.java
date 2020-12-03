@@ -20,7 +20,6 @@ import java.time.Duration;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1beta1Api;
@@ -29,7 +28,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.util.Config;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,6 +44,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
 
 /**
  * @author Ryan Baxter
@@ -97,10 +96,7 @@ public class ActuatorRefreshIT {
 
 	@Before
 	public void setup() throws Exception {
-		this.client = Config.defaultClient();
-		this.client.setHttpClient(this.client.getHttpClient().newBuilder().readTimeout(Duration.ofSeconds(15)).build());
-		// client.setDebugging(true);
-		Configuration.setDefaultApiClient(client);
+		this.client = createApiClient();
 		this.api = new CoreV1Api();
 		this.appsApi = new AppsV1Api();
 		this.networkingApi = new NetworkingV1beta1Api();
