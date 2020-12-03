@@ -14,7 +14,7 @@ KIND="${BIN_DIR}/kind"
 
 ISTIOCTL="${BIN_DIR}/istio-1.6.2/bin/istioctl"
 
-MVN_VERSION=$(../mvn -q \
+MVN_VERSION=$(../mvnw -q \
     -Dexec.executable=echo \
     -Dexec.args='${project.version}' \
     --non-recursive \
