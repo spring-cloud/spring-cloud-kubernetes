@@ -18,15 +18,8 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.time.Duration;
 
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientConfig;
-import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
-import com.github.dockerjava.transport.DockerHttpClient;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1beta1Api;
@@ -35,7 +28,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.util.Config;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,6 +44,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
 
 /**
  * @author Ryan Baxter
@@ -103,22 +96,11 @@ public class ActuatorRefreshIT {
 
 	@Before
 	public void setup() throws Exception {
-		this.client = Config.defaultClient();
-		// client.setDebugging(true);
-		Configuration.setDefaultApiClient(client);
+		this.client = createApiClient();
 		this.api = new CoreV1Api();
 		this.appsApi = new AppsV1Api();
 		this.networkingApi = new NetworkingV1beta1Api();
 		this.k8SUtils = new K8SUtils(api, appsApi);
-
-		DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-				.withRegistryUrl(KIND_REPO_URL).build();
-		DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder().dockerHost(config.getDockerHost())
-				.sslConfig(config.getSSLConfig()).build();
-
-		DockerClient dockerClient = DockerClientImpl.getInstance(config, httpClient);
-		dockerClient.tagImageCmd(LOCAL_IMAGE, KIND_IMAGE, IMAGE_TAG).exec();
-		dockerClient.pushImageCmd(KIND_IMAGE_WITH_TAG).start();
 
 		deployWiremock();
 

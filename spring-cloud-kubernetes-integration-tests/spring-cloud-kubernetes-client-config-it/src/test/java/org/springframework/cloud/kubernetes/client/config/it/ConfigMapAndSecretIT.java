@@ -20,14 +20,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientConfig;
-import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
-import com.github.dockerjava.transport.DockerHttpClient;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1beta1Api;
@@ -36,7 +29,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.util.Config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
@@ -51,6 +43,7 @@ import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
 
 /**
  * @author Ryan Baxter
@@ -58,22 +51,6 @@ import static org.awaitility.Awaitility.await;
 public class ConfigMapAndSecretIT {
 
 	private static final Log LOG = LogFactory.getLog(ConfigMapAndSecretIT.class);
-
-	private static final String KIND_REPO_HOST_PORT = "localhost:5000";
-
-	private static final String KIND_REPO_URL = "http://" + KIND_REPO_HOST_PORT;
-
-	private static final String IMAGE = "spring-cloud-kubernetes-client-config-it";
-
-	private static final String IMAGE_TAG = "2.0.0-SNAPSHOT";
-
-	private static final String LOCAL_REPO = "docker.io/springcloud";
-
-	private static final String LOCAL_IMAGE = LOCAL_REPO + "/" + IMAGE + ":" + IMAGE_TAG;
-
-	private static final String KIND_IMAGE = KIND_REPO_HOST_PORT + "/" + IMAGE;
-
-	private static final String KIND_IMAGE_WITH_TAG = KIND_IMAGE + ":" + IMAGE_TAG;
 
 	private static final String SPRING_CLOUD_CLIENT_CONFIG_IT_DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-config-it-deployment";
 
@@ -101,22 +78,11 @@ public class ConfigMapAndSecretIT {
 
 	@BeforeClass
 	public static void setup() throws Exception {
-		client = Config.defaultClient();
-		// client.setDebugging(true);
-		Configuration.setDefaultApiClient(client);
+		client = createApiClient();
 		api = new CoreV1Api();
 		appsApi = new AppsV1Api();
 		networkingApi = new NetworkingV1beta1Api();
 		k8SUtils = new K8SUtils(api, appsApi);
-
-		DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-				.withRegistryUrl(KIND_REPO_URL).build();
-		DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder().dockerHost(config.getDockerHost())
-				.sslConfig(config.getSSLConfig()).build();
-
-		DockerClient dockerClient = DockerClientImpl.getInstance(config, httpClient);
-		dockerClient.tagImageCmd(LOCAL_IMAGE, KIND_IMAGE, IMAGE_TAG).exec();
-		dockerClient.pushImageCmd(KIND_IMAGE_WITH_TAG).start();
 	}
 
 	@After
