@@ -18,12 +18,6 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.time.Duration;
 
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientConfig;
-import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
-import com.github.dockerjava.transport.DockerHttpClient;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.Configuration;
@@ -104,21 +98,13 @@ public class ActuatorRefreshIT {
 	@Before
 	public void setup() throws Exception {
 		this.client = Config.defaultClient();
+		this.client.setHttpClient(this.client.getHttpClient().newBuilder().readTimeout(Duration.ofSeconds(15)).build());
 		// client.setDebugging(true);
 		Configuration.setDefaultApiClient(client);
 		this.api = new CoreV1Api();
 		this.appsApi = new AppsV1Api();
 		this.networkingApi = new NetworkingV1beta1Api();
 		this.k8SUtils = new K8SUtils(api, appsApi);
-
-		DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-				.withRegistryUrl(KIND_REPO_URL).build();
-		DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder().dockerHost(config.getDockerHost())
-				.sslConfig(config.getSSLConfig()).build();
-
-		DockerClient dockerClient = DockerClientImpl.getInstance(config, httpClient);
-		dockerClient.tagImageCmd(LOCAL_IMAGE, KIND_IMAGE, IMAGE_TAG).exec();
-		dockerClient.pushImageCmd(KIND_IMAGE_WITH_TAG).start();
 
 		deployWiremock();
 
