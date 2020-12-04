@@ -35,9 +35,17 @@ public final class KubernetesClientUtils {
 
 	public static ApiClient kubernetesApiClient() throws IOException {
 		try {
+			String host = System.getenv("KUBERNETES_SERVICE_HOST");
+			String port = System.getenv("KUBERNETES_SERVICE_PORT");
 			// Assume we are running in a cluster
-			ApiClient apiClient = ClientBuilder.cluster().build();
-			LOG.info("Created API client in the cluster.");
+			ApiClient apiClient = null;
+			if (host != null && port != null) {
+				apiClient = ClientBuilder.cluster().build();
+				LOG.info("Created API client in the cluster.");
+			} else {
+				apiClient = ClientBuilder.standard().build();
+				LOG.info("Created API client using \"standard\" configuration.");
+			}
 			return apiClient;
 		}
 		catch (Exception e) {

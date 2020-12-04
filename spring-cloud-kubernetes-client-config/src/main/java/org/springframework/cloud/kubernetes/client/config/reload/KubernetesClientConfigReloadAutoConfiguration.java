@@ -33,7 +33,6 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfig
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
@@ -54,7 +53,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * @author Ryan Baxter
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnKubernetesEnabled
+@ConditionalOnProperty(value = { "spring.cloud.kubernetes.config.enabled",
+		"spring.cloud.kubernetes.enabled" }, matchIfMissing = true)
 @ConditionalOnClass(EndpointAutoConfiguration.class)
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
 		RefreshAutoConfiguration.class, ConfigReloadAutoConfiguration.class })
