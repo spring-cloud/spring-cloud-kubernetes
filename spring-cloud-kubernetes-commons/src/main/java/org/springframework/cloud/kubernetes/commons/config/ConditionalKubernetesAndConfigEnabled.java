@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,35 +14,37 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.config.reload.condition;
+package org.springframework.cloud.kubernetes.commons.config;
 
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * A condition for Event ReloadDetectionMode and auto configuration.
  *
- * @author Kris Iyer
- *
+ * @author Haytham Mohamed
  */
-public class EventReloadDetectionMode implements Condition {
+public class ConditionalKubernetesAndConfigEnabled implements Condition {
 
 	@Override
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
 		Environment environment = context.getEnvironment();
-		if (!environment.containsProperty("spring.cloud.kubernetes.reload.mode")) {
+
+		if (environment.containsProperty("spring.cloud.kubernetes.enabled") &&
+		    environment.getProperty("spring.cloud.kubernetes.enabled").equalsIgnoreCase("false")) {
+			return false;
+		} else if (environment.containsProperty("spring.cloud.kubernetes.config.enabled") &&
+				environment.getProperty("spring.cloud.kubernetes.config.enabled").equalsIgnoreCase("false")) {
+			return false;
+		} else if (!environment.containsProperty("spring.cloud.kubernetes.config.enabled") ||
+				!environment.containsProperty("spring.cloud.kubernetes.enabled")) {
 			return false;
 		}
-		else {
-			if (environment.getProperty("spring.cloud.kubernetes.reload.mode")
-					.equalsIgnoreCase(ConfigReloadProperties.ReloadDetectionMode.EVENT.name())) {
-				return true;
-			}
-		}
-		return false;
+
+		return true;
 	}
 
 }
+
+
