@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-
 import org.junit.After;
 import org.junit.ClassRule;
 
@@ -49,8 +49,7 @@ public class KubernetesConfigTestBase {
 		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
 				KubernetesClientTestConfiguration.class, BootstrapConfiguration.class,
 				ConfigReloadAutoConfiguration.class, RefreshAutoConfiguration.class)
-				.web(org.springframework.boot.WebApplicationType.NONE)
-				.properties(env).run();
+						.web(org.springframework.boot.WebApplicationType.NONE).properties(env).run();
 	}
 
 	@After
