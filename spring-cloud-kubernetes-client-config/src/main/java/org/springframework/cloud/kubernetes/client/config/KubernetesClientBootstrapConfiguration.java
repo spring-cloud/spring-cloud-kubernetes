@@ -44,7 +44,7 @@ public class KubernetesClientBootstrapConfiguration {
 	protected static class KubernetesPropertySourceConfiguration {
 
 		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.kubernetes.config.enabled", matchIfMissing = true)
+		@ConditionalOnProperty(name = "spring.cloud.kubernetes.config.enabled")
 		public KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator(
 				ConfigMapConfigProperties properties, CoreV1Api coreV1Api,
 				KubernetesClientProperties kubernetesClientProperties) {
@@ -53,7 +53,7 @@ public class KubernetesClientBootstrapConfiguration {
 		}
 
 		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.kubernetes.secrets.enabled", matchIfMissing = true)
+		@ConditionalOnProperty(name = "spring.cloud.kubernetes.secrets.enabled")
 		public KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator(
 				SecretsConfigProperties properties, CoreV1Api coreV1Api,
 				KubernetesClientProperties kubernetesClientProperties) {

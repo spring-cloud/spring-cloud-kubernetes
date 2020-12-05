@@ -29,9 +29,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -39,13 +42,16 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesBindin
 import org.springframework.cloud.autoconfigure.ConfigurationPropertiesRebinderAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientBootstrapConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -57,39 +63,41 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Haytham Mohamed
  **/
 
+@ExtendWith(SpringExtension.class)
+// thanks to the SmartClassLoader, it loads ApplicationContext from
+// the static inner Configuration class
+@ContextConfiguration
 public class KubernetesClientConfigReloadAutoConfigurationTest {
 
-	private static ConfigurableApplicationContext context;
+	// from local configuration class
+	@Autowired
+	ConfigurableApplicationContext testContext;
 
-	private static ApiClient client;
-	private static CoreV1Api api;
-	private static ConfigurableEnvironment environment;
+	// will be created per test to alter context configuration
+	private static ConfigurableApplicationContext context;
 
 	@ClassRule
 	public static WireMockServer wireMockServer = new WireMockServer(options().dynamicPort());
 
-	protected static void setup(String... env) {
-		context = new SpringApplicationBuilder(
-				KubernetesClientConfigReloadAutoConfigurationTest.TestConfig.class,
-				PropertyPlaceholderAutoConfiguration.class,
-				EndpointAutoConfiguration.class,
-				InfoEndpointAutoConfiguration.class,
-				RefreshEndpointAutoConfiguration.class,
-				RefreshAutoConfiguration.class,
-				ConfigReloadAutoConfiguration.class,
-				ConfigurationPropertiesBindingPostProcessor.class,
-				ConfigurationPropertiesRebinderAutoConfiguration.class,
-				KubernetesClientBootstrapConfiguration.class,
-				KubernetesBootstrapConfiguration.class,
-				KubernetesClientConfigReloadAutoConfiguration.class
-				).web(org.springframework.boot.WebApplicationType.NONE)
+	protected void setup(String... env) {
+		context = new SpringApplicationBuilder()
+				.parent(testContext)
+				.sibling(
+						PropertyPlaceholderAutoConfiguration.class,
+						LocalTestConfig.class,
+						ConfigReloadAutoConfiguration.class,
+						RefreshAutoConfiguration.class,
+						EndpointAutoConfiguration.class,
+						InfoEndpointAutoConfiguration.class,
+						RefreshEndpointAutoConfiguration.class,
+						ConfigurationPropertiesBindingPostProcessor.class,
+						ConfigurationPropertiesRebinderAutoConfiguration.class,
+						KubernetesClientBootstrapConfiguration.class,
+						KubernetesBootstrapConfiguration.class,
+						KubernetesClientConfigReloadAutoConfiguration.class
+				)
+				.web(org.springframework.boot.WebApplicationType.NONE)
 				.properties(env).run();
-
-		client = context.getBean(ApiClient.class);
-		api = context.getBean(CoreV1Api.class);
-		client.setBasePath(wireMockServer.baseUrl());
-		client.setDebugging(true);
-		api.setApiClient(client);
 	}
 
 	@BeforeAll
@@ -149,7 +157,7 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	}
 
 	@Test
-	public void kubernetesConfigReloadWhenKubernetesDisabled() throws Exception {
+	private void kubernetesConfigReloadWhenKubernetesDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.enabled=false",
 				"spring.cloud.kubernetes.client.namespace=default");
 		assertThat(context.containsBean("configMapPropertyChangePollingWatcher"))
@@ -246,20 +254,44 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 				.isFalse();
 	}
 
+	@Test
+	public void kubernetesReloadEnabledButSecretEnabled() throws Exception {
+		setup("spring.cloud.kubernetes.enabled=true",
+				"spring.cloud.kubernetes.config.enabled=true",
+				"spring.cloud.kubernetes.secrets.enabled=true",
+				"spring.cloud.kubernetes.reload.enabled=true",
+				"spring.cloud.kubernetes.client.namespace=default");
+		assertThat(context.containsBean("configMapPropertySourceLocator"))
+				.isTrue();
+		assertThat(context.containsBean("secretsPropertySourceLocator"))
+				.isTrue();
+	}
+
 	@Configuration(proxyBeanMethods = false)
-	static class TestConfig {
+	@AutoConfigureBefore(KubernetesClientAutoConfiguration.class)
+	static class LocalTestConfig {
+
+		@ConditionalOnMissingBean(KubernetesClientProperties.class)
 		@Bean
+		KubernetesClientProperties kubernetesClientProperties() {
+			KubernetesClientProperties properties = new KubernetesClientProperties();
+			properties.setNamespace("default");
+			return properties;
+		}
+
 		@ConditionalOnMissingBean(ApiClient.class)
-		ApiClient testingApiClient() {
+		@Bean
+		ApiClient apiClient() {
 			ApiClient apiClient =
 					new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build();
 			apiClient.setDebugging(true);
 			return apiClient;
 		}
 
-		@Bean
 		@ConditionalOnMissingBean(CoreV1Api.class)
-		CoreV1Api k8sApi(ApiClient apiClient) {
+		@Bean
+		CoreV1Api coreApi(ApiClient apiClient) {
+			System.out.println("Yahooooo");////
 			return new CoreV1Api(apiClient);
 		}
 	}
