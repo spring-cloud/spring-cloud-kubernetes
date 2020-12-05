@@ -34,7 +34,7 @@ public class EventReloadDetectionMode implements Condition {
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
 		Environment environment = context.getEnvironment();
 		if (!environment.containsProperty("spring.cloud.kubernetes.reload.mode")) {
-			return false;
+			return true;
 		}
 		else {
 			if (environment.getProperty("spring.cloud.kubernetes.reload.mode")
