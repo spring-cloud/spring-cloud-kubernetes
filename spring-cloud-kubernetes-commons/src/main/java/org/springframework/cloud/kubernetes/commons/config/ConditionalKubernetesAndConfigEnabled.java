@@ -22,7 +22,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- *
  * @author Haytham Mohamed
  */
 public class ConditionalKubernetesAndConfigEnabled implements Condition {
@@ -31,14 +30,16 @@ public class ConditionalKubernetesAndConfigEnabled implements Condition {
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
 		Environment environment = context.getEnvironment();
 
-		if (environment.containsProperty("spring.cloud.kubernetes.enabled") &&
-		    environment.getProperty("spring.cloud.kubernetes.enabled").equalsIgnoreCase("false")) {
+		if (environment.containsProperty("spring.cloud.kubernetes.enabled")
+				&& environment.getProperty("spring.cloud.kubernetes.enabled").equalsIgnoreCase("false")) {
 			return false;
-		} else if (environment.containsProperty("spring.cloud.kubernetes.config.enabled") &&
-				environment.getProperty("spring.cloud.kubernetes.config.enabled").equalsIgnoreCase("false")) {
+		}
+		else if (environment.containsProperty("spring.cloud.kubernetes.config.enabled")
+				&& environment.getProperty("spring.cloud.kubernetes.config.enabled").equalsIgnoreCase("false")) {
 			return false;
-		} else if (!environment.containsProperty("spring.cloud.kubernetes.config.enabled") ||
-				!environment.containsProperty("spring.cloud.kubernetes.enabled")) {
+		}
+		else if (!environment.containsProperty("spring.cloud.kubernetes.config.enabled")
+				|| !environment.containsProperty("spring.cloud.kubernetes.enabled")) {
 			return false;
 		}
 
@@ -46,5 +47,3 @@ public class ConditionalKubernetesAndConfigEnabled implements Condition {
 	}
 
 }
-
-
