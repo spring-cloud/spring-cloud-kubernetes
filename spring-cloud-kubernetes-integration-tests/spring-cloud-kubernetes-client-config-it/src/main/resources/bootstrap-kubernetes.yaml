@@ -5,6 +5,7 @@ spring:
       config:
         enabled: true
       secrets:
+        enabled: true
         enable-api: true
       reload:
         enabled: true
