@@ -48,9 +48,9 @@ public final class KubernetesClientUtils {
 				ApiClient apiClient = ClientBuilder.standard().build();
 				return apiClient;
 			}
-			catch (IOException e1) {
+			catch (Exception e1) {
 				LOG.warn("Could not create a Kubernetes ApiClient from either a cluster or standard environment", e1);
-				throw e1;
+				return new ClientBuilder().build();
 			}
 		}
 	}
