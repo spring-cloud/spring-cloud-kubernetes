@@ -48,7 +48,7 @@
 
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-kubernetes-loadbalancer</artifactId>
+			<artifactId>spring-cloud-kubernetes-fabric8-loadbalancer</artifactId>
 		</dependency>
 
 	</dependencies>
