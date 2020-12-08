@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.istio.utils;
+package org.springframework.cloud.kubernetes.fabric8.istio.utils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.cloud.kubernetes.istio.IstioClientProperties;
+import org.springframework.cloud.kubernetes.fabric8.istio.IstioClientProperties;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 

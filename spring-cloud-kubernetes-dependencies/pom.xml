@@ -106,7 +106,7 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-kubernetes-istio</artifactId>
+				<artifactId>spring-cloud-kubernetes-fabric8-istio</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 

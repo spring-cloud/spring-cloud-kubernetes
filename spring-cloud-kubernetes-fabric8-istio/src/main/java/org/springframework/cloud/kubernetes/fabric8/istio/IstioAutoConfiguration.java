@@ -14,38 +14,30 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.istio;
+package org.springframework.cloud.kubernetes.fabric8.istio;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import io.fabric8.kubernetes.client.Config;
+import me.snowdrop.istio.client.DefaultIstioClient;
+import me.snowdrop.istio.client.IstioClient;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Istio client properties.
+ * Auto configration for Istio.
  *
  * @author Mauricio Salatino
  */
 @Configuration(proxyBeanMethods = false)
-@ConfigurationProperties("spring.cloud.istio.client")
-public class IstioClientProperties {
+@ConditionalOnProperty(value = "spring.cloud.istio.enabled", matchIfMissing = true)
+public class IstioAutoConfiguration {
 
-	private Integer envoyPort = 15090;
-
-	private String testPath = "stats/prometheus";
-
-	public Integer getEnvoyPort() {
-		return this.envoyPort;
-	}
-
-	public void setEnvoyPort(Integer envoyPort) {
-		this.envoyPort = envoyPort;
-	}
-
-	public String getTestPath() {
-		return this.testPath;
-	}
-
-	public void setTestPath(String testPath) {
-		this.testPath = testPath;
+	@Bean
+	@ConditionalOnMissingBean
+	public IstioClient istioClient(Config config) {
+		return new DefaultIstioClient(config);
 	}
 
 }
