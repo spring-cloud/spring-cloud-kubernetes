@@ -112,7 +112,7 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-kubernetes-leader</artifactId>
+				<artifactId>spring-cloud-kubernetes-fabric8-leader</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
