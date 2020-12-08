@@ -57,8 +57,8 @@ resolves service names to Kubernetes Services.
 </dependency>
 ----
 | Load application properties from Kubernetes
-<<ConfigMap PropertySource,ConfigMaps>> and <<Secrets PropertySource,Secrets>>.
-<<PropertySource Reload,Reload>> application properties when a ConfigMap or
+<<configmap-propertysource,ConfigMaps>> and <<Secrets PropertySource,Secrets>>.
+<<propertysource-reload,Reload>> application properties when a ConfigMap or
 Secret changes.
 
 | [source,xml]
@@ -168,11 +168,11 @@ variables.
 
 Kubernetes provides a resource named https://kubernetes.io/docs/user-guide/configmap/[`ConfigMap`] to externalize the
 parameters to pass to your application in the form of key-value pairs or embedded `application.properties` or `application.yaml` files.
-The link:./spring-cloud-kubernetes-config[Spring Cloud Kubernetes Config] project makes Kubernetes `ConfigMap` instances available
+The link:https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-fabric8-config[Spring Cloud Kubernetes Config] project makes Kubernetes `ConfigMap` instances available
 during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on
 observed `ConfigMap` instances.
 
-The default behavior is to create a `ConfigMapPropertySource` based on a Kubernetes `ConfigMap` that has a `metadata.name` value of either the name of
+The default behavior is to create a `Fabric8ConfigMapPropertySource` based on a Kubernetes `ConfigMap` that has a `metadata.name` value of either the name of
 your Spring application (as defined by its `spring.application.name` property) or a custom name defined within the
 `bootstrap.properties` file under the following key: `spring.cloud.kubernetes.config.name`.
 
@@ -458,7 +458,7 @@ Kubernetes has the notion of https://kubernetes.io/docs/concepts/configuration/s
 sensitive data such as passwords, OAuth tokens, and so on. This project provides integration with `Secrets` to make secrets
 accessible by Spring Boot applications. You can explicitly enable or disable This feature by setting the `spring.cloud.kubernetes.secrets.enabled` property.
 
-When enabled, the `SecretsPropertySource` looks up Kubernetes for `Secrets` from the following sources:
+When enabled, the `Fabric8SecretsPropertySource` looks up Kubernetes for `Secrets` from the following sources:
 
 . Reading recursively from secrets mounts
 . Named after the application (as defined by `spring.application.name`)
@@ -786,6 +786,14 @@ The Kubernetes health indicator (which is part of the core module) exposes the f
 * Pod name, IP address, namespace, service account, node name, and its IP address
 * A flag that indicates whether the Spring Boot application is internal or external to Kubernetes
 
+== Info Contributor
+
+Spring Cloud Kubernetes includes an `InfoContributor` which adds Pod information to
+Spring Boot's `/info` Acturator endpoint.
+
+You can disable this `InfoContributor` by setting `management.info.kubernetes.enabled`
+to `false` in `bootstrap.[properties | yaml]`.
+
 == Leader Election
 
 <TBD>
@@ -1057,14 +1065,12 @@ Another way you can choose to configure the actuator path and/or management port
 
 ### Messaging Implementation
 
-The messaging implementation can be enabled by setting the profile `bus` when the Spring Cloud Kubernetes Configuration Watcher
+The messaging implementation can be enabled by setting profile to either `bus-amqp` (RabbitMQ) or `bus-kafka` (Kafka) when the Spring Cloud Kubernetes Configuration Watcher
 application is deployed to Kubernetes.
-
-WARNING: Currently the only supported message broker is RabbitMQ
 
 ### Configuring RabbitMQ
 
-When the `bus` profile is enabled you will need to configure Spring RabbitMQ to point it to the location of the RabbitMQ
+When the `bus-amqp` profile is enabled you will need to configure Spring RabbitMQ to point it to the location of the RabbitMQ
 instance you would like to use as well as any credentials necessary to authenticate.  This can be done
 by setting the standard Spring RabbitMQ properties, for example
 
@@ -1076,6 +1082,21 @@ spring:
     username: user
     password: password
     host: rabbitmq
+----
+====
+
+### Configuring Kafka
+
+When the `bus-kafka` profile is enabled you will need to configure Spring Kafka to point it to the location of the Kafka Broker
+instance you would like to use.  This can be done by setting the standard Spring Kafka properties, for example
+
+====
+[source,yaml]
+----
+spring:
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
 ----
 ====
 
@@ -1109,7 +1130,7 @@ Please feel free to submit other resources through pull requests to https://gith
 
 == Configuration properties
 
-To see the list of all Sleuth related configuration properties please check link:appendix.html[the Appendix page].
+To see the list of all Kubernetes related configuration properties please check link:appendix.html[the Appendix page].
 
 == Building
 

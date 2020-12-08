@@ -26,10 +26,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
-import org.springframework.cloud.kubernetes.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.config.reload.EventBasedSecretsChangeDetector;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.fabric8.config.reload.EventBasedSecretsChangeDetector;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -47,10 +47,10 @@ public abstract class SecretsWatcherChangeDetector extends EventBasedSecretsChan
 
 	public SecretsWatcherChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			SecretsPropertySourceLocator secretsPropertySourceLocator,
+			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(environment, properties, kubernetesClient, strategy, secretsPropertySourceLocator);
+		super(environment, properties, kubernetesClient, strategy, fabric8SecretsPropertySourceLocator);
 		this.executorService = Executors.newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(),
 				threadPoolTaskExecutor);
 		this.k8SConfigurationProperties = k8SConfigurationProperties;

@@ -20,9 +20,6 @@ import java.io.IOException;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.util.ClientBuilder;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.autoconfigure.info.ConditionalOnEnabledInfoContributor;
@@ -37,6 +34,8 @@ import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.kubernetesApiClient;
+
 /**
  * @author Ryan Baxter
  */
@@ -45,37 +44,18 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureAfter(KubernetesCommonsAutoConfiguration.class)
 public class KubernetesClientAutoConfiguration {
 
-	private static final Log LOG = LogFactory.getLog(KubernetesClientAutoConfiguration.class);
-
-	private ApiClient kubernetesApiClient() throws IOException {
-		try {
-			// Assume we are running in a cluster
-			ApiClient apiClient = ClientBuilder.cluster().build();
-			io.kubernetes.client.openapi.Configuration.setDefaultApiClient(apiClient);
-			LOG.info("Created API client in the cluster.");
-			return apiClient;
-		}
-		catch (Exception e) {
-			LOG.info(
-					"Could not create the Kubernetes ApiClient in a cluster environment, trying to use a \"standard\" configuration instead.",
-					e);
-			try {
-				ApiClient apiClient = ClientBuilder.standard().build();
-				io.kubernetes.client.openapi.Configuration.setDefaultApiClient(apiClient);
-				return apiClient;
-			}
-			catch (IOException e1) {
-				LOG.warn("Could not create a Kubernetes ApiClient from either a cluster or standard environment", e1);
-				throw e1;
-			}
-		}
+	@Bean
+	@ConditionalOnMissingBean
+	public ApiClient apiClient() throws IOException {
+		ApiClient apiClient = kubernetesApiClient();
+		io.kubernetes.client.openapi.Configuration.setDefaultApiClient(apiClient);
+		return apiClient;
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	public CoreV1Api coreApi() throws IOException {
-		kubernetesApiClient();
-		return new CoreV1Api();
+	public CoreV1Api coreApi(ApiClient apiClient) throws IOException {
+		return new CoreV1Api(apiClient);
 	}
 
 	@Bean

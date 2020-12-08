@@ -18,14 +18,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.time.Duration;
 
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.core.DefaultDockerClientConfig;
-import com.github.dockerjava.core.DockerClientConfig;
-import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
-import com.github.dockerjava.transport.DockerHttpClient;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1beta1Api;
@@ -35,7 +28,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1ReplicationController;
 import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.util.Config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
@@ -50,6 +42,7 @@ import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
 
 /**
  * @author Ryan Baxter
@@ -59,30 +52,7 @@ public class ActuatorRefreshRabbitMQIT {
 
 	private Log log = LogFactory.getLog(getClass());
 
-	private static final String KIND_REPO_HOST_PORT = "localhost:5000";
-
-	private static final String KIND_REPO_URL = "http://" + KIND_REPO_HOST_PORT;
-
-	private static final String CONFIG_WATCHER_IMAGE = "spring-cloud-kubernetes-configuration-watcher";
-
 	private static final String CONFIG_WATCHER_IT_IMAGE = "spring-cloud-kubernetes-configuration-watcher-it";
-
-	private static final String IMAGE_TAG = "2.0.0-SNAPSHOT";
-
-	private static final String LOCAL_REPO = "docker.io/springcloud";
-
-	private static final String CONFIG_WATCHER_LOCAL_IMAGE = LOCAL_REPO + "/" + CONFIG_WATCHER_IMAGE + ":" + IMAGE_TAG;
-
-	private static final String CONFIG_WATCHER_IT_LOCAL_IMAGE = LOCAL_REPO + "/" + CONFIG_WATCHER_IT_IMAGE + ":"
-			+ IMAGE_TAG;
-
-	private static final String CONFIG_WATCHER_KIND_IMAGE = KIND_REPO_HOST_PORT + "/" + CONFIG_WATCHER_IMAGE;
-
-	private static final String CONFIG_WATCHER_IT_KIND_IMAGE = KIND_REPO_HOST_PORT + "/" + CONFIG_WATCHER_IT_IMAGE;
-
-	private static final String CONFIG_WATCHER_KIND_IMAGE_WITH_TAG = CONFIG_WATCHER_KIND_IMAGE + ":" + IMAGE_TAG;
-
-	private static final String CONFIG_WATCHER_IT_KIND_IMAGE_WITH_TAG = CONFIG_WATCHER_IT_KIND_IMAGE + ":" + IMAGE_TAG;
 
 	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME = "spring-cloud-kubernetes-configuration-watcher-deployment";
 
@@ -106,25 +76,11 @@ public class ActuatorRefreshRabbitMQIT {
 
 	@Before
 	public void setup() throws Exception {
-		this.client = Config.defaultClient();
-		// client.setDebugging(true);
-		Configuration.setDefaultApiClient(client);
+		this.client = createApiClient();
 		this.api = new CoreV1Api();
 		this.appsApi = new AppsV1Api();
 		this.networkingApi = new NetworkingV1beta1Api();
 		this.k8SUtils = new K8SUtils(api, appsApi);
-
-		DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-				.withRegistryUrl(KIND_REPO_URL).build();
-		DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder().dockerHost(config.getDockerHost())
-				.sslConfig(config.getSSLConfig()).build();
-
-		DockerClient dockerClient = DockerClientImpl.getInstance(config, httpClient);
-		dockerClient.tagImageCmd(CONFIG_WATCHER_LOCAL_IMAGE, CONFIG_WATCHER_KIND_IMAGE, IMAGE_TAG).exec();
-		dockerClient.pushImageCmd(CONFIG_WATCHER_KIND_IMAGE_WITH_TAG).start();
-
-		dockerClient.tagImageCmd(CONFIG_WATCHER_IT_LOCAL_IMAGE, CONFIG_WATCHER_IT_KIND_IMAGE, IMAGE_TAG).exec();
-		dockerClient.pushImageCmd(CONFIG_WATCHER_IT_KIND_IMAGE_WITH_TAG).start();
 
 		deployRabbitMQ();
 
@@ -221,7 +177,7 @@ public class ActuatorRefreshRabbitMQIT {
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) k8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-bus-deployment.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-bus-amqp-deployment.yaml");
 		return deployment;
 	}
 
@@ -232,7 +188,7 @@ public class ActuatorRefreshRabbitMQIT {
 	}
 
 	private V1Deployment getItDeployment() throws Exception {
-		String urlString = "spring-cloud-kubernetes-configuration-watcher-it-deployment.yaml";
+		String urlString = "spring-cloud-kubernetes-configuration-watcher-it-bus-amqp-deployment.yaml";
 		V1Deployment deployment = (V1Deployment) k8SUtils.readYamlFromClasspath(urlString);
 		return deployment;
 	}

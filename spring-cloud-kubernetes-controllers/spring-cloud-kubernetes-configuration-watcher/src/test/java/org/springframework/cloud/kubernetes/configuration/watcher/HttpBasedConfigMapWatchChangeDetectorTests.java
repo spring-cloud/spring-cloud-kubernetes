@@ -38,11 +38,11 @@ import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
-import org.springframework.cloud.kubernetes.discovery.reactive.KubernetesReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.fabric8.discovery.reactive.KubernetesReactiveDiscoveryClient;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -74,7 +74,7 @@ public class HttpBasedConfigMapWatchChangeDetectorTests {
 	private ConfigurationUpdateStrategy updateStrategy;
 
 	@Mock
-	private ConfigMapPropertySourceLocator configMapPropertySourceLocator;
+	private Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator;
 
 	@Mock
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
@@ -103,7 +103,7 @@ public class HttpBasedConfigMapWatchChangeDetectorTests {
 		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		WebClient webClient = WebClient.builder().build();
 		changeDetector = new HttpBasedConfigMapWatchChangeDetector(mockEnvironment, configReloadProperties, client,
-				updateStrategy, configMapPropertySourceLocator, configurationWatcherConfigurationProperties,
+				updateStrategy, fabric8ConfigMapPropertySourceLocator, configurationWatcherConfigurationProperties,
 				threadPoolTaskExecutor, webClient, reactiveDiscoveryClient);
 	}
 

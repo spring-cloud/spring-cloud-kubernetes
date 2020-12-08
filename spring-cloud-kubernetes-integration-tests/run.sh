@@ -14,16 +14,30 @@ KIND="${BIN_DIR}/kind"
 
 ISTIOCTL="${BIN_DIR}/istio-1.6.2/bin/istioctl"
 
+MVN_VERSION=$(../mvnw -q \
+    -Dexec.executable=echo \
+    -Dexec.args='${project.version}' \
+    --non-recursive \
+    exec:exec)
+
+ALL_INTEGRATION_PROJECTS=(
+	"spring-cloud-kubernetes-core-k8s-client-it"
+	"spring-cloud-kubernetes-client-config-it"
+	"spring-cloud-kubernetes-configuration-watcher-it"
+)
+INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
+
+DEFAULT_PULLING_IMAGES=(
+	"docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${MVN_VERSION}"
+)
+PULLING_IMAGES=(${PULLING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
+
 CURRENT_DIR="$(pwd)"
 
 # cleanup on exit (useful for running locally)
 cleanup() {
     "${KIND}" delete cluster || true
     rm -rf "${BIN_DIR}"
-
-    docker kill kind-registry
-	docker rm kind-registry
-	docker network rm kind
 }
 trap cleanup EXIT
 
@@ -56,40 +70,6 @@ install_kind_release() {
     chmod +x "${KIND}"
 }
 
-setup_registry() {
-set -o errexit
-
-# create registry container unless it already exists
-reg_name='kind-registry'
-reg_port='5000'
-running="$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)"
-if [ "${running}" != 'true' ]; then
-  docker run \
-    -d --restart=always -p "${reg_port}:5000" --name "${reg_name}" \
-    registry:2
-fi
-
-# create a cluster with the local registry enabled in containerd
-cat <<EOF | "${KIND}" create cluster --config=-
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-containerdConfigPatches:
-- |-
-  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${reg_port}"]
-    endpoint = ["http://${reg_name}:${reg_port}"]
-EOF
-
-# connect the registry to the cluster network
-docker network connect "kind" "${reg_name}"
-
-# tell https://tilt.dev to use the registry
-# https://docs.tilt.dev/choosing_clusters.html#discovering-the-registry
-for node in $("${KIND}" get nodes); do
-  kubectl annotate node "${node}" "kind.x-k8s.io/registry=localhost:${reg_port}";
-done
-
-}
-
 main() {
     # get kind
     install_latest_kind
@@ -97,27 +77,8 @@ main() {
     # create a cluster
     cd $CURRENT_DIR
 
-    # create registry container unless it already exists
-	reg_name='kind-registry'
-	reg_port='5000'
-	running="$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)"
-	if [ "${running}" != 'true' ]; then
-  		docker run \
-    	-d --restart=always -p "${reg_port}:5000" --name "${reg_name}" \
-    	registry:2
-	fi
-
     #TODO what happens if cluster is already there????
-    "${KIND}" create cluster --config kind-config.yaml --loglevel=debug
-
-    # connect the registry to the cluster network
-	docker network connect "kind" "${reg_name}"
-
-	# tell https://tilt.dev to use the registry
-	# https://docs.tilt.dev/choosing_clusters.html#discovering-the-registry
-	for node in $("${KIND}" get nodes); do
-	  kubectl annotate node "${node}" "kind.x-k8s.io/registry=localhost:${reg_port}";
-	done
+    "${KIND}" create cluster --config=kind-config.yaml --loglevel=debug
 
     # set KUBECONFIG to point to the cluster
     kubectl cluster-info --context kind-kind
@@ -125,23 +86,36 @@ main() {
 	#setup nginx ingress
 #    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
     kubectl apply -fhttps://raw.githubusercontent.com/kubernetes/ingress-nginx/12150e318b972a03fb49d827e6cabb8ef62247ef/deploy/static/provider/kind/deploy.yaml
+    sleep 5 # hold 5 sec so that the pods can be created
     kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=360s
 
     # This creates the service account, role, and role binding necessary for Spring Cloud k8s apps
 	kubectl apply -f ./permissions.yaml
 
-#	cd ${BIN_DIR}
-#	curl -L https://istio.io/downloadIstio | sh -
+	# cd ${BIN_DIR}
+	# curl -L https://istio.io/downloadIstio | sh -
 	#"${ISTIOCTL}" install --set profile=demo
 
 	cd $CURRENT_DIR
 
-    # TODO: invoke your tests here
-    cd spring-cloud-kubernetes-core-k8s-client-it
-    ../../mvnw clean install -P it
-    cd ../
-    cd spring-cloud-kubernetes-configuration-watcher-it
-    ../../mvnw clean install -P it
+	# pulling necessary images for setting up the integration test environment
+	for i in "${PULLING_IMAGES[@]}"; do
+		echo "Pull images for prepping testing environment: $i"
+		docker pull $i
+		"${KIND}" load docker-image $i
+	done
+
+	# running tests..
+	for p in "${INTEGRATION_PROJECTS[@]}"; do
+		echo "Running test: $p"
+		cd  $p
+		../../mvnw spring-boot:build-image \
+      		-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION}
+    	"${KIND}" load docker-image docker.io/springcloud/$p:${MVN_VERSION}
+     	../../mvnw clean install -P it
+		cd ..
+	done
+
     # teardown will happen automatically on exit
 }
 

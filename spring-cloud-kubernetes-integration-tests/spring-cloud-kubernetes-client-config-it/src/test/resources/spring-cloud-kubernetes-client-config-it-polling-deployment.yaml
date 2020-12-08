@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-cloud-kubernetes-client-config-it-deployment
+spec:
+  selector:
+    matchLabels:
+      app: spring-cloud-kubernetes-client-config-it
+  template:
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-client-config-it
+    spec:
+      serviceAccountName: spring-cloud-kubernetes-serviceaccount
+      containers:
+        - name: spring-cloud-kubernetes-client-config-it
+          image: docker.io/springcloud/spring-cloud-kubernetes-client-config-it:2.0.0-SNAPSHOT
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/liveness
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: kubernetes
+            - name: SPRING_CLOUD_KUBERNETES_RELOAD_MODE
+              value: polling
+          ports:
+            - containerPort: 8080
