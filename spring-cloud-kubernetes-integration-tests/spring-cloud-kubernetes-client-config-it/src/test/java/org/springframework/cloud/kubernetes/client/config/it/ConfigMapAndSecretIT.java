@@ -129,7 +129,7 @@ public class ConfigMapAndSecretIT {
 		data.replace("application.yaml", data.get("application.yaml").replace("from-config-map", "from-unit-test"));
 		configMap.data(data);
 		api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null);
-		await().timeout(Duration.ofSeconds(60))
+		await().timeout(Duration.ofSeconds(120))
 				.until(() -> rest.getForObject(MYPROPERTY_URL, String.class).equals("from-unit-test"));
 		myProperty = rest.getForObject(MYPROPERTY_URL, String.class);
 		assertThat(myProperty).isEqualTo("from-unit-test");
