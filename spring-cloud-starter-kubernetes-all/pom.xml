@@ -32,22 +32,22 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-kubernetes-core</artifactId>
+			<artifactId>spring-cloud-kubernetes-fabric8-autoconfig</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-kubernetes-config</artifactId>
+			<artifactId>spring-cloud-kubernetes-fabric8-config</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-kubernetes-discovery</artifactId>
+			<artifactId>spring-cloud-kubernetes-fabric8-discovery</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-kubernetes-loadbalancer</artifactId>
+			<artifactId>spring-cloud-kubernetes-fabric8-loadbalancer</artifactId>
 		</dependency>
 
 	</dependencies>

@@ -55,7 +55,7 @@ jobs:
       - run:
           name: Run Kind Integration Tests
           command: |
-            cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-configuration-watcher-it
+            cd spring-cloud-kubernetes-integration-tests
             ./run.sh
       - run:
           name: Launch Kubernetes with microk8s

@@ -10,11 +10,11 @@ variables.
 
 Kubernetes provides a resource named https://kubernetes.io/docs/user-guide/configmap/[`ConfigMap`] to externalize the
 parameters to pass to your application in the form of key-value pairs or embedded `application.properties` or `application.yaml` files.
-The link:./spring-cloud-kubernetes-config[Spring Cloud Kubernetes Config] project makes Kubernetes `ConfigMap` instances available
+The link:https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-fabric8-config[Spring Cloud Kubernetes Config] project makes Kubernetes `ConfigMap` instances available
 during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on
 observed `ConfigMap` instances.
 
-The default behavior is to create a `ConfigMapPropertySource` based on a Kubernetes `ConfigMap` that has a `metadata.name` value of either the name of
+The default behavior is to create a `Fabric8ConfigMapPropertySource` based on a Kubernetes `ConfigMap` that has a `metadata.name` value of either the name of
 your Spring application (as defined by its `spring.application.name` property) or a custom name defined within the
 `bootstrap.properties` file under the following key: `spring.cloud.kubernetes.config.name`.
 
@@ -279,6 +279,10 @@ You can specify multiple (exact) file paths in `spring.cloud.kubernetes.config.p
 
 NOTE: You have to provide the full exact path to each property file, because directories are not being recursively parsed.
 
+NOTE:  If you use `spring.cloud.kubernetes.config.paths` or `spring.cloud.kubernetes.secrets.path` the automatic reload
+functionality will not work.  You will need to make a `POST` request to the `/actuator/refresh` endpoint or
+restart/redeploy the application.
+
 .Properties:
 [options="header,footer"]
 |===
@@ -296,7 +300,7 @@ Kubernetes has the notion of https://kubernetes.io/docs/concepts/configuration/s
 sensitive data such as passwords, OAuth tokens, and so on. This project provides integration with `Secrets` to make secrets
 accessible by Spring Boot applications. You can explicitly enable or disable This feature by setting the `spring.cloud.kubernetes.secrets.enabled` property.
 
-When enabled, the `SecretsPropertySource` looks up Kubernetes for `Secrets` from the following sources:
+When enabled, the `Fabric8SecretsPropertySource` looks up Kubernetes for `Secrets` from the following sources:
 
 . Reading recursively from secrets mounts
 . Named after the application (as defined by `spring.application.name`)

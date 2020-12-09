@@ -18,6 +18,7 @@
 		<module>discovery-service-a</module>
 		<module>discovery-service-b</module>
 		<module>discovery-client</module>
+		<module>kubernetes-client-discovery</module>
 		<module>tests</module>
 	</modules>
 
