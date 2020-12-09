@@ -27,7 +27,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.springframework.cloud</groupId>
-	<artifactId>spring-cloud-starter-kubernetes-config</artifactId>
+	<artifactId>spring-cloud-starter-kubernetes-fabric8-config</artifactId>
 	<name>Spring Cloud Kubernetes :: Starter :: Config</name>
 
 	<dependencies>
