@@ -9,7 +9,6 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.springframework.cloud</groupId>
 	<artifactId>spring-cloud-kubernetes-config</artifactId>
 	<name>Spring Cloud Kubernetes :: Config</name>
 
