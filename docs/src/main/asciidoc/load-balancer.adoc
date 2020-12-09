@@ -6,7 +6,7 @@ To include it to your project add the following dependency.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-loadbalancer</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8-loadbalancer</artifactId>
 </dependency>
 ----
 ====

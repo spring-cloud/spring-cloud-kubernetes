@@ -12,7 +12,7 @@ auto-configuration for a feature set.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
 </dependency>
 ----
 | <<DiscoveryClient for Kubernetes,Discovery Client>> implementation that
@@ -22,7 +22,7 @@ resolves service names to Kubernetes Services.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-config</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8-config</artifactId>
 </dependency>
 ----
 | Load application properties from Kubernetes
@@ -34,7 +34,7 @@ Secret changes.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-all</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8-all</artifactId>
 </dependency>
 ----
 | All Spring Cloud Kubernetes features.
