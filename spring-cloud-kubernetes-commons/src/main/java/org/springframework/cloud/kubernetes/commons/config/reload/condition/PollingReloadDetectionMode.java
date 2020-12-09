@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.commons.config.reload.condition;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
@@ -32,17 +31,8 @@ public class PollingReloadDetectionMode implements Condition {
 
 	@Override
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		Environment environment = context.getEnvironment();
-		if (!environment.containsProperty("spring.cloud.kubernetes.reload.mode")) {
-			return false;
-		}
-		else {
-			if (environment.getProperty("spring.cloud.kubernetes.reload.mode")
-					.equalsIgnoreCase(ConfigReloadProperties.ReloadDetectionMode.POLLING.name())) {
-				return true;
-			}
-		}
-		return false;
+		return ConfigReloadProperties.ReloadDetectionMode.POLLING.name()
+				.equalsIgnoreCase(context.getEnvironment().getProperty("spring.cloud.kubernetes.reload.mode"));
 	}
 
 }
