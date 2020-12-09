@@ -80,7 +80,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-kubernetes</artifactId>
+			<artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

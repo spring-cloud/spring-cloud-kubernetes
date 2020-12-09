@@ -43,7 +43,7 @@ auto-configuration for a feature set.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
 </dependency>
 ----
 | <<DiscoveryClient for Kubernetes,Discovery Client>> implementation that
@@ -87,7 +87,7 @@ This is something that you get for free by adding the following dependency insid
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
 </dependency>
 ----
 ====
@@ -858,7 +858,7 @@ Depending on the requirements, you'll need `get`, `list` and `watch` permission 
 |Dependency | Resources
 
 
-|spring-cloud-starter-kubernetes
+|spring-cloud-starter-kubernetes-fabric8
 |pods, services, endpoints
 
 |spring-cloud-starter-kubernetes-fabric8-config
