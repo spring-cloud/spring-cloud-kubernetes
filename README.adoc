@@ -65,7 +65,7 @@ Secret changes.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-all</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8-all</artifactId>
 </dependency>
 ----
 | All Spring Cloud Kubernetes features.

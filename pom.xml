@@ -97,7 +97,7 @@
 		<module>spring-cloud-kubernetes-client-discovery</module>
 		<module>spring-cloud-starter-kubernetes</module>
 		<module>spring-cloud-starter-kubernetes-fabric8-config</module>
-		<module>spring-cloud-starter-kubernetes-all</module>
+		<module>spring-cloud-starter-kubernetes-fabric8-all</module>
 		<module>spring-cloud-starter-kubernetes-client-all</module>
 		<module>spring-cloud-kubernetes-examples</module>
 		<module>spring-cloud-kubernetes-fabric8-leader</module>

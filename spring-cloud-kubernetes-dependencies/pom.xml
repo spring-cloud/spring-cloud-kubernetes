@@ -160,7 +160,7 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-kubernetes-all</artifactId>
+				<artifactId>spring-cloud-starter-kubernetes-fabric8-all</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
