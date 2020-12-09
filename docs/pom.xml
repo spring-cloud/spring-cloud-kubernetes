@@ -22,15 +22,15 @@
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>spring-cloud-starter-kubernetes</artifactId>
+			<artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>spring-cloud-starter-kubernetes-all</artifactId>
+			<artifactId>spring-cloud-starter-kubernetes-fabric8-all</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>spring-cloud-starter-kubernetes-config</artifactId>
+			<artifactId>spring-cloud-starter-kubernetes-fabric8-config</artifactId>
 		</dependency>
 	</dependencies>
 	<build>

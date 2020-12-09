@@ -27,8 +27,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.springframework.cloud</groupId>
-	<artifactId>spring-cloud-starter-kubernetes-config</artifactId>
-	<name>Spring Cloud Kubernetes :: Starter :: Config</name>
+	<artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
+	<name>Spring Cloud Kubernetes :: Starter</name>
 
 	<dependencies>
 		<dependency>
@@ -42,9 +42,8 @@
 
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-kubernetes-fabric8-config</artifactId>
+			<artifactId>spring-cloud-kubernetes-fabric8-discovery</artifactId>
 		</dependency>
-
 	</dependencies>
 
 </project>

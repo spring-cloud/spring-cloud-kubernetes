@@ -13,7 +13,7 @@ This is something that you get for free by adding the following dependency insid
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
 </dependency>
 ----
 ====

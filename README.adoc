@@ -43,7 +43,7 @@ auto-configuration for a feature set.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
 </dependency>
 ----
 | <<DiscoveryClient for Kubernetes,Discovery Client>> implementation that
@@ -53,7 +53,7 @@ resolves service names to Kubernetes Services.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-config</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8-config</artifactId>
 </dependency>
 ----
 | Load application properties from Kubernetes
@@ -65,7 +65,7 @@ Secret changes.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-all</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8-all</artifactId>
 </dependency>
 ----
 | All Spring Cloud Kubernetes features.
@@ -87,7 +87,7 @@ This is something that you get for free by adding the following dependency insid
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
 </dependency>
 ----
 ====
@@ -806,7 +806,7 @@ To include it to your project add the following dependency.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-loadbalancer</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8-loadbalancer</artifactId>
 </dependency>
 ----
 ====
@@ -858,10 +858,10 @@ Depending on the requirements, you'll need `get`, `list` and `watch` permission 
 |Dependency | Resources
 
 
-|spring-cloud-starter-kubernetes
+|spring-cloud-starter-kubernetes-fabric8
 |pods, services, endpoints
 
-|spring-cloud-starter-kubernetes-config
+|spring-cloud-starter-kubernetes-fabric8-config
 |configmaps, secrets
 |===
 
