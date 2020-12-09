@@ -100,12 +100,12 @@
 		<module>spring-cloud-starter-kubernetes-all</module>
 		<module>spring-cloud-starter-kubernetes-client-all</module>
 		<module>spring-cloud-kubernetes-examples</module>
-		<module>spring-cloud-kubernetes-leader</module>
-		<module>spring-cloud-kubernetes-istio</module>
+		<module>spring-cloud-kubernetes-fabric8-leader</module>
+		<module>spring-cloud-kubernetes-fabric8-istio</module>
 		<module>spring-cloud-kubernetes-controllers</module>
 		<module>spring-cloud-kubernetes-integration-tests</module>
 		<module>docs</module>
-		<module>spring-cloud-kubernetes-loadbalancer</module>
+		<module>spring-cloud-kubernetes-fabric8-loadbalancer</module>
 		<module>spring-cloud-starter-kubernetes-loadbalancer</module>
 	</modules>
 

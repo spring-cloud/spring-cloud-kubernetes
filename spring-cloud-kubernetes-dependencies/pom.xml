@@ -106,13 +106,13 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-kubernetes-istio</artifactId>
+				<artifactId>spring-cloud-kubernetes-fabric8-istio</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-kubernetes-leader</artifactId>
+				<artifactId>spring-cloud-kubernetes-fabric8-leader</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -130,7 +130,7 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-kubernetes-loadbalancer</artifactId>
+				<artifactId>spring-cloud-kubernetes-fabric8-loadbalancer</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

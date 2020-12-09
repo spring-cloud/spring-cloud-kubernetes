@@ -769,7 +769,7 @@ within the Kubernetes platform (for example, different development and productio
 
 === Istio Awareness
 
-When you include the `spring-cloud-kubernetes-istio` module in the application classpath, a new profile is added to the application,
+When you include the `spring-cloud-kubernetes-fabric8-istio` module in the application classpath, a new profile is added to the application,
 provided the application is running inside a Kubernetes Cluster with https://istio.io[Istio] installed. You can then use
 spring `@Profile("istio")` annotations in your Beans and `@Configuration` classes.
 
