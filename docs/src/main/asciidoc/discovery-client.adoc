@@ -9,11 +9,23 @@ access from a Spring Boot application running as a pod.
 This is something that you get for free by adding the following dependency inside your project:
 
 ====
+Fabric8 Kubernetes Client
 [source,xml]
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
+</dependency>
+----
+====
+
+====
+Kubernetes Java Client
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
 </dependency>
 ----
 ====
