@@ -20,6 +20,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,13 +34,13 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(KubernetesLoadBalancerProperties.class)
 @ConditionalOnKubernetesEnabled
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.loadbalancer.enabled", matchIfMissing = true)
-@LoadBalancerClients(defaultConfiguration = KubernetesLoadBalancerClientConfiguration.class)
-public class KubernetesLoadBalancerAutoConfiguration {
+@LoadBalancerClients(defaultConfiguration = Fabric8LoadBalancerClientConfiguration.class)
+public class Fabric8LoadBalancerAutoConfiguration {
 
 	@Bean
-	KubernetesServiceInstanceMapper mapper(KubernetesLoadBalancerProperties properties,
+	Fabric8ServiceInstanceMapper mapper(KubernetesLoadBalancerProperties properties,
 			KubernetesDiscoveryProperties discoveryProperties) {
-		return new KubernetesServiceInstanceMapper(properties, discoveryProperties);
+		return new Fabric8ServiceInstanceMapper(properties, discoveryProperties);
 	}
 
 }

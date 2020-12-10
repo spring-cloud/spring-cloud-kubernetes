@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
@@ -28,14 +29,14 @@ import org.springframework.core.env.Environment;
  *
  * @author Piotr Minkowski
  */
-public class KubernetesLoadBalancerClientConfiguration {
+public class Fabric8LoadBalancerClientConfiguration {
 
 	@Bean
 	@ConditionalOnProperty(name = "spring.cloud.kubernetes.loadbalancer.mode", havingValue = "SERVICE")
 	KubernetesServicesListSupplier kubernetesServicesListSupplier(Environment environment,
-			KubernetesClient kubernetesClient, KubernetesServiceInstanceMapper mapper,
+			KubernetesClient kubernetesClient, Fabric8ServiceInstanceMapper mapper,
 			KubernetesDiscoveryProperties discoveryProperties) {
-		return new KubernetesServicesListSupplier(environment, kubernetesClient, mapper, discoveryProperties);
+		return new Fabric8ServicesListSupplier(environment, kubernetesClient, mapper, discoveryProperties);
 	}
 
 }
