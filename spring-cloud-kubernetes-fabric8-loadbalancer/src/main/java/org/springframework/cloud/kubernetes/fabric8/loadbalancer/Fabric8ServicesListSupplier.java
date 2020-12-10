@@ -21,14 +21,14 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.apache.commons.lang.StringUtils;
 import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
-import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.core.env.Environment;
+import org.springframework.util.StringUtils;
 
 /**
  * Implementation of {@link ServiceInstanceListSupplier} for load balancer in SERVICE
@@ -36,27 +36,14 @@ import org.springframework.core.env.Environment;
  *
  * @author Piotr Minkowski
  */
-public class KubernetesServicesListSupplier implements ServiceInstanceListSupplier {
-
-	private final Environment environment;
+public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier {
 
 	private final KubernetesClient kubernetesClient;
 
-	private final KubernetesDiscoveryProperties discoveryProperties;
-
-	private final KubernetesServiceInstanceMapper mapper;
-
-	KubernetesServicesListSupplier(Environment environment, KubernetesClient kubernetesClient,
-			KubernetesServiceInstanceMapper mapper, KubernetesDiscoveryProperties discoveryProperties) {
-		this.environment = environment;
+	Fabric8ServicesListSupplier(Environment environment, KubernetesClient kubernetesClient,
+			Fabric8ServiceInstanceMapper mapper, KubernetesDiscoveryProperties discoveryProperties) {
+		super(environment, mapper, discoveryProperties);
 		this.kubernetesClient = kubernetesClient;
-		this.discoveryProperties = discoveryProperties;
-		this.mapper = mapper;
-	}
-
-	@Override
-	public String getServiceId() {
-		return environment.getProperty(LoadBalancerClientFactory.PROPERTY_NAME);
 	}
 
 	@Override
@@ -68,7 +55,7 @@ public class KubernetesServicesListSupplier implements ServiceInstanceListSuppli
 			services.forEach(service -> result.add(mapper.map(service)));
 		}
 		else {
-			Service service = StringUtils.isNotBlank(this.kubernetesClient.getNamespace())
+			Service service = StringUtils.hasText(this.kubernetesClient.getNamespace())
 					? this.kubernetesClient.services().inNamespace(this.kubernetesClient.getNamespace())
 							.withName(this.getServiceId()).get()
 					: this.kubernetesClient.services().withName(this.getServiceId()).get();

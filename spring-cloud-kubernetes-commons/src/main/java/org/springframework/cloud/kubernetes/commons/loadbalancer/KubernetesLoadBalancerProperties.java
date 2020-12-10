@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
+package org.springframework.cloud.kubernetes.commons.loadbalancer;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
