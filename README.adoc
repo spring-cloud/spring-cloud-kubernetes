@@ -83,9 +83,6 @@ Secret changes.
     <artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
 </dependency>
 ----
-| All Spring Cloud Kubernetes features.
-
-|===
 
 == DiscoveryClient for Kubernetes
 
@@ -98,11 +95,23 @@ access from a Spring Boot application running as a pod.
 This is something that you get for free by adding the following dependency inside your project:
 
 ====
+Fabric8 Kubernetes Client
 [source,xml]
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
+</dependency>
+----
+====
+
+====
+Kubernetes Java Client
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
 </dependency>
 ----
 ====
@@ -877,6 +886,12 @@ Depending on the requirements, you'll need `get`, `list` and `watch` permission 
 |pods, services, endpoints
 
 |spring-cloud-starter-kubernetes-fabric8-config
+|configmaps, secrets
+
+|spring-cloud-starter-kubernetes-client
+|pods, services, endpoints
+
+|spring-cloud-starter-kubernetes-client-config
 |configmaps, secrets
 |===
 
