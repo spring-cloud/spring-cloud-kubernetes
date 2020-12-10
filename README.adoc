@@ -33,7 +33,10 @@ Spring Cloud Kubernetes provides implementations of well known Spring Cloud inte
 
 Starters are convenient dependency descriptors you can include in your
 application. Include a starter to get the dependencies and Spring Boot
-auto-configuration for a feature set.
+auto-configuration for a feature set.  Starters that begin with `spring-cloud-starter-kubernetes-fabric8`
+provide implementations using the https://github.com/fabric8io/kubernetes-client[Fabric8 Kubernetes Java Client].
+Starters that begin with
+`spring-cloud-starter-kubernetes-client` provide implementations using the https://github.com/kubernetes-client/java[Kubernetes Java Client].
 
 [cols="a,d"]
 |===
@@ -45,6 +48,10 @@ auto-configuration for a feature set.
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
 </dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
+</dependency>
 ----
 | <<DiscoveryClient for Kubernetes,Discovery Client>> implementation that
 resolves service names to Kubernetes Services.
@@ -54,6 +61,10 @@ resolves service names to Kubernetes Services.
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-fabric8-config</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client-config</artifactId>
 </dependency>
 ----
 | Load application properties from Kubernetes
@@ -66,6 +77,10 @@ Secret changes.
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-fabric8-all</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
 </dependency>
 ----
 | All Spring Cloud Kubernetes features.

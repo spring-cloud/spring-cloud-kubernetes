@@ -98,6 +98,8 @@
 		<module>spring-cloud-starter-kubernetes-fabric8</module>
 		<module>spring-cloud-starter-kubernetes-fabric8-config</module>
 		<module>spring-cloud-starter-kubernetes-fabric8-all</module>
+		<module>spring-cloud-starter-kubernetes-client</module>
+		<module>spring-cloud-starter-kubernetes-client-config</module>
 		<module>spring-cloud-starter-kubernetes-client-all</module>
 		<module>spring-cloud-kubernetes-examples</module>
 		<module>spring-cloud-kubernetes-fabric8-leader</module>
