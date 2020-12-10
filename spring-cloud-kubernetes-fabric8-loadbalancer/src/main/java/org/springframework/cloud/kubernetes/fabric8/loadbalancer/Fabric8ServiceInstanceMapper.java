@@ -25,28 +25,30 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.client.utils.Utils;
-import org.apache.commons.lang.StringUtils;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
+import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 
 /**
  * Class for mapping Kubernetes Service object into {@link KubernetesServiceInstance}.
  *
  * @author Piotr Minkowski
  */
-public class KubernetesServiceInstanceMapper {
+public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMapper<Service> {
 
 	private final KubernetesLoadBalancerProperties properties;
 
 	private final KubernetesDiscoveryProperties discoveryProperties;
 
-	KubernetesServiceInstanceMapper(KubernetesLoadBalancerProperties properties,
+	Fabric8ServiceInstanceMapper(KubernetesLoadBalancerProperties properties,
 			KubernetesDiscoveryProperties discoveryProperties) {
 		this.properties = properties;
 		this.discoveryProperties = discoveryProperties;
 	}
 
+	@Override
 	public KubernetesServiceInstance map(Service service) {
 		final ObjectMeta meta = service.getMetadata();
 		final List<ServicePort> ports = service.getSpec().getPorts();
@@ -64,8 +66,10 @@ public class KubernetesServiceInstanceMapper {
 		if (port == null) {
 			return null;
 		}
-		final String host = createHost(service);
-		final boolean secure = isSecure(service, port);
+		final String host = KubernetesServiceInstanceMapper.createHost(service.getMetadata().getName(),
+				service.getMetadata().getNamespace(), properties.getClusterDomain());
+		final boolean secure = KubernetesServiceInstanceMapper.isSecure(service.getMetadata().getLabels(),
+				service.getMetadata().getAnnotations(), port.getName(), port.getPort());
 		return new KubernetesServiceInstance(meta.getUid(), meta.getName(), host, port.getPort(),
 				getServiceMetadata(service), secure);
 	}
@@ -74,55 +78,17 @@ public class KubernetesServiceInstanceMapper {
 		final Map<String, String> serviceMetadata = new HashMap<>();
 		KubernetesDiscoveryProperties.Metadata metadataProps = this.discoveryProperties.getMetadata();
 		if (metadataProps.isAddLabels()) {
-			Map<String, String> labelMetadata = getMapWithPrefixedKeys(service.getMetadata().getLabels(),
-					metadataProps.getLabelsPrefix());
+			Map<String, String> labelMetadata = KubernetesServiceInstanceMapper
+					.getMapWithPrefixedKeys(service.getMetadata().getLabels(), metadataProps.getLabelsPrefix());
 			serviceMetadata.putAll(labelMetadata);
 		}
 		if (metadataProps.isAddAnnotations()) {
-			Map<String, String> annotationMetadata = getMapWithPrefixedKeys(service.getMetadata().getAnnotations(),
-					metadataProps.getAnnotationsPrefix());
+			Map<String, String> annotationMetadata = KubernetesServiceInstanceMapper.getMapWithPrefixedKeys(
+					service.getMetadata().getAnnotations(), metadataProps.getAnnotationsPrefix());
 			serviceMetadata.putAll(annotationMetadata);
 		}
 
 		return serviceMetadata;
-	}
-
-	private Map<String, String> getMapWithPrefixedKeys(Map<String, String> map, String prefix) {
-		if (map == null) {
-			return new HashMap<>();
-		}
-		if (!org.springframework.util.StringUtils.hasText(prefix)) {
-			return map;
-		}
-		final Map<String, String> result = new HashMap<>();
-		map.forEach((k, v) -> result.put(prefix + k, v));
-		return result;
-	}
-
-	private boolean isSecure(Service service, ServicePort port) {
-		if (service.getMetadata().getLabels() != null) {
-			final String securedLabelValue = service.getMetadata().getLabels().getOrDefault("secured", "false");
-			if (securedLabelValue.equals("true")) {
-				return true;
-			}
-		}
-
-		if (service.getMetadata().getAnnotations() != null) {
-			final String securedAnnotationValue = service.getMetadata().getAnnotations().getOrDefault("secured",
-					"false");
-			if (securedAnnotationValue.equals("true")) {
-				return true;
-			}
-		}
-		return (port.getName() != null && port.getName().endsWith("https"))
-				|| port.getPort().toString().endsWith("443");
-	}
-
-	private String createHost(Service service) {
-		return String.format("%s.%s.svc.%s", service.getMetadata().getName(),
-				StringUtils.isNotBlank(service.getMetadata().getNamespace()) ? service.getMetadata().getNamespace()
-						: "default",
-				properties.getClusterDomain());
 	}
 
 }

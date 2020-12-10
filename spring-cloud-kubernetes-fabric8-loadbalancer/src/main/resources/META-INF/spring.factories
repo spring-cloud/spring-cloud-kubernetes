@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.kubernetes.fabric8.loadbalancer.KubernetesLoadBalancerAutoConfiguration
+org.springframework.cloud.kubernetes.fabric8.loadbalancer.Fabric8LoadBalancerAutoConfiguration

@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Thomas Vitale
  */
-class KubernetesLoadBalancerAutoConfigurationTests {
+class Fabric8LoadBalancerAutoConfigurationTests {
 
 	private ConfigurableApplicationContext context;
 
@@ -42,35 +42,35 @@ class KubernetesLoadBalancerAutoConfigurationTests {
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesDisabledAndLoadBalancerDisabled() {
 		setup("spring.cloud.kubernetes.enabled=false", "spring.cloud.kubernetes.loadbalancer.enabled=false");
-		assertThat(this.context.getBeanNamesForType(KubernetesServiceInstanceMapper.class)).isEmpty();
+		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).isEmpty();
 	}
 
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesDisabledAndLoadBalancerEnabled() {
 		setup("spring.cloud.kubernetes.enabled=false", "spring.cloud.kubernetes.loadbalancer.enabled=true");
-		assertThat(this.context.getBeanNamesForType(KubernetesServiceInstanceMapper.class)).isEmpty();
+		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).isEmpty();
 	}
 
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesEnabledAndLoadBalancerEnabled() {
 		setup("spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.loadbalancer.enabled=true");
-		assertThat(this.context.getBeanNamesForType(KubernetesServiceInstanceMapper.class)).hasSize(1);
+		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).hasSize(1);
 	}
 
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesEnabledAndLoadBalancerDisabled() {
 		setup("spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.loadbalancer.enabled=false");
-		assertThat(this.context.getBeanNamesForType(KubernetesServiceInstanceMapper.class)).isEmpty();
+		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).isEmpty();
 	}
 
 	@Test
 	void kubernetesLoadBalancerWhenDefaultProperties() {
 		setup();
-		assertThat(this.context.getBeanNamesForType(KubernetesServiceInstanceMapper.class)).hasSize(1);
+		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).hasSize(1);
 	}
 
 	private void setup(String... env) {
-		this.context = new SpringApplicationBuilder(KubernetesLoadBalancerAutoConfiguration.class,
+		this.context = new SpringApplicationBuilder(Fabric8LoadBalancerAutoConfiguration.class,
 				KubernetesDiscoveryProperties.class).web(org.springframework.boot.WebApplicationType.NONE)
 						.properties(env).run();
 	}

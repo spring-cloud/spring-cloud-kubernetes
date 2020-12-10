@@ -38,6 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
 import org.springframework.core.env.Environment;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -50,7 +51,7 @@ class KubernetesServiceListSupplierTests {
 	Environment environment;
 
 	@Mock
-	KubernetesServiceInstanceMapper mapper;
+	Fabric8ServiceInstanceMapper mapper;
 
 	@Mock
 	KubernetesClient client;
@@ -76,7 +77,7 @@ class KubernetesServiceListSupplierTests {
 		when(this.serviceOperation.inNamespace("test")).thenReturn(namespaceOperation);
 		when(this.namespaceOperation.withName("test-service")).thenReturn(this.serviceResource);
 		when(this.serviceResource.get()).thenReturn(buildService("test-service", 8080));
-		KubernetesServicesListSupplier supplier = new KubernetesServicesListSupplier(environment, client, mapper,
+		KubernetesServicesListSupplier supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
 				new KubernetesDiscoveryProperties());
 		List<ServiceInstance> instances = supplier.get().blockFirst();
 		assert instances != null;
@@ -95,7 +96,7 @@ class KubernetesServiceListSupplierTests {
 		when(this.multiDeletable.list()).thenReturn(serviceList);
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties();
 		discoveryProperties.setAllNamespaces(true);
-		KubernetesServicesListSupplier supplier = new KubernetesServicesListSupplier(environment, client, mapper,
+		KubernetesServicesListSupplier supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
 				discoveryProperties);
 		List<ServiceInstance> instances = supplier.get().blockFirst();
 		assert instances != null;
