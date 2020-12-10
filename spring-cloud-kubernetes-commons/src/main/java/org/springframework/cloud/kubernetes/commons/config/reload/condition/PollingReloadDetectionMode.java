@@ -36,13 +36,8 @@ public class PollingReloadDetectionMode implements Condition {
 		if (!environment.containsProperty("spring.cloud.kubernetes.reload.mode")) {
 			return false;
 		}
-		else {
-			if (environment.getProperty("spring.cloud.kubernetes.reload.mode")
-					.equalsIgnoreCase(ConfigReloadProperties.ReloadDetectionMode.POLLING.name())) {
-				return true;
-			}
-		}
-		return false;
+		return ConfigReloadProperties.ReloadDetectionMode.POLLING.name()
+				.equalsIgnoreCase(context.getEnvironment().getProperty("spring.cloud.kubernetes.reload.mode"));
 	}
 
 }
