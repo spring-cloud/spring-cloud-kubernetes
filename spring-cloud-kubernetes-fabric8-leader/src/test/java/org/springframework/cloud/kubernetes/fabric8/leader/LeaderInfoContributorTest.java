@@ -26,6 +26,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.boot.actuate.info.Info;
+import org.springframework.cloud.kubernetes.commons.leader.Leader;
+import org.springframework.cloud.kubernetes.commons.leader.LeaderInfoContributor;
 import org.springframework.integration.leader.Candidate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +40,7 @@ public class LeaderInfoContributorTest {
 	private Candidate mockCandidate;
 
 	@Mock
-	private LeadershipController mockLeadershipController;
+	private Fabric8LeadershipController mockFabric8LeadershipController;
 
 	@Mock
 	private Leader mockLeader;
@@ -47,7 +49,8 @@ public class LeaderInfoContributorTest {
 
 	@BeforeEach
 	public void before() {
-		this.leaderInfoContributor = new LeaderInfoContributor(this.mockLeadershipController, this.mockCandidate);
+		this.leaderInfoContributor = new LeaderInfoContributor(this.mockFabric8LeadershipController,
+				this.mockCandidate);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -64,7 +67,7 @@ public class LeaderInfoContributorTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void infoWhenLeader() {
-		given(this.mockLeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
+		given(this.mockFabric8LeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
 		given(this.mockLeader.isCandidate(this.mockCandidate)).willReturn(true);
 		given(this.mockLeader.getRole()).willReturn("testRole");
 		given(this.mockLeader.getId()).willReturn("id");
@@ -81,7 +84,7 @@ public class LeaderInfoContributorTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void infoWhenAnotherIsLeader() {
-		given(this.mockLeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
+		given(this.mockFabric8LeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
 		given(this.mockLeader.getRole()).willReturn("testRole");
 		given(this.mockLeader.getId()).willReturn("id");
 		Info.Builder builder = new Info.Builder();

@@ -16,10 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader;
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -28,49 +25,29 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.cloud.kubernetes.commons.leader.Leader;
+import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
+import org.springframework.cloud.kubernetes.commons.leader.LeadershipController;
+import org.springframework.cloud.kubernetes.commons.leader.PodReadinessWatcher;
 import org.springframework.integration.leader.Candidate;
-import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 
 /**
  * @author Gytis Trikleris
  */
-public class LeadershipController {
+public class Fabric8LeadershipController extends LeadershipController {
 
-	private static final String PROVIDER_KEY = "provider";
-
-	private static final String PROVIDER = "spring-cloud-kubernetes";
-
-	private static final String KIND_KEY = "kind";
-
-	private static final String KIND = "leaders";
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(LeadershipController.class);
-
-	private final Candidate candidate;
-
-	private final LeaderProperties leaderProperties;
-
-	private final LeaderEventPublisher leaderEventPublisher;
+	private static final Logger LOGGER = LoggerFactory.getLogger(Fabric8LeadershipController.class);
 
 	private final KubernetesClient kubernetesClient;
 
-	private Leader localLeader;
-
-	private PodReadinessWatcher leaderReadinessWatcher;
-
-	public LeadershipController(Candidate candidate, LeaderProperties leaderProperties,
+	public Fabric8LeadershipController(Candidate candidate, LeaderProperties leaderProperties,
 			LeaderEventPublisher leaderEventPublisher, KubernetesClient kubernetesClient) {
-		this.candidate = candidate;
-		this.leaderProperties = leaderProperties;
-		this.leaderEventPublisher = leaderEventPublisher;
+		super(candidate, leaderProperties, leaderEventPublisher);
 		this.kubernetesClient = kubernetesClient;
 	}
 
-	public Optional<Leader> getLocalLeader() {
-		return Optional.ofNullable(this.localLeader);
-	}
-
+	@Override
 	public synchronized void update() {
 		LOGGER.debug("Checking leader state");
 		ConfigMap configMap = getConfigMap();
@@ -137,91 +114,17 @@ public class LeadershipController {
 		}
 	}
 
-	private void handleLeaderChange(Leader newLeader) {
-		if (Objects.equals(this.localLeader, newLeader)) {
-			LOGGER.debug("Leader is still '{}'", this.localLeader);
-			return;
-		}
-
-		Leader oldLeader = this.localLeader;
-		this.localLeader = newLeader;
-
-		if (oldLeader != null && oldLeader.isCandidate(this.candidate)) {
-			notifyOnRevoked();
-		}
-		else if (newLeader != null && newLeader.isCandidate(this.candidate)) {
-			notifyOnGranted();
-		}
-
-		restartLeaderReadinessWatcher();
-
-		LOGGER.debug("New leader is '{}'", this.localLeader);
-	}
-
-	private void notifyOnGranted() {
-		LOGGER.debug("Leadership has been granted for '{}'", this.candidate);
-
-		Context context = new LeaderContext(this.candidate, this);
-		this.leaderEventPublisher.publishOnGranted(this, context, this.candidate.getRole());
-		try {
-			this.candidate.onGranted(context);
-		}
-		catch (InterruptedException e) {
-			LOGGER.warn(e.getMessage());
-			Thread.currentThread().interrupt();
-		}
-	}
-
-	private void notifyOnRevoked() {
-		LOGGER.debug("Leadership has been revoked for '{}'", this.candidate);
-
-		Context context = new LeaderContext(this.candidate, this);
-		this.leaderEventPublisher.publishOnRevoked(this, context, this.candidate.getRole());
-		this.candidate.onRevoked(context);
-	}
-
-	private void notifyOnFailedToAcquire() {
-		if (this.leaderProperties.isPublishFailedEvents()) {
-			Context context = new LeaderContext(this.candidate, this);
-			this.leaderEventPublisher.publishOnFailedToAcquire(this, context, this.candidate.getRole());
-		}
-	}
-
-	private void restartLeaderReadinessWatcher() {
-		if (this.leaderReadinessWatcher != null) {
-			this.leaderReadinessWatcher.stop();
-			this.leaderReadinessWatcher = null;
-		}
-
-		if (this.localLeader != null && !this.localLeader.isCandidate(this.candidate)) {
-			this.leaderReadinessWatcher = new PodReadinessWatcher(this.localLeader.getId(), this.kubernetesClient,
-					this);
-			this.leaderReadinessWatcher.start();
-		}
-	}
-
-	private String getLeaderKey() {
-		return this.leaderProperties.getLeaderIdPrefix() + this.candidate.getRole();
-	}
-
-	private Map<String, String> getLeaderData(Candidate candidate) {
-		String leaderKey = getLeaderKey();
-		return Collections.singletonMap(leaderKey, candidate.getId());
+	@Override
+	protected PodReadinessWatcher createPodReadinessWatcher(String localLeaderId) {
+		return new Fabric8PodReadinessWatcher(localLeaderId, this.kubernetesClient, this);
 	}
 
 	private Leader extractLeader(ConfigMap configMap) {
-		if (configMap == null || configMap.getData() == null) {
+		if (configMap == null) {
 			return null;
 		}
 
-		Map<String, String> data = configMap.getData();
-		String leaderKey = getLeaderKey();
-		String leaderId = data.get(leaderKey);
-		if (leaderId == null) {
-			return null;
-		}
-
-		return new Leader(this.candidate.getRole(), leaderId);
+		return extractLeader(configMap.getData());
 	}
 
 	private boolean isPodReady(String name) {

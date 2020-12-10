@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.kubernetes.fabric8.leader.LeaderAutoConfiguration
+org.springframework.cloud.kubernetes.fabric8.leader.Fabric8LeaderAutoConfiguration

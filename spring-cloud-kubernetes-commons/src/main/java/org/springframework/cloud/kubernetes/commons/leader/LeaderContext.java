@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.leader;
+package org.springframework.cloud.kubernetes.commons.leader;
 
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.Context;

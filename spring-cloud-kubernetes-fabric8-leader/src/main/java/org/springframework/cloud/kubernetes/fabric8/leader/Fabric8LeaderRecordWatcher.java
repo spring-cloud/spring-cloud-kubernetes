@@ -16,51 +16,49 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader;
 
-import io.fabric8.kubernetes.api.model.DoneablePod;
-import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.dsl.PodResource;
-import io.fabric8.kubernetes.client.internal.readiness.Readiness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
 
 /**
  * @author Gytis Trikleris
  */
-public class PodReadinessWatcher implements Watcher<Pod> {
+public class Fabric8LeaderRecordWatcher
+		implements org.springframework.cloud.kubernetes.commons.leader.LeaderRecordWatcher, Watcher<ConfigMap> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(PodReadinessWatcher.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Fabric8LeaderRecordWatcher.class);
 
 	private final Object lock = new Object();
 
-	private final String podName;
+	private final Fabric8LeadershipController fabric8LeadershipController;
+
+	private final LeaderProperties leaderProperties;
 
 	private final KubernetesClient kubernetesClient;
 
-	private final LeadershipController leadershipController;
-
-	private boolean previousState;
-
 	private Watch watch;
 
-	public PodReadinessWatcher(String podName, KubernetesClient kubernetesClient,
-			LeadershipController leadershipController) {
-		this.podName = podName;
+	public Fabric8LeaderRecordWatcher(LeaderProperties leaderProperties,
+			Fabric8LeadershipController fabric8LeadershipController, KubernetesClient kubernetesClient) {
+		this.fabric8LeadershipController = fabric8LeadershipController;
+		this.leaderProperties = leaderProperties;
 		this.kubernetesClient = kubernetesClient;
-		this.leadershipController = leadershipController;
 	}
 
 	public void start() {
 		if (this.watch == null) {
 			synchronized (this.lock) {
 				if (this.watch == null) {
-					LOGGER.debug("Starting pod readiness watcher for '{}'", this.podName);
-					PodResource<Pod, DoneablePod> podResource = this.kubernetesClient.pods().withName(this.podName);
-					this.previousState = podResource.isReady();
-					this.watch = podResource.watch(this);
+					LOGGER.debug("Starting leader record watcher");
+					this.watch = this.kubernetesClient.configMaps()
+							.inNamespace(this.leaderProperties.getNamespace(this.kubernetesClient.getNamespace()))
+							.withName(this.leaderProperties.getConfigMapName()).watch(this);
 				}
 			}
 		}
@@ -70,7 +68,7 @@ public class PodReadinessWatcher implements Watcher<Pod> {
 		if (this.watch != null) {
 			synchronized (this.lock) {
 				if (this.watch != null) {
-					LOGGER.debug("Stopping pod readiness watcher for '{}'", this.podName);
+					LOGGER.debug("Stopping leader record watcher");
 					this.watch.close();
 					this.watch = null;
 				}
@@ -79,17 +77,11 @@ public class PodReadinessWatcher implements Watcher<Pod> {
 	}
 
 	@Override
-	public void eventReceived(Action action, Pod pod) {
-		boolean currentState = Readiness.isPodReady(pod);
-		if (this.previousState != currentState) {
-			synchronized (this.lock) {
-				if (this.previousState != currentState) {
-					LOGGER.debug("'{}' readiness status changed to '{}', triggering leadership update", this.podName,
-							currentState);
-					this.previousState = currentState;
-					this.leadershipController.update();
-				}
-			}
+	public void eventReceived(Action action, ConfigMap configMap) {
+		LOGGER.debug("'{}' event received, triggering leadership update", action);
+
+		if (!Action.ERROR.equals(action)) {
+			this.fabric8LeadershipController.update();
 		}
 	}
 
