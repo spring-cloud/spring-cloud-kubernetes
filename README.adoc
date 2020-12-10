@@ -33,7 +33,10 @@ Spring Cloud Kubernetes provides implementations of well known Spring Cloud inte
 
 Starters are convenient dependency descriptors you can include in your
 application. Include a starter to get the dependencies and Spring Boot
-auto-configuration for a feature set.
+auto-configuration for a feature set.  Starters that begin with `spring-cloud-starter-kubernetes-fabric8`
+provide implementations using the https://github.com/fabric8io/kubernetes-client[Fabric8 Kubernetes Java Client].
+Starters that begin with
+`spring-cloud-starter-kubernetes-client` provide implementations using the https://github.com/kubernetes-client/java[Kubernetes Java Client].
 
 [cols="a,d"]
 |===
@@ -43,7 +46,11 @@ auto-configuration for a feature set.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
 </dependency>
 ----
 | <<DiscoveryClient for Kubernetes,Discovery Client>> implementation that
@@ -53,7 +60,11 @@ resolves service names to Kubernetes Services.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-config</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8-config</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client-config</artifactId>
 </dependency>
 ----
 | Load application properties from Kubernetes
@@ -65,12 +76,13 @@ Secret changes.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-all</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8-all</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
 </dependency>
 ----
-| All Spring Cloud Kubernetes features.
-
-|===
 
 == DiscoveryClient for Kubernetes
 
@@ -83,11 +95,23 @@ access from a Spring Boot application running as a pod.
 This is something that you get for free by adding the following dependency inside your project:
 
 ====
+Fabric8 Kubernetes Client
 [source,xml]
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
+</dependency>
+----
+====
+
+====
+Kubernetes Java Client
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
 </dependency>
 ----
 ====
@@ -769,7 +793,7 @@ within the Kubernetes platform (for example, different development and productio
 
 === Istio Awareness
 
-When you include the `spring-cloud-kubernetes-istio` module in the application classpath, a new profile is added to the application,
+When you include the `spring-cloud-kubernetes-fabric8-istio` module in the application classpath, a new profile is added to the application,
 provided the application is running inside a Kubernetes Cluster with https://istio.io[Istio] installed. You can then use
 spring `@Profile("istio")` annotations in your Beans and `@Configuration` classes.
 
@@ -806,7 +830,7 @@ To include it to your project add the following dependency.
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-loadbalancer</artifactId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8-loadbalancer</artifactId>
 </dependency>
 ----
 ====
@@ -858,10 +882,16 @@ Depending on the requirements, you'll need `get`, `list` and `watch` permission 
 |Dependency | Resources
 
 
-|spring-cloud-starter-kubernetes
+|spring-cloud-starter-kubernetes-fabric8
 |pods, services, endpoints
 
-|spring-cloud-starter-kubernetes-config
+|spring-cloud-starter-kubernetes-fabric8-config
+|configmaps, secrets
+
+|spring-cloud-starter-kubernetes-client
+|pods, services, endpoints
+
+|spring-cloud-starter-kubernetes-client-config
 |configmaps, secrets
 |===
 
