@@ -33,6 +33,8 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 @RunWith(MockitoJUnitRunner.class)
 public class EventReloadDetectionModeTest {
 
+	private static final String RELOAD_PROPERTY = "spring.cloud.kubernetes.reload.mode";
+
 	private final EventReloadDetectionMode underTest = new EventReloadDetectionMode();
 
 	@Mock
@@ -44,18 +46,31 @@ public class EventReloadDetectionModeTest {
 	@Mock
 	private AnnotatedTypeMetadata metadata;
 
+	// this is a weird test, since "containsProperty" returns "true", but "getProperty" returns a "null".
+	// I am leaving it here just to make sure nothing breaks in branching
 	@Test
 	public void testNull() {
 		Mockito.when(context.getEnvironment()).thenReturn(environment);
-		Mockito.when(environment.getProperty("spring.cloud.kubernetes.reload.mode")).thenReturn(null);
+		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
+		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn(null);
 		boolean matches = underTest.matches(context, metadata);
 		Assert.assertFalse(matches);
+	}
+
+	// lack of this property being set, means a match.
+	@Test
+	public void testDoesNotContain() {
+		Mockito.when(context.getEnvironment()).thenReturn(environment);
+		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(false);
+		boolean matches = underTest.matches(context, metadata);
+		Assert.assertTrue(matches);
 	}
 
 	@Test
 	public void testMatchesCase() {
 		Mockito.when(context.getEnvironment()).thenReturn(environment);
-		Mockito.when(environment.getProperty("spring.cloud.kubernetes.reload.mode")).thenReturn("EVENT");
+		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
+		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn("EVENT");
 		boolean matches = underTest.matches(context, metadata);
 		Assert.assertTrue(matches);
 	}
@@ -63,9 +78,19 @@ public class EventReloadDetectionModeTest {
 	@Test
 	public void testMatchesIgnoreCase() {
 		Mockito.when(context.getEnvironment()).thenReturn(environment);
-		Mockito.when(environment.getProperty("spring.cloud.kubernetes.reload.mode")).thenReturn("eVeNt");
+		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
+		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn("eVeNt");
 		boolean matches = underTest.matches(context, metadata);
 		Assert.assertTrue(matches);
+	}
+
+	@Test
+	public void testNoMatch() {
+		Mockito.when(context.getEnvironment()).thenReturn(environment);
+		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
+		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn("not-eVeNt");
+		boolean matches = underTest.matches(context, metadata);
+		Assert.assertFalse(matches);
 	}
 
 }
