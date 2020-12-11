@@ -16,16 +16,16 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ConfigMapList;
-import io.fabric8.kubernetes.api.model.DoneableConfigMap;
+import io.fabric8.kubernetes.api.model.DoneablePod;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodList;
+import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.PodResource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,41 +40,40 @@ import static org.mockito.Mockito.verify;
  * @author Gytis Trikleris
  */
 @ExtendWith(MockitoExtension.class)
-public class LeaderRecordWatcherTest {
+public class Fabric8PodReadinessWatcherTest {
+
+	private static final String POD_NAME = "test-pod";
 
 	@Mock
-	private LeaderProperties mockLeaderProperties;
-
-	@Mock
-	private LeadershipController mockLeadershipController;
+	private Fabric8LeadershipController mockFabric8LeadershipController;
 
 	@Mock
 	private KubernetesClient mockKubernetesClient;
 
 	@Mock
-	private MixedOperation<ConfigMap, ConfigMapList, DoneableConfigMap, Resource<ConfigMap, DoneableConfigMap>> mockConfigMapsOperation;
+	private MixedOperation<Pod, PodList, DoneablePod, PodResource<Pod, DoneablePod>> mockPodsOperation;
 
 	@Mock
-	private NonNamespaceOperation<ConfigMap, ConfigMapList, DoneableConfigMap, Resource<ConfigMap, DoneableConfigMap>> mockInNamespaceOperation;
+	private PodResource<Pod, DoneablePod> mockPodResource;
 
 	@Mock
-	private Resource<ConfigMap, DoneableConfigMap> mockWithNameResource;
+	private Pod mockPod;
+
+	@Mock
+	private PodStatus mockPodStatus;
 
 	@Mock
 	private Watch mockWatch;
 
 	@Mock
-	private ConfigMap mockConfigMap;
-
-	@Mock
 	private KubernetesClientException mockKubernetesClientException;
 
-	private LeaderRecordWatcher watcher;
+	private Fabric8PodReadinessWatcher watcher;
 
 	@BeforeEach
 	public void before() {
-		this.watcher = new LeaderRecordWatcher(this.mockLeaderProperties, this.mockLeadershipController,
-				this.mockKubernetesClient);
+		this.watcher = new Fabric8PodReadinessWatcher(POD_NAME, this.mockKubernetesClient,
+				this.mockFabric8LeadershipController);
 	}
 
 	@Test
@@ -83,7 +82,7 @@ public class LeaderRecordWatcherTest {
 		this.watcher.start();
 		this.watcher.start();
 
-		verify(this.mockWithNameResource).watch(this.watcher);
+		verify(this.mockPodResource).watch(this.watcher);
 	}
 
 	@Test
@@ -97,19 +96,26 @@ public class LeaderRecordWatcherTest {
 	}
 
 	@Test
-	public void shouldHandleEvent() {
-		this.watcher.eventReceived(Watcher.Action.ADDED, this.mockConfigMap);
-		this.watcher.eventReceived(Watcher.Action.DELETED, this.mockConfigMap);
-		this.watcher.eventReceived(Watcher.Action.MODIFIED, this.mockConfigMap);
+	public void shouldHandleEventWithStateChange() {
+		initStubs();
+		given(this.mockPodResource.isReady()).willReturn(true);
+		given(this.mockPod.getStatus()).willReturn(this.mockPodStatus);
 
-		verify(this.mockLeadershipController, times(3)).update();
+		this.watcher.start();
+		this.watcher.eventReceived(Watcher.Action.ADDED, this.mockPod);
+
+		verify(this.mockFabric8LeadershipController).update();
 	}
 
 	@Test
-	public void shouldIgnoreErrorEvent() {
-		this.watcher.eventReceived(Watcher.Action.ERROR, this.mockConfigMap);
+	public void shouldIgnoreEventIfStateDoesNotChange() {
+		initStubs();
+		given(this.mockPod.getStatus()).willReturn(this.mockPodStatus);
 
-		verify(this.mockLeadershipController, times(0)).update();
+		this.watcher.start();
+		this.watcher.eventReceived(Watcher.Action.ADDED, this.mockPod);
+
+		verify(this.mockFabric8LeadershipController, times(0)).update();
 	}
 
 	@Test
@@ -117,21 +123,20 @@ public class LeaderRecordWatcherTest {
 		initStubs();
 		this.watcher.onClose(this.mockKubernetesClientException);
 
-		verify(this.mockWithNameResource).watch(this.watcher);
+		verify(this.mockPodResource).watch(this.watcher);
 	}
 
 	@Test
 	public void shouldIgnoreCloseWithoutCause() {
 		this.watcher.onClose(null);
 
-		verify(this.mockWithNameResource, times(0)).watch(this.watcher);
+		verify(this.mockPodResource, times(0)).watch(this.watcher);
 	}
 
 	private void initStubs() {
-		given(this.mockKubernetesClient.configMaps()).willReturn(this.mockConfigMapsOperation);
-		given(this.mockConfigMapsOperation.inNamespace(null)).willReturn(this.mockInNamespaceOperation);
-		given(this.mockInNamespaceOperation.withName(null)).willReturn(this.mockWithNameResource);
-		given(this.mockWithNameResource.watch(this.watcher)).willReturn(this.mockWatch);
+		given(this.mockKubernetesClient.pods()).willReturn(this.mockPodsOperation);
+		given(this.mockPodsOperation.withName(POD_NAME)).willReturn(this.mockPodResource);
+		given(this.mockPodResource.watch(this.watcher)).willReturn(this.mockWatch);
 	}
 
 }

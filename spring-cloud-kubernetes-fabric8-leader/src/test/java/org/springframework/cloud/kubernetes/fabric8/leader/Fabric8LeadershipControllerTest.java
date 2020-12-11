@@ -23,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 
@@ -32,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gytis Trikleris
  */
 @ExtendWith(MockitoExtension.class)
-public class LeadershipControllerTest {
+public class Fabric8LeadershipControllerTest {
 
 	@Mock
 	private Candidate mockCandidate;
@@ -46,17 +47,17 @@ public class LeadershipControllerTest {
 	@Mock
 	private KubernetesClient mockKubernetesClient;
 
-	private LeadershipController leadershipController;
+	private Fabric8LeadershipController fabric8LeadershipController;
 
 	@BeforeEach
 	public void before() {
-		this.leadershipController = new LeadershipController(this.mockCandidate, this.mockLeaderProperties,
-				this.mockLeaderEventPublisher, this.mockKubernetesClient);
+		this.fabric8LeadershipController = new Fabric8LeadershipController(this.mockCandidate,
+				this.mockLeaderProperties, this.mockLeaderEventPublisher, this.mockKubernetesClient);
 	}
 
 	@Test
 	public void shouldGetEmptyLocalLeader() {
-		assertThat(this.leadershipController.getLocalLeader().isPresent()).isFalse();
+		assertThat(this.fabric8LeadershipController.getLocalLeader().isPresent()).isFalse();
 	}
 
 }
