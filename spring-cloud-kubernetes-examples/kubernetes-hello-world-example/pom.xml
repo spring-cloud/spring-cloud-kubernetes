@@ -9,7 +9,6 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.springframework.cloud</groupId>
 	<artifactId>kubernetes-hello-world</artifactId>
 	<name>Spring Cloud Kubernetes :: Examples :: Hello World</name>
 	<description>A simple example that demonstrates how to build and test a basic spring
