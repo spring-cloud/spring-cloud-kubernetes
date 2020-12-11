@@ -67,6 +67,14 @@
 |spring.cloud.kubernetes.discovery.service-name | `unknown` | The service name of the local instance.
 |spring.cloud.kubernetes.discovery.wait-cache-ready | `true` | 
 |spring.cloud.kubernetes.enabled | `true` | Whether to enable Kubernetes integration.
+|spring.cloud.kubernetes.leader.auto-startup | `true` | Should leader election be started automatically on startup. Default: true
+|spring.cloud.kubernetes.leader.config-map-name | `leaders` | Kubernetes ConfigMap where leaders information will be stored. Default: leaders
+|spring.cloud.kubernetes.leader.enabled | `true` | Should leader election be enabled. Default: true
+|spring.cloud.kubernetes.leader.leader-id-prefix | `leader.id.` | Leader id property prefix for the ConfigMap. Default: leader.id.
+|spring.cloud.kubernetes.leader.namespace |  | Kubernetes namespace where the leaders ConfigMap and candidates are located.
+|spring.cloud.kubernetes.leader.publish-failed-events | `false` | Enable/disable publishing events in case leadership acquisition fails. Default: false
+|spring.cloud.kubernetes.leader.role |  | Role for which leadership this candidate will compete.
+|spring.cloud.kubernetes.leader.update-period | `60000ms` | Leadership status check period. Default: 60s
 |spring.cloud.kubernetes.loadbalancer.cluster-domain | `cluster.local` | cluster domain.
 |spring.cloud.kubernetes.loadbalancer.enabled | `true` | Load balancer enabled,default true.
 |spring.cloud.kubernetes.loadbalancer.mode |  | {@link KubernetesLoadBalancerMode} setting load balancer server list with ip of pod or service name. default value is POD.

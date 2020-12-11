@@ -27,6 +27,7 @@ import java.util.function.Supplier;
 public final class LazilyInstantiate<T> implements Supplier<T> {
 
 	private volatile T t;
+
 	private final Supplier<T> supplier;
 
 	private LazilyInstantiate(Supplier<T> supplier) {
