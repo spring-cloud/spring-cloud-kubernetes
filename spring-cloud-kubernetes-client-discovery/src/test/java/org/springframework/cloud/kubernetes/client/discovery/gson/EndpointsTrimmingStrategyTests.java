@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.gson;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import com.google.gson.Gson;
 import io.kubernetes.client.openapi.models.V1Endpoints;
@@ -27,19 +27,40 @@ import org.junit.Test;
 
 public class EndpointsTrimmingStrategyTests {
 
+	private static final EndpointsTrimmingStrategy STRATEGY = new EndpointsTrimmingStrategy();
+
+	private static final Gson GSON = new Gson().newBuilder().addDeserializationExclusionStrategy(STRATEGY).create();
+
 	@Test
 	public void testDeserializingEndpoints() {
-		Gson gson = new Gson().newBuilder().addDeserializationExclusionStrategy(new EndpointsTrimmingStrategy())
-				.create();
-		V1Endpoints input = new V1Endpoints()
-				.metadata(new V1ObjectMeta().name("foo").managedFields(Arrays.asList(new V1ManagedFieldsEntry())));
 
-		String data = gson.toJson(input);
-		V1Endpoints output = gson.fromJson(data, V1Endpoints.class);
+		V1ObjectMeta meta =
+			new V1ObjectMeta().name("foo")
+				.managedFields(Collections.singletonList(new V1ManagedFieldsEntry()));
+
+		V1Endpoints input = new V1Endpoints().metadata(meta);
+
+		String data = GSON.toJson(input);
+		V1Endpoints output = GSON.fromJson(data, V1Endpoints.class);
 
 		// managed-fields should be excluded
-		Assert.assertNull(output.getMetadata().getManagedFields());
-
+		V1ObjectMeta deserializedMeta = output.getMetadata();
+		Assert.assertNotNull(deserializedMeta);
+		Assert.assertNull(deserializedMeta.getManagedFields());
 	}
 
+	@Test
+	public void testWithoutV1ObjectMeta() {
+
+		V1ObjectMeta meta = new V1ObjectMeta().name("foo").clusterName("cluster");
+		V1Endpoints input = new V1Endpoints().metadata(meta);
+
+		String data = GSON.toJson(input);
+		V1Endpoints output = GSON.fromJson(data, V1Endpoints.class);
+
+		V1ObjectMeta deserializedMeta = output.getMetadata();
+		Assert.assertNotNull(deserializedMeta);
+		Assert.assertEquals("foo", deserializedMeta.getName());
+		Assert.assertEquals("cluster", deserializedMeta.getClusterName());
+	}
 }
