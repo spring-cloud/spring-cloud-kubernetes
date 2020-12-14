@@ -52,3 +52,5 @@ Secret changes.
     <artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
 </dependency>
 ----
+| All Spring Cloud Kubernetes features.
+|===
