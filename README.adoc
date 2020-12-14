@@ -83,6 +83,8 @@ Secret changes.
     <artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
 </dependency>
 ----
+| All Spring Cloud Kubernetes features.
+|===
 
 == DiscoveryClient for Kubernetes
 
@@ -1164,7 +1166,7 @@ To see the list of all Kubernetes related configuration properties please check 
 
 == Building
 
-:jdkversion: 1.7
+:jdkversion: 1.8
 
 === Basic Compile and Test
 
