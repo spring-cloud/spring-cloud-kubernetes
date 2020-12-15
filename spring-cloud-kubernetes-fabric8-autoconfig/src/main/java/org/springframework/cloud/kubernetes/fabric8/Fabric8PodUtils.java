@@ -86,7 +86,13 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 	}
 
 	private boolean isServiceAccountFound() {
-		return Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH).toFile().exists()
+		boolean serviceAccountPathPresent = Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH).toFile().exists();
+		if(!serviceAccountPathPresent) {
+			// https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+			LOG.warn("serviceaccount path not present, did you disable it via 'automountServiceAccountToken : false'?" +
+				"Major functionalities will not work without that property being set");
+		}
+		return serviceAccountPathPresent
 				&& Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH).toFile().exists();
 	}
 
