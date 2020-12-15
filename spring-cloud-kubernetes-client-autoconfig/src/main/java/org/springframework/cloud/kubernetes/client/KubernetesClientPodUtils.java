@@ -64,11 +64,6 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 		return this.current;
 	}
 
-	@Override
-	public Boolean isInsideKubernetes() {
-		return currentPod().get() != null;
-	}
-
 	private synchronized V1Pod internalGetPod() {
 		try {
 			LOG.info("Getting pod internal");
