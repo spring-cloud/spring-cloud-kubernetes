@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +25,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.cloud.kubernetes.commons.AbstractKubernetesInfoContributor;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Kubernetes implementation of {@link InfoContributor}.
@@ -32,7 +34,7 @@ import org.springframework.cloud.kubernetes.commons.PodUtils;
  */
 public class Fabric8InfoContributor extends AbstractKubernetesInfoContributor {
 
-	private PodUtils<Pod> utils;
+	private final PodUtils<Pod> utils;
 
 	public Fabric8InfoContributor(PodUtils<Pod> utils) {
 		this.utils = utils;
@@ -41,18 +43,19 @@ public class Fabric8InfoContributor extends AbstractKubernetesInfoContributor {
 	@Override
 	public Map<String, Object> getDetails() {
 		Pod current = this.utils.currentPod().get();
-		Map<String, Object> details = new HashMap<>();
-		boolean inside = current != null;
-		details.put(INSIDE, inside);
-		if (inside) {
+
+		if (current != null) {
+			Map<String, Object> details = CollectionUtils.newHashMap(7);
+			details.put(INSIDE, true);
 			details.put(NAMESPACE, current.getMetadata().getNamespace());
 			details.put(POD_NAME, current.getMetadata().getName());
 			details.put(POD_IP, current.getStatus().getPodIP());
 			details.put(SERVICE_ACCOUNT, current.getSpec().getServiceAccountName());
 			details.put(NODE_NAME, current.getSpec().getNodeName());
 			details.put(HOST_IP, current.getStatus().getHostIP());
+			return details;
 		}
-		return details;
+		return Collections.singletonMap(INSIDE, false);
 	}
 
 }
