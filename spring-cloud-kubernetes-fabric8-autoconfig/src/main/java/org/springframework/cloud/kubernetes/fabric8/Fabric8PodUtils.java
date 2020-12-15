@@ -65,7 +65,7 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 
 	private Pod internalGetPod() {
 		try {
-			if (isServiceAccountFound() && isHostNameEnvVarPresent()) {
+			if (isHostNameEnvVarPresent() && isServiceAccountFound()) {
 				return this.client.pods().withName(this.hostName).get();
 			}
 		}
