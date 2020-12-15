@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Pod;
@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.cloud.kubernetes.commons.AbstractKubernetesHealthIndicator;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Kubernetes implementation of {@link AbstractHealthIndicator}.
@@ -33,17 +34,17 @@ import org.springframework.cloud.kubernetes.commons.PodUtils;
  */
 public class Fabric8HealthIndicator extends AbstractKubernetesHealthIndicator {
 
-	private PodUtils<Pod> utils;
+	private final PodUtils<Pod> utils;
 
 	public Fabric8HealthIndicator(PodUtils<Pod> utils) {
 		this.utils = utils;
 	}
 
 	@Override
-	protected Map<String, Object> getDetails() throws Exception {
-		Map<String, Object> details = new HashMap<>();
+	protected Map<String, Object> getDetails() {
 		Pod current = this.utils.currentPod().get();
 		if (current != null) {
+			Map<String, Object> details = CollectionUtils.newHashMap(8);
 			details.put(INSIDE, true);
 			details.put(NAMESPACE, current.getMetadata().getNamespace());
 			details.put(POD_NAME, current.getMetadata().getName());
@@ -53,10 +54,8 @@ public class Fabric8HealthIndicator extends AbstractKubernetesHealthIndicator {
 			details.put(HOST_IP, current.getStatus().getHostIP());
 			details.put(LABELS, current.getMetadata().getLabels());
 		}
-		else {
-			details.put(INSIDE, false);
-		}
-		return details;
+
+		return Collections.singletonMap(INSIDE, false);
 	}
 
 }
