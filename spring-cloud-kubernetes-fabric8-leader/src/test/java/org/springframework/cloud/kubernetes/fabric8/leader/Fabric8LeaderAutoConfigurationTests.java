@@ -34,7 +34,7 @@ import static org.hamcrest.Matchers.containsString;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
 		// Make sure test passes without Kubernetes cluster
 		"spring.cloud.kubernetes.leader.autoStartup=false" })
-public class LeaderAutoConfigurationTests {
+public class Fabric8LeaderAutoConfigurationTests {
 
 	@Value("${local.server.port}")
 	private int port;

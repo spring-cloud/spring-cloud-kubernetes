@@ -24,6 +24,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.cloud.kubernetes.commons.leader.Leader;
+import org.springframework.cloud.kubernetes.commons.leader.LeaderContext;
 import org.springframework.integration.leader.Candidate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,7 +42,7 @@ public class LeaderContextTest {
 	private Candidate mockCandidate;
 
 	@Mock
-	private LeadershipController mockLeadershipController;
+	private Fabric8LeadershipController mockFabric8LeadershipController;
 
 	@Mock
 	private Leader mockLeader;
@@ -49,12 +51,12 @@ public class LeaderContextTest {
 
 	@BeforeEach
 	public void before() {
-		this.leaderContext = new LeaderContext(this.mockCandidate, this.mockLeadershipController);
+		this.leaderContext = new LeaderContext(this.mockCandidate, this.mockFabric8LeadershipController);
 	}
 
 	@Test
 	public void testIsLeaderWithoutLeader() {
-		given(this.mockLeadershipController.getLocalLeader()).willReturn(Optional.empty());
+		given(this.mockFabric8LeadershipController.getLocalLeader()).willReturn(Optional.empty());
 
 		boolean result = this.leaderContext.isLeader();
 
@@ -63,7 +65,7 @@ public class LeaderContextTest {
 
 	@Test
 	public void testIsLeaderWithAnotherLeader() {
-		given(this.mockLeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
+		given(this.mockFabric8LeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
 
 		boolean result = this.leaderContext.isLeader();
 
@@ -72,7 +74,7 @@ public class LeaderContextTest {
 
 	@Test
 	public void testIsLeaderWhenLeader() {
-		given(this.mockLeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
+		given(this.mockFabric8LeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
 		given(this.mockLeader.isCandidate(this.mockCandidate)).willReturn(true);
 
 		boolean result = this.leaderContext.isLeader();
@@ -84,7 +86,7 @@ public class LeaderContextTest {
 	public void shouldYieldLeadership() {
 		this.leaderContext.yield();
 
-		verify(this.mockLeadershipController).revoke();
+		verify(this.mockFabric8LeadershipController).revoke();
 	}
 
 }

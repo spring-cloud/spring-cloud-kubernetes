@@ -25,6 +25,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.cloud.kubernetes.commons.leader.LeaderInitiator;
+import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -40,13 +43,13 @@ public class LeaderInitiatorTest {
 	private LeaderProperties mockLeaderProperties;
 
 	@Mock
-	private LeadershipController mockLeadershipController;
+	private Fabric8LeadershipController mockFabric8LeadershipController;
 
 	@Mock
-	private LeaderRecordWatcher mockLeaderRecordWatcher;
+	private Fabric8LeaderRecordWatcher mockFabric8LeaderRecordWatcher;
 
 	@Mock
-	private PodReadinessWatcher mockPodReadinessWatcher;
+	private Fabric8PodReadinessWatcher mockFabric8PodReadinessWatcher;
 
 	@Mock
 	private Runnable mockRunnable;
@@ -55,8 +58,8 @@ public class LeaderInitiatorTest {
 
 	@BeforeEach
 	public void before() {
-		this.leaderInitiator = new LeaderInitiator(this.mockLeaderProperties, this.mockLeadershipController,
-				this.mockLeaderRecordWatcher, this.mockPodReadinessWatcher);
+		this.leaderInitiator = new LeaderInitiator(this.mockLeaderProperties, this.mockFabric8LeadershipController,
+				this.mockFabric8LeaderRecordWatcher, this.mockFabric8PodReadinessWatcher);
 	}
 
 	@AfterEach
@@ -78,10 +81,10 @@ public class LeaderInitiatorTest {
 		this.leaderInitiator.start();
 
 		assertThat(this.leaderInitiator.isRunning()).isTrue();
-		verify(this.mockLeaderRecordWatcher).start();
-		verify(this.mockPodReadinessWatcher).start();
+		verify(this.mockFabric8LeaderRecordWatcher).start();
+		verify(this.mockFabric8PodReadinessWatcher).start();
 		Thread.sleep(10);
-		verify(this.mockLeadershipController, atLeastOnce()).update();
+		verify(this.mockFabric8LeadershipController, atLeastOnce()).update();
 	}
 
 	@Test
@@ -91,7 +94,7 @@ public class LeaderInitiatorTest {
 		this.leaderInitiator.start();
 		this.leaderInitiator.start();
 
-		verify(this.mockLeaderRecordWatcher).start();
+		verify(this.mockFabric8LeaderRecordWatcher).start();
 	}
 
 	@Test
@@ -102,9 +105,9 @@ public class LeaderInitiatorTest {
 		this.leaderInitiator.stop();
 
 		assertThat(this.leaderInitiator.isRunning()).isFalse();
-		verify(this.mockLeaderRecordWatcher).stop();
-		verify(this.mockPodReadinessWatcher).start();
-		verify(this.mockLeadershipController).revoke();
+		verify(this.mockFabric8LeaderRecordWatcher).stop();
+		verify(this.mockFabric8PodReadinessWatcher).start();
+		verify(this.mockFabric8LeadershipController).revoke();
 	}
 
 	@Test
@@ -115,7 +118,7 @@ public class LeaderInitiatorTest {
 		this.leaderInitiator.stop();
 		this.leaderInitiator.stop();
 
-		verify(this.mockLeaderRecordWatcher).stop();
+		verify(this.mockFabric8LeaderRecordWatcher).stop();
 	}
 
 	@Test
@@ -126,9 +129,9 @@ public class LeaderInitiatorTest {
 		this.leaderInitiator.stop(this.mockRunnable);
 
 		assertThat(this.leaderInitiator.isRunning()).isFalse();
-		verify(this.mockLeaderRecordWatcher).stop();
-		verify(this.mockPodReadinessWatcher).start();
-		verify(this.mockLeadershipController).revoke();
+		verify(this.mockFabric8LeaderRecordWatcher).stop();
+		verify(this.mockFabric8PodReadinessWatcher).start();
+		verify(this.mockFabric8LeadershipController).revoke();
 		verify(this.mockRunnable).run();
 	}
 

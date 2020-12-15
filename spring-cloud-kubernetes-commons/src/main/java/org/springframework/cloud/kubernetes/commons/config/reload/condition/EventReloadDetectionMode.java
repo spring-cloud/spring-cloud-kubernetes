@@ -36,13 +36,8 @@ public class EventReloadDetectionMode implements Condition {
 		if (!environment.containsProperty("spring.cloud.kubernetes.reload.mode")) {
 			return true;
 		}
-		else {
-			if (environment.getProperty("spring.cloud.kubernetes.reload.mode")
-					.equalsIgnoreCase(ConfigReloadProperties.ReloadDetectionMode.EVENT.name())) {
-				return true;
-			}
-		}
-		return false;
+		return ConfigReloadProperties.ReloadDetectionMode.EVENT.name()
+				.equalsIgnoreCase(context.getEnvironment().getProperty("spring.cloud.kubernetes.reload.mode"));
 	}
 
 }

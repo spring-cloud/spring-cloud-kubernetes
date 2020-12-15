@@ -82,3 +82,4 @@ crashlytics-build.properties
 .factorypath
 .attach_pid*
 .vscode/
+.java-version

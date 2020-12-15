@@ -27,6 +27,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.kubernetes.commons.leader.LeaderInfoContributor;
+import org.springframework.cloud.kubernetes.commons.leader.LeaderInitiator;
+import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,7 +45,7 @@ import org.springframework.integration.leader.event.LeaderEventPublisher;
 @EnableConfigurationProperties(LeaderProperties.class)
 @ConditionalOnBean(KubernetesClient.class)
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
-public class LeaderAutoConfiguration {
+public class Fabric8LeaderAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(LeaderEventPublisher.class)
@@ -59,33 +62,36 @@ public class LeaderAutoConfiguration {
 	}
 
 	@Bean
-	public LeadershipController leadershipController(Candidate candidate, LeaderProperties leaderProperties,
+	public Fabric8LeadershipController leadershipController(Candidate candidate, LeaderProperties leaderProperties,
 			LeaderEventPublisher leaderEventPublisher, KubernetesClient kubernetesClient) {
-		return new LeadershipController(candidate, leaderProperties, leaderEventPublisher, kubernetesClient);
+		return new Fabric8LeadershipController(candidate, leaderProperties, leaderEventPublisher, kubernetesClient);
 	}
 
 	@Bean
-	public LeaderRecordWatcher leaderRecordWatcher(LeaderProperties leaderProperties,
-			LeadershipController leadershipController, KubernetesClient kubernetesClient) {
-		return new LeaderRecordWatcher(leaderProperties, leadershipController, kubernetesClient);
+	public Fabric8LeaderRecordWatcher leaderRecordWatcher(LeaderProperties leaderProperties,
+			Fabric8LeadershipController fabric8LeadershipController, KubernetesClient kubernetesClient) {
+		return new Fabric8LeaderRecordWatcher(leaderProperties, fabric8LeadershipController, kubernetesClient);
 	}
 
 	@Bean
-	public PodReadinessWatcher hostPodWatcher(Candidate candidate, KubernetesClient kubernetesClient,
-			LeadershipController leadershipController) {
-		return new PodReadinessWatcher(candidate.getId(), kubernetesClient, leadershipController);
+	public Fabric8PodReadinessWatcher hostPodWatcher(Candidate candidate, KubernetesClient kubernetesClient,
+			Fabric8LeadershipController fabric8LeadershipController) {
+		return new Fabric8PodReadinessWatcher(candidate.getId(), kubernetesClient, fabric8LeadershipController);
 	}
 
 	@Bean(destroyMethod = "stop")
-	public LeaderInitiator leaderInitiator(LeaderProperties leaderProperties, LeadershipController leadershipController,
-			LeaderRecordWatcher leaderRecordWatcher, PodReadinessWatcher hostPodWatcher) {
-		return new LeaderInitiator(leaderProperties, leadershipController, leaderRecordWatcher, hostPodWatcher);
+	public LeaderInitiator leaderInitiator(LeaderProperties leaderProperties,
+			Fabric8LeadershipController fabric8LeadershipController,
+			Fabric8LeaderRecordWatcher fabric8LeaderRecordWatcher, Fabric8PodReadinessWatcher hostPodWatcher) {
+		return new LeaderInitiator(leaderProperties, fabric8LeadershipController, fabric8LeaderRecordWatcher,
+				hostPodWatcher);
 	}
 
 	@Bean
 	@ConditionalOnClass(InfoContributor.class)
-	public LeaderInfoContributor leaderInfoContributor(LeadershipController leadershipController, Candidate candidate) {
-		return new LeaderInfoContributor(leadershipController, candidate);
+	public LeaderInfoContributor leaderInfoContributor(Fabric8LeadershipController fabric8LeadershipController,
+			Candidate candidate) {
+		return new LeaderInfoContributor(fabric8LeadershipController, candidate);
 	}
 
 }

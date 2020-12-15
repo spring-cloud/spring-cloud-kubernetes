@@ -26,27 +26,30 @@ import java.util.function.Supplier;
  */
 public final class LazilyInstantiate<T> implements Supplier<T> {
 
-	private final Supplier<T> supplier;
+	private volatile T t;
 
-	private Supplier<T> current;
+	private final Supplier<T> supplier;
 
 	private LazilyInstantiate(Supplier<T> supplier) {
 		this.supplier = supplier;
-		this.current = () -> swapper();
 	}
 
 	public static <T> LazilyInstantiate<T> using(Supplier<T> supplier) {
-		return new LazilyInstantiate<T>(supplier);
+		return new LazilyInstantiate<>(supplier);
 	}
 
-	public synchronized T get() {
-		return this.current.get();
-	}
-
-	private T swapper() {
-		T obj = this.supplier.get();
-		this.current = () -> obj;
-		return obj;
+	public T get() {
+		T localT = t;
+		if (localT == null) {
+			synchronized (this) {
+				localT = t;
+				if (localT == null) {
+					localT = supplier.get();
+					t = localT;
+				}
+			}
+		}
+		return localT;
 	}
 
 }
