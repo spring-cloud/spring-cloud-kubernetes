@@ -82,7 +82,7 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 
 	private boolean isServiceAccountFound() {
 		return Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH).toFile().exists()
-			&& Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH).toFile().exists();
+				&& Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH).toFile().exists();
 	}
 
 }
