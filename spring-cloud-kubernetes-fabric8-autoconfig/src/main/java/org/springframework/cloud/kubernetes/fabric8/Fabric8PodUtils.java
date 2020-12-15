@@ -71,7 +71,7 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 		}
 		catch (Throwable t) {
 			LOG.warn("Failed to get pod with name:[" + this.hostName + "]. You should look into this if things aren't"
-				+ " working as you expect. Are you missing serviceaccount permissions?", t);
+					+ " working as you expect. Are you missing serviceaccount permissions?", t);
 		}
 		return null;
 	}
