@@ -40,11 +40,14 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 	 */
 	public static final String HOSTNAME = "HOSTNAME";
 
+	private static final String KUBERNETES_SERVICE_HOST = "KUBERNETES_SERVICE_HOST";
 	private static final Log LOG = LogFactory.getLog(Fabric8PodUtils.class);
 
 	private final KubernetesClient client;
 
 	private final String hostName;
+
+	private final String serviceHost;
 
 	private final Supplier<Pod> current;
 
@@ -55,6 +58,7 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 
 		this.client = client;
 		this.hostName = System.getenv(HOSTNAME);
+		this.serviceHost = System.getenv(KUBERNETES_SERVICE_HOST);
 		this.current = LazilyInstantiate.using(this::internalGetPod);
 	}
 
@@ -70,7 +74,7 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 
 	private Pod internalGetPod() {
 		try {
-			if (isHostNameEnvVarPresent() && isServiceAccountFound()) {
+			if (isServiceHostEnvVarPresent() && isHostNameEnvVarPresent() && isServiceAccountFound()) {
 				return this.client.pods().withName(this.hostName).get();
 			}
 		}
@@ -79,6 +83,10 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 					+ " working as you expect. Are you missing serviceaccount permissions?", t);
 		}
 		return null;
+	}
+
+	private boolean isServiceHostEnvVarPresent() {
+		return this.serviceHost != null && !this.serviceHost.isEmpty();
 	}
 
 	private boolean isHostNameEnvVarPresent() {
