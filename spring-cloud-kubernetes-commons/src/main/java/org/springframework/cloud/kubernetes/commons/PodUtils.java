@@ -27,13 +27,8 @@ public interface PodUtils<T> {
 
 	/**
 	 * @return A supplier of the currentPod Pod. The supplier will hold the currentPod pod
-	 * if inside Kubernetes or false, otherwise.
+	 * if inside Kubernetes or null, otherwise.
 	 */
 	Supplier<T> currentPod();
-
-	/**
-	 * @return true if called from within Kubernetes, false otherwise.
-	 */
-	Boolean isInsideKubernetes();
 
 }

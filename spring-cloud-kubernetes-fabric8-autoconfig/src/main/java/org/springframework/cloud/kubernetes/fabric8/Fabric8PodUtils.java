@@ -63,11 +63,6 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 		return this.current;
 	}
 
-	@Override
-	public Boolean isInsideKubernetes() {
-		return currentPod().get() != null;
-	}
-
 	private Pod internalGetPod() {
 		try {
 			if (isServiceAccountFound() && isHostNameEnvVarPresent()) {
