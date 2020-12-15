@@ -103,15 +103,12 @@ public class ActuatorRefreshIT {
 		this.k8SUtils = new K8SUtils(api, appsApi);
 
 		deployWiremock();
+		deployConfigWatcher();
 
 		// Check to make sure the wiremock deployment is ready
 		k8SUtils.waitForDeployment(CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME, NAMESPACE);
-
 		// Check to see if endpoint is ready
 		k8SUtils.waitForEndpointReady(CONFIG_WATCHER_WIREMOCK_APP_NAME, NAMESPACE);
-
-		deployConfigWatcher();
-
 		// Check to make sure the controller deployment is ready
 		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
 	}
@@ -152,6 +149,9 @@ public class ActuatorRefreshIT {
 		api.deleteNamespacedConfigMap(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
 				null);
 		api.deleteNamespacedConfigMap(CONFIG_WATCHER_WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
+		// Check to make sure the controller deployment is deleted
+		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
+		k8SUtils.waitForDeploymentToBeDeleted(CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME, NAMESPACE);
 	}
 
 	private void deployConfigWatcher() throws Exception {
