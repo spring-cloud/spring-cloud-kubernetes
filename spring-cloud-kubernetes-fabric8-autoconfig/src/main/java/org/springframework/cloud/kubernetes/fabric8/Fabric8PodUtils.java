@@ -46,7 +46,7 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 
 	private final String hostName;
 
-	private Supplier<Pod> current;
+	private final Supplier<Pod> current;
 
 	public Fabric8PodUtils(KubernetesClient client) {
 		if (client == null) {
@@ -55,7 +55,7 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 
 		this.client = client;
 		this.hostName = System.getenv(HOSTNAME);
-		this.current = LazilyInstantiate.using(() -> internalGetPod());
+		this.current = LazilyInstantiate.using(this::internalGetPod);
 	}
 
 	@Override
@@ -68,20 +68,17 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 		return currentPod().get() != null;
 	}
 
-	private synchronized Pod internalGetPod() {
+	private Pod internalGetPod() {
 		try {
 			if (isServiceAccountFound() && isHostNameEnvVarPresent()) {
 				return this.client.pods().withName(this.hostName).get();
-			}
-			else {
-				return null;
 			}
 		}
 		catch (Throwable t) {
 			LOG.warn("Failed to get pod with name:[" + this.hostName + "]. You should look into this if things aren't"
 					+ " working as you expect. Are you missing serviceaccount permissions?", t);
-			return null;
 		}
+		return null;
 	}
 
 	private boolean isHostNameEnvVarPresent() {

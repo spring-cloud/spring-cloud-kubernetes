@@ -52,6 +52,11 @@ public class Fabric8AutoConfiguration {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8AutoConfiguration.class);
 
+	public Fabric8AutoConfiguration() {
+		LOG.info("==== created Fabric8AutoConfiguration");
+		System.out.println("==== created Fabric8AutoConfiguration");
+	}
+
 	private static <D> D or(D dis, D dat) {
 		if (dis != null) {
 			return dis;
@@ -82,6 +87,7 @@ public class Fabric8AutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(Config.class)
 	public Config kubernetesClientConfig(KubernetesClientProperties kubernetesClientProperties) {
+		LOG.info("==== creating the client");
 		Config base = Config.autoConfigure(null);
 		Config properties = new ConfigBuilder(base)
 				// Only set values that have been explicitly specified
@@ -118,7 +124,7 @@ public class Fabric8AutoConfiguration {
 				.withNoProxy(or(kubernetesClientProperties.getNoProxy(), base.getNoProxy())).build();
 
 		if (properties.getNamespace() == null || properties.getNamespace().isEmpty()) {
-			LOG.warn("No namespace has been detected. Please specify "
+			LOG.info("No namespace has been detected. Please specify "
 					+ "KUBERNETES_NAMESPACE env var, or use a later kubernetes version (1.3 or later)");
 		}
 		return properties;
@@ -139,6 +145,10 @@ public class Fabric8AutoConfiguration {
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(HealthIndicator.class)
 	protected static class KubernetesActuatorConfiguration {
+
+		protected KubernetesActuatorConfiguration() {
+			System.out.println("==== created KubernetesActuatorConfiguration");
+		}
 
 		@Bean
 		@ConditionalOnEnabledHealthIndicator("kubernetes")

@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,14 +34,14 @@ import org.springframework.cloud.kubernetes.commons.PodUtils;
  */
 public class Fabric8HealthIndicator extends AbstractKubernetesHealthIndicator {
 
-	private PodUtils<Pod> utils;
+	private final PodUtils<Pod> utils;
 
 	public Fabric8HealthIndicator(PodUtils<Pod> utils) {
 		this.utils = utils;
 	}
 
 	@Override
-	protected Map<String, Object> getDetails() throws Exception {
+	protected Map<String, Object> getDetails() {
 		Map<String, Object> details = new HashMap<>();
 		Pod current = this.utils.currentPod().get();
 		if (current != null) {
@@ -53,10 +54,8 @@ public class Fabric8HealthIndicator extends AbstractKubernetesHealthIndicator {
 			details.put(HOST_IP, current.getStatus().getHostIP());
 			details.put(LABELS, current.getMetadata().getLabels());
 		}
-		else {
-			details.put(INSIDE, false);
-		}
-		return details;
+
+		return Collections.singletonMap(INSIDE, false);
 	}
 
 }
