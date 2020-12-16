@@ -53,6 +53,7 @@ public class Fabric8HealthIndicator extends AbstractKubernetesHealthIndicator {
 			details.put(NODE_NAME, current.getSpec().getNodeName());
 			details.put(HOST_IP, current.getStatus().getHostIP());
 			details.put(LABELS, current.getMetadata().getLabels());
+			return details;
 		}
 
 		return Collections.singletonMap(INSIDE, false);
