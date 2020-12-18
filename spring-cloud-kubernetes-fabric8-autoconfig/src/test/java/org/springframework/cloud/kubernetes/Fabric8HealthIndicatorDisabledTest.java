@@ -43,8 +43,6 @@ public class Fabric8HealthIndicatorDisabledTest {
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
-	private static KubernetesClient mockClient;
-
 	@Autowired
 	private WebTestClient webClient;
 
@@ -53,7 +51,7 @@ public class Fabric8HealthIndicatorDisabledTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
-		mockClient = server.getClient();
+		KubernetesClient mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());

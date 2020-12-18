@@ -41,12 +41,10 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "management.endpoint.health.show-details=always" })
-public class Fabric8HealthIndicatorTest {
+public class Fabric8NotInsideHealthIndicatorTest {
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
-
-	private static KubernetesClient mockClient;
 
 	@Autowired
 	private WebTestClient webClient;
@@ -56,7 +54,7 @@ public class Fabric8HealthIndicatorTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
-		mockClient = server.getClient();
+		KubernetesClient mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
