@@ -40,6 +40,7 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 public class KubernetesInformerDiscoveryClient implements DiscoveryClient, InitializingBean {
 
@@ -79,6 +80,10 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 	@Override
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId, "[Assertion failed] - the object argument must not be null");
+
+		if(StringUtils.hasText(namespace) && !properties.isAllNamespaces()) {
+			log.warn("Namespace is null or empty, this may cause issues looking up services");
+		}
 
 		V1Service service = properties.isAllNamespaces() ? this.serviceLister.list().stream()
 				.filter(svc -> serviceId.equals(svc.getMetadata().getName())).findFirst().orElse(null)
