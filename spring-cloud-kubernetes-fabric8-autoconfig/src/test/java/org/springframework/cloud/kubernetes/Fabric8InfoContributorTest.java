@@ -16,9 +16,15 @@
 
 package org.springframework.cloud.kubernetes;
 
+import java.util.Map;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.server.mock.KubernetesServer;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -32,11 +38,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.hamcrest.Matchers.containsString;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
-public class InfoContributorTest {
+public class Fabric8InfoContributorTest {
 
 	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
@@ -65,7 +69,22 @@ public class InfoContributorTest {
 	@Test
 	public void infoEndpointShouldContainKubernetes() {
 		this.webClient.get().uri("http://localhost:{port}/actuator/info", this.port).accept(MediaType.APPLICATION_JSON)
-				.exchange().expectStatus().isOk().expectBody(String.class).value(containsString("kubernetes"));
+				.exchange().expectStatus().isOk().expectBody(String.class).value(this::validateInfo);
+	}
+
+	// {"kubernetes":{"inside":false}}
+	@SuppressWarnings("unchecked")
+	private void validateInfo(String input) {
+		try {
+			Map<String, Object> map = new ObjectMapper().readValue(input, new TypeReference<Map<String, Object>>() {
+
+			});
+			Map<String, Object> kubernetesProperties = (Map<String, Object>) map.get("kubernetes");
+			Assert.assertFalse((Boolean) kubernetesProperties.get("inside"));
+		}
+		catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

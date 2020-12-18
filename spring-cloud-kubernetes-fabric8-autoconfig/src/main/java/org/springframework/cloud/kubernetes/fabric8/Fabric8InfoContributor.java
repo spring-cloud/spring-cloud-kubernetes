@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Pod;
