@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.discovery;
+package org.springframework.cloud.kubernetes.client.discovery.reactive;
 
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -30,8 +30,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
+import org.springframework.cloud.client.discovery.composite.reactive.ReactiveCompositeDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -39,22 +39,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/**
+ * @author Ryan Baxter
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.cloud.kubernetes.discovery.cacheLoadingTimeoutSeconds=5",
-				"spring.cloud.kubernetes.discovery.waitCacheReady=false" })
-public class KubernetesDiscoveryClientAutoConfigurationTests {
+				"spring.cloud.kubernetes.discovery.waitCacheReady=false", "spring.main.web-application-type=reactive" })
+public class KubernetesInformerReactiveDiscoveryClientAutoConfigurationTests {
 
 	@Autowired(required = false)
-	private DiscoveryClient discoveryClient;
+	private ReactiveDiscoveryClient discoveryClient;
 
 	@Test
 	public void kubernetesDiscoveryClientCreated() {
-		assertThat(this.discoveryClient).isNotNull().isInstanceOf(CompositeDiscoveryClient.class);
+		assertThat(this.discoveryClient).isNotNull().isInstanceOf(ReactiveCompositeDiscoveryClient.class);
 
-		CompositeDiscoveryClient composite = (CompositeDiscoveryClient) this.discoveryClient;
+		ReactiveCompositeDiscoveryClient composite = (ReactiveCompositeDiscoveryClient) this.discoveryClient;
 		assertThat(composite.getDiscoveryClients().stream()
-				.anyMatch(dc -> dc instanceof KubernetesInformerDiscoveryClient)).isTrue();
+				.anyMatch(dc -> dc instanceof KubernetesInformerReactiveDiscoveryClient)).isTrue();
 	}
 
 	@SpringBootApplication

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: servicea-wiremock-deployment
+spec:
+  selector:
+    matchLabels:
+      app: servicea-wiremock
+  template:
+    metadata:
+      labels:
+        app: servicea-wiremock
+    spec:
+      containers:
+        - name: servicea-wiremock
+          image: rodolpheche/wiremock
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /__admin/mappings
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /__admin/mappings
+          ports:
+            - containerPort: 8080

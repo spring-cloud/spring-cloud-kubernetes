@@ -1,10 +1,10 @@
 apiVersion: skaffold/v2alpha3
 kind: Config
 metadata:
-  name: spring-cloud-kubernetes-client-loadbalancer-it
+  name: spring-cloud-kubernetes-client-reactive-discovery-it
 build:
   artifacts:
-  - image: springcloud/spring-cloud-kubernetes-client-loadbalancer-it
+  - image: springcloud/spring-cloud-kubernetes-client-reactive-discovery-it
     custom:
       buildCommand: "../../mvnw clean install -Pskaffold"
       dependencies:
