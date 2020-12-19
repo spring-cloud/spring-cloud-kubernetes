@@ -172,4 +172,5 @@ public class Fabric8PodUtilsTest {
 		Mockito.when(mixed.withName(POD_HOSTNAME)).thenReturn(podResource);
 		Mockito.when(podResource.get()).thenReturn(pod);
 	}
+
 }
