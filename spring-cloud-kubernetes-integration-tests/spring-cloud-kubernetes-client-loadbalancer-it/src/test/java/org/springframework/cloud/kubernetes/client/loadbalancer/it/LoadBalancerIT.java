@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.loadbalancer.it;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 
@@ -26,12 +27,16 @@ import io.kubernetes.client.openapi.apis.NetworkingV1beta1Api;
 import io.kubernetes.client.openapi.models.NetworkingV1beta1Ingress;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,6 +47,8 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
  * @author Ryan Baxter
  */
 public class LoadBalancerIT {
+
+	private static final Log LOG = LogFactory.getLog(LoadBalancerIT.class);
 
 	private static final String WIREMOCK_DEPLOYMENT_NAME = "servicea-wiremock-deployment";
 
@@ -103,6 +110,21 @@ public class LoadBalancerIT {
 		// Check to make sure the controller deployment is ready
 		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_LOADBALANCER_DEPLOYMENT_NAME, NAMESPACE);
 		RestTemplate rest = new RestTemplateBuilder().build();
+		rest.setErrorHandler(new ResponseErrorHandler() {
+			@Override
+			public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
+				LOG.warn("Received response status code: " + clientHttpResponse.getRawStatusCode());
+				if (clientHttpResponse.getRawStatusCode() == 503) {
+					return false;
+				}
+				return true;
+			}
+
+			@Override
+			public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
+
+			}
+		});
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
 		await().timeout(Duration.ofSeconds(60))
