@@ -1,6 +1,1 @@
 debug: true
-spring:
-  cloud:
-    kubernetes:
-      loadbalancer:
-        mode: POD

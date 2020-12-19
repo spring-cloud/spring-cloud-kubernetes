@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.loadbalancer.it;
 
+import java.time.Duration;
 import java.util.Map;
 
 import io.kubernetes.client.openapi.ApiClient;
@@ -34,28 +35,13 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
 
 /**
  * @author Ryan Baxter
  */
 public class LoadBalancerIT {
-
-	private static final String KIND_REPO_HOST_PORT = "localhost:5000";
-
-	private static final String KIND_REPO_URL = "http://" + KIND_REPO_HOST_PORT;
-
-	private static final String IMAGE = "spring-cloud-kubernetes-configuration-watcher";
-
-	private static final String IMAGE_TAG = "2.0.0-SNAPSHOT";
-
-	private static final String LOCAL_REPO = "docker.io/springcloud";
-
-	private static final String LOCAL_IMAGE = LOCAL_REPO + "/" + IMAGE + ":" + IMAGE_TAG;
-
-	private static final String KIND_IMAGE = KIND_REPO_HOST_PORT + "/" + IMAGE;
-
-	private static final String KIND_IMAGE_WITH_TAG = KIND_IMAGE + ":" + IMAGE_TAG;
 
 	private static final String WIREMOCK_DEPLOYMENT_NAME = "servicea-wiremock-deployment";
 
@@ -99,37 +85,59 @@ public class LoadBalancerIT {
 		// Check to see if endpoint is ready
 		k8SUtils.waitForEndpointReady(WIREMOCK_APP_NAME, NAMESPACE);
 
-		deployLoadbalancerIt();
-
-		// Check to make sure the controller deployment is ready
-		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_LOADBALANCER_DEPLOYMENT_NAME, NAMESPACE);
 	}
 
 	@Test
-	public void testLoadBalancer() {
+	public void testLoadBalancerServiceMode() throws Exception {
+		deployLoadbalancerServiceIt();
+		testLoadBalancer();
+	}
+
+	@Test
+	public void testLoadBalancerPodMode() throws Exception {
+		deployLoadbalancerPodIt();
+		testLoadBalancer();
+	}
+
+	private void testLoadBalancer() throws Exception {
+		// Check to make sure the controller deployment is ready
+		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_LOADBALANCER_DEPLOYMENT_NAME, NAMESPACE);
 		RestTemplate rest = new RestTemplateBuilder().build();
+		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
+		// available and we get a 503, we just need to wait a bit
+		await().timeout(Duration.ofSeconds(60))
+				.until(() -> rest.getForEntity("http://localhost:80/loadbalancer-it/servicea", Map.class)
+						.getStatusCode().is2xxSuccessful());
 		Map<String, Object> result = rest.getForObject("http://localhost:80/loadbalancer-it/servicea", Map.class);
 		assertThat(result.containsKey("mappings")).isTrue();
 		assertThat(result.containsKey("meta")).isTrue();
-	}
-
-	@After
-	public void after() throws Exception {
 
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
 				"metadata.name=" + SPRING_CLOUD_K8S_LOADBALANCER_DEPLOYMENT_NAME, null, null, null, null, null, null,
 				null, null);
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null);
 		api.deleteNamespacedService(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME, NAMESPACE, null, null, null, null, null,
 				null);
-		api.deleteNamespacedService(WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
-		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE, null, null, null, null, null, null);
 		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
 	}
 
-	private void deployLoadbalancerIt() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getLoadbalancerItDeployment(), null, null, null);
+	@After
+	public void after() throws Exception {
+		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
+				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null);
+
+		api.deleteNamespacedService(WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
+		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE, null, null, null, null, null, null);
+
+	}
+
+	private void deployLoadbalancerServiceIt() throws Exception {
+		appsApi.createNamespacedDeployment(NAMESPACE, getLoadbalancerServiceItDeployment(), null, null, null);
+		api.createNamespacedService(NAMESPACE, getLoadbalancerItService(), null, null, null);
+		networkingApi.createNamespacedIngress(NAMESPACE, getLoadbalancerItIngress(), null, null, null);
+	}
+
+	private void deployLoadbalancerPodIt() throws Exception {
+		appsApi.createNamespacedDeployment(NAMESPACE, getLoadbalancerPodItDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getLoadbalancerItService(), null, null, null);
 		networkingApi.createNamespacedIngress(NAMESPACE, getLoadbalancerItIngress(), null, null, null);
 	}
@@ -140,9 +148,15 @@ public class LoadBalancerIT {
 		return service;
 	}
 
-	private V1Deployment getLoadbalancerItDeployment() throws Exception {
+	private V1Deployment getLoadbalancerServiceItDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) k8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-it-deployment.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-service-it-deployment.yaml");
+		return deployment;
+	}
+
+	private V1Deployment getLoadbalancerPodItDeployment() throws Exception {
+		V1Deployment deployment = (V1Deployment) k8SUtils
+				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-service-it-deployment.yaml");
 		return deployment;
 	}
 

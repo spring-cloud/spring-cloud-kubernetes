@@ -14,6 +14,9 @@ spec:
       serviceAccountName: spring-cloud-kubernetes-serviceaccount
       containers:
         - name: spring-cloud-kubernetes-client-loadbalancer-it
+          env:
+            - name: SPRING_CLOUD_KUBERNETES_LOADBALANCER_MODE
+              value: SERVICE
           image: docker.io/springcloud/spring-cloud-kubernetes-client-loadbalancer-it:2.0.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           readinessProbe:
