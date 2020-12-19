@@ -24,6 +24,7 @@ ALL_INTEGRATION_PROJECTS=(
 	"spring-cloud-kubernetes-core-k8s-client-it"
 	"spring-cloud-kubernetes-client-config-it"
 	"spring-cloud-kubernetes-configuration-watcher-it"
+	"spring-cloud-kubernetes-client-loadbalancer-it"
 )
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 

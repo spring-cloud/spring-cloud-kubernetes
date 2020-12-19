@@ -37,8 +37,6 @@ import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.client.discovery.gson.EndpointsTrimmingStrategy;
-import org.springframework.cloud.kubernetes.client.discovery.gson.ServiceTrimmingStrategy;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.annotation.Bean;
@@ -64,10 +62,6 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		@Bean
 		@ConditionalOnMissingBean
 		public CatalogSharedInformerFactory catalogSharedInformerFactory(ApiClient apiClient) {
-			apiClient.getJSON()
-					.setGson(apiClient.getJSON().getGson().newBuilder()
-							.addDeserializationExclusionStrategy(new ServiceTrimmingStrategy())
-							.addDeserializationExclusionStrategy(new EndpointsTrimmingStrategy()).create());
 			return new CatalogSharedInformerFactory();
 		}
 
