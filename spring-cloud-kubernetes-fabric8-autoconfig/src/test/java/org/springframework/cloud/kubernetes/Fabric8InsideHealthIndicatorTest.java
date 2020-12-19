@@ -85,6 +85,7 @@ public class Fabric8InsideHealthIndicatorTest {
 	}
 
 	/**
+	 * <pre>
 	 * "stubKubernetes": {
 	 *       "status": "UP",
 	 *       "details": {
@@ -99,6 +100,7 @@ public class Fabric8InsideHealthIndicatorTest {
 	 *           "labelName": "labelValue"
 	 *         }
 	 *       }
+	 *  </pre>
 	 */
 	@SuppressWarnings("unchecked")
 	private static void validateKubernetes(String input) {
