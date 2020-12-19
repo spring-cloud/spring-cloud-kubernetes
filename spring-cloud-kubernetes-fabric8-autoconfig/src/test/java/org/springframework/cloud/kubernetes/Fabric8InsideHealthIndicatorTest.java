@@ -26,9 +26,9 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodStatus;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +42,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
@@ -51,7 +51,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * test to see if proper fields are set in health when it is running inside the container
  */
 @Import(Fabric8InsideHealthIndicatorTest.KubernetesActuatorTestConfiguration.class)
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "management.endpoint.health.show-details=always" })
 public class Fabric8InsideHealthIndicatorTest {
@@ -108,21 +108,21 @@ public class Fabric8InsideHealthIndicatorTest {
 			Map<String, Object> map = new ObjectMapper().readValue(input, new TypeReference<Map<String, Object>>() {
 
 			});
-			Map<String, Object> kubernetesProperties = (Map<String, Object>)
-				((Map<String, Object>) map.get("components")).get("stubKubernetes");
-			Assert.assertEquals("UP", kubernetesProperties.get("status"));
+			Map<String, Object> kubernetesProperties = (Map<String, Object>) ((Map<String, Object>) map
+					.get("components")).get("stubKubernetes");
+			Assertions.assertEquals("UP", kubernetesProperties.get("status"));
 
 			Map<String, Object> details = (Map<String, Object>) kubernetesProperties.get("details");
-			Assert.assertEquals("nodeName", details.get("nodeName"));
-			Assert.assertEquals("10.1.1.1", details.get("podIp"));
-			Assert.assertEquals("192.160.10.3", details.get("hostIp"));
-			Assert.assertEquals("namespace", details.get("namespace"));
-			Assert.assertEquals("pod", details.get("podName"));
-			Assert.assertEquals("serviceAccountName", details.get("serviceAccount"));
-			Assert.assertTrue((Boolean) details.get("inside"));
+			Assertions.assertEquals("nodeName", details.get("nodeName"));
+			Assertions.assertEquals("10.1.1.1", details.get("podIp"));
+			Assertions.assertEquals("192.160.10.3", details.get("hostIp"));
+			Assertions.assertEquals("namespace", details.get("namespace"));
+			Assertions.assertEquals("pod", details.get("podName"));
+			Assertions.assertEquals("serviceAccountName", details.get("serviceAccount"));
+			Assertions.assertTrue((Boolean) details.get("inside"));
 
 			Map<String, String> labels = (Map<String, String>) details.get("labels");
-			Assert.assertEquals("labelValue", labels.get("labelName"));
+			Assertions.assertEquals("labelValue", labels.get("labelName"));
 		}
 		catch (JsonProcessingException e) {
 			throw new RuntimeException(e);

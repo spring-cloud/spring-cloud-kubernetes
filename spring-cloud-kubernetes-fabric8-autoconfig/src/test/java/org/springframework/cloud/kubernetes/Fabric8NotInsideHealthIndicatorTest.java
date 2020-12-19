@@ -24,26 +24,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.server.mock.KubernetesServer;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.example.App;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "management.endpoint.health.show-details=always" })
 public class Fabric8NotInsideHealthIndicatorTest {
 
-	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
 	@Autowired
@@ -52,8 +51,9 @@ public class Fabric8NotInsideHealthIndicatorTest {
 	@Value("${local.server.port}")
 	private int port;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
+		server.before();
 		KubernetesClient mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
@@ -63,6 +63,11 @@ public class Fabric8NotInsideHealthIndicatorTest {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
+	}
+
+	@AfterAll
+	public static void afterClass() {
+		server.after();
 	}
 
 	@Test
@@ -81,11 +86,12 @@ public class Fabric8NotInsideHealthIndicatorTest {
 			Map<String, Object> map = new ObjectMapper().readValue(input, new TypeReference<Map<String, Object>>() {
 
 			});
-			Map<String, Object> kubernetesProperties = (Map<String, Object>) map.get("kubernetes");
-			Assert.assertEquals("UP", kubernetesProperties.get("status"));
+			Map<String, Object> kubernetesProperties = (Map<String, Object>) ((Map<String, Object>) map
+					.get("components")).get("kubernetes");
+			Assertions.assertEquals("UP", kubernetesProperties.get("status"));
 
 			Map<String, Object> details = (Map<String, Object>) kubernetesProperties.get("details");
-			Assert.assertEquals("false", details.get("inside"));
+			Assertions.assertFalse((Boolean) details.get("inside"));
 		}
 		catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
