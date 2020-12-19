@@ -28,7 +28,6 @@ import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +41,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
@@ -51,7 +49,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * test to see if proper fields are set in health when it is running inside the container
  */
 @Import(Fabric8InsideHealthIndicatorTest.KubernetesActuatorTestConfiguration.class)
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "management.endpoint.health.show-details=always" })
 public class Fabric8InsideHealthIndicatorTest {
