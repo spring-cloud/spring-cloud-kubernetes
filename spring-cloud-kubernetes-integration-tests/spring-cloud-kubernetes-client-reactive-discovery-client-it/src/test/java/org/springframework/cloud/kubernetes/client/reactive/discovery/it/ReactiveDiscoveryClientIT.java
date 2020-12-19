@@ -111,10 +111,10 @@ public class ReactiveDiscoveryClientIT {
 
 	private void cleanup() throws ApiException {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_DEPLOYMENT_NAME, null, null, null, null, null,
-				null, null, null);
+			"metadata.name=" + SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_DEPLOYMENT_NAME, null, null, null, null, null,
+			null, null, null);
 		api.deleteNamespacedService(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME, NAMESPACE, null, null, null, null,
-				null, null);
+			null, null);
 		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
 	}
 
@@ -140,8 +140,8 @@ public class ReactiveDiscoveryClientIT {
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
 		await().timeout(Duration.ofSeconds(60))
-				.until(() -> rest.getForEntity("http://localhost:80/reactive-discovery-it/services", String.class)
-						.getStatusCode().is2xxSuccessful());
+			.until(() -> rest.getForEntity("http://localhost:80/reactive-discovery-it/services", String.class)
+				.getStatusCode().is2xxSuccessful());
 		String result = rest.getForObject("http://localhost:80/reactive-discovery-it/services", String.class);
 		assertThat(Arrays.stream(result.split(",")).anyMatch(s -> "servicea-wiremock".equalsIgnoreCase(s))).isTrue();
 
@@ -150,7 +150,7 @@ public class ReactiveDiscoveryClientIT {
 	@After
 	public void after() throws Exception {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null);
+			"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null);
 
 		api.deleteNamespacedService(WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
 		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE, null, null, null, null, null, null);
@@ -165,19 +165,19 @@ public class ReactiveDiscoveryClientIT {
 
 	private V1Service getReactiveDiscoveryService() throws Exception {
 		V1Service service = (V1Service) k8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-client-reactive-discovery-it-service.yaml");
+			.readYamlFromClasspath("spring-cloud-kubernetes-client-reactive-discovery-it-service.yaml");
 		return service;
 	}
 
 	private V1Deployment getReactiveDiscoveryItDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) k8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-client-reactive-discovery-it-deployment.yaml");
+			.readYamlFromClasspath("spring-cloud-kubernetes-client-reactive-discovery-it-deployment.yaml");
 		return deployment;
 	}
 
 	private NetworkingV1beta1Ingress getReactiveDiscoveryItIngress() throws Exception {
 		NetworkingV1beta1Ingress ingress = (NetworkingV1beta1Ingress) k8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-client-reactive-discovery-it-ingress.yaml");
+			.readYamlFromClasspath("spring-cloud-kubernetes-client-reactive-discovery-it-ingress.yaml");
 		return ingress;
 	}
 
@@ -189,7 +189,7 @@ public class ReactiveDiscoveryClientIT {
 
 	private NetworkingV1beta1Ingress getWiremockIngress() throws Exception {
 		NetworkingV1beta1Ingress ingress = (NetworkingV1beta1Ingress) k8SUtils
-				.readYamlFromClasspath("wiremock-ingress.yaml");
+			.readYamlFromClasspath("wiremock-ingress.yaml");
 		return ingress;
 	}
 
