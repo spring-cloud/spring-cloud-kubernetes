@@ -59,9 +59,9 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 	private final String namespace;
 
 	public KubernetesInformerDiscoveryClient(String namespace, SharedInformerFactory sharedInformerFactory,
-		Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
-		SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
-		KubernetesDiscoveryProperties properties) {
+			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
+			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
+			KubernetesDiscoveryProperties properties) {
 		this.namespace = namespace;
 		this.sharedInformerFactory = sharedInformerFactory;
 
@@ -86,8 +86,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		}
 
 		V1Service service = properties.isAllNamespaces() ? this.serviceLister.list().stream()
-			.filter(svc -> serviceId.equals(svc.getMetadata().getName())).findFirst().orElse(null)
-			: this.serviceLister.namespace(this.namespace).get(serviceId);
+				.filter(svc -> serviceId.equals(svc.getMetadata().getName())).findFirst().orElse(null)
+				: this.serviceLister.namespace(this.namespace).get(serviceId);
 		if (service == null) {
 			// no such service present in the cluster
 			return new ArrayList<>();
@@ -98,25 +98,25 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 			if (this.properties.getMetadata().isAddLabels()) {
 				if (service.getMetadata().getLabels() != null) {
 					String labelPrefix = this.properties.getMetadata().getLabelsPrefix() != null
-						? this.properties.getMetadata().getLabelsPrefix() : "";
+							? this.properties.getMetadata().getLabelsPrefix() : "";
 					service.getMetadata().getLabels().entrySet().stream()
-						.filter(e -> e.getKey().startsWith(labelPrefix))
-						.forEach(e -> svcMetadata.put(e.getKey(), e.getValue()));
+							.filter(e -> e.getKey().startsWith(labelPrefix))
+							.forEach(e -> svcMetadata.put(e.getKey(), e.getValue()));
 				}
 			}
 			if (this.properties.getMetadata().isAddAnnotations()) {
 				if (service.getMetadata().getAnnotations() != null) {
 					String annotationPrefix = this.properties.getMetadata().getAnnotationsPrefix() != null
-						? this.properties.getMetadata().getAnnotationsPrefix() : "";
+							? this.properties.getMetadata().getAnnotationsPrefix() : "";
 					service.getMetadata().getAnnotations().entrySet().stream()
-						.filter(e -> e.getKey().startsWith(annotationPrefix))
-						.forEach(e -> svcMetadata.put(e.getKey(), e.getValue()));
+							.filter(e -> e.getKey().startsWith(annotationPrefix))
+							.forEach(e -> svcMetadata.put(e.getKey(), e.getValue()));
 				}
 			}
 		}
 
 		V1Endpoints ep = this.endpointsLister.namespace(service.getMetadata().getNamespace())
-			.get(service.getMetadata().getName());
+				.get(service.getMetadata().getName());
 		if (ep == null) {
 			// no available endpoints in the cluster
 			return new ArrayList<>();
@@ -127,20 +127,20 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 				subset.getPorts().stream().forEach(p -> metadata.put(p.getName(), Integer.toString(p.getPort())));
 			}
 			V1EndpointPort port = subset.getPorts() != null && subset.getPorts().size() == 1 ? subset.getPorts().get(0)
-				: subset.getPorts().stream()
-				.filter(p -> this.properties.getPrimaryPortName().equalsIgnoreCase(p.getName())).findFirst()
-				.orElseThrow(IllegalStateException::new);
+					: subset.getPorts().stream()
+							.filter(p -> this.properties.getPrimaryPortName().equalsIgnoreCase(p.getName())).findFirst()
+							.orElseThrow(IllegalStateException::new);
 			return subset.getAddresses().stream()
-				.map(addr -> new KubernetesServiceInstance(
-					addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId, addr.getIp(),
-					port.getPort(), metadata, false));
+					.map(addr -> new KubernetesServiceInstance(
+							addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId, addr.getIp(),
+							port.getPort(), metadata, false));
 		}).collect(Collectors.toList());
 	}
 
 	@Override
 	public List<String> getServices() {
 		List<V1Service> services = this.properties.isAllNamespaces() ? this.serviceLister.list()
-			: this.serviceLister.namespace(this.namespace).list();
+				: this.serviceLister.namespace(this.namespace).list();
 		return services.stream().map(s -> s.getMetadata().getName()).collect(Collectors.toList());
 	}
 
@@ -148,21 +148,21 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 	public void afterPropertiesSet() throws Exception {
 		this.sharedInformerFactory.startAllRegisteredInformers();
 		if (!Wait.poll(Duration.ofSeconds(1), Duration.ofSeconds(this.properties.getCacheLoadingTimeoutSeconds()),
-			() -> {
-				log.info("Waiting for the cache of informers to be fully loaded..");
-				return this.informersReadyFunc.get();
-			})) {
+				() -> {
+					log.info("Waiting for the cache of informers to be fully loaded..");
+					return this.informersReadyFunc.get();
+				})) {
 			if (this.properties.isWaitCacheReady()) {
 				throw new IllegalStateException(
-					"Timeout waiting for informers cache to be ready, is the kubernetes service up?");
+						"Timeout waiting for informers cache to be ready, is the kubernetes service up?");
 			}
 			else {
 				log.warn(
-					"Timeout waiting for informers cache to be ready, ignoring the failure because waitForInformerCacheReady property is false");
+						"Timeout waiting for informers cache to be ready, ignoring the failure because waitForInformerCacheReady property is false");
 			}
 		}
 		log.info("Cache fully loaded (total " + serviceLister.list().size()
-			+ " services) , discovery client is now available");
+				+ " services) , discovery client is now available");
 	}
 
 }
