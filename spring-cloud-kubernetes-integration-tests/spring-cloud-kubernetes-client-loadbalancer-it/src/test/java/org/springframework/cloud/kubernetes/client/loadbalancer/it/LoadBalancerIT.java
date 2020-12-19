@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.Map;
 
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1beta1Api;
@@ -96,14 +97,33 @@ public class LoadBalancerIT {
 
 	@Test
 	public void testLoadBalancerServiceMode() throws Exception {
-		deployLoadbalancerServiceIt();
-		testLoadBalancer();
+		try {
+			deployLoadbalancerServiceIt();
+			testLoadBalancer();
+		}
+		finally {
+			cleanup();
+		}
 	}
 
 	@Test
 	public void testLoadBalancerPodMode() throws Exception {
-		deployLoadbalancerPodIt();
-		testLoadBalancer();
+		try {
+			deployLoadbalancerPodIt();
+			testLoadBalancer();
+		}
+		finally {
+			cleanup();
+		}
+	}
+
+	private void cleanup() throws ApiException {
+		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
+			"metadata.name=" + SPRING_CLOUD_K8S_LOADBALANCER_DEPLOYMENT_NAME, null, null, null, null, null, null,
+			null, null);
+		api.deleteNamespacedService(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME, NAMESPACE, null, null, null, null, null,
+			null);
+		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
 	}
 
 	private void testLoadBalancer() throws Exception {
@@ -128,18 +148,12 @@ public class LoadBalancerIT {
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
 		await().timeout(Duration.ofSeconds(60))
-			.until(() -> rest.getForEntity("http://localhost:80/loadbalancer-it/servicea", Map.class)
+			.until(() -> rest.getForEntity("http://localhost:80/loadbalancer-it/servicea", String.class)
 				.getStatusCode().is2xxSuccessful());
 		Map<String, Object> result = rest.getForObject("http://localhost:80/loadbalancer-it/servicea", Map.class);
 		assertThat(result.containsKey("mappings")).isTrue();
 		assertThat(result.containsKey("meta")).isTrue();
 
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-			"metadata.name=" + SPRING_CLOUD_K8S_LOADBALANCER_DEPLOYMENT_NAME, null, null, null, null, null, null,
-			null, null);
-		api.deleteNamespacedService(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME, NAMESPACE, null, null, null, null, null,
-			null);
-		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
 	}
 
 	@After
