@@ -1,0 +1,161 @@
+/*
+ * Copyright 2013-2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.cloud.kubernetes.client.discovery.reactive;
+
+import java.util.HashMap;
+
+import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.informer.cache.Cache;
+import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1EndpointPort;
+import io.kubernetes.client.openapi.models.V1EndpointSubset;
+import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceSpec;
+import io.kubernetes.client.openapi.models.V1ServiceStatus;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import reactor.test.StepVerifier;
+
+import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
+
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+/**
+ * @author Ryan Baxter
+ */
+@RunWith(MockitoJUnitRunner.class)
+public class KubernetesInformerReactiveDiscoveryClientTests {
+
+	@Mock
+	private SharedInformerFactory sharedInformerFactory;
+
+	@Mock
+	private KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
+
+	private static final V1Service testService1 = new V1Service()
+			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
+			.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1")).status(new V1ServiceStatus());
+
+	private static final V1Service testService2 = new V1Service()
+			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace2"))
+			.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1")).status(new V1ServiceStatus());
+
+	private static final V1Endpoints testEndpoints1 = new V1Endpoints()
+			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(8080))
+					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
+
+	@Test
+	public void testDiscoveryGetServicesAllNamespaceShouldWork() {
+		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
+
+		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(true);
+
+		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
+				new KubernetesClientProperties(), sharedInformerFactory, serviceLister, null, null, null,
+				kubernetesDiscoveryProperties);
+
+		StepVerifier.create(discoveryClient.getServices())
+				.expectNext(testService1.getMetadata().getName(), testService2.getMetadata().getName()).expectComplete()
+				.verify();
+
+		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+	}
+
+	@Test
+	public void testDiscoveryGetServicesOneNamespaceShouldWork() {
+		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
+
+		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(false);
+
+		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
+		kubernetesClientProperties.setNamespace("namespace1");
+		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
+				kubernetesClientProperties, sharedInformerFactory, serviceLister, null, null, null,
+				kubernetesDiscoveryProperties);
+
+		StepVerifier.create(discoveryClient.getServices()).expectNext(testService1.getMetadata().getName())
+				.expectComplete().verify();
+
+		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+	}
+
+	@Test
+	public void testDiscoveryGetInstanceAllNamespaceShouldWork() {
+		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
+
+		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(true);
+
+		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
+				new KubernetesClientProperties(), sharedInformerFactory, serviceLister, endpointsLister, null, null,
+				kubernetesDiscoveryProperties);
+
+		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
+				.expectNext(new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false))
+				.expectComplete().verify();
+
+		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+	}
+
+	@Test
+	public void testDiscoveryGetInstanceOneNamespaceShouldWork() {
+		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
+
+		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(false);
+		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
+		kubernetesClientProperties.setNamespace("namespace1");
+		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
+				kubernetesClientProperties, sharedInformerFactory, serviceLister, endpointsLister, null, null,
+				kubernetesDiscoveryProperties);
+
+		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
+				.expectNext(new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false))
+				.expectComplete().verify();
+
+		verify(kubernetesDiscoveryProperties, times(2)).isAllNamespaces();
+	}
+
+	private Lister<V1Service> setupServiceLister(V1Service... services) {
+		Cache<V1Service> serviceCache = new Cache<>();
+		Lister<V1Service> serviceLister = new Lister<>(serviceCache);
+		for (V1Service svc : services) {
+			serviceCache.add(svc);
+		}
+		return serviceLister;
+	}
+
+	private Lister<V1Endpoints> setupEndpointsLister(V1Endpoints... endpoints) {
+		Cache<V1Endpoints> endpointsCache = new Cache<>();
+		Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsCache);
+		for (V1Endpoints ep : endpoints) {
+			endpointsCache.add(ep);
+		}
+		return endpointsLister;
+	}
+
+}
