@@ -34,8 +34,7 @@ public class EndpointsTrimmingStrategyTests {
 	@Test
 	public void testDeserializingEndpoints() {
 
-		V1ObjectMeta meta =
-			new V1ObjectMeta().name("foo")
+		V1ObjectMeta meta = new V1ObjectMeta().name("foo")
 				.managedFields(Collections.singletonList(new V1ManagedFieldsEntry()));
 
 		V1Endpoints input = new V1Endpoints().metadata(meta);
@@ -63,4 +62,5 @@ public class EndpointsTrimmingStrategyTests {
 		Assert.assertEquals("foo", deserializedMeta.getName());
 		Assert.assertEquals("cluster", deserializedMeta.getClusterName());
 	}
+
 }
