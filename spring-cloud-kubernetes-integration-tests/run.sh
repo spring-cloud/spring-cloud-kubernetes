@@ -94,7 +94,7 @@ main() {
 	do
 	echo "waiting for nginx controller pod to be ready" && sleep 1;
 	kubectl get --namespace ingress-nginx pod --selector=app.kubernetes.io/component=controller -o yaml
-	kubectl logs --namespace ingress-nginx --selector=app.kubernetes.io/component=controller
+    kubectl get pod --namespace ingress-nginx --selector=app.kubernetes.io/component=controller
 	done
 	
 	
