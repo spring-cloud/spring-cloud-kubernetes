@@ -36,9 +36,14 @@ import org.springframework.cloud.kubernetes.commons.PodUtils;
 public class Fabric8PodUtils implements PodUtils<Pod> {
 
 	/**
-	 * Hostname environment variable name.
+	 * HOSTNAME environment variable name.
 	 */
 	public static final String HOSTNAME = "HOSTNAME";
+
+	/**
+	 * KUBERNETES_SERVICE_HOST environment variable name.
+	 */
+	public static final String KUBERNETES_SERVICE_HOST = "KUBERNETES_SERVICE_HOST";
 
 	private static final Log LOG = LogFactory.getLog(Fabric8PodUtils.class);
 
@@ -46,7 +51,9 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 
 	private final String hostName;
 
-	private Supplier<Pod> current;
+	private final String serviceHost;
+
+	private final Supplier<Pod> current;
 
 	public Fabric8PodUtils(KubernetesClient client) {
 		if (client == null) {
@@ -54,8 +61,9 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 		}
 
 		this.client = client;
-		this.hostName = System.getenv(HOSTNAME);
-		this.current = LazilyInstantiate.using(() -> internalGetPod());
+		this.hostName = EnvReader.getEnv(HOSTNAME);
+		this.serviceHost = EnvReader.getEnv(KUBERNETES_SERVICE_HOST);
+		this.current = LazilyInstantiate.using(this::internalGetPod);
 	}
 
 	@Override
@@ -68,20 +76,21 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 		return currentPod().get() != null;
 	}
 
-	private synchronized Pod internalGetPod() {
+	private Pod internalGetPod() {
 		try {
-			if (isServiceAccountFound() && isHostNameEnvVarPresent()) {
+			if (isServiceHostEnvVarPresent() && isHostNameEnvVarPresent() && isServiceAccountFound()) {
 				return this.client.pods().withName(this.hostName).get();
-			}
-			else {
-				return null;
 			}
 		}
 		catch (Throwable t) {
 			LOG.warn("Failed to get pod with name:[" + this.hostName + "]. You should look into this if things aren't"
 					+ " working as you expect. Are you missing serviceaccount permissions?", t);
-			return null;
 		}
+		return null;
+	}
+
+	private boolean isServiceHostEnvVarPresent() {
+		return this.serviceHost != null && !this.serviceHost.isEmpty();
 	}
 
 	private boolean isHostNameEnvVarPresent() {
@@ -89,8 +98,25 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 	}
 
 	private boolean isServiceAccountFound() {
-		return Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH).toFile().exists()
-				&& Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH).toFile().exists();
+		boolean serviceAccountPathPresent = Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH).toFile().exists();
+		if (!serviceAccountPathPresent) {
+			// https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+			LOG.warn("serviceaccount path not present, did you disable it via 'automountServiceAccountToken : false'?"
+					+ " Major functionalities will not work without that property being set");
+		}
+		return serviceAccountPathPresent && Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH).toFile().exists();
+	}
+
+	/**
+	 * @author wind57 A class useful for testing. At some point this should be moved to
+	 * commons
+	 */
+	public static class EnvReader {
+
+		public static String getEnv(String property) {
+			return System.getenv(property);
+		}
+
 	}
 
 }
