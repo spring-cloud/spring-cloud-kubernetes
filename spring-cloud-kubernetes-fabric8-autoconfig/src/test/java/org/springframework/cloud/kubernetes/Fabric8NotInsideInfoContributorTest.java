@@ -16,29 +16,28 @@
 
 package org.springframework.cloud.kubernetes;
 
-import io.fabric8.kubernetes.client.Config;
+import java.util.Map;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.server.mock.KubernetesServer;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.example.App;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.hamcrest.Matchers.containsString;
-
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
-public class InfoContributorTest {
+public class Fabric8NotInsideInfoContributorTest {
 
-	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
 	private static KubernetesClient mockClient;
@@ -49,23 +48,36 @@ public class InfoContributorTest {
 	@Value("${local.server.port}")
 	private int port;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
+		server.before();
 		mockClient = server.getClient();
+	}
 
-		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
-		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
-		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
+	@AfterAll
+	public static void afterAll() {
+		server.after();
 	}
 
 	@Test
 	public void infoEndpointShouldContainKubernetes() {
 		this.webClient.get().uri("http://localhost:{port}/actuator/info", this.port).accept(MediaType.APPLICATION_JSON)
-				.exchange().expectStatus().isOk().expectBody(String.class).value(containsString("kubernetes"));
+				.exchange().expectStatus().isOk().expectBody(String.class).value(this::validateInfo);
+	}
+
+	// {"kubernetes":{"inside":false}}
+	@SuppressWarnings("unchecked")
+	private void validateInfo(String input) {
+		try {
+			Map<String, Object> map = new ObjectMapper().readValue(input, new TypeReference<Map<String, Object>>() {
+
+			});
+			Map<String, Object> kubernetesProperties = (Map<String, Object>) map.get("kubernetes");
+			Assertions.assertFalse((Boolean) kubernetesProperties.get("inside"));
+		}
+		catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }
