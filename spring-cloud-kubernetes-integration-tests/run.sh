@@ -89,14 +89,7 @@ main() {
 #    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
     kubectl apply -fhttps://raw.githubusercontent.com/kubernetes/ingress-nginx/12150e318b972a03fb49d827e6cabb8ef62247ef/deploy/static/provider/kind/deploy.yaml
     sleep 5 # hold 5 sec so that the pods can be created
-    #kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=420s
-	
-    while [[ $(kubectl get pods --namespace ingress-nginx --selector=app.kubernetes.io/component=controller -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]];
-	do
-	echo "waiting for nginx controller pod to be ready" && sleep 1;
-	kubectl get --namespace ingress-nginx pod --selector=app.kubernetes.io/component=controller -o yaml
-    kubectl get pod --namespace ingress-nginx --selector=app.kubernetes.io/component=controller
-	done
+    kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=420s
 	
 	
 
