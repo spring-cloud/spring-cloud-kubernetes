@@ -24,6 +24,8 @@ ALL_INTEGRATION_PROJECTS=(
 	"spring-cloud-kubernetes-core-k8s-client-it"
 	"spring-cloud-kubernetes-client-config-it"
 	"spring-cloud-kubernetes-configuration-watcher-it"
+	"spring-cloud-kubernetes-client-loadbalancer-it"
+	"spring-cloud-kubernetes-client-reactive-discovery-client-it"
 )
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 
@@ -87,7 +89,9 @@ main() {
 #    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
     kubectl apply -fhttps://raw.githubusercontent.com/kubernetes/ingress-nginx/12150e318b972a03fb49d827e6cabb8ef62247ef/deploy/static/provider/kind/deploy.yaml
     sleep 5 # hold 5 sec so that the pods can be created
-    kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=720s
+    kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=420s
+	
+	
 
     # This creates the service account, role, and role binding necessary for Spring Cloud k8s apps
 	kubectl apply -f ./permissions.yaml

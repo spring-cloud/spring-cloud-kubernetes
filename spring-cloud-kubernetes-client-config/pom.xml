@@ -11,11 +11,6 @@
 
 	<artifactId>spring-cloud-kubernetes-client-config</artifactId>
 
-	<properties>
-		<wiremock.version>2.26.3</wiremock.version>
-	</properties>
-
-
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -81,7 +76,6 @@
 		<dependency>
 			<groupId>com.github.tomakehurst</groupId>
 			<artifactId>wiremock-jre8</artifactId>
-			<version>${wiremock.version}</version>
 			<scope>test</scope>
 		</dependency>
 

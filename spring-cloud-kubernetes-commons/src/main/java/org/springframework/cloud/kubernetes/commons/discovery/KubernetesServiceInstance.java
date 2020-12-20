@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,6 +130,13 @@ public class KubernetesServiceInstance implements ServiceInstance {
 				&& Objects.equals(serviceId, that.serviceId) && Objects.equals(host, that.host)
 				&& Objects.equals(uri, that.uri) && Objects.equals(secure, that.secure)
 				&& Objects.equals(metadata, that.metadata);
+	}
+
+	@Override
+	public String toString() {
+		return "KubernetesServiceInstance{" + "instanceId='" + instanceId + '\'' + ", serviceId='" + serviceId + '\''
+				+ ", host='" + host + '\'' + ", port=" + port + ", uri=" + uri + ", secure=" + secure + ", metadata="
+				+ metadata + '}';
 	}
 
 	@Override
