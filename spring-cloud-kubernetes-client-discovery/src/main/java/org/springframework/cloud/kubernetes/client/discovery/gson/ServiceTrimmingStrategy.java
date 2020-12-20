@@ -27,18 +27,12 @@ public class ServiceTrimmingStrategy implements ExclusionStrategy {
 	@Override
 	public boolean shouldSkipField(FieldAttributes fieldAttributes) {
 		// trimming field-managers
-		if (V1ObjectMeta.class.equals(fieldAttributes.getDeclaringClass())) {
-			return "managedFields".equals(fieldAttributes.getName());
-		}
-		return false;
+		return V1ObjectMeta.class.equals(fieldAttributes.getDeclaringClass()) &&
+			"managedFields".equals(fieldAttributes.getName());
 	}
 
 	@Override
 	public boolean shouldSkipClass(Class<?> aClass) {
-		if (V1ServiceSpec.class.equals(aClass)) {
-			return true;
-		}
-		return V1ServiceStatus.class.equals(aClass);
+		return V1ServiceSpec.class.equals(aClass) || V1ServiceStatus.class.equals(aClass);
 	}
-
 }
