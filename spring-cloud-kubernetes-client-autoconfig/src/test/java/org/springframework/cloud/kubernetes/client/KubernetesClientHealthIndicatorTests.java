@@ -16,13 +16,9 @@
 
 package org.springframework.cloud.kubernetes.client;
 
-import java.util.HashMap;
 import java.util.Map;
 
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1PodSpec;
-import io.kubernetes.client.openapi.models.V1PodStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -32,6 +28,21 @@ import org.springframework.cloud.kubernetes.commons.PodUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.HOST_IP;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.INSIDE;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.LABELS;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.NAMESPACE;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.NODE_NAME;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.POD_IP;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.POD_NAME;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.SERVICE_ACCOUNT;
+import static org.springframework.cloud.kubernetes.client.StubProvider.STUB_HOST_IP;
+import static org.springframework.cloud.kubernetes.client.StubProvider.STUB_LABELS;
+import static org.springframework.cloud.kubernetes.client.StubProvider.STUB_NAMESPACE;
+import static org.springframework.cloud.kubernetes.client.StubProvider.STUB_NODE_NAME;
+import static org.springframework.cloud.kubernetes.client.StubProvider.STUB_POD_IP;
+import static org.springframework.cloud.kubernetes.client.StubProvider.STUB_POD_NAME;
+import static org.springframework.cloud.kubernetes.client.StubProvider.STUB_SERVICE_ACCOUNT;
 
 /**
  * @author Ryan Baxter
@@ -43,48 +54,32 @@ class KubernetesClientHealthIndicatorTests {
 	private PodUtils<V1Pod> utils;
 
 	@Test
-	void getDetailsNotInsideTest() throws Exception {
+	void getDetailsNotInsideTest() {
 		when(utils.currentPod()).thenReturn(() -> null);
 		KubernetesClientHealthIndicator healthIndicator = new KubernetesClientHealthIndicator(utils);
-		assertThat(healthIndicator.getDetails().containsKey(KubernetesClientHealthIndicator.INSIDE)).isTrue();
-		assertThat(healthIndicator.getDetails().get(KubernetesClientHealthIndicator.INSIDE)).isEqualTo(false);
+		Map<String, Object> details = healthIndicator.getDetails();
+
+		assertThat(details.containsKey(INSIDE)).isTrue();
+		assertThat(details.get(INSIDE)).isEqualTo(false);
 	}
 
 	@Test
-	void getDetailsInsideTest() throws Exception {
-		Map<String, String> labels = new HashMap<>();
-		labels.put("spring", "cloud");
-		V1ObjectMeta metaData = new V1ObjectMeta();
-		metaData.setLabels(labels);
-		metaData.setName("mypod");
-		metaData.setNamespace("default");
+	void getDetailsInsideTest() {
 
-		V1PodStatus status = new V1PodStatus();
-		status.setPodIP("127.0.0.1");
-		status.setHostIP("123.456.789.1");
-
-		V1PodSpec spec = new V1PodSpec();
-		spec.setNodeName("nodeName");
-		spec.setServiceAccountName("serviceAccount");
-
-		V1Pod pod = new V1Pod();
-		pod.setMetadata(metaData);
-		pod.setStatus(status);
-		pod.setSpec(spec);
-
-		when(utils.currentPod()).thenReturn(() -> pod);
+		when(utils.currentPod()).thenReturn(StubProvider::stubPod);
 		KubernetesClientHealthIndicator healthIndicator = new KubernetesClientHealthIndicator(utils);
-		assertThat(healthIndicator.getDetails().containsKey(KubernetesClientHealthIndicator.INSIDE)).isTrue();
-		assertThat(healthIndicator.getDetails().get(KubernetesClientHealthIndicator.INSIDE)).isEqualTo(true);
-		assertThat(healthIndicator.getDetails().get(KubernetesClientHealthIndicator.HOST_IP))
-				.isEqualTo("123.456.789.1");
-		assertThat(healthIndicator.getDetails().get(KubernetesClientHealthIndicator.POD_IP)).isEqualTo("127.0.0.1");
-		assertThat(healthIndicator.getDetails().get(KubernetesClientHealthIndicator.NODE_NAME)).isEqualTo("nodeName");
-		assertThat(healthIndicator.getDetails().get(KubernetesClientHealthIndicator.SERVICE_ACCOUNT))
-				.isEqualTo("serviceAccount");
-		assertThat(healthIndicator.getDetails().get(KubernetesClientHealthIndicator.POD_NAME)).isEqualTo("mypod");
-		assertThat(healthIndicator.getDetails().get(KubernetesClientHealthIndicator.NAMESPACE)).isEqualTo("default");
-		assertThat(healthIndicator.getDetails().get(KubernetesClientHealthIndicator.LABELS)).isEqualTo(labels);
+		Map<String, Object> details = healthIndicator.getDetails();
+
+		assertThat(details.containsKey(INSIDE)).isTrue();
+		assertThat(details.get(INSIDE)).isEqualTo(true);
+
+		assertThat(details.get(HOST_IP)).isEqualTo(STUB_HOST_IP);
+		assertThat(details.get(POD_IP)).isEqualTo(STUB_POD_IP);
+		assertThat(details.get(NODE_NAME)).isEqualTo(STUB_NODE_NAME);
+		assertThat(details.get(SERVICE_ACCOUNT)).isEqualTo(STUB_SERVICE_ACCOUNT);
+		assertThat(details.get(POD_NAME)).isEqualTo(STUB_POD_NAME);
+		assertThat(details.get(NAMESPACE)).isEqualTo(STUB_NAMESPACE);
+		assertThat(details.get(LABELS)).isEqualTo(STUB_LABELS);
 	}
 
 }

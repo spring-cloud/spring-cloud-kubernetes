@@ -18,10 +18,7 @@ package org.springframework.cloud.kubernetes.client;
 
 import java.util.Map;
 
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1PodSpec;
-import io.kubernetes.client.openapi.models.V1PodStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -38,24 +35,18 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientHealth
 import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.POD_IP;
 import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.POD_NAME;
 import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.SERVICE_ACCOUNT;
+import static org.springframework.cloud.kubernetes.client.StubProvider.STUB_HOST_IP;
+import static org.springframework.cloud.kubernetes.client.StubProvider.STUB_NAMESPACE;
+import static org.springframework.cloud.kubernetes.client.StubProvider.STUB_NODE_NAME;
+import static org.springframework.cloud.kubernetes.client.StubProvider.STUB_POD_IP;
+import static org.springframework.cloud.kubernetes.client.StubProvider.STUB_POD_NAME;
+import static org.springframework.cloud.kubernetes.client.StubProvider.STUB_SERVICE_ACCOUNT;
 
 /**
  * @author Ryan Baxter
  */
 @ExtendWith(MockitoExtension.class)
 class KubernetesClientInfoContributorTests {
-
-	private static final String STUB_POD_IP = "127.0.0.1";
-
-	private static final String STUB_HOST_IP = "123.456.789.1";
-
-	private static final String STUB_NODE_NAME = "nodeName";
-
-	private static final String STUB_SERVICE_ACCOUNT = "serviceAccount";
-
-	private static final String STUB_POD_NAME = "mypod";
-
-	private static final String STUB_NAMESPACE = "default";
 
 	@Mock
 	private PodUtils<V1Pod> utils;
@@ -73,7 +64,7 @@ class KubernetesClientInfoContributorTests {
 	@Test
 	void getDetailsInside() {
 
-		when(utils.currentPod()).thenReturn(this::stubPod);
+		when(utils.currentPod()).thenReturn(StubProvider::stubPod);
 		KubernetesClientInfoContributor infoContributor = new KubernetesClientInfoContributor(utils);
 		Map<String, Object> details = infoContributor.getDetails();
 
@@ -86,15 +77,6 @@ class KubernetesClientInfoContributorTests {
 		assertThat(details.get(SERVICE_ACCOUNT)).isEqualTo(STUB_SERVICE_ACCOUNT);
 		assertThat(details.get(POD_NAME)).isEqualTo(STUB_POD_NAME);
 		assertThat(details.get(NAMESPACE)).isEqualTo(STUB_NAMESPACE);
-	}
-
-	private V1Pod stubPod() {
-
-		V1ObjectMeta metaData = new V1ObjectMeta().name(STUB_POD_NAME).namespace(STUB_NAMESPACE);
-		V1PodStatus status = new V1PodStatus().podIP(STUB_POD_IP).hostIP(STUB_HOST_IP);
-		V1PodSpec spec = new V1PodSpec().nodeName(STUB_NODE_NAME).serviceAccountName(STUB_SERVICE_ACCOUNT);
-
-		return new V1Pod().metadata(metaData).status(status).spec(spec);
 	}
 
 }
