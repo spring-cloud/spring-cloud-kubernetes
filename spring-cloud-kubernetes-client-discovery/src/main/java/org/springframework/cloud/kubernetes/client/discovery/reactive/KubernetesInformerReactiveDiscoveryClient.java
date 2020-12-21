@@ -61,7 +61,8 @@ public class KubernetesInformerReactiveDiscoveryClient implements ReactiveDiscov
 
 	@Override
 	public Flux<String> getServices() {
-		return Flux.defer(() -> Flux.fromIterable(kubernetesDiscoveryClient.getServices()))
+		return Flux.defer(() ->
+			Flux.fromIterable(kubernetesDiscoveryClient.getServices()))
 			.subscribeOn(Schedulers.boundedElastic());
 	}
 
