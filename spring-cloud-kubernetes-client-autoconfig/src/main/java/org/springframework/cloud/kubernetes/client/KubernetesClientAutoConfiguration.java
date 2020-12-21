@@ -34,7 +34,7 @@ import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import static org.springframework.cloud.kubernetes.client.KubernetesClientFactory.kubernetesApiClient;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.kubernetesApiClient;
 
 /**
  * @author Ryan Baxter

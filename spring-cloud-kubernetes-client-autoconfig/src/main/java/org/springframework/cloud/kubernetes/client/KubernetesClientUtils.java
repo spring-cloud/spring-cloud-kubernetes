@@ -24,11 +24,11 @@ import org.apache.commons.logging.LogFactory;
 /**
  * @author Ryan Baxter
  */
-public final class KubernetesClientFactory {
+public final class KubernetesClientUtils {
 
-	private static final Log LOG = LogFactory.getLog(KubernetesClientFactory.class);
+	private static final Log LOG = LogFactory.getLog(KubernetesClientUtils.class);
 
-	private KubernetesClientFactory() {
+	private KubernetesClientUtils() {
 	}
 
 	public static ApiClient kubernetesApiClient() {

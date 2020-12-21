@@ -41,7 +41,7 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationC
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.core.env.ConfigurableEnvironment;
 
-import static org.springframework.cloud.kubernetes.client.KubernetesClientFactory.kubernetesApiClient;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.kubernetesApiClient;
 
 /**
  * @author Ryan Baxter
