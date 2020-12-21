@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8;
 
 import java.time.Duration;
 
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -52,31 +53,16 @@ public class Fabric8AutoConfiguration {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8AutoConfiguration.class);
 
-	private static <D> D or(D dis, D dat) {
-		if (dis != null) {
-			return dis;
-		}
-		else {
-			return dat;
-		}
+	private static <D> D or(D left, D right) {
+		return left != null ? left : right;
 	}
 
-	private static Integer orDurationInt(Duration dis, Integer dat) {
-		if (dis != null) {
-			return (int) dis.toMillis();
-		}
-		else {
-			return dat;
-		}
+	private static Integer orDurationInt(Duration left, Integer right) {
+		return left != null ? (int) left.toMillis() : right;
 	}
 
-	private static Long orDurationLong(Duration dis, Long dat) {
-		if (dis != null) {
-			return dis.toMillis();
-		}
-		else {
-			return dat;
-		}
+	private static Long orDurationLong(Duration left, Long right) {
+		return left != null ? left.toMillis() : right;
 	}
 
 	@Bean
@@ -142,13 +128,13 @@ public class Fabric8AutoConfiguration {
 
 		@Bean
 		@ConditionalOnEnabledHealthIndicator("kubernetes")
-		public Fabric8HealthIndicator kubernetesHealthIndicator(PodUtils podUtils) {
+		public Fabric8HealthIndicator kubernetesHealthIndicator(PodUtils<Pod> podUtils) {
 			return new Fabric8HealthIndicator(podUtils);
 		}
 
 		@Bean
 		@ConditionalOnEnabledInfoContributor("kubernetes")
-		public Fabric8InfoContributor kubernetesInfoContributor(PodUtils podUtils) {
+		public Fabric8InfoContributor kubernetesInfoContributor(PodUtils<Pod> podUtils) {
 			return new Fabric8InfoContributor(podUtils);
 		}
 

@@ -25,10 +25,8 @@ public class EndpointsTrimmingStrategy implements ExclusionStrategy {
 	@Override
 	public boolean shouldSkipField(FieldAttributes fieldAttributes) {
 		// trimming field-managers
-		if (V1ObjectMeta.class.equals(fieldAttributes.getDeclaringClass())) {
-			return "managedFields".equals(fieldAttributes.getName());
-		}
-		return false;
+		return V1ObjectMeta.class.equals(fieldAttributes.getDeclaringClass())
+				&& "managedFields".equals(fieldAttributes.getName());
 	}
 
 	@Override
