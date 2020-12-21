@@ -55,8 +55,7 @@ public class KubernetesInformerReactiveDiscoveryClient implements ReactiveDiscov
 	@Override
 	public Flux<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId, "[Assertion failed] - the object argument must not be null");
-		return Flux.defer(() ->
-			Flux.fromIterable(kubernetesDiscoveryClient.getInstances(serviceId)))
+		return Flux.defer(() -> Flux.fromIterable(kubernetesDiscoveryClient.getInstances(serviceId)))
 			.subscribeOn(Schedulers.boundedElastic());
 	}
 
