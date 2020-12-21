@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client;
 
-import java.io.IOException;
-
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.ClientBuilder;
 import org.apache.commons.logging.Log;
@@ -26,14 +24,14 @@ import org.apache.commons.logging.LogFactory;
 /**
  * @author Ryan Baxter
  */
-public final class KubernetesClientUtils {
+public final class KubernetesClientFactory {
 
-	private static final Log LOG = LogFactory.getLog(KubernetesClientUtils.class);
+	private static final Log LOG = LogFactory.getLog(KubernetesClientFactory.class);
 
-	private KubernetesClientUtils() {
+	private KubernetesClientFactory() {
 	}
 
-	public static ApiClient kubernetesApiClient() throws IOException {
+	public static ApiClient kubernetesApiClient() {
 		try {
 			// Assume we are running in a cluster
 			ApiClient apiClient = ClientBuilder.cluster().build();
@@ -42,14 +40,18 @@ public final class KubernetesClientUtils {
 		}
 		catch (Exception e) {
 			LOG.info(
-					"Could not create the Kubernetes ApiClient in a cluster environment, trying to use a \"standard\" configuration instead.",
-					e);
+				"Could not create the Kubernetes ApiClient in a cluster environment, because : ",
+				e);
+			LOG.info("Trying to use a \"standard\" configuration to create the Kubernetes ApiClient");
 			try {
-				ApiClient apiClient = ClientBuilder.standard().build();
+				ApiClient apiClient = ClientBuilder.defaultClient();
+				LOG.info("Created standard API client. Unless $KUBECONFIG or $HOME/.kube/config is defined, "
+					+ "this client will try to connect to localhost:8080");
 				return apiClient;
 			}
 			catch (Exception e1) {
-				LOG.warn("Could not create a Kubernetes ApiClient from either a cluster or standard environment", e1);
+				LOG.warn("Could not create a Kubernetes ApiClient from either a cluster or standard environment. "
+					+ "Will return one that always connects to localhost:8080", e1);
 				return new ClientBuilder().build();
 			}
 		}
