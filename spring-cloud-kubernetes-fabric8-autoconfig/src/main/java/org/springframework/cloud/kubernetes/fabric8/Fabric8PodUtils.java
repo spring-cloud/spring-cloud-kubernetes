@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.kubernetes.commons.EnvReader;
 import org.springframework.cloud.kubernetes.commons.LazilyInstantiate;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 
@@ -105,18 +106,6 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 					+ " Major functionalities will not work without that property being set");
 		}
 		return serviceAccountPathPresent && Paths.get(Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH).toFile().exists();
-	}
-
-	/**
-	 * @author wind57 A class useful for testing. At some point this should be moved to
-	 * commons
-	 */
-	public static class EnvReader {
-
-		public static String getEnv(String property) {
-			return System.getenv(property);
-		}
-
 	}
 
 }
