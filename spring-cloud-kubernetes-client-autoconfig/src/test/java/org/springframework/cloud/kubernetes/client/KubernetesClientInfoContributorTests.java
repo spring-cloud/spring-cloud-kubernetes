@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -32,12 +31,31 @@ import org.springframework.cloud.kubernetes.commons.PodUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.HOST_IP;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.INSIDE;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.NAMESPACE;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.NODE_NAME;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.POD_IP;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.POD_NAME;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientHealthIndicator.SERVICE_ACCOUNT;
 
 /**
  * @author Ryan Baxter
  */
 @ExtendWith(MockitoExtension.class)
 class KubernetesClientInfoContributorTests {
+
+	private static final String STUB_POD_IP = "127.0.0.1";
+
+	private static final String STUB_HOST_IP = "123.456.789.1";
+
+	private static final String STUB_NODE_NAME = "nodeName";
+
+	private static final String STUB_SERVICE_ACCOUNT = "serviceAccount";
+
+	private static final String STUB_POD_NAME = "mypod";
+
+	private static final String STUB_NAMESPACE = "default";
 
 	@Mock
 	private PodUtils<V1Pod> utils;
@@ -46,44 +64,37 @@ class KubernetesClientInfoContributorTests {
 	void getDetailsIsNotInside() {
 		when(utils.currentPod()).thenReturn(() -> null);
 		KubernetesClientInfoContributor infoContributor = new KubernetesClientInfoContributor(utils);
-		assertThat(infoContributor.getDetails().containsKey(KubernetesClientHealthIndicator.INSIDE)).isTrue();
-		assertThat(infoContributor.getDetails().get(KubernetesClientHealthIndicator.INSIDE)).isEqualTo(false);
+		Map<String, Object> details = infoContributor.getDetails();
+
+		assertThat(details.containsKey(INSIDE)).isTrue();
+		assertThat(details.get(INSIDE)).isEqualTo(false);
 	}
 
 	@Test
-	void getDetailsInside() throws Exception {
-		Map<String, String> labels = new HashMap<>();
-		labels.put("spring", "cloud");
-		V1ObjectMeta metaData = new V1ObjectMeta();
-		metaData.setLabels(labels);
-		metaData.setName("mypod");
-		metaData.setNamespace("default");
+	void getDetailsInside() {
 
-		V1PodStatus status = new V1PodStatus();
-		status.setPodIP("127.0.0.1");
-		status.setHostIP("123.456.789.1");
-
-		V1PodSpec spec = new V1PodSpec();
-		spec.setNodeName("nodeName");
-		spec.setServiceAccountName("serviceAccount");
-
-		V1Pod pod = new V1Pod();
-		pod.setMetadata(metaData);
-		pod.setStatus(status);
-		pod.setSpec(spec);
-
-		when(utils.currentPod()).thenReturn(() -> pod);
+		when(utils.currentPod()).thenReturn(this::stubPod);
 		KubernetesClientInfoContributor infoContributor = new KubernetesClientInfoContributor(utils);
-		assertThat(infoContributor.getDetails().containsKey(KubernetesClientHealthIndicator.INSIDE)).isTrue();
-		assertThat(infoContributor.getDetails().get(KubernetesClientHealthIndicator.INSIDE)).isEqualTo(true);
-		assertThat(infoContributor.getDetails().get(KubernetesClientHealthIndicator.HOST_IP))
-				.isEqualTo("123.456.789.1");
-		assertThat(infoContributor.getDetails().get(KubernetesClientHealthIndicator.POD_IP)).isEqualTo("127.0.0.1");
-		assertThat(infoContributor.getDetails().get(KubernetesClientHealthIndicator.NODE_NAME)).isEqualTo("nodeName");
-		assertThat(infoContributor.getDetails().get(KubernetesClientHealthIndicator.SERVICE_ACCOUNT))
-				.isEqualTo("serviceAccount");
-		assertThat(infoContributor.getDetails().get(KubernetesClientHealthIndicator.POD_NAME)).isEqualTo("mypod");
-		assertThat(infoContributor.getDetails().get(KubernetesClientHealthIndicator.NAMESPACE)).isEqualTo("default");
+		Map<String, Object> details = infoContributor.getDetails();
+
+		assertThat(details.containsKey(INSIDE)).isTrue();
+		assertThat(details.get(INSIDE)).isEqualTo(true);
+
+		assertThat(details.get(HOST_IP)).isEqualTo(STUB_HOST_IP);
+		assertThat(details.get(POD_IP)).isEqualTo(STUB_POD_IP);
+		assertThat(details.get(NODE_NAME)).isEqualTo(STUB_NODE_NAME);
+		assertThat(details.get(SERVICE_ACCOUNT)).isEqualTo(STUB_SERVICE_ACCOUNT);
+		assertThat(details.get(POD_NAME)).isEqualTo(STUB_POD_NAME);
+		assertThat(details.get(NAMESPACE)).isEqualTo(STUB_NAMESPACE);
+	}
+
+	private V1Pod stubPod() {
+
+		V1ObjectMeta metaData = new V1ObjectMeta().name(STUB_POD_NAME).namespace(STUB_NAMESPACE);
+		V1PodStatus status = new V1PodStatus().podIP(STUB_POD_IP).hostIP(STUB_HOST_IP);
+		V1PodSpec spec = new V1PodSpec().nodeName(STUB_NODE_NAME).serviceAccountName(STUB_SERVICE_ACCOUNT);
+
+		return new V1Pod().metadata(metaData).status(status).spec(spec);
 	}
 
 }

@@ -16,20 +16,21 @@
 
 package org.springframework.cloud.kubernetes.client;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 import io.kubernetes.client.openapi.models.V1Pod;
 
 import org.springframework.cloud.kubernetes.commons.AbstractKubernetesInfoContributor;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Ryan Baxter
  */
 public class KubernetesClientInfoContributor extends AbstractKubernetesInfoContributor {
 
-	private PodUtils<V1Pod> utils;
+	private final PodUtils<V1Pod> utils;
 
 	public KubernetesClientInfoContributor(PodUtils<V1Pod> utils) {
 		this.utils = utils;
@@ -38,18 +39,18 @@ public class KubernetesClientInfoContributor extends AbstractKubernetesInfoContr
 	@Override
 	public Map<String, Object> getDetails() {
 		V1Pod current = this.utils.currentPod().get();
-		Map<String, Object> details = new HashMap<>();
-		boolean inside = current != null;
-		details.put(INSIDE, inside);
-		if (inside) {
+		if (current != null) {
+			Map<String, Object> details = CollectionUtils.newHashMap(6);
+			details.put(INSIDE, true);
 			details.put(NAMESPACE, current.getMetadata().getNamespace());
 			details.put(POD_NAME, current.getMetadata().getName());
-			details.put(POD_IP, current.getStatus().getPodIP());
 			details.put(SERVICE_ACCOUNT, current.getSpec().getServiceAccountName());
 			details.put(NODE_NAME, current.getSpec().getNodeName());
+			details.put(POD_IP, current.getStatus().getPodIP());
 			details.put(HOST_IP, current.getStatus().getHostIP());
+			return details;
 		}
-		return details;
+		return Collections.singletonMap(INSIDE, false);
 	}
 
 }
