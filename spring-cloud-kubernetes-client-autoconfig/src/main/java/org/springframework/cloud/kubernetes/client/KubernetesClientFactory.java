@@ -56,5 +56,4 @@ public final class KubernetesClientFactory {
 			}
 		}
 	}
-
 }
