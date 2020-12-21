@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
@@ -42,7 +41,7 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationC
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.core.env.ConfigurableEnvironment;
 
-import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.kubernetesApiClient;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientFactory.kubernetesApiClient;
 
 /**
  * @author Ryan Baxter
@@ -83,7 +82,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 			apiClient.setHttpClient(httpClient);
 			this.coreV1Api = new CoreV1Api(apiClient);
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 			LOG.error("Failed to create Kubernetes API client.  Event based ConfigMap monitoring will not work", e);
 		}
 		this.factory = new SharedInformerFactory();

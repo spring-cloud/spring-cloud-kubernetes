@@ -39,21 +39,20 @@ public final class KubernetesClientFactory {
 			return apiClient;
 		}
 		catch (Exception e) {
-			LOG.info(
-				"Could not create the Kubernetes ApiClient in a cluster environment, because : ",
-				e);
+			LOG.info("Could not create the Kubernetes ApiClient in a cluster environment, because : ", e);
 			LOG.info("Trying to use a \"standard\" configuration to create the Kubernetes ApiClient");
 			try {
 				ApiClient apiClient = ClientBuilder.defaultClient();
 				LOG.info("Created standard API client. Unless $KUBECONFIG or $HOME/.kube/config is defined, "
-					+ "this client will try to connect to localhost:8080");
+						+ "this client will try to connect to localhost:8080");
 				return apiClient;
 			}
 			catch (Exception e1) {
 				LOG.warn("Could not create a Kubernetes ApiClient from either a cluster or standard environment. "
-					+ "Will return one that always connects to localhost:8080", e1);
+						+ "Will return one that always connects to localhost:8080", e1);
 				return new ClientBuilder().build();
 			}
 		}
 	}
+
 }
