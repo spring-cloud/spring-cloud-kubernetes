@@ -39,12 +39,12 @@ public class KubernetesInformerReactiveDiscoveryClient implements ReactiveDiscov
 	private KubernetesInformerDiscoveryClient kubernetesDiscoveryClient;
 
 	public KubernetesInformerReactiveDiscoveryClient(KubernetesClientProperties kubernetesClientProperties,
-			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
-			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
-			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
+		SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
+		Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
+		SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
 		this.kubernetesDiscoveryClient = new KubernetesInformerDiscoveryClient(
-				kubernetesClientProperties.getNamespace(), sharedInformerFactory, serviceLister, endpointsLister,
-				serviceInformer, endpointsInformer, properties);
+			kubernetesClientProperties.getNamespace(), sharedInformerFactory, serviceLister, endpointsLister,
+			serviceInformer, endpointsInformer, properties);
 	}
 
 	@Override
@@ -61,8 +61,9 @@ public class KubernetesInformerReactiveDiscoveryClient implements ReactiveDiscov
 
 	@Override
 	public Flux<String> getServices() {
-		return Flux.defer(() -> Flux.fromIterable(kubernetesDiscoveryClient.getServices()))
-				.subscribeOn(Schedulers.boundedElastic());
+		return Flux.defer(() ->
+			Flux.fromIterable(kubernetesDiscoveryClient.getServices()))
+			.subscribeOn(Schedulers.boundedElastic());
 	}
 
 }
