@@ -16,66 +16,64 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
-/**
- * TODO break up into delegates if the implementation get's more complicated
- * <p>
- * Returns true if one of the following conditions apply.
- * <p>
- * spring.cloud.kubernetes.discovery.secured has been set to true the service contains a
- * label or an annotation named 'secured' that is truthy the port is one of the known
- * ports used for secure communication
- */
-class DefaultIsServicePortSecureResolver {
+class ServicePortSecureResolver {
 
-	private static final Log log = LogFactory.getLog(DefaultIsServicePortSecureResolver.class);
+	private static final Log LOG = LogFactory.getLog(ServicePortSecureResolver.class);
 
-	private static final Set<String> TRUTHY_STRINGS = new HashSet<String>() {
-		{
-			add("true");
-			add("on");
-			add("yes");
-			add("1");
-		}
-	};
+	private static final Set<String> TRUTHY_STRINGS = Stream.of("true", "on", "yes", "1").collect(Collectors.toSet());
 
 	private final KubernetesDiscoveryProperties properties;
 
-	DefaultIsServicePortSecureResolver(KubernetesDiscoveryProperties properties) {
+	ServicePortSecureResolver(KubernetesDiscoveryProperties properties) {
 		this.properties = properties;
 	}
 
+	/**
+	 * <p>
+	 * Returns true if any of the following conditions apply.
+	 * <p>
+	 * <ul>
+	 * <li>service contains a label named 'secured' that is truthy</li>
+	 * <li>service contains an annotation named 'secured' that is truthy</li>
+	 * <li>the port is one of the known ports used for secure communication</li>
+	 * </ul>
+	 *
+	 */
 	boolean resolve(Input input) {
-		final String securedLabelValue = input.getServiceLabels().getOrDefault("secured", "false");
+
+		String securedLabelValue = input.getServiceLabels().getOrDefault("secured", "false");
 		if (TRUTHY_STRINGS.contains(securedLabelValue)) {
-			if (log.isDebugEnabled()) {
-				log.debug("Considering service with name: " + input.getServiceName() + " and port " + input.getPort()
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Considering service with name: " + input.getServiceName() + " and port " + input.getPort()
 						+ " is secure since the service contains a true value for the 'secured' label");
 			}
 			return true;
 		}
 
-		final String securedAnnotationValue = input.getServiceAnnotations().getOrDefault("secured", "false");
+		String securedAnnotationValue = input.getServiceAnnotations().getOrDefault("secured", "false");
 		if (TRUTHY_STRINGS.contains(securedAnnotationValue)) {
-			if (log.isDebugEnabled()) {
-				log.debug("Considering service with name: " + input.getServiceName() + " and port " + input.getPort()
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Considering service with name: " + input.getServiceName() + " and port " + input.getPort()
 						+ " is secure since the service contains a true value for the 'secured' annotation");
 			}
 			return true;
 		}
 
 		if (input.getPort() != null && this.properties.getKnownSecurePorts().contains(input.getPort())) {
-			if (log.isDebugEnabled()) {
-				log.debug("Considering service with name: " + input.getServiceName() + " and port " + input.getPort()
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Considering service with name: " + input.getServiceName() + " and port " + input.getPort()
 						+ " is secure due to the port being a known https port");
 			}
 			return true;
@@ -84,7 +82,7 @@ class DefaultIsServicePortSecureResolver {
 		return false;
 	}
 
-	static class Input {
+	static final class Input {
 
 		private final Integer port;
 
@@ -103,8 +101,8 @@ class DefaultIsServicePortSecureResolver {
 				Map<String, String> serviceAnnotations) {
 			this.port = port;
 			this.serviceName = serviceName;
-			this.serviceLabels = serviceLabels == null ? new HashMap<>() : serviceLabels;
-			this.serviceAnnotations = serviceAnnotations == null ? new HashMap<>() : serviceAnnotations;
+			this.serviceLabels = serviceLabels == null ? Collections.emptyMap() : serviceLabels;
+			this.serviceAnnotations = serviceAnnotations == null ? Collections.emptyMap() : serviceAnnotations;
 		}
 
 		public String getServiceName() {

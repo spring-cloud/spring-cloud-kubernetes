@@ -100,7 +100,7 @@ public class KubernetesDiscoveryClientTest {
 		properties.getMetadata().setAddAnnotations(false);
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new DefaultIsServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties));
 
 		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -141,7 +141,7 @@ public class KubernetesDiscoveryClientTest {
 		properties.setPrimaryPortName("http_tcp");
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new DefaultIsServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties));
 
 		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -175,7 +175,7 @@ public class KubernetesDiscoveryClientTest {
 		properties.setServiceLabels(labels);
 
 		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new DefaultIsServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties));
 
 		final List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
 
@@ -218,7 +218,7 @@ public class KubernetesDiscoveryClientTest {
 		properties.getMetadata().setAddLabels(false);
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new DefaultIsServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties));
 
 		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -244,7 +244,7 @@ public class KubernetesDiscoveryClientTest {
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new DefaultIsServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties));
 
 		final List<String> services = discoveryClient.getServices();
 
@@ -274,7 +274,7 @@ public class KubernetesDiscoveryClientTest {
 					{
 						put("label", "value");
 					}
-				}), new DefaultIsServicePortSecureResolver(properties));
+				}), new ServicePortSecureResolver(properties));
 
 		final List<String> services = discoveryClient.getServices();
 
@@ -341,7 +341,7 @@ public class KubernetesDiscoveryClientTest {
 		properties.setAllNamespaces(true);
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new DefaultIsServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties));
 
 		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 

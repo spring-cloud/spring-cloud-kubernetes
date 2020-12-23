@@ -31,38 +31,35 @@ public class DefaultIsServicePortSecureResolverTest {
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		properties.getKnownSecurePorts().add(12345);
 
-		final DefaultIsServicePortSecureResolver sut = new DefaultIsServicePortSecureResolver(properties);
+		final ServicePortSecureResolver sut = new ServicePortSecureResolver(properties);
 
-		assertThat(sut.resolve(new DefaultIsServicePortSecureResolver.Input(null, "dummy"))).isFalse();
-		assertThat(sut.resolve(new DefaultIsServicePortSecureResolver.Input(8080, "dummy"))).isFalse();
-		assertThat(sut.resolve(new DefaultIsServicePortSecureResolver.Input(1234, "dummy"))).isFalse();
+		assertThat(sut.resolve(new ServicePortSecureResolver.Input(null, "dummy"))).isFalse();
+		assertThat(sut.resolve(new ServicePortSecureResolver.Input(8080, "dummy"))).isFalse();
+		assertThat(sut.resolve(new ServicePortSecureResolver.Input(1234, "dummy"))).isFalse();
 
-		assertThat(sut.resolve(new DefaultIsServicePortSecureResolver.Input(443, "dummy"))).isTrue();
-		assertThat(sut.resolve(new DefaultIsServicePortSecureResolver.Input(8443, "dummy"))).isTrue();
-		assertThat(sut.resolve(new DefaultIsServicePortSecureResolver.Input(12345, "dummy"))).isTrue();
+		assertThat(sut.resolve(new ServicePortSecureResolver.Input(443, "dummy"))).isTrue();
+		assertThat(sut.resolve(new ServicePortSecureResolver.Input(8443, "dummy"))).isTrue();
+		assertThat(sut.resolve(new ServicePortSecureResolver.Input(12345, "dummy"))).isTrue();
 	}
 
 	@Test
 	public void testLabelsAndAnnotations() {
-		final DefaultIsServicePortSecureResolver sut = new DefaultIsServicePortSecureResolver(
-				new KubernetesDiscoveryProperties());
+		final ServicePortSecureResolver sut = new ServicePortSecureResolver(new KubernetesDiscoveryProperties());
 
-		assertThat(
-				sut.resolve(new DefaultIsServicePortSecureResolver.Input(8080, "dummy", new HashMap<String, String>() {
-					{
-						put("secured", "true");
-						put("other", "value");
-					}
-				}, new HashMap<>()))).isTrue();
-		assertThat(
-				sut.resolve(new DefaultIsServicePortSecureResolver.Input(1234, "dummy", new HashMap<String, String>() {
-					{
-						put("other", "value");
-						put("secured", "1");
-					}
-				}, new HashMap<>()))).isTrue();
-		assertThat(sut.resolve(new DefaultIsServicePortSecureResolver.Input(4321, "dummy", new HashMap<>(),
-				new HashMap<String, String>() {
+		assertThat(sut.resolve(new ServicePortSecureResolver.Input(8080, "dummy", new HashMap<String, String>() {
+			{
+				put("secured", "true");
+				put("other", "value");
+			}
+		}, new HashMap<>()))).isTrue();
+		assertThat(sut.resolve(new ServicePortSecureResolver.Input(1234, "dummy", new HashMap<String, String>() {
+			{
+				put("other", "value");
+				put("secured", "1");
+			}
+		}, new HashMap<>()))).isTrue();
+		assertThat(sut.resolve(
+				new ServicePortSecureResolver.Input(4321, "dummy", new HashMap<>(), new HashMap<String, String>() {
 					{
 						put("other1", "value1");
 						put("secured", "yes");

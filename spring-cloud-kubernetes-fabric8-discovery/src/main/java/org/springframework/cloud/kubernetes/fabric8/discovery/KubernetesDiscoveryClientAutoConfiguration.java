@@ -48,8 +48,8 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public DefaultIsServicePortSecureResolver isServicePortSecureResolver(KubernetesDiscoveryProperties properties) {
-		return new DefaultIsServicePortSecureResolver(properties);
+	public ServicePortSecureResolver isServicePortSecureResolver(KubernetesDiscoveryProperties properties) {
+		return new ServicePortSecureResolver(properties);
 	}
 
 	@Bean
@@ -97,7 +97,7 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
 				KubernetesDiscoveryProperties properties,
 				KubernetesClientServicesFunction kubernetesClientServicesFunction,
-				DefaultIsServicePortSecureResolver isServicePortSecureResolver) {
+				ServicePortSecureResolver isServicePortSecureResolver) {
 			return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction,
 					isServicePortSecureResolver);
 		}
