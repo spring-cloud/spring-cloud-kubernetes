@@ -28,8 +28,6 @@ import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAu
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
-import org.springframework.cloud.kubernetes.fabric8.registry.KubernetesRegistration;
-import org.springframework.cloud.kubernetes.fabric8.registry.KubernetesServiceRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -70,16 +68,6 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 				return (client) -> client.services().withLabels(properties.getServiceLabels());
 			}
 		}
-	}
-
-	@Bean
-	public KubernetesServiceRegistry getServiceRegistry() {
-		return new KubernetesServiceRegistry();
-	}
-
-	@Bean
-	public KubernetesRegistration getRegistration(KubernetesClient client, KubernetesDiscoveryProperties properties) {
-		return new KubernetesRegistration(client, properties);
 	}
 
 	@Bean
