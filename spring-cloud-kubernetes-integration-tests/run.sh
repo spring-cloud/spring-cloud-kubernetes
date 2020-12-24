@@ -14,6 +14,8 @@ KIND="${BIN_DIR}/kind"
 
 ISTIOCTL="${BIN_DIR}/istio-1.6.2/bin/istioctl"
 
+CURRENT_DIR="$(pwd)"
+MVN="${CURRENT_DIR}/../mvnw"
 MVN_VERSION=$(../mvnw -q \
     -Dexec.executable=echo \
     -Dexec.args='${project.version}' \
@@ -34,7 +36,6 @@ DEFAULT_PULLING_IMAGES=(
 )
 PULLING_IMAGES=(${PULLING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
 
-CURRENT_DIR="$(pwd)"
 
 # cleanup on exit (useful for running locally)
 cleanup() {
@@ -100,12 +101,13 @@ main() {
 	# curl -L https://istio.io/downloadIstio | sh -
 	#"${ISTIOCTL}" install --set profile=demo
 
-	cd $CURRENT_DIR
+	# building required images for running integration tests
+	cd $CURRENT_DIR/../spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configuration-watcher
+	${MVN} clean install
 
+	cd $CURRENT_DIR
 	# pulling necessary images for setting up the integration test environment
 	for i in "${PULLING_IMAGES[@]}"; do
-		echo "Pull images for prepping testing environment: $i"
-		docker pull $i
 		"${KIND}" load docker-image $i
 	done
 
@@ -113,10 +115,10 @@ main() {
 	for p in "${INTEGRATION_PROJECTS[@]}"; do
 		echo "Running test: $p"
 		cd  $p
-		../../mvnw spring-boot:build-image \
+		${MVN} spring-boot:build-image \
       		-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION}
     	"${KIND}" load docker-image docker.io/springcloud/$p:${MVN_VERSION}
-     	../../mvnw clean install -P it
+     	${MVN} clean install -P it
 		cd ..
 	done
 

@@ -192,7 +192,7 @@ public class ActuatorEndpointIT {
 	@AfterClass
 	public static void after() throws Exception {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + K8S_CONFIG_CLIENT_IT_NAME, null, null, null, null, null, null, null, null);
+				"metadata.name=" + K8S_CONFIG_CLIENT_IT_NAME, null, null, null, null, null, null, null, null, null);
 		api.deleteNamespacedService(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, NAMESPACE, null, null, null, null, null, null);
 		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
 	}
