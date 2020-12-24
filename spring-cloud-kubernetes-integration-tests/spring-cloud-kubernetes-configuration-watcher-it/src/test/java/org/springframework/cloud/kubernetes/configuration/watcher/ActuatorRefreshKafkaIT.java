@@ -59,7 +59,7 @@ public class ActuatorRefreshKafkaIT {
 
 	private static final String CONFIG_WATCHER_IT_IMAGE = "spring-cloud-kubernetes-configuration-watcher-it";
 
-	private static final String IMAGE_TAG = "2.0.0-SNAPSHOT";
+	private static final String IMAGE_TAG = "2.0.1-SNAPSHOT";
 
 	private static final String LOCAL_REPO = "docker.io/springcloud";
 
