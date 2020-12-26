@@ -38,14 +38,14 @@ public class ServicePortSecureResolverTest {
 	private static final ServicePortSecureResolver.Input SECURED_TRUE = new ServicePortSecureResolver.Input(8080,
 			"dummy", SECURED_TRUE_MAP, Collections.emptyMap());
 
-	private static final ServicePortSecureResolver.Input SECURED_1 = new ServicePortSecureResolver.Input(1234,
-			"dummy", SECURED_1_MAP, Collections.emptyMap());
+	private static final ServicePortSecureResolver.Input SECURED_1 = new ServicePortSecureResolver.Input(1234, "dummy",
+			SECURED_1_MAP, Collections.emptyMap());
 
 	private static final ServicePortSecureResolver.Input SECURED_YES = new ServicePortSecureResolver.Input(4321,
 			"dummy", SECURED_YES_MAP, Collections.emptyMap());
 
-	private static final ServicePortSecureResolver.Input SECURED_ON = new ServicePortSecureResolver.Input(4321,
-			"dummy", SECURED_ON_MAP, Collections.emptyMap());
+	private static final ServicePortSecureResolver.Input SECURED_ON = new ServicePortSecureResolver.Input(4321, "dummy",
+			SECURED_ON_MAP, Collections.emptyMap());
 
 	@Test
 	public void testPortNumbersOnly() {

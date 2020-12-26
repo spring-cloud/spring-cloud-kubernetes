@@ -52,27 +52,27 @@ class ServicePortSecureResolver {
 	 */
 	boolean resolve(Input input) {
 
-		String securedLabelValue = input.getServiceLabels().getOrDefault("secured", "false");
+		String securedLabelValue = input.serviceLabels.getOrDefault("secured", "false");
 		if (TRUTHY_STRINGS.contains(securedLabelValue)) {
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("Considering service with name: " + input.getServiceName() + " and port " + input.getPort()
+				LOG.debug("Considering service with name: " + input.serviceName + " and port " + input.port
 						+ " is secure since the service contains a true value for the 'secured' label");
 			}
 			return true;
 		}
 
-		String securedAnnotationValue = input.getServiceAnnotations().getOrDefault("secured", "false");
+		String securedAnnotationValue = input.serviceAnnotations.getOrDefault("secured", "false");
 		if (TRUTHY_STRINGS.contains(securedAnnotationValue)) {
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("Considering service with name: " + input.getServiceName() + " and port " + input.getPort()
+				LOG.debug("Considering service with name: " + input.serviceName + " and port " + input.port
 						+ " is secure since the service contains a true value for the 'secured' annotation");
 			}
 			return true;
 		}
 
-		if (input.getPort() != null && this.properties.getKnownSecurePorts().contains(input.getPort())) {
+		if (input.port != null && this.properties.getKnownSecurePorts().contains(input.port)) {
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("Considering service with name: " + input.getServiceName() + " and port " + input.getPort()
+				LOG.debug("Considering service with name: " + input.serviceName + " and port " + input.port
 						+ " is secure due to the port being a known https port");
 			}
 			return true;
@@ -102,22 +102,6 @@ class ServicePortSecureResolver {
 			this.serviceName = serviceName;
 			this.serviceLabels = serviceLabels == null ? Collections.emptyMap() : serviceLabels;
 			this.serviceAnnotations = serviceAnnotations == null ? Collections.emptyMap() : serviceAnnotations;
-		}
-
-		public String getServiceName() {
-			return this.serviceName;
-		}
-
-		public Map<String, String> getServiceLabels() {
-			return this.serviceLabels;
-		}
-
-		public Map<String, String> getServiceAnnotations() {
-			return this.serviceAnnotations;
-		}
-
-		public Integer getPort() {
-			return this.port;
 		}
 
 	}
