@@ -29,7 +29,9 @@ ALL_INTEGRATION_PROJECTS=(
 )
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 
-DEFAULT_PULLING_IMAGES=()
+DEFAULT_PULLING_IMAGES=(
+	"docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${MVN_VERSION}"
+)
 PULLING_IMAGES=(${PULLING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
 
 CURRENT_DIR="$(pwd)"
@@ -106,7 +108,7 @@ main() {
 	# pulling necessary images for setting up the integration test environment
 	for i in "${PULLING_IMAGES[@]}"; do
 		echo "Pull images for prepping testing environment: $i"
-		docker pull $i
+#		docker pull $i
 		"${KIND}" load docker-image $i
 	done
 
