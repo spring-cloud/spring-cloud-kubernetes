@@ -29,9 +29,7 @@ ALL_INTEGRATION_PROJECTS=(
 )
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 
-DEFAULT_PULLING_IMAGES=(
-	"docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${MVN_VERSION}"
-)
+DEFAULT_PULLING_IMAGES=()
 PULLING_IMAGES=(${PULLING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
 
 CURRENT_DIR="$(pwd)"
@@ -86,6 +84,9 @@ main() {
     kubectl cluster-info --context kind-kind
 
 	#setup nginx ingress
+	# Pull this image to avoid DockerHub limits when running on Jenkins
+	docker pull jettech/kube-webhook-certgen:v1.2.2
+    "${KIND}" load docker-image jettech/kube-webhook-certgen:v1.2.2
 #    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
     kubectl apply -fhttps://raw.githubusercontent.com/kubernetes/ingress-nginx/12150e318b972a03fb49d827e6cabb8ef62247ef/deploy/static/provider/kind/deploy.yaml
     sleep 5 # hold 5 sec so that the pods can be created
