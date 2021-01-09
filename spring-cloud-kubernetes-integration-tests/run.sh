@@ -91,6 +91,8 @@ main() {
 	docker pull rabbitmq:3-management
 	docker pull zookeeper:3.6.2
     "${KIND}" load docker-image jettech/kube-webhook-certgen:v1.2.2
+    "${KIND}" load docker-image rabbitmq:3-management
+    "${KIND}" load docker-image zookeeper:3.6.2
 #    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
     kubectl apply -fhttps://raw.githubusercontent.com/kubernetes/ingress-nginx/12150e318b972a03fb49d827e6cabb8ef62247ef/deploy/static/provider/kind/deploy.yaml
     sleep 5 # hold 5 sec so that the pods can be created
