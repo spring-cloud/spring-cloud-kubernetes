@@ -83,16 +83,12 @@ public class ActuatorRefreshRabbitMQIT {
 		this.k8SUtils = new K8SUtils(api, appsApi);
 
 		deployRabbitMQ();
-
-		k8SUtils.waitForReplicationController(RABBIT_MQ_CONTROLLER_NAME, NAMESPACE);
-
 		deployTestApp();
-
-		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
-
 		deployConfigWatcher();
 
 		// Check to make sure the controller deployment is ready
+		k8SUtils.waitForReplicationController(RABBIT_MQ_CONTROLLER_NAME, NAMESPACE);
+		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
 		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
 	}
 
@@ -143,6 +139,10 @@ public class ActuatorRefreshRabbitMQIT {
 		api.deleteNamespacedConfigMap(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
 				null);
 		api.deleteNamespacedConfigMap(CONFIG_WATCHER_IT_IMAGE, NAMESPACE, null, null, null, null, null, null);
+
+		// Check to make sure the controller deployment is deleted
+		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
+		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
 
 	}
 
