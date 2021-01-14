@@ -172,21 +172,18 @@ public class K8SUtils {
 	}
 
 	public void waitForDeploymentToBeDeleted(String deploymentName, String namespace) {
-		await().timeout(
-			Duration.ofSeconds(90)).until(
-			() -> {
-				try {
-					appsApi
-						.readNamespacedDeployment(deploymentName, namespace, null, null, null);
-					return false;
+		await().timeout(Duration.ofSeconds(90)).until(() -> {
+			try {
+				appsApi.readNamespacedDeployment(deploymentName, namespace, null, null, null);
+				return false;
+			}
+			catch (ApiException e) {
+				if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+					return true;
 				}
-				catch (ApiException e) {
-					if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-						return true;
-					}
-					throw new RuntimeException(e);
-				}
-			});
+				throw new RuntimeException(e);
+			}
+		});
 	}
 
 	public boolean isDeployentReady(String deploymentName, String namespace) throws ApiException {
