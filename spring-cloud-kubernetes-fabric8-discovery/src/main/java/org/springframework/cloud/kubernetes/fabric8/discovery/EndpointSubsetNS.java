@@ -28,11 +28,7 @@ public class EndpointSubsetNS {
 
 	private String namespace;
 
-	private List<EndpointSubset> endpointSubset;
-
-	public EndpointSubsetNS() {
-		endpointSubset = new ArrayList<>();
-	}
+	private List<EndpointSubset> endpointSubset = new ArrayList<>();
 
 	public String getNamespace() {
 		return namespace;
@@ -50,10 +46,12 @@ public class EndpointSubsetNS {
 		this.endpointSubset = endpointSubset;
 	}
 
+	@Override
 	public boolean equals(Object o) {
 		return this.endpointSubset.equals(o);
 	}
 
+	@Override
 	public int hashCode() {
 		return this.endpointSubset.hashCode();
 	}
