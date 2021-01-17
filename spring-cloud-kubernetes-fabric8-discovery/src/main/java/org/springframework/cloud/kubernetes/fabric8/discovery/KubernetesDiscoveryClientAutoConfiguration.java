@@ -47,12 +47,6 @@ import org.springframework.context.annotation.Configuration;
 public class KubernetesDiscoveryClientAutoConfiguration {
 
 	@Bean
-	@ConditionalOnMissingBean
-	public ServicePortSecureResolver isServicePortSecureResolver(KubernetesDiscoveryProperties properties) {
-		return new ServicePortSecureResolver(properties);
-	}
-
-	@Bean
 	public KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties) {
 		if (properties.getServiceLabels().isEmpty()) {
 			if (properties.isAllNamespaces()) {
