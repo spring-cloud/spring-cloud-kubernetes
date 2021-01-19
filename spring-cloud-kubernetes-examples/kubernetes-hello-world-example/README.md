@@ -1,6 +1,6 @@
 # Setting up the Environment
 
-To play with these examples, you can install locally Kubernetes & Docker using [Minikube](https://kubernetes.io/docs/getting-started-guides/minikube/) within a Virtual Machine
+To play with these examples, you can install locally Kubernetes & Docker using [Minikube](https://minikube.sigs.k8s.io/docs/start/) within a Virtual Machine
 managed by a hypervisor (Xhyve, Virtualbox or KVM) if your machine is not a native Unix operating system.
 
   
