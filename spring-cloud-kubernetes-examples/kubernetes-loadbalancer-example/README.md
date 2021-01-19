@@ -5,7 +5,7 @@ As the Spring Cloud LoadBalancer for Kubernetes is configured within this exampl
 
 ### Running the example
 
-This project example runs on ALL the Kubernetes or OpenShift environments, but for development purposes you can use [Minikube - Kubernetes](https://kubernetes.io/docs/getting-started-guides/minikube/) tool
+This project example runs on ALL the Kubernetes or OpenShift environments, but for development purposes you can use [Minikube - Kubernetes](https://minikube.sigs.k8s.io/docs/start/) tool
 to install the platform locally within a virtual machine managed by VirtualBox, Xhyve or KVM, with no fuss.
 
 IMPORTANT: In order for this setup to work, you need to grant permissions to retrieve "pods", "services" and "enpoints" to the serviceaccont that will be used with the greeting-service.
