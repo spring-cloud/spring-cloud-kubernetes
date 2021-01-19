@@ -31,7 +31,7 @@ it will issue a call against the second endpoint `/hi` and you will receive `/hi
 
 ### Running the example
 
-This project example runs on ALL the Kubernetes or OpenShift environments, but for development purposes you can use [Minishift - OpenShift](https://github.com/minishift/minishift) or [Minikube - Kubernetes](https://kubernetes.io/docs/getting-started-guides/minikube/) tool
+This project example runs on ALL the Kubernetes or OpenShift environments, but for development purposes you can use [Minishift - OpenShift](https://github.com/minishift/minishift) or [Minikube - Kubernetes](https://minikube.sigs.k8s.io/docs/start/) tool
 to install the platform locally within a virtual machine managed by VirtualBox, Xhyve or KVM, with no fuss.
 
 ### Build/Deploy using Minikube 
