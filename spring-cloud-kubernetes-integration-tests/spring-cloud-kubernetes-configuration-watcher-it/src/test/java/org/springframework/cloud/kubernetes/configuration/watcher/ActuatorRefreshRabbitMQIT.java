@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import java.io.IOException;
 import java.time.Duration;
 
 import io.kubernetes.client.openapi.ApiClient;
@@ -38,6 +39,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,6 +52,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ActuatorRefreshRabbitMQIT {
+	private static final Log LOG = LogFactory.getLog(ActuatorRefreshRabbitMQIT.class);
 
 	private Log log = LogFactory.getLog(getClass());
 
@@ -100,6 +104,21 @@ public class ActuatorRefreshRabbitMQIT {
 				.build();
 		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
 		RestTemplate rest = new RestTemplateBuilder().build();
+		rest.setErrorHandler(new ResponseErrorHandler() {
+			@Override
+			public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
+				LOG.warn("Received response status code: " + clientHttpResponse.getRawStatusCode());
+				if (clientHttpResponse.getRawStatusCode() == 503) {
+					return false;
+				}
+				return true;
+			}
+
+			@Override
+			public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
+
+			}
+		});
 
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
