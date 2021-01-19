@@ -100,6 +100,12 @@ public class ActuatorRefreshRabbitMQIT {
 				.build();
 		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
 		RestTemplate rest = new RestTemplateBuilder().build();
+
+		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
+		// available and we get a 503, we just need to wait a bit
+		await().timeout(Duration.ofSeconds(60))
+			.until(() -> rest.getForEntity("http://localhost:80/it", Boolean.class).getStatusCode().is2xxSuccessful());
+
 		// Wait a bit before we verify
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(90)).until(() -> {
 			Boolean value = rest.getForObject("http://localhost:80/it", Boolean.class);
