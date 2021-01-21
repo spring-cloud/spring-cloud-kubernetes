@@ -29,6 +29,8 @@
 |spring.cloud.kubernetes.client.masterUrl | `https://kubernetes.default.svc` | Kubernetes API Master Node URL
 |spring.cloud.kubernetes.client.namespace | `true` | Kubernetes Namespace
 |spring.cloud.kubernetes.client.no-proxy |  | 
+|spring.cloud.kubernetes.client.oauth-token |  | 
+|spring.cloud.kubernetes.client.oauthToken |  | Kubernetes API Oauth Token
 |spring.cloud.kubernetes.client.password |  | Kubernetes API Password
 |spring.cloud.kubernetes.client.proxy-password |  | 
 |spring.cloud.kubernetes.client.proxy-username |  | 
