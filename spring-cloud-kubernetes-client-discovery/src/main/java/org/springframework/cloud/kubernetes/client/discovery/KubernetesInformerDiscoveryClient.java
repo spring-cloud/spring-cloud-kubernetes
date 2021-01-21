@@ -28,6 +28,7 @@ import io.kubernetes.client.extended.wait.Wait;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointPort;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
@@ -40,6 +41,7 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 public class KubernetesInformerDiscoveryClient implements DiscoveryClient, InitializingBean {
@@ -130,7 +132,16 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 					: subset.getPorts().stream()
 							.filter(p -> this.properties.getPrimaryPortName().equalsIgnoreCase(p.getName())).findFirst()
 							.orElseThrow(IllegalStateException::new);
-			return subset.getAddresses().stream()
+			List<V1EndpointAddress> addresses = subset.getAddresses();
+			if (this.properties.isIncludeNotReadyAddresses()
+					&& !CollectionUtils.isEmpty(subset.getNotReadyAddresses())) {
+				if (addresses == null) {
+					addresses = new ArrayList<>();
+				}
+				addresses.addAll(subset.getNotReadyAddresses());
+			}
+
+			return addresses.stream()
 					.map(addr -> new KubernetesServiceInstance(
 							addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId, addr.getIp(),
 							port.getPort(), metadata, false));
