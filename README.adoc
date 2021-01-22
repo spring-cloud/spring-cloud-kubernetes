@@ -152,6 +152,16 @@ spring.cloud.kubernetes.discovery.all-namespaces=true
 ----
 ====
 
+To discover service endpoint addresses that are not marked as "ready" by the kubernetes api server, you can set the following property in `application.properties` (default: false):
+
+====
+[source]
+----
+spring.cloud.kubernetes.discovery.include-not-ready-addresses=true
+----
+NOTE: This might be useful when discovering services for monitoring purposes, and would enable inspecting the `/health` endpoint of not-ready service instances.
+====
+
 If, for any reason, you need to disable the `DiscoveryClient`, you can set the following property in `application.properties`:
 
 ====
