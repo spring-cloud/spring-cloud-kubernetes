@@ -29,6 +29,8 @@
 |spring.cloud.kubernetes.client.masterUrl | `https://kubernetes.default.svc` | Kubernetes API Master Node URL
 |spring.cloud.kubernetes.client.namespace | `true` | Kubernetes Namespace
 |spring.cloud.kubernetes.client.no-proxy |  | 
+|spring.cloud.kubernetes.client.oauth-token |  | 
+|spring.cloud.kubernetes.client.oauthToken |  | Kubernetes API Oauth Token
 |spring.cloud.kubernetes.client.password |  | Kubernetes API Password
 |spring.cloud.kubernetes.client.proxy-password |  | 
 |spring.cloud.kubernetes.client.proxy-username |  | 
@@ -54,6 +56,7 @@
 |spring.cloud.kubernetes.discovery.cache-loading-timeout-seconds | `60` | Timeout for initializing discovery cache, will abort the application if exceeded.
 |spring.cloud.kubernetes.discovery.enabled | `true` | If Kubernetes Discovery is enabled.
 |spring.cloud.kubernetes.discovery.filter |  | SpEL expression to filter services AFTER they have been retrieved from the Kubernetes API server.
+|spring.cloud.kubernetes.discovery.include-not-ready-addresses | `false` | If endpoint addresses not marked 'ready' by the k8s api server should be discovered.
 |spring.cloud.kubernetes.discovery.known-secure-ports |  | Set the port numbers that are considered secure and use HTTPS.
 |spring.cloud.kubernetes.discovery.metadata.add-annotations | `true` | When set, the Kubernetes annotations of the services will be included as metadata of the returned ServiceInstance.
 |spring.cloud.kubernetes.discovery.metadata.add-labels | `true` | When set, the Kubernetes labels of the services will be included as metadata of the returned ServiceInstance.

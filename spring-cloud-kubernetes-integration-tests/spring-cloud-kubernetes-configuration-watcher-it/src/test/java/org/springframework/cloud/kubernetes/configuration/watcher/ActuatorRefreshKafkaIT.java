@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import java.io.IOException;
 import java.time.Duration;
 
 import io.kubernetes.client.openapi.ApiClient;
@@ -37,6 +38,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -111,20 +114,14 @@ public class ActuatorRefreshKafkaIT {
 		this.k8SUtils = new K8SUtils(api, appsApi);
 
 		deployZookeeper();
-
-		k8SUtils.waitForDeployment(ZOOKEEPER_DEPLOYMENT, NAMESPACE);
-
 		deployKafka();
-
-		k8SUtils.waitForDeployment(KAFKA_BROKER, NAMESPACE);
-
 		deployTestApp();
-
-		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
-
 		deployConfigWatcher();
 
 		// Check to make sure the controller deployment is ready
+		k8SUtils.waitForDeployment(ZOOKEEPER_DEPLOYMENT, NAMESPACE);
+		k8SUtils.waitForDeployment(KAFKA_BROKER, NAMESPACE);
+		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
 		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
 	}
 
@@ -136,6 +133,26 @@ public class ActuatorRefreshKafkaIT {
 				.build();
 		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
 		RestTemplate rest = new RestTemplateBuilder().build();
+		rest.setErrorHandler(new ResponseErrorHandler() {
+			@Override
+			public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
+				log.warn("Received response status code: " + clientHttpResponse.getRawStatusCode());
+				if (clientHttpResponse.getRawStatusCode() == 503) {
+					return false;
+				}
+				return true;
+			}
+
+			@Override
+			public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
+
+			}
+		});
+
+		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
+		// available and we get a 503, we just need to wait a bit
+		await().timeout(Duration.ofSeconds(60))
+			.until(() -> rest.getForEntity("http://localhost:80/it", String.class).getStatusCode().is2xxSuccessful());
 		// Wait a bit before we verify
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(90)).until(() -> {
 			Boolean value = rest.getForObject("http://localhost:80/it", Boolean.class);
@@ -168,6 +185,11 @@ public class ActuatorRefreshKafkaIT {
 				null);
 		api.deleteNamespacedConfigMap(CONFIG_WATCHER_IT_IMAGE, NAMESPACE, null, null, null, null, null, null);
 
+		// Check to make sure the controller deployment is deleted
+		k8SUtils.waitForDeploymentToBeDeleted(KAFKA_BROKER, NAMESPACE);
+		k8SUtils.waitForDeploymentToBeDeleted(ZOOKEEPER_DEPLOYMENT, NAMESPACE);
+		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
+		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
 	}
 
 	private void deployTestApp() throws Exception {

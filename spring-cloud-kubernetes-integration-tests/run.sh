@@ -30,9 +30,15 @@ ALL_INTEGRATION_PROJECTS=(
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 
 DEFAULT_PULLING_IMAGES=(
-	"docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${MVN_VERSION}"
+	"jettech/kube-webhook-certgen:v1.2.2"
+	"rabbitmq:3-management"
+	"zookeeper:3.6.2"
+	"rodolpheche/wiremock:2.27.2"
+	"wurstmeister/kafka:2.13-2.6.0"
 )
 PULLING_IMAGES=(${PULLING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
+
+LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}} "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${MVN_VERSION}")
 
 CURRENT_DIR="$(pwd)"
 
@@ -86,6 +92,15 @@ main() {
     kubectl cluster-info --context kind-kind
 
 	#setup nginx ingress
+	# pulling necessary images for setting up the integration test environment
+	for i in "${PULLING_IMAGES[@]}"; do
+		echo "Pull images for prepping testing environment: $i"
+		docker pull $i
+	done
+	for i in "${LOADING_IMAGES[@]}"; do
+		echo "Loading images into Kind: $i"
+		"${KIND}" load docker-image $i
+	done
 #    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
     kubectl apply -fhttps://raw.githubusercontent.com/kubernetes/ingress-nginx/12150e318b972a03fb49d827e6cabb8ef62247ef/deploy/static/provider/kind/deploy.yaml
     sleep 5 # hold 5 sec so that the pods can be created
@@ -102,12 +117,6 @@ main() {
 
 	cd $CURRENT_DIR
 
-	# pulling necessary images for setting up the integration test environment
-	for i in "${PULLING_IMAGES[@]}"; do
-		echo "Pull images for prepping testing environment: $i"
-		docker pull $i
-		"${KIND}" load docker-image $i
-	done
 
 	# running tests..
 	for p in "${INTEGRATION_PROJECTS[@]}"; do

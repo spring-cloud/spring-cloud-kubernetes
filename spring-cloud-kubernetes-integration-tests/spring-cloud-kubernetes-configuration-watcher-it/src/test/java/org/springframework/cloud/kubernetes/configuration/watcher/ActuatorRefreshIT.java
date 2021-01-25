@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.time.Duration;
 
+import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
@@ -103,15 +104,12 @@ public class ActuatorRefreshIT {
 		this.k8SUtils = new K8SUtils(api, appsApi);
 
 		deployWiremock();
+		deployConfigWatcher();
 
 		// Check to make sure the wiremock deployment is ready
 		k8SUtils.waitForDeployment(CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME, NAMESPACE);
-
 		// Check to see if endpoint is ready
 		k8SUtils.waitForEndpointReady(CONFIG_WATCHER_WIREMOCK_APP_NAME, NAMESPACE);
-
-		deployConfigWatcher();
-
 		// Check to make sure the controller deployment is ready
 		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
 	}
@@ -121,8 +119,11 @@ public class ActuatorRefreshIT {
 		// Configure wiremock to point at the server
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
 
-		// Setup stubs for actuator refresh
-		stubFor(post(urlEqualTo("/actuator/refresh")).willReturn(aResponse().withStatus(200)));
+		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
+		// available and we get a 503, we just need to wait a bit
+		await().timeout(Duration.ofSeconds(60)).ignoreException(VerificationException.class)
+				.until(() -> stubFor(post(urlEqualTo("/actuator/refresh")).willReturn(aResponse().withStatus(200)))
+						.getResponse().wasConfigured());
 
 		// Create new configmap to trigger controller to signal app to refresh
 		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName(CONFIG_WATCHER_WIREMOCK_APP_NAME)
@@ -152,6 +153,9 @@ public class ActuatorRefreshIT {
 		api.deleteNamespacedConfigMap(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
 				null);
 		api.deleteNamespacedConfigMap(CONFIG_WATCHER_WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
+		// Check to make sure the controller deployment is deleted
+		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
+		k8SUtils.waitForDeploymentToBeDeleted(CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME, NAMESPACE);
 	}
 
 	private void deployConfigWatcher() throws Exception {

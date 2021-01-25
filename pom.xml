@@ -63,7 +63,7 @@
 	<properties>
 		<!-- Dependency Versions -->
 		<spring-cloud-commons.version>3.0.1-SNAPSHOT</spring-cloud-commons.version>
-		<spring-cloud-config.version>3.0.1-SNAPSHOT</spring-cloud-config.version>
+		<spring-cloud-config.version>3.0.2-SNAPSHOT</spring-cloud-config.version>
 		<spring-cloud-bus.version>3.0.1-SNAPSHOT</spring-cloud-bus.version>
 		<spring-cloud-contract.version>3.0.1-SNAPSHOT</spring-cloud-contract.version>
 

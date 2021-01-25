@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Collection;
@@ -171,12 +172,18 @@ public class K8SUtils {
 	}
 
 	public void waitForDeploymentToBeDeleted(String deploymentName, String namespace) {
-		await().timeout(
-				Duration.ofSeconds(90)).until(
-						() -> appsApi
-								.listNamespacedDeployment(namespace, null, null, null,
-										"metadata.name=" + deploymentName, null, null, null, null, null)
-								.getItems().isEmpty());
+		await().timeout(Duration.ofSeconds(90)).until(() -> {
+			try {
+				appsApi.readNamespacedDeployment(deploymentName, namespace, null, null, null);
+				return false;
+			}
+			catch (ApiException e) {
+				if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+					return true;
+				}
+				throw new RuntimeException(e);
+			}
+		});
 	}
 
 	public boolean isDeployentReady(String deploymentName, String namespace) throws ApiException {

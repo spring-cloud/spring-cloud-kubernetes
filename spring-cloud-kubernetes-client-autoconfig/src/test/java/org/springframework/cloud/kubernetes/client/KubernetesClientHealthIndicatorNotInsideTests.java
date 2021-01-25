@@ -14,30 +14,33 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.profile;
+package org.springframework.cloud.kubernetes.client;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.client.example.App;
-import org.springframework.core.env.Environment;
+import org.springframework.context.ApplicationContext;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.kubernetes.commons.profile.AbstractKubernetesProfileEnvironmentPostProcessor.KUBERNETES_PROFILE;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * @author Ryan Baxter
+ * @author wind57
  */
-@SpringBootTest(classes = { App.class })
-class KubernetesClientProfileEnvironmentPostProcessorNoProfileTests {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+		properties = { "management.health.kubernetes.enabled=false" })
+public class KubernetesClientHealthIndicatorNotInsideTests {
 
 	@Autowired
-	private Environment environment;
+	private ApplicationContext context;
 
+	// test that the bean responsible for info contribution is NOT present.
 	@Test
-	void whenNoKubernetesEnvironmentAndNoApiAccessThenNoProfileEnabled() {
-		assertThat(environment.getActiveProfiles()).doesNotContain(KUBERNETES_PROFILE);
+	public void test() {
+		assertThatThrownBy(() -> context.getBean(KubernetesClientHealthIndicator.class))
+				.isInstanceOf(NoSuchBeanDefinitionException.class);
 	}
 
 }
