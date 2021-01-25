@@ -90,10 +90,9 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		@ConditionalOnMissingBean
 		public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
 				KubernetesDiscoveryProperties properties,
-				KubernetesClientServicesFunction kubernetesClientServicesFunction,
-				ServicePortSecureResolver isServicePortSecureResolver) {
+				KubernetesClientServicesFunction kubernetesClientServicesFunction) {
 			return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction,
-					isServicePortSecureResolver);
+					new ServicePortSecureResolver(properties));
 		}
 
 	}

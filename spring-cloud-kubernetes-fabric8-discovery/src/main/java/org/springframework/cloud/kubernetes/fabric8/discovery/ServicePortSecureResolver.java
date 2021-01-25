@@ -55,20 +55,20 @@ class ServicePortSecureResolver {
 		String securedLabelValue = input.serviceLabels.getOrDefault("secured", "false");
 		if (TRUTHY_STRINGS.contains(securedLabelValue)) {
 			LOG.debug("Considering service with name: " + input.serviceName + " and port " + input.port
-				+ " is secure since the service contains a true value for the 'secured' label");
+					+ " is secure since the service contains a true value for the 'secured' label");
 			return true;
 		}
 
 		String securedAnnotationValue = input.serviceAnnotations.getOrDefault("secured", "false");
 		if (TRUTHY_STRINGS.contains(securedAnnotationValue)) {
 			LOG.debug("Considering service with name: " + input.serviceName + " and port " + input.port
-				+ " is secure since the service contains a true value for the 'secured' annotation");
+					+ " is secure since the service contains a true value for the 'secured' annotation");
 			return true;
 		}
 
 		if (input.port != null && this.properties.getKnownSecurePorts().contains(input.port)) {
 			LOG.debug("Considering service with name: " + input.serviceName + " and port " + input.port
-				+ " is secure due to the port being a known https port");
+					+ " is secure due to the port being a known https port");
 			return true;
 		}
 

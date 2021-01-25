@@ -57,7 +57,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private final KubernetesDiscoveryProperties properties;
 
-	private final ServicePortSecureResolver isServicePortSecureResolver;
+	private final ServicePortSecureResolver servicePortSecureResolver;
 
 	private final KubernetesClientServicesFunction kubernetesClientServicesFunction;
 
@@ -78,12 +78,12 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	KubernetesDiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
 			KubernetesClientServicesFunction kubernetesClientServicesFunction,
-			ServicePortSecureResolver isServicePortSecureResolver) {
+			ServicePortSecureResolver servicePortSecureResolver) {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
 		this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
-		this.isServicePortSecureResolver = isServicePortSecureResolver;
+		this.servicePortSecureResolver = servicePortSecureResolver;
 	}
 
 	public KubernetesClient getClient() {
@@ -171,7 +171,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 					EndpointPort endpointPort = findEndpointPort(s);
 					instances.add(new KubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
 							endpointPort.getPort(), endpointMetadata,
-							this.isServicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(
+							this.servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(
 									endpointPort.getPort(), service.getMetadata().getName(),
 									service.getMetadata().getLabels(), service.getMetadata().getAnnotations()))));
 				}
