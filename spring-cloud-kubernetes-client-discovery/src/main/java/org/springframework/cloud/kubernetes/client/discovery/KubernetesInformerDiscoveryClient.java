@@ -83,7 +83,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId, "[Assertion failed] - the object argument must not be null");
 
-		if (StringUtils.hasText(namespace) && !properties.isAllNamespaces()) {
+		if (!StringUtils.hasText(namespace) && !properties.isAllNamespaces()) {
 			log.warn("Namespace is null or empty, this may cause issues looking up services");
 		}
 
@@ -128,7 +128,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 			if (this.properties.getMetadata() != null && this.properties.getMetadata().isAddPorts()) {
 				subset.getPorts().stream().forEach(p -> metadata.put(p.getName(), Integer.toString(p.getPort())));
 			}
-			V1EndpointPort port = subset.getPorts() != null && subset.getPorts().size() == 1 ? subset.getPorts().get(0)
+			V1EndpointPort port = subset.getPorts() != null &&
+				(subset.getPorts().size() == 1 || this.properties.getPrimaryPortName() == null) ? subset.getPorts().get(0)
 					: subset.getPorts().stream()
 							.filter(p -> this.properties.getPrimaryPortName().equalsIgnoreCase(p.getName())).findFirst()
 							.orElseThrow(IllegalStateException::new);
