@@ -21,19 +21,6 @@ Fabric8 Leader Implementation
 ====
 
 ====
-Spring Boot Dependencies
-[source,xml]
-----
-<dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-dependencies</artifactId>
-	<type>pom</type>
-	<scope>import</scope>
-</dependency>
-----
-====
-
-====
 
 To specify the name of the configmap used for leader election use the following property.
 ====
