@@ -119,7 +119,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 		V1Endpoints ep = this.endpointsLister.namespace(service.getMetadata().getNamespace())
 				.get(service.getMetadata().getName());
-		if (ep == null) {
+		if (ep == null || ep.getSubsets() == null) {
 			// no available endpoints in the cluster
 			return new ArrayList<>();
 		}
