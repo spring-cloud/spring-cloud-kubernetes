@@ -83,7 +83,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId, "[Assertion failed] - the object argument must not be null");
 
-		if (StringUtils.hasText(namespace) && !properties.isAllNamespaces()) {
+		if (!StringUtils.hasText(namespace) && !properties.isAllNamespaces()) {
 			log.warn("Namespace is null or empty, this may cause issues looking up services");
 		}
 
