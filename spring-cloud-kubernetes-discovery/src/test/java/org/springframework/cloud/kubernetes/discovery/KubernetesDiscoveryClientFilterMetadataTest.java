@@ -36,7 +36,6 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -86,7 +85,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	private Resource<Endpoints, DoneableEndpoints> endpointsResource;
 
 	@Mock
-	FilterWatchListDeletable<Endpoints, EndpointsList, Boolean, Watch, Watcher<Endpoints>> filter;
+	FilterWatchListDeletable<Endpoints, EndpointsList, Boolean, Watch> filter;
 
 	@InjectMocks
 	private KubernetesDiscoveryClient underTest;
