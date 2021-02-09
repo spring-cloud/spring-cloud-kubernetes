@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.reload;
+package org.springframework.cloud.kubernetes.config.reload;
 
 import java.util.HashMap;
 
@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import org.springframework.cloud.kubernetes.fabric8.config.KubernetesConfigTestBase;
+import org.springframework.cloud.kubernetes.config.KubernetesConfigTestBase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,72 +46,91 @@ public class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase 
 		KubernetesClient mockClient = getContext().getBean(KubernetesClient.class);
 
 		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
+				mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
+		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY,
+				"false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("bean.greeting", "Hello ConfigMap, %s!");
 		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME)
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
-						.addToData(data).build())
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
+						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
 				.always();
-		server.expect().withPath("/api/v1/namespaces/spring/configmaps/" + APPLICATION_NAME)
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
-						.addToData(data).build())
+		server.expect()
+				.withPath("/api/v1/namespaces/spring/configmaps/" + APPLICATION_NAME)
+				.andReturn(200, new ConfigMapBuilder().withNewMetadata()
+						.withName(APPLICATION_NAME).endMetadata().addToData(data).build())
 				.always();
 	}
 
 	@Test
 	public void kubernetesConfigReloadDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.reload.enabled=false");
-		assertThat(this.getContext().containsBean("configurationChangeDetector")).isFalse();
-		assertThat(this.getContext().containsBean("configurationUpdateStrategy")).isFalse();
+		assertThat(this.getContext().containsBean("configurationChangeDetector"))
+				.isFalse();
+		assertThat(this.getContext().containsBean("configurationUpdateStrategy"))
+				.isFalse();
 	}
 
 	@Test
 	public void kubernetesConfigReloadWhenKubernetesConfigDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.config.enabled=false");
-		assertThat(this.getContext().containsBean("configurationChangeDetector")).isFalse();
-		assertThat(this.getContext().containsBean("configurationUpdateStrategy")).isFalse();
+		assertThat(this.getContext().containsBean("configurationChangeDetector"))
+				.isFalse();
+		assertThat(this.getContext().containsBean("configurationUpdateStrategy"))
+				.isFalse();
 	}
 
 	@Test
 	public void kubernetesConfigReloadWhenKubernetesDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.enabled=false");
-		assertThat(this.getContext().containsBean("configurationChangeDetector")).isFalse();
-		assertThat(this.getContext().containsBean("configurationUpdateStrategy")).isFalse();
+		assertThat(this.getContext().containsBean("configurationChangeDetector"))
+				.isFalse();
+		assertThat(this.getContext().containsBean("configurationUpdateStrategy"))
+				.isFalse();
 	}
 
 	@Test
 	public void kubernetesReloadEnabled() throws Exception {
-		setup("spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.config.enabled=true",
-				"spring.cloud.kubernetes.secrets.enabled=true", "spring.cloud.kubernetes.reload.enabled=true",
-				"spring.cloud.kubernetes.reload.mode=polling");
-		assertThat(this.getContext().containsBean("configMapPropertySourceLocator")).isTrue();
-		assertThat(this.getContext().containsBean("secretsPropertySourceLocator")).isTrue();
-		assertThat(this.getContext().containsBean("configMapPropertyChangePollingWatcher")).isTrue();
+		setup("spring.cloud.kubernetes.enabled=true",
+				"spring.cloud.kubernetes.config.enabled=true",
+				"spring.cloud.kubernetes.secrets.enabled=true",
+				"spring.cloud.kubernetes.reload.enabled=true");
+		assertThat(this.getContext().containsBean("configMapPropertySourceLocator"))
+				.isTrue();
+		assertThat(this.getContext().containsBean("secretsPropertySourceLocator"))
+				.isTrue();
+		assertThat(this.getContext().containsBean("propertyChangeWatcher")).isTrue();
 	}
 
 	@Test
 	public void kubernetesReloadEnabledButSecretDisabled() throws Exception {
-		setup("spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.config.enabled=true",
-				"spring.cloud.kubernetes.secrets.enabled=false", "spring.cloud.kubernetes.reload.enabled=true",
-				"spring.cloud.kubernetes.reload.mode=polling");
-		assertThat(this.getContext().containsBean("configMapPropertySourceLocator")).isTrue();
-		assertThat(this.getContext().containsBean("secretsPropertySourceLocator")).isFalse();
-		assertThat(this.getContext().containsBean("configMapPropertyChangePollingWatcher")).isTrue();
+		setup("spring.cloud.kubernetes.enabled=true",
+				"spring.cloud.kubernetes.config.enabled=true",
+				"spring.cloud.kubernetes.secrets.enabled=false",
+				"spring.cloud.kubernetes.reload.enabled=true");
+		assertThat(this.getContext().containsBean("configMapPropertySourceLocator"))
+				.isTrue();
+		assertThat(this.getContext().containsBean("secretsPropertySourceLocator"))
+				.isFalse();
+		assertThat(this.getContext().containsBean("propertyChangeWatcher")).isTrue();
 	}
 
 	@Test
 	public void kubernetesReloadEnabledButSecretAndConfigDisabled() throws Exception {
-		setup("spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.config.enabled=false",
-				"spring.cloud.kubernetes.secrets.enabled=false", "spring.cloud.kubernetes.reload.enabled=true");
-		assertThat(this.getContext().containsBean("configMapPropertySourceLocator")).isFalse();
-		assertThat(this.getContext().containsBean("secretsPropertySourceLocator")).isFalse();
+		setup("spring.cloud.kubernetes.enabled=true",
+				"spring.cloud.kubernetes.config.enabled=false",
+				"spring.cloud.kubernetes.secrets.enabled=false",
+				"spring.cloud.kubernetes.reload.enabled=true");
+		assertThat(this.getContext().containsBean("configMapPropertySourceLocator"))
+				.isFalse();
+		assertThat(this.getContext().containsBean("secretsPropertySourceLocator"))
+				.isFalse();
 		assertThat(this.getContext().containsBean("propertyChangeWatcher")).isFalse();
 	}
 
