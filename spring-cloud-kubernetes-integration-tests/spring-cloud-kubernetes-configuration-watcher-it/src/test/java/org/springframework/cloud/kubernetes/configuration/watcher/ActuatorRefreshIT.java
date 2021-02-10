@@ -59,7 +59,7 @@ public class ActuatorRefreshIT {
 
 	private static final String IMAGE = "spring-cloud-kubernetes-configuration-watcher";
 
-	private static final String IMAGE_TAG = "2.0.0-SNAPSHOT";
+	private static final String IMAGE_TAG = "2.0.1-SNAPSHOT";
 
 	private static final String LOCAL_REPO = "docker.io/springcloud";
 
@@ -142,10 +142,10 @@ public class ActuatorRefreshIT {
 
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
 				"metadata.name=" + SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, null, null, null, null, null, null,
-				null, null);
+				null, null, null);
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
 				"metadata.name=" + CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null,
-				null);
+				null, null);
 		api.deleteNamespacedService(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
 				null);
 		api.deleteNamespacedService(CONFIG_WATCHER_WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);

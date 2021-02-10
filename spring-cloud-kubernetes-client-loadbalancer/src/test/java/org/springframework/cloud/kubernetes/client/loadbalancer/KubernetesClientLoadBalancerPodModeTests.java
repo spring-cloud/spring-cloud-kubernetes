@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
@@ -38,11 +37,9 @@ import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerD
 import org.springframework.cloud.loadbalancer.blocking.client.BlockingLoadBalancerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -63,12 +60,12 @@ import static org.mockito.Mockito.when;
 public class KubernetesClientLoadBalancerPodModeTests {
 
 	@Autowired
-	private TestRestTemplate rest;
+	private RestTemplate restTemplate;
 
 	@Test
 	public void testLoadBalancer() {
-		ResponseEntity<String> map = rest.getForEntity("/servicea", String.class);
-		assertThat(map.getStatusCode()).isEqualTo(HttpStatus.OK);
+		String resp = restTemplate.getForObject("http://servicea-wiremock", String.class);
+		assertThat(resp).isEqualTo("hello");
 	}
 
 	@RestController
@@ -112,11 +109,6 @@ public class KubernetesClientLoadBalancerPodModeTests {
 		@LoadBalanced
 		RestTemplate restTemplate() {
 			return new RestTemplateBuilder().build();
-		}
-
-		@GetMapping("/servicea")
-		public String greeting() {
-			return restTemplate().getForObject("http://servicea-wiremock", String.class);
 		}
 
 	}

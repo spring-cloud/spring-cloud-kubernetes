@@ -93,7 +93,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 			SharedIndexInformer<V1Secret> configMapInformer = factory.sharedIndexInformerFor(
 					(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(
 							kubernetesClientProperties.getNamespace(), null, null, null, null, null, null,
-							params.resourceVersion, params.timeoutSeconds, params.watch, null),
+							params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
 					V1Secret.class, V1SecretList.class);
 			configMapInformer.addEventHandler(new ResourceEventHandler<V1Secret>() {
 				@Override
