@@ -54,30 +54,7 @@ public class ActuatorRefreshKafkaIT {
 
 	private Log log = LogFactory.getLog(getClass());
 
-	private static final String KIND_REPO_HOST_PORT = "localhost:5000";
-
-	private static final String KIND_REPO_URL = "http://" + KIND_REPO_HOST_PORT;
-
-	private static final String CONFIG_WATCHER_IMAGE = "spring-cloud-kubernetes-configuration-watcher";
-
 	private static final String CONFIG_WATCHER_IT_IMAGE = "spring-cloud-kubernetes-configuration-watcher-it";
-
-	private static final String IMAGE_TAG = "2.0.0-SNAPSHOT";
-
-	private static final String LOCAL_REPO = "docker.io/springcloud";
-
-	private static final String CONFIG_WATCHER_LOCAL_IMAGE = LOCAL_REPO + "/" + CONFIG_WATCHER_IMAGE + ":" + IMAGE_TAG;
-
-	private static final String CONFIG_WATCHER_IT_LOCAL_IMAGE = LOCAL_REPO + "/" + CONFIG_WATCHER_IT_IMAGE + ":"
-			+ IMAGE_TAG;
-
-	private static final String CONFIG_WATCHER_KIND_IMAGE = KIND_REPO_HOST_PORT + "/" + CONFIG_WATCHER_IMAGE;
-
-	private static final String CONFIG_WATCHER_IT_KIND_IMAGE = KIND_REPO_HOST_PORT + "/" + CONFIG_WATCHER_IT_IMAGE;
-
-	private static final String CONFIG_WATCHER_KIND_IMAGE_WITH_TAG = CONFIG_WATCHER_KIND_IMAGE + ":" + IMAGE_TAG;
-
-	private static final String CONFIG_WATCHER_IT_KIND_IMAGE_WITH_TAG = CONFIG_WATCHER_IT_KIND_IMAGE + ":" + IMAGE_TAG;
 
 	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME = "spring-cloud-kubernetes-configuration-watcher-deployment";
 
@@ -151,8 +128,8 @@ public class ActuatorRefreshKafkaIT {
 
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
-		await().timeout(Duration.ofSeconds(60))
-			.until(() -> rest.getForEntity("http://localhost:80/it", String.class).getStatusCode().is2xxSuccessful());
+		await().timeout(Duration.ofSeconds(60)).until(
+				() -> rest.getForEntity("http://localhost:80/it", String.class).getStatusCode().is2xxSuccessful());
 		// Wait a bit before we verify
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(90)).until(() -> {
 			Boolean value = rest.getForObject("http://localhost:80/it", Boolean.class);

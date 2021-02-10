@@ -120,7 +120,7 @@ public class LoadBalancerIT {
 	private void cleanup() throws ApiException {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
 				"metadata.name=" + SPRING_CLOUD_K8S_LOADBALANCER_DEPLOYMENT_NAME, null, null, null, null, null, null,
-				null, null);
+				null, null, null);
 		api.deleteNamespacedService(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME, NAMESPACE, null, null, null, null, null,
 				null);
 		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
@@ -159,7 +159,7 @@ public class LoadBalancerIT {
 	@After
 	public void after() throws Exception {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null);
+				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
 
 		api.deleteNamespacedService(WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
 		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE, null, null, null, null, null, null);

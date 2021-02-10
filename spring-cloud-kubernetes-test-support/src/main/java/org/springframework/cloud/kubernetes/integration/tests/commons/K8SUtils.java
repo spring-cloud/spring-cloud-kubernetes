@@ -139,7 +139,7 @@ public class K8SUtils {
 
 	public boolean isEndpointReady(String name, String namespace) throws ApiException {
 		V1EndpointsList endpoints = api.listNamespacedEndpoints(namespace, null, null, null, "metadata.name=" + name,
-				null, null, null, null, null);
+				null, null, null, null, null, null);
 		if (endpoints.getItems().isEmpty()) {
 			fail("no endpoints for " + name);
 		}
@@ -154,7 +154,7 @@ public class K8SUtils {
 
 	public boolean isReplicationControllerReady(String name, String namespace) throws ApiException {
 		V1ReplicationControllerList controllerList = api.listNamespacedReplicationController(namespace, null, null,
-				null, "metadata.name=" + name, null, null, null, null, null);
+				null, "metadata.name=" + name, null, null, null, null, null, null);
 		if (controllerList.getItems().size() < 1) {
 			fail("Replication controller with name " + name + "could not be found");
 		}
@@ -188,7 +188,7 @@ public class K8SUtils {
 
 	public boolean isDeployentReady(String deploymentName, String namespace) throws ApiException {
 		V1DeploymentList deployments = appsApi.listNamespacedDeployment(namespace, null, null, null,
-				"metadata.name=" + deploymentName, null, null, null, null, null);
+				"metadata.name=" + deploymentName, null, null, null, null, null, null);
 		if (deployments.getItems().size() < 1) {
 			fail("No deployments with the name " + deploymentName);
 		}

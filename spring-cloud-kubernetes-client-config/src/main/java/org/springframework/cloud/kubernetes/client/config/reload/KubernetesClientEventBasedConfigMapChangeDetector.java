@@ -94,7 +94,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 			SharedIndexInformer<V1ConfigMap> configMapInformer = factory.sharedIndexInformerFor(
 					(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(
 							kubernetesClientProperties.getNamespace(), null, null, null, null, null, null,
-							params.resourceVersion, params.timeoutSeconds, params.watch, null),
+							params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
 					V1ConfigMap.class, V1ConfigMapList.class);
 			configMapInformer.addEventHandler(new ResourceEventHandler<V1ConfigMap>() {
 				@Override
