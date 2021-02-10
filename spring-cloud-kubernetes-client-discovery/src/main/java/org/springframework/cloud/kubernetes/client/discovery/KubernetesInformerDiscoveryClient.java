@@ -130,7 +130,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 			}
 			V1EndpointPort port = subset.getPorts() != null && subset.getPorts().size() == 1 ? subset.getPorts().get(0)
 					: subset.getPorts().stream()
-							.filter(p -> this.properties.getPrimaryPortName().equalsIgnoreCase(p.getName())).findFirst()
+							.filter(p -> p.getName().equalsIgnoreCase(this.properties.getPrimaryPortName())).findFirst()
 							.orElseThrow(IllegalStateException::new);
 			List<V1EndpointAddress> addresses = subset.getAddresses();
 			if (this.properties.isIncludeNotReadyAddresses()
