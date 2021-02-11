@@ -448,10 +448,6 @@ You can specify multiple (exact) file paths in `spring.cloud.kubernetes.config.p
 
 NOTE: You have to provide the full exact path to each property file, because directories are not being recursively parsed.
 
-NOTE:  If you use `spring.cloud.kubernetes.config.paths` or `spring.cloud.kubernetes.secrets.path` the automatic reload
-functionality will not work.  You will need to make a `POST` request to the `/actuator/refresh` endpoint or
-restart/redeploy the application.
-
 .Properties:
 [options="header,footer"]
 |===
@@ -874,46 +870,9 @@ The Kubernetes health indicator (which is part of the core module) exposes the f
 * Pod name, IP address, namespace, service account, node name, and its IP address
 * A flag that indicates whether the Spring Boot application is internal or external to Kubernetes
 
-== Info Contributor
-
-Spring Cloud Kubernetes includes an `InfoContributor` which adds Pod information to
-Spring Boot's `/info` Acturator endpoint.
-
-You can disable this `InfoContributor` by setting `management.info.kubernetes.enabled`
-to `false` in `bootstrap.[properties | yaml]`.
-
 == Leader Election
 
 <TBD>
-
-== LoadBalancer for Kubernetes
-This project includes Spring Cloud Load Balancer for load balancing based on Kubernetes Endpoints and provides implementation of load balancer based on Kubernetes Service.
-To include it to your project add the following dependency.
-====
-[source,xml]
-----
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-loadbalancer</artifactId>
-</dependency>
-----
-====
-
-To enable load balancing based on Kubernetes Service name use the following property. Then load balancer would try to call application using address, for example `service-a.default.svc.cluster.local`
-====
-[source]
-----
-spring.cloud.kubernetes.loadbalancer.mode=SERVICE
-----
-====
-
-To enabled load balancing across all namespaces use the following property. Property from `spring-cloud-kubernetes-discovery` module is respected.
-====
-[source]
-----
-spring.cloud.kubernetes.discovery.all-namespaces=true
-----
-====
 
 == Security Configurations Inside Kubernetes
 
@@ -1031,7 +990,7 @@ To see the list of all Sleuth related configuration properties please check link
 
 == Building
 
-:jdkversion: 1.8
+:jdkversion: 1.7
 
 === Basic Compile and Test
 
