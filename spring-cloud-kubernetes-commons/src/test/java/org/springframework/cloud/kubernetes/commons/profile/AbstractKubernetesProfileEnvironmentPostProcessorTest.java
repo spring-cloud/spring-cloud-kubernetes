@@ -43,6 +43,8 @@ public class AbstractKubernetesProfileEnvironmentPostProcessorTest {
 
 	private static final String FOUNT_IT = "foundIt";
 
+	private static final String PATH = "/some/path";
+
 	private MockedStatic<Paths> paths;
 
 	private MockedStatic<Files> files;
@@ -77,8 +79,10 @@ public class AbstractKubernetesProfileEnvironmentPostProcessorTest {
 		files.close();
 	}
 
-	/*
+	/**
+	 * <pre>
 	 * 1) "spring.cloud.kubernetes.enabled" is false; thus nothing happens
+	 * </pre>
 	 */
 	@Test
 	public void testKubernetesDisabled() {
@@ -90,16 +94,17 @@ public class AbstractKubernetesProfileEnvironmentPostProcessorTest {
 
 	}
 
-	/*
-	 * 1) "spring.cloud.kubernetes.enabled" is true 2)
-	 * "spring.cloud.kubernetes.client.serviceAccountNamespacePath" is present, but does
-	 * not resolve to an actual File
+	/**
+	 * <pre>
+	 * 1) "spring.cloud.kubernetes.enabled" is true
+	 * 2) "spring.cloud.kubernetes.client.serviceAccountNamespacePath" is present, but does not resolve to an actual File
+	 * </pre>
 	 */
 	@Test
 	public void testKubernetesEnabledAndServiceAccountNamespacePathIsNotResolved() {
 		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(context, "spring.cloud.kubernetes.enabled=true",
-				"spring.cloud.kubernetes.client.serviceAccountNamespacePath=/some/path");
-		serviceAccountFileResolved(false, "/some/path");
+				"spring.cloud.kubernetes.client.serviceAccountNamespacePath=" + PATH);
+		serviceAccountFileResolved(false, PATH);
 		POST_PROCESSOR_INSIDE.postProcessEnvironment(context.getEnvironment(), springApplication);
 
 		assertKubernetesProfilePresent();
@@ -107,17 +112,18 @@ public class AbstractKubernetesProfileEnvironmentPostProcessorTest {
 
 	}
 
-	/*
-	 * 1) "spring.cloud.kubernetes.enabled" is true 2)
-	 * "spring.cloud.kubernetes.client.serviceAccountNamespacePath" is present and
-	 * resolves to an actual File
+	/**
+	 * <pre>
+	 * 1) "spring.cloud.kubernetes.enabled" is true
+	 * 2) "spring.cloud.kubernetes.client.serviceAccountNamespacePath" is present and resolves to an actual File
+	 * </pre>
 	 */
 	@Test
 	public void testKubernetesEnabledAndServiceAccountNamespacePathIsResolved() {
 		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(context, "spring.cloud.kubernetes.enabled=true",
-				"spring.cloud.kubernetes.client.serviceAccountNamespacePath=/some/path");
+				"spring.cloud.kubernetes.client.serviceAccountNamespacePath=" + PATH);
 
-		Path path = serviceAccountFileResolved(true, "/some/path");
+		Path path = serviceAccountFileResolved(true, PATH);
 		mockServiceAccountNamespace(path);
 
 		POST_PROCESSOR_INSIDE.postProcessEnvironment(context.getEnvironment(), springApplication);
@@ -127,11 +133,12 @@ public class AbstractKubernetesProfileEnvironmentPostProcessorTest {
 
 	}
 
-	/*
-	 * 1) "spring.cloud.kubernetes.enabled" is true 2)
-	 * "spring.cloud.kubernetes.client.serviceAccountNamespacePath" is not present, as
-	 * such: 3) "/var/run/secrets/kubernetes.io/serviceaccount/namespace" is picked up,
-	 * which is resolved and present
+	/**
+	 * <pre>
+	 * 1) "spring.cloud.kubernetes.enabled" is true
+	 * 2) "spring.cloud.kubernetes.client.serviceAccountNamespacePath" is not present, as such:
+	 * 3) "/var/run/secrets/kubernetes.io/serviceaccount/namespace" is picked up, which is resolved and present
+	 * </pre>
 	 */
 	@Test
 	public void testKubernetesEnabledAndServiceAccountNamespacePathIsResolvedViaDefaultLocation() {
@@ -146,11 +153,13 @@ public class AbstractKubernetesProfileEnvironmentPostProcessorTest {
 		assertKubernetesPropertySourcePresent();
 	}
 
-	/*
-	 * 1) "spring.cloud.kubernetes.enabled" is true 2) isInsideKubernetes returns false 3)
-	 * "spring.cloud.kubernetes.client.serviceAccountNamespacePath" is not present, as
-	 * such: 4) "/var/run/secrets/kubernetes.io/serviceaccount/namespace" is picked up,
-	 * which is resolved and present
+	/**
+	 * <pre>
+	 * 1) "spring.cloud.kubernetes.enabled" is true
+	 * 2) isInsideKubernetes returns false
+	 * 3) "spring.cloud.kubernetes.client.serviceAccountNamespacePath" is not present, as such:
+	 * 4) "/var/run/secrets/kubernetes.io/serviceaccount/namespace" is picked up, which is resolved and present
+	 * </pre>
 	 */
 	@Test
 	public void testOutsideKubernetes() {
@@ -169,49 +178,49 @@ public class AbstractKubernetesProfileEnvironmentPostProcessorTest {
 	 * 'kubernetes' profile is not present
 	 */
 	private void assertKubernetesProfileNotPresent() {
-		long profile = Arrays.stream(context.getEnvironment().getActiveProfiles()).filter("kubernetes"::equals).count();
-		Assert.assertEquals("'kubernetes' profile must not be present when 'spring.cloud.kubernetes.enabled' is false",
-				0, profile);
+		Assert.assertFalse("'kubernetes' profile must not be present when 'spring.cloud.kubernetes.enabled' is false",
+				kubernetesProfile().isPresent());
 	}
 
 	/*
 	 * 'kubernetes' profile is present
 	 */
 	private void assertKubernetesProfilePresent() {
-		long profile = Arrays.stream(context.getEnvironment().getActiveProfiles()).filter("kubernetes"::equals).count();
-		Assert.assertEquals("'kubernetes' profile must be present when 'spring.cloud.kubernetes.enabled' is true", 1,
-				profile);
+		Assert.assertTrue("'kubernetes' profile must be present when 'spring.cloud.kubernetes.enabled' is true",
+				kubernetesProfile().isPresent());
 	}
 
 	/*
 	 * 'KUBERNETES_NAMESPACE_PROPERTY_SOURCE' source is not present
 	 */
 	private void assertKubernetesPropertySourceNotPresent() {
-		Optional<PropertySource<?>> propertySource = context.getEnvironment().getPropertySources().stream()
-			.filter(x -> "KUBERNETES_NAMESPACE_PROPERTY_SOURCE".equals(x.getName())).findAny();
+		Optional<PropertySource<?>> kubernetesPropertySource = kubernetesPropertySource();
 
 		Assert.assertFalse(
 				"'KUBERNETES_NAMESPACE_PROPERTY_SOURCE' source must not be present when 'spring.cloud.kubernetes.enabled' is false",
-				propertySource.isPresent());
+				kubernetesPropertySource.isPresent());
 	}
 
 	/*
 	 * 'KUBERNETES_NAMESPACE_PROPERTY_SOURCE' source is present
 	 */
 	private void assertKubernetesPropertySourcePresent() {
-		Optional<PropertySource<?>> propertySource = context.getEnvironment().getPropertySources().stream()
-				.filter(x -> "KUBERNETES_NAMESPACE_PROPERTY_SOURCE".equals(x.getName())).findAny();
 
+		Optional<PropertySource<?>> kubernetesPropertySource = kubernetesPropertySource();
 		Assert.assertTrue(
 				"'KUBERNETES_NAMESPACE_PROPERTY_SOURCE' source must be present when 'spring.cloud.kubernetes.enabled' is true",
-			propertySource.isPresent());
+				kubernetesPropertySource.isPresent());
 
-		String property = (String) propertySource.get().getProperty("spring.cloud.kubernetes.client.namespace");
-		Assert.assertEquals(property, FOUNT_IT);
+		String property = (String) kubernetesPropertySource.get()
+				.getProperty("spring.cloud.kubernetes.client.namespace");
+		Assert.assertEquals("'spring.cloud.kubernetes.client.namespace' must be set to 'foundIt'", property, FOUNT_IT);
 	}
 
-	/*
-	 * serviceAccountNamespace File is resolved or not
+	/**
+	 * <pre>
+	 * 1) serviceAccountNamespace File is present or not
+	 * 2) if the above is present, under what actualPath
+	 * </pre>
 	 */
 	private Path serviceAccountFileResolved(boolean present, String actualPath) {
 		Path path = Mockito.mock(Path.class);
@@ -225,6 +234,15 @@ public class AbstractKubernetesProfileEnvironmentPostProcessorTest {
 	 */
 	private void mockServiceAccountNamespace(Path path) {
 		files.when(() -> Files.readAllBytes(path)).thenReturn(FOUNT_IT.getBytes());
+	}
+
+	private Optional<String> kubernetesProfile() {
+		return Arrays.stream(context.getEnvironment().getActiveProfiles()).filter("kubernetes"::equals).findFirst();
+	}
+
+	private Optional<PropertySource<?>> kubernetesPropertySource() {
+		return context.getEnvironment().getPropertySources().stream()
+				.filter(x -> "KUBERNETES_NAMESPACE_PROPERTY_SOURCE".equals(x.getName())).findAny();
 	}
 
 }
