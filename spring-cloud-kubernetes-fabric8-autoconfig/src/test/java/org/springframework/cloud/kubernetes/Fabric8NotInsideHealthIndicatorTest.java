@@ -65,6 +65,12 @@ public class Fabric8NotInsideHealthIndicatorTest {
 	@AfterAll
 	public static void afterClass() {
 		server.after();
+		System.clearProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY);
+		System.clearProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY);
+		System.clearProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY);
+		System.clearProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY);
+		System.clearProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY);
+		System.clearProperty(Config.KUBERNETES_HTTP2_DISABLE);
 	}
 
 	@Test
@@ -75,7 +81,14 @@ public class Fabric8NotInsideHealthIndicatorTest {
 	}
 
 	/**
-	 * kubernetes={ status=UP, details={ inside=false } }
+	 * <pre>
+	 * 		"kubernetes":{
+	 * 	    	"status":"UP",
+	 * 	    	"details":{
+	 * 	        	"inside":"false"
+	 * 	        }
+	 * 	     }
+	 * </pre>
 	 */
 	@SuppressWarnings("unchecked")
 	private void validateKubernetes(String input) {
