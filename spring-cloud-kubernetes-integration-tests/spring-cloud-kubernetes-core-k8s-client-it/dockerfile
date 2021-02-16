@@ -1,0 +1,8 @@
+FROM bellsoft/liberica-openjdk-alpine
+RUN apk update
+RUN apk add curl
+RUN apk add fish
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]
+

@@ -1,0 +1,146 @@
+[INFO] Scanning for projects...
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for org.springframework.cloud:spring-cloud-kubernetes-commons:jar:2.0.100-SNAPSHOT
+[WARNING] 'build.plugins.plugin.version' for org.codehaus.mojo:flatten-maven-plugin is missing. @ org.springframework.cloud:spring-cloud-kubernetes:2.0.2-SNAPSHOT, /Users/erabii784/Documents/personal/spring/spring-cloud-kubernetes/pom.xml, line 182, column 12
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[INFO] 
+[INFO] -----< org.springframework.cloud:spring-cloud-kubernetes-commons >------
+[INFO] Building spring-cloud-kubernetes-commons 2.0.100-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ spring-cloud-kubernetes-commons ---
+[INFO] org.springframework.cloud:spring-cloud-kubernetes-commons:jar:2.0.100-SNAPSHOT
+[INFO] +- org.springframework.boot:spring-boot-autoconfigure:jar:2.4.3-SNAPSHOT:compile
+[INFO] |  \- org.springframework.boot:spring-boot:jar:2.4.3-SNAPSHOT:compile
+[INFO] |     +- org.springframework:spring-core:jar:5.3.4-SNAPSHOT:compile
+[INFO] |     |  \- org.springframework:spring-jcl:jar:5.3.4-SNAPSHOT:compile
+[INFO] |     \- (org.springframework:spring-context:jar:5.3.4-SNAPSHOT:compile - version managed from 5.3.3; omitted for duplicate)
+[INFO] +- org.springframework.cloud:spring-cloud-commons:jar:3.0.2-SNAPSHOT:compile
+[INFO] |  \- org.springframework.security:spring-security-crypto:jar:5.4.2:compile
+[INFO] +- org.springframework.boot:spring-boot-actuator-autoconfigure:jar:2.4.3-SNAPSHOT:compile
+[INFO] |  +- org.springframework.boot:spring-boot-actuator:jar:2.4.3-SNAPSHOT:compile
+[INFO] |  |  \- (org.springframework.boot:spring-boot:jar:2.4.3-SNAPSHOT:compile - omitted for duplicate)
+[INFO] |  +- (org.springframework.boot:spring-boot:jar:2.4.3-SNAPSHOT:compile - omitted for duplicate)
+[INFO] |  +- (org.springframework.boot:spring-boot-autoconfigure:jar:2.4.3-SNAPSHOT:compile - omitted for conflict with 2.4.3-20210212.145506-56)
+[INFO] |  +- com.fasterxml.jackson.core:jackson-databind:jar:2.11.4:runtime
+[INFO] |  |  +- com.fasterxml.jackson.core:jackson-annotations:jar:2.11.4:runtime
+[INFO] |  |  \- com.fasterxml.jackson.core:jackson-core:jar:2.11.4:runtime
+[INFO] |  \- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.11.4:runtime
+[INFO] |     +- (com.fasterxml.jackson.core:jackson-annotations:jar:2.11.4:runtime - omitted for duplicate)
+[INFO] |     +- (com.fasterxml.jackson.core:jackson-core:jar:2.11.4:runtime - omitted for duplicate)
+[INFO] |     \- (com.fasterxml.jackson.core:jackson-databind:jar:2.11.4:runtime - omitted for duplicate)
+[INFO] +- org.springframework.boot:spring-boot-configuration-processor:jar:2.4.3-SNAPSHOT:compile
+[INFO] +- org.springframework.integration:spring-integration-core:jar:5.4.3:compile
+[INFO] |  +- org.springframework:spring-aop:jar:5.3.4-SNAPSHOT:compile
+[INFO] |  |  +- org.springframework:spring-beans:jar:5.3.4-SNAPSHOT:compile
+[INFO] |  |  |  \- (org.springframework:spring-core:jar:5.3.4-SNAPSHOT:compile - omitted for duplicate)
+[INFO] |  |  \- (org.springframework:spring-core:jar:5.3.4-SNAPSHOT:compile - omitted for duplicate)
+[INFO] |  +- org.springframework:spring-context:jar:5.3.4-SNAPSHOT:compile
+[INFO] |  |  +- (org.springframework:spring-aop:jar:5.3.4-SNAPSHOT:compile - version managed from 5.3.3; omitted for duplicate)
+[INFO] |  |  +- (org.springframework:spring-beans:jar:5.3.4-SNAPSHOT:compile - omitted for duplicate)
+[INFO] |  |  +- (org.springframework:spring-core:jar:5.3.4-SNAPSHOT:compile - omitted for duplicate)
+[INFO] |  |  \- org.springframework:spring-expression:jar:5.3.4-SNAPSHOT:compile
+[INFO] |  |     \- (org.springframework:spring-core:jar:5.3.4-SNAPSHOT:compile - omitted for duplicate)
+[INFO] |  +- org.springframework:spring-messaging:jar:5.3.4-SNAPSHOT:compile (version managed from 5.3.3)
+[INFO] |  |  +- (org.springframework:spring-beans:jar:5.3.4-SNAPSHOT:compile - omitted for duplicate)
+[INFO] |  |  \- (org.springframework:spring-core:jar:5.3.4-SNAPSHOT:compile - omitted for duplicate)
+[INFO] |  +- org.springframework:spring-tx:jar:5.3.4-SNAPSHOT:compile (version managed from 5.3.3)
+[INFO] |  |  +- (org.springframework:spring-beans:jar:5.3.4-SNAPSHOT:compile - omitted for duplicate)
+[INFO] |  |  \- (org.springframework:spring-core:jar:5.3.4-SNAPSHOT:compile - omitted for duplicate)
+[INFO] |  +- org.springframework.retry:spring-retry:jar:1.3.1:compile (version managed from 1.3.0)
+[INFO] |  |  \- (javax.annotation:javax.annotation-api:jar:1.3.2:compile - omitted for duplicate)
+[INFO] |  \- io.projectreactor:reactor-core:jar:3.4.2:compile
+[INFO] |     \- org.reactivestreams:reactive-streams:jar:1.0.3:compile
+[INFO] +- org.springframework.cloud:spring-cloud-loadbalancer:jar:3.0.2-SNAPSHOT:compile
+[INFO] |  +- (org.springframework.cloud:spring-cloud-commons:jar:3.0.2-SNAPSHOT:compile - omitted for conflict with 3.0.2-20210212.160550-36)
+[INFO] |  +- (org.springframework.cloud:spring-cloud-context:jar:3.0.2-SNAPSHOT:compile - omitted for conflict with 3.0.2-20210212.160536-36)
+[INFO] |  +- org.springframework.boot:spring-boot-starter-validation:jar:2.4.3-SNAPSHOT:compile
+[INFO] |  |  +- org.springframework.boot:spring-boot-starter:jar:2.4.3-SNAPSHOT:compile
+[INFO] |  |  |  +- (org.springframework.boot:spring-boot:jar:2.4.3-SNAPSHOT:compile - omitted for duplicate)
+[INFO] |  |  |  +- (org.springframework.boot:spring-boot-autoconfigure:jar:2.4.3-SNAPSHOT:compile - omitted for conflict with 2.4.3-20210212.145506-56)
+[INFO] |  |  |  +- org.springframework.boot:spring-boot-starter-logging:jar:2.4.3-SNAPSHOT:compile
+[INFO] |  |  |  |  +- ch.qos.logback:logback-classic:jar:1.2.3:compile
+[INFO] |  |  |  |  |  +- ch.qos.logback:logback-core:jar:1.2.3:compile
+[INFO] |  |  |  |  |  \- org.slf4j:slf4j-api:jar:1.7.30:compile (version managed from 1.7.25)
+[INFO] |  |  |  |  +- org.apache.logging.log4j:log4j-to-slf4j:jar:2.13.3:compile
+[INFO] |  |  |  |  |  +- (org.slf4j:slf4j-api:jar:1.7.30:compile - version managed from 1.7.25; omitted for duplicate)
+[INFO] |  |  |  |  |  \- org.apache.logging.log4j:log4j-api:jar:2.13.3:compile
+[INFO] |  |  |  |  \- org.slf4j:jul-to-slf4j:jar:1.7.30:compile
+[INFO] |  |  |  |     \- (org.slf4j:slf4j-api:jar:1.7.30:compile - version managed from 1.7.25; omitted for duplicate)
+[INFO] |  |  |  +- jakarta.annotation:jakarta.annotation-api:jar:1.3.5:compile
+[INFO] |  |  |  +- (org.springframework:spring-core:jar:5.3.4-SNAPSHOT:compile - omitted for duplicate)
+[INFO] |  |  |  \- org.yaml:snakeyaml:jar:1.27:compile
+[INFO] |  |  +- org.glassfish:jakarta.el:jar:3.0.3:compile
+[INFO] |  |  \- org.hibernate.validator:hibernate-validator:jar:6.1.7.Final:compile
+[INFO] |  |     +- jakarta.validation:jakarta.validation-api:jar:2.0.2:compile
+[INFO] |  |     +- org.jboss.logging:jboss-logging:jar:3.4.1.Final:compile (version managed from 3.3.2.Final)
+[INFO] |  |     \- com.fasterxml:classmate:jar:1.5.1:compile (version managed from 1.3.4)
+[INFO] |  +- (io.projectreactor:reactor-core:jar:3.4.2:compile - omitted for duplicate)
+[INFO] |  \- io.projectreactor.addons:reactor-extra:jar:3.4.2:compile
+[INFO] |     \- (io.projectreactor:reactor-core:jar:3.4.2:compile - omitted for duplicate)
+[INFO] +- org.springframework.cloud:spring-cloud-context:jar:3.0.2-SNAPSHOT:compile
+[INFO] |  \- (org.springframework.security:spring-security-crypto:jar:5.4.2:compile - omitted for duplicate)
+[INFO] +- javax.annotation:javax.annotation-api:jar:1.3.2:compile
+[INFO] +- org.springframework.boot:spring-boot-starter-test:jar:2.4.3-SNAPSHOT:test
+[INFO] |  +- (org.springframework.boot:spring-boot-starter:jar:2.4.3-SNAPSHOT:compile - scope updated from test; omitted for duplicate)
+[INFO] |  +- org.springframework.boot:spring-boot-test:jar:2.4.3-SNAPSHOT:test
+[INFO] |  |  \- (org.springframework.boot:spring-boot:jar:2.4.3-SNAPSHOT:test - omitted for duplicate)
+[INFO] |  +- org.springframework.boot:spring-boot-test-autoconfigure:jar:2.4.3-SNAPSHOT:test
+[INFO] |  |  +- (org.springframework.boot:spring-boot:jar:2.4.3-SNAPSHOT:test - omitted for duplicate)
+[INFO] |  |  +- (org.springframework.boot:spring-boot-test:jar:2.4.3-SNAPSHOT:test - omitted for duplicate)
+[INFO] |  |  \- (org.springframework.boot:spring-boot-autoconfigure:jar:2.4.3-SNAPSHOT:test - omitted for conflict with 2.4.3-20210212.145506-56)
+[INFO] |  +- com.jayway.jsonpath:json-path:jar:2.4.0:test
+[INFO] |  |  +- net.minidev:json-smart:jar:2.3:test
+[INFO] |  |  |  \- net.minidev:accessors-smart:jar:1.2:test
+[INFO] |  |  |     \- org.ow2.asm:asm:jar:5.0.4:test
+[INFO] |  |  \- (org.slf4j:slf4j-api:jar:1.7.30:compile - version managed from 1.7.25; scope updated from test; omitted for duplicate)
+[INFO] |  +- jakarta.xml.bind:jakarta.xml.bind-api:jar:2.3.3:test
+[INFO] |  |  \- jakarta.activation:jakarta.activation-api:jar:1.2.2:test
+[INFO] |  +- org.assertj:assertj-core:jar:3.18.1:test
+[INFO] |  +- org.hamcrest:hamcrest:jar:2.2:test
+[INFO] |  +- org.junit.jupiter:junit-jupiter:jar:5.7.1:test
+[INFO] |  |  +- org.junit.jupiter:junit-jupiter-api:jar:5.7.1:test
+[INFO] |  |  |  +- (org.apiguardian:apiguardian-api:jar:1.1.0:test - omitted for duplicate)
+[INFO] |  |  |  +- (org.opentest4j:opentest4j:jar:1.2.0:test - omitted for duplicate)
+[INFO] |  |  |  \- (org.junit.platform:junit-platform-commons:jar:1.7.1:test - omitted for duplicate)
+[INFO] |  |  +- org.junit.jupiter:junit-jupiter-params:jar:5.7.1:test
+[INFO] |  |  |  +- (org.apiguardian:apiguardian-api:jar:1.1.0:test - omitted for duplicate)
+[INFO] |  |  |  \- (org.junit.jupiter:junit-jupiter-api:jar:5.7.1:test - omitted for duplicate)
+[INFO] |  |  \- org.junit.jupiter:junit-jupiter-engine:jar:5.7.1:test
+[INFO] |  |     +- (org.apiguardian:apiguardian-api:jar:1.1.0:test - omitted for duplicate)
+[INFO] |  |     +- (org.junit.platform:junit-platform-engine:jar:1.7.1:test - omitted for duplicate)
+[INFO] |  |     \- (org.junit.jupiter:junit-jupiter-api:jar:5.7.1:test - omitted for duplicate)
+[INFO] |  +- org.mockito:mockito-junit-jupiter:jar:3.6.28:test
+[INFO] |  |  \- (org.junit.jupiter:junit-jupiter-api:jar:5.7.1:test - version managed from 5.4.2; omitted for duplicate)
+[INFO] |  +- org.skyscreamer:jsonassert:jar:1.5.0:test
+[INFO] |  |  \- com.vaadin.external.google:android-json:jar:0.0.20131108.vaadin1:test
+[INFO] |  +- (org.springframework:spring-core:jar:5.3.4-SNAPSHOT:compile - scope updated from test; omitted for duplicate)
+[INFO] |  +- (org.springframework:spring-test:jar:5.3.4-SNAPSHOT:test - omitted for conflict with 5.3.4-20210212.111831-68)
+[INFO] |  \- org.xmlunit:xmlunit-core:jar:2.7.0:test
+[INFO] +- org.junit.vintage:junit-vintage-engine:jar:5.7.1:test
+[INFO] |  +- org.apiguardian:apiguardian-api:jar:1.1.0:test
+[INFO] |  +- org.junit.platform:junit-platform-engine:jar:1.7.1:test
+[INFO] |  |  +- (org.apiguardian:apiguardian-api:jar:1.1.0:test - omitted for duplicate)
+[INFO] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[INFO] |  |  \- org.junit.platform:junit-platform-commons:jar:1.7.1:test
+[INFO] |  |     \- (org.apiguardian:apiguardian-api:jar:1.1.0:test - omitted for duplicate)
+[INFO] |  \- junit:junit:jar:4.13.1:test (version managed from 4.13)
+[INFO] |     \- org.hamcrest:hamcrest-core:jar:2.2:test (version managed from 1.3)
+[INFO] |        \- (org.hamcrest:hamcrest:jar:2.2:test - omitted for duplicate)
+[INFO] +- org.mockito:mockito-inline:jar:3.6.28:compile
+[INFO] |  \- org.mockito:mockito-core:jar:3.6.28:compile
+[INFO] |     +- net.bytebuddy:byte-buddy:jar:1.10.20:compile (version managed from 1.10.18)
+[INFO] |     +- net.bytebuddy:byte-buddy-agent:jar:1.10.20:compile (version managed from 1.10.18)
+[INFO] |     \- org.objenesis:objenesis:jar:3.1:compile
+[INFO] \- org.springframework:spring-test:jar:5.3.4-SNAPSHOT:test
+[INFO]    \- (org.springframework:spring-core:jar:5.3.4-SNAPSHOT:compile - scope updated from test; omitted for duplicate)
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.471 s
+[INFO] Finished at: 2021-02-12T14:15:28-05:00
+[INFO] ------------------------------------------------------------------------
