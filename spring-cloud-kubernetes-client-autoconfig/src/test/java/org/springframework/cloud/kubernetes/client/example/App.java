@@ -16,12 +16,26 @@
 
 package org.springframework.cloud.kubernetes.client.example;
 
+import io.kubernetes.client.openapi.ApiClient;
+import okhttp3.OkHttpClient;
+
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author wind57
  */
 @SpringBootApplication
 public class App {
+
+	@Bean
+	public ApiClient apiClient() {
+		ApiClient apiClient = mock(ApiClient.class);
+		when(apiClient.getHttpClient()).thenReturn(new OkHttpClient.Builder().build());
+		return apiClient;
+	}
 
 }

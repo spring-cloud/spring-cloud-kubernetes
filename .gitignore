@@ -63,6 +63,7 @@ hs_err_pid*
 
 # IntelliJ
 /out/
+.DS_Store
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/

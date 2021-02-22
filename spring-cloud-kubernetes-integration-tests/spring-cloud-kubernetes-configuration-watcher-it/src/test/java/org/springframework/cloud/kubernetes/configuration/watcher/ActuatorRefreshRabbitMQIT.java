@@ -52,6 +52,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ActuatorRefreshRabbitMQIT {
+
 	private static final Log LOG = LogFactory.getLog(ActuatorRefreshRabbitMQIT.class);
 
 	private Log log = LogFactory.getLog(getClass());
@@ -122,8 +123,8 @@ public class ActuatorRefreshRabbitMQIT {
 
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
-		await().timeout(Duration.ofSeconds(60))
-			.until(() -> rest.getForEntity("http://localhost:80/it", String.class).getStatusCode().is2xxSuccessful());
+		await().timeout(Duration.ofSeconds(60)).until(
+				() -> rest.getForEntity("http://localhost:80/it", String.class).getStatusCode().is2xxSuccessful());
 
 		// Wait a bit before we verify
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(90)).until(() -> {

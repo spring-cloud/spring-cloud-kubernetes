@@ -56,11 +56,12 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 				if (!StringUtils.hasText(namespace)) {
 
 					// There could technically be more than one, just return the first
-					secret = api.listSecretForAllNamespaces(null, null, null, null, null, null, null, null, null)
+					secret = api.listSecretForAllNamespaces(null, null, null, null, null, null, null, null, null, null)
 							.getItems().stream().filter(s -> name.equals(s.getMetadata().getName())).findFirst();
 				}
 				else {
-					secret = api.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null)
+					secret = api
+							.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
 							.getItems().stream().filter(s -> name.equals(s.getMetadata().getName())).findFirst();
 				}
 
@@ -71,11 +72,11 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 			if (labels != null && !labels.isEmpty()) {
 				if (!StringUtils.hasText(namespace)) {
 					api.listSecretForAllNamespaces(null, null, null, createLabelsSelector(labels), null, null, null,
-							null, null).getItems().forEach(s -> putAll(s, result));
+							null, null, null).getItems().forEach(s -> putAll(s, result));
 				}
 				else {
 					api.listNamespacedSecret(namespace, null, null, null, null, createLabelsSelector(labels), null,
-							null, null, null).getItems().forEach(s -> putAll(s, result));
+							null, null, null, null).getItems().forEach(s -> putAll(s, result));
 				}
 			}
 		}

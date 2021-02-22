@@ -83,7 +83,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId, "[Assertion failed] - the object argument must not be null");
 
-		if (StringUtils.hasText(namespace) && !properties.isAllNamespaces()) {
+		if (!StringUtils.hasText(namespace) && !properties.isAllNamespaces()) {
 			log.warn("Namespace is null or empty, this may cause issues looking up services");
 		}
 
@@ -119,7 +119,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 		V1Endpoints ep = this.endpointsLister.namespace(service.getMetadata().getNamespace())
 				.get(service.getMetadata().getName());
-		if (ep == null) {
+		if (ep == null || ep.getSubsets() == null) {
 			// no available endpoints in the cluster
 			return new ArrayList<>();
 		}
@@ -130,7 +130,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 			}
 			V1EndpointPort port = subset.getPorts() != null && subset.getPorts().size() == 1 ? subset.getPorts().get(0)
 					: subset.getPorts().stream()
-							.filter(p -> this.properties.getPrimaryPortName().equalsIgnoreCase(p.getName())).findFirst()
+							.filter(p -> p.getName().equalsIgnoreCase(this.properties.getPrimaryPortName())).findFirst()
 							.orElseThrow(IllegalStateException::new);
 			List<V1EndpointAddress> addresses = subset.getAddresses();
 			if (this.properties.isIncludeNotReadyAddresses()

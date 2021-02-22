@@ -16,13 +16,8 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.reactive;
 
-import io.kubernetes.client.informer.SharedInformer;
-import io.kubernetes.client.informer.SharedInformerFactory;
-import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.JSON;
-import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1Service;
 import okhttp3.OkHttpClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,31 +64,6 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfigurationTests {
 			when(apiClient.getJSON()).thenReturn(new JSON());
 			when(apiClient.getHttpClient()).thenReturn(new OkHttpClient.Builder().build());
 			return apiClient;
-		}
-
-		@Bean
-		public Lister<V1Service> serviceLister() {
-			return mock(Lister.class);
-		}
-
-		@Bean
-		public Lister<V1Endpoints> endpointsLister() {
-			return mock(Lister.class);
-		}
-
-		@Bean
-		public SharedInformerFactory sharedInformerFactory() {
-			return mock(SharedInformerFactory.class);
-		}
-
-		@Bean
-		public SharedInformer<V1Endpoints> sharedInformerEndpoints() {
-			return mock(SharedInformer.class);
-		}
-
-		@Bean
-		public SharedInformer<V1Service> sharedInformerService() {
-			return mock(SharedInformer.class);
 		}
 
 	}

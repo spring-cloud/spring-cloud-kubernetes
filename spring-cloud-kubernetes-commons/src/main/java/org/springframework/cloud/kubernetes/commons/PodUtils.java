@@ -26,8 +26,8 @@ import java.util.function.Supplier;
 public interface PodUtils<T> {
 
 	/**
-	 * @return A supplier of the currentPod Pod. The supplier will hold the currentPod pod
-	 * if inside Kubernetes or false, otherwise.
+	 * @return A supplier of the currentPod {@link Pod}. The supplier will hold the
+	 * currentPod {@link Pod} if inside Kubernetes or false, otherwise.
 	 */
 	Supplier<T> currentPod();
 
