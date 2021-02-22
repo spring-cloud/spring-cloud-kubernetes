@@ -12,11 +12,17 @@ Starters that begin with
 | Starter | Features
 
 | [source,xml]
+.Fabric8 Dependency
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
 </dependency>
+----
+
+[source,xml]
+.Kubernetes Client Dependency
+----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
@@ -26,11 +32,17 @@ Starters that begin with
 resolves service names to Kubernetes Services.
 
 | [source,xml]
+.Fabric8 Dependency
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-fabric8-config</artifactId>
 </dependency>
+----
+
+[source,xml]
+.Kubernetes Client Dependency
+----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-client-config</artifactId>
@@ -42,11 +54,17 @@ resolves service names to Kubernetes Services.
 Secret changes.
 
 | [source,xml]
+.Fabric8 Dependency
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-fabric8-all</artifactId>
 </dependency>
+----
+
+[source,xml]
+.Kubernetes Client Dependency
+----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>

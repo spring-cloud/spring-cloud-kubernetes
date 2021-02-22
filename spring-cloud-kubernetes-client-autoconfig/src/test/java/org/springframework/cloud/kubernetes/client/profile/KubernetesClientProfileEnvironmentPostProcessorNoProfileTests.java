@@ -16,14 +16,11 @@
 
 package org.springframework.cloud.kubernetes.client.profile;
 
-import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.kubernetes.client.example.App;
 import org.springframework.core.env.Environment;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,27 +29,15 @@ import static org.springframework.cloud.kubernetes.commons.profile.AbstractKuber
 /**
  * @author Ryan Baxter
  */
-@SpringBootTest(classes = { KubernetesClientProfileEnvironmentPostProcessorNoProfileTests.App.class })
+@SpringBootTest(classes = { App.class })
 class KubernetesClientProfileEnvironmentPostProcessorNoProfileTests {
 
 	@Autowired
-	Environment environment;
-
-	@MockBean
-	CoreV1Api coreV1Api;
-
-	@MockBean
-	ApiClient apiClient;
+	private Environment environment;
 
 	@Test
 	void whenNoKubernetesEnvironmentAndNoApiAccessThenNoProfileEnabled() {
-
 		assertThat(environment.getActiveProfiles()).doesNotContain(KUBERNETES_PROFILE);
-	}
-
-	@SpringBootApplication
-	static class App {
-
 	}
 
 }

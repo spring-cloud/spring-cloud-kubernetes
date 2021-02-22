@@ -14,7 +14,11 @@ KIND="${BIN_DIR}/kind"
 
 ISTIOCTL="${BIN_DIR}/istio-1.6.2/bin/istioctl"
 
-MVN_VERSION=$(../mvnw -q \
+CURRENT_DIR="$(pwd)"
+
+MVN="${CURRENT_DIR}/../mvnw"
+
+MVN_VERSION=$($MVN -q \
     -Dexec.executable=echo \
     -Dexec.args='${project.version}' \
     --non-recursive \
@@ -30,12 +34,15 @@ ALL_INTEGRATION_PROJECTS=(
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 
 DEFAULT_PULLING_IMAGES=(
-	"docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${MVN_VERSION}"
+	"jettech/kube-webhook-certgen:v1.2.2"
+	"rabbitmq:3-management"
+	"zookeeper:3.6.2"
+	"rodolpheche/wiremock:2.27.2"
+	"wurstmeister/kafka:2.13-2.6.0"
 )
 PULLING_IMAGES=(${PULLING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
 
-CURRENT_DIR="$(pwd)"
-
+LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}} "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${MVN_VERSION}")
 # cleanup on exit (useful for running locally)
 cleanup() {
     "${KIND}" delete cluster || true
@@ -86,6 +93,15 @@ main() {
     kubectl cluster-info --context kind-kind
 
 	#setup nginx ingress
+	# pulling necessary images for setting up the integration test environment
+	for i in "${PULLING_IMAGES[@]}"; do
+		echo "Pull images for prepping testing environment: $i"
+		docker pull $i
+	done
+	for i in "${LOADING_IMAGES[@]}"; do
+		echo "Loading images into Kind: $i"
+		"${KIND}" load docker-image $i
+	done
 #    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
     kubectl apply -fhttps://raw.githubusercontent.com/kubernetes/ingress-nginx/12150e318b972a03fb49d827e6cabb8ef62247ef/deploy/static/provider/kind/deploy.yaml
     sleep 5 # hold 5 sec so that the pods can be created
@@ -100,23 +116,14 @@ main() {
 	# curl -L https://istio.io/downloadIstio | sh -
 	#"${ISTIOCTL}" install --set profile=demo
 
-	cd $CURRENT_DIR
-
-	# pulling necessary images for setting up the integration test environment
-	for i in "${PULLING_IMAGES[@]}"; do
-		echo "Pull images for prepping testing environment: $i"
-		docker pull $i
-		"${KIND}" load docker-image $i
-	done
-
 	# running tests..
 	for p in "${INTEGRATION_PROJECTS[@]}"; do
 		echo "Running test: $p"
 		cd  $p
-		../../mvnw spring-boot:build-image \
+		${MVN} spring-boot:build-image \
       		-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION}
     	"${KIND}" load docker-image docker.io/springcloud/$p:${MVN_VERSION}
-     	../../mvnw clean install -P it
+     	${MVN} clean install -P it
 		cd ..
 	done
 

@@ -106,7 +106,7 @@ public class KubernetesInformerDiscoveryClientTests {
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false));
 
-		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+		verify(kubernetesDiscoveryProperties, times(2)).isAllNamespaces();
 	}
 
 	@Test
@@ -121,7 +121,7 @@ public class KubernetesInformerDiscoveryClientTests {
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false));
-		verify(kubernetesDiscoveryProperties, times(2)).isAllNamespaces();
+		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 	}
 
 	private Lister<V1Service> setupServiceLister(V1Service... services) {
