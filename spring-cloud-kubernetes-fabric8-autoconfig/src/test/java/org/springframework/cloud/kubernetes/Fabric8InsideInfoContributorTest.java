@@ -47,7 +47,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  *
  * test proper fields being set in /actuator/info
  */
-
 @Import(Fabric8InsideInfoContributorTest.InfoContributorTestConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "management.endpoint.health.show-details=always", "management.info.kubernetes.enabled=false" })
@@ -82,7 +81,6 @@ public class Fabric8InsideInfoContributorTest {
 
 	/**
 	 * <pre>
-	 * {
 	 *   "kubernetes": {
 	 *     "nodeName": "nodeName",
 	 *     "podIp": "10.1.1.1",
@@ -92,7 +90,6 @@ public class Fabric8InsideInfoContributorTest {
 	 *     "serviceAccount": "serviceAccountName",
 	 *     "inside": true
 	 *   }
-	 * }
 	 *  </pre>
 	 */
 	@SuppressWarnings("unchecked")
