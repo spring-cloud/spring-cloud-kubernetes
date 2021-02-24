@@ -133,11 +133,11 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 							.filter(p -> p.getName().equalsIgnoreCase(this.properties.getPrimaryPortName())).findFirst()
 							.orElseThrow(IllegalStateException::new);
 			List<V1EndpointAddress> addresses = subset.getAddresses();
+			if (addresses == null) {
+				addresses = new ArrayList<>();
+			}
 			if (this.properties.isIncludeNotReadyAddresses()
 					&& !CollectionUtils.isEmpty(subset.getNotReadyAddresses())) {
-				if (addresses == null) {
-					addresses = new ArrayList<>();
-				}
 				addresses.addAll(subset.getNotReadyAddresses());
 			}
 
