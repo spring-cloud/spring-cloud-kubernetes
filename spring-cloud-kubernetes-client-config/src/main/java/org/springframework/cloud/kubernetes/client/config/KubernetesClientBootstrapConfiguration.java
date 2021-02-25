@@ -22,8 +22,8 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
@@ -47,17 +47,17 @@ public class KubernetesClientBootstrapConfiguration {
 		@ConditionalOnProperty(name = "spring.cloud.kubernetes.config.enabled", matchIfMissing = true)
 		public KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator(
 				ConfigMapConfigProperties properties, CoreV1Api coreV1Api,
-				KubernetesClientProperties kubernetesClientProperties) {
+				KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 			return new KubernetesClientConfigMapPropertySourceLocator(coreV1Api, properties,
-					kubernetesClientProperties);
+					kubernetesNamespaceProvider);
 		}
 
 		@Bean
 		@ConditionalOnProperty(name = "spring.cloud.kubernetes.secrets.enabled", matchIfMissing = true)
 		public KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator(
 				SecretsConfigProperties properties, CoreV1Api coreV1Api,
-				KubernetesClientProperties kubernetesClientProperties) {
-			return new KubernetesClientSecretsPropertySourceLocator(coreV1Api, kubernetesClientProperties, properties);
+				KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+			return new KubernetesClientSecretsPropertySourceLocator(coreV1Api, kubernetesNamespaceProvider, properties);
 		}
 
 	}

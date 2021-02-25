@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.config;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -35,6 +36,8 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 
 	private KubernetesClientProperties kubernetesClientProperties;
 
+	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
+
 	public KubernetesClientConfigMapPropertySourceLocator(CoreV1Api coreV1Api, ConfigMapConfigProperties properties,
 			KubernetesClientProperties kubernetesClientProperties) {
 		super(properties);
@@ -42,12 +45,21 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 		this.kubernetesClientProperties = kubernetesClientProperties;
 	}
 
+	public KubernetesClientConfigMapPropertySourceLocator(CoreV1Api coreV1Api, ConfigMapConfigProperties properties,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+		super(properties);
+		this.coreV1Api = coreV1Api;
+		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
+	}
+
 	@Override
 	protected MapPropertySource getMapPropertySource(String name,
 			ConfigMapConfigProperties.NormalizedSource normalizedSource, String configurationTarget,
 			ConfigurableEnvironment environment) {
+		String fallbackNamespace = kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
+				: kubernetesClientProperties.getNamespace();
 		return new KubernetesClientConfigMapPropertySource(coreV1Api, name,
-				getNamespace(normalizedSource, kubernetesClientProperties), environment);
+				getNamespace(normalizedSource, fallbackNamespace), environment);
 	}
 
 }

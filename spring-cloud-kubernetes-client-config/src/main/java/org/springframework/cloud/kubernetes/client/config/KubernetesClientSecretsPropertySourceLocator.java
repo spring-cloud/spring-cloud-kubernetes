@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.config;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -36,6 +37,8 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 
 	private KubernetesClientProperties kubernetesClientProperties;
 
+	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
+
 	public KubernetesClientSecretsPropertySourceLocator(CoreV1Api coreV1Api,
 			KubernetesClientProperties kubernetesClientProperties, SecretsConfigProperties secretsConfigProperties) {
 		super(secretsConfigProperties);
@@ -43,12 +46,21 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 		this.kubernetesClientProperties = kubernetesClientProperties;
 	}
 
+	public KubernetesClientSecretsPropertySourceLocator(CoreV1Api coreV1Api,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider, SecretsConfigProperties secretsConfigProperties) {
+		super(secretsConfigProperties);
+		this.coreV1Api = coreV1Api;
+		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
+	}
+
 	@Override
 	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment,
 			SecretsConfigProperties.NormalizedSource normalizedSource, String configurationTarget) {
+		String fallbackNamespace = kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
+				: kubernetesClientProperties.getNamespace();
 		return new KubernetesClientSecretsPropertySource(coreV1Api,
 				getApplicationName(environment, normalizedSource.getName(), configurationTarget),
-				getNamespace(normalizedSource, kubernetesClientProperties), environment, normalizedSource.getLabels());
+				getNamespace(normalizedSource, fallbackNamespace), environment, normalizedSource.getLabels());
 	}
 
 }

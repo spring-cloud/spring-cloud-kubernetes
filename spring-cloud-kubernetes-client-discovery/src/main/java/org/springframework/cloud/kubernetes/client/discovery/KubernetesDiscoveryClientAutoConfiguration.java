@@ -38,7 +38,7 @@ import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,11 +57,21 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	@ConditionalOnBlockingDiscoveryEnabled
 	public static class KubernetesInformerDiscoveryConfiguration {
 
+		// @Bean
+		// @ConditionalOnMissingBean
+		// public KubernetesInformerConfigurer discoveryInformerConfigurer(ApiClient
+		// apiClient,
+		// CatalogSharedInformerFactory sharedInformerFactory) {
+		// return new KubernetesInformerConfigurer(apiClient, sharedInformerFactory);
+		// }
 		@Bean
 		@ConditionalOnMissingBean
-		public KubernetesInformerConfigurer discoveryInformerConfigurer(ApiClient apiClient,
+		public KubernetesInformerConfigurer discoveryInformerConfigurer(
+				KubernetesNamespaceProvider kubernetesNamespaceProvider,
+				KubernetesDiscoveryProperties kubernetesDiscoveryProperties, ApiClient apiClient,
 				CatalogSharedInformerFactory sharedInformerFactory) {
-			return new KubernetesInformerConfigurer(apiClient, sharedInformerFactory);
+			return new SpringCloudKubernetesInformerConfigurer(kubernetesNamespaceProvider,
+					kubernetesDiscoveryProperties, apiClient, sharedInformerFactory);
 		}
 
 		@Bean
@@ -73,11 +83,11 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		@Bean
 		@ConditionalOnMissingBean
 		public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient(
-				KubernetesClientProperties kubernetesClientProperties,
+				KubernetesNamespaceProvider kubernetesNamespaceProvider,
 				CatalogSharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
 				Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
 				SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
-			return new KubernetesInformerDiscoveryClient(kubernetesClientProperties.getNamespace(),
+			return new KubernetesInformerDiscoveryClient(kubernetesNamespaceProvider.getNamespace(),
 					sharedInformerFactory, serviceLister, endpointsLister, serviceInformer, endpointsInformer,
 					properties);
 		}

@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.client.loadbalancer;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
 import org.springframework.context.annotation.Bean;
@@ -34,9 +34,9 @@ public class KubernetesClientLoadBalancerClientConfiguration {
 	@ConditionalOnProperty(name = "spring.cloud.kubernetes.loadbalancer.mode", havingValue = "SERVICE")
 	KubernetesServicesListSupplier kubernetesServicesListSupplier(Environment environment, CoreV1Api coreV1Api,
 			KubernetesClientServiceInstanceMapper mapper, KubernetesDiscoveryProperties discoveryProperties,
-			KubernetesClientProperties kubernetesClientProperties) {
+			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		return new KubernetesClientServicesListSupplier(environment, mapper, discoveryProperties, coreV1Api,
-				kubernetesClientProperties);
+				kubernetesNamespaceProvider);
 	}
 
 }

@@ -44,7 +44,7 @@ import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.mock.env.MockPropertySource;
@@ -143,10 +143,10 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		KubernetesClientConfigMapPropertySourceLocator locator = mock(
 				KubernetesClientConfigMapPropertySourceLocator.class);
 		when(locator.locate(environment)).thenReturn(new MockPropertySource().withProperty("debug", "false"));
-		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
-		kubernetesClientProperties.setNamespace("default");
+		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
+		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 		KubernetesClientEventBasedConfigMapChangeDetector changeDetector = new KubernetesClientEventBasedConfigMapChangeDetector(
-				coreV1Api, environment, new ConfigReloadProperties(), strategy, locator, kubernetesClientProperties);
+				coreV1Api, environment, new ConfigReloadProperties(), strategy, locator, kubernetesNamespaceProvider);
 
 		Thread controllerThread = new Thread(changeDetector::watch);
 		controllerThread.setDaemon(true);

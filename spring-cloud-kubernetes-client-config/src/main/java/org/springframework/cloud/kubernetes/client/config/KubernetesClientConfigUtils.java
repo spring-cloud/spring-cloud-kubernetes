@@ -29,6 +29,7 @@ public final class KubernetesClientConfigUtils {
 	private KubernetesClientConfigUtils() {
 	}
 
+	@Deprecated
 	public static String getNamespace(ConfigMapConfigProperties.NormalizedSource normalizedSource,
 			KubernetesClientProperties kubernetesClientProperties) {
 		if (!StringUtils.hasText(normalizedSource.getNamespace())) {
@@ -39,10 +40,31 @@ public final class KubernetesClientConfigUtils {
 		}
 	}
 
+	@Deprecated
 	public static String getNamespace(SecretsConfigProperties.NormalizedSource normalizedSource,
 			KubernetesClientProperties kubernetesClientProperties) {
 		if (!StringUtils.hasText(normalizedSource.getNamespace())) {
 			return kubernetesClientProperties.getNamespace();
+		}
+		else {
+			return normalizedSource.getNamespace();
+		}
+	}
+
+	public static String getNamespace(ConfigMapConfigProperties.NormalizedSource normalizedSource,
+			String fallbackNamespace) {
+		if (!StringUtils.hasText(normalizedSource.getNamespace())) {
+			return fallbackNamespace;
+		}
+		else {
+			return normalizedSource.getNamespace();
+		}
+	}
+
+	public static String getNamespace(SecretsConfigProperties.NormalizedSource normalizedSource,
+			String fallbackNamespace) {
+		if (!StringUtils.hasText(normalizedSource.getNamespace())) {
+			return fallbackNamespace;
 		}
 		else {
 			return normalizedSource.getNamespace();

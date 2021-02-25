@@ -35,6 +35,7 @@ import org.springframework.cloud.config.client.ConfigClientProperties;
 import org.springframework.cloud.config.client.DiscoveryClientConfigServiceBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -101,6 +102,13 @@ public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 			when(apiClient.getJSON()).thenReturn(new JSON());
 			when(apiClient.getHttpClient()).thenReturn(new OkHttpClient.Builder().build());
 			return apiClient;
+		}
+
+		@Bean
+		public KubernetesNamespaceProvider kubernetesNamespaceProvider() {
+			KubernetesNamespaceProvider provider = mock(KubernetesNamespaceProvider.class);
+			when(provider.getNamespace()).thenReturn("test");
+			return provider;
 		}
 
 		@Bean

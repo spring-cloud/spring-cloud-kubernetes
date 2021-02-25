@@ -34,6 +34,7 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerRequest;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.loadbalancer.blocking.client.BlockingLoadBalancerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
@@ -55,8 +56,7 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = KubernetesClientLoadBalancerPodModeTests.App.class,
-		properties = { "spring.cloud.kubernetes.client.namespace=default" })
+		classes = KubernetesClientLoadBalancerPodModeTests.App.class)
 public class KubernetesClientLoadBalancerPodModeTests {
 
 	@Autowired
@@ -94,6 +94,13 @@ public class KubernetesClientLoadBalancerPodModeTests {
 				e.printStackTrace();
 			}
 			return client;
+		}
+
+		@Bean
+		public KubernetesNamespaceProvider kubernetesNamespaceProvider() {
+			KubernetesNamespaceProvider provider = mock(KubernetesNamespaceProvider.class);
+			when(provider.getNamespace()).thenReturn("test");
+			return provider;
 		}
 
 		@Bean

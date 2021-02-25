@@ -36,6 +36,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
@@ -58,6 +59,9 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 	private KubernetesClientProperties kubernetesClientProperties;
 
+	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
+
+	@Deprecated
 	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
@@ -69,6 +73,18 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		this.kubernetesClientProperties = kubernetesClientProperties;
 	}
 
+	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+		super(environment, properties, strategy);
+		this.propertySourceLocator = propertySourceLocator;
+		this.coreV1Api = coreV1Api;
+		this.factory = new SharedInformerFactory();
+		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
+	}
+
+	@Deprecated
 	public KubernetesClientEventBasedConfigMapChangeDetector(ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
@@ -88,13 +104,18 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		this.factory = new SharedInformerFactory();
 	}
 
+	private String getNamespace() {
+		return kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
+				: kubernetesClientProperties.getNamespace();
+	}
+
 	@PostConstruct
 	public void watch() {
 		if (coreV1Api != null && this.properties.isMonitoringConfigMaps()) {
 			SharedIndexInformer<V1ConfigMap> configMapInformer = factory.sharedIndexInformerFor(
-					(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(
-							kubernetesClientProperties.getNamespace(), null, null, null, null, null, null,
-							params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
+					(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(getNamespace(), null, null,
+							null, null, null, null, params.resourceVersion, null, params.timeoutSeconds, params.watch,
+							null),
 					V1ConfigMap.class, V1ConfigMapList.class);
 			configMapInformer.addEventHandler(new ResourceEventHandler<V1ConfigMap>() {
 				@Override

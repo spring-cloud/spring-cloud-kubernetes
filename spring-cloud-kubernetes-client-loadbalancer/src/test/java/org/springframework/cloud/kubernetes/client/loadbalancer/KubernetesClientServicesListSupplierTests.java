@@ -41,7 +41,7 @@ import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
@@ -53,6 +53,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Ryan Baxter
@@ -112,14 +114,14 @@ class KubernetesClientServicesListSupplierTests {
 	void getList() {
 		MockEnvironment env = new MockEnvironment();
 		env.setProperty(LoadBalancerClientFactory.PROPERTY_NAME, "service1");
-		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
-		kubernetesClientProperties.setNamespace("default");
+		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
+		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties();
 		CoreV1Api coreV1Api = new CoreV1Api();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(
 				new KubernetesLoadBalancerProperties(), kubernetesDiscoveryProperties);
 		KubernetesClientServicesListSupplier listSupplier = new KubernetesClientServicesListSupplier(env, mapper,
-				kubernetesDiscoveryProperties, coreV1Api, kubernetesClientProperties);
+				kubernetesDiscoveryProperties, coreV1Api, kubernetesNamespaceProvider);
 
 		stubFor(get(urlMatching("^/api/v1/namespaces/default/services.*"))
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SERVICE_LIST))));
@@ -141,15 +143,15 @@ class KubernetesClientServicesListSupplierTests {
 	void getListAllNamespaces() {
 		MockEnvironment env = new MockEnvironment();
 		env.setProperty(LoadBalancerClientFactory.PROPERTY_NAME, "service1");
-		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
-		kubernetesClientProperties.setNamespace("default");
+		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
+		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties();
 		kubernetesDiscoveryProperties.setAllNamespaces(true);
 		CoreV1Api coreV1Api = new CoreV1Api();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(
 				new KubernetesLoadBalancerProperties(), kubernetesDiscoveryProperties);
 		KubernetesClientServicesListSupplier listSupplier = new KubernetesClientServicesListSupplier(env, mapper,
-				kubernetesDiscoveryProperties, coreV1Api, kubernetesClientProperties);
+				kubernetesDiscoveryProperties, coreV1Api, kubernetesNamespaceProvider);
 
 		stubFor(get(urlMatching("^/api/v1/services.*"))
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SERVICE_LIST_ALL_NAMESPACE))));

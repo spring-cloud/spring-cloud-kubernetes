@@ -28,6 +28,7 @@ import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
@@ -44,12 +45,28 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 
 	private KubernetesClientProperties kubernetesClientProperties;
 
+	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
+
+	@Deprecated
 	public KubernetesClientServicesListSupplier(Environment environment, KubernetesServiceInstanceMapper mapper,
 			KubernetesDiscoveryProperties discoveryProperties, CoreV1Api coreV1Api,
 			KubernetesClientProperties kubernetesClientProperties) {
 		super(environment, mapper, discoveryProperties);
 		this.coreV1Api = coreV1Api;
 		this.kubernetesClientProperties = kubernetesClientProperties;
+	}
+
+	public KubernetesClientServicesListSupplier(Environment environment, KubernetesServiceInstanceMapper mapper,
+			KubernetesDiscoveryProperties discoveryProperties, CoreV1Api coreV1Api,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+		super(environment, mapper, discoveryProperties);
+		this.coreV1Api = coreV1Api;
+		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
+	}
+
+	private String getNamespace() {
+		return kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
+				: kubernetesClientProperties.getNamespace();
 	}
 
 	@Override
@@ -63,7 +80,7 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 						null, null, null, null, null, null, null).getItems();
 			}
 			else {
-				services = coreV1Api.listNamespacedService(kubernetesClientProperties.getNamespace(), null, null, null,
+				services = coreV1Api.listNamespacedService(getNamespace(), null, null, null,
 						"metadata.name=" + this.getServiceId(), null, null, null, null, null, null).getItems();
 			}
 			services.forEach(service -> result.add(mapper.map(service)));

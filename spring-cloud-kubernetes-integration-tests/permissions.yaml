@@ -9,13 +9,13 @@ items:
         app: integration-test
       name: spring-cloud-kubernetes-serviceaccount
   - apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRoleBinding
+    kind: RoleBinding
     metadata:
       labels:
         app: spring-cloud-kubernetes-core-k8s-client-it
       name: spring-cloud-kubernetes-core-k8s-client-it:view
     roleRef:
-      kind: ClusterRole
+      kind: Role
       apiGroup: rbac.authorization.k8s.io
       name: namespace-reader
     subjects:
@@ -23,9 +23,9 @@ items:
         name: spring-cloud-kubernetes-serviceaccount
         namespace: default
   - apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRole
+    kind: Role
     metadata:
-#      namespace: default
+      namespace: default
       name: namespace-reader
     rules:
       - apiGroups: ["", "extensions", "apps"]

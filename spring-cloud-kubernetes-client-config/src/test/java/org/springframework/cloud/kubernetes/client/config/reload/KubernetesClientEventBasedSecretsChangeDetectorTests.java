@@ -43,7 +43,7 @@ import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.mock.env.MockPropertySource;
@@ -140,10 +140,10 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		when(locator.locate(environment)).thenReturn(new MockPropertySource().withProperty("db-password", "p455w0rd2"));
 		ConfigReloadProperties properties = new ConfigReloadProperties();
 		properties.setMonitoringSecrets(true);
-		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
-		kubernetesClientProperties.setNamespace("default");
+		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
+		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 		KubernetesClientEventBasedSecretsChangeDetector changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(
-				coreV1Api, environment, properties, strategy, locator, kubernetesClientProperties);
+				coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider);
 
 		Thread controllerThread = new Thread(changeDetector::watch);
 		controllerThread.setDaemon(true);

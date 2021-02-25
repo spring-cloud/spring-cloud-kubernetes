@@ -35,6 +35,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
@@ -57,6 +58,9 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	private KubernetesClientProperties kubernetesClientProperties;
 
+	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
+
+	@Deprecated
 	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
@@ -68,6 +72,18 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		this.kubernetesClientProperties = kubernetesClientProperties;
 	}
 
+	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+		super(environment, properties, strategy);
+		this.propertySourceLocator = propertySourceLocator;
+		this.factory = new SharedInformerFactory();
+		this.coreV1Api = coreV1Api;
+		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
+	}
+
+	@Deprecated
 	public KubernetesClientEventBasedSecretsChangeDetector(ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
@@ -87,13 +103,17 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		}
 	}
 
+	private String getNamespace() {
+		return kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
+				: kubernetesClientProperties.getNamespace();
+	}
+
 	@PostConstruct
 	public void watch() {
 		if (coreV1Api != null && this.properties.isMonitoringSecrets()) {
 			SharedIndexInformer<V1Secret> configMapInformer = factory.sharedIndexInformerFor(
-					(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(
-							kubernetesClientProperties.getNamespace(), null, null, null, null, null, null,
-							params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
+					(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(getNamespace(), null, null, null,
+							null, null, null, params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
 					V1Secret.class, V1SecretList.class);
 			configMapInformer.addEventHandler(new ResourceEventHandler<V1Secret>() {
 				@Override
