@@ -16,14 +16,11 @@
 
 package org.springframework.cloud.kubernetes.client.profile;
 
-import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.kubernetes.client.example.App;
 import org.springframework.core.env.Environment;
 
 import static io.kubernetes.client.util.Config.ENV_SERVICE_HOST;
@@ -34,27 +31,15 @@ import static org.springframework.cloud.kubernetes.commons.profile.AbstractKuber
 /**
  * @author Thomas Vitale
  */
-@SpringBootTest(properties = { ENV_SERVICE_HOST + "=10.0.0.1", ENV_SERVICE_PORT + "=80" },
-		classes = { KubernetesClientProfileEnvironmentPostProcessorTests.App.class })
+@SpringBootTest(properties = { ENV_SERVICE_HOST + "=10.0.0.1", ENV_SERVICE_PORT + "=80" }, classes = { App.class })
 class KubernetesClientProfileEnvironmentPostProcessorTests {
 
 	@Autowired
-	Environment environment;
-
-	@MockBean
-	CoreV1Api coreV1Api;
-
-	@MockBean
-	ApiClient apiClient;
+	private Environment environment;
 
 	@Test
 	void whenKubernetesEnvironmentAndNoApiAccessThenProfileEnabled() {
 		assertThat(environment.getActiveProfiles()).contains(KUBERNETES_PROFILE);
-	}
-
-	@SpringBootApplication
-	static class App {
-
 	}
 
 }

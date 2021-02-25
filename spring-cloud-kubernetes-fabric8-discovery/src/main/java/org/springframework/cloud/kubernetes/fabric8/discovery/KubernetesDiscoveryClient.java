@@ -40,6 +40,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import static java.util.stream.Collectors.toMap;
@@ -56,7 +57,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private final KubernetesDiscoveryProperties properties;
 
-	private final DefaultIsServicePortSecureResolver isServicePortSecureResolver;
+	private final ServicePortSecureResolver servicePortSecureResolver;
 
 	private final KubernetesClientServicesFunction kubernetesClientServicesFunction;
 
@@ -72,17 +73,17 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
 
 		this(client, kubernetesDiscoveryProperties, kubernetesClientServicesFunction,
-				new DefaultIsServicePortSecureResolver(kubernetesDiscoveryProperties));
+				new ServicePortSecureResolver(kubernetesDiscoveryProperties));
 	}
 
 	KubernetesDiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
 			KubernetesClientServicesFunction kubernetesClientServicesFunction,
-			DefaultIsServicePortSecureResolver isServicePortSecureResolver) {
+			ServicePortSecureResolver servicePortSecureResolver) {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
 		this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
-		this.isServicePortSecureResolver = isServicePortSecureResolver;
+		this.servicePortSecureResolver = servicePortSecureResolver;
 	}
 
 	public KubernetesClient getClient() {
@@ -152,6 +153,15 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				}
 
 				List<EndpointAddress> addresses = s.getAddresses();
+
+				if (this.properties.isIncludeNotReadyAddresses()
+						&& !CollectionUtils.isEmpty(s.getNotReadyAddresses())) {
+					if (addresses == null) {
+						addresses = new ArrayList<EndpointAddress>();
+					}
+					addresses.addAll(s.getNotReadyAddresses());
+				}
+
 				for (EndpointAddress endpointAddress : addresses) {
 					String instanceId = null;
 					if (endpointAddress.getTargetRef() != null) {
@@ -161,7 +171,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 					EndpointPort endpointPort = findEndpointPort(s);
 					instances.add(new KubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
 							endpointPort.getPort(), endpointMetadata,
-							this.isServicePortSecureResolver.resolve(new DefaultIsServicePortSecureResolver.Input(
+							this.servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(
 									endpointPort.getPort(), service.getMetadata().getName(),
 									service.getMetadata().getLabels(), service.getMetadata().getAnnotations()))));
 				}

@@ -43,11 +43,17 @@ Starters that begin with
 | Starter | Features
 
 | [source,xml]
+.Fabric8 Dependency
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
 </dependency>
+----
+
+[source,xml]
+.Kubernetes Client Dependency
+----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
@@ -57,11 +63,17 @@ Starters that begin with
 resolves service names to Kubernetes Services.
 
 | [source,xml]
+.Fabric8 Dependency
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-fabric8-config</artifactId>
 </dependency>
+----
+
+[source,xml]
+.Kubernetes Client Dependency
+----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-client-config</artifactId>
@@ -73,11 +85,17 @@ resolves service names to Kubernetes Services.
 Secret changes.
 
 | [source,xml]
+.Fabric8 Dependency
 ----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-fabric8-all</artifactId>
 </dependency>
+----
+
+[source,xml]
+.Kubernetes Client Dependency
+----
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
@@ -150,6 +168,16 @@ You can choose to enable `DiscoveryClient` from all namespaces by setting the fo
 ----
 spring.cloud.kubernetes.discovery.all-namespaces=true
 ----
+====
+
+To discover service endpoint addresses that are not marked as "ready" by the kubernetes api server, you can set the following property in `application.properties` (default: false):
+
+====
+[source]
+----
+spring.cloud.kubernetes.discovery.include-not-ready-addresses=true
+----
+NOTE: This might be useful when discovering services for monitoring purposes, and would enable inspecting the `/health` endpoint of not-ready service instances.
 ====
 
 If, for any reason, you need to disable the `DiscoveryClient`, you can set the following property in `application.properties`:
@@ -821,8 +849,36 @@ You can disable this `InfoContributor` by setting `management.info.kubernetes.en
 to `false` in `bootstrap.[properties | yaml]`.
 
 == Leader Election
+The Spring Cloud Kubernetes leader election mechanism implements the leader election API of Spring Integration using a Kubernetes ConfigMap.
 
-<TBD>
+Multiple application instances compete for leadership, but leadership will only be granted to one.
+When granted leadership, a leader application receives an `OnGrantedEvent` application event with leadership `Context`.
+Applications periodically attempt to gain leadership, with leadership granted to the first caller.
+A leader will remain a leader until either it is removed from the cluster, or it yields its leadership.
+When leadership removal occurs, the previous leader receives `OnRevokedEvent` application event.
+After removal, any instances in the cluster may become the new leader, including the old leader.
+
+To include it in your project, add the following dependency.
+====
+Fabric8 Leader Implementation
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-kubernetes-fabric8-leader</artifactId>
+</dependency>
+----
+====
+
+====
+
+To specify the name of the configmap used for leader election use the following property.
+====
+[source]
+----
+spring.cloud.kubernetes.leader.config-map-name=leader
+----
+====
 
 == LoadBalancer for Kubernetes
 This project includes Spring Cloud Load Balancer for load balancing based on Kubernetes Endpoints and provides implementation of load balancer based on Kubernetes Service.
@@ -1039,7 +1095,7 @@ items:
           serviceAccount: spring-cloud-kubernetes-configuration-watcher
           containers:
           - name: spring-cloud-kubernetes-configuration-watcher
-            image: springcloud/spring-cloud-kubernetes-configuration-watcher:2.0.0-SNAPSHOT
+            image: springcloud/spring-cloud-kubernetes-configuration-watcher:2.0.1-SNAPSHOT
             imagePullPolicy: IfNotPresent
             readinessProbe:
               httpGet:

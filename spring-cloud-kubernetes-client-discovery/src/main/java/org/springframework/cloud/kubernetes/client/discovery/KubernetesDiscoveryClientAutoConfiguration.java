@@ -24,10 +24,11 @@ import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceList;
-import io.kubernetes.client.spring.extended.controller.KubernetesInformerFactoryProcessor;
+import io.kubernetes.client.spring.extended.controller.KubernetesInformerConfigurer;
 import io.kubernetes.client.spring.extended.controller.annotation.GroupVersionResource;
 import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformer;
 import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformers;
+import io.kubernetes.client.spring.extended.controller.config.KubernetesInformerAutoConfiguration;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -44,7 +45,10 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesDiscoveryEnabled
-@AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
+@AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class,
+		// So that CatalogSharedInformerFactory can be processed in prior to the default
+		// factory
+		KubernetesInformerAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 public class KubernetesDiscoveryClientAutoConfiguration {
@@ -55,8 +59,9 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean
-		public KubernetesInformerFactoryProcessor kubernetesInformerFactoryProcessor() {
-			return new KubernetesInformerFactoryProcessor();
+		public KubernetesInformerConfigurer discoveryInformerConfigurer(ApiClient apiClient,
+				CatalogSharedInformerFactory sharedInformerFactory) {
+			return new KubernetesInformerConfigurer(apiClient, sharedInformerFactory);
 		}
 
 		@Bean

@@ -19,9 +19,9 @@ package org.springframework.cloud.kubernetes;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.server.mock.KubernetesServer;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,14 +42,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 				"spring.cloud.kubernetes.client.proxy-password=myproxypassword" })
 public class Fabric8AutoConfigurationTests {
 
-	@ClassRule
 	public static KubernetesServer server = new KubernetesServer();
 
 	@Autowired
 	ConfigurableApplicationContext context;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
+		server.before();
 		KubernetesClient mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
@@ -59,6 +59,17 @@ public class Fabric8AutoConfigurationTests {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
+	}
+
+	@AfterAll
+	public static void afterClass() {
+		server.after();
+		System.clearProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY);
+		System.clearProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY);
+		System.clearProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY);
+		System.clearProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY);
+		System.clearProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY);
+		System.clearProperty(Config.KUBERNETES_HTTP2_DISABLE);
 	}
 
 	@Test

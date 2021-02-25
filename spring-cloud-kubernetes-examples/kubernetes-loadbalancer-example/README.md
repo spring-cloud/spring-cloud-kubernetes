@@ -5,14 +5,19 @@ As the Spring Cloud LoadBalancer for Kubernetes is configured within this exampl
 
 ### Running the example
 
-This project example runs on ALL the Kubernetes or OpenShift environments, but for development purposes you can use [Minikube - Kubernetes](https://kubernetes.io/docs/getting-started-guides/minikube/) tool
+This project example runs on ALL the Kubernetes or OpenShift environments, but for development purposes you can use [Minikube - Kubernetes](https://minikube.sigs.k8s.io/docs/start/) tool
 to install the platform locally within a virtual machine managed by VirtualBox, Xhyve or KVM, with no fuss.
 
-IMPORTANT: In order for this setup to work, you need to grant permissions to retrieve "pods", "services" and "enpoints" to the serviceaccont that will be used with the greeting-service.
+IMPORTANT: In order for this setup to work, you need to grant permissions to retrieve "pods", "services" and "endpoints" to the serviceaccount that will be used with the greeting-service.
 
 ### Build/Deploy using Minikube
 
 First, create a new virtual machine provisioned with Kubernetes on your laptop using the command `minikube start`.
+
+You also probably want to configure your Docker client to point the minikube Docker daemon with:
+```
+eval $(minikube docker-env)
+```
 
 Next, you can compile your project and generate the Kubernetes resources (yaml files containing the definition of the pod, deployment, build, service and route to be created)
 like also to deploy the application on Kubernetes in one maven line by running:

@@ -53,7 +53,7 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 				}
 			}
 			Map<String, Object> result = new LinkedHashMap<>();
-			coreV1Api.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null)
+			coreV1Api.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null, null)
 					.getItems().stream().filter(cm -> names.contains(cm.getMetadata().getName()))
 					.forEach(map -> result.putAll(processAllEntries(map.getData(), environment)));
 

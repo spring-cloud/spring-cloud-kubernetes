@@ -67,7 +67,7 @@ public abstract class AbstractKubernetesHealthIndicator extends AbstractHealthIn
 	public static final String LABELS = "labels";
 
 	@Override
-	protected void doHealthCheck(Health.Builder builder) throws Exception {
+	protected void doHealthCheck(Health.Builder builder) {
 		try {
 			builder.up().withDetails(getDetails());
 		}

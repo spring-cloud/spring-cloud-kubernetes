@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import org.springframework.cloud.kubernetes.commons.EnvReader;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8PodUtils;
 
 @SuppressWarnings("unchecked")
@@ -69,13 +70,13 @@ public class Fabric8PodUtilsTest {
 
 	private final PodResource<Pod, DoneablePod> podResource = Mockito.mock(PodResource.class);
 
-	private MockedStatic<Fabric8PodUtils.EnvReader> envReader;
+	private MockedStatic<EnvReader> envReader;
 
 	private MockedStatic<Paths> paths;
 
 	@BeforeEach
 	public void before() {
-		envReader = Mockito.mockStatic(Fabric8PodUtils.EnvReader.class);
+		envReader = Mockito.mockStatic(EnvReader.class);
 		paths = Mockito.mockStatic(Paths.class);
 	}
 
@@ -148,11 +149,11 @@ public class Fabric8PodUtilsTest {
 	}
 
 	private void mockHost(String host) {
-		envReader.when(() -> Fabric8PodUtils.EnvReader.getEnv(KUBERNETES_SERVICE_HOST)).thenReturn(host);
+		envReader.when(() -> EnvReader.getEnv(KUBERNETES_SERVICE_HOST)).thenReturn(host);
 	}
 
 	private void mockHostname(String name) {
-		envReader.when(() -> Fabric8PodUtils.EnvReader.getEnv(HOSTNAME)).thenReturn(name);
+		envReader.when(() -> EnvReader.getEnv(HOSTNAME)).thenReturn(name);
 	}
 
 	private void mockTokenPath(boolean result) {

@@ -21,7 +21,6 @@ import java.util.Map;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.server.mock.KubernetesServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -40,8 +39,6 @@ public class Fabric8NotInsideInfoContributorTest {
 
 	public static KubernetesServer server = new KubernetesServer();
 
-	private static KubernetesClient mockClient;
-
 	@Autowired
 	private WebTestClient webClient;
 
@@ -51,7 +48,6 @@ public class Fabric8NotInsideInfoContributorTest {
 	@BeforeAll
 	public static void setUpBeforeClass() {
 		server.before();
-		mockClient = server.getClient();
 	}
 
 	@AfterAll
@@ -65,7 +61,13 @@ public class Fabric8NotInsideInfoContributorTest {
 				.exchange().expectStatus().isOk().expectBody(String.class).value(this::validateInfo);
 	}
 
-	// {"kubernetes":{"inside":false}}
+	/**
+	 * <pre>
+	 *    "kubernetes":{
+	 *        "inside":false
+	 *    }
+	 * </pre>
+	 */
 	@SuppressWarnings("unchecked")
 	private void validateInfo(String input) {
 		try {

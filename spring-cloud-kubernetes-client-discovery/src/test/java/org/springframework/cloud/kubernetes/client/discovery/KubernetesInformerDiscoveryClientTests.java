@@ -64,6 +64,15 @@ public class KubernetesInformerDiscoveryClientTests {
 			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(8080))
 					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 
+	private static final V1Service testServiceWithoutReadyAddresses = new V1Service()
+			.metadata(new V1ObjectMeta().name("test-svc-without-ready-addresses").namespace("namespace1"))
+			.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1")).status(new V1ServiceStatus());
+
+	private static final V1Endpoints testEndpointsWithoutReadyAddresses = new V1Endpoints()
+			.metadata(new V1ObjectMeta().name("test-svc-without-ready-addresses").namespace("namespace1"))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(8080))
+					.addNotReadyAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
+
 	@Test
 	public void testDiscoveryGetServicesAllNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
@@ -106,7 +115,7 @@ public class KubernetesInformerDiscoveryClientTests {
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false));
 
-		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+		verify(kubernetesDiscoveryProperties, times(2)).isAllNamespaces();
 	}
 
 	@Test
@@ -121,7 +130,40 @@ public class KubernetesInformerDiscoveryClientTests {
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false));
-		verify(kubernetesDiscoveryProperties, times(2)).isAllNamespaces();
+		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+	}
+
+	@Test
+	public void testDiscoveryGetInstanceWithoutReadyAddressesShouldWork() {
+		Lister<V1Service> serviceLister = setupServiceLister(testServiceWithoutReadyAddresses);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpointsWithoutReadyAddresses);
+
+		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(false);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
+				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
+
+		assertThat(discoveryClient.getInstances("test-svc-without-ready-addresses")).isEmpty();
+		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+		verify(kubernetesDiscoveryProperties, times(1)).isIncludeNotReadyAddresses();
+	}
+
+	@Test
+	public void testDiscoveryGetInstanceWithNotReadyAddressesIncludedShouldWork() {
+		Lister<V1Service> serviceLister = setupServiceLister(testServiceWithoutReadyAddresses);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpointsWithoutReadyAddresses);
+
+		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(false);
+		when(kubernetesDiscoveryProperties.isIncludeNotReadyAddresses()).thenReturn(true);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
+				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
+
+		assertThat(discoveryClient.getInstances("test-svc-without-ready-addresses"))
+				.containsOnly(new KubernetesServiceInstance("", "test-svc-without-ready-addresses", "2.2.2.2", 8080,
+						new HashMap<>(), false));
+		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+		verify(kubernetesDiscoveryProperties, times(1)).isIncludeNotReadyAddresses();
 	}
 
 	private Lister<V1Service> setupServiceLister(V1Service... services) {
