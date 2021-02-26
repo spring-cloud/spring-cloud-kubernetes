@@ -19,7 +19,10 @@ package org.springframework.cloud.kubernetes.fabric8;
 import java.util.Collections;
 import java.util.Map;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodStatus;
 
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.cloud.kubernetes.commons.AbstractKubernetesInfoContributor;
@@ -46,12 +49,19 @@ public class Fabric8InfoContributor extends AbstractKubernetesInfoContributor {
 		if (current != null) {
 			Map<String, Object> details = CollectionUtils.newHashMap(7);
 			details.put(INSIDE, true);
-			details.put(NAMESPACE, current.getMetadata().getNamespace());
-			details.put(POD_NAME, current.getMetadata().getName());
-			details.put(POD_IP, current.getStatus().getPodIP());
-			details.put(SERVICE_ACCOUNT, current.getSpec().getServiceAccountName());
-			details.put(NODE_NAME, current.getSpec().getNodeName());
-			details.put(HOST_IP, current.getStatus().getHostIP());
+
+			ObjectMeta metadata = current.getMetadata();
+			details.put(NAMESPACE, metadata.getNamespace());
+			details.put(POD_NAME, metadata.getName());
+
+			PodStatus status = current.getStatus();
+			details.put(POD_IP, status.getPodIP());
+			details.put(HOST_IP, status.getHostIP());
+
+			PodSpec spec = current.getSpec();
+			details.put(SERVICE_ACCOUNT, spec.getServiceAccountName());
+			details.put(NODE_NAME, spec.getNodeName());
+
 			return details;
 		}
 		return Collections.singletonMap(INSIDE, false);

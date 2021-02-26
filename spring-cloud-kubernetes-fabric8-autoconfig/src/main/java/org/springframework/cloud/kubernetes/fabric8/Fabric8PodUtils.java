@@ -28,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.EnvReader;
 import org.springframework.cloud.kubernetes.commons.LazilyInstantiate;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Utility class to work with pods.
@@ -91,11 +92,11 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 	}
 
 	private boolean isServiceHostEnvVarPresent() {
-		return this.serviceHost != null && !this.serviceHost.isEmpty();
+		return StringUtils.hasLength(serviceHost);
 	}
 
 	private boolean isHostNameEnvVarPresent() {
-		return this.hostName != null && !this.hostName.isEmpty();
+		return StringUtils.hasLength(hostName);
 	}
 
 	private boolean isServiceAccountFound() {
