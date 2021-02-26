@@ -16,10 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons.profile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -27,10 +23,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.logging.DeferredLog;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.KubernetesClientProperties.SERVICE_ACCOUNT_NAMESPACE_PATH;
 
@@ -95,27 +93,15 @@ public abstract class AbstractKubernetesProfileEnvironmentPostProcessor implemen
 	}
 
 	private void addNamespaceFromServiceAccountFile(ConfigurableEnvironment environment) {
-		String serviceAccountNamespace = environment.getProperty(NAMESPACE_PATH_PROPERTY,
+		String serviceAccountNamespacePathString = environment.getProperty(NAMESPACE_PATH_PROPERTY,
 				SERVICE_ACCOUNT_NAMESPACE_PATH);
-		LOG.debug("Looking for service account namespace at: [" + serviceAccountNamespace + "].");
-		Path serviceAccountNamespacePath = Paths.get(serviceAccountNamespace);
-		boolean serviceAccountNamespaceExists = Files.isRegularFile(serviceAccountNamespacePath);
-		if (serviceAccountNamespaceExists) {
-			LOG.debug("Found service account namespace at: [" + serviceAccountNamespace + "].");
+		String namespace = KubernetesNamespaceProvider
+				.getNamespaceFromServiceAccountFile(serviceAccountNamespacePathString);
+		if (StringUtils.hasText(namespace)) {
+			environment.getPropertySources().addLast(new MapPropertySource(PROPERTY_SOURCE_NAME,
+					Collections.singletonMap(NAMESPACE_PROPERTY, namespace)));
+		}
 
-			try {
-				String namespace = new String(Files.readAllBytes((serviceAccountNamespacePath)));
-				LOG.debug("Service account namespace value: " + namespace);
-				environment.getPropertySources().addLast(new MapPropertySource(PROPERTY_SOURCE_NAME,
-						Collections.singletonMap(NAMESPACE_PROPERTY, namespace)));
-			}
-			catch (IOException ioe) {
-				LOG.error("Error reading service account namespace from: [" + serviceAccountNamespace + "].", ioe);
-			}
-		}
-		else {
-			LOG.info("Did not find service account namespace at: [" + serviceAccountNamespace + "]. Ignoring.");
-		}
 	}
 
 }

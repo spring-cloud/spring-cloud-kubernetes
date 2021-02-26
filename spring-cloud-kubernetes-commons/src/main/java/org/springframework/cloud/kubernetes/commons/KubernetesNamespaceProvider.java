@@ -38,7 +38,10 @@ public class KubernetesNamespaceProvider implements ApplicationListener<Applicat
 	 */
 	public static final String NAMESPACE_PROPERTY = "spring.cloud.kubernetes.client.namespace";
 
-	private static final String NAMESPACE_PATH_PROPERTY = "spring.cloud.kubernetes.client.serviceAccountNamespacePath";
+	/**
+	 * Property for namespace file path.
+	 */
+	public static final String NAMESPACE_PATH_PROPERTY = "spring.cloud.kubernetes.client.serviceAccountNamespacePath";
 
 	private static final DeferredLog LOG = new DeferredLog();
 
@@ -51,28 +54,18 @@ public class KubernetesNamespaceProvider implements ApplicationListener<Applicat
 	}
 
 	public String getNamespace() {
-		return environment.getProperty(NAMESPACE_PROPERTY, getServiceAccountNamespace());
+		String namespace = environment.getProperty(NAMESPACE_PROPERTY);
+		if (namespace == null) {
+			namespace = getServiceAccountNamespace();
+		}
+		return namespace;
 	}
 
 	private String getServiceAccountNamespace() {
 		String serviceAccountNamespacePathString = environment.getProperty(NAMESPACE_PATH_PROPERTY,
 				SERVICE_ACCOUNT_NAMESPACE_PATH);
-		if (serviceAccountNamespacePathString == null) {
-			LOG.debug("Looking for service account namespace at: [" + serviceAccountNamespacePathString + "].");
-			Path serviceAccountNamespacePath = Paths.get(serviceAccountNamespacePathString);
-			boolean serviceAccountNamespaceExists = Files.isRegularFile(serviceAccountNamespacePath);
-			if (serviceAccountNamespaceExists) {
-				LOG.debug("Found service account namespace at: [" + serviceAccountNamespacePath + "].");
-
-				try {
-					serviceAccountNamespace = new String(Files.readAllBytes((serviceAccountNamespacePath)));
-					LOG.debug("Service account namespace value: " + serviceAccountNamespacePath);
-				}
-				catch (IOException ioe) {
-					LOG.error("Error reading service account namespace from: [" + serviceAccountNamespacePath + "].",
-							ioe);
-				}
-			}
+		if (serviceAccountNamespace == null) {
+			serviceAccountNamespace = getNamespaceFromServiceAccountFile(serviceAccountNamespacePathString);
 		}
 		return serviceAccountNamespace;
 	}
@@ -80,6 +73,26 @@ public class KubernetesNamespaceProvider implements ApplicationListener<Applicat
 	@Override
 	public void onApplicationEvent(ApplicationEvent applicationEvent) {
 		LOG.replayTo(KubernetesNamespaceProvider.class);
+	}
+
+	public static String getNamespaceFromServiceAccountFile(String path) {
+		String namespace = null;
+		LOG.debug("Looking for service account namespace at: [" + path + "].");
+		Path serviceAccountNamespacePath = Paths.get(path);
+		boolean serviceAccountNamespaceExists = Files.isRegularFile(serviceAccountNamespacePath);
+		if (serviceAccountNamespaceExists) {
+			LOG.debug("Found service account namespace at: [" + serviceAccountNamespacePath + "].");
+
+			try {
+				namespace = new String(Files.readAllBytes((serviceAccountNamespacePath)));
+				LOG.debug("Service account namespace value: " + serviceAccountNamespacePath);
+			}
+			catch (IOException ioe) {
+				LOG.error("Error reading service account namespace from: [" + serviceAccountNamespacePath + "].", ioe);
+			}
+
+		}
+		return namespace;
 	}
 
 }

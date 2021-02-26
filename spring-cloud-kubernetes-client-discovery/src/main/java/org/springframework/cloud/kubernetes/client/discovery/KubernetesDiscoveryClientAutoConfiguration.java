@@ -57,13 +57,6 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	@ConditionalOnBlockingDiscoveryEnabled
 	public static class KubernetesInformerDiscoveryConfiguration {
 
-		// @Bean
-		// @ConditionalOnMissingBean
-		// public KubernetesInformerConfigurer discoveryInformerConfigurer(ApiClient
-		// apiClient,
-		// CatalogSharedInformerFactory sharedInformerFactory) {
-		// return new KubernetesInformerConfigurer(apiClient, sharedInformerFactory);
-		// }
 		@Bean
 		@ConditionalOnMissingBean
 		public KubernetesInformerConfigurer discoveryInformerConfigurer(
