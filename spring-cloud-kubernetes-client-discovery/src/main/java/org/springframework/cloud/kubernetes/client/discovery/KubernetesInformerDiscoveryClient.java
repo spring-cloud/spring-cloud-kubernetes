@@ -159,7 +159,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 						.filter(p -> p.getName() != null && p.getName().equalsIgnoreCase(primaryPortName)).findFirst();
 					if (!discoveredPort.isPresent()) {
 						log.warn("Could not find a port named '" + primaryPortName + "' for service '" + serviceId + "'.");
-						log.warn("Make sure that either the primary-port-name label spring.cloud.kubernetes.discovery.primary-port-name has been configured correctly.");
+						log.warn("Make sure that either the primary-port-name label or spring.cloud.kubernetes.discovery.primary-port-name has been configured correctly.");
 						return Stream.empty();
 					}
 					port = discoveredPort.get();
