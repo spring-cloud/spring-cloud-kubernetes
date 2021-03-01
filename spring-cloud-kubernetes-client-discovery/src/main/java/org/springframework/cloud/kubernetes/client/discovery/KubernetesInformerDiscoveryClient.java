@@ -149,7 +149,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 				V1EndpointPort port;
 				if (subset.getPorts().size() == 1) {
 					port = subset.getPorts().get(0);
-				} else {
+				}
+				else {
 					if (primaryPortName == null) {
 						log.warn("Could not decide which port to use for service '" + serviceId + "'.");
 						log.warn("Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
