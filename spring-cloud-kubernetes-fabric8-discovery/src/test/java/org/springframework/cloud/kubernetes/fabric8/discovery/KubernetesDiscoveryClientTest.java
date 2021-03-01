@@ -518,7 +518,10 @@ public class KubernetesDiscoveryClientTest {
 
 		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
-		assertThat(instances).isEmpty();
+		// We're returning the first discovered port to not change previous behaviour
+		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("110")).hasSize(1).filteredOn(s -> 443 == s.getPort())
+			.hasSize(1);
 	}
 
 }

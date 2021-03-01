@@ -216,13 +216,15 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			return ports.get(0);
 		}
 		else {
+			Predicate<EndpointPort> portPredicate = port -> primaryPortName.equalsIgnoreCase(port.getName());
 			if (primaryPortName == null) {
 				log.warn("Could not decide which port to use for service '" + serviceId + "'.");
 				log.warn("Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
-				return null;
+				// We can't fail because we would change existing behaviour
+				portPredicate = port -> true;
 			}
 			Optional<EndpointPort> discoveredPort = ports.stream()
-				.filter(port -> primaryPortName.equalsIgnoreCase(port.getName()))
+				.filter(portPredicate)
 				.findFirst();
 			if (!discoveredPort.isPresent()) {
 				log.warn("Could not find a port named '" + primaryPortName + "' for service '" + serviceId + "'.");
