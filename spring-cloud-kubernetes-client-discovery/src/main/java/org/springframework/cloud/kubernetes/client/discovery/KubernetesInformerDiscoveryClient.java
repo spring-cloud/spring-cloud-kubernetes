@@ -21,8 +21,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.kubernetes.client.extended.wait.Wait;
 import io.kubernetes.client.informer.SharedInformer;
@@ -44,9 +46,15 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+/**
+ * @author Min Kim
+ * @author Ryan Baxter
+ * @author Tim Yysewyn
+ */
 public class KubernetesInformerDiscoveryClient implements DiscoveryClient, InitializingBean {
 
 	private static final Log log = LogFactory.getLog(KubernetesInformerDiscoveryClient.class);
+	private static final String PRIMARY_PORT_NAME_LABEL_KEY = "primary-port-name";
 
 	private final SharedInformerFactory sharedInformerFactory;
 
@@ -98,7 +106,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		Map<String, String> svcMetadata = new HashMap<>();
 		if (this.properties.getMetadata() != null) {
 			if (this.properties.getMetadata().isAddLabels()) {
-				if (service.getMetadata().getLabels() != null) {
+				if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
 					String labelPrefix = this.properties.getMetadata().getLabelsPrefix() != null
 							? this.properties.getMetadata().getLabelsPrefix() : "";
 					service.getMetadata().getLabels().entrySet().stream()
@@ -107,7 +115,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 				}
 			}
 			if (this.properties.getMetadata().isAddAnnotations()) {
-				if (service.getMetadata().getAnnotations() != null) {
+				if (service.getMetadata() != null && service.getMetadata().getAnnotations() != null) {
 					String annotationPrefix = this.properties.getMetadata().getAnnotationsPrefix() != null
 							? this.properties.getMetadata().getAnnotationsPrefix() : "";
 					service.getMetadata().getAnnotations().entrySet().stream()
@@ -123,28 +131,52 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 			// no available endpoints in the cluster
 			return new ArrayList<>();
 		}
-		return ep.getSubsets().stream().flatMap(subset -> {
-			Map<String, String> metadata = new HashMap<>(svcMetadata);
-			if (this.properties.getMetadata() != null && this.properties.getMetadata().isAddPorts()) {
-				subset.getPorts().stream().forEach(p -> metadata.put(p.getName(), Integer.toString(p.getPort())));
-			}
-			V1EndpointPort port = subset.getPorts() != null && subset.getPorts().size() == 1 ? subset.getPorts().get(0)
-					: subset.getPorts().stream()
-							.filter(p -> p.getName().equalsIgnoreCase(this.properties.getPrimaryPortName())).findFirst()
-							.orElseThrow(IllegalStateException::new);
-			List<V1EndpointAddress> addresses = subset.getAddresses();
-			if (addresses == null) {
-				addresses = new ArrayList<>();
-			}
-			if (this.properties.isIncludeNotReadyAddresses()
-					&& !CollectionUtils.isEmpty(subset.getNotReadyAddresses())) {
-				addresses.addAll(subset.getNotReadyAddresses());
-			}
 
-			return addresses.stream()
-					.map(addr -> new KubernetesServiceInstance(
-							addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId, addr.getIp(),
-							port.getPort(), metadata, false));
+		Optional<String> discoveredPrimaryPortName = Optional.empty();
+		if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
+			discoveredPrimaryPortName = Optional
+				.ofNullable(service.getMetadata().getLabels().get(PRIMARY_PORT_NAME_LABEL_KEY));
+		}
+		final String primaryPortName = discoveredPrimaryPortName.orElse(this.properties.getPrimaryPortName());
+
+		return ep.getSubsets().stream()
+			.filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
+			.flatMap(subset -> {
+				Map<String, String> metadata = new HashMap<>(svcMetadata);
+				if (this.properties.getMetadata() != null && this.properties.getMetadata().isAddPorts()) {
+					subset.getPorts().forEach(p -> metadata.put(p.getName(), Integer.toString(p.getPort())));
+				}
+				V1EndpointPort port;
+				if (subset.getPorts().size() == 1) {
+					port = subset.getPorts().get(0);
+				} else {
+					if (primaryPortName == null) {
+						log.warn("Could not decide which port to use for service '" + serviceId + "'.");
+						log.warn("Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
+						return Stream.empty();
+					}
+					Optional<V1EndpointPort> discoveredPort = subset.getPorts().stream()
+						.filter(p -> p.getName() != null && p.getName().equalsIgnoreCase(primaryPortName)).findFirst();
+					if (!discoveredPort.isPresent()) {
+						log.warn("Could not find a port named '" + primaryPortName + "' for service '" + serviceId + "'.");
+						log.warn("Make sure that either the primary-port-name label spring.cloud.kubernetes.discovery.primary-port-name has been configured correctly.");
+						return Stream.empty();
+					}
+					port = discoveredPort.get();
+				}
+				List<V1EndpointAddress> addresses = subset.getAddresses();
+				if (addresses == null) {
+					addresses = new ArrayList<>();
+				}
+				if (this.properties.isIncludeNotReadyAddresses()
+						&& !CollectionUtils.isEmpty(subset.getNotReadyAddresses())) {
+					addresses.addAll(subset.getNotReadyAddresses());
+				}
+
+				return addresses.stream()
+						.map(addr -> new KubernetesServiceInstance(
+								addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId, addr.getIp(),
+								port.getPort(), metadata, false));
 		}).collect(Collectors.toList());
 	}
 
@@ -152,7 +184,9 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 	public List<String> getServices() {
 		List<V1Service> services = this.properties.isAllNamespaces() ? this.serviceLister.list()
 				: this.serviceLister.namespace(this.namespace).list();
-		return services.stream().map(s -> s.getMetadata().getName()).collect(Collectors.toList());
+		return services.stream()
+			.filter(s -> s.getMetadata() != null) //safeguard
+			.map(s -> s.getMetadata().getName()).collect(Collectors.toList());
 	}
 
 	@Override
