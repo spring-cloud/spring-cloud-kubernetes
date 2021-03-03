@@ -135,8 +135,12 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			final Service service = this.client.services().inNamespace(namespace).withName(serviceId).get();
 			final Map<String, String> serviceMetadata = this.getServiceMetadata(service);
 			KubernetesDiscoveryProperties.Metadata metadataProps = this.properties.getMetadata();
-			final String primaryPortName = service.getMetadata().getLabels().getOrDefault(PRIMARY_PORT_NAME_LABEL_KEY,
-				this.properties.getPrimaryPortName());
+
+			String primaryPortName = this.properties.getPrimaryPortName();
+			Map<String, String> labels = service.getMetadata().getLabels();
+			if (labels != null && labels.containsKey(PRIMARY_PORT_NAME_LABEL_KEY)) {
+				primaryPortName = labels.get(PRIMARY_PORT_NAME_LABEL_KEY);
+			}
 
 			for (EndpointSubset s : subsets) {
 				// Extend the service metadata map with per-endpoint port information (if
