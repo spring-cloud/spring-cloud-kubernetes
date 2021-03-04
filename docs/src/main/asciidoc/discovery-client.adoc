@@ -74,6 +74,24 @@ spring.cloud.kubernetes.discovery.include-not-ready-addresses=true
 NOTE: This might be useful when discovering services for monitoring purposes, and would enable inspecting the `/health` endpoint of not-ready service instances.
 ====
 
+Let's assume your service exposes an application over port 80 (named `http`) and port 443 (named `https`).
+Because the `DiscoveryClient` needs to know which port to use as default we need to give it a hint.
+To do this there are two options:
+
+1. Add a label named `primary-port-name` to the Kubernetes service which specifies the name of the port to use.
+2. Set the following property in `application.properties`:
+
+====
+[source]
+----
+spring.cloud.kubernetes.discovery.primary-port-name=https
+----
+====
+
+In case both the label and the application property have been set the name of the port in the label will take precedence.
+
+By default all of the ports and their names will be added to the metadata of the `ServiceInstance`.
+
 If, for any reason, you need to disable the `DiscoveryClient`, you can set the following property in `application.properties`:
 
 ====
