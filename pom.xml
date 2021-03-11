@@ -50,12 +50,12 @@
 	</licenses>
 
 	<scm>
-		<url>https://github.com/spring-cloud-incubator/spring-cloud-kubernetes</url>
+		<url>https://github.com/spring-cloud/spring-cloud-kubernetes</url>
 		<connection>
-			scm:git:git://github.com/spring-cloud-incubator/spring-cloud-kubernetes.git
+			scm:git:git://github.com/spring-cloud/spring-cloud-kubernetes.git
 		</connection>
 		<developerConnection>
-			scm:git:ssh://git@github.com/spring-cloud-incubator/spring-cloud-kubernetes.git
+			scm:git:ssh://git@github.com/spring-cloud/spring-cloud-kubernetes.git
 		</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
