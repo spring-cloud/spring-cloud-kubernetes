@@ -80,6 +80,18 @@ public class KubernetesInformerDiscoveryClientTests {
 			.addPortsItem(new V1EndpointPort().name("https").port(443))
 			.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
 
+	private static final V1Endpoints testEndpointWithMultiplePortsWithoutHttps = new V1Endpoints()
+			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().name("http").port(80))
+			.addPortsItem(new V1EndpointPort().name("tcp").port(443))
+			.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
+
+	private static final V1Endpoints testEndpointWithMultiplePortsWithoutSupportedPortNames = new V1Endpoints()
+			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().name("tcp1").port(80))
+			.addPortsItem(new V1EndpointPort().name("tcp2").port(443))
+			.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
+
 	@Test
 	public void testDiscoveryGetServicesAllNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
@@ -226,18 +238,20 @@ public class KubernetesInformerDiscoveryClientTests {
 	}
 
 	@Test
-	public void instanceWithMultiplePortsAndMisconfiguredPrimaryPortNameInLabelShouldLogWarning() {
+	public void instanceWithMultiplePortsAndMisconfiguredPrimaryPortNameInLabelShouldReturnFirstPortAndLogWarning() {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1")
 				.putLabelsItem("primary-port-name", "oops")));
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpointWithMultiplePorts);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpointWithMultiplePortsWithoutSupportedPortNames);
 
 		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(false);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 			sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1")).isEmpty();
+		assertThat(discoveryClient.getInstances("test-svc-1"))
+			.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "1.1.1.1", 80,
+				new HashMap<>(), false));
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
 	}
@@ -256,15 +270,15 @@ public class KubernetesInformerDiscoveryClientTests {
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 			.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "1.1.1.1", 443,
 				new HashMap<>(), false));
-		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
+		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).isIncludeNotReadyAddresses();
 	}
 
 	@Test
-	public void instanceWithMultiplePortsAndMisconfiguredGenericPrimaryPortNameShouldLogWarning() {
+	public void instanceWithMultiplePortsAndMisconfiguredGenericPrimaryPortNameShouldReturnFirstPortAndLogWarning() {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpointWithMultiplePorts);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpointWithMultiplePortsWithoutSupportedPortNames);
 
 		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(false);
 		when(kubernetesDiscoveryProperties.getPrimaryPortName()).thenReturn("oops");
@@ -272,13 +286,15 @@ public class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 			sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1")).isEmpty();
+		assertThat(discoveryClient.getInstances("test-svc-1"))
+			.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "1.1.1.1", 80,
+				new HashMap<>(), false));
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
 	}
 
 	@Test
-	public void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedShouldLogWarning() {
+	public void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedShouldFallBackToHttpsPort() {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpointWithMultiplePorts);
 
@@ -287,7 +303,43 @@ public class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1")).isEmpty();
+		assertThat(discoveryClient.getInstances("test-svc-1"))
+			.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "1.1.1.1", 443,
+				new HashMap<>(), false));
+		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
+	}
+
+	@Test
+	public void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedOrHttpsPortShouldFallBackToHttpPort() {
+		Lister<V1Service> serviceLister = setupServiceLister(testService1);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpointWithMultiplePortsWithoutHttps);
+
+		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(false);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
+				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
+
+		assertThat(discoveryClient.getInstances("test-svc-1"))
+			.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "1.1.1.1", 80,
+				new HashMap<>(), false));
+		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
+	}
+
+	@Test
+	public void instanceWithMultiplePortsAndWithoutAnyConfigurationShouldPickTheFirstPort() {
+		Lister<V1Service> serviceLister = setupServiceLister(testService1);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpointWithMultiplePortsWithoutSupportedPortNames);
+
+		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(false);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
+				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
+
+		assertThat(discoveryClient.getInstances("test-svc-1"))
+			.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "1.1.1.1", 80,
+				new HashMap<>(), false));
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
 	}

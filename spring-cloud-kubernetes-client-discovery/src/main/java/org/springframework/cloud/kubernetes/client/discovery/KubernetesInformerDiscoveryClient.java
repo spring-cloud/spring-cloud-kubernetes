@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import io.kubernetes.client.extended.wait.Wait;
 import io.kubernetes.client.informer.SharedInformer;
@@ -55,6 +54,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 	private static final Log log = LogFactory.getLog(KubernetesInformerDiscoveryClient.class);
 	private static final String PRIMARY_PORT_NAME_LABEL_KEY = "primary-port-name";
+	private static final String HTTPS_PORT_NAME = "https";
+	private static final String HTTP_PORT_NAME = "http";
 
 	private final SharedInformerFactory sharedInformerFactory;
 
@@ -143,27 +144,31 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 			.filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
 			.flatMap(subset -> {
 				Map<String, String> metadata = new HashMap<>(svcMetadata);
+				List<V1EndpointPort> endpointPorts = subset.getPorts();
 				if (this.properties.getMetadata() != null && this.properties.getMetadata().isAddPorts()) {
-					subset.getPorts().forEach(p -> metadata.put(p.getName(), Integer.toString(p.getPort())));
+					endpointPorts.forEach(p -> metadata.put(p.getName(), Integer.toString(p.getPort())));
 				}
-				V1EndpointPort port;
-				if (subset.getPorts().size() == 1) {
-					port = subset.getPorts().get(0);
+				int discoveredPort;
+				if (endpointPorts.size() == 1) {
+					discoveredPort = endpointPorts.get(0).getPort();
 				}
 				else {
-					if (primaryPortName == null) {
-						log.warn("Could not decide which port to use for service '" + serviceId + "'.");
+					Map<String, Integer> ports = endpointPorts.stream()
+						.filter(p -> StringUtils.hasText(p.getName()))
+						.collect(Collectors.toMap(V1EndpointPort::getName, V1EndpointPort::getPort));
+					discoveredPort = ports.getOrDefault(primaryPortName, ports.getOrDefault(HTTPS_PORT_NAME, ports.getOrDefault(HTTP_PORT_NAME, -1)));
+
+					if (discoveredPort == -1) {
+						if (StringUtils.hasText(primaryPortName)) {
+							log.warn("Could not find a port named '" + primaryPortName + "', 'https', or 'http' for service '" + serviceId + "'.");
+						} else {
+							log.warn("Could not find a port named 'https' or 'http' for service '" + serviceId + "'.");
+						}
 						log.warn("Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
-						return Stream.empty();
+						log.warn("Alternatively name the primary port 'https' or 'http'");
+						log.warn("An incorrect configuration may result in non-deterministic behaviour.");
+						discoveredPort = endpointPorts.get(0).getPort();
 					}
-					Optional<V1EndpointPort> discoveredPort = subset.getPorts().stream()
-						.filter(p -> p.getName() != null && p.getName().equalsIgnoreCase(primaryPortName)).findFirst();
-					if (!discoveredPort.isPresent()) {
-						log.warn("Could not find a port named '" + primaryPortName + "' for service '" + serviceId + "'.");
-						log.warn("Make sure that either the primary-port-name label or spring.cloud.kubernetes.discovery.primary-port-name has been configured correctly.");
-						return Stream.empty();
-					}
-					port = discoveredPort.get();
 				}
 				List<V1EndpointAddress> addresses = subset.getAddresses();
 				if (addresses == null) {
@@ -174,10 +179,11 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 					addresses.addAll(subset.getNotReadyAddresses());
 				}
 
+				final int port = discoveredPort;
 				return addresses.stream()
 						.map(addr -> new KubernetesServiceInstance(
 								addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId, addr.getIp(),
-								port.getPort(), metadata, false));
+							port, metadata, false));
 		}).collect(Collectors.toList());
 	}
 

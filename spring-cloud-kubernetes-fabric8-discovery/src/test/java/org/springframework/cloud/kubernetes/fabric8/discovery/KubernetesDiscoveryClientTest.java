@@ -420,14 +420,16 @@ public class KubernetesDiscoveryClientTest {
 	}
 
 	@Test
-	public void instanceWithMultiplePortsAndMisconfiguredPrimaryPortNameInLabelShouldLogWarning() {
+	public void instanceWithMultiplePortsAndMisconfiguredPrimaryPortNameInLabelWithoutFallbackShouldLogWarning() {
 		Map<String, String> labels = new HashMap<>();
 		labels.put("primary-port-name", "oops");
 
 		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint3").withNamespace("test")
 			.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
-			.withUid("90").endTargetRef().endAddress().addNewPort("http", "https", 443, "TCP")
-			.addNewPort("http", "http", 80, "TCP").endSubset().build();
+			.withUid("90").endTargetRef().endAddress().addNewPort("http", "https1", 443, "TCP")
+			.addNewPort("http", "https2", 8443, "TCP")
+			.addNewPort("http", "http1", 80, "TCP")
+			.addNewPort("http", "http2", 8080, "TCP").endSubset().build();
 
 		List<Endpoints> endpointsList = new ArrayList<>();
 		endpointsList.add(endPoint1);
@@ -450,17 +452,21 @@ public class KubernetesDiscoveryClientTest {
 
 		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint3");
 
-		assertThat(instances).isEmpty();
+		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("90")).hasSize(1).filteredOn(s -> 443 == s.getPort())
+			.hasSize(1);
 	}
 
 	@Test
-	public void instanceWithMultiplePortsAndMisconfiguredGenericPrimaryPortNameShouldLogWarning() {
+	public void instanceWithMultiplePortsAndMisconfiguredGenericPrimaryPortNameWithoutFallbackShouldLogWarning() {
 		Map<String, String> labels = new HashMap<>();
 
 		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint4").withNamespace("test")
 			.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
-			.withUid("100").endTargetRef().endAddress().addNewPort("http", "https", 443, "TCP")
-			.addNewPort("http", "http", 80, "TCP").endSubset().build();
+			.withUid("100").endTargetRef().endAddress().addNewPort("http", "https1", 443, "TCP")
+			.addNewPort("http", "https2", 8443, "TCP")
+			.addNewPort("http", "http1", 80, "TCP")
+			.addNewPort("http", "http2", 8080, "TCP").endSubset().build();
 
 		List<Endpoints> endpointsList = new ArrayList<>();
 		endpointsList.add(endPoint1);
@@ -485,11 +491,13 @@ public class KubernetesDiscoveryClientTest {
 
 		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint4");
 
-		assertThat(instances).isEmpty();
+		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("100")).hasSize(1).filteredOn(s -> 443 == s.getPort())
+			.hasSize(1);
 	}
 
 	@Test
-	public void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedShouldLogWarning() {
+	public void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedShouldFallBackToHttps() {
 		Map<String, String> labels = new HashMap<>();
 
 		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
@@ -518,9 +526,80 @@ public class KubernetesDiscoveryClientTest {
 
 		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
-		// We're returning the first discovered port to not change previous behaviour
 		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
 			.filteredOn(s -> s.getInstanceId().equals("110")).hasSize(1).filteredOn(s -> 443 == s.getPort())
+			.hasSize(1);
+	}
+
+	@Test
+	public void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedOrHttpsPortShouldFallBackToHttp() {
+		Map<String, String> labels = new HashMap<>();
+
+		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
+			.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
+			.withUid("120").endTargetRef().endAddress().addNewPort("http", "https1", 443, "TCP")
+			.addNewPort("http", "https2", 8443, "TCP")
+			.addNewPort("http", "http", 80, "TCP").endSubset().build();
+
+		List<Endpoints> endpointsList = new ArrayList<>();
+		endpointsList.add(endPoint1);
+
+		EndpointsList endpoints = new EndpointsList();
+		endpoints.setItems(endpointsList);
+
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dendpoint5")
+			.andReturn(200, endpoints).once();
+
+		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
+			.withLabels(labels).withAnnotations(labels).endMetadata().build();
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint5").andReturn(200, service)
+			.always();
+
+		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
+
+		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
+			KubernetesClient::services, new ServicePortSecureResolver(properties));
+
+		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
+
+		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("120")).hasSize(1).filteredOn(s -> 80 == s.getPort())
+			.hasSize(1);
+	}
+
+	@Test
+	public void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedShouldLogWarning() {
+		Map<String, String> labels = new HashMap<>();
+
+		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
+			.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
+			.withUid("130").endTargetRef().endAddress().addNewPort("http", "https", 443, "TCP")
+			.addNewPort("http", "http", 80, "TCP").endSubset().build();
+
+		List<Endpoints> endpointsList = new ArrayList<>();
+		endpointsList.add(endPoint1);
+
+		EndpointsList endpoints = new EndpointsList();
+		endpoints.setItems(endpointsList);
+
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dendpoint5")
+			.andReturn(200, endpoints).once();
+
+		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
+			.withLabels(labels).withAnnotations(labels).endMetadata().build();
+		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint5").andReturn(200, service)
+			.always();
+
+		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
+
+		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
+			KubernetesClient::services, new ServicePortSecureResolver(properties));
+
+		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
+
+		// We're returning the first discovered port to not change previous behaviour
+		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("130")).hasSize(1).filteredOn(s -> 443 == s.getPort())
 			.hasSize(1);
 	}
 

@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -57,6 +56,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private static final Log log = LogFactory.getLog(KubernetesDiscoveryClient.class);
 	private static final String PRIMARY_PORT_NAME_LABEL_KEY = "primary-port-name";
+	private static final String HTTPS_PORT_NAME = "https";
+	private static final String HTTP_PORT_NAME = "http";
 
 	private final KubernetesDiscoveryProperties properties;
 
@@ -172,18 +173,16 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				}
 
 				for (EndpointAddress endpointAddress : addresses) {
-					EndpointPort endpointPort = findEndpointPort(s, serviceId, primaryPortName);
-					if (endpointPort != null) {
-						String instanceId = null;
-						if (endpointAddress.getTargetRef() != null) {
-							instanceId = endpointAddress.getTargetRef().getUid();
-						}
-						instances.add(new KubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
-							endpointPort.getPort(), endpointMetadata,
-							this.servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(
-								endpointPort.getPort(), service.getMetadata().getName(),
-								service.getMetadata().getLabels(), service.getMetadata().getAnnotations()))));
+					int endpointPort = findEndpointPort(s, serviceId, primaryPortName);
+					String instanceId = null;
+					if (endpointAddress.getTargetRef() != null) {
+						instanceId = endpointAddress.getTargetRef().getUid();
 					}
+					instances.add(new KubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
+						endpointPort, endpointMetadata,
+						this.servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(
+							endpointPort, service.getMetadata().getName(),
+							service.getMetadata().getLabels(), service.getMetadata().getAnnotations()))));
 				}
 			}
 		}
@@ -214,28 +213,30 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return serviceMetadata;
 	}
 
-	private EndpointPort findEndpointPort(EndpointSubset s, String serviceId, String primaryPortName) {
-		List<EndpointPort> ports = s.getPorts();
-		if (ports.size() == 1) {
-			return ports.get(0);
+	private int findEndpointPort(EndpointSubset s, String serviceId, String primaryPortName) {
+		List<EndpointPort> endpointPorts = s.getPorts();
+		if (endpointPorts.size() == 1) {
+			return endpointPorts.get(0).getPort();
 		}
 		else {
-			Predicate<EndpointPort> portPredicate = port -> primaryPortName.equalsIgnoreCase(port.getName());
-			if (primaryPortName == null) {
-				log.warn("Could not decide which port to use for service '" + serviceId + "'.");
+			Map<String, Integer> ports = endpointPorts.stream()
+				.filter(p -> StringUtils.hasText(p.getName()))
+				.collect(Collectors.toMap(EndpointPort::getName, EndpointPort::getPort));
+			int discoveredPort = ports.getOrDefault(primaryPortName, ports.getOrDefault(HTTPS_PORT_NAME, ports.getOrDefault(HTTP_PORT_NAME, -1)));
+
+			if (discoveredPort == -1) {
+				if (StringUtils.hasText(primaryPortName)) {
+					log.warn("Could not find a port named '" + primaryPortName + "', 'https', or 'http' for service '" + serviceId + "'.");
+				} else {
+					log.warn("Could not find a port named 'https' or 'http' for service '" + serviceId + "'.");
+				}
 				log.warn("Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
+				log.warn("Alternatively name the primary port 'https' or 'http'");
+				log.warn("An incorrect configuration may result in non-deterministic behaviour.");
 				// We can't fail because we would change existing behaviour
-				portPredicate = port -> true;
+				discoveredPort = endpointPorts.get(0).getPort();
 			}
-			Optional<EndpointPort> discoveredPort = ports.stream()
-				.filter(portPredicate)
-				.findFirst();
-			if (!discoveredPort.isPresent()) {
-				log.warn("Could not find a port named '" + primaryPortName + "' for service '" + serviceId + "'.");
-				log.warn("Make sure that either the primary-port-name label or spring.cloud.kubernetes.discovery.primary-port-name has been configured correctly.");
-				return null;
-			}
-			return discoveredPort.get();
+			return discoveredPort;
 		}
 	}
 
