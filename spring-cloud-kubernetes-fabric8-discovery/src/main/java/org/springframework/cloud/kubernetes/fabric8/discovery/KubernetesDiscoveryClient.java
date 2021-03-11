@@ -222,6 +222,9 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			Map<String, Integer> ports = endpointPorts.stream()
 				.filter(p -> StringUtils.hasText(p.getName()))
 				.collect(Collectors.toMap(EndpointPort::getName, EndpointPort::getPort));
+			// This oneliner is looking for a port with a name equal to the primary port name specified in the service label
+			// or in spring.cloud.kubernetes.discovery.primary-port-name, equal to https, or equal to http.
+			// In case no port has been found return -1 to log a warning and fall back to the first port in the list.
 			int discoveredPort = ports.getOrDefault(primaryPortName, ports.getOrDefault(HTTPS_PORT_NAME, ports.getOrDefault(HTTP_PORT_NAME, -1)));
 
 			if (discoveredPort == -1) {
@@ -233,7 +236,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				log.warn("Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
 				log.warn("Alternatively name the primary port 'https' or 'http'");
 				log.warn("An incorrect configuration may result in non-deterministic behaviour.");
-				// We can't fail because we would change existing behaviour
 				discoveredPort = endpointPorts.get(0).getPort();
 			}
 			return discoveredPort;
