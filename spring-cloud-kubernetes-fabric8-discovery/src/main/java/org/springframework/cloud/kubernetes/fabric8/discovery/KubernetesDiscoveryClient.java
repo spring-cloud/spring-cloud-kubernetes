@@ -230,7 +230,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			if (discoveredPort == -1) {
 				if (StringUtils.hasText(primaryPortName)) {
 					log.warn("Could not find a port named '" + primaryPortName + "', 'https', or 'http' for service '" + serviceId + "'.");
-				} else {
+				}
+				else {
 					log.warn("Could not find a port named 'https' or 'http' for service '" + serviceId + "'.");
 				}
 				log.warn("Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
