@@ -102,6 +102,15 @@ public abstract class ConfigurationChangeDetector {
 			this.log.warn(
 					"The current number of ConfigMap PropertySources does not match "
 							+ "the ones loaded from the Kubernetes - No reload will take place");
+
+			if (log.isDebugEnabled()) {
+				this.log.debug(String.format("source 1: %d", l1.size()));
+				l1.forEach(item -> log.debug(item));
+
+				this.log.debug(String.format("source 2: %d", l2.size()));
+				l2.forEach(item -> log.debug(item));
+			}
+
 			return false;
 		}
 
@@ -142,6 +151,11 @@ public abstract class ConfigurationChangeDetector {
 
 		LinkedList<PropertySource<?>> sources = toLinkedList(
 				this.environment.getPropertySources());
+
+		this.log.debug("findPropertySources");
+		this.log.debug(String.format("environment: %s", this.environment));
+		this.log.debug(String.format("environment sources: %s", sources));
+
 		while (!sources.isEmpty()) {
 			PropertySource<?> source = sources.pop();
 			if (source instanceof CompositePropertySource) {
@@ -196,6 +210,10 @@ public abstract class ConfigurationChangeDetector {
 			this.log.debug("Found property source that cannot be handled: "
 					+ propertySource.getClass());
 		}
+
+		this.log.debug("locateMapPropertySources");
+		this.log.debug(String.format("environment: %s", environment));
+		this.log.debug(String.format("sources: %s", result));
 
 		return result;
 	}

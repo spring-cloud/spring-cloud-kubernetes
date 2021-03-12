@@ -141,6 +141,9 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 	}
 
 	private void onEvent(ConfigMap configMap) {
+
+		this.log.debug(String.format("onEvent configMap: %s", configMap.toString()));
+
 		boolean changed = changed(
 				locateMapPropertySources(this.configMapPropertySourceLocator,
 						this.environment),
@@ -152,6 +155,9 @@ public class EventBasedConfigurationChangeDetector extends ConfigurationChangeDe
 	}
 
 	private void onEvent(Secret secret) {
+
+		this.log.debug(String.format("onEvent configMap: %s", secret.toString()));
+
 		boolean changed = changed(
 				locateMapPropertySources(this.secretsPropertySourceLocator,
 						this.environment),
