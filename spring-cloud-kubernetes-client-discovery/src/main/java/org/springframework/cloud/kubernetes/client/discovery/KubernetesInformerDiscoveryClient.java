@@ -53,8 +53,11 @@ import org.springframework.util.StringUtils;
 public class KubernetesInformerDiscoveryClient implements DiscoveryClient, InitializingBean {
 
 	private static final Log log = LogFactory.getLog(KubernetesInformerDiscoveryClient.class);
+
 	private static final String PRIMARY_PORT_NAME_LABEL_KEY = "primary-port-name";
+
 	private static final String HTTPS_PORT_NAME = "https";
+
 	private static final String HTTP_PORT_NAME = "http";
 
 	private final SharedInformerFactory sharedInformerFactory;
@@ -136,33 +139,32 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		Optional<String> discoveredPrimaryPortName = Optional.empty();
 		if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
 			discoveredPrimaryPortName = Optional
-				.ofNullable(service.getMetadata().getLabels().get(PRIMARY_PORT_NAME_LABEL_KEY));
+					.ofNullable(service.getMetadata().getLabels().get(PRIMARY_PORT_NAME_LABEL_KEY));
 		}
 		final String primaryPortName = discoveredPrimaryPortName.orElse(this.properties.getPrimaryPortName());
 
-		return ep.getSubsets().stream()
-			.filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
-			.flatMap(subset -> {
-				Map<String, String> metadata = new HashMap<>(svcMetadata);
-				List<V1EndpointPort> endpointPorts = subset.getPorts();
-				if (this.properties.getMetadata() != null && this.properties.getMetadata().isAddPorts()) {
-					endpointPorts.forEach(p -> metadata.put(p.getName(), Integer.toString(p.getPort())));
-				}
-				List<V1EndpointAddress> addresses = subset.getAddresses();
-				if (addresses == null) {
-					addresses = new ArrayList<>();
-				}
-				if (this.properties.isIncludeNotReadyAddresses()
-						&& !CollectionUtils.isEmpty(subset.getNotReadyAddresses())) {
-					addresses.addAll(subset.getNotReadyAddresses());
-				}
+		return ep.getSubsets().stream().filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
+				.flatMap(subset -> {
+					Map<String, String> metadata = new HashMap<>(svcMetadata);
+					List<V1EndpointPort> endpointPorts = subset.getPorts();
+					if (this.properties.getMetadata() != null && this.properties.getMetadata().isAddPorts()) {
+						endpointPorts.forEach(p -> metadata.put(p.getName(), Integer.toString(p.getPort())));
+					}
+					List<V1EndpointAddress> addresses = subset.getAddresses();
+					if (addresses == null) {
+						addresses = new ArrayList<>();
+					}
+					if (this.properties.isIncludeNotReadyAddresses()
+							&& !CollectionUtils.isEmpty(subset.getNotReadyAddresses())) {
+						addresses.addAll(subset.getNotReadyAddresses());
+					}
 
-				final int port = findEndpointPort(endpointPorts, primaryPortName, serviceId);
-				return addresses.stream()
-						.map(addr -> new KubernetesServiceInstance(
-								addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId, addr.getIp(),
-							port, metadata, false));
-		}).collect(Collectors.toList());
+					final int port = findEndpointPort(endpointPorts, primaryPortName, serviceId);
+					return addresses.stream()
+							.map(addr -> new KubernetesServiceInstance(
+									addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
+									addr.getIp(), port, metadata, false));
+				}).collect(Collectors.toList());
 	}
 
 	private int findEndpointPort(List<V1EndpointPort> endpointPorts, String primaryPortName, String serviceId) {
@@ -170,22 +172,27 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 			return endpointPorts.get(0).getPort();
 		}
 		else {
-			Map<String, Integer> ports = endpointPorts.stream()
-				.filter(p -> StringUtils.hasText(p.getName()))
-				.collect(Collectors.toMap(V1EndpointPort::getName, V1EndpointPort::getPort));
-			// This oneliner is looking for a port with a name equal to the primary port name specified in the service label
-			// or in spring.cloud.kubernetes.discovery.primary-port-name, equal to https, or equal to http.
-			// In case no port has been found return -1 to log a warning and fall back to the first port in the list.
-			int discoveredPort = ports.getOrDefault(primaryPortName, ports.getOrDefault(HTTPS_PORT_NAME, ports.getOrDefault(HTTP_PORT_NAME, -1)));
+			Map<String, Integer> ports = endpointPorts.stream().filter(p -> StringUtils.hasText(p.getName()))
+					.collect(Collectors.toMap(V1EndpointPort::getName, V1EndpointPort::getPort));
+			// This oneliner is looking for a port with a name equal to the primary port
+			// name specified in the service label
+			// or in spring.cloud.kubernetes.discovery.primary-port-name, equal to https,
+			// or equal to http.
+			// In case no port has been found return -1 to log a warning and fall back to
+			// the first port in the list.
+			int discoveredPort = ports.getOrDefault(primaryPortName,
+					ports.getOrDefault(HTTPS_PORT_NAME, ports.getOrDefault(HTTP_PORT_NAME, -1)));
 
 			if (discoveredPort == -1) {
 				if (StringUtils.hasText(primaryPortName)) {
-					log.warn("Could not find a port named '" + primaryPortName + "', 'https', or 'http' for service '" + serviceId + "'.");
+					log.warn("Could not find a port named '" + primaryPortName + "', 'https', or 'http' for service '"
+							+ serviceId + "'.");
 				}
 				else {
 					log.warn("Could not find a port named 'https' or 'http' for service '" + serviceId + "'.");
 				}
-				log.warn("Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
+				log.warn(
+						"Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
 				log.warn("Alternatively name the primary port 'https' or 'http'");
 				log.warn("An incorrect configuration may result in non-deterministic behaviour.");
 				discoveredPort = endpointPorts.get(0).getPort();
@@ -198,9 +205,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 	public List<String> getServices() {
 		List<V1Service> services = this.properties.isAllNamespaces() ? this.serviceLister.list()
 				: this.serviceLister.namespace(this.namespace).list();
-		return services.stream()
-			.filter(s -> s.getMetadata() != null) //safeguard
-			.map(s -> s.getMetadata().getName()).collect(Collectors.toList());
+		return services.stream().filter(s -> s.getMetadata() != null) // safeguard
+				.map(s -> s.getMetadata().getName()).collect(Collectors.toList());
 	}
 
 	@Override
