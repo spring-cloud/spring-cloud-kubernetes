@@ -13,6 +13,7 @@
 
 	<properties>
 		<awaitility.version>4.0.3</awaitility.version>
+		<okhttp.version>3.14.4</okhttp.version>
 	</properties>
 	<dependencies>
 		<dependency>
