@@ -884,11 +884,9 @@ Fabric8 Leader Implementation
 ----
 ====
 
-====
-
 To specify the name of the configmap used for leader election use the following property.
 ====
-[source]
+[source,properties]
 ----
 spring.cloud.kubernetes.leader.config-map-name=leader
 ----
