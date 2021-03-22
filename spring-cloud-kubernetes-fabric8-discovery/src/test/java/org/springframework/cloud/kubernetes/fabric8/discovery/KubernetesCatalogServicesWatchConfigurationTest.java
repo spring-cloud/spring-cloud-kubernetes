@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.After;
 import org.junit.Test;
@@ -70,9 +74,12 @@ public class KubernetesCatalogServicesWatchConfigurationTest {
 	}
 
 	private void setup(String... env) {
+		List<String> envList = new ArrayList<>(Arrays.asList(env));
+		envList.add("spring.cloud.config.enabled=false");
 		this.context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
 				KubernetesClientTestConfiguration.class, KubernetesCatalogWatchAutoConfiguration.class,
-				KubernetesDiscoveryClientAutoConfiguration.class).web(WebApplicationType.NONE).properties(env).run();
+				KubernetesDiscoveryClientAutoConfiguration.class).web(WebApplicationType.NONE)
+						.properties(envList.toArray(new String[0])).run();
 	}
 
 	@Configuration(proxyBeanMethods = false)

@@ -47,13 +47,20 @@ import static java.util.stream.Collectors.toMap;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance.NAMESPACE_METADATA_KEY;
 
 /**
- * Kubeneretes implementation of {@link DiscoveryClient}.
+ * Kubernetes implementation of {@link DiscoveryClient}.
  *
  * @author Ioannis Canellos
+ * @author Tim Ysewyn
  */
 public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private static final Log log = LogFactory.getLog(KubernetesDiscoveryClient.class);
+
+	private static final String PRIMARY_PORT_NAME_LABEL_KEY = "primary-port-name";
+
+	private static final String HTTPS_PORT_NAME = "https";
+
+	private static final String HTTP_PORT_NAME = "http";
 
 	private final KubernetesDiscoveryProperties properties;
 
@@ -103,8 +110,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId, "[Assertion failed] - the object argument must not be null");
 
-		List<EndpointSubsetNS> subsetsNS = this.getEndPointsList(serviceId).stream()
-				.map(endpoints -> getSubsetsFromEndpoints(endpoints)).collect(Collectors.toList());
+		List<EndpointSubsetNS> subsetsNS = this.getEndPointsList(serviceId).stream().map(this::getSubsetsFromEndpoints)
+				.collect(Collectors.toList());
 
 		List<ServiceInstance> instances = new ArrayList<>();
 		if (!subsetsNS.isEmpty()) {
@@ -133,13 +140,19 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			final Map<String, String> serviceMetadata = this.getServiceMetadata(service);
 			KubernetesDiscoveryProperties.Metadata metadataProps = this.properties.getMetadata();
 
+			String primaryPortName = this.properties.getPrimaryPortName();
+			Map<String, String> labels = service.getMetadata().getLabels();
+			if (labels != null && labels.containsKey(PRIMARY_PORT_NAME_LABEL_KEY)) {
+				primaryPortName = labels.get(PRIMARY_PORT_NAME_LABEL_KEY);
+			}
+
 			for (EndpointSubset s : subsets) {
 				// Extend the service metadata map with per-endpoint port information (if
 				// requested)
 				Map<String, String> endpointMetadata = new HashMap<>(serviceMetadata);
 				if (metadataProps.isAddPorts()) {
 					Map<String, String> ports = s.getPorts().stream()
-							.filter(port -> !StringUtils.isEmpty(port.getName()))
+							.filter(port -> StringUtils.hasText(port.getName()))
 							.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
 					Map<String, String> portMetadata = getMapWithPrefixedKeys(ports, metadataProps.getPortsPrefix());
 					if (log.isDebugEnabled()) {
@@ -157,23 +170,22 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				if (this.properties.isIncludeNotReadyAddresses()
 						&& !CollectionUtils.isEmpty(s.getNotReadyAddresses())) {
 					if (addresses == null) {
-						addresses = new ArrayList<EndpointAddress>();
+						addresses = new ArrayList<>();
 					}
 					addresses.addAll(s.getNotReadyAddresses());
 				}
 
 				for (EndpointAddress endpointAddress : addresses) {
+					int endpointPort = findEndpointPort(s, serviceId, primaryPortName);
 					String instanceId = null;
 					if (endpointAddress.getTargetRef() != null) {
 						instanceId = endpointAddress.getTargetRef().getUid();
 					}
-
-					EndpointPort endpointPort = findEndpointPort(s);
 					instances.add(new KubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
-							endpointPort.getPort(), endpointMetadata,
-							this.servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(
-									endpointPort.getPort(), service.getMetadata().getName(),
-									service.getMetadata().getLabels(), service.getMetadata().getAnnotations()))));
+							endpointPort, endpointMetadata,
+							this.servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(endpointPort,
+									service.getMetadata().getName(), service.getMetadata().getLabels(),
+									service.getMetadata().getAnnotations()))));
 				}
 			}
 		}
@@ -204,23 +216,39 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return serviceMetadata;
 	}
 
-	private EndpointPort findEndpointPort(EndpointSubset s) {
-		List<EndpointPort> ports = s.getPorts();
-		EndpointPort endpointPort;
-		if (ports.size() == 1) {
-			endpointPort = ports.get(0);
+	private int findEndpointPort(EndpointSubset s, String serviceId, String primaryPortName) {
+		List<EndpointPort> endpointPorts = s.getPorts();
+		if (endpointPorts.size() == 1) {
+			return endpointPorts.get(0).getPort();
 		}
 		else {
-			Predicate<EndpointPort> portPredicate;
-			if (!StringUtils.isEmpty(properties.getPrimaryPortName())) {
-				portPredicate = port -> properties.getPrimaryPortName().equalsIgnoreCase(port.getName());
+			Map<String, Integer> ports = endpointPorts.stream().filter(p -> StringUtils.hasText(p.getName()))
+					.collect(Collectors.toMap(EndpointPort::getName, EndpointPort::getPort));
+			// This oneliner is looking for a port with a name equal to the primary port
+			// name specified in the service label
+			// or in spring.cloud.kubernetes.discovery.primary-port-name, equal to https,
+			// or equal to http.
+			// In case no port has been found return -1 to log a warning and fall back to
+			// the first port in the list.
+			int discoveredPort = ports.getOrDefault(primaryPortName,
+					ports.getOrDefault(HTTPS_PORT_NAME, ports.getOrDefault(HTTP_PORT_NAME, -1)));
+
+			if (discoveredPort == -1) {
+				if (StringUtils.hasText(primaryPortName)) {
+					log.warn("Could not find a port named '" + primaryPortName + "', 'https', or 'http' for service '"
+							+ serviceId + "'.");
+				}
+				else {
+					log.warn("Could not find a port named 'https' or 'http' for service '" + serviceId + "'.");
+				}
+				log.warn(
+						"Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
+				log.warn("Alternatively name the primary port 'https' or 'http'");
+				log.warn("An incorrect configuration may result in non-deterministic behaviour.");
+				discoveredPort = endpointPorts.get(0).getPort();
 			}
-			else {
-				portPredicate = port -> true;
-			}
-			endpointPort = ports.stream().filter(portPredicate).findAny().orElseThrow(IllegalStateException::new);
+			return discoveredPort;
 		}
-		return endpointPort;
 	}
 
 	private EndpointSubsetNS getSubsetsFromEndpoints(Endpoints endpoints) {

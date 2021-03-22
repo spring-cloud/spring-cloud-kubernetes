@@ -74,6 +74,20 @@ spring.cloud.kubernetes.discovery.include-not-ready-addresses=true
 NOTE: This might be useful when discovering services for monitoring purposes, and would enable inspecting the `/health` endpoint of not-ready service instances.
 ====
 
+If your service exposes multiple ports, you will need to specify which port the `DiscoveryClient` should use.
+The `DiscoveryClient` will choose the port using the following logic.
+
+1. If the service has a label `primary-port-name` it will use the port with the name specified in the label's value.
+2. If no label is present, then the port name specified in `spring.cloud.kubernetes.discovery.primary-port-name` will be used.
+3. If neither of the above are specified it will use the port named `https`.
+4. If none of the above conditions are met it will use the port named `http`.
+5. As a last resort it wil pick the first port in the list of ports.
+
+WARNING:  The last option may result in non-deterministic behaviour.
+Please make sure to configure your service and/or application accordingly.
+
+By default all of the ports and their names will be added to the metadata of the `ServiceInstance`.
+
 If, for any reason, you need to disable the `DiscoveryClient`, you can set the following property in `application.properties`:
 
 ====
