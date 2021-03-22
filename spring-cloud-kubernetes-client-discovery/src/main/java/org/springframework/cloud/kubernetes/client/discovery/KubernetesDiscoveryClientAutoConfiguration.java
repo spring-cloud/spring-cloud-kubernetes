@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
+import javax.annotation.PostConstruct;
+
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
@@ -30,16 +32,24 @@ import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInfo
 import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformers;
 import io.kubernetes.client.spring.extended.controller.config.KubernetesInformerAutoConfiguration;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
+import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
+import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -52,6 +62,27 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 public class KubernetesDiscoveryClientAutoConfiguration {
+
+	@ConditionalOnClass({ HealthIndicator.class })
+	@ConditionalOnDiscoveryEnabled
+	@ConditionalOnDiscoveryHealthIndicatorEnabled
+	@Configuration
+	public static class KubernetesDiscoveryClientHealthIndicatorConfiguration {
+
+		private KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer;
+
+		@Autowired
+		public void setIndicatorInitializer(ApplicationEventPublisher applicationEventPublisher, PodUtils podUtils) {
+			this.indicatorInitializer = new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils,
+					applicationEventPublisher);
+		}
+
+		@PostConstruct
+		public void postConstruct() {
+			this.indicatorInitializer.initialize();
+		}
+
+	}
 
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnBlockingDiscoveryEnabled
