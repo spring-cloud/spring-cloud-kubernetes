@@ -148,7 +148,7 @@ public class ReactiveDiscoveryClientIT {
 		});
 		return rest;
 	}
-	
+
 	public void testHealth() {
 		RestTemplate rest = createRestTemplate();
 
