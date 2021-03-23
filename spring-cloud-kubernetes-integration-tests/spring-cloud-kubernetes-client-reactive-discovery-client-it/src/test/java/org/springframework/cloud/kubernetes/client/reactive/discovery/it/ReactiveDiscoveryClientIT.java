@@ -95,6 +95,7 @@ public class ReactiveDiscoveryClientIT {
 		try {
 			deployReactiveDiscoveryIt();
 			testLoadBalancer();
+			testHealth();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -147,8 +148,7 @@ public class ReactiveDiscoveryClientIT {
 		});
 		return rest;
 	}
-
-	@Test
+	
 	public void testHealth() {
 		RestTemplate rest = createRestTemplate();
 
