@@ -16,11 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import javax.annotation.PostConstruct;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -96,17 +93,13 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	@Configuration
 	public static class KubernetesDiscoveryClientHealthIndicatorConfiguration {
 
-		private KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer;
-
-		@Autowired
-		public void setIndicatorInitializer(ApplicationEventPublisher applicationEventPublisher, PodUtils podUtils) {
-			this.indicatorInitializer = new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils,
-					applicationEventPublisher);
-		}
-
-		@PostConstruct
-		public void postConstruct() {
-			this.indicatorInitializer.initialize();
+		@Bean
+		public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
+				ApplicationEventPublisher applicationEventPublisher, PodUtils podUtils) {
+			KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer = new KubernetesDiscoveryClientHealthIndicatorInitializer(
+					podUtils, applicationEventPublisher);
+			indicatorInitializer.initialize();
+			return indicatorInitializer;
 		}
 
 	}

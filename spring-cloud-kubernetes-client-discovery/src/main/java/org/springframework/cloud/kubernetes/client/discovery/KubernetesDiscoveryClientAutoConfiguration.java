@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
-import javax.annotation.PostConstruct;
-
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
@@ -32,7 +30,6 @@ import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInfo
 import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformers;
 import io.kubernetes.client.spring.extended.controller.config.KubernetesInformerAutoConfiguration;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -69,17 +66,13 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	@Configuration
 	public static class KubernetesDiscoveryClientHealthIndicatorConfiguration {
 
-		private KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer;
-
-		@Autowired
-		public void setIndicatorInitializer(ApplicationEventPublisher applicationEventPublisher, PodUtils podUtils) {
-			this.indicatorInitializer = new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils,
-					applicationEventPublisher);
-		}
-
-		@PostConstruct
-		public void postConstruct() {
-			this.indicatorInitializer.initialize();
+		@Bean
+		public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
+				ApplicationEventPublisher applicationEventPublisher, PodUtils podUtils) {
+			KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer = new KubernetesDiscoveryClientHealthIndicatorInitializer(
+					podUtils, applicationEventPublisher);
+			indicatorInitializer.initialize();
+			return indicatorInitializer;
 		}
 
 	}

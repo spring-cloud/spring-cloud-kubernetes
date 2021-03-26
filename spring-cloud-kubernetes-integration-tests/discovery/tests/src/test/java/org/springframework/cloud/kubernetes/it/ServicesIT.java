@@ -59,7 +59,7 @@ public class ServicesIT {
 	@Test
 	public void testHealthEndpoint() {
 		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).contentType("application/json")
-			.get("actuator/health").then().statusCode(200).body("components.discoveryComposite.status", is("UP"));
+				.get("actuator/health").then().statusCode(200).body("components.discoveryComposite.status", is("UP"));
 	}
 
 }

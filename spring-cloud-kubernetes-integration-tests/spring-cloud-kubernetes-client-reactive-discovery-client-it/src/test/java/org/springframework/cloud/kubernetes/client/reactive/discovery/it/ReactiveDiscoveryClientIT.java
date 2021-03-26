@@ -155,11 +155,12 @@ public class ReactiveDiscoveryClientIT {
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
 		await().timeout(Duration.ofSeconds(60))
-			.until(() -> rest.getForEntity("http://localhost:80/reactive-discovery-it/actuator/health", String.class)
-				.getStatusCode().is2xxSuccessful());
+				.until(() -> rest
+						.getForEntity("http://localhost:80/reactive-discovery-it/actuator/health", String.class)
+						.getStatusCode().is2xxSuccessful());
 
 		Map<String, Object> health = rest.getForObject("http://localhost:80/reactive-discovery-it/actuator/health",
-			Map.class);
+				Map.class);
 		Map<String, Object> components = (Map) health.get("components");
 
 		assertThat(components.containsKey("reactiveDiscoveryClients")).isTrue();
