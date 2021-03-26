@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.discovery;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -23,7 +24,7 @@ import org.springframework.context.ApplicationEventPublisher;
 /**
  * @author Ryan Baxter
  */
-public class KubernetesDiscoveryClientHealthIndicatorInitializer {
+public class KubernetesDiscoveryClientHealthIndicatorInitializer implements InitializingBean {
 
 	private PodUtils podUtils;
 
@@ -37,6 +38,11 @@ public class KubernetesDiscoveryClientHealthIndicatorInitializer {
 
 	public void initialize() {
 		this.applicationEventPublisher.publishEvent(new InstanceRegisteredEvent<>(podUtils.currentPod(), null));
+	}
+
+	@Override
+	public void afterPropertiesSet() {
+		this.initialize();
 	}
 
 }

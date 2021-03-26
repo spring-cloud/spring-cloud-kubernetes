@@ -69,10 +69,7 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		@Bean
 		public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
 				ApplicationEventPublisher applicationEventPublisher, PodUtils podUtils) {
-			KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer = new KubernetesDiscoveryClientHealthIndicatorInitializer(
-					podUtils, applicationEventPublisher);
-			indicatorInitializer.initialize();
-			return indicatorInitializer;
+			return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 		}
 
 	}
