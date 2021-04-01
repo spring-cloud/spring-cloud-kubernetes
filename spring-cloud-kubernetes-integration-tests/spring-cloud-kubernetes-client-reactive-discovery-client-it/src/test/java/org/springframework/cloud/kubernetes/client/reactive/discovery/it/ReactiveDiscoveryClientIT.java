@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.reactive.discovery.it;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Map;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
@@ -59,12 +60,6 @@ public class ReactiveDiscoveryClientIT {
 
 	private static final String SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME = "spring-cloud-kubernetes-client-reactive-discovery-it";
 
-	private static final String WIREMOCK_HOST = "localhost";
-
-	private static final String WIREMOCK_PATH = "/wiremock";
-
-	private static final int WIREMOCK_PORT = 80;
-
 	private static final String NAMESPACE = "default";
 
 	private ApiClient client;
@@ -100,6 +95,7 @@ public class ReactiveDiscoveryClientIT {
 		try {
 			deployReactiveDiscoveryIt();
 			testLoadBalancer();
+			testHealth();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -121,7 +117,20 @@ public class ReactiveDiscoveryClientIT {
 	private void testLoadBalancer() throws Exception {
 		// Check to make sure the controller deployment is ready
 		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_DEPLOYMENT_NAME, NAMESPACE);
+		RestTemplate rest = createRestTemplate();
+		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
+		// available and we get a 503, we just need to wait a bit
+		await().timeout(Duration.ofSeconds(60))
+				.until(() -> rest.getForEntity("http://localhost:80/reactive-discovery-it/services", String.class)
+						.getStatusCode().is2xxSuccessful());
+		String result = rest.getForObject("http://localhost:80/reactive-discovery-it/services", String.class);
+		assertThat(Arrays.stream(result.split(",")).anyMatch(s -> "servicea-wiremock".equalsIgnoreCase(s))).isTrue();
+
+	}
+
+	private RestTemplate createRestTemplate() {
 		RestTemplate rest = new RestTemplateBuilder().build();
+
 		rest.setErrorHandler(new ResponseErrorHandler() {
 			@Override
 			public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
@@ -137,14 +146,26 @@ public class ReactiveDiscoveryClientIT {
 
 			}
 		});
+		return rest;
+	}
+
+	public void testHealth() {
+		RestTemplate rest = createRestTemplate();
+
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
 		await().timeout(Duration.ofSeconds(60))
-				.until(() -> rest.getForEntity("http://localhost:80/reactive-discovery-it/services", String.class)
+				.until(() -> rest
+						.getForEntity("http://localhost:80/reactive-discovery-it/actuator/health", String.class)
 						.getStatusCode().is2xxSuccessful());
-		String result = rest.getForObject("http://localhost:80/reactive-discovery-it/services", String.class);
-		assertThat(Arrays.stream(result.split(",")).anyMatch(s -> "servicea-wiremock".equalsIgnoreCase(s))).isTrue();
 
+		Map<String, Object> health = rest.getForObject("http://localhost:80/reactive-discovery-it/actuator/health",
+				Map.class);
+		Map<String, Object> components = (Map) health.get("components");
+
+		assertThat(components.containsKey("reactiveDiscoveryClients")).isTrue();
+		Map<String, Object> discoveryComposite = (Map) components.get("discoveryComposite");
+		assertThat(discoveryComposite.get("status")).isEqualTo("UP");
 	}
 
 	@After

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.After;
 import org.junit.Test;
@@ -27,12 +28,14 @@ import org.junit.Test;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Oleg Vyukov
@@ -88,6 +91,13 @@ public class KubernetesCatalogServicesWatchConfigurationTest {
 		@Bean
 		KubernetesClient kubernetesClient() {
 			return mock(KubernetesClient.class);
+		}
+
+		@Bean
+		PodUtils podUtils() {
+			PodUtils<Pod> podPodUtils = mock(PodUtils.class);
+			when(podPodUtils.currentPod()).thenReturn(() -> mock(Pod.class));
+			return podPodUtils;
 		}
 
 	}

@@ -6,7 +6,7 @@ build:
   artifacts:
   - image: springcloud/spring-cloud-kubernetes-core-k8s-client-it
     custom:
-      buildCommand: "../../mvnw clean install"
+      buildCommand: "../../mvnw clean install -Pskaffold"
       dependencies:
         paths:
           - src

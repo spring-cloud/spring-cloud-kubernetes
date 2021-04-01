@@ -150,6 +150,10 @@ public class ActuatorEndpointIT {
 		assertThat(details.containsKey("podIp")).isTrue();
 		assertThat(details.containsKey("podName")).isTrue();
 		assertThat(details.containsKey("serviceAccount")).isTrue();
+
+		assertThat(components.containsKey("discoveryComposite")).isTrue();
+		Map<String, Object> discoveryComposite = (Map) components.get("discoveryComposite");
+		assertThat(discoveryComposite.get("status")).isEqualTo("UP");
 	}
 
 	@Test
