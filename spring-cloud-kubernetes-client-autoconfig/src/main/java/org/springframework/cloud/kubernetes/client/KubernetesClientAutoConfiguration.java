@@ -30,7 +30,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
-import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -61,7 +60,7 @@ public class KubernetesClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public KubernetesClientPodUtils kubernetesPodUtils(CoreV1Api client,
-			KubernetesClientProperties kubernetesClientProperties) {
+		KubernetesClientProperties kubernetesClientProperties) {
 		return new KubernetesClientPodUtils(client, kubernetesClientProperties.getNamespace());
 	}
 
@@ -71,13 +70,13 @@ public class KubernetesClientAutoConfiguration {
 
 		@Bean
 		@ConditionalOnEnabledHealthIndicator("kubernetes")
-		public KubernetesClientHealthIndicator kubernetesHealthIndicator(PodUtils podUtils) {
+		public KubernetesClientHealthIndicator kubernetesHealthIndicator(KubernetesClientPodUtils podUtils) {
 			return new KubernetesClientHealthIndicator(podUtils);
 		}
 
 		@Bean
 		@ConditionalOnEnabledInfoContributor("kubernetes")
-		public KubernetesClientInfoContributor kubernetesInfoContributor(PodUtils podUtils) {
+		public KubernetesClientInfoContributor kubernetesInfoContributor(KubernetesClientPodUtils podUtils) {
 			return new KubernetesClientInfoContributor(podUtils);
 		}
 

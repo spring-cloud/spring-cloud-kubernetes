@@ -20,9 +20,9 @@ import java.util.Collections;
 import java.util.Map;
 
 import io.kubernetes.client.openapi.models.V1Pod;
+import org.apache.commons.lang3.StringUtils;
 
 import org.springframework.cloud.kubernetes.commons.AbstractKubernetesInfoContributor;
-import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -30,9 +30,9 @@ import org.springframework.util.CollectionUtils;
  */
 public class KubernetesClientInfoContributor extends AbstractKubernetesInfoContributor {
 
-	private final PodUtils<V1Pod> utils;
+	private final KubernetesClientPodUtils utils;
 
-	public KubernetesClientInfoContributor(PodUtils<V1Pod> utils) {
+	public KubernetesClientInfoContributor(KubernetesClientPodUtils utils) {
 		this.utils = utils;
 	}
 
@@ -49,6 +49,9 @@ public class KubernetesClientInfoContributor extends AbstractKubernetesInfoContr
 			details.put(POD_IP, current.getStatus().getPodIP());
 			details.put(HOST_IP, current.getStatus().getHostIP());
 			return details;
+		}
+		if (!StringUtils.isEmpty(this.utils.getFailureMessage())) {
+			return Collections.singletonMap(INSIDE, this.utils.getFailureMessage());
 		}
 		return Collections.singletonMap(INSIDE, false);
 	}

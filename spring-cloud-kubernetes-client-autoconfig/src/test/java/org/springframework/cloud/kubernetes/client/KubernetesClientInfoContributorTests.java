@@ -18,13 +18,10 @@ package org.springframework.cloud.kubernetes.client;
 
 import java.util.Map;
 
-import io.kubernetes.client.openapi.models.V1Pod;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import org.springframework.cloud.kubernetes.commons.PodUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -49,7 +46,7 @@ import static org.springframework.cloud.kubernetes.client.StubProvider.STUB_SERV
 class KubernetesClientInfoContributorTests {
 
 	@Mock
-	private PodUtils<V1Pod> utils;
+	private KubernetesClientPodUtils utils;
 
 	@Test
 	void getDetailsIsNotInside() {

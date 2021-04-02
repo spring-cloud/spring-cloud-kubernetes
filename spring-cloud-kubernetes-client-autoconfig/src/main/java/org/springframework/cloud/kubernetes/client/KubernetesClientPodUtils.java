@@ -48,6 +48,8 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 
 	private String namespace;
 
+	private String failureMessage;
+
 	public KubernetesClientPodUtils(CoreV1Api client, String namespace) {
 		if (client == null) {
 			throw new IllegalArgumentException("Must provide an instance of KubernetesClient");
@@ -69,19 +71,22 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 		return currentPod().get() != null;
 	}
 
+	public String getFailureMessage() {
+		return failureMessage;
+	}
+
 	private synchronized V1Pod internalGetPod() {
+		if (!(isServiceAccountFound() && isHostNameEnvVarPresent())) {
+			return null;
+		}
 		try {
 			LOG.info("Getting pod internal");
-			if (isServiceAccountFound() && isHostNameEnvVarPresent()) {
-				return this.client.readNamespacedPod(this.hostName, namespace, null, null, null);
-			}
-			else {
-				return null;
-			}
+			return this.client.readNamespacedPod(this.hostName, namespace, null, null, null);
 		}
 		catch (Throwable t) {
 			LOG.warn("Failed to get pod with name:[" + this.hostName + "]. You should look into this if things aren't"
 					+ " working as you expect. Are you missing serviceaccount permissions?", t);
+			this.failureMessage = t.getMessage();
 			return null;
 		}
 	}
