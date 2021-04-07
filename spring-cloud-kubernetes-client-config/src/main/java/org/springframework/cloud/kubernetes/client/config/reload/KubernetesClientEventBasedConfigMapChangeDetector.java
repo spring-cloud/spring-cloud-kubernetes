@@ -125,6 +125,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 	}
 
 	private void onEvent(V1ConfigMap configMap) {
+		this.log.debug(String.format("onEvent configMap: %s", configMap.toString()));
 		boolean changed = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
 				findPropertySources(KubernetesClientConfigMapPropertySource.class));
 		if (changed) {

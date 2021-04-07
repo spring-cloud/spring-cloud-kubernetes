@@ -119,6 +119,7 @@ public class EventBasedSecretsChangeDetector extends ConfigurationChangeDetector
 	}
 
 	protected void onEvent(Secret secret) {
+		this.log.debug(String.format("onEvent configMap: %s", secret.toString()));
 		boolean changed = changed(locateMapPropertySources(this.fabric8SecretsPropertySourceLocator, this.environment),
 				findPropertySources(Fabric8SecretsPropertySource.class));
 		if (changed) {

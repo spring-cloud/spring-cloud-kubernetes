@@ -119,6 +119,7 @@ public class EventBasedConfigMapChangeDetector extends ConfigurationChangeDetect
 	}
 
 	protected void onEvent(ConfigMap configMap) {
+		this.log.debug(String.format("onEvent configMap: %s", configMap.toString()));
 		boolean changed = changed(
 				locateMapPropertySources(this.fabric8ConfigMapPropertySourceLocator, this.environment),
 				findPropertySources(Fabric8ConfigMapPropertySource.class));
