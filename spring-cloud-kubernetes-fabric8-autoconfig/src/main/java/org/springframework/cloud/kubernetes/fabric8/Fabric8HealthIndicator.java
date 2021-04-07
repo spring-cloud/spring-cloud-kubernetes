@@ -19,7 +19,10 @@ package org.springframework.cloud.kubernetes.fabric8;
 import java.util.Collections;
 import java.util.Map;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodStatus;
 
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.cloud.kubernetes.commons.AbstractKubernetesHealthIndicator;
@@ -46,13 +49,20 @@ public class Fabric8HealthIndicator extends AbstractKubernetesHealthIndicator {
 		if (current != null) {
 			Map<String, Object> details = CollectionUtils.newHashMap(8);
 			details.put(INSIDE, true);
-			details.put(NAMESPACE, current.getMetadata().getNamespace());
-			details.put(POD_NAME, current.getMetadata().getName());
-			details.put(LABELS, current.getMetadata().getLabels());
-			details.put(POD_IP, current.getStatus().getPodIP());
-			details.put(HOST_IP, current.getStatus().getHostIP());
-			details.put(SERVICE_ACCOUNT, current.getSpec().getServiceAccountName());
-			details.put(NODE_NAME, current.getSpec().getNodeName());
+
+			ObjectMeta metadata = current.getMetadata();
+			details.put(NAMESPACE, metadata.getNamespace());
+			details.put(POD_NAME, metadata.getName());
+			details.put(LABELS, metadata.getLabels());
+
+			PodStatus status = current.getStatus();
+			details.put(POD_IP, status.getPodIP());
+			details.put(HOST_IP, status.getHostIP());
+
+			PodSpec spec = current.getSpec();
+			details.put(SERVICE_ACCOUNT, spec.getServiceAccountName());
+			details.put(NODE_NAME, spec.getNodeName());
+
 			return details;
 		}
 
