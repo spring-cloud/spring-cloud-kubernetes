@@ -81,10 +81,17 @@ public abstract class ConfigurationChangeDetector {
 	}
 
 	public boolean changed(List<? extends MapPropertySource> left, List<? extends MapPropertySource> right) {
-
 		if (left.size() != right.size()) {
 			this.log.warn("The current number of ConfigMap PropertySources does not match "
 					+ "the ones loaded from the Kubernetes - No reload will take place");
+
+			if (log.isDebugEnabled()) {
+				this.log.debug(String.format("source 1: %d", left.size()));
+				left.forEach(item -> log.debug(item));
+
+				this.log.debug(String.format("source 2: %d", right.size()));
+				right.forEach(item -> log.debug(item));
+			}
 			return false;
 		}
 
@@ -123,6 +130,10 @@ public abstract class ConfigurationChangeDetector {
 		List<S> managedSources = new LinkedList<>();
 
 		LinkedList<PropertySource<?>> sources = toLinkedList(this.environment.getPropertySources());
+		this.log.debug("findPropertySources");
+		this.log.debug(String.format("environment: %s", this.environment));
+		this.log.debug(String.format("environment sources: %s", sources));
+
 		while (!sources.isEmpty()) {
 			PropertySource<?> source = sources.pop();
 			if (source instanceof CompositePropertySource) {
@@ -175,6 +186,10 @@ public abstract class ConfigurationChangeDetector {
 		else {
 			this.log.debug("Found property source that cannot be handled: " + propertySource.getClass());
 		}
+
+		this.log.debug("locateMapPropertySources");
+		this.log.debug(String.format("environment: %s", environment));
+		this.log.debug(String.format("sources: %s", result));
 
 		return result;
 	}
