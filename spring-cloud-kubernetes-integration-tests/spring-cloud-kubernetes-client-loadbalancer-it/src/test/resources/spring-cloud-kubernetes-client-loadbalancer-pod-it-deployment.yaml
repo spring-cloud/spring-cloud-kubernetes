@@ -17,7 +17,7 @@ spec:
           env:
             - name: SPRING_CLOUD_KUBERNETES_LOADBALANCER_MODE
               value: POD
-          image: docker.io/springcloud/spring-cloud-kubernetes-client-loadbalancer-it:2.0.3-SNAPSHOT
+          image: docker.io/springcloud/spring-cloud-kubernetes-client-loadbalancer-it
           imagePullPolicy: IfNotPresent
           readinessProbe:
             httpGet:
