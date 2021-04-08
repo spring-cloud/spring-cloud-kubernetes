@@ -138,7 +138,8 @@ public class ActuatorEndpointIT {
 		await().timeout(Duration.ofSeconds(60))
 				.until(() -> rest.getForEntity("http://localhost:80/core-k8s-client-it/actuator/health", String.class)
 						.getStatusCode().is2xxSuccessful());
-		LOG.debug("Response from /health endpoint: " + rest.getForEntity("http://localhost:80/core-k8s-client-it/actuator/health", String.class));
+		LOG.debug("Response from /health endpoint: "
+				+ rest.getForEntity("http://localhost:80/core-k8s-client-it/actuator/health", String.class));
 		Map<String, Object> health = rest.getForObject("http://localhost:80/core-k8s-client-it/actuator/health",
 				Map.class);
 		Map<String, Object> components = (Map) health.get("components");
@@ -185,7 +186,8 @@ public class ActuatorEndpointIT {
 		await().timeout(Duration.ofSeconds(60))
 				.until(() -> rest.getForEntity("http://localhost:80/core-k8s-client-it/actuator/info", String.class)
 						.getStatusCode().is2xxSuccessful());
-		LOG.debug("Response from /info endpoint: " + rest.getForEntity("http://localhost:80/core-k8s-client-it/actuator/info", String.class));
+		LOG.debug("Response from /info endpoint: "
+				+ rest.getForEntity("http://localhost:80/core-k8s-client-it/actuator/info", String.class));
 		Map<String, Object> info = rest.getForObject("http://localhost:80/core-k8s-client-it/actuator/info", Map.class);
 		Map<String, Object> kubernetes = (Map) info.get("kubernetes");
 		assertThat(kubernetes.containsKey("hostIp")).isTrue();
