@@ -206,7 +206,7 @@ public class ActuatorRefreshRabbitMQIT {
 		V1Deployment deployment = (V1Deployment) k8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-bus-amqp-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
-			+ getPomVersion();
+				+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
@@ -221,7 +221,7 @@ public class ActuatorRefreshRabbitMQIT {
 		String urlString = "spring-cloud-kubernetes-configuration-watcher-it-bus-amqp-deployment.yaml";
 		V1Deployment deployment = (V1Deployment) k8SUtils.readYamlFromClasspath(urlString);
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
-			+ getPomVersion();
+				+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
