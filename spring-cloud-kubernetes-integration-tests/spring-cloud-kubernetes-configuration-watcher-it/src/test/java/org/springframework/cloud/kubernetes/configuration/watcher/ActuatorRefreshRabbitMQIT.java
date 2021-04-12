@@ -46,6 +46,7 @@ import org.springframework.web.client.RestTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.getPomVersion;
 
 /**
  * @author Ryan Baxter
@@ -204,6 +205,9 @@ public class ActuatorRefreshRabbitMQIT {
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) k8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-bus-amqp-deployment.yaml");
+		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
+				+ getPomVersion();
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
 
@@ -216,6 +220,9 @@ public class ActuatorRefreshRabbitMQIT {
 	private V1Deployment getItDeployment() throws Exception {
 		String urlString = "spring-cloud-kubernetes-configuration-watcher-it-bus-amqp-deployment.yaml";
 		V1Deployment deployment = (V1Deployment) k8SUtils.readYamlFromClasspath(urlString);
+		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
+				+ getPomVersion();
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
 

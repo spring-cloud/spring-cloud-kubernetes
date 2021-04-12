@@ -44,6 +44,7 @@ import org.springframework.web.client.RestTemplate;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.getPomVersion;
 
 /**
  * @author Ryan Baxter
@@ -94,6 +95,9 @@ public class ActuatorEndpointIT {
 	private static V1Deployment getCoreK8sClientItDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) k8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-core-k8s-client-it-deployment.yaml");
+		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
+				+ getPomVersion();
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
 
@@ -134,7 +138,8 @@ public class ActuatorEndpointIT {
 		await().timeout(Duration.ofSeconds(60))
 				.until(() -> rest.getForEntity("http://localhost:80/core-k8s-client-it/actuator/health", String.class)
 						.getStatusCode().is2xxSuccessful());
-
+		LOG.debug("Response from /health endpoint: "
+				+ rest.getForEntity("http://localhost:80/core-k8s-client-it/actuator/health", String.class));
 		Map<String, Object> health = rest.getForObject("http://localhost:80/core-k8s-client-it/actuator/health",
 				Map.class);
 		Map<String, Object> components = (Map) health.get("components");
@@ -181,7 +186,8 @@ public class ActuatorEndpointIT {
 		await().timeout(Duration.ofSeconds(60))
 				.until(() -> rest.getForEntity("http://localhost:80/core-k8s-client-it/actuator/info", String.class)
 						.getStatusCode().is2xxSuccessful());
-
+		LOG.debug("Response from /info endpoint: "
+				+ rest.getForEntity("http://localhost:80/core-k8s-client-it/actuator/info", String.class));
 		Map<String, Object> info = rest.getForObject("http://localhost:80/core-k8s-client-it/actuator/info", Map.class);
 		Map<String, Object> kubernetes = (Map) info.get("kubernetes");
 		assertThat(kubernetes.containsKey("hostIp")).isTrue();

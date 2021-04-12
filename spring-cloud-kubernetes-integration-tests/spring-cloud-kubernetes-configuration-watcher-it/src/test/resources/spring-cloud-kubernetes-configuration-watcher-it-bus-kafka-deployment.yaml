@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: spring-cloud-kubernetes-configuration-watcher-it
-          image: docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher-it:2.0.3-SNAPSHOT
+          image: docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher-it
           imagePullPolicy: IfNotPresent
           env:
             - name: SPRING_PROFILES_ACTIVE
