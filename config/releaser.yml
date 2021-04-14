@@ -1,0 +1,1 @@
+releaser.maven.build-command: ./scripts/integration-tests.sh
