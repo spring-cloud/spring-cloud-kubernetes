@@ -50,7 +50,7 @@ public class KubernetesClientInfoContributor extends AbstractKubernetesInfoContr
 			details.put(HOST_IP, current.getStatus().getHostIP());
 			return details;
 		}
-		return Collections.singletonMap(INSIDE, false);
+		return Collections.singletonMap(INSIDE, "IMPOSSIBLE"); // false -> IMPOSSIBLE
 	}
 
 }
