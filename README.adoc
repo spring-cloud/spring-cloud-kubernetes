@@ -696,7 +696,7 @@ https://github.com/fabric8-quickstarts/spring-boot-camel-config[spring-boot-came
 
 === `PropertySource` Reload
 
-WARNING:  This functionality has been deprecated in Spring Cloud 2020.0.0 release.  Please see
+WARNING:  This functionality has been deprecated in the 2020.0 release.  Please see
 the <<spring-cloud-kubernetes-configuration-watcher>> controller for an alternative way
 to achieve the same functionality.
 
