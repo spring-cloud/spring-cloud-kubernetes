@@ -26,13 +26,15 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.Config;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.commons.EnvReader;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author wind57
@@ -79,13 +81,11 @@ public class KubernetesClientPodUtilsTests {
 		paths.close();
 	}
 
-	// expect an IllegalArgumentException if KubernetesClient argument is null
 	@Test
 	public void constructorThrowsIllegalArgumentExceptionWhenKubeClientIsNull() {
-		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class,
-				() -> new KubernetesClientPodUtils(null, "namespace"));
-
-		Assertions.assertEquals(ex.getMessage(), "Must provide an instance of KubernetesClient");
+		assertThatThrownBy(() -> new KubernetesClientPodUtils(null, "namespace"))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("Must provide an instance of KubernetesClient");
 	}
 
 	@Test
@@ -138,13 +138,13 @@ public class KubernetesClientPodUtilsTests {
 
 		KubernetesClientPodUtils util = new KubernetesClientPodUtils(client, "namespace");
 		Supplier<V1Pod> sup = util.currentPod();
-		Assertions.assertNotNull(sup.get());
-		Assertions.assertTrue(util.isInsideKubernetes());
+		assertThat(sup.get()).isNotNull();
+		assertThat(util.isInsideKubernetes()).isTrue();
 	}
 
 	private void assertSupplierAndClient(Supplier<V1Pod> sup, KubernetesClientPodUtils util) {
-		Assertions.assertNull(sup.get(), "supplier must return a null");
-		Assertions.assertFalse(util.isInsideKubernetes(), "must not be inside kubernetes");
+		assertThat(sup.get()).isNull();
+		assertThat(util.isInsideKubernetes()).isFalse();
 	}
 
 	private void mockHost(String host) {
