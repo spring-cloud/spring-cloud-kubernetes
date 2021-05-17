@@ -34,7 +34,9 @@ import org.springframework.cloud.kubernetes.example.App;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+		properties = { "management.endpoints.web.exposure.include=info", "management.endpoint.info.show-details=always",
+				"management.info.kubernetes.enabled=true" })
 public class Fabric8NotInsideInfoContributorTest {
 
 	public static KubernetesServer server = new KubernetesServer();

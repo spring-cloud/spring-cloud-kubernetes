@@ -32,13 +32,11 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.example.App;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8InfoContributor;
+import org.springframework.cloud.kubernetes.fabric8.Fabric8PodUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -49,7 +47,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @Import(Fabric8InsideInfoContributorTest.InfoContributorTestConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
-		properties = { "management.endpoint.health.show-details=always", "management.info.kubernetes.enabled=false" })
+		properties = { "management.endpoints.web.exposure.include=info", "management.endpoint.info.show-details=always",
+				"management.info.kubernetes.enabled=true" })
 public class Fabric8InsideInfoContributorTest {
 
 	@Autowired
@@ -118,12 +117,10 @@ public class Fabric8InsideInfoContributorTest {
 	static class InfoContributorTestConfig {
 
 		@Bean
-		@Primary
-		public Fabric8InfoContributor testInfoContributor() {
-			@SuppressWarnings("unchecked")
-			PodUtils<Pod> utils = Mockito.mock(PodUtils.class);
+		public Fabric8PodUtils fabric8PodUtils() {
+			Fabric8PodUtils utils = Mockito.mock(Fabric8PodUtils.class);
 			Mockito.when(utils.currentPod()).thenReturn(Fabric8InsideInfoContributorTest::stubPod);
-			return new Fabric8InfoContributor(utils);
+			return utils;
 		}
 
 	}
