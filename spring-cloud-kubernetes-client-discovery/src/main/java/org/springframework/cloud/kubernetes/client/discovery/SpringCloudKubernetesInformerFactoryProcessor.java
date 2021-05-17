@@ -59,7 +59,7 @@ class SpringCloudKubernetesInformerFactoryProcessor extends KubernetesInformerFa
 	private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
 	@Autowired
-	public SpringCloudKubernetesInformerFactoryProcessor(KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
+	SpringCloudKubernetesInformerFactoryProcessor(KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, ApiClient apiClient,
 			SharedInformerFactory sharedInformerFactory) {
 		super(apiClient, sharedInformerFactory);
@@ -89,7 +89,9 @@ class SpringCloudKubernetesInformerFactoryProcessor extends KubernetesInformerFa
 					kubernetesInformer.groupVersionResource().apiVersion(),
 					kubernetesInformer.groupVersionResource().resourcePlural(), apiClient);
 			SharedIndexInformer sharedIndexInformer = sharedInformerFactory.sharedIndexInformerFor(api,
-					kubernetesInformer.apiTypeClass(), kubernetesInformer.resyncPeriodMillis(), kubernetesInformer.namespace().equals(Namespaces.NAMESPACE_ALL) ? namespace: kubernetesInformer.namespace());
+					kubernetesInformer.apiTypeClass(), kubernetesInformer.resyncPeriodMillis(),
+					kubernetesInformer.namespace().equals(Namespaces.NAMESPACE_ALL) ? namespace
+							: kubernetesInformer.namespace());
 			ResolvableType informerType = ResolvableType.forClassWithGenerics(SharedInformer.class,
 					kubernetesInformer.apiTypeClass());
 			RootBeanDefinition informerBean = new RootBeanDefinition();

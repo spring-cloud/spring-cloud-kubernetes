@@ -37,7 +37,7 @@ class SpringCloudKubernetesInformerConfigurer extends KubernetesInformerConfigur
 
 	private final KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
 
-	public SpringCloudKubernetesInformerConfigurer(KubernetesNamespaceProvider kubernetesNamespaceProvider,
+	SpringCloudKubernetesInformerConfigurer(KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			KubernetesDiscoveryProperties kubernetesDiscoveryProperties, ApiClient apiClient,
 			SharedInformerFactory sharedInformerFactory) {
 		super(apiClient, sharedInformerFactory);
