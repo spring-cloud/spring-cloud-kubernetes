@@ -27,7 +27,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 /**
  * @author Ryan Baxter
  */
-public class SpringCloudKubernetesInformerConfigurer extends KubernetesInformerConfigurer {
+class SpringCloudKubernetesInformerConfigurer extends KubernetesInformerConfigurer {
 
 	private final ApiClient apiClient;
 

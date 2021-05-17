@@ -44,7 +44,7 @@ import org.springframework.core.ResolvableType;
 /**
  * @author Ryan Baxter
  */
-public class SpringCloudKubernetesInformerFactoryProcessor extends KubernetesInformerFactoryProcessor {
+class SpringCloudKubernetesInformerFactoryProcessor extends KubernetesInformerFactoryProcessor {
 
 	private static final Logger log = LoggerFactory.getLogger(SpringCloudKubernetesInformerFactoryProcessor.class);
 
@@ -89,7 +89,7 @@ public class SpringCloudKubernetesInformerFactoryProcessor extends KubernetesInf
 					kubernetesInformer.groupVersionResource().apiVersion(),
 					kubernetesInformer.groupVersionResource().resourcePlural(), apiClient);
 			SharedIndexInformer sharedIndexInformer = sharedInformerFactory.sharedIndexInformerFor(api,
-					kubernetesInformer.apiTypeClass(), kubernetesInformer.resyncPeriodMillis(), namespace);
+					kubernetesInformer.apiTypeClass(), kubernetesInformer.resyncPeriodMillis(), kubernetesInformer.namespace().equals(Namespaces.NAMESPACE_ALL) ? namespace: kubernetesInformer.namespace());
 			ResolvableType informerType = ResolvableType.forClassWithGenerics(SharedInformer.class,
 					kubernetesInformer.apiTypeClass());
 			RootBeanDefinition informerBean = new RootBeanDefinition();
