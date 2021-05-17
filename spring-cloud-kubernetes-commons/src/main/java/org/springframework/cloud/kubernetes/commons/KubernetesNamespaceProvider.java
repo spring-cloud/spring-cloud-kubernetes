@@ -45,7 +45,7 @@ public class KubernetesNamespaceProvider implements ApplicationListener<Applicat
 
 	private static final DeferredLog LOG = new DeferredLog();
 
-	private static String serviceAccountNamespace;
+	private String serviceAccountNamespace;
 
 	private Environment environment;
 
