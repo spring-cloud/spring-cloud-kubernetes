@@ -31,8 +31,6 @@ import org.springframework.util.StringUtils;
 @ConfigurationProperties("spring.cloud.kubernetes.config")
 public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
-	private static final String TARGET = "Config Map";
-
 	private boolean enableApi = true;
 
 	private List<String> paths = Collections.emptyList();
@@ -82,7 +80,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 	@Override
 	public String getConfigurationTarget() {
-		return TARGET;
+		return "Config Map";
 	}
 
 	/**
@@ -125,12 +123,12 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		}
 
 		public boolean isEmpty() {
-			return StringUtils.isEmpty(this.name) && StringUtils.isEmpty(this.namespace);
+			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
 
 		public NormalizedSource normalize(String defaultName, String defaultNamespace) {
-			final String normalizedName = StringUtils.isEmpty(this.name) ? defaultName : this.name;
-			final String normalizedNamespace = StringUtils.isEmpty(this.namespace) ? defaultNamespace : this.namespace;
+			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
+			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
 
 			return new NormalizedSource(normalizedName, normalizedNamespace);
 		}

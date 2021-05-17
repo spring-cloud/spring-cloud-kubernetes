@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,8 +34,6 @@ import org.springframework.util.StringUtils;
  */
 @ConfigurationProperties("spring.cloud.kubernetes.secrets")
 public class SecretsConfigProperties extends AbstractConfigProperties {
-
-	private static final String TARGET = "Secret";
 
 	private boolean enableApi = false;
 
@@ -79,7 +77,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 
 	@Override
 	public String getConfigurationTarget() {
-		return TARGET;
+		return "Secret";
 	}
 
 	/**
@@ -92,12 +90,9 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 	 */
 	public List<SecretsConfigProperties.NormalizedSource> determineSources() {
 		if (this.sources.isEmpty()) {
-			return new ArrayList<SecretsConfigProperties.NormalizedSource>() {
-				{
-					add(new SecretsConfigProperties.NormalizedSource(SecretsConfigProperties.this.name,
+			return Collections
+					.singletonList(new SecretsConfigProperties.NormalizedSource(SecretsConfigProperties.this.name,
 							SecretsConfigProperties.this.namespace, SecretsConfigProperties.this.labels));
-				}
-			};
 		}
 
 		return this.sources.stream().map(s -> s.normalize(this.name, this.namespace, this.labels))
@@ -155,14 +150,14 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		}
 
 		public boolean isEmpty() {
-			return StringUtils.isEmpty(this.name) && StringUtils.isEmpty(this.namespace);
+			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
 
 		public SecretsConfigProperties.NormalizedSource normalize(String defaultName, String defaultNamespace,
 				Map<String, String> defaultLabels) {
-			final String normalizedName = StringUtils.isEmpty(this.name) ? defaultName : this.name;
-			final String normalizedNamespace = StringUtils.isEmpty(this.namespace) ? defaultNamespace : this.namespace;
-			final Map<String, String> normalizedLabels = this.labels.isEmpty() ? defaultLabels : this.labels;
+			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
+			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
+			Map<String, String> normalizedLabels = this.labels.isEmpty() ? defaultLabels : this.labels;
 
 			return new SecretsConfigProperties.NormalizedSource(normalizedName, normalizedNamespace, normalizedLabels);
 		}
@@ -175,7 +170,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 
 		private final String namespace;
 
-		private Map<String, String> labels = new HashMap<>();
+		private final Map<String, String> labels;
 
 		NormalizedSource(String name, String namespace, Map<String, String> labels) {
 			this.name = name;
