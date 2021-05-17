@@ -44,6 +44,7 @@ import org.springframework.web.client.RestTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.getPomVersion;
 
 /**
  * @author Ryan Baxter
@@ -185,12 +186,18 @@ public class ConfigMapAndSecretIT {
 	private static V1Deployment getConfigK8sClientItDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) k8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-deployment.yaml");
+		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
+				+ getPomVersion();
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
 
 	private static V1Deployment getConfigK8sClientItPollingDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) k8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-polling-deployment.yaml");
+		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
+				+ getPomVersion();
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
 

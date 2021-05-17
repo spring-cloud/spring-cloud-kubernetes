@@ -19,9 +19,11 @@ package org.springframework.cloud.kubernetes.integration.tests.commons;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
@@ -47,6 +49,11 @@ import io.kubernetes.client.util.Yaml;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
+
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.fail;
 
@@ -54,6 +61,8 @@ import static org.junit.Assert.fail;
  * @author Ryan Baxter
  */
 public class K8SUtils {
+
+	private static final String KUBERNETES_VERSION_FILE = "META-INF/springcloudkubernetes-version.txt";
 
 	private Log log = LogFactory.getLog(getClass());
 
@@ -63,6 +72,21 @@ public class K8SUtils {
 
 	public static ApiClient createApiClient() throws IOException {
 		return createApiClient(false, Duration.ofSeconds(15));
+	}
+
+	public static String getPomVersion() {
+		try (InputStream in = new ClassPathResource(KUBERNETES_VERSION_FILE).getInputStream()) {
+			String version = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
+			if (StringUtils.hasText(version)) {
+				version = version.trim();
+			}
+			return version;
+		}
+		catch (IOException e) {
+			ReflectionUtils.rethrowRuntimeException(e);
+		}
+		// not reachable since exception rethrown at runtime
+		return null;
 	}
 
 	public static ApiClient createApiClient(boolean debug, Duration readTimeout) throws IOException {

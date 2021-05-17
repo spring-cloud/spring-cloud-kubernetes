@@ -24,13 +24,12 @@ import org.springframework.core.env.Environment;
 
 public class Fabric8ProfileEnvironmentPostProcessor extends AbstractKubernetesProfileEnvironmentPostProcessor {
 
-	protected static final String KUBERNETES_SERVICE_ENV_VAR = "KUBERNETES_SERVICE_HOST";
-
 	@Override
 	protected boolean isInsideKubernetes(Environment environment) {
 		try (DefaultKubernetesClient client = new DefaultKubernetesClient()) {
-			final Fabric8PodUtils podUtils = new Fabric8PodUtils(client);
-			return environment.containsProperty(KUBERNETES_SERVICE_ENV_VAR) || podUtils.isInsideKubernetes();
+			Fabric8PodUtils podUtils = new Fabric8PodUtils(client);
+			return environment.containsProperty(Fabric8PodUtils.KUBERNETES_SERVICE_HOST)
+					|| podUtils.isInsideKubernetes();
 		}
 	}
 

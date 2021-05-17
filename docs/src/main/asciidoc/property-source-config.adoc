@@ -561,7 +561,7 @@ output. More generally speaking, changes associated to properties prefixed with 
 field of the `@ConfigurationProperties` annotation are detected and reflected in the application.
 <<configmap-propertysource,Associating a `ConfigMap` with a pod>> is explained earlier in this chapter.
 
-The full example is available in https://github.com/fabric8io/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-examples/kubernetes-reload-example[`spring-cloud-kubernetes-reload-example`].
+The full example is available in https://github.com/spring-cloud/spring-cloud-kubernetes/tree/main/spring-cloud-kubernetes-examples/kubernetes-reload-example[`spring-cloud-kubernetes-reload-example`].
 
 The reload feature supports two operating modes:
 * Event (default): Watches for changes in config maps or secrets by using the Kubernetes API (web socket).

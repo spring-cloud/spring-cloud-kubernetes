@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.core.Is.is;
 
 @RequiresKubernetes
 @RunWith(Arquillian.class)
@@ -53,6 +54,12 @@ public class ServicesIT {
 		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).get("services/discovery-service-a/instances")
 				.then().statusCode(200).body("instanceId", hasSize(1))
 				.body("serviceId", hasItems("discovery-service-a"));
+	}
+
+	@Test
+	public void testHealthEndpoint() {
+		given().baseUri(String.format("%s://%s:%d", PROTOCOL, HOST, PORT)).contentType("application/json")
+				.get("actuator/health").then().statusCode(200).body("components.discoveryComposite.status", is("UP"));
 	}
 
 }

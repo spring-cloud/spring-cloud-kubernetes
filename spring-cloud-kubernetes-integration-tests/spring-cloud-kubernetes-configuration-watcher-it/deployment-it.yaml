@@ -18,7 +18,7 @@ spec:
         app: k8s-demo-app
     spec:
       containers:
-      - image: docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher-it:2.0.2-SNAPSHOT
+      - image: docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher-it:2.0.3-SNAPSHOT
         name: spring-cloud-kubernetes-configuration-watcher-it
         resources: {}
         env:
