@@ -30,7 +30,6 @@ import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
-import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PATH_PROPERTY;
 import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
 
 /**
@@ -66,21 +65,6 @@ public class KubernetesNamespaceProviderTests {
 		assertThat(p1.getNamespace()).isEqualTo("mynamespace");
 		paths.verify(times(0), () -> Paths.get(PATH));
 
-	}
-
-	@Test
-	public void namespaceFileOnlyReadOnce() {
-		MockEnvironment env = new MockEnvironment();
-		env.setProperty(NAMESPACE_PATH_PROPERTY, PATH);
-		Path path = serviceAccountFileResolved(true, PATH);
-		mockServiceAccountNamespace(path);
-		KubernetesNamespaceProvider p1 = new KubernetesNamespaceProvider(env);
-		assertThat(p1.getNamespace()).isEqualTo(FOUNT_IT);
-
-		KubernetesNamespaceProvider p2 = new KubernetesNamespaceProvider(env);
-		assertThat(p2.getNamespace()).isEqualTo(FOUNT_IT);
-
-		paths.verify(times(1), () -> Paths.get(PATH));
 	}
 
 	/**
