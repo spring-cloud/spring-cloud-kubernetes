@@ -19,7 +19,9 @@ package org.springframework.cloud.kubernetes.commons;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,18 +33,24 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class LazilyInstantiateTest {
 
+	private static final String TAG = "excluded-from-before";
+
 	private static final String SINGLETON = "singleton";
 
 	@Mock
 	private Supplier<String> mockSupplier;
 
 	@BeforeEach
-	public void setUp() throws Exception {
-		// common setup
-		when(this.mockSupplier.get()).thenReturn(SINGLETON)
-				.thenThrow(new RuntimeException("Supplier was called more than once!"));
+	public void setUp(TestInfo testInfo) throws Exception {
+		// some tests do not need this mocking
+		if (!testInfo.getTags().contains(TAG)) {
+			// common setup
+			when(this.mockSupplier.get()).thenReturn(SINGLETON)
+					.thenThrow(new RuntimeException("Supplier was called more than once!"));
+		}
 	}
 
+	@Tag(TAG)
 	@Test
 	public void supplierNotCalledInLazyInstantiateFactoryMethod() {
 		LazilyInstantiate.using(this.mockSupplier);

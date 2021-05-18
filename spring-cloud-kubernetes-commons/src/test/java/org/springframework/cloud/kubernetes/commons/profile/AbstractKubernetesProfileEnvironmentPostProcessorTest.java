@@ -178,20 +178,16 @@ public class AbstractKubernetesProfileEnvironmentPostProcessorTest {
 	 * 'kubernetes' profile is not present
 	 */
 	private void assertKubernetesProfileNotPresent() {
-		Assertions.assertFalse(
-			kubernetesProfile().isPresent(),
-			"'kubernetes' profile must not be present when 'spring.cloud.kubernetes.enabled' is false"
-		);
+		Assertions.assertFalse(kubernetesProfile().isPresent(),
+				"'kubernetes' profile must not be present when 'spring.cloud.kubernetes.enabled' is false");
 	}
 
 	/*
 	 * 'kubernetes' profile is present
 	 */
 	private void assertKubernetesProfilePresent() {
-		Assertions.assertTrue(
-			kubernetesProfile().isPresent(),
-			"'kubernetes' profile must be present when 'spring.cloud.kubernetes.enabled' is true"
-		);
+		Assertions.assertTrue(kubernetesProfile().isPresent(),
+				"'kubernetes' profile must be present when 'spring.cloud.kubernetes.enabled' is true");
 	}
 
 	/*
@@ -200,10 +196,8 @@ public class AbstractKubernetesProfileEnvironmentPostProcessorTest {
 	private void assertKubernetesPropertySourceNotPresent() {
 		Optional<PropertySource<?>> kubernetesPropertySource = kubernetesPropertySource();
 
-		Assertions.assertFalse(
-			kubernetesPropertySource.isPresent(),
-			"'KUBERNETES_NAMESPACE_PROPERTY_SOURCE' source must not be present when 'spring.cloud.kubernetes.enabled' is false"
-		);
+		Assertions.assertFalse(kubernetesPropertySource.isPresent(),
+				"'KUBERNETES_NAMESPACE_PROPERTY_SOURCE' source must not be present when 'spring.cloud.kubernetes.enabled' is false");
 	}
 
 	/*
@@ -212,17 +206,13 @@ public class AbstractKubernetesProfileEnvironmentPostProcessorTest {
 	private void assertKubernetesPropertySourcePresent() {
 
 		Optional<PropertySource<?>> kubernetesPropertySource = kubernetesPropertySource();
-		Assertions.assertTrue(
-			kubernetesPropertySource.isPresent(),
-			"'KUBERNETES_NAMESPACE_PROPERTY_SOURCE' source must be present when 'spring.cloud.kubernetes.enabled' is true"
-		);
+		Assertions.assertTrue(kubernetesPropertySource.isPresent(),
+				"'KUBERNETES_NAMESPACE_PROPERTY_SOURCE' source must be present when 'spring.cloud.kubernetes.enabled' is true");
 
 		String property = (String) kubernetesPropertySource.get()
 				.getProperty("spring.cloud.kubernetes.client.namespace");
-		Assertions.assertEquals(
-			property, FOUNT_IT,
-			"'spring.cloud.kubernetes.client.namespace' must be set to 'foundIt'"
-		);
+		Assertions.assertEquals(property, FOUNT_IT,
+				"'spring.cloud.kubernetes.client.namespace' must be set to 'foundIt'");
 	}
 
 	/**
