@@ -57,7 +57,7 @@ class KubernetesClientInfoContributorTests {
 		KubernetesClientInfoContributor infoContributor = new KubernetesClientInfoContributor(utils);
 		Map<String, Object> details = infoContributor.getDetails();
 
-		assertThat(details.containsKey(INSIDE)).isTrue();
+		assertThat(details.size()).isEqualTo(1);
 		assertThat(details.get(INSIDE)).isEqualTo(false);
 	}
 
@@ -68,7 +68,7 @@ class KubernetesClientInfoContributorTests {
 		KubernetesClientInfoContributor infoContributor = new KubernetesClientInfoContributor(utils);
 		Map<String, Object> details = infoContributor.getDetails();
 
-		assertThat(details.containsKey(INSIDE)).isTrue();
+		assertThat(details.size()).isEqualTo(7);
 		assertThat(details.get(INSIDE)).isEqualTo(true);
 
 		assertThat(details.get(HOST_IP)).isEqualTo(STUB_HOST_IP);
