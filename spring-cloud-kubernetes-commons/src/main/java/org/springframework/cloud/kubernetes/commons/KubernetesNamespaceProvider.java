@@ -77,19 +77,19 @@ public class KubernetesNamespaceProvider implements ApplicationListener<Applicat
 
 	public static String getNamespaceFromServiceAccountFile(String path) {
 		String namespace = null;
-		if(LOG.isDebugEnabled()) {
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Looking for service account namespace at: [" + path + "].");
 		}
 		Path serviceAccountNamespacePath = Paths.get(path);
 		boolean serviceAccountNamespaceExists = Files.isRegularFile(serviceAccountNamespacePath);
 		if (serviceAccountNamespaceExists) {
-			if(LOG.isDebugEnabled()) {
+			if (LOG.isDebugEnabled()) {
 				LOG.debug("Found service account namespace at: [" + serviceAccountNamespacePath + "].");
 			}
 
 			try {
 				namespace = new String(Files.readAllBytes((serviceAccountNamespacePath)));
-				if(LOG.isDebugEnabled()) {
+				if (LOG.isDebugEnabled()) {
 					LOG.debug("Service account namespace value: " + serviceAccountNamespacePath);
 				}
 			}
