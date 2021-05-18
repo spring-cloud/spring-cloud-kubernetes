@@ -33,7 +33,7 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfig
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesAndConfigEnabled;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
@@ -122,10 +122,10 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 				ConfigurationUpdateStrategy strategy,
 				KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
 				AbstractEnvironment environment, CoreV1Api coreV1Api,
-				KubernetesClientProperties kubernetesClientProperties) {
+				KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 
 			return new KubernetesClientEventBasedConfigMapChangeDetector(coreV1Api, environment, properties, strategy,
-					configMapPropertySourceLocator, kubernetesClientProperties);
+					configMapPropertySourceLocator, kubernetesNamespaceProvider);
 		}
 
 		/**
@@ -142,10 +142,10 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 				ConfigurationUpdateStrategy strategy,
 				KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
 				AbstractEnvironment environment, CoreV1Api coreV1Api,
-				KubernetesClientProperties kubernetesClientProperties) {
+				KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 
 			return new KubernetesClientEventBasedSecretsChangeDetector(coreV1Api, environment, properties, strategy,
-					secretsPropertySourceLocator, kubernetesClientProperties);
+					secretsPropertySourceLocator, kubernetesNamespaceProvider);
 		}
 
 	}

@@ -44,7 +44,7 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
 import org.springframework.cloud.kubernetes.client.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -67,11 +67,11 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(
-			KubernetesClientProperties kubernetesClientProperties, SharedInformerFactory sharedInformerFactory,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider, SharedInformerFactory sharedInformerFactory,
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
 			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
 			KubernetesDiscoveryProperties properties) {
-		return new KubernetesInformerReactiveDiscoveryClient(kubernetesClientProperties, sharedInformerFactory,
+		return new KubernetesInformerReactiveDiscoveryClient(kubernetesNamespaceProvider, sharedInformerFactory,
 				serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
 	}
 
