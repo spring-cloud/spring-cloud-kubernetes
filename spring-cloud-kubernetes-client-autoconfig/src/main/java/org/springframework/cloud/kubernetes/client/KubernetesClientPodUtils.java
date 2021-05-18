@@ -25,8 +25,10 @@ import io.kubernetes.client.util.Config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.kubernetes.commons.EnvReader;
 import org.springframework.cloud.kubernetes.commons.LazilyInstantiate;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Ryan Baxter
@@ -38,15 +40,22 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 	 */
 	public static final String HOSTNAME = "HOSTNAME";
 
+	/**
+	 * KUBERNETES_SERVICE_HOST environment variable name.
+	 */
+	public static final String KUBERNETES_SERVICE_HOST = "KUBERNETES_SERVICE_HOST";
+
 	private static final Log LOG = LogFactory.getLog(KubernetesClientPodUtils.class);
 
 	private final CoreV1Api client;
 
 	private final String hostName;
 
-	private Supplier<V1Pod> current;
+	private final Supplier<V1Pod> current;
 
-	private String namespace;
+	private final String namespace;
+
+	private final String serviceHost;
 
 	public KubernetesClientPodUtils(CoreV1Api client, String namespace) {
 		if (client == null) {
@@ -54,14 +63,15 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 		}
 
 		this.client = client;
-		this.hostName = System.getenv(HOSTNAME);
-		this.current = LazilyInstantiate.using(() -> internalGetPod());
+		this.hostName = EnvReader.getEnv(HOSTNAME);
+		this.serviceHost = EnvReader.getEnv(KUBERNETES_SERVICE_HOST);
+		this.current = LazilyInstantiate.using(this::internalGetPod);
 		this.namespace = namespace;
 	}
 
 	@Override
 	public Supplier<V1Pod> currentPod() {
-		return this.current;
+		return current;
 	}
 
 	@Override
@@ -69,30 +79,35 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 		return currentPod().get() != null;
 	}
 
-	private synchronized V1Pod internalGetPod() {
+	private V1Pod internalGetPod() {
 		try {
-			LOG.info("Getting pod internal");
-			if (isServiceAccountFound() && isHostNameEnvVarPresent()) {
-				return this.client.readNamespacedPod(this.hostName, namespace, null, null, null);
-			}
-			else {
-				return null;
+			if (isServiceHostEnvVarPresent() && isHostNameEnvVarPresent() && isServiceAccountFound()) {
+				return client.readNamespacedPod(hostName, namespace, null, null, null);
 			}
 		}
 		catch (Throwable t) {
-			LOG.warn("Failed to get pod with name:[" + this.hostName + "]. You should look into this if things aren't"
+			LOG.warn("Failed to get pod with name:[" + hostName + "]. You should look into this if things aren't"
 					+ " working as you expect. Are you missing serviceaccount permissions?", t);
-			return null;
 		}
+		return null;
+	}
+
+	private boolean isServiceHostEnvVarPresent() {
+		return StringUtils.hasLength(serviceHost);
 	}
 
 	private boolean isHostNameEnvVarPresent() {
-		return this.hostName != null && !this.hostName.isEmpty();
+		return StringUtils.hasLength(hostName);
 	}
 
 	private boolean isServiceAccountFound() {
-		return Paths.get(Config.SERVICEACCOUNT_TOKEN_PATH).toFile().exists()
-				&& Paths.get(Config.SERVICEACCOUNT_CA_PATH).toFile().exists();
+		boolean serviceAccountPathPresent = Paths.get(Config.SERVICEACCOUNT_TOKEN_PATH).toFile().exists();
+		if (!serviceAccountPathPresent) {
+			// https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+			LOG.warn("serviceaccount path not present, did you disable it via 'automountServiceAccountToken : false'?"
+					+ " Major functionalities will not work without that property being set");
+		}
+		return serviceAccountPathPresent && Paths.get(Config.SERVICEACCOUNT_CA_PATH).toFile().exists();
 	}
 
 }
