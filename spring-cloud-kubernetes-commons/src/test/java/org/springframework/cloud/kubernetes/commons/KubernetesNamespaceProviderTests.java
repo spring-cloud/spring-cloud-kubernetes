@@ -20,9 +20,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -45,13 +45,13 @@ public class KubernetesNamespaceProviderTests {
 
 	private MockedStatic<Files> files;
 
-	@Before
+	@BeforeEach
 	public void before() {
 		paths = Mockito.mockStatic(Paths.class);
 		files = Mockito.mockStatic(Files.class);
 	}
 
-	@After
+	@AfterEach
 	public void after() {
 		paths.close();
 		files.close();
