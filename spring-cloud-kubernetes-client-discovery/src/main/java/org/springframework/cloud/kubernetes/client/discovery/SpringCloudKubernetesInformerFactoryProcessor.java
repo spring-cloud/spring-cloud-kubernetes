@@ -62,7 +62,7 @@ class SpringCloudKubernetesInformerFactoryProcessor extends KubernetesInformerFa
 	SpringCloudKubernetesInformerFactoryProcessor(KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, ApiClient apiClient,
 			SharedInformerFactory sharedInformerFactory) {
-		super(apiClient, sharedInformerFactory);
+		super();
 		this.apiClient = apiClient;
 		this.sharedInformerFactory = sharedInformerFactory;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
