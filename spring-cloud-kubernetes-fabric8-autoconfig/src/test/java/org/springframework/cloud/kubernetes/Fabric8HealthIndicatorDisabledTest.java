@@ -18,8 +18,7 @@ package org.springframework.cloud.kubernetes;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.server.mock.KubernetesServer;
-import org.junit.jupiter.api.AfterAll;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -35,9 +34,10 @@ import static org.hamcrest.Matchers.not;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "management.health.kubernetes.enabled=false" })
+@EnableKubernetesMockClient(crud = true, https = false)
 public class Fabric8HealthIndicatorDisabledTest {
 
-	public static KubernetesServer server = new KubernetesServer(false);
+	private static KubernetesClient mockClient;
 
 	@Autowired
 	private WebTestClient webClient;
@@ -47,20 +47,12 @@ public class Fabric8HealthIndicatorDisabledTest {
 
 	@BeforeAll
 	public static void setUpBeforeClass() {
-		server.before();
-		KubernetesClient mockClient = server.getClient();
-
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
-	}
-
-	@AfterAll
-	public static void afterAll() {
-		server.after();
 	}
 
 	@Test
