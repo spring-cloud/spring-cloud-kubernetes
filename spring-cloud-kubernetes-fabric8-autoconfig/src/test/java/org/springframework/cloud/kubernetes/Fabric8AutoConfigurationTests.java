@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 				"spring.cloud.kubernetes.client.proxy-password=myproxypassword" })
 public class Fabric8AutoConfigurationTests {
 
-	public static KubernetesServer server = new KubernetesServer();
+	public static KubernetesServer server = new KubernetesServer(false);
 
 	@Autowired
 	ConfigurableApplicationContext context;

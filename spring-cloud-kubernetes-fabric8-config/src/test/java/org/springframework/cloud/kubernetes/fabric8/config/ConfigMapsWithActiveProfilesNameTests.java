@@ -52,7 +52,7 @@ public class ConfigMapsWithActiveProfilesNameTests {
 	private static final String APPLICATION_NAME = "configmap-with-active-profile-name-example";
 
 	@ClassRule
-	public static KubernetesServer server = new KubernetesServer();
+	public static KubernetesServer server = new KubernetesServer(false);
 
 	private static KubernetesClient mockClient;
 

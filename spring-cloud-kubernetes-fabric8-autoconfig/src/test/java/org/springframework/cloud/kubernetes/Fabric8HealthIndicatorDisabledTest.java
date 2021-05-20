@@ -37,7 +37,7 @@ import static org.hamcrest.Matchers.not;
 		properties = { "management.health.kubernetes.enabled=false" })
 public class Fabric8HealthIndicatorDisabledTest {
 
-	public static KubernetesServer server = new KubernetesServer();
+	public static KubernetesServer server = new KubernetesServer(false);
 
 	@Autowired
 	private WebTestClient webClient;

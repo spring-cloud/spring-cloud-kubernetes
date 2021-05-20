@@ -37,7 +37,7 @@ import org.springframework.context.annotation.Configuration;
 public class KubernetesConfigTestBase {
 
 	@ClassRule
-	public static KubernetesServer server = new KubernetesServer();
+	public static KubernetesServer server = new KubernetesServer(false);
 
 	private static ConfigurableApplicationContext context;
 

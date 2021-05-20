@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class KubernetesDiscoveryClientTest {
 
 	@ClassRule
-	public static KubernetesServer mockServer = new KubernetesServer();
+	public static KubernetesServer mockServer = new KubernetesServer(false);
 
 	private static KubernetesClient mockClient;
 

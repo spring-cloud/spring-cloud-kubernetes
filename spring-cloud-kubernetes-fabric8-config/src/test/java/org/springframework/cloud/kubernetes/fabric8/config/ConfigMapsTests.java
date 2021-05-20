@@ -49,7 +49,7 @@ public class ConfigMapsTests {
 	private static final String APPLICATION_NAME = "configmap-example";
 
 	@ClassRule
-	public static KubernetesServer server = new KubernetesServer();
+	public static KubernetesServer server = new KubernetesServer(false);
 
 	private static KubernetesClient mockClient;
 

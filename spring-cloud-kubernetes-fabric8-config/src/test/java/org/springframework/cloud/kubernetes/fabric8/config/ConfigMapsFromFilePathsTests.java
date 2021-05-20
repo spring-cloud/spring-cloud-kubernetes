@@ -66,7 +66,7 @@ public class ConfigMapsFromFilePathsTests {
 			+ FIRST_FILE_NAME;
 
 	@ClassRule
-	public static KubernetesServer server = new KubernetesServer();
+	public static KubernetesServer server = new KubernetesServer(false);
 
 	private static KubernetesClient mockClient;
 

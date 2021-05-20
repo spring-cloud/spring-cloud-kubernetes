@@ -33,7 +33,7 @@ import org.springframework.web.client.RestTemplate;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = "spring.cloud.kubernetes.discovery.all-namespaces=true")
-@EnableKubernetesMockClient(crud = true)
+@EnableKubernetesMockClient(crud = true, https = false)
 class LoadBalancerAllNamespacesTests {
 
 	@Autowired

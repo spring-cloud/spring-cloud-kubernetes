@@ -40,7 +40,7 @@ import static org.hamcrest.Matchers.containsString;
 public class HealthIndicatorTest {
 
 	@ClassRule
-	public static KubernetesServer server = new KubernetesServer();
+	public static KubernetesServer server = new KubernetesServer(false);
 
 	private static KubernetesClient mockClient;
 

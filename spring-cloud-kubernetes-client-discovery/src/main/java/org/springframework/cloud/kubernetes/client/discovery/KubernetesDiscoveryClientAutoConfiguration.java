@@ -83,11 +83,8 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 				KubernetesNamespaceProvider kubernetesNamespaceProvider,
 				KubernetesDiscoveryProperties kubernetesDiscoveryProperties, ApiClient apiClient,
 				CatalogSharedInformerFactory sharedInformerFactory) {
-			return new SpringCloudKubernetesInformerFactoryProcessor(
-					kubernetesDiscoveryProperties,
-					kubernetesNamespaceProvider,
-					apiClient,
-					sharedInformerFactory);
+			return new SpringCloudKubernetesInformerFactoryProcessor(kubernetesDiscoveryProperties,
+					kubernetesNamespaceProvider, apiClient, sharedInformerFactory);
 		}
 
 		@Bean
