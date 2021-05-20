@@ -35,7 +35,7 @@ import org.junit.jupiter.api.extension.ParameterResolver;
  */
 public class KubernetesExtension implements ParameterResolver, BeforeEachCallback, AfterEachCallback {
 
-	private final KubernetesServer mockServer = new KubernetesServer();
+	private final KubernetesServer mockServer = new KubernetesServer(false);
 
 	@Override
 	public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext context) {

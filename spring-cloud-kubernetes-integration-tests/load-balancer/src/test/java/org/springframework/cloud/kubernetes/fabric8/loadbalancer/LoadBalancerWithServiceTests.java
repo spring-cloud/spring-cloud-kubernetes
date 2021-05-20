@@ -16,35 +16,35 @@
 
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
-import java.util.HashMap;
+import java.util.Collections;
 
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServicePortBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.specto.hoverfly.junit.core.Hoverfly;
-import io.specto.hoverfly.junit5.HoverflyExtension;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.RestTemplate;
 
-import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
-import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
-import static io.specto.hoverfly.junit.dsl.HttpBodyConverter.json;
-import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
 		"spring.cloud.kubernetes.loadbalancer.enabled=true" })
-@ExtendWith(HoverflyExtension.class)
+@EnableKubernetesMockClient(crud = true, https = false)
 class LoadBalancerWithServiceTests {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LoadBalancerWithServiceTests.class);
@@ -52,36 +52,53 @@ class LoadBalancerWithServiceTests {
 	@Autowired
 	RestTemplate restTemplate;
 
-	@Autowired
-	KubernetesClient client;
+	@LocalServerPort
+	int randomServerPort;
+
+	@MockBean
+	Fabric8ServiceInstanceMapper mapper;
+
+	static KubernetesClient client;
 
 	@BeforeAll
 	static void setup() {
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, client.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
+
+	}
+
+	@BeforeEach
+	public void before() {
+		KubernetesServiceInstance instance = new KubernetesServiceInstance("serviceinstance", "service", "localhost",
+				randomServerPort, Collections.EMPTY_MAP, false);
+		when(mapper.map(any())).thenReturn(instance);
 	}
 
 	@Test
-	void testLoadBalancerInServiceMode(Hoverfly hoverfly) {
-		LOGGER.info("Master URL: {}", client.getConfiguration().getMasterUrl());
-		hoverfly.simulate(
-				dsl(service("http://service-a.test.svc.cluster.local:8080").get("/greeting")
-						.willReturn(success().body("greeting"))),
-				dsl(service(client.getConfiguration().getMasterUrl().replace("/", "").replace("https:", ""))
-						.get("/api/v1/namespaces/test/services/service-a")
-						.willReturn(success().body(json(buildService("service-a", 8080, "test"))))));
+	void testLoadBalancerSameNamespace() {
+		createTestData("service-a", "test");
 		String response = restTemplate.getForObject("http://service-a/greeting", String.class);
 		Assertions.assertNotNull(response);
 		Assertions.assertEquals("greeting", response);
 	}
 
-	private Service buildService(String name, int port, String namespace) {
-		return new ServiceBuilder().withNewMetadata().withName(name).withNamespace(namespace)
-				.withLabels(new HashMap<>()).withAnnotations(new HashMap<>()).endMetadata().withNewSpec().addNewPort()
-				.withPort(port).endPort().endSpec().build();
+	@Test
+	void testLoadBalancerDifferentNamespace() {
+		createTestData("service-b", "b");
+		Assertions.assertThrows(IllegalStateException.class,
+				() -> restTemplate.getForObject("http://service-b/greeting", String.class));
+	}
+
+	private void createTestData(String name, String namespace) {
+		client.services().inNamespace(namespace).createNew().withNewMetadata().withName(name).endMetadata()
+				.withSpec(new ServiceSpecBuilder()
+						.withPorts(new ServicePortBuilder().withProtocol("TCP").withPort(randomServerPort).build())
+						.build())
+				.done();
 	}
 
 }

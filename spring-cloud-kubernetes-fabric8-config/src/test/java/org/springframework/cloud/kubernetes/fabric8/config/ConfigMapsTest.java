@@ -35,7 +35,7 @@ import static org.springframework.cloud.kubernetes.fabric8.config.ConfigMapTestU
 public class ConfigMapsTest {
 
 	@Rule
-	public KubernetesServer server = new KubernetesServer();
+	public KubernetesServer server = new KubernetesServer(false);
 
 	@Test
 	public void testConfigMapList() {

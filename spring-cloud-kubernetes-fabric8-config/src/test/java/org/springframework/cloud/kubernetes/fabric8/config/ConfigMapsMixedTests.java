@@ -55,7 +55,7 @@ public class ConfigMapsMixedTests {
 	protected static final String APPLICATION_NAME = "configmap-mixed-example";
 
 	@ClassRule
-	public static KubernetesServer server = new KubernetesServer();
+	public static KubernetesServer server = new KubernetesServer(false);
 
 	private static KubernetesClient mockClient;
 

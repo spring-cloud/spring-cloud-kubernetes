@@ -40,7 +40,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 		properties = { "management.endpoint.health.show-details=always" })
 public class Fabric8NotInsideHealthIndicatorTest {
 
-	public static KubernetesServer server = new KubernetesServer();
+	public static KubernetesServer server = new KubernetesServer(false);
 
 	@Autowired
 	private WebTestClient webClient;

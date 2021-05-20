@@ -49,7 +49,7 @@ public class ConfigMapsWithProfilesNoActiveProfileTests {
 	private static final String APPLICATION_NAME = "configmap-with-profile-no-active-profiles-example";
 
 	@ClassRule
-	public static KubernetesServer server = new KubernetesServer();
+	public static KubernetesServer server = new KubernetesServer(false);
 
 	private static KubernetesClient mockClient;
 

@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class Fabric8ConfigUtilsTests {
 
 	@ClassRule
-	public static final KubernetesServer server = new KubernetesServer();
+	public static final KubernetesServer server = new KubernetesServer(false);
 
 	@Test
 	public void testGetApplicationNamespaceNotPresent() {

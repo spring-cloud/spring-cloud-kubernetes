@@ -46,7 +46,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 public class ConfigMapsWithProfileExpressionTests {
 
 	@ClassRule
-	public static KubernetesServer server = new KubernetesServer();
+	public static KubernetesServer server = new KubernetesServer(false);
 
 	private static final String APPLICATION_NAME = "configmap-with-profile-example";
 
