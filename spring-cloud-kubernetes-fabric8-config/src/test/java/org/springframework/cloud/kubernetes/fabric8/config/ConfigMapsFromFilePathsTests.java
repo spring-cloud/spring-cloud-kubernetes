@@ -22,28 +22,28 @@ import java.nio.file.Paths;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.fabric8.config.example.App;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.assertj.core.util.Lists.newArrayList;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "spring.application.name=configmap-path-example",
 				"spring.cloud.kubernetes.config.enableApi=false",
 				"spring.cloud.kubernetes.config.paths=" + ConfigMapsFromFilePathsTests.FIRST_FILE_NAME_FULL_PATH + ","
 						+ ConfigMapsFromFilePathsTests.SECOND_FILE_NAME_FULL_PATH + ","
 						+ ConfigMapsFromFilePathsTests.FIRST_FILE_NAME_DUPLICATED_FULL_PATH })
+@EnableKubernetesMockClient(crud = true, https = false)
 public class ConfigMapsFromFilePathsTests {
 
 	protected static final String FILES_ROOT_PATH = "/tmp/scktests";
@@ -65,17 +65,13 @@ public class ConfigMapsFromFilePathsTests {
 	protected static final String FIRST_FILE_NAME_DUPLICATED_FULL_PATH = FILES_ROOT_PATH + "/" + FILES_SUB_PATH + "/"
 			+ FIRST_FILE_NAME;
 
-	@ClassRule
-	public static KubernetesServer server = new KubernetesServer();
-
 	private static KubernetesClient mockClient;
 
 	@Autowired
 	private WebTestClient webClient;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() throws IOException {
-		mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
@@ -92,7 +88,7 @@ public class ConfigMapsFromFilePathsTests {
 				"bean.bonjour=Bonjour from path!");
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void teardownAfterClass() {
 		newArrayList(FIRST_FILE_NAME_FULL_PATH, SECOND_FILE_NAME_FULL_PATH, SECOND_FILE_NAME_FULL_PATH, FILES_ROOT_PATH)
 				.forEach(fn -> {

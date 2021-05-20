@@ -19,42 +19,37 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.fabric8.config.example2.ExampleApp;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
  * @author Charles Moulliard
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = ExampleApp.class,
 		properties = { "spring.cloud.bootstrap.name=multiplecms" })
 @AutoConfigureWebTestClient
+@EnableKubernetesMockClient(crud = true, https = false)
 public class MultipleConfigMapsTests {
-
-	@ClassRule
-	public static KubernetesServer server = new KubernetesServer();
 
 	private static KubernetesClient mockClient;
 
 	@Autowired
 	private WebTestClient webClient;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
-		mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
@@ -68,28 +63,26 @@ public class MultipleConfigMapsTests {
 		one.put("bean.common-message", "c1");
 		one.put("bean.message1", "m1");
 
-		createConfigmap(server, "s1", "defnamespace", one);
+		createConfigmap(mockClient, "s1", "defnamespace", one);
 
 		Map<String, String> two = new HashMap<>();
 		two.put("bean.common-message", "c2");
 		two.put("bean.message2", "m2");
 
-		createConfigmap(server, "defname", "s2", two);
+		createConfigmap(mockClient, "defname", "s2", two);
 
 		Map<String, String> three = new HashMap<>();
 		three.put("bean.common-message", "c3");
 		three.put("bean.message3", "m3");
 
-		createConfigmap(server, "othername", "othernamespace", three);
+		createConfigmap(mockClient, "othername", "othernamespace", three);
 	}
 
-	private static void createConfigmap(KubernetesServer server, String configMapName, String namespace,
+	private static void createConfigmap(KubernetesClient client, String configMapName, String namespace,
 			Map<String, String> data) {
 
-		server.expect().withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, configMapName))
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
-						.addToData(data).build())
-				.always();
+		client.configMaps().inNamespace(namespace).createNew().withNewMetadata().withName(configMapName).endMetadata()
+				.addToData(data).done();
 	}
 
 	// the last confimap defined in 'multiplecms.yml' has the highest priority, so

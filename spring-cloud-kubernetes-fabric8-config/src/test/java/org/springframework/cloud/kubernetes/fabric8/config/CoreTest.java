@@ -17,63 +17,58 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.HashMap;
+import java.util.Map;
 
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = TestApplication.class,
-		properties = { "spring.application.name=testapp", "spring.cloud.kubernetes.client.namespace=testns",
-				"spring.cloud.kubernetes.client.trustCerts=true", "spring.cloud.kubernetes.config.namespace=testns",
-				"spring.cloud.kubernetes.secrets.enableApi=true" })
+	properties = { "spring.application.name=testapp", "spring.cloud.kubernetes.client.namespace=testns",
+		"spring.cloud.kubernetes.client.trustCerts=true", "spring.cloud.kubernetes.config.namespace=testns",
+		"spring.cloud.kubernetes.secrets.enableApi=true" })
+@EnableKubernetesMockClient(crud = true, https = false)
 public class CoreTest {
-
-	@ClassRule
-	public static KubernetesServer mockServer = new KubernetesServer();
 
 	private static KubernetesClient mockClient;
 
 	@Autowired
 	private Environment environment;
 
-	@Autowired(required = false)
+	@Autowired
 	private Config config;
 
-	@Autowired(required = false)
-	private KubernetesClient client;
+	// not a fan of changing the type from KubernetesClient, but because of:
+	// https://github.com/fabric8io/kubernetes-client/issues/3145
+	// there is no way to do it otherwise at this time. When that is fixed, I will fix this also
+	@Autowired
+	private DefaultKubernetesClient client;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
-		mockClient = mockServer.getClient();
 
-		mockServer.expect().get().withPath("/api/v1/namespaces/testns/configmaps/testapp")
-				.andReturn(200, new ConfigMapBuilder().withData(new HashMap<String, String>() {
-					{
-						put("spring.kubernetes.test.value", "value1");
-					}
-				}).build()).always();
+		Map<String, String> data1 = new HashMap<>();
+		data1.put("spring.kubernetes.test.value", "value1");
+		mockClient.configMaps().inNamespace("testns").createNew().withNewMetadata().withName("testapp").endMetadata()
+			.addToData(data1).done();
 
-		mockServer.expect().get().withPath("/api/v1/namespaces/testns/secrets/testapp")
-				.andReturn(200, new SecretBuilder().withData(new HashMap<String, String>() {
-					{
-						put("amq.user", "YWRtaW4K");
-						put("amq.pwd", "MWYyZDFlMmU2N2Rm");
-					}
-				}).build()).always();
+		Map<String, String> data2 = new HashMap<>();
+		data2.put("amq.user", "YWRtaW4K");
+		data2.put("amq.pwd", "MWYyZDFlMmU2N2Rm");
+		mockClient.secrets().inNamespace("testns").createNew().withNewMetadata().withName("testapp").endMetadata()
+			.addToData(data2).done();
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
