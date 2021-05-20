@@ -16,10 +16,9 @@
 
 package org.springframework.cloud.kubernetes.client;
 
-import java.io.IOException;
-
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Pod;
 
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.autoconfigure.info.ConditionalOnEnabledInfoContributor;
@@ -47,7 +46,7 @@ public class KubernetesClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ApiClient apiClient() throws IOException {
+	public ApiClient apiClient() {
 		ApiClient apiClient = kubernetesApiClient();
 		io.kubernetes.client.openapi.Configuration.setDefaultApiClient(apiClient);
 		return apiClient;
@@ -55,7 +54,7 @@ public class KubernetesClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public CoreV1Api coreApi(ApiClient apiClient) throws IOException {
+	public CoreV1Api coreApi(ApiClient apiClient) {
 		return new CoreV1Api(apiClient);
 	}
 
@@ -78,13 +77,13 @@ public class KubernetesClientAutoConfiguration {
 
 		@Bean
 		@ConditionalOnEnabledHealthIndicator("kubernetes")
-		public KubernetesClientHealthIndicator kubernetesHealthIndicator(PodUtils podUtils) {
+		public KubernetesClientHealthIndicator kubernetesHealthIndicator(PodUtils<V1Pod> podUtils) {
 			return new KubernetesClientHealthIndicator(podUtils);
 		}
 
 		@Bean
 		@ConditionalOnEnabledInfoContributor("kubernetes")
-		public KubernetesClientInfoContributor kubernetesInfoContributor(PodUtils podUtils) {
+		public KubernetesClientInfoContributor kubernetesInfoContributor(PodUtils<V1Pod> podUtils) {
 			return new KubernetesClientInfoContributor(podUtils);
 		}
 

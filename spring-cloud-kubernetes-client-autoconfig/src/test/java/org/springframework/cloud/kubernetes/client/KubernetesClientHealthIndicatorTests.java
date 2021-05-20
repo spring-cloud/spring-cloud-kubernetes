@@ -59,7 +59,7 @@ class KubernetesClientHealthIndicatorTests {
 		KubernetesClientHealthIndicator healthIndicator = new KubernetesClientHealthIndicator(utils);
 		Map<String, Object> details = healthIndicator.getDetails();
 
-		assertThat(details.containsKey(INSIDE)).isTrue();
+		assertThat(details.size()).isEqualTo(1);
 		assertThat(details.get(INSIDE)).isEqualTo(false);
 	}
 
@@ -70,7 +70,7 @@ class KubernetesClientHealthIndicatorTests {
 		KubernetesClientHealthIndicator healthIndicator = new KubernetesClientHealthIndicator(utils);
 		Map<String, Object> details = healthIndicator.getDetails();
 
-		assertThat(details.containsKey(INSIDE)).isTrue();
+		assertThat(details.size()).isEqualTo(8);
 		assertThat(details.get(INSIDE)).isEqualTo(true);
 
 		assertThat(details.get(HOST_IP)).isEqualTo(STUB_HOST_IP);

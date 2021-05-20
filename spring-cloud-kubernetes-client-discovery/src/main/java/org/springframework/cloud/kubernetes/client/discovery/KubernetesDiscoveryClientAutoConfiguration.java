@@ -24,7 +24,6 @@ import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceList;
-import io.kubernetes.client.spring.extended.controller.KubernetesInformerConfigurer;
 import io.kubernetes.client.spring.extended.controller.annotation.GroupVersionResource;
 import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformer;
 import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformers;
@@ -80,12 +79,12 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean
-		public KubernetesInformerConfigurer discoveryInformerConfigurer(
+		public SpringCloudKubernetesInformerFactoryProcessor discoveryInformerConfigurer(
 				KubernetesNamespaceProvider kubernetesNamespaceProvider,
 				KubernetesDiscoveryProperties kubernetesDiscoveryProperties, ApiClient apiClient,
 				CatalogSharedInformerFactory sharedInformerFactory) {
-			return new SpringCloudKubernetesInformerConfigurer(kubernetesNamespaceProvider,
-					kubernetesDiscoveryProperties, apiClient, sharedInformerFactory);
+			return new SpringCloudKubernetesInformerFactoryProcessor(kubernetesDiscoveryProperties,
+					kubernetesNamespaceProvider, apiClient, sharedInformerFactory);
 		}
 
 		@Bean

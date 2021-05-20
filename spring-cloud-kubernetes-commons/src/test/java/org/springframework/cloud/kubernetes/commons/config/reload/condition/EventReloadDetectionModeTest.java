@@ -16,12 +16,12 @@
 
 package org.springframework.cloud.kubernetes.commons.config.reload.condition;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.env.Environment;
@@ -30,7 +30,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 /**
  * @author wind57
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class EventReloadDetectionModeTest {
 
 	private static final String RELOAD_PROPERTY = "spring.cloud.kubernetes.reload.mode";
@@ -55,7 +55,7 @@ public class EventReloadDetectionModeTest {
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
 		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn(null);
 		boolean matches = underTest.matches(context, metadata);
-		Assert.assertFalse(matches);
+		Assertions.assertFalse(matches);
 	}
 
 	// lack of this property being set, means a match.
@@ -64,7 +64,7 @@ public class EventReloadDetectionModeTest {
 		Mockito.when(context.getEnvironment()).thenReturn(environment);
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(false);
 		boolean matches = underTest.matches(context, metadata);
-		Assert.assertTrue(matches);
+		Assertions.assertTrue(matches);
 	}
 
 	@Test
@@ -73,7 +73,7 @@ public class EventReloadDetectionModeTest {
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
 		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn("EVENT");
 		boolean matches = underTest.matches(context, metadata);
-		Assert.assertTrue(matches);
+		Assertions.assertTrue(matches);
 	}
 
 	@Test
@@ -82,7 +82,7 @@ public class EventReloadDetectionModeTest {
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
 		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn("eVeNt");
 		boolean matches = underTest.matches(context, metadata);
-		Assert.assertTrue(matches);
+		Assertions.assertTrue(matches);
 	}
 
 	@Test
@@ -91,7 +91,7 @@ public class EventReloadDetectionModeTest {
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
 		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn("not-eVeNt");
 		boolean matches = underTest.matches(context, metadata);
-		Assert.assertFalse(matches);
+		Assertions.assertFalse(matches);
 	}
 
 }

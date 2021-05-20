@@ -39,7 +39,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 				"management.info.kubernetes.enabled=true" })
 public class Fabric8NotInsideInfoContributorTest {
 
-	public static KubernetesServer server = new KubernetesServer();
+	public static KubernetesServer server = new KubernetesServer(false);
 
 	@Autowired
 	private WebTestClient webClient;

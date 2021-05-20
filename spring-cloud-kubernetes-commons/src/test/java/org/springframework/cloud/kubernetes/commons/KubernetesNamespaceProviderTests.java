@@ -16,13 +16,12 @@
 
 package org.springframework.cloud.kubernetes.commons;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -39,22 +38,16 @@ public class KubernetesNamespaceProviderTests {
 
 	private static final String PATH = "/some/path";
 
-	private static final String FOUNT_IT = "foundIt";
-
 	private MockedStatic<Paths> paths;
 
-	private MockedStatic<Files> files;
-
-	@Before
+	@BeforeEach
 	public void before() {
 		paths = Mockito.mockStatic(Paths.class);
-		files = Mockito.mockStatic(Files.class);
 	}
 
-	@After
+	@AfterEach
 	public void after() {
 		paths.close();
-		files.close();
 	}
 
 	@Test
@@ -76,15 +69,7 @@ public class KubernetesNamespaceProviderTests {
 	private Path serviceAccountFileResolved(boolean present, String actualPath) {
 		Path path = Mockito.mock(Path.class);
 		paths.when(() -> Paths.get(actualPath)).thenReturn(path);
-		files.when(() -> Files.isRegularFile(path)).thenReturn(present);
 		return path;
-	}
-
-	/*
-	 * returns "foundIt" for service account namespace
-	 */
-	private void mockServiceAccountNamespace(Path path) {
-		files.when(() -> Files.readAllBytes(path)).thenReturn(FOUNT_IT.getBytes());
 	}
 
 }
