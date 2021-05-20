@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 // inspired by spring-cloud-commons: RefreshAutoConfigurationMoreClassPathTests
 
-@ExtendWith(value = { SpringExtension.class, OutputCaptureExtension.class })
+@ExtendWith({ SpringExtension.class, OutputCaptureExtension.class })
 @ClassPathExclusions({ "spring-boot-actuator-autoconfigure-*.jar", "spring-boot-starter-actuator-*.jar" })
 public class MissingActuatorTest {
 

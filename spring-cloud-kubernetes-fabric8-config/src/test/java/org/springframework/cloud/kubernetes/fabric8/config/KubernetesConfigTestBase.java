@@ -37,9 +37,8 @@ public class KubernetesConfigTestBase {
 	}
 
 	protected void setup(Class<?> mockClientConfiguration, String... env) {
-		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
-			mockClientConfiguration, BootstrapConfiguration.class,
-				ConfigReloadAutoConfiguration.class, RefreshAutoConfiguration.class)
+		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class, mockClientConfiguration,
+				BootstrapConfiguration.class, ConfigReloadAutoConfiguration.class, RefreshAutoConfiguration.class)
 						.web(org.springframework.boot.WebApplicationType.NONE).properties(env).run();
 	}
 

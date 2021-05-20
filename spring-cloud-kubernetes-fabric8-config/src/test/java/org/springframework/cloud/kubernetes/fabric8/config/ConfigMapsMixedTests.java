@@ -78,8 +78,7 @@ public class ConfigMapsMixedTests {
 		HashMap<String, String> data = new HashMap<>();
 		data.put("bean.morning", "Buenos Dias ConfigMap, %s");
 
-		ConfigMap configMap =
-			new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
 				.addToData(data).build();
 
 		mockClient.configMaps().inNamespace("test").create(configMap);

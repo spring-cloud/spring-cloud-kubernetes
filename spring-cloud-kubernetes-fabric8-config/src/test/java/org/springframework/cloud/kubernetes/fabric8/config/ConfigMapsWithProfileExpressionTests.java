@@ -65,8 +65,8 @@ public class ConfigMapsWithProfileExpressionTests {
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("application.yml", ConfigMapTestUtil.readResourceFile("application-with-profiles.yaml"));
-		mockClient.configMaps().inNamespace("test").createNew().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
-			.addToData(data).done();
+		mockClient.configMaps().inNamespace("test").createNew().withNewMetadata().withName(APPLICATION_NAME)
+				.endMetadata().addToData(data).done();
 	}
 
 	@Test

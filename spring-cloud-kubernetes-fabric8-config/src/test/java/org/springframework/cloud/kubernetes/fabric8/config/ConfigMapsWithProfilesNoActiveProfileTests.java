@@ -65,8 +65,8 @@ public class ConfigMapsWithProfilesNoActiveProfileTests {
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("application.yml", readResourceFile("application-with-profiles.yaml"));
-		mockClient.configMaps().inNamespace("test").createNew().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
-			.addToData(data).done();
+		mockClient.configMaps().inNamespace("test").createNew().withNewMetadata().withName(APPLICATION_NAME)
+				.endMetadata().addToData(data).done();
 	}
 
 	@Test

@@ -36,9 +36,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = TestApplication.class,
-	properties = { "spring.application.name=testapp", "spring.cloud.kubernetes.client.namespace=testns",
-		"spring.cloud.kubernetes.client.trustCerts=true", "spring.cloud.kubernetes.config.namespace=testns",
-		"spring.cloud.kubernetes.secrets.enableApi=true" })
+		properties = { "spring.application.name=testapp", "spring.cloud.kubernetes.client.namespace=testns",
+				"spring.cloud.kubernetes.client.trustCerts=true", "spring.cloud.kubernetes.config.namespace=testns",
+				"spring.cloud.kubernetes.secrets.enableApi=true" })
 @EnableKubernetesMockClient(crud = true, https = false)
 public class CoreTest {
 
@@ -52,7 +52,8 @@ public class CoreTest {
 
 	// not a fan of changing the type from KubernetesClient, but because of:
 	// https://github.com/fabric8io/kubernetes-client/issues/3145
-	// there is no way to do it otherwise at this time. When that is fixed, I will fix this also
+	// there is no way to do it otherwise at this time. When that is fixed, I will fix
+	// this also
 	@Autowired
 	private DefaultKubernetesClient client;
 
@@ -62,13 +63,13 @@ public class CoreTest {
 		Map<String, String> data1 = new HashMap<>();
 		data1.put("spring.kubernetes.test.value", "value1");
 		mockClient.configMaps().inNamespace("testns").createNew().withNewMetadata().withName("testapp").endMetadata()
-			.addToData(data1).done();
+				.addToData(data1).done();
 
 		Map<String, String> data2 = new HashMap<>();
 		data2.put("amq.user", "YWRtaW4K");
 		data2.put("amq.pwd", "MWYyZDFlMmU2N2Rm");
 		mockClient.secrets().inNamespace("testns").createNew().withNewMetadata().withName("testapp").endMetadata()
-			.addToData(data2).done();
+				.addToData(data2).done();
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());

@@ -33,8 +33,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @EnableKubernetesMockClient(crud = true, https = false)
 public class KubernetesConfigConfigurationTest extends KubernetesConfigTestBase {
 
-	// injected because of @EnableKubernetesMockClient. Because of the way KubernetesMockServerExtension
-	// injects this field (it searches for a static KubernetesClient field in the test class), we can't have a common
+	// injected because of @EnableKubernetesMockClient. Because of the way
+	// KubernetesMockServerExtension
+	// injects this field (it searches for a static KubernetesClient field in the test
+	// class), we can't have a common
 	// class where this configuration is present.
 	private static KubernetesClient mockClient;
 
@@ -54,50 +56,40 @@ public class KubernetesConfigConfigurationTest extends KubernetesConfigTestBase 
 
 	@Test
 	public void kubernetesWhenKubernetesConfigAndSecretDisabled() {
-		setup(
-			KubernetesClientTestConfiguration.class,
-			"spring.cloud.kubernetes.config.enabled=false", "spring.cloud.kubernetes.secrets.enabled=false"
-		);
+		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.config.enabled=false",
+				"spring.cloud.kubernetes.secrets.enabled=false");
 		assertThat(getContext().containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(getContext().containsBean("secretsPropertySourceLocator")).isFalse();
 	}
 
 	@Test
 	public void kubernetesWhenKubernetesConfigEnabledButSecretDisabled() {
-		setup(
-			KubernetesClientTestConfiguration.class,
-			"spring.cloud.kubernetes.config.enabled=true", "spring.cloud.kubernetes.secrets.enabled=false"
-		);
+		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.config.enabled=true",
+				"spring.cloud.kubernetes.secrets.enabled=false");
 		assertThat(getContext().containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(getContext().containsBean("secretsPropertySourceLocator")).isFalse();
 	}
 
 	@Test
 	public void kubernetesWhenKubernetesConfigDisabledButSecretEnabled() {
-		setup(
-			KubernetesClientTestConfiguration.class,
-			"spring.cloud.kubernetes.config.enabled=false", "spring.cloud.kubernetes.secrets.enabled=true"
-		);
+		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.config.enabled=false",
+				"spring.cloud.kubernetes.secrets.enabled=true");
 		assertThat(getContext().containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(getContext().containsBean("secretsPropertySourceLocator")).isTrue();
 	}
 
 	@Test
 	public void kubernetesConfigWhenKubernetesEnabledAndKubernetesConfigEnabled() {
-		setup(
-			KubernetesClientTestConfiguration.class,
-			"spring.cloud.kubernetes.config.enabled=true", "spring.cloud.kubernetes.secrets.enabled=true"
-		);
+		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.config.enabled=true",
+				"spring.cloud.kubernetes.secrets.enabled=true");
 		assertThat(getContext().containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(getContext().containsBean("secretsPropertySourceLocator")).isTrue();
 	}
 
 	@Test
 	public void kubernetesConfigWhenKubernetesEnabledAndKubernetesConfigDisabled() {
-		setup(
-			KubernetesClientTestConfiguration.class,
-			"spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.config.enabled=false"
-		);
+		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.enabled=true",
+				"spring.cloud.kubernetes.config.enabled=false");
 		assertThat(getContext().containsBean("configMapPropertySourceLocator")).isFalse();
 	}
 

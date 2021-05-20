@@ -44,8 +44,10 @@ public class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase 
 
 	private static final String APPLICATION_NAME = "application";
 
-	// injected because of @EnableKubernetesMockClient. Because of the way KubernetesMockServerExtension
-	// injects this field (it searches for a static KubernetesClient field in the test class), we can't have a common
+	// injected because of @EnableKubernetesMockClient. Because of the way
+	// KubernetesMockServerExtension
+	// injects this field (it searches for a static KubernetesClient field in the test
+	// class), we can't have a common
 	// class where this configuration is present.
 	private static KubernetesClient mockClient;
 
@@ -63,13 +65,11 @@ public class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("bean.greeting", "Hello ConfigMap, %s!");
 
-		ConfigMap configMap1 =
-			new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
-			.addToData(data).build();
+		ConfigMap configMap1 = new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
+				.addToData(data).build();
 		mockClient.configMaps().inNamespace("test").create(configMap1);
 
-		ConfigMap configMap2 =
-			new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
+		ConfigMap configMap2 = new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
 				.addToData(data).build();
 		mockClient.configMaps().inNamespace("spring").create(configMap2);
 	}
@@ -97,11 +97,9 @@ public class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase 
 
 	@Test
 	public void kubernetesReloadEnabled() {
-		setup(
-			KubernetesClientTestConfiguration.class,
-			"spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.config.enabled=true",
-				"spring.cloud.kubernetes.secrets.enabled=true", "spring.cloud.kubernetes.reload.enabled=true"
-		);
+		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.enabled=true",
+				"spring.cloud.kubernetes.config.enabled=true", "spring.cloud.kubernetes.secrets.enabled=true",
+				"spring.cloud.kubernetes.reload.enabled=true");
 		assertThat(this.getContext().containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(this.getContext().containsBean("secretsPropertySourceLocator")).isTrue();
 		assertThat(this.getContext().containsBean("configMapPropertyChangeEventWatcher")).isTrue();
@@ -110,10 +108,9 @@ public class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase 
 
 	@Test
 	public void kubernetesReloadEnabledButSecretDisabled() {
-		setup(KubernetesClientTestConfiguration.class,
-			"spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.config.enabled=true",
-				"spring.cloud.kubernetes.secrets.enabled=false", "spring.cloud.kubernetes.reload.enabled=true"
-		);
+		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.enabled=true",
+				"spring.cloud.kubernetes.config.enabled=true", "spring.cloud.kubernetes.secrets.enabled=false",
+				"spring.cloud.kubernetes.reload.enabled=true");
 		assertThat(this.getContext().containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(this.getContext().containsBean("secretsPropertySourceLocator")).isFalse();
 		assertThat(this.getContext().containsBean("configMapPropertyChangeEventWatcher")).isTrue();
@@ -122,10 +119,9 @@ public class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase 
 
 	@Test
 	public void kubernetesReloadEnabledButSecretAndConfigDisabled() {
-		setup(
-			KubernetesClientTestConfiguration.class,
-			"spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.config.enabled=false",
-				"spring.cloud.kubernetes.secrets.enabled=false", "spring.cloud.kubernetes.reload.enabled=true");
+		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.enabled=true",
+				"spring.cloud.kubernetes.config.enabled=false", "spring.cloud.kubernetes.secrets.enabled=false",
+				"spring.cloud.kubernetes.reload.enabled=true");
 		assertThat(this.getContext().containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(this.getContext().containsBean("secretsPropertySourceLocator")).isFalse();
 		assertThat(this.getContext().containsBean("propertyChangeWatcher")).isFalse();
