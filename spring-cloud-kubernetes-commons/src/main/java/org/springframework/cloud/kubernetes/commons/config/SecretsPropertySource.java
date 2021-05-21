@@ -17,6 +17,8 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Base64;
+import java.util.Collections;
+import java.util.stream.Collectors;
 import java.util.Map;
 
 import org.springframework.core.env.MapPropertySource;
@@ -42,9 +44,18 @@ public class SecretsPropertySource extends MapPropertySource {
 
 	protected static void putAll(Map<String, String> data, Map<String, Object> result) {
 		if (data != null) {
-			data.forEach((k, v) -> result.put(k, new String(Base64.getDecoder().decode(v)).trim()));
+			data.forEach((k, v) -> result.putAll(this.decodeProperty(k,v)));
 		}
 	}
+	
+	protected static Map<String,String> decodeProperty(String key, String value){
+		String decodedValue = new String(Base64.getDecoder().decode(value)).trim();
+		if (key.endsWith(".properties")){
+		   return decodedValue.lines().filter(line -> line.contains("=")).collect(Collectors.toMap(line -> line.split("=")[0], line -> line.split("=",2)[1]));
+		} else {
+		   return Collections.singletonMap(key,decodedValue);
+		}	
+	}	
 
 	@Override
 	public String toString() {
