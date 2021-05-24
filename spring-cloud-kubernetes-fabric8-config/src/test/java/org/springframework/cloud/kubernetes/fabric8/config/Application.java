@@ -25,6 +25,6 @@ import org.springframework.cloud.kubernetes.fabric8.config.example.GreetingPrope
  */
 @EnableConfigurationProperties(GreetingProperties.class)
 @SpringBootApplication
-public class App {
+public class Application {
 
 }
