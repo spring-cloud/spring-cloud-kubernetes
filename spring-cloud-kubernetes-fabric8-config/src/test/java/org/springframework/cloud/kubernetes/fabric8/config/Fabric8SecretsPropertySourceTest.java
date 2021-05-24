@@ -22,33 +22,32 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.fabric8.config.example.App;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
 @TestPropertySource("classpath:/application-secrets.properties")
+@EnableKubernetesMockClient(crud = true, https = false)
 public class Fabric8SecretsPropertySourceTest {
 
 	private static final String NAMESPACE = "test";
 
-	private static final String SECRET_VALUE = "secretValue";
+	private static KubernetesClient mockClient;
 
-	@ClassRule
-	public static KubernetesServer server = new KubernetesServer(false, true);
+	private static final String SECRET_VALUE = "secretValue";
 
 	@Autowired
 	private Fabric8SecretsPropertySourceLocator propertySourceLocator;
@@ -56,9 +55,8 @@ public class Fabric8SecretsPropertySourceTest {
 	@Autowired
 	private Environment environment;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
-		KubernetesClient mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());

@@ -21,14 +21,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author wind57
@@ -40,21 +41,21 @@ public class ConfigurationChangeDetectorTest {
 	@Test
 	public void testChangedTwoNulls() {
 		boolean changed = stub.changed(null, (MapPropertySource) null);
-		Assert.assertFalse(changed);
+		assertThat(changed).isFalse();
 	}
 
 	@Test
 	public void testChangedLeftNullRightNonNull() {
 		MapPropertySource right = new MapPropertySource("rightNonNull", Collections.emptyMap());
 		boolean changed = stub.changed(null, right);
-		Assert.assertTrue(changed);
+		assertThat(changed).isTrue();
 	}
 
 	@Test
 	public void testChangedLeftNonNullRightNull() {
 		MapPropertySource left = new MapPropertySource("leftNonNull", Collections.emptyMap());
 		boolean changed = stub.changed(left, null);
-		Assert.assertTrue(changed);
+		assertThat(changed).isTrue();
 	}
 
 	@Test
@@ -67,7 +68,7 @@ public class ConfigurationChangeDetectorTest {
 		MapPropertySource left = new MapPropertySource("left", leftMap);
 		MapPropertySource right = new MapPropertySource("right", rightMap);
 		boolean changed = stub.changed(left, right);
-		Assert.assertFalse(changed);
+		assertThat(changed).isFalse();
 	}
 
 	@Test
@@ -81,7 +82,7 @@ public class ConfigurationChangeDetectorTest {
 		MapPropertySource left = new MapPropertySource("left", leftMap);
 		MapPropertySource right = new MapPropertySource("right", rightMap);
 		boolean changed = stub.changed(left, right);
-		Assert.assertTrue(changed);
+		assertThat(changed).isTrue();
 	}
 
 	@Test
@@ -89,7 +90,7 @@ public class ConfigurationChangeDetectorTest {
 		List<MapPropertySource> left = Collections.singletonList(new MapPropertySource("one", Collections.emptyMap()));
 		List<MapPropertySource> right = Collections.emptyList();
 		boolean changed = stub.changed(left, right);
-		Assert.assertFalse(changed);
+		assertThat(changed).isFalse();
 	}
 
 	@Test
@@ -102,7 +103,7 @@ public class ConfigurationChangeDetectorTest {
 		List<MapPropertySource> left = Collections.singletonList(new MapPropertySource("one", leftMap));
 		List<MapPropertySource> right = Collections.singletonList(new MapPropertySource("two", rightMap));
 		boolean changed = stub.changed(left, right);
-		Assert.assertTrue(changed);
+		assertThat(changed).isTrue();
 	}
 
 	@Test
@@ -115,7 +116,7 @@ public class ConfigurationChangeDetectorTest {
 		List<MapPropertySource> left = Collections.singletonList(new MapPropertySource("one", leftMap));
 		List<MapPropertySource> right = Collections.singletonList(new MapPropertySource("two", rightMap));
 		boolean changed = stub.changed(left, right);
-		Assert.assertTrue(changed);
+		assertThat(changed).isTrue();
 	}
 
 	/**

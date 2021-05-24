@@ -26,7 +26,7 @@ import io.fabric8.kubernetes.api.model.DoneableConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
@@ -45,13 +45,14 @@ import static org.mockito.Mockito.when;
  */
 public class EventBasedConfigurationChangeDetectorTests {
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void verifyConfigChangesAccountsForBootstrapPropertySources() {
 		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
 		MockEnvironment env = new MockEnvironment();
 		KubernetesClient k8sClient = mock(KubernetesClient.class);
 		ConfigMap configMap = new ConfigMap();
-		Map<String, String> data = new HashMap();
+		Map<String, String> data = new HashMap<>();
 		data.put("foo", "bar");
 		configMap.setData(data);
 		MixedOperation<ConfigMap, ConfigMapList, DoneableConfigMap, Resource<ConfigMap, DoneableConfigMap>> mixedOperation = mock(

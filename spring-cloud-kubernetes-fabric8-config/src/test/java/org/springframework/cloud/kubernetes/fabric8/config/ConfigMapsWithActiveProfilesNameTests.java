@@ -18,21 +18,19 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.HashMap;
 
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.fabric8.config.example.App;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -41,18 +39,16 @@ import static org.springframework.cloud.kubernetes.fabric8.config.ConfigMapTestU
 /**
  * @author Ali Shahbour
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT, classes = App.class,
 		properties = { "spring.application.name=configmap-with-active-profile-name-example",
 				"spring.cloud.kubernetes.reload.enabled=false" })
 @ActiveProfiles("development")
 @AutoConfigureWebTestClient
+@EnableKubernetesMockClient(crud = true, https = false)
 public class ConfigMapsWithActiveProfilesNameTests {
 
 	private static final String APPLICATION_NAME = "configmap-with-active-profile-name-example";
-
-	@ClassRule
-	public static KubernetesServer server = new KubernetesServer(false);
 
 	private static KubernetesClient mockClient;
 
@@ -62,9 +58,8 @@ public class ConfigMapsWithActiveProfilesNameTests {
 	@Autowired
 	private WebTestClient webClient;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpBeforeClass() {
-		mockClient = server.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
@@ -76,17 +71,13 @@ public class ConfigMapsWithActiveProfilesNameTests {
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("application.yml", readResourceFile("application-with-profiles.yaml"));
-		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME)
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
-						.addToData(data).build())
-				.always();
+		mockClient.configMaps().inNamespace("test").createNew().withNewMetadata().withName(APPLICATION_NAME)
+				.endMetadata().addToData(data).done();
 
 		HashMap<String, String> dataWithName = new HashMap<>();
 		dataWithName.put("application.yml", readResourceFile("application-with-active-profiles-name.yaml"));
-		server.expect().withPath("/api/v1/namespaces/test/configmaps/" + APPLICATION_NAME + "-development")
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME + "-development")
-						.endMetadata().addToData(dataWithName).build())
-				.always();
+		mockClient.configMaps().inNamespace("test").createNew().withNewMetadata()
+				.withName(APPLICATION_NAME + "-development").endMetadata().addToData(dataWithName).done();
 	}
 
 	@Test

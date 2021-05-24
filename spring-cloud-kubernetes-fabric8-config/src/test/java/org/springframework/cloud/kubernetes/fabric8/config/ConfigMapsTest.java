@@ -18,64 +18,58 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.Map;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
-import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import org.junit.Rule;
-import org.junit.Test;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.kubernetes.fabric8.config.ConfigMapTestUtil.readResourceFile;
 
 /**
  * @author Charles Moulliard
  */
+@EnableKubernetesMockClient(crud = true, https = false)
 public class ConfigMapsTest {
 
-	@Rule
-	public KubernetesServer server = new KubernetesServer(false);
+	private static KubernetesClient mockClient;
 
 	@Test
 	public void testConfigMapList() {
-		this.server.expect().withPath("/api/v1/namespaces/ns1/configmaps")
-				.andReturn(200, new ConfigMapListBuilder().build()).once();
+		mockClient.configMaps().inNamespace("ns1").createNew();
 
-		KubernetesClient client = this.server.getClient();
-
-		ConfigMapList configMapList = client.configMaps().inNamespace("ns1").list();
+		ConfigMapList configMapList = mockClient.configMaps().inNamespace("ns1").list();
 		assertThat(configMapList).isNotNull();
 		assertThat(configMapList.getItems().size()).isEqualTo(0);
 	}
 
 	@Test
 	public void testConfigMapGet() {
-		this.server
-				.expect().withPath("/api/v1/namespaces/ns2/configmaps").andReturn(200, new ConfigMapBuilder()
-						.withNewMetadata().withName("reload-example").endMetadata().addToData("KEY", "123").build())
-				.once();
 
-		KubernetesClient client = this.server.getClient();
-		ConfigMapList configMapList = client.configMaps().inNamespace("ns2").list();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("reload-example").endMetadata()
+				.addToData("KEY", "123").build();
+
+		mockClient.configMaps().inNamespace("ns2").create(configMap);
+
+		ConfigMapList configMapList = mockClient.configMaps().inNamespace("ns2").list();
 		assertThat(configMapList).isNotNull();
-		assertThat(configMapList.getAdditionalProperties()).containsKey("data");
-		@SuppressWarnings("unchecked")
-		Map<String, String> data = (Map<String, String>) configMapList.getAdditionalProperties().get("data");
-		assertThat(data.get("KEY")).isEqualTo("123");
+		assertThat(configMapList.getItems().size()).isEqualTo(1);
+		assertThat(configMapList.getItems().get(0).getData().size()).isEqualTo(1);
+		Map<String, String> resultData = configMapList.getItems().get(0).getData();
+		assertThat(resultData.get("KEY")).isEqualTo("123");
 	}
 
 	@Test
 	public void testConfigMapFromSingleApplicationProperties() {
 		String configMapName = "app-properties-test";
-		String namespace = "app-props";
-		this.server.expect().withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, configMapName))
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
-						.addToData("application.properties", readResourceFile("application.properties")).build())
-				.once();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
+				.addToData("application.properties", ConfigMapTestUtil.readResourceFile("application.properties"))
+				.build();
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(
-				this.server.getClient().inNamespace(namespace), configMapName);
+		mockClient.configMaps().inNamespace("test").create(configMap);
+
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
 
 		assertThat(cmps.getProperty("dummy.property.string1")).isEqualTo("a");
 		assertThat(cmps.getProperty("dummy.property.int1")).isEqualTo("1");
@@ -84,15 +78,13 @@ public class ConfigMapsTest {
 
 	@Test
 	public void testConfigMapFromSingleApplicationYaml() {
-		String configMapName = "app-yaml-test";
-		String namespace = "app-props";
-		this.server.expect().withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, configMapName))
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
-						.addToData("application.yaml", readResourceFile("application.yaml")).build())
-				.once();
+		String configMapName = "app-properties-test";
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
+				.addToData("application.yaml", ConfigMapTestUtil.readResourceFile("application.yaml")).build();
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(
-				this.server.getClient().inNamespace(namespace), configMapName);
+		mockClient.configMaps().inNamespace("test").create(configMap);
+
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
 
 		assertThat(cmps.getProperty("dummy.property.string2")).isEqualTo("a");
 		assertThat(cmps.getProperty("dummy.property.int2")).isEqualTo(1);
@@ -102,14 +94,12 @@ public class ConfigMapsTest {
 	@Test
 	public void testConfigMapFromSingleNonStandardFileName() {
 		String configMapName = "single-non-standard-test";
-		String namespace = "app-props";
-		this.server.expect().withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, configMapName))
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
-						.addToData("adhoc.yml", readResourceFile("adhoc.yml")).build())
-				.once();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
+				.addToData("adhoc.yml", ConfigMapTestUtil.readResourceFile("adhoc.yml")).build();
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(
-				this.server.getClient().inNamespace(namespace), configMapName);
+		mockClient.configMaps().inNamespace("test").create(configMap);
+
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
 
 		assertThat(cmps.getProperty("dummy.property.string3")).isEqualTo("a");
 		assertThat(cmps.getProperty("dummy.property.int3")).isEqualTo(1);
@@ -119,13 +109,12 @@ public class ConfigMapsTest {
 	@Test
 	public void testConfigMapFromSingleInvalidPropertiesContent() {
 		String configMapName = "single-unparseable-properties-test";
-		String namespace = "app-props";
-		this.server.expect().withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, configMapName))
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
-						.addToData("application.properties", "somevalue").build())
-				.once();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
+				.addToData("application.properties", "somevalue").build();
 
-		new Fabric8ConfigMapPropertySource(this.server.getClient().inNamespace(namespace), configMapName);
+		mockClient.configMaps().inNamespace("test").create(configMap);
+
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
 
 		// no exception is thrown for unparseable content
 	}
@@ -133,13 +122,12 @@ public class ConfigMapsTest {
 	@Test
 	public void testConfigMapFromSingleInvalidYamlContent() {
 		String configMapName = "single-unparseable-yaml-test";
-		String namespace = "app-props";
-		this.server.expect().withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, configMapName))
-				.andReturn(200, new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
-						.addToData("application.yaml", "somevalue").build())
-				.once();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
+				.addToData("application.yaml", "somevalue").build();
 
-		new Fabric8ConfigMapPropertySource(this.server.getClient().inNamespace(namespace), configMapName);
+		mockClient.configMaps().inNamespace("test").create(configMap);
+
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
 
 		// no exception is thrown for unparseable content
 	}
@@ -147,16 +135,13 @@ public class ConfigMapsTest {
 	@Test
 	public void testConfigMapFromMultipleApplicationProperties() {
 		String configMapName = "app-multiple-properties-test";
-		String namespace = "app-props";
-		this.server.expect().withPath(String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, configMapName))
-				.andReturn(200,
-						new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
-								.addToData("application.properties", readResourceFile("application.properties"))
-								.addToData("adhoc.properties", readResourceFile("adhoc.properties")).build())
-				.once();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
+				.addToData("application.properties", ConfigMapTestUtil.readResourceFile("application.properties"))
+				.addToData("adhoc.properties", ConfigMapTestUtil.readResourceFile("adhoc.properties")).build();
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(
-				this.server.getClient().inNamespace(namespace), configMapName);
+		mockClient.configMaps().inNamespace("test").create(configMap);
+
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
 
 		// application.properties should be read correctly
 		assertThat(cmps.getProperty("dummy.property.string1")).isEqualTo("a");
