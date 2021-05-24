@@ -21,10 +21,9 @@ import java.util.Map;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.fabric8.kubernetes.server.mock.KubernetesServer;
-import org.junit.jupiter.api.AfterAll;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,25 +36,16 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "management.endpoints.web.exposure.include=info", "management.endpoint.info.show-details=always",
 				"management.info.kubernetes.enabled=true" })
+@EnableKubernetesMockClient(crud = true, https = false)
 public class Fabric8NotInsideInfoContributorTest {
 
-	public static KubernetesServer server = new KubernetesServer(false);
+	private static KubernetesClient client;
 
 	@Autowired
 	private WebTestClient webClient;
 
 	@Value("${local.server.port}")
 	private int port;
-
-	@BeforeAll
-	public static void setUpBeforeClass() {
-		server.before();
-	}
-
-	@AfterAll
-	public static void afterAll() {
-		server.after();
-	}
 
 	@Test
 	public void infoEndpointShouldContainKubernetes() {

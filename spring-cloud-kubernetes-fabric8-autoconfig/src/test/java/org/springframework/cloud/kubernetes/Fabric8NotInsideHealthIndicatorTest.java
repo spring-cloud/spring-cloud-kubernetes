@@ -23,7 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.server.mock.KubernetesServer;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -38,9 +38,10 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "management.endpoint.health.show-details=always" })
+@EnableKubernetesMockClient(crud = true, https = false)
 public class Fabric8NotInsideHealthIndicatorTest {
 
-	public static KubernetesServer server = new KubernetesServer(false);
+	private static KubernetesClient mockClient;
 
 	@Autowired
 	private WebTestClient webClient;
@@ -50,9 +51,6 @@ public class Fabric8NotInsideHealthIndicatorTest {
 
 	@BeforeAll
 	public static void setUpBeforeClass() {
-		server.before();
-		KubernetesClient mockClient = server.getClient();
-
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -64,7 +62,6 @@ public class Fabric8NotInsideHealthIndicatorTest {
 
 	@AfterAll
 	public static void afterClass() {
-		server.after();
 		System.clearProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY);
 		System.clearProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY);
 		System.clearProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY);
