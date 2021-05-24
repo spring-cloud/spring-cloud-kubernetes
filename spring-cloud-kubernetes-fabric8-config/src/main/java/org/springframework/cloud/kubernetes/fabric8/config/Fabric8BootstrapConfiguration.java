@@ -20,10 +20,11 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
@@ -39,31 +40,24 @@ import org.springframework.context.annotation.Import;
  * @author Ioannis Canellos
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
+@ConditionalOnKubernetesEnabled
+@Import({ KubernetesCommonsAutoConfiguration.class, Fabric8AutoConfiguration.class })
 @ConditionalOnClass({ ConfigMap.class, Secret.class })
 @AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 public class Fabric8BootstrapConfiguration {
 
-	@Configuration(proxyBeanMethods = false)
-	@Import({ KubernetesCommonsAutoConfiguration.class, Fabric8AutoConfiguration.class })
-	protected static class KubernetesPropertySourceConfiguration {
+	@Bean
+	@ConditionalOnKubernetesConfigEnabled
+	public Fabric8ConfigMapPropertySourceLocator configMapPropertySourceLocator(ConfigMapConfigProperties properties,
+			KubernetesClient client) {
+		return new Fabric8ConfigMapPropertySourceLocator(client, properties);
+	}
 
-		@Autowired
-		private KubernetesClient client;
-
-		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.kubernetes.config.enabled", matchIfMissing = true)
-		public Fabric8ConfigMapPropertySourceLocator configMapPropertySourceLocator(
-				ConfigMapConfigProperties properties) {
-			return new Fabric8ConfigMapPropertySourceLocator(this.client, properties);
-		}
-
-		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.kubernetes.secrets.enabled", matchIfMissing = true)
-		public Fabric8SecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties) {
-			return new Fabric8SecretsPropertySourceLocator(this.client, properties);
-		}
-
+	@Bean
+	@ConditionalOnKubernetesSecretsEnabled
+	public Fabric8SecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties,
+			KubernetesClient client) {
+		return new Fabric8SecretsPropertySourceLocator(client, properties);
 	}
 
 }
