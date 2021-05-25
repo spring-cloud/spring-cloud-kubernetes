@@ -23,7 +23,6 @@ import org.springframework.cloud.kubernetes.fabric8.config.example.GreetingPrope
 /**
  * @author wind57
  */
-@EnableConfigurationProperties(GreetingProperties.class)
 @SpringBootApplication
 public class Application {
 
