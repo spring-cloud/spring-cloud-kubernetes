@@ -17,8 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.kubernetes.fabric8.config.example.GreetingProperties;
 
 /**
  * @author wind57
