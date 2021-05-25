@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.kubernetes.ribbon;
 
 import com.netflix.loadbalancer.Server;
@@ -10,25 +26,18 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.annotation.Resource;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * FileName: KubernetesServiceServerListTest
- * Author:   decylus
- * Date:     2021/5/21 1:28 pm
- * Description:
+ * @author decylus
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = TestApplication.class,
@@ -63,30 +72,25 @@ public class KubernetesServiceServerListTest {
 			"false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-
 		// Configured, mock a service with 2 ports, named 'otherPort50002' and 'expectedPort50001'
 		server.expect().get().withPath("/api/v1/namespaces/testns/services/testapp")
 			.andReturn(200, new ServiceBuilder().withNewMetadata().withName("testapp")
-				.withNamespace("testns").endMetadata().withNewSpec()
-				.addToSelector("app", "testapp-a")
-				.addNewPort().withName("otherPort50002")
-				.withPort(50002)
-				.withTargetPort(
-					new IntOrString(50002))
-				.withProtocol("TCP").endPort()
-				.addNewPort().withName("expectedPort50001")
-				.withPort(50001)
-				.withTargetPort(
-					new IntOrString(50001))
-				.withProtocol("TCP").endPort()
-
-				.endSpec().build())
+			.withNamespace("testns").endMetadata().withNewSpec()
+			.addToSelector("app", "testapp-a")
+			.addNewPort().withName("otherPort50002")
+			.withPort(50002)
+			.withTargetPort(new IntOrString(50002))
+			.withProtocol("TCP").endPort()
+			.addNewPort().withName("expectedPort50001")
+			.withPort(50001)
+			.withTargetPort(new IntOrString(50001))
+			.withProtocol("TCP").endPort()
+			.endSpec().build())
 			.always();
-
 	}
 
 	@Test
-	public void testGetServicesServerList() throws Exception{
+	public void testGetServicesServerList() throws Exception {
 		//mock class KubernetesServicesServerList
 		KubernetesServicesServerList servicesServerList = new KubernetesServicesServerList(mockClient, new KubernetesRibbonProperties());
 		Class<KubernetesServerList> clazz = KubernetesServerList.class;
@@ -107,9 +111,5 @@ public class KubernetesServiceServerListTest {
 		List<Server> list = servicesServerList.getUpdatedListOfServers();
 		assertThat(list).hasSize(1);
 		assertThat(list.get(0).getPort()).isEqualTo(50001);
-
-		//try this test in the current main branch, there would be 2 server with both port 50001 and 50002,
-		//that is not we expect
-
 	}
 }
