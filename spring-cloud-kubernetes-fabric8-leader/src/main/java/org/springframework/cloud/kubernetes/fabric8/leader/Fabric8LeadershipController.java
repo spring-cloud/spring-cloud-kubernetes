@@ -128,7 +128,13 @@ public class Fabric8LeadershipController extends LeadershipController {
 	}
 
 	private boolean isPodReady(String name) {
-		return this.kubernetesClient.pods().withName(name).isReady();
+		try {
+			return this.kubernetesClient.pods().withName(name).isReady();
+		}
+		catch (IllegalArgumentException e) {
+			LOGGER.debug("Caught error checking readiness for '{}': {}", e.getMessage());
+			return false;
+		}
 	}
 
 	private ConfigMap getConfigMap() {
