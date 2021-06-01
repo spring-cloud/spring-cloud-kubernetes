@@ -33,6 +33,8 @@ import org.springframework.util.StringUtils;
 import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.ABSTAIN;
 import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.FOUND;
 import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.NOT_FOUND;
+import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRING_CONFIG_ACTIVATE_ON_PROFILE;
+import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRING_PROFILES;
 
 /**
  * Utility class to work with property sources.
@@ -76,13 +78,19 @@ public final class PropertySourceUtils {
 		return s -> {
 			YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
 			yamlFactory.setDocumentMatchers(properties -> {
-				String profiles = properties.getProperty("spring.profiles");
-				if (environment != null && StringUtils.hasText(profiles)) {
-					return environment.acceptsProfiles(Profiles.of(profiles)) ? FOUND : NOT_FOUND;
+				if (environment != null) {
+					String profiles = null;
+					if (properties.containsKey(SPRING_CONFIG_ACTIVATE_ON_PROFILE)) {
+						profiles = properties.getProperty(SPRING_CONFIG_ACTIVATE_ON_PROFILE);
+					}
+					else if (properties.containsKey(SPRING_PROFILES)) {
+						profiles = properties.getProperty(SPRING_PROFILES);
+					}
+					if (StringUtils.hasText(profiles)) {
+						return environment.acceptsProfiles(Profiles.of(profiles)) ? FOUND : NOT_FOUND;
+					}
 				}
-				else {
-					return ABSTAIN;
-				}
+				return ABSTAIN;
 			});
 			yamlFactory.setResources(new ByteArrayResource(s.getBytes()));
 			return yamlFactory.getObject();
