@@ -31,7 +31,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.willReturn;
 
-
 @ExtendWith(MockitoExtension.class)
 public class PropertySourceUtilsTest {
 
@@ -51,8 +50,8 @@ public class PropertySourceUtilsTest {
 	void yamlParserGenerator_springProfiles_matchProfile() {
 		willReturn(Boolean.TRUE).given(environment).acceptsProfiles(any(Profiles.class));
 		final Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		final Properties properties = function
-			.apply("spring:\n  application:\n    name: myTestApp\n---\nspring:\n  profiles: dummy\n  application:\n    name: myDummyApp");
+		final Properties properties = function.apply(
+				"spring:\n  application:\n    name: myTestApp\n---\nspring:\n  profiles: dummy\n  application:\n    name: myDummyApp");
 		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myDummyApp");
 		assertThat(properties.getProperty("spring.profiles")).isEqualTo("dummy");
 		assertThat(properties.getProperty("spring.config.activate.on-profile")).isNull();
@@ -62,8 +61,8 @@ public class PropertySourceUtilsTest {
 	void yamlParserGenerator_springProfiles_mismatchProfile() {
 		willReturn(Boolean.FALSE).given(environment).acceptsProfiles(any(Profiles.class));
 		final Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		final Properties properties = function
-			.apply("spring:\n  application:\n    name: myTestApp\n---\nspring:\n  profiles: dummy\n  application:\n    name: myDummyApp");
+		final Properties properties = function.apply(
+				"spring:\n  application:\n    name: myTestApp\n---\nspring:\n  profiles: dummy\n  application:\n    name: myDummyApp");
 		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myTestApp");
 		assertThat(properties.getProperty("spring.profiles")).isNull();
 		assertThat(properties.getProperty("spring.config.activate.on-profile")).isNull();
@@ -73,8 +72,8 @@ public class PropertySourceUtilsTest {
 	void yamlParserGenerator_springConfigActivateOnProfile_matchProfile() {
 		willReturn(Boolean.TRUE).given(environment).acceptsProfiles(any(Profiles.class));
 		final Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		final Properties properties = function
-			.apply("spring:\n  application:\n    name: myTestApp\n---\nspring:\n  config:\n    activate:\n      on-profile: dummy\n  application:\n    name: myDummyApp");
+		final Properties properties = function.apply(
+				"spring:\n  application:\n    name: myTestApp\n---\nspring:\n  config:\n    activate:\n      on-profile: dummy\n  application:\n    name: myDummyApp");
 		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myDummyApp");
 		assertThat(properties.getProperty("spring.profiles")).isNull();
 		assertThat(properties.getProperty("spring.config.activate.on-profile")).isEqualTo("dummy");
@@ -84,10 +83,11 @@ public class PropertySourceUtilsTest {
 	void yamlParserGenerator_springConfigActivateOnProfile_mismatchProfile() {
 		willReturn(Boolean.FALSE).given(environment).acceptsProfiles(any(Profiles.class));
 		final Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		final Properties properties = function
-			.apply("spring:\n  application:\n    name: myTestApp\n---\nspring:\n  config:\n    activate:\n      on-profile: dummy\n  application:\n    name: myDummyApp");
+		final Properties properties = function.apply(
+				"spring:\n  application:\n    name: myTestApp\n---\nspring:\n  config:\n    activate:\n      on-profile: dummy\n  application:\n    name: myDummyApp");
 		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myTestApp");
 		assertThat(properties.getProperty("spring.profiles")).isNull();
 		assertThat(properties.getProperty("spring.config.activate.on-profile")).isNull();
 	}
+
 }
