@@ -33,6 +33,16 @@ public final class Constants {
 	 */
 	public static final String PROPERTY_SOURCE_NAME_SEPARATOR = ".";
 
+	/**
+	 * Property for legacy profile specific configuration.
+	 */
+	public static final String SPRING_PROFILES = "spring.profiles";
+
+	/**
+	 * Property for profile specific configuration.
+	 */
+	public static final String SPRING_CONFIG_ACTIVATE_ON_PROFILE = "spring.config.activate.on-profile";
+
 	private Constants() {
 	}
 
