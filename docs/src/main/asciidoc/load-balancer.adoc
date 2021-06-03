@@ -38,3 +38,5 @@ To enabled load balancing across all namespaces use the following property. Prop
 spring.cloud.kubernetes.discovery.all-namespaces=true
 ----
 ====
+
+If a service needs to be accessed over HTTPS you need to add a label or annotation to your service definition with the name `secured` and the value `true` and the load balancer will then use HTTPS to make requests to the service.
