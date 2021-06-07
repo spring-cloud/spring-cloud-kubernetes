@@ -16,29 +16,29 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import org.junit.ClassRule;
-import org.junit.Test;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author wind57
  */
+@EnableKubernetesMockClient(crud = true, https = false)
 public class Fabric8ConfigUtilsTests {
 
-	@ClassRule
-	public static final KubernetesServer server = new KubernetesServer(false);
+	private KubernetesClient client;
 
 	@Test
 	public void testGetApplicationNamespaceNotPresent() {
-		String result = Fabric8ConfigUtils.getApplicationNamespace(server.getClient(), "", "target");
+		String result = Fabric8ConfigUtils.getApplicationNamespace(client, "", "target");
 		assertThat(result).isEqualTo("test");
 	}
 
 	@Test
 	public void testGetApplicationNamespacePresent() {
-		String result = Fabric8ConfigUtils.getApplicationNamespace(server.getClient(), "namespace", "target");
+		String result = Fabric8ConfigUtils.getApplicationNamespace(client, "namespace", "target");
 		assertThat(result).isEqualTo("namespace");
 	}
 
