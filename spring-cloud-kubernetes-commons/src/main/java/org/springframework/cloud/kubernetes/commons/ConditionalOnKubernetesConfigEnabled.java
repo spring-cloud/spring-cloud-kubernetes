@@ -26,15 +26,17 @@ import java.lang.annotation.Target;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 /**
- * Provides a more succinct conditional <code>spring.cloud.kubernetes.config.enabled</code>.
+ * Provides a more succinct conditional
+ * <code>spring.cloud.kubernetes.config.enabled</code>.
  *
  * @author wind57
  */
 
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.config.enabled", matchIfMissing = true)
 public @interface ConditionalOnKubernetesConfigEnabled {
+
 }
