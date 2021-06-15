@@ -47,7 +47,6 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfig
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockPropertySource;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
