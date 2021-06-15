@@ -47,6 +47,7 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfig
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockPropertySource;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -88,7 +89,7 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 	}
 
 	@Test
-	void watch() throws Exception {
+	void watch() {
 		Map<String, String> data = new HashMap<>();
 		data.put("application.properties", "spring.cloud.kubernetes.configuration.watcher.refreshDelay=0\n"
 				+ "logging.level.org.springframework.cloud.kubernetes=TRACE");
@@ -142,7 +143,9 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 				mock(KubernetesClientConfigMapPropertySource.class)).withProperty("debug", "true");
 		KubernetesClientConfigMapPropertySourceLocator locator = mock(
 				KubernetesClientConfigMapPropertySourceLocator.class);
-		when(locator.locate(environment)).thenReturn(new MockPropertySource().withProperty("debug", "false"));
+		when(locator.locate(environment)).thenAnswer(
+			x -> new MockPropertySource().withProperty("debug", "false")
+		);
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 		KubernetesClientEventBasedConfigMapChangeDetector changeDetector = new KubernetesClientEventBasedConfigMapChangeDetector(
