@@ -20,8 +20,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.style.ToStringCreator;
 
@@ -32,10 +33,6 @@ public class KubernetesDiscoveryProperties {
 
 	/** If Kubernetes Discovery is enabled. */
 	private boolean enabled = true;
-
-	/** The service name of the local instance. */
-	@Value("${spring.application.name:unknown}")
-	private String serviceName = "unknown";
 
 	/** If discovering all namespaces. */
 	private boolean allNamespaces = false;
@@ -64,12 +61,7 @@ public class KubernetesDiscoveryProperties {
 	private String filter;
 
 	/** Set the port numbers that are considered secure and use HTTPS. */
-	private Set<Integer> knownSecurePorts = new HashSet<Integer>() {
-		{
-			add(443);
-			add(8443);
-		}
-	};
+	private Set<Integer> knownSecurePorts = Stream.of(443, 8443).collect(Collectors.toCollection(HashSet::new));
 
 	/**
 	 * If set, then only the services matching these labels will be fetched from the
@@ -93,14 +85,6 @@ public class KubernetesDiscoveryProperties {
 
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
-	}
-
-	public String getServiceName() {
-		return this.serviceName;
-	}
-
-	public void setServiceName(String serviceName) {
-		this.serviceName = serviceName;
 	}
 
 	public String getFilter() {
@@ -185,15 +169,15 @@ public class KubernetesDiscoveryProperties {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("enabled", this.enabled).append("serviceName", this.serviceName)
-				.append("filter", this.filter).append("knownSecurePorts", this.knownSecurePorts)
-				.append("serviceLabels", this.serviceLabels).append("metadata", this.metadata).toString();
+		return new ToStringCreator(this).append("enabled", this.enabled).append("filter", this.filter)
+				.append("knownSecurePorts", this.knownSecurePorts).append("serviceLabels", this.serviceLabels)
+				.append("metadata", this.metadata).toString();
 	}
 
 	/**
 	 * Metadata properties.
 	 */
-	public class Metadata {
+	public static class Metadata {
 
 		/**
 		 * When set, the Kubernetes labels of the services will be included as metadata of
