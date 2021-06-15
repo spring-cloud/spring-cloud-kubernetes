@@ -117,8 +117,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	private void addPropertySourceIfNeeded(Function<String, Map<String, Object>> contentToMapFunction, String content,
 			String name, CompositePropertySource composite) {
 
-		Map<String, Object> map = new HashMap<>();
-		map.putAll(contentToMapFunction.apply(content));
+		Map<String, Object> map = new HashMap<>(contentToMapFunction.apply(content));
 		if (map.isEmpty()) {
 			LOG.warn("Property source: " + name + "will be ignored because no properties could be found");
 		}
