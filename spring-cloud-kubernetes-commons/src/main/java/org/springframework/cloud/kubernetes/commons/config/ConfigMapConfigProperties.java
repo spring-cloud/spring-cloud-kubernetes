@@ -71,11 +71,10 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	 */
 	public List<NormalizedSource> determineSources() {
 		if (this.sources.isEmpty()) {
-			return Collections.singletonList(new NormalizedSource(ConfigMapConfigProperties.this.name,
-					ConfigMapConfigProperties.this.namespace));
+			return Collections.singletonList(new NormalizedSource(name, namespace));
 		}
 
-		return this.sources.stream().map(s -> s.normalize(this.name, this.namespace)).collect(Collectors.toList());
+		return sources.stream().map(s -> s.normalize(name, namespace)).collect(Collectors.toList());
 	}
 
 	@Override
@@ -98,14 +97,6 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		 */
 		private String namespace;
 
-		public Source() {
-		}
-
-		public Source(String name, String namespace) {
-			this.name = name;
-			this.namespace = namespace;
-		}
-
 		public String getName() {
 			return this.name;
 		}
@@ -122,14 +113,9 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			this.namespace = namespace;
 		}
 
-		public boolean isEmpty() {
-			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
-		}
-
 		public NormalizedSource normalize(String defaultName, String defaultNamespace) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-
 			return new NormalizedSource(normalizedName, normalizedNamespace);
 		}
 
