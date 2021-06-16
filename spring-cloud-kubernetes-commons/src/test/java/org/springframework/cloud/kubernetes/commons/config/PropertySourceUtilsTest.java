@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.Map;
 import java.util.Properties;
 import java.util.function.Function;
 
@@ -88,6 +89,43 @@ public class PropertySourceUtilsTest {
 		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myTestApp");
 		assertThat(properties.getProperty("spring.profiles")).isNull();
 		assertThat(properties.getProperty("spring.config.activate.on-profile")).isNull();
+	}
+
+	@Test
+	void keyValueToProperties_noEntryPresent() {
+		Properties properties = PropertySourceUtils.KEY_VALUE_TO_PROPERTIES.apply("");
+		assertThat(properties).isNotNull();
+	}
+
+	@Test
+	void keyValueToProperties_oneEntry() {
+		Properties properties = PropertySourceUtils.KEY_VALUE_TO_PROPERTIES.apply("a=b");
+		assertThat(properties).isNotNull();
+		assertThat(properties.getProperty("a")).isEqualTo("b");
+	}
+
+	@Test
+	void propertiesToMap_empty() {
+		Map<String, Object> result = PropertySourceUtils.PROPERTIES_TO_MAP.apply(new Properties());
+		assertThat(result).isNotNull();
+		assertThat(result).isEmpty();
+	}
+
+	@Test
+	void propertiesToMap_oneEntry() {
+		Properties properties = PropertySourceUtils.KEY_VALUE_TO_PROPERTIES.apply("a=b");
+		Map<String, Object> result = PropertySourceUtils.PROPERTIES_TO_MAP.apply(properties);
+		assertThat(result).isNotNull();
+		assertThat(result.get("a")).isEqualTo("b");
+	}
+
+	@Test
+	void propertiesToMap_sameKey() {
+		Properties properties = PropertySourceUtils.KEY_VALUE_TO_PROPERTIES.apply("a=b\na=c");
+		Map<String, Object> result = PropertySourceUtils.PROPERTIES_TO_MAP.apply(properties);
+		assertThat(result).isNotNull();
+		assertThat(result.get("a")).isEqualTo("c");
+
 	}
 
 }

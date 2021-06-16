@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.BinaryOperator;
@@ -44,6 +45,10 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRI
  */
 public final class PropertySourceUtils {
 
+	private PropertySourceUtils() {
+		throw new IllegalStateException("Can't instantiate a utility class");
+	}
+
 	/**
 	 * Function to convert a String to Properties.
 	 */
@@ -54,7 +59,7 @@ public final class PropertySourceUtils {
 			return properties;
 		}
 		catch (IOException e) {
-			throw new IllegalArgumentException();
+			throw new UncheckedIOException(e);
 		}
 	};
 
@@ -62,12 +67,7 @@ public final class PropertySourceUtils {
 	 * Function to convert Properties to a Map.
 	 */
 	public static final Function<Properties, Map<String, Object>> PROPERTIES_TO_MAP = p -> p.entrySet().stream()
-			.collect(Collectors.toMap(e -> String.valueOf(e.getKey()), Map.Entry::getValue, throwingMerger(),
-					java.util.LinkedHashMap::new));
-
-	private PropertySourceUtils() {
-		throw new IllegalStateException("Can't instantiate a utility class");
-	}
+			.collect(Collectors.toMap(e -> e.getKey().toString(), Map.Entry::getValue));
 
 	/**
 	 * Function to convert String into Properties with an environment.
@@ -80,12 +80,16 @@ public final class PropertySourceUtils {
 			yamlFactory.setDocumentMatchers(properties -> {
 				if (environment != null) {
 					String profiles = null;
-					if (properties.containsKey(SPRING_CONFIG_ACTIVATE_ON_PROFILE)) {
-						profiles = properties.getProperty(SPRING_CONFIG_ACTIVATE_ON_PROFILE);
+					String activeOnProfile = properties.getProperty(SPRING_CONFIG_ACTIVATE_ON_PROFILE);
+					String springProfiles = properties.getProperty(SPRING_PROFILES);
+
+					if (activeOnProfile != null) {
+						profiles = activeOnProfile;
 					}
-					else if (properties.containsKey(SPRING_PROFILES)) {
-						profiles = properties.getProperty(SPRING_PROFILES);
+					else if (springProfiles != null) {
+						profiles = springProfiles;
 					}
+
 					if (StringUtils.hasText(profiles)) {
 						return environment.acceptsProfiles(Profiles.of(profiles)) ? FOUND : NOT_FOUND;
 					}
@@ -98,13 +102,14 @@ public final class PropertySourceUtils {
 	}
 
 	/**
-	 * Throws IllegalStateException.
-	 * @param <T> Throwable.
-	 * @return IllegalStateException.
+	 * returns a {@link BinaryOperator} that unconditionally throws an
+	 * {@link IllegalStateException}.
+	 * @param <T> type of the argument
+	 * @return a {@link BinaryOperator}
 	 */
 	public static <T> BinaryOperator<T> throwingMerger() {
-		return (u, v) -> {
-			throw new IllegalStateException(String.format("Duplicate key %s", u));
+		return (left, right) -> {
+			throw new IllegalStateException("Duplicate key " + left);
 		};
 	}
 
