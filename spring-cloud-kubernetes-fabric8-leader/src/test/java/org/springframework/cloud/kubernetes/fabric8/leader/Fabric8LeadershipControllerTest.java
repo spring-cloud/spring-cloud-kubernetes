@@ -16,20 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-
 import java.util.HashMap;
 import java.util.Map;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
-import org.springframework.integration.leader.Candidate;
-import org.springframework.integration.leader.event.LeaderEventPublisher;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
@@ -41,6 +29,18 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
+import org.springframework.integration.leader.Candidate;
+import org.springframework.integration.leader.event.LeaderEventPublisher;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 
 /**
  * @author Gytis Trikleris
@@ -101,9 +101,8 @@ public class Fabric8LeadershipControllerTest {
 		given(this.mockPodsOperation.withName(podName)).willReturn(this.mockPodResource);
 		// io.fabric8.kubernetes.client.internal.readiness.Readiness::isReady()#L62
 		given(this.mockPodResource.isReady())
-			.willThrow(
-				new IllegalArgumentException("Item needs to be one of [Node, Deployment, ReplicaSet,.."))
-			.willReturn(Boolean.FALSE);
+				.willThrow(new IllegalArgumentException("Item needs to be one of [Node, Deployment, ReplicaSet,.."))
+				.willReturn(Boolean.FALSE);
 
 		given(this.mockPodsOperation.withName("myid")).willReturn(this.mockPodResource);
 		this.fabric8LeadershipController.update();
