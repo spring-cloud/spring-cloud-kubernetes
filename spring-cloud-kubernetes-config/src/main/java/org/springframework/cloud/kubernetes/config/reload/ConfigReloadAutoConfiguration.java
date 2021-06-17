@@ -30,6 +30,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.task.TaskSchedulerBuilder;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
 import org.springframework.cloud.context.refresh.ContextRefresher;
@@ -41,8 +42,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -65,8 +65,6 @@ public class ConfigReloadAutoConfiguration {
 	 */
 	@ConditionalOnProperty("spring.cloud.kubernetes.reload.enabled")
 	@ConditionalOnClass({ RestartEndpoint.class, ContextRefresher.class })
-	@EnableScheduling
-	@EnableAsync
 	protected static class ConfigReloadAutoConfigurationBeans {
 
 		@Autowired
@@ -87,12 +85,14 @@ public class ConfigReloadAutoConfiguration {
 				@Autowired(
 						required = false) ConfigMapPropertySourceLocator configMapPropertySourceLocator,
 				@Autowired(
-						required = false) SecretsPropertySourceLocator secretsPropertySourceLocator) {
+						required = false) SecretsPropertySourceLocator secretsPropertySourceLocator,
+				TaskScheduler taskScheduler) {
 			switch (properties.getMode()) {
 			case POLLING:
 				return new PollingConfigurationChangeDetector(this.environment,
 						properties, this.kubernetesClient, strategy,
-						configMapPropertySourceLocator, secretsPropertySourceLocator);
+						configMapPropertySourceLocator, secretsPropertySourceLocator,
+						taskScheduler, properties);
 			case EVENT:
 				return new EventBasedConfigurationChangeDetector(this.environment,
 						properties, this.kubernetesClient, strategy,
@@ -100,6 +100,12 @@ public class ConfigReloadAutoConfiguration {
 			}
 			throw new IllegalStateException(
 					"Unsupported configuration reload mode: " + properties.getMode());
+		}
+
+		@Bean
+		@ConditionalOnMissingBean
+		public TaskScheduler taskScheduler() {
+			return new TaskSchedulerBuilder().build();
 		}
 
 		/**

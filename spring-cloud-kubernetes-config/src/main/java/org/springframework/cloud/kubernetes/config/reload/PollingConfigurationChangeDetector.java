@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.config.reload;
 
+import java.time.Duration;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -24,13 +25,15 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.boot.task.TaskSchedulerBuilder;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.config.SecretsPropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * A change detector that periodically retrieves secrets and configmaps and fire a reload
@@ -47,6 +50,11 @@ public class PollingConfigurationChangeDetector extends ConfigurationChangeDetec
 
 	private SecretsPropertySourceLocator secretsPropertySourceLocator;
 
+	private TaskScheduler taskExecutor;
+
+	private Duration period = Duration.ofMillis(1500);
+
+	@Deprecated
 	public PollingConfigurationChangeDetector(AbstractEnvironment environment,
 			ConfigReloadProperties properties, KubernetesClient kubernetesClient,
 			ConfigurationUpdateStrategy strategy,
@@ -56,15 +64,31 @@ public class PollingConfigurationChangeDetector extends ConfigurationChangeDetec
 
 		this.configMapPropertySourceLocator = configMapPropertySourceLocator;
 		this.secretsPropertySourceLocator = secretsPropertySourceLocator;
+		this.taskExecutor = new TaskSchedulerBuilder().build();
+	}
+
+	public PollingConfigurationChangeDetector(AbstractEnvironment environment,
+			ConfigReloadProperties properties, KubernetesClient kubernetesClient,
+			ConfigurationUpdateStrategy strategy,
+			ConfigMapPropertySourceLocator configMapPropertySourceLocator,
+			SecretsPropertySourceLocator secretsPropertySourceLocator,
+			TaskScheduler taskExecutor, ConfigReloadProperties configReloadProperties) {
+		super(environment, properties, kubernetesClient, strategy);
+
+		this.configMapPropertySourceLocator = configMapPropertySourceLocator;
+		this.secretsPropertySourceLocator = secretsPropertySourceLocator;
+		this.taskExecutor = taskExecutor;
+		this.period = configReloadProperties.getPeriod();
 	}
 
 	@PostConstruct
 	public void init() {
 		this.log.info("Kubernetes polling configuration change detector activated");
+		PeriodicTrigger trigger = new PeriodicTrigger(period.toMillis());
+		trigger.setInitialDelay(period.toMillis());
+		taskExecutor.schedule(this::executeCycle, trigger);
 	}
 
-	@Scheduled(initialDelayString = "${spring.cloud.kubernetes.reload.period:15000}",
-			fixedDelayString = "${spring.cloud.kubernetes.reload.period:15000}")
 	public void executeCycle() {
 
 		boolean changedConfigMap = false;
