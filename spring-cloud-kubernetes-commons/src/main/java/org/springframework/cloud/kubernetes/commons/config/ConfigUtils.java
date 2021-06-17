@@ -38,8 +38,7 @@ public final class ConfigUtils {
 	}
 
 	public static String getApplicationName(Environment env, String configName, String configurationTarget) {
-		if (StringUtils.isEmpty(configName)) {
-			// TODO: use relaxed binding
+		if (!StringUtils.hasLength(configName)) {
 			LOG.debug(configurationTarget + " name has not been set, taking it from property/env "
 					+ SPRING_APPLICATION_NAME + " (default=" + FALLBACK_APPLICATION_NAME + ")");
 			configName = env.getProperty(SPRING_APPLICATION_NAME, FALLBACK_APPLICATION_NAME);
