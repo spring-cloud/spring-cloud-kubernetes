@@ -49,7 +49,7 @@ public class Fabric8SecretsPropertySourceLocator extends SecretsPropertySourceLo
 		return new Fabric8SecretsPropertySource(this.client, environment,
 				getApplicationName(environment, normalizedSource.getName(), configurationTarget), Fabric8ConfigUtils
 						.getApplicationNamespace(this.client, normalizedSource.getNamespace(), configurationTarget),
-				normalizedSource.getLabels());
+				normalizedSource.getLabels(), this.properties.isUseNameAsPrefix());
 	}
 
 }

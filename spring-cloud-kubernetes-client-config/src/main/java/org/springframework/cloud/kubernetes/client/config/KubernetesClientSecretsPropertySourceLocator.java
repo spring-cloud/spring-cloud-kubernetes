@@ -60,7 +60,8 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 				: kubernetesClientProperties.getNamespace();
 		return new KubernetesClientSecretsPropertySource(coreV1Api,
 				getApplicationName(environment, normalizedSource.getName(), configurationTarget),
-				getNamespace(normalizedSource, fallbackNamespace), environment, normalizedSource.getLabels());
+				getNamespace(normalizedSource, fallbackNamespace), environment, normalizedSource.getLabels(),
+				this.properties.isUseNameAsPrefix());
 	}
 
 }

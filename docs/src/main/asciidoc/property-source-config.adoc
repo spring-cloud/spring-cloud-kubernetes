@@ -448,13 +448,14 @@ the `Secret` named `s1` would be looked up in the namespace that the application
 .Properties:
 [options="header,footer"]
 |===
-| Name                                        | Type      | Default                      | Description
-| `spring.cloud.kubernetes.secrets.enabled`   | `Boolean` | `true`                       | Enable Secrets `PropertySource`
-| `spring.cloud.kubernetes.secrets.name`      | `String`  | `${spring.application.name}` | Sets the name of the secret to look up
-| `spring.cloud.kubernetes.secrets.namespace` | `String`  | Client namespace             | Sets the Kubernetes namespace where to look up
-| `spring.cloud.kubernetes.secrets.labels`    | `Map`     | `null`                       | Sets the labels used to lookup secrets
-| `spring.cloud.kubernetes.secrets.paths`     | `List`    | `null`                       | Sets the paths where secrets are mounted (example 1)
-| `spring.cloud.kubernetes.secrets.enableApi` | `Boolean` | `false`                      | Enables or disables consuming secrets through APIs (examples 2 and 3)
+| Name                                              | Type      | Default                      | Description
+| `spring.cloud.kubernetes.secrets.enabled`         | `Boolean` | `true`                       | Enable Secrets `PropertySource`
+| `spring.cloud.kubernetes.secrets.name`            | `String`  | `${spring.application.name}` | Sets the name of the secret to look up
+| `spring.cloud.kubernetes.secrets.namespace`       | `String`  | Client namespace             | Sets the Kubernetes namespace where to look up
+| `spring.cloud.kubernetes.secrets.labels`          | `Map`     | `null`                       | Sets the labels used to lookup secrets
+| `spring.cloud.kubernetes.secrets.paths`           | `List`    | `null`                       | Sets the paths where secrets are mounted (example 1)
+| `spring.cloud.kubernetes.secrets.enableApi`       | `Boolean` | `false`                      | Enables or disables consuming secrets through APIs (examples 2 and 3)
+| `spring.cloud.kubernetes.secrets.useNameAsPrefix` | `Boolean` | `false`                      | Enables or disables using the secret name as prefix for property name
 |===
 
 Notes:
