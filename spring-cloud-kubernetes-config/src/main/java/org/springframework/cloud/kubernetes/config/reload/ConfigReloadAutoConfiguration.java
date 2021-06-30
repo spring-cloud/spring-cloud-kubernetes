@@ -30,9 +30,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.task.TaskSchedulerBuilder;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
+import org.springframework.cloud.commons.util.TaskSchedulerWrapper;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.cloud.context.restart.RestartEndpoint;
 import org.springframework.cloud.kubernetes.config.ConfigMapPropertySourceLocator;
@@ -42,7 +42,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -86,13 +86,13 @@ public class ConfigReloadAutoConfiguration {
 						required = false) ConfigMapPropertySourceLocator configMapPropertySourceLocator,
 				@Autowired(
 						required = false) SecretsPropertySourceLocator secretsPropertySourceLocator,
-				TaskScheduler taskScheduler) {
+				TaskSchedulerWrapper taskScheduler) {
 			switch (properties.getMode()) {
 			case POLLING:
 				return new PollingConfigurationChangeDetector(this.environment,
 						properties, this.kubernetesClient, strategy,
 						configMapPropertySourceLocator, secretsPropertySourceLocator,
-						taskScheduler, properties);
+						taskScheduler.getTaskScheduler(), properties);
 			case EVENT:
 				return new EventBasedConfigurationChangeDetector(this.environment,
 						properties, this.kubernetesClient, strategy,
@@ -102,10 +102,16 @@ public class ConfigReloadAutoConfiguration {
 					"Unsupported configuration reload mode: " + properties.getMode());
 		}
 
-		@Bean
+		@Bean("springCloudKubernetesTaskScheduler")
 		@ConditionalOnMissingBean
-		public TaskScheduler taskScheduler() {
-			return new TaskSchedulerBuilder().build();
+		public TaskSchedulerWrapper taskScheduler() {
+			ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+
+			threadPoolTaskScheduler.setThreadNamePrefix(
+					"spring-cloud-kubernetes-ThreadPoolTaskScheduler-");
+			threadPoolTaskScheduler.setDaemon(true);
+
+			return new TaskSchedulerWrapper(threadPoolTaskScheduler);
 		}
 
 		/**
