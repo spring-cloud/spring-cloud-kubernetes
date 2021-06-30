@@ -9,7 +9,9 @@ https://github.com/fabric8io/kubernetes-client[Fabric8 Kubernetes Java client], 
 communicate by using `http` protocol to the REST API of the Kubernetes Server.
 
 To disable the integration with Kubernetes you can set `spring.cloud.kubernetes.enabled` to `false`. Please be aware that when `spring-cloud-kubernetes-config` is on the classpath,
-`spring.cloud.kubernetes.enabled` should be set in `bootstrap.{properties|yml}` (or the profile specific one)  otherwise it should be in `application.{properties|yml}` (or the profile specific one).
+`spring.cloud.kubernetes.enabled` should be set in `bootstrap.{properties|yml}` (or the profile specific one),  otherwise it should be in `application.{properties|yml}` (or the profile specific one).
+Because of the way we set up a specific `EnvironmentPostProcessor` in `spring-cloud-kubernetes-config`, you also need to disable that processor via a system property (or an environment variable), for example you could start
+your application via `-DSPRING_CLOUD_KUBERNETES_ENABLED=false` (any form of relaxed binding will work too).
 Also note that these properties: `spring.cloud.kubernetes.config.enabled` and `spring.cloud.kubernetes.secrets.enabled` only take effect when set in `bootstrap.{properties|yml}`
 
 === Kubernetes Profile Autoconfiguration
