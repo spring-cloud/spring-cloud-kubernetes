@@ -31,6 +31,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
+import org.springframework.cloud.commons.util.TaskSchedulerWrapper;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.cloud.context.restart.RestartEndpoint;
 import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesAndConfigEnabled;
@@ -50,8 +51,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.util.Assert;
 
 /**
@@ -73,8 +72,6 @@ public class ConfigReloadAutoConfiguration {
 	 */
 	@ConditionalOnProperty("spring.cloud.kubernetes.reload.enabled")
 	@ConditionalOnClass({ RestartEndpoint.class, ContextRefresher.class })
-	@EnableScheduling
-	@EnableAsync
 	protected static class ConfigReloadAutoConfigurationBeans {
 
 		@Autowired
@@ -95,10 +92,12 @@ public class ConfigReloadAutoConfiguration {
 		@Conditional(PollingReloadDetectionMode.class)
 		public ConfigurationChangeDetector configMapPropertyChangePollingWatcher(ConfigReloadProperties properties,
 				ConfigurationUpdateStrategy strategy,
-				Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator) {
+				Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
+				TaskSchedulerWrapper taskSchedulerWrapper) {
 
 			return new PollingConfigMapChangeDetector(this.environment, properties, strategy,
-					Fabric8ConfigMapPropertySource.class, fabric8ConfigMapPropertySourceLocator);
+					Fabric8ConfigMapPropertySource.class, fabric8ConfigMapPropertySourceLocator,
+					taskSchedulerWrapper.getTaskScheduler());
 		}
 
 		/**
@@ -113,10 +112,12 @@ public class ConfigReloadAutoConfiguration {
 		@Conditional(PollingReloadDetectionMode.class)
 		public ConfigurationChangeDetector secretsPropertyChangePollingWatcher(ConfigReloadProperties properties,
 				ConfigurationUpdateStrategy strategy,
-				Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator) {
+				Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
+				TaskSchedulerWrapper taskScheduler) {
 
 			return new PollingSecretsChangeDetector(this.environment, properties, strategy,
-					Fabric8SecretsPropertySource.class, fabric8SecretsPropertySourceLocator);
+					Fabric8SecretsPropertySource.class, fabric8SecretsPropertySourceLocator,
+					taskScheduler.getTaskScheduler());
 		}
 
 		/**

@@ -27,6 +27,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
+import org.springframework.cloud.commons.util.TaskSchedulerWrapper;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.cloud.context.restart.RestartEndpoint;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
@@ -47,8 +48,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * @author Ryan Baxter
@@ -66,8 +65,6 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 	 */
 	@ConditionalOnProperty("spring.cloud.kubernetes.reload.enabled")
 	@ConditionalOnClass({ RestartEndpoint.class, ContextRefresher.class })
-	@EnableScheduling
-	@EnableAsync
 	protected static class ConfigReloadAutoConfigurationBeans {
 
 		/**
@@ -83,10 +80,11 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 		public ConfigurationChangeDetector configMapPropertyChangePollingWatcher(ConfigReloadProperties properties,
 				ConfigurationUpdateStrategy strategy,
 				KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
-				AbstractEnvironment environment) {
+				AbstractEnvironment environment, TaskSchedulerWrapper taskScheduler) {
 
 			return new PollingConfigMapChangeDetector(environment, properties, strategy,
-					KubernetesClientConfigMapPropertySource.class, configMapPropertySourceLocator);
+					KubernetesClientConfigMapPropertySource.class, configMapPropertySourceLocator,
+					taskScheduler.getTaskScheduler());
 		}
 
 		/**
@@ -102,10 +100,11 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 		public ConfigurationChangeDetector secretsPropertyChangePollingWatcher(ConfigReloadProperties properties,
 				ConfigurationUpdateStrategy strategy,
 				KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
-				AbstractEnvironment environment) {
+				AbstractEnvironment environment, TaskSchedulerWrapper taskScheduler) {
 
 			return new PollingSecretsChangeDetector(environment, properties, strategy,
-					KubernetesClientSecretsPropertySource.class, secretsPropertySourceLocator);
+					KubernetesClientSecretsPropertySource.class, secretsPropertySourceLocator,
+					taskScheduler.getTaskScheduler());
 		}
 
 		/**

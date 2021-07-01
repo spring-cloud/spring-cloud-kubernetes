@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config.reload;
 
+import java.time.Duration;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -23,10 +24,12 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.boot.task.TaskSchedulerBuilder;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * A change detector that periodically retrieves secrets and fire a reload when something
@@ -44,21 +47,38 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 
 	private Class propertySourceClass;
 
+	private TaskScheduler taskExecutor;
+
+	private Duration period = Duration.ofMillis(1500);
+
+	@Deprecated
 	public PollingSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			ConfigurationUpdateStrategy strategy, Class propertySourceClass,
 			PropertySourceLocator propertySourceLocator) {
 		super(environment, properties, strategy);
 		this.propertySourceClass = propertySourceClass;
 		this.propertySourceLocator = propertySourceLocator;
+		this.taskExecutor = new TaskSchedulerBuilder().build();
+	}
+
+	public PollingSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
+			ConfigurationUpdateStrategy strategy, Class propertySourceClass,
+			PropertySourceLocator propertySourceLocator, TaskScheduler taskExecutor) {
+		super(environment, properties, strategy);
+		this.propertySourceLocator = propertySourceLocator;
+		this.propertySourceClass = propertySourceClass;
+		this.taskExecutor = taskExecutor;
+		this.period = properties.getPeriod();
 	}
 
 	@PostConstruct
 	public void init() {
 		this.log.info("Kubernetes polling secrets change detector activated");
+		PeriodicTrigger trigger = new PeriodicTrigger(period.toMillis());
+		trigger.setInitialDelay(period.toMillis());
+		taskExecutor.schedule(this::executeCycle, trigger);
 	}
 
-	@Scheduled(initialDelayString = "${spring.cloud.kubernetes.reload.period:15000}",
-			fixedDelayString = "${spring.cloud.kubernetes.reload.period:15000}")
 	public void executeCycle() {
 
 		boolean changedSecrets = false;
