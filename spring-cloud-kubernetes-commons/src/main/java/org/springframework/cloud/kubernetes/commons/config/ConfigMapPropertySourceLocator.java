@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,8 +57,11 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 		this.properties = properties;
 	}
 
+	protected abstract MapPropertySource getMapPropertySource(String name, NormalizedSource normalizedSource,
+			String configurationTarget, ConfigurableEnvironment environment);
+
 	@Override
-	public PropertySource locate(Environment environment) {
+	public PropertySource<?> locate(Environment environment) {
 		if (environment instanceof ConfigurableEnvironment) {
 			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
 
@@ -78,24 +82,25 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 			NormalizedSource normalizedSource) {
 
 		String configurationTarget = this.properties.getConfigurationTarget();
-		return getMapPropertySource(getApplicationName(environment, normalizedSource.getName(), configurationTarget),
-				normalizedSource, configurationTarget, environment);
+		String applicationName = getApplicationName(environment, normalizedSource.getName(), configurationTarget);
+		return getMapPropertySource(applicationName, normalizedSource, configurationTarget, environment);
 	}
 
-	protected abstract MapPropertySource getMapPropertySource(String name, NormalizedSource normalizedSource,
-			String configurationTarget, ConfigurableEnvironment environment);
-
 	private void addPropertySourcesFromPaths(Environment environment, CompositePropertySource composite) {
-		this.properties.getPaths().stream().map(Paths::get).peek(p -> {
-			if (!Files.exists(p)) {
+		properties.getPaths().stream().map(Paths::get).filter(p -> {
+			boolean exists = Files.exists(p);
+			if (!exists) {
 				LOG.warn("Configured input path: " + p
 						+ " will be ignored because it does not exist on the file system");
 			}
-		}).filter(Files::exists).peek(p -> {
-			if (!Files.isRegularFile(p)) {
+			return exists;
+		}).filter(p -> {
+			boolean regular = Files.isRegularFile(p);
+			if (!regular) {
 				LOG.warn("Configured input path: " + p + " will be ignored because it is not a regular file");
 			}
-		}).filter(Files::isRegularFile).forEach(p -> {
+			return regular;
+		}).collect(Collectors.toList()).forEach(p -> {
 			try {
 				String content = new String(Files.readAllBytes(p)).trim();
 				String filename = p.toAbsolutePath().toString().toLowerCase();
@@ -117,8 +122,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	private void addPropertySourceIfNeeded(Function<String, Map<String, Object>> contentToMapFunction, String content,
 			String name, CompositePropertySource composite) {
 
-		Map<String, Object> map = new HashMap<>();
-		map.putAll(contentToMapFunction.apply(content));
+		Map<String, Object> map = new HashMap<>(contentToMapFunction.apply(content));
 		if (map.isEmpty()) {
 			LOG.warn("Property source: " + name + "will be ignored because no properties could be found");
 		}
