@@ -142,9 +142,7 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 				mock(KubernetesClientConfigMapPropertySource.class)).withProperty("debug", "true");
 		KubernetesClientConfigMapPropertySourceLocator locator = mock(
 				KubernetesClientConfigMapPropertySourceLocator.class);
-		when(locator.locate(environment)).thenAnswer(
-			x -> new MockPropertySource().withProperty("debug", "false")
-		);
+		when(locator.locate(environment)).thenAnswer(x -> new MockPropertySource().withProperty("debug", "false"));
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 		KubernetesClientEventBasedConfigMapChangeDetector changeDetector = new KubernetesClientEventBasedConfigMapChangeDetector(

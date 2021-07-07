@@ -994,7 +994,7 @@ metadata:
   namespace: YOUR-NAME-SPACE
   name: namespace-reader
 rules:
-  - apiGroups: ["", "extensions", "apps"]
+  - apiGroups: [""]
     resources: ["configmaps", "pods", "services", "endpoints", "secrets"]
     verbs: ["get", "list", "watch"]
 
