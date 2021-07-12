@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.fabric8;
 
 import java.time.Duration;
 
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -26,16 +25,11 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
-import org.springframework.boot.actuate.autoconfigure.info.ConditionalOnEnabledInfoContributor;
-import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
-import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -121,24 +115,6 @@ public class Fabric8AutoConfiguration {
 	@ConditionalOnMissingBean
 	public Fabric8PodUtils kubernetesPodUtils(KubernetesClient client) {
 		return new Fabric8PodUtils(client);
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnClass(HealthIndicator.class)
-	protected static class KubernetesActuatorConfiguration {
-
-		@Bean
-		@ConditionalOnEnabledHealthIndicator("kubernetes")
-		public Fabric8HealthIndicator kubernetesHealthIndicator(PodUtils<Pod> podUtils) {
-			return new Fabric8HealthIndicator(podUtils);
-		}
-
-		@Bean
-		@ConditionalOnEnabledInfoContributor("kubernetes")
-		public Fabric8InfoContributor kubernetesInfoContributor(PodUtils<Pod> podUtils) {
-			return new Fabric8InfoContributor(podUtils);
-		}
-
 	}
 
 }
