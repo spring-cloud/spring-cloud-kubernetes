@@ -20,6 +20,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.ReactiveHealthContributorRegistry;
@@ -35,8 +36,8 @@ public class KubernetesClientActuatorTests {
 
 	@Nested
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
-		"management.health.kubernetes.enabled=false", "management.endpoint.health.show-details=always",
-		"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health" })
+			"management.health.kubernetes.enabled=false", "management.endpoint.health.show-details=always",
+			"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health" })
 	public class DisabledHealthTest {
 
 		@Autowired
@@ -51,19 +52,19 @@ public class KubernetesClientActuatorTests {
 		@Test
 		public void healthEndpointShouldContainKubernetes() {
 			this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.not(Matchers.containsString("kubernetes")));
+					.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
+					.value(Matchers.not(Matchers.containsString("kubernetes")));
 
 			Assertions.assertNull(registry.getContributor("kubernetes"),
-				"reactive kubernetes contributor must NOT be present when 'management.health.kubernetes.enabled=false'");
+					"reactive kubernetes contributor must NOT be present when 'management.health.kubernetes.enabled=false'");
 		}
 
 	}
 
 	@Nested
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
-		"management.health.kubernetes.enabled=true", "management.endpoint.health.show-details=always",
-		"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health" })
+			"management.health.kubernetes.enabled=true", "management.endpoint.health.show-details=always",
+			"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health" })
 	public class EnabledHealthTest {
 
 		@Autowired
@@ -78,11 +79,11 @@ public class KubernetesClientActuatorTests {
 		@Test
 		public void healthEndpointShouldContainKubernetes() {
 			this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.containsString("kubernetes"));
+					.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
+					.value(Matchers.containsString("kubernetes"));
 
 			Assertions.assertNotNull(registry.getContributor("kubernetes"),
-				"reactive kubernetes contributor must be present when 'management.health.kubernetes.enabled=true'");
+					"reactive kubernetes contributor must be present when 'management.health.kubernetes.enabled=true'");
 		}
 
 	}
