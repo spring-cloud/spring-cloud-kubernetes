@@ -21,7 +21,7 @@ package org.springframework.cloud.kubernetes.commons.config;
  *
  * @author Ioannis Canellos
  */
-abstract class AbstractConfigProperties {
+public abstract class AbstractConfigProperties {
 
 	protected boolean enabled = true;
 

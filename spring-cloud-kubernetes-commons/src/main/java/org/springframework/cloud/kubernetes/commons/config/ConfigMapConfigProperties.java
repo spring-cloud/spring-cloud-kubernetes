@@ -97,6 +97,15 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		 */
 		private String namespace;
 
+		public Source() {
+
+		}
+
+		public Source(String name, String namespace) {
+			this.name = name;
+			this.namespace = namespace;
+		}
+
 		public String getName() {
 			return this.name;
 		}
@@ -111,6 +120,10 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		public void setNamespace(String namespace) {
 			this.namespace = namespace;
+		}
+
+		public boolean isEmpty() {
+			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
 
 		public NormalizedSource normalize(String defaultName, String defaultNamespace) {
