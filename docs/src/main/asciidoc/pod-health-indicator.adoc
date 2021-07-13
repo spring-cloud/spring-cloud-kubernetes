@@ -7,3 +7,6 @@ The Kubernetes health indicator (which is part of the core module) exposes the f
 
 * Pod name, IP address, namespace, service account, node name, and its IP address
 * A flag that indicates whether the Spring Boot application is internal or external to Kubernetes
+
+You can disable this `HealthContributor` by setting `management.health.kubernetes.enabled`
+to `false` in `application.[properties | yaml]`.
