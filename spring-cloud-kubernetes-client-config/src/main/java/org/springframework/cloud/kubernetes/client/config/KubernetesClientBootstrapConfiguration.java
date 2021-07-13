@@ -19,9 +19,12 @@ package org.springframework.cloud.kubernetes.client.config;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.commons.*;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
+import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
@@ -41,17 +44,15 @@ public class KubernetesClientBootstrapConfiguration {
 	@Bean
 	@ConditionalOnKubernetesConfigEnabled
 	public KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator(
-		ConfigMapConfigProperties properties, CoreV1Api coreV1Api,
-		KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		return new KubernetesClientConfigMapPropertySourceLocator(coreV1Api, properties,
-			kubernetesNamespaceProvider);
+			ConfigMapConfigProperties properties, CoreV1Api coreV1Api,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+		return new KubernetesClientConfigMapPropertySourceLocator(coreV1Api, properties, kubernetesNamespaceProvider);
 	}
 
 	@Bean
 	@ConditionalOnKubernetesSecretsEnabled
-	public KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator(
-		SecretsConfigProperties properties, CoreV1Api coreV1Api,
-		KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+	public KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties,
+			CoreV1Api coreV1Api, KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		return new KubernetesClientSecretsPropertySourceLocator(coreV1Api, kubernetesNamespaceProvider, properties);
 	}
 
