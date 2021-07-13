@@ -43,6 +43,8 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 
 	private List<Source> sources = new LinkedList<>();
 
+	private boolean useNameAsPrefix;
+
 	public boolean isEnableApi() {
 		return this.enableApi;
 	}
@@ -73,6 +75,14 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 
 	public void setSources(List<Source> sources) {
 		this.sources = sources;
+	}
+
+	public boolean isUseNameAsPrefix() {
+		return this.useNameAsPrefix;
+	}
+
+	public void setUseNameAsPrefix(boolean useNameAsPrefix) {
+		this.useNameAsPrefix = useNameAsPrefix;
 	}
 
 	@Override

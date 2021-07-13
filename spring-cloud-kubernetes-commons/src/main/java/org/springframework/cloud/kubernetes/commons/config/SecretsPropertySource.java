@@ -20,6 +20,7 @@ import java.util.Base64;
 import java.util.Map;
 
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.util.StringUtils;
 
 /**
  * Kubernetes property source for secrets.
@@ -40,9 +41,16 @@ public class SecretsPropertySource extends MapPropertySource {
 				.append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR).append(namespace).toString();
 	}
 
-	protected static void putAll(Map<String, String> data, Map<String, Object> result) {
+	protected static void putAll(Map<String, String> data, Map<String, Object> result, String secretName,
+			boolean useNameAsPrefix) {
 		if (data != null) {
-			data.forEach((k, v) -> result.put(k, new String(Base64.getDecoder().decode(v)).trim()));
+			data.forEach((k, v) -> {
+				if (useNameAsPrefix && StringUtils.hasText(secretName)) {
+					k = new StringBuilder().append(secretName).append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR)
+							.append(k).toString();
+				}
+				result.put(k, new String(Base64.getDecoder().decode(v)).trim());
+			});
 		}
 	}
 

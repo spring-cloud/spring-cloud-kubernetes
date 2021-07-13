@@ -40,13 +40,14 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 	private CoreV1Api coreV1Api;
 
 	public KubernetesClientSecretsPropertySource(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment, Map<String, String> labels) {
-		super(getSourceName(name, namespace), getSourceData(coreV1Api, environment, name, namespace, labels));
+			Environment environment, Map<String, String> labels, boolean useNameAsPrefix) {
+		super(getSourceName(name, namespace),
+				getSourceData(coreV1Api, environment, name, namespace, labels, useNameAsPrefix));
 
 	}
 
 	private static Map<String, Object> getSourceData(CoreV1Api api, Environment env, String name, String namespace,
-			Map<String, String> labels) {
+			Map<String, String> labels, boolean useNameAsPrefix) {
 		Map<String, Object> result = new HashMap<>();
 
 		try {
@@ -65,18 +66,18 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 							.getItems().stream().filter(s -> name.equals(s.getMetadata().getName())).findFirst();
 				}
 
-				secret.ifPresent(s -> putAll(s, result));
+				secret.ifPresent(s -> putAll(s, result, useNameAsPrefix));
 			}
 
 			// Read for secrets api (label)
 			if (labels != null && !labels.isEmpty()) {
 				if (!StringUtils.hasText(namespace)) {
 					api.listSecretForAllNamespaces(null, null, null, createLabelsSelector(labels), null, null, null,
-							null, null, null).getItems().forEach(s -> putAll(s, result));
+							null, null, null).getItems().forEach(s -> putAll(s, result, useNameAsPrefix));
 				}
 				else {
 					api.listNamespacedSecret(namespace, null, null, null, null, createLabelsSelector(labels), null,
-							null, null, null, null).getItems().forEach(s -> putAll(s, result));
+							null, null, null, null).getItems().forEach(s -> putAll(s, result, useNameAsPrefix));
 				}
 			}
 		}
@@ -99,11 +100,17 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 		return selectorString.toString();
 	}
 
-	private static void putAll(V1Secret secret, Map<String, Object> result) {
+	private static void putAll(V1Secret secret, Map<String, Object> result, boolean useNameAsPrefix) {
 		Map<String, String> secretData = new HashMap<>();
 		secret.getData().forEach((key, value) -> secretData.put(key, Base64.getEncoder().encodeToString(value)));
 		if (secret != null) {
-			putAll(secretData, result);
+
+			String secretName = null;
+			if (secret.getMetadata() != null) {
+				secretName = secret.getMetadata().getName();
+			}
+
+			putAll(secretData, result, secretName, useNameAsPrefix);
 		}
 	}
 

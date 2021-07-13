@@ -41,12 +41,12 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 	private static final String PREFIX = "secrets";
 
 	public Fabric8SecretsPropertySource(KubernetesClient client, Environment env, String name, String namespace,
-			Map<String, String> labels) {
-		super(getSourceName(name, namespace), getSourceData(client, env, name, namespace, labels));
+			Map<String, String> labels, boolean useNameAsPrefix) {
+		super(getSourceName(name, namespace), getSourceData(client, env, name, namespace, labels, useNameAsPrefix));
 	}
 
 	private static Map<String, Object> getSourceData(KubernetesClient client, Environment env, String name,
-			String namespace, Map<String, String> labels) {
+			String namespace, Map<String, String> labels, boolean useNameAsPrefix) {
 		Map<String, Object> result = new HashMap<>();
 
 		try {
@@ -58,16 +58,17 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 			else {
 				secret = client.secrets().inNamespace(namespace).withName(name).get();
 			}
-			putAll(secret, result);
+			putAll(secret, result, useNameAsPrefix);
 
 			// Read for secrets api (label)
 			if (!labels.isEmpty()) {
 				if (StringUtils.isEmpty(namespace)) {
-					client.secrets().withLabels(labels).list().getItems().forEach(s -> putAll(s, result));
+					client.secrets().withLabels(labels).list().getItems()
+							.forEach(s -> putAll(s, result, useNameAsPrefix));
 				}
 				else {
 					client.secrets().inNamespace(namespace).withLabels(labels).list().getItems()
-							.forEach(s -> putAll(s, result));
+							.forEach(s -> putAll(s, result, useNameAsPrefix));
 				}
 			}
 		}
@@ -79,9 +80,15 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 		return result;
 	}
 
-	private static void putAll(Secret secret, Map<String, Object> result) {
+	private static void putAll(Secret secret, Map<String, Object> result, boolean useNameAsPrefix) {
 		if (secret != null) {
-			putAll(secret.getData(), result);
+
+			String secretName = null;
+			if (secret.getMetadata() != null) {
+				secretName = secret.getMetadata().getName();
+			}
+
+			putAll(secret.getData(), result, secretName, useNameAsPrefix);
 		}
 	}
 
