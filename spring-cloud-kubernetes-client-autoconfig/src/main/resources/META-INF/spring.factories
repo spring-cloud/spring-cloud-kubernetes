@@ -1,5 +1,6 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration
+org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration,\
+org.springframework.cloud.kubernetes.client.KubernetesClientActuatorConfiguration
 
 
 org.springframework.boot.env.EnvironmentPostProcessor=\

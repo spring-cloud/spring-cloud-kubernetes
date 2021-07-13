@@ -18,18 +18,12 @@ package org.springframework.cloud.kubernetes.client;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1Pod;
 
-import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
-import org.springframework.boot.actuate.autoconfigure.info.ConditionalOnEnabledInfoContributor;
-import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -69,24 +63,6 @@ public class KubernetesClientAutoConfiguration {
 	public KubernetesClientPodUtils kubernetesPodUtils(CoreV1Api client,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		return new KubernetesClientPodUtils(client, kubernetesNamespaceProvider.getNamespace());
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnClass(HealthIndicator.class)
-	protected static class KubernetesActuatorConfiguration {
-
-		@Bean
-		@ConditionalOnEnabledHealthIndicator("kubernetes")
-		public KubernetesClientHealthIndicator kubernetesHealthIndicator(PodUtils<V1Pod> podUtils) {
-			return new KubernetesClientHealthIndicator(podUtils);
-		}
-
-		@Bean
-		@ConditionalOnEnabledInfoContributor("kubernetes")
-		public KubernetesClientInfoContributor kubernetesInfoContributor(PodUtils<V1Pod> podUtils) {
-			return new KubernetesClientInfoContributor(podUtils);
-		}
-
 	}
 
 }
