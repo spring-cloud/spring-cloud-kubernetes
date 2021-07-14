@@ -856,13 +856,16 @@ The Kubernetes health indicator (which is part of the core module) exposes the f
 * Pod name, IP address, namespace, service account, node name, and its IP address
 * A flag that indicates whether the Spring Boot application is internal or external to Kubernetes
 
+You can disable this `HealthContributor` by setting `management.health.kubernetes.enabled`
+to `false` in `application.[properties | yaml]`.
+
 == Info Contributor
 
 Spring Cloud Kubernetes includes an `InfoContributor` which adds Pod information to
 Spring Boot's `/info` Acturator endpoint.
 
 You can disable this `InfoContributor` by setting `management.info.kubernetes.enabled`
-to `false` in `bootstrap.[properties | yaml]`.
+to `false` in `application.[properties | yaml]`.
 
 == Leader Election
 The Spring Cloud Kubernetes leader election mechanism implements the leader election API of Spring Integration using a Kubernetes ConfigMap.
