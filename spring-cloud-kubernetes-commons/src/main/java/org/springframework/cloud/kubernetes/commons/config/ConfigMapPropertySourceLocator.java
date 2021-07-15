@@ -57,7 +57,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 		this.properties = properties;
 	}
 
-	protected abstract MapPropertySource getMapPropertySource(String name, NormalizedSource normalizedSource,
+	protected abstract MapPropertySource getMapPropertySource(String applicationName, NormalizedSource normalizedSource,
 			String configurationTarget, ConfigurableEnvironment environment);
 
 	@Override
