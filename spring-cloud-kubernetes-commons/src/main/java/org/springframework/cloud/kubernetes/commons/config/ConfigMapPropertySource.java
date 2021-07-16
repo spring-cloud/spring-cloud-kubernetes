@@ -27,7 +27,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.env.StandardEnvironment;
 
 import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_PROPERTIES;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_YAML;
@@ -54,14 +53,8 @@ public abstract class ConfigMapPropertySource extends MapPropertySource {
 		super(name, source);
 	}
 
-	protected static Environment createEnvironmentWithActiveProfiles(String[] activeProfiles) {
-		StandardEnvironment environment = new StandardEnvironment();
-		environment.setActiveProfiles(activeProfiles);
-		return environment;
-	}
-
-	protected static String getName(String name, String namespace) {
-		return PREFIX + PROPERTY_SOURCE_NAME_SEPARATOR + name + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
+	protected static String getName(String applicationName, String namespace) {
+		return PREFIX + PROPERTY_SOURCE_NAME_SEPARATOR + applicationName + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
 	}
 
 	protected static Map<String, Object> processAllEntries(Map<String, String> input, Environment environment) {
@@ -89,7 +82,7 @@ public abstract class ConfigMapPropertySource extends MapPropertySource {
 	protected static Map<String, Object> defaultProcessAllEntries(Map<String, String> input, Environment environment) {
 
 		return input.entrySet().stream().map(e -> extractProperties(e.getKey(), e.getValue(), environment))
-				.filter(m -> !m.isEmpty()).flatMap(m -> m.entrySet().stream())
+				.flatMap(m -> m.entrySet().stream())
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, throwingMerger(), HashMap::new));
 	}
 
