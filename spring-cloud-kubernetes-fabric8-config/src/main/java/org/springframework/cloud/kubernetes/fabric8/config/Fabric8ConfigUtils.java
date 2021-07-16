@@ -54,10 +54,7 @@ public final class Fabric8ConfigUtils {
 	}
 
 	public static Map<String, String> getConfigMapData(KubernetesClient client, String namespace, String name) {
-		ConfigMap configMap = !StringUtils.hasLength(namespace) ? client.configMaps().withName(name).get() // when
-																											// namespace
-																											// is
-																											// ""
+		ConfigMap configMap = !StringUtils.hasLength(namespace) ? client.configMaps().withName(name).get()
 				: client.configMaps().inNamespace(namespace).withName(name).get();
 
 		return configMap == null ? Collections.emptyMap() : configMap.getData();
