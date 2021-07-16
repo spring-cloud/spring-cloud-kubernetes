@@ -60,8 +60,8 @@ public abstract class ConfigMapPropertySource extends MapPropertySource {
 		return environment;
 	}
 
-	protected static String getName(String name, String namespace) {
-		return PREFIX + PROPERTY_SOURCE_NAME_SEPARATOR + name + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
+	protected static String getName(String applicationName, String namespace) {
+		return PREFIX + PROPERTY_SOURCE_NAME_SEPARATOR + applicationName + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
 	}
 
 	protected static Map<String, Object> processAllEntries(Map<String, String> input, Environment environment) {
