@@ -60,8 +60,4 @@ public final class Fabric8ConfigUtils {
 		return configMap == null ? Collections.emptyMap() : configMap.getData();
 	}
 
-	static String getNamespace(KubernetesClient client, String namespace) {
-		return !StringUtils.hasLength(namespace) ? client.getNamespace() : namespace;
-	}
-
 }
