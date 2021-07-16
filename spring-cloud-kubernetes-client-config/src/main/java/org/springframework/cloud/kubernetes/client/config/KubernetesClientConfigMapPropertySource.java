@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.client.config;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 
 	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
 			Environment environment) {
-		super(getName(name, namespace), asObjectMap(getData(coreV1Api, name, namespace, environment)));
+		super(getName(name, namespace), getData(coreV1Api, name, namespace, environment));
 	}
 
 	private static Map<String, Object> getData(CoreV1Api coreV1Api, String name, String namespace,
@@ -62,7 +63,7 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 		catch (ApiException e) {
 			LOG.warn("Unable to get ConfigMap " + name + " in namespace " + namespace, e);
 		}
-		return new LinkedHashMap<>();
+		return Collections.emptyMap();
 	}
 
 }

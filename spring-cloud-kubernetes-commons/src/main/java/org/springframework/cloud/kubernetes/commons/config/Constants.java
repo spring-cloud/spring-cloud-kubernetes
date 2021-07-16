@@ -43,6 +43,26 @@ public final class Constants {
 	 */
 	public static final String SPRING_CONFIG_ACTIVATE_ON_PROFILE = "spring.config.activate.on-profile";
 
+	/**
+	 * application.yml property.
+	 */
+	public static final String APPLICATION_YML = "application.yml";
+
+	/**
+	 * application.yaml property.
+	 */
+	public static final String APPLICATION_YAML = "application.yaml";
+
+	/**
+	 * application.properties property.
+	 */
+	public static final String APPLICATION_PROPERTIES = "application.properties";
+
+	/**
+	 * prefix of the configMap.
+	 */
+	public static final String PREFIX = "configmap";
+
 	private Constants() {
 	}
 

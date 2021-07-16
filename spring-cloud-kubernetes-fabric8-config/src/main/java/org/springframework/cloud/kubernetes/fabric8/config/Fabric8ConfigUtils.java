@@ -45,4 +45,8 @@ public final class Fabric8ConfigUtils {
 		return configNamespace;
 	}
 
+	static String getNamespace(KubernetesClient client, String namespace) {
+		return !StringUtils.hasLength(namespace) ? client.getNamespace() : namespace;
+	}
+
 }
