@@ -31,8 +31,6 @@ import org.springframework.core.env.MapPropertySource;
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getConfigMapData;
 
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getNamespace;
-
 /**
  * A {@link MapPropertySource} that uses Kubernetes config maps.
  *
