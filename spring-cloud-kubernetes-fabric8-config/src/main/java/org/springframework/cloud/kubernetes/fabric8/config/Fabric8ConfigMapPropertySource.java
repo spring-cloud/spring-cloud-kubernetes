@@ -16,7 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.LinkedHashMap;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -28,6 +29,8 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySour
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getNamespace;
 
 /**
  * A {@link MapPropertySource} that uses Kubernetes config maps.
@@ -41,25 +44,21 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 	private static final Log LOG = LogFactory.getLog(Fabric8ConfigMapPropertySource.class);
 
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name) {
-		this(client, name, null, (Environment) null);
+		this(client, name, null, null);
 	}
 
-	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
+	public Fabric8ConfigMapPropertySource(KubernetesClient client, String applicationName, String namespace,
 			Environment environment) {
-		super(getName(name, getNamespace(client, namespace)),
-				asObjectMap(getData(client, name, getNamespace(client, namespace), environment)));
+		super(getName(applicationName, getNamespace(client, namespace)),
+				getData(client, applicationName, getNamespace(client, namespace), environment));
 	}
 
-	private static String getNamespace(KubernetesClient client, String namespace) {
-		return StringUtils.isEmpty(namespace) ? client.getNamespace() : namespace;
-	}
-
-	private static Map<String, Object> getData(KubernetesClient client, String name, String namespace,
+	private static Map<String, Object> getData(KubernetesClient client, String applicationName, String namespace,
 			Environment environment) {
 		try {
-			Map<String, Object> result = new LinkedHashMap<>();
-			ConfigMap map = StringUtils.isEmpty(namespace) ? client.configMaps().withName(name).get()
-					: client.configMaps().inNamespace(namespace).withName(name).get();
+			Map<String, Object> result = new HashMap<>();
+			ConfigMap map = !StringUtils.hasLength(namespace) ? client.configMaps().withName(applicationName).get()
+					: client.configMaps().inNamespace(namespace).withName(applicationName).get();
 
 			if (map != null) {
 				result.putAll(processAllEntries(map.getData(), environment));
@@ -68,9 +67,9 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 			if (environment != null) {
 				for (String activeProfile : environment.getActiveProfiles()) {
 
-					String mapNameWithProfile = name + "-" + activeProfile;
+					String mapNameWithProfile = applicationName + "-" + activeProfile;
 
-					ConfigMap mapWithProfile = StringUtils.isEmpty(namespace)
+					ConfigMap mapWithProfile = !StringUtils.hasLength(namespace)
 							? client.configMaps().withName(mapNameWithProfile).get()
 							: client.configMaps().inNamespace(namespace).withName(mapNameWithProfile).get();
 
@@ -85,10 +84,11 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 
 		}
 		catch (Exception e) {
-			LOG.warn("Can't read configMap with name: [" + name + "] in namespace:[" + namespace + "]. Ignoring.", e);
+			LOG.warn("Can't read configMap with name: [" + applicationName + "] in namespace:[" + namespace
+					+ "]. Ignoring.", e);
 		}
 
-		return new LinkedHashMap<>();
+		return Collections.emptyMap();
 	}
 
 }

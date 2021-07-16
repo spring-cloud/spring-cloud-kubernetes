@@ -57,7 +57,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 		this.properties = properties;
 	}
 
-	protected abstract MapPropertySource getMapPropertySource(String name, NormalizedSource normalizedSource,
+	protected abstract MapPropertySource getMapPropertySource(String applicationName, NormalizedSource normalizedSource,
 			String configurationTarget, ConfigurableEnvironment environment);
 
 	@Override
@@ -65,9 +65,9 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 		if (environment instanceof ConfigurableEnvironment) {
 			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
 
-			List<NormalizedSource> sources = this.properties.determineSources();
 			CompositePropertySource composite = new CompositePropertySource("composite-configmap");
 			if (this.properties.isEnableApi()) {
+				List<NormalizedSource> sources = this.properties.determineSources();
 				sources.forEach(s -> composite.addFirstPropertySource(getMapPropertySourceForSingleConfigMap(env, s)));
 			}
 
