@@ -57,7 +57,12 @@ public final class Fabric8ConfigUtils {
 		ConfigMap configMap = !StringUtils.hasLength(namespace) ? client.configMaps().withName(name).get()
 				: client.configMaps().inNamespace(namespace).withName(name).get();
 
-		return configMap == null ? Collections.emptyMap() : configMap.getData();
+		if (configMap == null) {
+			LOG.warn("config-map with name : '" + name + "' not present in namespace : '" + namespace + "'");
+			return Collections.emptyMap();
+		}
+
+		return configMap.getData();
 	}
 
 }

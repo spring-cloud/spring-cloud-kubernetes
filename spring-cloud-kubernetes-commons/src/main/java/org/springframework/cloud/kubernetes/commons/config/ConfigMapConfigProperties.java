@@ -62,12 +62,12 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	}
 
 	/**
-	 * @return A list of Source to use If the user has not specified any Source
+	 * @return A list of Source to use. If the user has not specified any Source
 	 * properties, then a single Source is constructed based on the supplied name and
-	 * namespace
+	 * namespace.
 	 *
 	 * These are the actual name/namespace pairs that are used to create a
-	 * ConfigMapPropertySource
+	 * ConfigMapPropertySource.
 	 */
 	public List<NormalizedSource> determineSources() {
 		if (this.sources.isEmpty()) {
@@ -151,6 +151,11 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		public String getNamespace() {
 			return this.namespace;
+		}
+
+		@Override
+		public String toString() {
+			return "{ config-map name : '" + name + "', namespace : '" + namespace + "' }";
 		}
 
 	}
