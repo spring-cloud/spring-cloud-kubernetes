@@ -69,7 +69,7 @@ public class ConfigMapsTests {
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("bean.greeting", "Hello ConfigMap, %s!");
-		mockClient.configMaps().inNamespace("test").createOrReplace(new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME)
+		mockClient.configMaps().inNamespace("test").create(new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME)
 				.endMetadata().addToData(data).build());
 	}
 

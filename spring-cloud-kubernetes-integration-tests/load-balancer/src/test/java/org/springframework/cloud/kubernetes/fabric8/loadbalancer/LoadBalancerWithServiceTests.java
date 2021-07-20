@@ -95,7 +95,7 @@ class LoadBalancerWithServiceTests {
 	}
 
 	private void createTestData(String name, String namespace) {
-		client.services().inNamespace(namespace).createOrReplace(new ServiceBuilder().withNewMetadata().withName(name).endMetadata()
+		client.services().inNamespace(namespace).create(new ServiceBuilder().withNewMetadata().withName(name).endMetadata()
 				.withSpec(new ServiceSpecBuilder()
 						.withPorts(new ServicePortBuilder().withProtocol("TCP").withPort(randomServerPort).build())
 						.build())

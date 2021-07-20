@@ -65,13 +65,13 @@ class LoadBalancerAllNamespacesTests {
 	}
 
 	private void createTestData(String name, String namespace) {
-		client.services().inNamespace(namespace).createOrReplace(new ServiceBuilder().withNewMetadata().withName(name).withNamespace(namespace)
+		client.services().inNamespace(namespace).create(new ServiceBuilder().withNewMetadata().withName(name).withNamespace(namespace)
 				.endMetadata()
 				.withSpec(new ServiceSpecBuilder()
 						.withPorts(new ServicePortBuilder().withProtocol("TCP").withPort(randomServerPort).build())
 						.build())
 				.build());
-		client.endpoints().inNamespace(namespace).createOrReplace(new EndpointsBuilder().withNewMetadata().withName("service-a")
+		client.endpoints().inNamespace(namespace).create(new EndpointsBuilder().withNewMetadata().withName("service-a")
 				.withNamespace(namespace).endMetadata().addNewSubset().addNewAddress().withIp("localhost").endAddress()
 				.addNewPort().withName("http").withPort(randomServerPort).endPort().endSubset().build());
 	}
