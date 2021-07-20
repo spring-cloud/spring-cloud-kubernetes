@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
 import java.util.List;
 
-import io.fabric8.kubernetes.api.model.DoneableService;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceList;
@@ -56,16 +55,16 @@ class KubernetesServiceListSupplierTests {
 	KubernetesClient client;
 
 	@Mock
-	MixedOperation<Service, ServiceList, DoneableService, ServiceResource<Service, DoneableService>> serviceOperation;
+	MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation;
 
 	@Mock
-	NonNamespaceOperation<Service, ServiceList, DoneableService, ServiceResource<Service, DoneableService>> namespaceOperation;
+	NonNamespaceOperation<Service, ServiceList, ServiceResource<Service>> namespaceOperation;
 
 	@Mock
-	ServiceResource<Service, DoneableService> serviceResource;
+	ServiceResource<Service> serviceResource;
 
 	@Mock
-	FilterWatchListMultiDeletable<Service, ServiceList, Boolean, Watch> multiDeletable;
+	FilterWatchListMultiDeletable<Service, ServiceList> multiDeletable;
 
 	@Test
 	void testPositiveMatch() {

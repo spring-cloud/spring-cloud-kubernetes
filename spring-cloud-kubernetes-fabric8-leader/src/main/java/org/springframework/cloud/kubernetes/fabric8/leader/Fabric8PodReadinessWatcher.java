@@ -16,12 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader;
 
-import io.fabric8.kubernetes.api.model.DoneablePod;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.*;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.internal.readiness.Readiness;
 import org.slf4j.Logger;
@@ -61,7 +57,7 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 			synchronized (this.lock) {
 				if (this.watch == null) {
 					LOGGER.debug("Starting pod readiness watcher for '{}'", this.podName);
-					PodResource<Pod, DoneablePod> podResource = this.kubernetesClient.pods().withName(this.podName);
+					PodResource<Pod> podResource = this.kubernetesClient.pods().withName(this.podName);
 					this.previousState = podResource.isReady();
 					this.watch = podResource.watch(this);
 				}
@@ -98,7 +94,7 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 	}
 
 	@Override
-	public void onClose(KubernetesClientException cause) {
+	public void onClose(WatcherException cause) {
 		if (cause != null) {
 			synchronized (this.lock) {
 				LOGGER.warn("Watcher stopped unexpectedly, will restart", cause);

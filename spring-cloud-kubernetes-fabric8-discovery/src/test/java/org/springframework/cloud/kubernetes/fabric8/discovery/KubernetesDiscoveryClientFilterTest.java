@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import io.fabric8.kubernetes.api.model.DoneableService;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
@@ -50,7 +49,7 @@ public class KubernetesDiscoveryClientFilterTest {
 	private KubernetesClientServicesFunction kubernetesClientServicesFunction = KubernetesClient::services;
 
 	@Mock
-	private MixedOperation<Service, ServiceList, DoneableService, ServiceResource<Service, DoneableService>> serviceOperation;
+	private MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation;
 
 	private KubernetesDiscoveryClient underTest;
 

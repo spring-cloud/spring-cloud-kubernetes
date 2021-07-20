@@ -19,6 +19,8 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -54,22 +56,22 @@ public class CoreTest {
 	// https://github.com/fabric8io/kubernetes-client/issues/3145
 	// there is no way to do it otherwise at this time. When that is fixed, I will fix
 	// this also
-	@Autowired
-	private DefaultKubernetesClient client;
+	//@Autowired
+	//private DefaultKubernetesClient client;
 
 	@BeforeAll
 	public static void setUpBeforeClass() {
 
 		Map<String, String> data1 = new HashMap<>();
 		data1.put("spring.kubernetes.test.value", "value1");
-		mockClient.configMaps().inNamespace("testns").createNew().withNewMetadata().withName("testapp").endMetadata()
-				.addToData(data1).done();
+		mockClient.configMaps().inNamespace("testns").createOrReplace(new ConfigMapBuilder().withNewMetadata().withName("testapp").endMetadata()
+				.addToData(data1).build());
 
 		Map<String, String> data2 = new HashMap<>();
 		data2.put("amq.user", "YWRtaW4K");
 		data2.put("amq.pwd", "MWYyZDFlMmU2N2Rm");
-		mockClient.secrets().inNamespace("testns").createNew().withNewMetadata().withName("testapp").endMetadata()
-				.addToData(data2).done();
+		mockClient.secrets().inNamespace("testns").createOrReplace(new SecretBuilder().withNewMetadata().withName("testapp").endMetadata()
+				.addToData(data2).build());
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
@@ -89,8 +91,8 @@ public class CoreTest {
 
 	@Test
 	public void kubernetesClientBeanShouldBeConfigurableViaSystemProperties() {
-		assertThat(client).isNotNull();
-		assertThat(client.getConfiguration().getMasterUrl()).isEqualTo(mockClient.getConfiguration().getMasterUrl());
+		assertThat(mockClient).isNotNull();
+		assertThat(mockClient.getConfiguration().getMasterUrl()).isEqualTo(mockClient.getConfiguration().getMasterUrl());
 	}
 
 	@Test

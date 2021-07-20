@@ -43,6 +43,6 @@ import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
  * @author Georgios Andrianakis
  */
 public interface KubernetesClientServicesFunction
-		extends Function<KubernetesClient, FilterWatchListDeletable<Service, ServiceList, Boolean, Watch>> {
+		extends Function<KubernetesClient, FilterWatchListDeletable<Service, ServiceList>> {
 
 }

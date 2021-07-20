@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.DoneableEndpoints;
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
@@ -69,7 +68,7 @@ public class KubernetesCatalogWatchTest {
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	@Mock
-	private MixedOperation<Endpoints, EndpointsList, DoneableEndpoints, Resource<Endpoints, DoneableEndpoints>> endpointsOperation;
+	private MixedOperation<Endpoints, EndpointsList, Resource<Endpoints>> endpointsOperation;
 
 	@Captor
 	private ArgumentCaptor<HeartbeatEvent> heartbeatEventArgumentCaptor;

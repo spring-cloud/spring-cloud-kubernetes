@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.HashMap;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -68,8 +69,8 @@ public class ConfigMapsTests {
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("bean.greeting", "Hello ConfigMap, %s!");
-		mockClient.configMaps().inNamespace("test").createNew().withNewMetadata().withName(APPLICATION_NAME)
-				.endMetadata().addToData(data).done();
+		mockClient.configMaps().inNamespace("test").createOrReplace(new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME)
+				.endMetadata().addToData(data).build());
 	}
 
 	@Test

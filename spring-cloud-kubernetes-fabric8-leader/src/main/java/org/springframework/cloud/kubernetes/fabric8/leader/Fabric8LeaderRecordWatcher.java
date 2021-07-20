@@ -17,10 +17,7 @@
 package org.springframework.cloud.kubernetes.fabric8.leader;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +83,7 @@ public class Fabric8LeaderRecordWatcher
 	}
 
 	@Override
-	public void onClose(KubernetesClientException cause) {
+	public void onClose(WatcherException cause) {
 		if (cause != null) {
 			synchronized (this.lock) {
 				LOGGER.warn("Watcher stopped unexpectedly, will restart", cause);

@@ -37,7 +37,7 @@ public class ConfigMapsTest {
 
 	@Test
 	public void testConfigMapList() {
-		mockClient.configMaps().inNamespace("ns1").createNew();
+		mockClient.configMaps().inNamespace("ns1").createOrReplace(new ConfigMapBuilder().build());
 
 		ConfigMapList configMapList = mockClient.configMaps().inNamespace("ns1").list();
 		assertThat(configMapList).isNotNull();
