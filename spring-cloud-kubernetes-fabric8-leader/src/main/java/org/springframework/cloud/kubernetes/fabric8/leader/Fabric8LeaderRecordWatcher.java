@@ -17,7 +17,10 @@
 package org.springframework.cloud.kubernetes.fabric8.leader;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.client.*;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.Watch;
+import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
