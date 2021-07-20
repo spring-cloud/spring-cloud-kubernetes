@@ -44,6 +44,7 @@ public class ConfigMapsTest {
 		assertThat(configMapList).isNotNull();
 		// metadata is an element
 		assertThat(configMapList.getItems().size()).isEqualTo(1);
+		assertThat(configMapList.getItems().get(0).getData()).isNull();
 	}
 
 	@Test
