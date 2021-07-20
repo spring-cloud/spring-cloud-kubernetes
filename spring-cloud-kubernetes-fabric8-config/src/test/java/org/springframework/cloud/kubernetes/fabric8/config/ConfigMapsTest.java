@@ -37,11 +37,13 @@ public class ConfigMapsTest {
 
 	@Test
 	public void testConfigMapList() {
-		mockClient.configMaps().inNamespace("ns1").createOrReplace(new ConfigMapBuilder().build());
+		mockClient.configMaps().inNamespace("ns1").createOrReplace(new ConfigMapBuilder().
+			withNewMetadata().withName("empty").endMetadata().build());
 
 		ConfigMapList configMapList = mockClient.configMaps().inNamespace("ns1").list();
 		assertThat(configMapList).isNotNull();
-		assertThat(configMapList.getItems().size()).isEqualTo(0);
+		// metadata is an element
+		assertThat(configMapList.getItems().size()).isEqualTo(1);
 	}
 
 	@Test

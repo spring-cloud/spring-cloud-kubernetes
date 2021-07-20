@@ -66,7 +66,7 @@ public class Fabric8SecretsPropertySourceTest {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, NAMESPACE);
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		Secret secret = new SecretBuilder().withNewMetadata().withLabels(singletonMap("foo", "bar")).endMetadata()
+		Secret secret = new SecretBuilder().withNewMetadata().withName("test-secret").withLabels(singletonMap("foo", "bar")).endMetadata()
 				.addToData("secretName", Base64.getEncoder().encodeToString(SECRET_VALUE.getBytes())).build();
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 	}
