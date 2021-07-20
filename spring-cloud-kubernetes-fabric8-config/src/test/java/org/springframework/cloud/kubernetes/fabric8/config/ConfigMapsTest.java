@@ -81,7 +81,7 @@ public class ConfigMapsTest {
 
 	@Test
 	public void testConfigMapFromSingleApplicationYaml() {
-		String configMapName = "app-properties-test";
+		String configMapName = "app-yaml-test";
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
 				.addToData("application.yaml", ConfigMapTestUtil.readResourceFile("application.yaml")).build();
 
