@@ -62,8 +62,7 @@ public class Fabric8PodUtilsTest {
 
 	private final File certFile = Mockito.mock(File.class);
 
-	private final MixedOperation<Pod, PodList, PodResource<Pod>> mixed = Mockito
-			.mock(MixedOperation.class);
+	private final MixedOperation<Pod, PodList, PodResource<Pod>> mixed = Mockito.mock(MixedOperation.class);
 
 	private final Pod pod = Mockito.mock(Pod.class);
 

@@ -54,8 +54,7 @@ public class EventBasedConfigurationChangeDetectorTests {
 		Map<String, String> data = new HashMap<>();
 		data.put("foo", "bar");
 		configMap.setData(data);
-		MixedOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mixedOperation = mock(
-				MixedOperation.class);
+		MixedOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mixedOperation = mock(MixedOperation.class);
 		Resource<ConfigMap> resource = mock(Resource.class);
 		when(resource.get()).thenReturn(configMap);
 		when(mixedOperation.withName(eq("myconfigmap"))).thenReturn(resource);

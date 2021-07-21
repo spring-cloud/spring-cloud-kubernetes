@@ -82,8 +82,8 @@ public class MultipleConfigMapsTests {
 	private static void createConfigmap(KubernetesClient client, String configMapName, String namespace,
 			Map<String, String> data) {
 
-		client.configMaps().inNamespace(namespace).create(new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
-				.addToData(data).build());
+		client.configMaps().inNamespace(namespace).create(
+				new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata().addToData(data).build());
 	}
 
 	// the last confimap defined in 'multiplecms.yml' has the highest priority, so
