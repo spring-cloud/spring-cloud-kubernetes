@@ -21,7 +21,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.Supplier;
 
-import io.fabric8.kubernetes.api.model.DoneablePod;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.Config;
@@ -63,12 +62,11 @@ public class Fabric8PodUtilsTest {
 
 	private final File certFile = Mockito.mock(File.class);
 
-	private final MixedOperation<Pod, PodList, DoneablePod, PodResource<Pod, DoneablePod>> mixed = Mockito
-			.mock(MixedOperation.class);
+	private final MixedOperation<Pod, PodList, PodResource<Pod>> mixed = Mockito.mock(MixedOperation.class);
 
 	private final Pod pod = Mockito.mock(Pod.class);
 
-	private final PodResource<Pod, DoneablePod> podResource = Mockito.mock(PodResource.class);
+	private final PodResource<Pod> podResource = Mockito.mock(PodResource.class);
 
 	private MockedStatic<EnvReader> envReader;
 

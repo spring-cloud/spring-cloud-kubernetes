@@ -24,9 +24,9 @@ import javax.annotation.PreDestroy;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
 
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
@@ -85,7 +85,7 @@ public class EventBasedSecretsChangeDetector extends ConfigurationChangeDetector
 					}
 
 					@Override
-					public void onClose(KubernetesClientException e) {
+					public void onClose(WatcherException e) {
 					}
 				}));
 				activated = true;

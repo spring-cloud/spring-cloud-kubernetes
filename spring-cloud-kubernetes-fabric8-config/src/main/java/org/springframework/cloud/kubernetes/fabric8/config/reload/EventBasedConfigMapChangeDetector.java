@@ -24,9 +24,9 @@ import javax.annotation.PreDestroy;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
 
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
@@ -76,7 +76,7 @@ public class EventBasedConfigMapChangeDetector extends ConfigurationChangeDetect
 				String name = "config-maps-watch-event";
 				this.watches.put(name, this.kubernetesClient.configMaps().watch(new Watcher<ConfigMap>() {
 					@Override
-					public void eventReceived(Action action, ConfigMap configMap) {
+					public void eventReceived(Watcher.Action action, ConfigMap configMap) {
 						if (log.isDebugEnabled()) {
 							log.debug(name + " received event for ConfigMap " + configMap.getMetadata().getName());
 						}
@@ -84,7 +84,7 @@ public class EventBasedConfigMapChangeDetector extends ConfigurationChangeDetect
 					}
 
 					@Override
-					public void onClose(KubernetesClientException e) {
+					public void onClose(WatcherException e) {
 					}
 				}));
 				activated = true;
