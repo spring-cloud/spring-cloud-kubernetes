@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.Collections;
+import java.util.Map;
+
+import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,19 +38,31 @@ public final class Fabric8ConfigUtils {
 	private Fabric8ConfigUtils() {
 	}
 
-	public static String getApplicationNamespace(KubernetesClient client, String configNamespace,
+	public static String getApplicationNamespace(KubernetesClient client, String namespace,
 			String configurationTarget) {
-		if (!StringUtils.hasLength(configNamespace)) {
+		if (!StringUtils.hasLength(namespace)) {
 			LOG.debug(configurationTarget + " namespace has not been set, taking it from client (ns="
 					+ client.getNamespace() + ")");
-			configNamespace = client.getNamespace();
+			namespace = client.getNamespace();
 		}
 
-		return configNamespace;
+		return namespace;
 	}
 
-	static String getNamespace(KubernetesClient client, String namespace) {
+	public static String getApplicationNamespace(KubernetesClient client, String namespace) {
 		return !StringUtils.hasLength(namespace) ? client.getNamespace() : namespace;
+	}
+
+	public static Map<String, String> getConfigMapData(KubernetesClient client, String namespace, String name) {
+		ConfigMap configMap = !StringUtils.hasLength(namespace) ? client.configMaps().withName(name).get()
+				: client.configMaps().inNamespace(namespace).withName(name).get();
+
+		if (configMap == null) {
+			LOG.warn("config-map with name : '" + name + "' not present in namespace : '" + namespace + "'");
+			return Collections.emptyMap();
+		}
+
+		return configMap.getData();
 	}
 
 }
