@@ -16,13 +16,16 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.reload;
 
+import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
@@ -84,7 +87,13 @@ public class EventBasedConfigMapChangeDetector extends ConfigurationChangeDetect
 					}
 
 					@Override
-					public void onClose(KubernetesClientException e) {
+					public void onClose(KubernetesClientException exception) {
+						log.warn("ConfigMaps watch closed", exception);
+						Optional.ofNullable(exception).map(e -> {
+							log.debug("Exception received during watch", e);
+							return exception;
+						}).map(KubernetesClientException::getStatus).map(Status::getCode)
+								.filter(c -> c.equals(HttpURLConnection.HTTP_GONE)).ifPresent(c -> watch());
 					}
 				}));
 				activated = true;
