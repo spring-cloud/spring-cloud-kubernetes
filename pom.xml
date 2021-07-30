@@ -110,6 +110,7 @@
 		<module>docs</module>
 		<module>spring-cloud-kubernetes-fabric8-loadbalancer</module>
 		<module>spring-cloud-starter-kubernetes-fabric8-loadbalancer</module>
+		<module>spring-cloud-kubernetes-discovery</module>
 	</modules>
 
 	<dependencyManagement>

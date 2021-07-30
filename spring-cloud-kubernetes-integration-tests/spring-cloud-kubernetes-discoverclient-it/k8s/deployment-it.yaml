@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: spring-cloud-kubernetes-discoveryclient-it
+  name: spring-cloud-kubernetes-discoveryclient-it-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: spring-cloud-kubernetes-discoveryclient-it
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: spring-cloud-kubernetes-discoveryclient-it
+    spec:
+      serviceAccountName: spring-cloud-kubernetes-serviceaccount
+      containers:
+      - image: springcloud/spring-cloud-kubernetes-discoveryclient-it:2.0.4-SNAPSHOT
+        imagePullPolicy: IfNotPresent
+        name: spring-cloud-kubernetes-discoveryclient-it
+        resources: {}
+status: {}

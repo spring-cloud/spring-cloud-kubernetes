@@ -13,4 +13,5 @@
 	<suppress files=".*PollingConfigurationChangeDetector.*" checks="LineLength*"/>
 	<suppress files=".*LeaderRecordWatcherTest.*" checks="LineLength*"/>
 	<suppress files=".*ConfigurationWatcherApplication\.java" checks="HideUtilityClassConstructor"/>
+	<suppress files=".*DiscoveryServerApplication\.java" checks="HideUtilityClassConstructor"/>
 </suppressions>
