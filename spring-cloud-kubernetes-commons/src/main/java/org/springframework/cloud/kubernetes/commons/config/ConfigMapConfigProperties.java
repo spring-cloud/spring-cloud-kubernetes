@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
 
@@ -30,6 +32,8 @@ import org.springframework.util.StringUtils;
  */
 @ConfigurationProperties("spring.cloud.kubernetes.config")
 public class ConfigMapConfigProperties extends AbstractConfigProperties {
+
+	private static final Log LOG = LogFactory.getLog(ConfigMapConfigProperties.class);
 
 	private boolean enableApi = true;
 
@@ -71,10 +75,14 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	 */
 	public List<NormalizedSource> determineSources() {
 		if (this.sources.isEmpty()) {
-			return Collections.singletonList(new NormalizedSource(name, namespace));
+			if(useNameAsPrefix) {
+				LOG.warn("'spring.cloud.kubernetes.config.useNameAsPrefix' is set to 'true', but 'spring.cloud.kubernetes.config.sources'" +
+					" is empty; as such will default 'useNameAsPrefix' to 'false'");
+			}
+			return Collections.singletonList(new NormalizedSource(name, namespace, false));
 		}
 
-		return sources.stream().map(s -> s.normalize(name, namespace)).collect(Collectors.toList());
+		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix)).collect(Collectors.toList());
 	}
 
 	@Override
@@ -96,6 +104,17 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		 * The namespace where the ConfigMap is found.
 		 */
 		private String namespace;
+
+		/**
+		 * Use config map name as prefix for properties.
+		 * Can't be a primitive, we need to know if it was explicitly set or not
+		 */
+		private Boolean useNameAsPrefix;
+
+		/**
+		 * An explicit prefix to be used for properties
+		 */
+		private String explicitPrefix;
 
 		public Source() {
 
@@ -122,14 +141,42 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			this.namespace = namespace;
 		}
 
+		public Boolean isUseNameAsPrefix() {
+			return useNameAsPrefix;
+		}
+
+		public void setUseNameAsPrefix(Boolean useNameAsPrefix) {
+			this.useNameAsPrefix = useNameAsPrefix;
+		}
+
+		public String getExplicitPrefix() {
+			return explicitPrefix;
+		}
+
+		public void setExplicitPrefix(String explicitPrefix) {
+			this.explicitPrefix = explicitPrefix;
+		}
+
 		public boolean isEmpty() {
 			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
 
+		// not used, but not removed because of potential compatibility reasons
 		public NormalizedSource normalize(String defaultName, String defaultNamespace) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-			return new NormalizedSource(normalizedName, normalizedNamespace);
+			return new NormalizedSource(normalizedName, normalizedNamespace, false);
+		}
+
+		public NormalizedSource normalize(String defaultName, String defaultNamespace,
+				boolean defaultUseNameAsPrefix, String explicitPrefix) {
+			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
+			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
+			if(StringUtils.hasText(explicitPrefix)) {
+
+			}
+			boolean normalizedUseNameAsPrefix = this.useNameAsPrefix != null ? this.useNameAsPrefix : defaultUseNameAsPrefix;
+			return new NormalizedSource(normalizedName, normalizedNamespace, normalizedUseNameAsPrefix);
 		}
 
 	}
@@ -140,9 +187,23 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		private final String namespace;
 
+		private final boolean useNameAsPrefix;
+
+		private final String explicitPrefix;
+
+		// not used, but not removed because of potential compatibility reasons
 		NormalizedSource(String name, String namespace) {
 			this.name = name;
 			this.namespace = namespace;
+			this.useNameAsPrefix = false;
+			this.explicitPrefix = null;
+		}
+
+		NormalizedSource(String name, String namespace, boolean useNameAsPrefix, String explicitPrefix) {
+			this.name = name;
+			this.namespace = namespace;
+			this.useNameAsPrefix = useNameAsPrefix;
+			this.explicitPrefix = explicitPrefix;
 		}
 
 		public String getName() {
@@ -153,9 +214,14 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			return this.namespace;
 		}
 
+		public boolean isUseNameAsPrefix() {
+			return useNameAsPrefix;
+		}
+
 		@Override
 		public String toString() {
-			return "{ config-map name : '" + name + "', namespace : '" + namespace + "' }";
+			return "{ config-map name : '" + name + "', namespace : '" + namespace + "', useNameAsPrefix : '" +
+				"" + useNameAsPrefix + "' explicitPrefix : '" + explicitPrefix + "' }";
 		}
 
 	}
