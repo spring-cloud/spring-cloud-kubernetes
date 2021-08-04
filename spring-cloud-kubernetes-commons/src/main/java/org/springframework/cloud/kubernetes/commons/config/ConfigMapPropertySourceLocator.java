@@ -89,7 +89,8 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	}
 
 	private void addPropertySourcesFromPaths(Environment environment, CompositePropertySource composite) {
-		properties.getPaths().stream().map(Paths::get).filter(p -> {
+		Set<String> uniquePaths = new HashSet<>(properties.getPaths());
+		uniquePaths.stream().map(Paths::get).filter(p -> {
 			boolean exists = Files.exists(p);
 			if (!exists) {
 				LOG.warn("Configured input path: " + p
