@@ -29,13 +29,23 @@ import java.util.List;
 public class ConfigMapConfigPropertiesTests {
 
 	/*
-	 * when "spring.cloud.kubernetes.config.sources" are empty, we need to have the
-	 * value of "useNameAsPrefix" as false.
+	 * <pre>
+	 * 	spring:
+	 *	  cloud:
+	 *      kubernetes:
+	 *        config:
+	 *          name: config-map-a
+	 *        	namespace: spring-k8s
+	 * </pre>
+	 *
+	 * a config as above will result in a NormalizedSource where prefix is empty
 	 */
 	@Test
 	public void testUseNameAsPrefixUnsetEmptySources() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
 		properties.setSources(Collections.emptyList());
+		properties.setName("config-map-a");
+		properties.setNamespace("spring-k8s");
 
 		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
 		Assertions.assertEquals(
@@ -43,23 +53,33 @@ public class ConfigMapConfigPropertiesTests {
 			"empty sources must generate a List with a single NormalizedSource"
 		);
 
-		Assertions.assertFalse(
-			sources.get(0).isUseNameAsPrefix(),
-			"empty sources must generate a List with a single NormalizedSource, where useNameAsPrefix must be false"
+		Assertions.assertEquals(
+			sources.get(0).getPrefix(), "",
+			"empty sources must generate a List with a single NormalizedSource, where prefix is empty"
 		);
 	}
 
 	/*
-	 * when "spring.cloud.kubernetes.config.sources" are empty, we need to have the
-	 * value of "useNameAsPrefix" as false; even if "spring.cloud.kubernetes.config.useNameAsPrefix"
-	 * is set to true.
-	 * It makes no sense to prefix config map properties when a single config map exists
+	 * <pre>
+	 * 	spring:
+	 *	  cloud:
+	 *      kubernetes:
+	 *        config:
+	 *          useNameAsPrefix: true
+	 *          name: config-map-a
+	 *        	namespace: spring-k8s
+	 * </pre>
+	 *
+	 * a config as above will result in a NormalizedSource where prefix is empty, even if "useNameAsPrefix: true",
+	 * because sources are empty
 	 */
 	@Test
 	public void testUseNameAsPrefixSetEmptySources() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
 		properties.setSources(Collections.emptyList());
 		properties.setUseNameAsPrefix(true);
+		properties.setName("config-map-a");
+		properties.setNamespace("spring-k8s");
 
 		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
 		Assertions.assertEquals(
@@ -67,10 +87,10 @@ public class ConfigMapConfigPropertiesTests {
 			"empty sources must generate a List with a single NormalizedSource"
 		);
 
-		Assertions.assertFalse(
-			sources.get(0).isUseNameAsPrefix(),
-			"empty sources must generate a List with a single NormalizedSource, where useNameAsPrefix must be false" +
-				", no matter of 'spring.cloud.kubernetes.config.useNameAsPrefix' value"
+		Assertions.assertEquals(
+			sources.get(0).getPrefix(), "",
+			"empty sources must generate a List with a single NormalizedSource, where prefix is empty," +
+				"no matter of 'spring.cloud.kubernetes.config.useNameAsPrefix' value"
 		);
 	}
 
@@ -86,16 +106,16 @@ public class ConfigMapConfigPropertiesTests {
      *          - name: config-map-one
 	 * </pre>
 	 *
-	 * a config as above will result in a NormalizedSource where useNameAsPrefix will be set to true
+	 * a config as above will result in a NormalizedSource where prefix will be equal to the config map name
 	 */
 	@Test
 	public void testUseNameAsPrefixUnsetNonEmptySources() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
 		properties.setUseNameAsPrefix(true);
+		properties.setNamespace("spring-k8s");
 
 		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source();
-		one.setName("name");
-		one.setNamespace("namespace");
+		one.setName("config-map-one");
 		properties.setSources(Collections.singletonList(one));
 
 		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
@@ -104,10 +124,7 @@ public class ConfigMapConfigPropertiesTests {
 			"a single NormalizedSource is expected"
 		);
 
-		Assertions.assertTrue(
-			sources.get(0).isUseNameAsPrefix(),
-			"useNameAsPrefix must be taken from 'spring.cloud.kubernetes.config.useNameAsPrefix'"
-		);
+		Assertions.assertEquals(sources.get(0).getPrefix(), "config-map-one");
 	}
 
 	/*
@@ -135,20 +152,18 @@ public class ConfigMapConfigPropertiesTests {
 	public void testUseNameAsPrefixSetNonEmptySources() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
 		properties.setUseNameAsPrefix(true);
+		properties.setNamespace("spring-k8s");
 
 		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source();
-		one.setName("nameOne");
-		one.setNamespace("namespaceOne");
+		one.setName("config-map-one");
 		one.setUseNameAsPrefix(false);
 
 		ConfigMapConfigProperties.Source two = new ConfigMapConfigProperties.Source();
-		two.setName("nameTwo");
-		two.setNamespace("namespaceTwo");
+		two.setName("config-map-two");
 		two.setUseNameAsPrefix(true);
 
 		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source();
-		three.setName("nameTwo");
-		three.setNamespace("namespaceTwo");
+		three.setName("config-map-three");
 
 		properties.setSources(Arrays.asList(one, two, three));
 
@@ -158,9 +173,67 @@ public class ConfigMapConfigPropertiesTests {
 			"3 NormalizedSources are expected"
 		);
 
-		Assertions.assertFalse(sources.get(0).isUseNameAsPrefix());
-		Assertions.assertTrue(sources.get(1).isUseNameAsPrefix());
-		Assertions.assertTrue(sources.get(2).isUseNameAsPrefix());
+		Assertions.assertEquals(sources.get(0).getPrefix(), "");
+		Assertions.assertEquals(sources.get(1).getPrefix(), "config-map-two");
+		Assertions.assertEquals(sources.get(2).getPrefix(), "config-map-three");
+	}
+
+	/*
+	 * <pre>
+	 * spring:
+	 *	cloud:
+	 *    kubernetes:
+	 *      config:
+	 *        useNameAsPrefix: false
+	 *        namespace: spring-k8s
+	 *        sources:
+	 *          - name: config-map-one
+	 *            useNameAsPrefix: false
+	 *            explicitPrefix: one
+	 *          - name: config-map-two
+	 *            useNameAsPrefix: true
+	 *            explicitPrefix: two
+	 *          - name: config-map-three
+	 *            explicitPrefix: three
+	 *          - name: config-map-four
+	 * </pre>
+	 *
+	 */
+	@Test
+	public void testMultipleCases() {
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
+		properties.setUseNameAsPrefix(false);
+		properties.setNamespace("spring-k8s");
+
+		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source();
+		one.setNamespace("config-map-one");
+		one.setUseNameAsPrefix(false);
+		one.setExplicitPrefix("one");
+
+		ConfigMapConfigProperties.Source two = new ConfigMapConfigProperties.Source();
+		two.setNamespace("config-map-two");
+		two.setUseNameAsPrefix(true);
+		two.setExplicitPrefix("two");
+
+		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source();
+		three.setNamespace("config-map-three");
+		three.setExplicitPrefix("three");
+
+		ConfigMapConfigProperties.Source four = new ConfigMapConfigProperties.Source();
+		four.setNamespace("config-map-four");
+
+		properties.setSources(Arrays.asList(one, two, three, four));
+
+		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
+		Assertions.assertEquals(
+			sources.size(), 4,
+			"4 NormalizedSources are expected"
+		);
+
+		Assertions.assertEquals(sources.get(0).getPrefix(), "one");
+		Assertions.assertEquals(sources.get(1).getPrefix(), "two");
+		Assertions.assertEquals(sources.get(2).getPrefix(), "three");
+		Assertions.assertEquals(sources.get(3).getPrefix(), "");
 	}
 
 }

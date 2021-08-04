@@ -79,10 +79,10 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 				LOG.warn("'spring.cloud.kubernetes.config.useNameAsPrefix' is set to 'true', but 'spring.cloud.kubernetes.config.sources'" +
 					" is empty; as such will default 'useNameAsPrefix' to 'false'");
 			}
-			return Collections.singletonList(new NormalizedSource(name, namespace, false));
+			return Collections.singletonList(new NormalizedSource(name, namespace, ""));
 		}
 
-		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix)).collect(Collectors.toList());
+		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix, s.getExplicitPrefix())).collect(Collectors.toList());
 	}
 
 	@Override
@@ -165,18 +165,33 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		public NormalizedSource normalize(String defaultName, String defaultNamespace) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-			return new NormalizedSource(normalizedName, normalizedNamespace, false);
+			return new NormalizedSource(normalizedName, normalizedNamespace, null);
 		}
 
 		public NormalizedSource normalize(String defaultName, String defaultNamespace,
 				boolean defaultUseNameAsPrefix, String explicitPrefix) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-			if(StringUtils.hasText(explicitPrefix)) {
 
+			// if explicitPrefix is set, it takes priority over useNameAsPrefix
+			// (either the one from 'spring.cloud.kubernetes.config' or 'spring.cloud.kubernetes.config.sources')
+			if (StringUtils.hasText(explicitPrefix)) {
+				return new NormalizedSource(normalizedName, normalizedNamespace, explicitPrefix);
 			}
-			boolean normalizedUseNameAsPrefix = this.useNameAsPrefix != null ? this.useNameAsPrefix : defaultUseNameAsPrefix;
-			return new NormalizedSource(normalizedName, normalizedNamespace, normalizedUseNameAsPrefix);
+
+			// useNameAsPrefix is a java.lang.Boolean and if it's != null, users have specified it explicitly
+			if (this.useNameAsPrefix != null) {
+				if(useNameAsPrefix) {
+					return new NormalizedSource(normalizedName, normalizedNamespace, normalizedName);
+				}
+				return new NormalizedSource(normalizedName, normalizedNamespace, "");
+			}
+
+			if (defaultUseNameAsPrefix) {
+				return new NormalizedSource(normalizedName, normalizedNamespace, normalizedName);
+			}
+
+			return new NormalizedSource(normalizedName, normalizedNamespace, "");
 		}
 
 	}
@@ -187,23 +202,19 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		private final String namespace;
 
-		private final boolean useNameAsPrefix;
-
-		private final String explicitPrefix;
+		private final String prefix;
 
 		// not used, but not removed because of potential compatibility reasons
 		NormalizedSource(String name, String namespace) {
 			this.name = name;
 			this.namespace = namespace;
-			this.useNameAsPrefix = false;
-			this.explicitPrefix = null;
+			this.prefix = null;
 		}
 
-		NormalizedSource(String name, String namespace, boolean useNameAsPrefix, String explicitPrefix) {
+		NormalizedSource(String name, String namespace, String prefix) {
 			this.name = name;
 			this.namespace = namespace;
-			this.useNameAsPrefix = useNameAsPrefix;
-			this.explicitPrefix = explicitPrefix;
+			this.prefix = prefix;
 		}
 
 		public String getName() {
@@ -214,14 +225,13 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			return this.namespace;
 		}
 
-		public boolean isUseNameAsPrefix() {
-			return useNameAsPrefix;
+		public String getPrefix() {
+			return prefix;
 		}
 
 		@Override
 		public String toString() {
-			return "{ config-map name : '" + name + "', namespace : '" + namespace + "', useNameAsPrefix : '" +
-				"" + useNameAsPrefix + "' explicitPrefix : '" + explicitPrefix + "' }";
+			return "{ config-map name : '" + name + "', namespace : '" + namespace + "', prefix : '" + prefix + "' }";
 		}
 
 	}
