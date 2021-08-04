@@ -17,7 +17,9 @@
 package org.springframework.cloud.kubernetes.client.config;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -95,7 +97,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		configMapConfigProperties.setName("bootstrap-640");
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace("default");
-		PropertySource propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
+		PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
 				configMapConfigProperties, kubernetesClientProperties).locate(new MockEnvironment());
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
@@ -108,15 +110,14 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
 		configMapConfigProperties.setName("fake-name");
-		ConfigMapConfigProperties.Source source1 = new ConfigMapConfigProperties.Source();
-		source1.setName("bootstrap-640");
-		source1.setNamespace("default");
-		List<ConfigMapConfigProperties.Source> sources = new ArrayList<>();
-		sources.add(source1);
+		ConfigMapConfigProperties.Source source = new ConfigMapConfigProperties.Source();
+		source.setName("bootstrap-640");
+		source.setNamespace("default");
+		List<ConfigMapConfigProperties.Source> sources = Collections.singletonList(source);
 		configMapConfigProperties.setSources(sources);
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace("dev");
-		PropertySource propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
+		PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
 				configMapConfigProperties, kubernetesClientProperties).locate(new MockEnvironment());
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
