@@ -86,10 +86,11 @@ public class MultipleConfigMapsTests {
 				.addToData(data).done();
 	}
 
+	// the last configmap defined in 'multiplecms.yml' has the highest priority, so
+	// the common property defined in all configmaps is taken from the last one defined
 	@Test
 	public void testCommonMessage() {
-		this.webClient.get().uri("/common").exchange().expectStatus().isOk().expectBody().jsonPath("message")
-				.value(Matchers.anyOf(Matchers.equalTo("c1"), Matchers.equalTo("c2"), Matchers.equalTo("c3")));
+		assertResponse("/common", "c3");
 	}
 
 	@Test

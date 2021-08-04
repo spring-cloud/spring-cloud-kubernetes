@@ -19,10 +19,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -68,7 +65,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 
 			CompositePropertySource composite = new CompositePropertySource("composite-configmap");
 			if (this.properties.isEnableApi()) {
-				Set<NormalizedSource> sources = new HashSet<>(this.properties.determineSources());
+				Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources());
 				LOG.debug("Config Map normalized sources : " + sources);
 				sources.forEach(s -> composite.addFirstPropertySource(getMapPropertySourceForSingleConfigMap(env, s)));
 			}
@@ -89,7 +86,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	}
 
 	private void addPropertySourcesFromPaths(Environment environment, CompositePropertySource composite) {
-		Set<String> uniquePaths = new HashSet<>(properties.getPaths());
+		Set<String> uniquePaths = new LinkedHashSet<>(properties.getPaths());
 		uniquePaths.stream().map(Paths::get).filter(p -> {
 			boolean exists = Files.exists(p);
 			if (!exists) {
