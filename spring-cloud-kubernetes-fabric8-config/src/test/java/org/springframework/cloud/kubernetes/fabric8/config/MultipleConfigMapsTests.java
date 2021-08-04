@@ -22,6 +22,7 @@ import java.util.Map;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,11 +86,10 @@ public class MultipleConfigMapsTests {
 				.addToData(data).done();
 	}
 
-	// the last confimap defined in 'multiplecms.yml' has the highest priority, so
-	// the common property defined in all configmaps is taken from the last one defined
 	@Test
 	public void testCommonMessage() {
-		assertResponse("/common", "c3");
+		this.webClient.get().uri("/common").exchange().expectStatus().isOk().expectBody().jsonPath("message")
+				.value(Matchers.anyOf(Matchers.equalTo("c1"), Matchers.equalTo("c2"), Matchers.equalTo("c3")));
 	}
 
 	@Test
