@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
 
@@ -75,14 +76,16 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	 */
 	public List<NormalizedSource> determineSources() {
 		if (this.sources.isEmpty()) {
-			if(useNameAsPrefix) {
-				LOG.warn("'spring.cloud.kubernetes.config.useNameAsPrefix' is set to 'true', but 'spring.cloud.kubernetes.config.sources'" +
-					" is empty; as such will default 'useNameAsPrefix' to 'false'");
+			if (useNameAsPrefix) {
+				LOG.warn(
+						"'spring.cloud.kubernetes.config.useNameAsPrefix' is set to 'true', but 'spring.cloud.kubernetes.config.sources'"
+								+ " is empty; as such will default 'useNameAsPrefix' to 'false'");
 			}
 			return Collections.singletonList(new NormalizedSource(name, namespace, ""));
 		}
 
-		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix, s.getExplicitPrefix())).collect(Collectors.toList());
+		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix, s.getExplicitPrefix()))
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -106,13 +109,13 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		private String namespace;
 
 		/**
-		 * Use config map name as prefix for properties.
-		 * Can't be a primitive, we need to know if it was explicitly set or not
+		 * Use config map name as prefix for properties. Can't be a primitive, we need to
+		 * know if it was explicitly set or not
 		 */
 		private Boolean useNameAsPrefix;
 
 		/**
-		 * An explicit prefix to be used for properties
+		 * An explicit prefix to be used for properties.
 		 */
 		private String explicitPrefix;
 
@@ -168,20 +171,22 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			return new NormalizedSource(normalizedName, normalizedNamespace, null);
 		}
 
-		public NormalizedSource normalize(String defaultName, String defaultNamespace,
-				boolean defaultUseNameAsPrefix, String explicitPrefix) {
+		public NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix,
+				String explicitPrefix) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
 
 			// if explicitPrefix is set, it takes priority over useNameAsPrefix
-			// (either the one from 'spring.cloud.kubernetes.config' or 'spring.cloud.kubernetes.config.sources')
+			// (either the one from 'spring.cloud.kubernetes.config' or
+			// 'spring.cloud.kubernetes.config.sources')
 			if (StringUtils.hasText(explicitPrefix)) {
 				return new NormalizedSource(normalizedName, normalizedNamespace, explicitPrefix);
 			}
 
-			// useNameAsPrefix is a java.lang.Boolean and if it's != null, users have specified it explicitly
+			// useNameAsPrefix is a java.lang.Boolean and if it's != null, users have
+			// specified it explicitly
 			if (this.useNameAsPrefix != null) {
-				if(useNameAsPrefix) {
+				if (useNameAsPrefix) {
 					return new NormalizedSource(normalizedName, normalizedNamespace, normalizedName);
 				}
 				return new NormalizedSource(normalizedName, normalizedNamespace, "");

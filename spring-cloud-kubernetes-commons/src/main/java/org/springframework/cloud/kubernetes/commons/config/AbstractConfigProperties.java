@@ -64,4 +64,5 @@ public abstract class AbstractConfigProperties {
 	public void setUseNameAsPrefix(boolean useNameAsPrefix) {
 		this.useNameAsPrefix = useNameAsPrefix;
 	}
+
 }
