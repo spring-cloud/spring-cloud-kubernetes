@@ -56,7 +56,7 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String applicationName, String namespace,
 			Environment environment, String prefix) {
 		super(getName(applicationName, getApplicationNamespace(client, namespace)),
-			getData(client, applicationName, getApplicationNamespace(client, namespace), environment, prefix));
+				getData(client, applicationName, getApplicationNamespace(client, namespace), environment, prefix));
 	}
 
 	private static Map<String, Object> getData(KubernetesClient client, String applicationName, String namespace,
@@ -73,7 +73,7 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 				}
 			}
 
-			if(!"".equals(prefix)) {
+			if (!"".equals(prefix)) {
 				Map<String, Object> withPrefix = CollectionUtils.newHashMap(result.size());
 				result.forEach((key, value) -> withPrefix.put(prefix + "." + key, value));
 				return withPrefix;

@@ -26,7 +26,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class Controller {
 
 	private final One one;
+
 	private final Two two;
+
 	private final Three three;
 
 	public Controller(One one, Two two, Three three) {

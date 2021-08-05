@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.cloud.kubernetes.fabric8.config.with_prefix;
 
 import org.springframework.boot.SpringApplication;
