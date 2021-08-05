@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -132,6 +133,23 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			return new NormalizedSource(normalizedName, normalizedNamespace);
 		}
 
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			Source other = (Source) o;
+			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(name, namespace);
+		}
+
 	}
 
 	public static class NormalizedSource {
@@ -156,6 +174,23 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		@Override
 		public String toString() {
 			return "{ config-map name : '" + name + "', namespace : '" + namespace + "' }";
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			NormalizedSource other = (NormalizedSource) o;
+			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(name, namespace);
 		}
 
 	}
