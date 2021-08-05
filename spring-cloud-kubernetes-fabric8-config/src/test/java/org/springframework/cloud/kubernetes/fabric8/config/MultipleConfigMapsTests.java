@@ -86,7 +86,7 @@ public class MultipleConfigMapsTests {
 				new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata().addToData(data).build());
 	}
 
-	// the last confimap defined in 'multiplecms.yml' has the highest priority, so
+	// the last configmap defined in 'multiplecms.yml' has the highest priority, so
 	// the common property defined in all configmaps is taken from the last one defined
 	@Test
 	public void testCommonMessage() {
