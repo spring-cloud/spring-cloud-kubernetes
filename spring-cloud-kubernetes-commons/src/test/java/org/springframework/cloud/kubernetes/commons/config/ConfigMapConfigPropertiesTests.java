@@ -48,15 +48,10 @@ public class ConfigMapConfigPropertiesTests {
 		properties.setNamespace("spring-k8s");
 
 		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
-		Assertions.assertEquals(
-			sources.size(), 1,
-			"empty sources must generate a List with a single NormalizedSource"
-		);
+		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
-		Assertions.assertEquals(
-			sources.get(0).getPrefix(), "",
-			"empty sources must generate a List with a single NormalizedSource, where prefix is empty"
-		);
+		Assertions.assertEquals(sources.get(0).getPrefix(), "",
+				"empty sources must generate a List with a single NormalizedSource, where prefix is empty");
 	}
 
 	/**
@@ -70,8 +65,8 @@ public class ConfigMapConfigPropertiesTests {
 	 *        	namespace: spring-k8s
 	 * </pre>
 	 *
-	 * a config as above will result in a NormalizedSource where prefix is empty, even if "useNameAsPrefix: true",
-	 * because sources are empty
+	 * a config as above will result in a NormalizedSource where prefix is empty, even if
+	 * "useNameAsPrefix: true", because sources are empty
 	 */
 	@Test
 	public void testUseNameAsPrefixSetEmptySources() {
@@ -82,31 +77,27 @@ public class ConfigMapConfigPropertiesTests {
 		properties.setNamespace("spring-k8s");
 
 		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
-		Assertions.assertEquals(
-			sources.size(), 1,
-			"empty sources must generate a List with a single NormalizedSource"
-		);
+		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
-		Assertions.assertEquals(
-			sources.get(0).getPrefix(), "",
-			"empty sources must generate a List with a single NormalizedSource, where prefix is empty," +
-				"no matter of 'spring.cloud.kubernetes.config.useNameAsPrefix' value"
-		);
+		Assertions.assertEquals(sources.get(0).getPrefix(), "",
+				"empty sources must generate a List with a single NormalizedSource, where prefix is empty,"
+						+ "no matter of 'spring.cloud.kubernetes.config.useNameAsPrefix' value");
 	}
 
 	/**
 	 * <pre>
 	 * spring:
-  	 *	cloud:
-     *    kubernetes:
-     *      config:
-     *        useNameAsPrefix: true
-     *        namespace: spring-k8s
-     *        sources:
-     *          - name: config-map-one
+	 *	cloud:
+	 *    kubernetes:
+	 *      config:
+	 *        useNameAsPrefix: true
+	 *        namespace: spring-k8s
+	 *        sources:
+	 *          - name: config-map-one
 	 * </pre>
 	 *
-	 * a config as above will result in a NormalizedSource where prefix will be equal to the config map name
+	 * a config as above will result in a NormalizedSource where prefix will be equal to
+	 * the config map name
 	 */
 	@Test
 	public void testUseNameAsPrefixUnsetNonEmptySources() {
@@ -119,10 +110,7 @@ public class ConfigMapConfigPropertiesTests {
 		properties.setSources(Collections.singletonList(one));
 
 		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
-		Assertions.assertEquals(
-			sources.size(), 1,
-			"a single NormalizedSource is expected"
-		);
+		Assertions.assertEquals(sources.size(), 1, "a single NormalizedSource is expected");
 
 		Assertions.assertEquals(sources.get(0).getPrefix(), "config-map-one");
 	}
@@ -144,8 +132,8 @@ public class ConfigMapConfigPropertiesTests {
 	 * </pre>
 	 *
 	 * this test proves that 'spring.cloud.kubernetes.config.sources[].useNameAsPrefix'
-	 * will override 'spring.cloud.kubernetes.config.useNameAsPrefix'.
-	 * For the last entry in sources, since there is no explicit 'useNameAsPrefix', the one from
+	 * will override 'spring.cloud.kubernetes.config.useNameAsPrefix'. For the last entry
+	 * in sources, since there is no explicit 'useNameAsPrefix', the one from
 	 * 'spring.cloud.kubernetes.config.useNameAsPrefix' will be taken.
 	 */
 	@Test
@@ -168,10 +156,7 @@ public class ConfigMapConfigPropertiesTests {
 		properties.setSources(Arrays.asList(one, two, three));
 
 		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
-		Assertions.assertEquals(
-			sources.size(), 3,
-			"3 NormalizedSources are expected"
-		);
+		Assertions.assertEquals(sources.size(), 3, "3 NormalizedSources are expected");
 
 		Assertions.assertEquals(sources.get(0).getPrefix(), "");
 		Assertions.assertEquals(sources.get(1).getPrefix(), "config-map-two");
@@ -225,10 +210,7 @@ public class ConfigMapConfigPropertiesTests {
 		properties.setSources(Arrays.asList(one, two, three, four));
 
 		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
-		Assertions.assertEquals(
-			sources.size(), 4,
-			"4 NormalizedSources are expected"
-		);
+		Assertions.assertEquals(sources.size(), 4, "4 NormalizedSources are expected");
 
 		Assertions.assertEquals(sources.get(0).getPrefix(), "one");
 		Assertions.assertEquals(sources.get(1).getPrefix(), "two");

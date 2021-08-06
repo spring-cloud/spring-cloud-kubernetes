@@ -128,16 +128,18 @@ class KubernetesClientConfigMapPropertySourceTests {
 	public void propertiesFileWithPrefix() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API)
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(api,
-			"bootstrap-640", "default", new MockEnvironment(), "prefix");
+				"bootstrap-640", "default", new MockEnvironment(), "prefix");
 		verify(getRequestedFor(urlEqualTo(API)));
 		assertThat(propertySource.containsProperty("prefix.spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
-			.isTrue();
+				.isTrue();
 		assertThat(propertySource.getProperty("prefix.spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
-			.isEqualTo("0");
-		assertThat(propertySource.containsProperty("prefix.logging.level.org.springframework.cloud.kubernetes")).isTrue();
-		assertThat(propertySource.getProperty("prefix.logging.level.org.springframework.cloud.kubernetes")).isEqualTo("TRACE");
+				.isEqualTo("0");
+		assertThat(propertySource.containsProperty("prefix.logging.level.org.springframework.cloud.kubernetes"))
+				.isTrue();
+		assertThat(propertySource.getProperty("prefix.logging.level.org.springframework.cloud.kubernetes"))
+				.isEqualTo("TRACE");
 	}
 
 }
