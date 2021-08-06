@@ -30,7 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.config.with_prefix.App;
+import org.springframework.cloud.kubernetes.fabric8.config.with_prefix.WithPrefixApp;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -38,7 +38,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * @author wind57
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = WithPrefixApp.class,
 		properties = { "spring.cloud.bootstrap.name=same-key-with-prefix" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)

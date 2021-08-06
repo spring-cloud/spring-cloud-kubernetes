@@ -25,10 +25,10 @@ import org.springframework.cloud.kubernetes.fabric8.config.with_prefix.propertie
 
 @SpringBootApplication
 @EnableConfigurationProperties({ One.class, Two.class, Three.class })
-public class App {
+public class WithPrefixApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(App.class, args);
+		SpringApplication.run(WithPrefixApp.class, args);
 	}
 
 }

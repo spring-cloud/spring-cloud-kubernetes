@@ -32,7 +32,7 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
  */
 public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPropertySourceLocator {
 
-	private CoreV1Api coreV1Api;
+	private final CoreV1Api coreV1Api;
 
 	private KubernetesClientProperties kubernetesClientProperties;
 
@@ -59,7 +59,7 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 		String fallbackNamespace = kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
 				: kubernetesClientProperties.getNamespace();
 		return new KubernetesClientConfigMapPropertySource(coreV1Api, name,
-				getNamespace(normalizedSource, fallbackNamespace), environment);
+				getNamespace(normalizedSource, fallbackNamespace), environment, normalizedSource.getPrefix());
 	}
 
 }

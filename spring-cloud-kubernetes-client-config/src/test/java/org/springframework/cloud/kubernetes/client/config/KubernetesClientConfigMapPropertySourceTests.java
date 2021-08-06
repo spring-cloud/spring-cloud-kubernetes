@@ -97,7 +97,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 		stubFor(get(API)
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(api,
-				"bootstrap-640", "default", new MockEnvironment());
+				"bootstrap-640", "default", new MockEnvironment(), "");
 		verify(getRequestedFor(urlEqualTo(API)));
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
@@ -113,7 +113,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(YAML_CONFIGMAP_LIST))));
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(api,
-				"bootstrap-641", "default", new MockEnvironment());
+				"bootstrap-641", "default", new MockEnvironment(), "");
 		verify(getRequestedFor(urlEqualTo(API)));
 		assertThat(propertySource.containsProperty("dummy.property.string2")).isTrue();
 		assertThat(propertySource.getProperty("dummy.property.string2")).isEqualTo("a");
@@ -122,6 +122,22 @@ class KubernetesClientConfigMapPropertySourceTests {
 		assertThat(propertySource.containsProperty("dummy.property.bool2")).isTrue();
 		assertThat(propertySource.getProperty("dummy.property.bool2")).isEqualTo(true);
 
+	}
+
+	@Test
+	public void propertiesFileWithPrefix() {
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get(API)
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(api,
+			"bootstrap-640", "default", new MockEnvironment(), "prefix");
+		verify(getRequestedFor(urlEqualTo(API)));
+		assertThat(propertySource.containsProperty("prefix.spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
+			.isTrue();
+		assertThat(propertySource.getProperty("prefix.spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
+			.isEqualTo("0");
+		assertThat(propertySource.containsProperty("prefix.logging.level.org.springframework.cloud.kubernetes")).isTrue();
+		assertThat(propertySource.getProperty("prefix.logging.level.org.springframework.cloud.kubernetes")).isEqualTo("TRACE");
 	}
 
 }
