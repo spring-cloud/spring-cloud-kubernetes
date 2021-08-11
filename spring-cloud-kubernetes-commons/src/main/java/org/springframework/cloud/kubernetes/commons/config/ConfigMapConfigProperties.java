@@ -231,13 +231,13 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		NormalizedSource(String name, String namespace) {
 			this.name = name;
 			this.namespace = namespace;
-			this.prefix = null;
+			this.prefix = "";
 		}
 
 		NormalizedSource(String name, String namespace, String prefix) {
 			this.name = name;
 			this.namespace = namespace;
-			this.prefix = prefix;
+			this.prefix = Objects.requireNonNull(prefix);
 		}
 
 		public String getName() {
