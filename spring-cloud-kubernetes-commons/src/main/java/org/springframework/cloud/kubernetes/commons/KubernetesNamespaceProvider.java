@@ -21,9 +21,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.springframework.boot.logging.DeferredLog;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.core.env.Environment;
 
 import static org.springframework.cloud.kubernetes.commons.KubernetesClientProperties.SERVICE_ACCOUNT_NAMESPACE_PATH;
@@ -31,7 +30,7 @@ import static org.springframework.cloud.kubernetes.commons.KubernetesClientPrope
 /**
  * @author Ryan Baxter
  */
-public class KubernetesNamespaceProvider implements ApplicationListener<ApplicationEvent> {
+public class KubernetesNamespaceProvider {
 
 	/**
 	 * Property name for namespace.
@@ -43,7 +42,7 @@ public class KubernetesNamespaceProvider implements ApplicationListener<Applicat
 	 */
 	public static final String NAMESPACE_PATH_PROPERTY = "spring.cloud.kubernetes.client.serviceAccountNamespacePath";
 
-	private static final DeferredLog LOG = new DeferredLog();
+	private static final Log LOG = LogFactory.getLog(KubernetesNamespaceProvider.class);
 
 	private String serviceAccountNamespace;
 
@@ -55,10 +54,7 @@ public class KubernetesNamespaceProvider implements ApplicationListener<Applicat
 
 	public String getNamespace() {
 		String namespace = environment.getProperty(NAMESPACE_PROPERTY);
-		if (namespace == null) {
-			namespace = getServiceAccountNamespace();
-		}
-		return namespace;
+		return namespace != null ? namespace : getServiceAccountNamespace();
 	}
 
 	private String getServiceAccountNamespace() {
@@ -68,11 +64,6 @@ public class KubernetesNamespaceProvider implements ApplicationListener<Applicat
 			serviceAccountNamespace = getNamespaceFromServiceAccountFile(serviceAccountNamespacePathString);
 		}
 		return serviceAccountNamespace;
-	}
-
-	@Override
-	public void onApplicationEvent(ApplicationEvent applicationEvent) {
-		LOG.replayTo(KubernetesNamespaceProvider.class);
 	}
 
 	public static String getNamespaceFromServiceAccountFile(String path) {

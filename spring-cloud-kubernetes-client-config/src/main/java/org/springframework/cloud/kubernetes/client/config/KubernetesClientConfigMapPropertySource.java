@@ -16,11 +16,9 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -46,17 +44,19 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 			Environment environment) {
 
 		try {
-			List<String> names = new ArrayList<>();
+			Set<String> names = new HashSet<>();
 			names.add(name);
 			if (environment != null) {
 				for (String activeProfile : environment.getActiveProfiles()) {
 					names.add(name + "-" + activeProfile);
 				}
 			}
-			Map<String, Object> result = new LinkedHashMap<>();
+			Map<String, Object> result = new HashMap<>();
 			coreV1Api.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null, null)
 					.getItems().stream().filter(cm -> names.contains(cm.getMetadata().getName()))
-					.forEach(map -> result.putAll(processAllEntries(map.getData(), environment)));
+					.map(map -> processAllEntries(map.getData(), environment))
+					.collect(Collectors.toList())
+					.forEach(result::putAll);
 
 			return result;
 		}
