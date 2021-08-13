@@ -21,9 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.springframework.boot.logging.DeferredLog;
 import org.springframework.core.env.Environment;
 
 import static org.springframework.cloud.kubernetes.commons.KubernetesClientProperties.SERVICE_ACCOUNT_NAMESPACE_PATH;
@@ -32,6 +30,8 @@ import static org.springframework.cloud.kubernetes.commons.KubernetesClientPrope
  * @author Ryan Baxter
  */
 public class KubernetesNamespaceProvider {
+
+	private static final DeferredLog LOG = new DeferredLog();
 
 	/**
 	 * Property name for namespace.
@@ -43,14 +43,13 @@ public class KubernetesNamespaceProvider {
 	 */
 	public static final String NAMESPACE_PATH_PROPERTY = "spring.cloud.kubernetes.client.serviceAccountNamespacePath";
 
-	private static final Log LOG = LogFactory.getLog(KubernetesNamespaceProvider.class);
-
 	private String serviceAccountNamespace;
 
 	private final Environment environment;
 
 	public KubernetesNamespaceProvider(Environment env) {
 		this.environment = env;
+		LOG.replayTo(KubernetesNamespaceProvider.class);
 	}
 
 	public String getNamespace() {
