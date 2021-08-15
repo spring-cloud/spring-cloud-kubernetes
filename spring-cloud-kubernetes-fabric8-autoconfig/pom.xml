@@ -73,13 +73,6 @@
 			<artifactId>spring-cloud-context</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<!-- Only needed at compile time -->
-			<scope>provided</scope>
-		</dependency>
-
 		<!-- Testing Dependencies -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

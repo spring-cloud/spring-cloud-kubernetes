@@ -68,13 +68,6 @@
 			<artifactId>spring-security-rsa</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<!-- Only needed at compile time -->
-			<scope>provided</scope>
-		</dependency>
-
 		<!-- Testing Dependencies -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
