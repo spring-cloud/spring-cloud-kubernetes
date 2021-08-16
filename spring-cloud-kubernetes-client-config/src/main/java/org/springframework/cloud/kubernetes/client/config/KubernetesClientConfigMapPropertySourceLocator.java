@@ -32,7 +32,7 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
  */
 public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPropertySourceLocator {
 
-	private CoreV1Api coreV1Api;
+	private final CoreV1Api coreV1Api;
 
 	private KubernetesClientProperties kubernetesClientProperties;
 
