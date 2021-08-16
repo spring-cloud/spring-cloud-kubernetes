@@ -19,7 +19,7 @@ spec:
     spec:
       serviceAccountName: spring-cloud-kubernetes-serviceaccount
       containers:
-        - image: springcloud/spring-cloud-kubernetes-client-config-it:2.0.3-SNAPSHOT
+        - image: springcloud/spring-cloud-kubernetes-client-config-it:2.0.4-SNAPSHOT
           imagePullPolicy: IfNotPresent
           name: spring-cloud-kubernetes-client-config-it
           resources: {}
