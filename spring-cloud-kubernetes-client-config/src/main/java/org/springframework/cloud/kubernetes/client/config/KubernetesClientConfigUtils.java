@@ -53,22 +53,14 @@ public final class KubernetesClientConfigUtils {
 
 	public static String getNamespace(ConfigMapConfigProperties.NormalizedSource normalizedSource,
 			String fallbackNamespace) {
-		if (!StringUtils.hasText(normalizedSource.getNamespace())) {
-			return fallbackNamespace;
-		}
-		else {
-			return normalizedSource.getNamespace();
-		}
+		String normalizedNamespace = normalizedSource.getNamespace();
+		return StringUtils.hasText(normalizedNamespace) ? normalizedNamespace : fallbackNamespace;
 	}
 
 	public static String getNamespace(SecretsConfigProperties.NormalizedSource normalizedSource,
 			String fallbackNamespace) {
-		if (!StringUtils.hasText(normalizedSource.getNamespace())) {
-			return fallbackNamespace;
-		}
-		else {
-			return normalizedSource.getNamespace();
-		}
+		String normalizedNamespace = normalizedSource.getNamespace();
+		return StringUtils.hasText(normalizedNamespace) ? normalizedNamespace : fallbackNamespace;
 	}
 
 }
