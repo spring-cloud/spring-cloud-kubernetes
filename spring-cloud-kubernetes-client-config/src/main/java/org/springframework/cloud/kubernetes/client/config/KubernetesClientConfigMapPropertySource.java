@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Ryan Baxter
@@ -39,12 +40,12 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 	private static final Log LOG = LogFactory.getLog(KubernetesClientConfigMapPropertySource.class);
 
 	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment) {
-		super(getName(name, namespace), getData(coreV1Api, name, namespace, environment));
+			Environment environment, String prefix) {
+		super(getName(name, namespace), getData(coreV1Api, name, namespace, environment, prefix));
 	}
 
 	private static Map<String, Object> getData(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment) {
+			Environment environment, String prefix) {
 
 		try {
 			Set<String> names = new HashSet<>();
@@ -59,6 +60,12 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 					.getItems().stream().filter(cm -> names.contains(cm.getMetadata().getName()))
 					.map(map -> processAllEntries(map.getData(), environment)).collect(Collectors.toList())
 					.forEach(result::putAll);
+
+			if (!"".equals(prefix)) {
+				Map<String, Object> withPrefix = CollectionUtils.newHashMap(result.size());
+				result.forEach((key, value) -> withPrefix.put(prefix + "." + key, value));
+				return withPrefix;
+			}
 
 			return result;
 		}
