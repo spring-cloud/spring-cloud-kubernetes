@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -76,8 +77,8 @@ public class ConfigMapWithPrefixTests {
 
 	private static void createConfigmap(KubernetesClient client, String name, Map<String, String> data) {
 
-		client.configMaps().inNamespace("spring-k8s").createNew().withNewMetadata().withName(name).endMetadata()
-				.addToData(data).done();
+		client.configMaps().inNamespace("spring-k8s").create(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata()
+			.addToData(data).build());
 	}
 
 	/**
