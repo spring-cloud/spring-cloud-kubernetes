@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.util.CollectionUtils;
 
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getConfigMapData;
@@ -43,17 +44,23 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 	private static final Log LOG = LogFactory.getLog(Fabric8ConfigMapPropertySource.class);
 
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name) {
-		this(client, name, null, null);
+		this(client, name, null, null, "");
 	}
 
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String applicationName, String namespace,
 			Environment environment) {
 		super(getName(applicationName, getApplicationNamespace(client, namespace)),
-				getData(client, applicationName, getApplicationNamespace(client, namespace), environment));
+				getData(client, applicationName, getApplicationNamespace(client, namespace), environment, ""));
+	}
+
+	public Fabric8ConfigMapPropertySource(KubernetesClient client, String applicationName, String namespace,
+			Environment environment, String prefix) {
+		super(getName(applicationName, getApplicationNamespace(client, namespace)),
+				getData(client, applicationName, getApplicationNamespace(client, namespace), environment, prefix));
 	}
 
 	private static Map<String, Object> getData(KubernetesClient client, String applicationName, String namespace,
-			Environment environment) {
+			Environment environment, String prefix) {
 		try {
 			Map<String, String> data = getConfigMapData(client, namespace, applicationName);
 			Map<String, Object> result = new HashMap<>(processAllEntries(data, environment));
@@ -66,11 +73,17 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 				}
 			}
 
+			if (!"".equals(prefix)) {
+				Map<String, Object> withPrefix = CollectionUtils.newHashMap(result.size());
+				result.forEach((key, value) -> withPrefix.put(prefix + "." + key, value));
+				return withPrefix;
+			}
+
 			return result;
 
 		}
 		catch (Exception e) {
-			LOG.warn("Can't read configMap with name: [" + applicationName + "] in namespace:[" + namespace
+			LOG.warn("Can't read configMap with name: [" + applicationName + "] in namespace: [" + namespace
 					+ "]. Ignoring.", e);
 		}
 

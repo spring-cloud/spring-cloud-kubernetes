@@ -29,6 +29,8 @@ public abstract class AbstractConfigProperties {
 
 	protected String namespace;
 
+	protected boolean useNameAsPrefix;
+
 	public abstract String getConfigurationTarget();
 
 	public boolean isEnabled() {
@@ -53,6 +55,14 @@ public abstract class AbstractConfigProperties {
 
 	public void setNamespace(String namespace) {
 		this.namespace = namespace;
+	}
+
+	public boolean isUseNameAsPrefix() {
+		return useNameAsPrefix;
+	}
+
+	public void setUseNameAsPrefix(boolean useNameAsPrefix) {
+		this.useNameAsPrefix = useNameAsPrefix;
 	}
 
 }
