@@ -494,6 +494,135 @@ spec:
 ----
 ====
 
+You could run into a situation where there are multiple configs maps that have the same property names. For example:
+
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: config-map-one
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello from one
+----
+====
+
+and
+
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: config-map-two
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello from two
+----
+====
+
+Depending on the order in which you place these in `bootstrap.yaml|properties`, you might end up with an un-expected result (the last config map wins). For example:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: cloud-k8s-app
+  cloud:
+    kubernetes:
+      config:
+        namespace: default-namespace
+        sources:
+         - name: config-map-two
+         - name: config-map-one
+----
+====
+
+will result in property `greetings.message` being `Say Hello from one`.
+
+There is a way to change this default configuration by specifying `useNameAsPrefix`. For example:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: with-prefix
+  cloud:
+    kubernetes:
+      config:
+        useNameAsPrefix: true
+        namespace: default-namespace
+        sources:
+          - name: config-map-one
+            useNameAsPrefix: false
+          - name: config-map-two
+----
+====
+
+Such a configuration will result in two properties being generated:
+
+ - `greetings.message` equal to `Say Hello from one`.
+
+ - `config-map-two.greetings.message` equal to `Say Hello from two`
+
+Notice that `spring.cloud.kubernetes.config.useNameAsPrefix` has a _lower_ priority than `spring.cloud.kubernetes.config.sources.useNameAsPrefix`.
+This allows you to set a "default" strategy for all sources, at the same time allowing to override only a few.
+
+If using the config map name is not an option, you can specify a different strategy, called : `explicitPrefix`. Since this is an _explicit_ prefix that
+you select, it can only be supplied to the `sources` level. At the same time it has a higher priority than `useNameASPrefix`. Let's suppose we have a third config map with these entries:
+
+
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: config-map-three
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello from three
+----
+====
+
+A configuration like the one below:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: with-prefix
+  cloud:
+    kubernetes:
+      config:
+        useNameAsPrefix: true
+        namespace: default-namespace
+        sources:
+          - name: config-map-one
+            useNameAsPrefix: false
+          - name: config-map-two
+            explicitPrefix: two
+          - name: config-map-three
+----
+====
+
+will result in three properties being generated:
+
+ - `greetings.message` equal to `Say Hello from one`.
+
+ - `two.greetings.message` equal to `Say Hello from two`.
+
+ - `config-map-three.greetings.message` equal to `Say Hello from three`.
+
 NOTE: You should check the security configuration section. To access config maps from inside a pod you need to have the correct
 Kubernetes service accounts, roles and role bindings.
 

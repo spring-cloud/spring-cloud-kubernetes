@@ -77,8 +77,8 @@ public class ConfigMapWithPrefixTests {
 
 	private static void createConfigmap(KubernetesClient client, String name, Map<String, String> data) {
 
-		client.configMaps().inNamespace("spring-k8s").create(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata()
-			.addToData(data).build());
+		client.configMaps().inNamespace("spring-k8s")
+				.create(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build());
 	}
 
 	/**
