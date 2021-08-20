@@ -85,8 +85,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			return Collections.singletonList(new NormalizedSource(name, namespace, ""));
 		}
 
-		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix))
-				.collect(Collectors.toList());
+		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix)).collect(Collectors.toList());
 	}
 
 	@Override
