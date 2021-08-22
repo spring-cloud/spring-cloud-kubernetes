@@ -54,4 +54,55 @@ public class ConfigUtilsTests {
 		Assertions.assertEquals(result, "");
 	}
 
+	/**
+	 * <pre>
+	 *   spring:
+	 *     cloud:
+	 *        kubernetes:
+	 *           config:
+	 *              useProfileNameAsSuffix: true
+	 * </pre>
+	 *
+	 * above will generate "true" for a normalized source
+	 */
+	@Test
+	public void testUseProfileNameAsSuffixOnlyDefaultSet() {
+		Assertions.assertTrue(ConfigUtils.useProfileNameAsSuffix(true, null));
+	}
+
+	/**
+	 * <pre>
+	 *   spring:
+	 *     cloud:
+	 *        kubernetes:
+	 *           config:
+	 *              useProfileNameAsSuffix: true
+	 * </pre>
+	 *
+	 * above will generate "false" for a normalized source
+	 */
+	@Test
+	public void testUseProfileNameAsSuffixOnlyDefaultNotSet() {
+		Assertions.assertFalse(ConfigUtils.useProfileNameAsSuffix(false, null));
+	}
+
+	/**
+	 * <pre>
+	 *   spring:
+	 *     cloud:
+	 *        kubernetes:
+	 *           config:
+	 *              useProfileNameAsSuffix: true
+	 *           sources:
+	 *           - name: one
+	 *             useProfileNameAsSuffix: false
+	 * </pre>
+	 *
+	 * above will generate "false" for a normalized source
+	 */
+	@Test
+	public void testUseProfileNameAsSuffixSourcesOverridesDefault() {
+		Assertions.assertFalse(ConfigUtils.useProfileNameAsSuffix(true, false));
+	}
+
 }

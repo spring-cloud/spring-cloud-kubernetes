@@ -82,10 +82,10 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 						"'spring.cloud.kubernetes.config.useNameAsPrefix' is set to 'true', but 'spring.cloud.kubernetes.config.sources'"
 								+ " is empty; as such will default 'useNameAsPrefix' to 'false'");
 			}
-			return Collections.singletonList(new NormalizedSource(name, namespace, ""));
+			return Collections.singletonList(new NormalizedSource(name, namespace, "", useProfileNameAsSuffix));
 		}
 
-		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix))
+		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix, useProfileNameAsSuffix))
 				.collect(Collectors.toList());
 	}
 
@@ -114,6 +114,12 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		 * know if it was explicitly set or not
 		 */
 		private Boolean useNameAsPrefix;
+
+		/**
+		 * Use profile name to suffix config map name. Can't be a primitive, we need to
+		 * know if it was explicitly set or not
+		 */
+		protected Boolean useProfileNameAsSuffix;
 
 		/**
 		 * An explicit prefix to be used for properties.
@@ -161,6 +167,14 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			this.explicitPrefix = explicitPrefix;
 		}
 
+		public Boolean getUseProfileNameAsSuffix() {
+			return useProfileNameAsSuffix;
+		}
+
+		public void setUseProfileNameAsSuffix(Boolean useProfileNameAsSuffix) {
+			this.useProfileNameAsSuffix = useProfileNameAsSuffix;
+		}
+
 		public boolean isEmpty() {
 			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
@@ -170,14 +184,16 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		public NormalizedSource normalize(String defaultName, String defaultNamespace) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-			return new NormalizedSource(normalizedName, normalizedNamespace, "");
+			return new NormalizedSource(normalizedName, normalizedNamespace, "", true);
 		}
 
-		public NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix) {
+		public NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix,
+				boolean defaultUseProfileNameAsSuffix) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
 			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix, normalizedName);
-			return new NormalizedSource(normalizedName, normalizedNamespace, prefix);
+			boolean useProfileNameAsSuffix = ConfigUtils.useProfileNameAsSuffix(defaultUseProfileNameAsSuffix, this.useProfileNameAsSuffix);
+			return new NormalizedSource(normalizedName, normalizedNamespace, prefix, useProfileNameAsSuffix);
 		}
 
 		@Override
@@ -207,18 +223,22 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		private final String prefix;
 
+		private final boolean useProfileNameAsSuffix;
+
 		// not used, but not removed because of potential compatibility reasons
 		@Deprecated
 		NormalizedSource(String name, String namespace) {
 			this.name = name;
 			this.namespace = namespace;
 			this.prefix = "";
+			this.useProfileNameAsSuffix = true;
 		}
 
-		NormalizedSource(String name, String namespace, String prefix) {
+		NormalizedSource(String name, String namespace, String prefix, boolean useProfileNameAsSuffix) {
 			this.name = name;
 			this.namespace = namespace;
 			this.prefix = Objects.requireNonNull(prefix);
+			this.useProfileNameAsSuffix = useProfileNameAsSuffix;
 		}
 
 		public String getName() {
@@ -231,6 +251,10 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		public String getPrefix() {
 			return prefix;
+		}
+
+		public boolean isUseProfileNameAsSuffix() {
+			return useProfileNameAsSuffix;
 		}
 
 		@Override
