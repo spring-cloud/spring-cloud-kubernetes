@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: profile-name-as-suffix
+  cloud:
+    kubernetes:
+      config:
+        useProfileNameAsSuffix: false
+        namespace: spring-k8s
+        sources:
+          - name: config-map-one
+            useProfileNameAsSuffix: true
+          - name: config-map-two
+            useProfileNameAsSuffix: false
+          - name: config-map-three
