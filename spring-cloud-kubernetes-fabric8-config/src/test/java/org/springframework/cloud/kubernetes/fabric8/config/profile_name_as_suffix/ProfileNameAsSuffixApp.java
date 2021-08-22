@@ -24,7 +24,7 @@ import org.springframework.cloud.kubernetes.fabric8.config.profile_name_as_suffi
 import org.springframework.cloud.kubernetes.fabric8.config.profile_name_as_suffix.properties.Two;
 
 @SpringBootApplication
-@EnableConfigurationProperties(value = {One.class, Two.class, Three.class})
+@EnableConfigurationProperties({ One.class, Two.class, Three.class })
 public class ProfileNameAsSuffixApp {
 
 	public static void main(String[] args) {
