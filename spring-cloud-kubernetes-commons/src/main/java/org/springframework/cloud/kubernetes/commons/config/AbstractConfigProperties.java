@@ -76,4 +76,5 @@ public abstract class AbstractConfigProperties {
 	public void setUseProfileNameAsSuffix(boolean useProfileNameAsSuffix) {
 		this.useProfileNameAsSuffix = useProfileNameAsSuffix;
 	}
+
 }

@@ -191,8 +191,10 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 				boolean defaultUseProfileNameAsSuffix) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix, normalizedName);
-			boolean useProfileNameAsSuffix = ConfigUtils.useProfileNameAsSuffix(defaultUseProfileNameAsSuffix, this.useProfileNameAsSuffix);
+			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix,
+					normalizedName);
+			boolean useProfileNameAsSuffix = ConfigUtils.useProfileNameAsSuffix(defaultUseProfileNameAsSuffix,
+					this.useProfileNameAsSuffix);
 			return new NormalizedSource(normalizedName, normalizedNamespace, prefix, useProfileNameAsSuffix);
 		}
 

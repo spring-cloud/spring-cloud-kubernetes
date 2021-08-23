@@ -65,8 +65,6 @@ class KubernetesClientConfigMapPropertySourceTests {
 							"dummy:\n  property:\n    string2: \"a\"\n    int2: 1\n    bool2: true\n")
 					.build());
 
-	private static final String API = "/api/v1/namespaces/default/configmaps";
-
 	private static WireMockServer wireMockServer;
 
 	@BeforeAll
@@ -94,11 +92,11 @@ class KubernetesClientConfigMapPropertySourceTests {
 	@Test
 	public void propertiesFile() {
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get(API)
+		stubFor(get(Constants.CONFIG_MAP_API)
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(api,
-				"bootstrap-640", "default", new MockEnvironment(), "");
-		verify(getRequestedFor(urlEqualTo(API)));
+				"bootstrap-640", "default", new MockEnvironment(), "", true);
+		verify(getRequestedFor(urlEqualTo(Constants.CONFIG_MAP_API)));
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
 		assertThat(propertySource.getProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
@@ -111,10 +109,10 @@ class KubernetesClientConfigMapPropertySourceTests {
 	@Test
 	public void yamlFile() {
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(YAML_CONFIGMAP_LIST))));
+		stubFor(get(Constants.CONFIG_MAP_API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(YAML_CONFIGMAP_LIST))));
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(api,
-				"bootstrap-641", "default", new MockEnvironment(), "");
-		verify(getRequestedFor(urlEqualTo(API)));
+				"bootstrap-641", "default", new MockEnvironment(), "", true);
+		verify(getRequestedFor(urlEqualTo(Constants.CONFIG_MAP_API)));
 		assertThat(propertySource.containsProperty("dummy.property.string2")).isTrue();
 		assertThat(propertySource.getProperty("dummy.property.string2")).isEqualTo("a");
 		assertThat(propertySource.containsProperty("dummy.property.int2")).isTrue();
@@ -127,11 +125,11 @@ class KubernetesClientConfigMapPropertySourceTests {
 	@Test
 	public void propertiesFileWithPrefix() {
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get(API)
+		stubFor(get(Constants.CONFIG_MAP_API)
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(api,
-				"bootstrap-640", "default", new MockEnvironment(), "prefix");
-		verify(getRequestedFor(urlEqualTo(API)));
+				"bootstrap-640", "default", new MockEnvironment(), "prefix", true);
+		verify(getRequestedFor(urlEqualTo(Constants.CONFIG_MAP_API)));
 		assertThat(propertySource.containsProperty("prefix.spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
 		assertThat(propertySource.getProperty("prefix.spring.cloud.kubernetes.configuration.watcher.refreshDelay"))

@@ -45,7 +45,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
 @ActiveProfiles("dev")
-public class ConfigMapWithProfileNameAsSuffixTests {
+class ConfigMapWithProfileNameAsSuffixTests {
 
 	private static KubernetesClient mockClient;
 
@@ -65,29 +65,28 @@ public class ConfigMapWithProfileNameAsSuffixTests {
 
 		Map<String, String> one = new HashMap<>();
 		one.put("one.property", "one");
-		createConfigmap(mockClient, "config-map-one-dev", one);
+		createConfigmap("config-map-one-dev", one);
 
 		Map<String, String> two = new HashMap<>();
 		two.put("two.property", "two");
-		createConfigmap(mockClient, "config-map-two", two);
+		createConfigmap("config-map-two", two);
 
 		Map<String, String> twoDev = new HashMap<>();
 		twoDev.put("two.property", "twoDev");
-		createConfigmap(mockClient, "config-map-two-dev", twoDev);
+		createConfigmap("config-map-two-dev", twoDev);
 
 		Map<String, String> three = new HashMap<>();
 		three.put("three.property", "three");
-		createConfigmap(mockClient, "config-map-three", three);
+		createConfigmap("config-map-three", three);
 
 		Map<String, String> threeDev = new HashMap<>();
 		threeDev.put("three.property", "threeDev");
-		createConfigmap(mockClient, "config-map-three-dev", threeDev);
+		createConfigmap("config-map-three-dev", threeDev);
 
 	}
 
-	private static void createConfigmap(KubernetesClient client, String name, Map<String, String> data) {
-
-		client.configMaps().inNamespace("spring-k8s").createNew().withNewMetadata().withName(name).endMetadata()
+	private static void createConfigmap(String name, Map<String, String> data) {
+		mockClient.configMaps().inNamespace("spring-k8s").createNew().withNewMetadata().withName(name).endMetadata()
 			.addToData(data).done();
 	}
 

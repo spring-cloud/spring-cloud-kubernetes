@@ -39,18 +39,25 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 
 	private static final Log LOG = LogFactory.getLog(KubernetesClientConfigMapPropertySource.class);
 
+	@Deprecated
 	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment, String prefix) {
-		super(getName(name, namespace), getData(coreV1Api, name, namespace, environment, prefix));
+			Environment environment) {
+		super(getName(name, namespace), getData(coreV1Api, name, namespace, environment, "", true));
+	}
+
+	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
+			Environment environment, String prefix, boolean useProfileNameAsSuffix) {
+		super(getName(name, namespace),
+				getData(coreV1Api, name, namespace, environment, prefix, useProfileNameAsSuffix));
 	}
 
 	private static Map<String, Object> getData(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment, String prefix) {
+			Environment environment, String prefix, boolean useProfileNameAsSuffix) {
 
 		try {
 			Set<String> names = new HashSet<>();
 			names.add(name);
-			if (environment != null) {
+			if (environment != null && useProfileNameAsSuffix) {
 				for (String activeProfile : environment.getActiveProfiles()) {
 					names.add(name + "-" + activeProfile);
 				}

@@ -42,7 +42,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 		properties = { "spring.cloud.bootstrap.name=same-key-with-prefix" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
-public class ConfigMapWithPrefixTests {
+class ConfigMapWithPrefixTests {
 
 	private static KubernetesClient mockClient;
 
@@ -62,21 +62,20 @@ public class ConfigMapWithPrefixTests {
 
 		Map<String, String> one = new HashMap<>();
 		one.put("one.property", "one");
-		createConfigmap(mockClient, "config-map-one", one);
+		createConfigmap("config-map-one", one);
 
 		Map<String, String> two = new HashMap<>();
 		two.put("property", "two");
-		createConfigmap(mockClient, "config-map-two", two);
+		createConfigmap("config-map-two", two);
 
 		Map<String, String> three = new HashMap<>();
 		three.put("property", "three");
-		createConfigmap(mockClient, "config-map-three", three);
+		createConfigmap("config-map-three", three);
 
 	}
 
-	private static void createConfigmap(KubernetesClient client, String name, Map<String, String> data) {
-
-		client.configMaps().inNamespace("spring-k8s").createNew().withNewMetadata().withName(name).endMetadata()
+	private static void createConfigmap(String name, Map<String, String> data) {
+		mockClient.configMaps().inNamespace("spring-k8s").createNew().withNewMetadata().withName(name).endMetadata()
 				.addToData(data).done();
 	}
 

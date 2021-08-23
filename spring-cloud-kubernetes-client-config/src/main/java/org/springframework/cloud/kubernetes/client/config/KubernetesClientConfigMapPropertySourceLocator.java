@@ -59,7 +59,8 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 		String fallbackNamespace = kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
 				: kubernetesClientProperties.getNamespace();
 		return new KubernetesClientConfigMapPropertySource(coreV1Api, name,
-				getNamespace(normalizedSource, fallbackNamespace), environment, normalizedSource.getPrefix());
+				getNamespace(normalizedSource, fallbackNamespace), environment, normalizedSource.getPrefix(),
+				normalizedSource.isUseProfileNameAsSuffix());
 	}
 
 }
