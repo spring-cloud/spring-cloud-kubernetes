@@ -22,8 +22,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.springframework.boot.logging.DeferredLog;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.Environment;
 
 import static org.springframework.cloud.kubernetes.commons.KubernetesClientProperties.SERVICE_ACCOUNT_NAMESPACE_PATH;
@@ -31,7 +29,9 @@ import static org.springframework.cloud.kubernetes.commons.KubernetesClientPrope
 /**
  * @author Ryan Baxter
  */
-public class KubernetesNamespaceProvider implements ApplicationListener<ApplicationEvent> {
+public class KubernetesNamespaceProvider {
+
+	private static final DeferredLog LOG = new DeferredLog();
 
 	/**
 	 * Property name for namespace.
@@ -43,22 +43,18 @@ public class KubernetesNamespaceProvider implements ApplicationListener<Applicat
 	 */
 	public static final String NAMESPACE_PATH_PROPERTY = "spring.cloud.kubernetes.client.serviceAccountNamespacePath";
 
-	private static final DeferredLog LOG = new DeferredLog();
-
 	private String serviceAccountNamespace;
 
-	private Environment environment;
+	private final Environment environment;
 
 	public KubernetesNamespaceProvider(Environment env) {
 		this.environment = env;
+		LOG.replayTo(KubernetesNamespaceProvider.class);
 	}
 
 	public String getNamespace() {
 		String namespace = environment.getProperty(NAMESPACE_PROPERTY);
-		if (namespace == null) {
-			namespace = getServiceAccountNamespace();
-		}
-		return namespace;
+		return namespace != null ? namespace : getServiceAccountNamespace();
 	}
 
 	private String getServiceAccountNamespace() {
@@ -70,28 +66,17 @@ public class KubernetesNamespaceProvider implements ApplicationListener<Applicat
 		return serviceAccountNamespace;
 	}
 
-	@Override
-	public void onApplicationEvent(ApplicationEvent applicationEvent) {
-		LOG.replayTo(KubernetesNamespaceProvider.class);
-	}
-
 	public static String getNamespaceFromServiceAccountFile(String path) {
 		String namespace = null;
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Looking for service account namespace at: [" + path + "].");
-		}
+		LOG.debug("Looking for service account namespace at: [" + path + "].");
 		Path serviceAccountNamespacePath = Paths.get(path);
 		boolean serviceAccountNamespaceExists = Files.isRegularFile(serviceAccountNamespacePath);
 		if (serviceAccountNamespaceExists) {
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Found service account namespace at: [" + serviceAccountNamespacePath + "].");
-			}
+			LOG.debug("Found service account namespace at: [" + serviceAccountNamespacePath + "].");
 
 			try {
 				namespace = new String(Files.readAllBytes((serviceAccountNamespacePath)));
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("Service account namespace value: " + serviceAccountNamespacePath);
-				}
+				LOG.debug("Service account namespace value: " + serviceAccountNamespacePath);
 			}
 			catch (IOException ioe) {
 				LOG.error("Error reading service account namespace from: [" + serviceAccountNamespacePath + "].", ioe);

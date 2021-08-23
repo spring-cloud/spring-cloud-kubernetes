@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,11 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
@@ -30,6 +34,8 @@ import org.springframework.util.StringUtils;
  */
 @ConfigurationProperties("spring.cloud.kubernetes.config")
 public class ConfigMapConfigProperties extends AbstractConfigProperties {
+
+	private static final Log LOG = LogFactory.getLog(ConfigMapConfigProperties.class);
 
 	private boolean enableApi = true;
 
@@ -62,19 +68,25 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	}
 
 	/**
-	 * @return A list of Source to use If the user has not specified any Source
+	 * @return A list of Source to use. If the user has not specified any Source
 	 * properties, then a single Source is constructed based on the supplied name and
-	 * namespace
+	 * namespace.
 	 *
 	 * These are the actual name/namespace pairs that are used to create a
-	 * ConfigMapPropertySource
+	 * ConfigMapPropertySource.
 	 */
 	public List<NormalizedSource> determineSources() {
 		if (this.sources.isEmpty()) {
-			return Collections.singletonList(new NormalizedSource(name, namespace));
+			if (useNameAsPrefix) {
+				LOG.warn(
+						"'spring.cloud.kubernetes.config.useNameAsPrefix' is set to 'true', but 'spring.cloud.kubernetes.config.sources'"
+								+ " is empty; as such will default 'useNameAsPrefix' to 'false'");
+			}
+			return Collections.singletonList(new NormalizedSource(name, namespace, ""));
 		}
 
-		return sources.stream().map(s -> s.normalize(name, namespace)).collect(Collectors.toList());
+		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix))
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -96,6 +108,17 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		 * The namespace where the ConfigMap is found.
 		 */
 		private String namespace;
+
+		/**
+		 * Use config map name as prefix for properties. Can't be a primitive, we need to
+		 * know if it was explicitly set or not
+		 */
+		private Boolean useNameAsPrefix;
+
+		/**
+		 * An explicit prefix to be used for properties.
+		 */
+		private String explicitPrefix;
 
 		public Source() {
 
@@ -122,14 +145,56 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			this.namespace = namespace;
 		}
 
+		public Boolean isUseNameAsPrefix() {
+			return useNameAsPrefix;
+		}
+
+		public void setUseNameAsPrefix(Boolean useNameAsPrefix) {
+			this.useNameAsPrefix = useNameAsPrefix;
+		}
+
+		public String getExplicitPrefix() {
+			return explicitPrefix;
+		}
+
+		public void setExplicitPrefix(String explicitPrefix) {
+			this.explicitPrefix = explicitPrefix;
+		}
+
 		public boolean isEmpty() {
 			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
 
+		// not used, but not removed because of potential compatibility reasons
+		@Deprecated
 		public NormalizedSource normalize(String defaultName, String defaultNamespace) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-			return new NormalizedSource(normalizedName, normalizedNamespace);
+			return new NormalizedSource(normalizedName, normalizedNamespace, "");
+		}
+
+		public NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix) {
+			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
+			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
+			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix, normalizedName);
+			return new NormalizedSource(normalizedName, normalizedNamespace, prefix);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			Source other = (Source) o;
+			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(name, namespace);
 		}
 
 	}
@@ -140,9 +205,20 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		private final String namespace;
 
+		private final String prefix;
+
+		// not used, but not removed because of potential compatibility reasons
+		@Deprecated
 		NormalizedSource(String name, String namespace) {
 			this.name = name;
 			this.namespace = namespace;
+			this.prefix = "";
+		}
+
+		NormalizedSource(String name, String namespace, String prefix) {
+			this.name = name;
+			this.namespace = namespace;
+			this.prefix = Objects.requireNonNull(prefix);
 		}
 
 		public String getName() {
@@ -151,6 +227,32 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		public String getNamespace() {
 			return this.namespace;
+		}
+
+		public String getPrefix() {
+			return prefix;
+		}
+
+		@Override
+		public String toString() {
+			return "{ config-map name : '" + name + "', namespace : '" + namespace + "', prefix : '" + prefix + "' }";
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			NormalizedSource other = (NormalizedSource) o;
+			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(name, namespace);
 		}
 
 	}

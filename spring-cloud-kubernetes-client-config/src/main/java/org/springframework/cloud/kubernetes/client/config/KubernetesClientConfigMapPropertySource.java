@@ -16,11 +16,12 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -29,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Ryan Baxter
@@ -38,25 +40,32 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 	private static final Log LOG = LogFactory.getLog(KubernetesClientConfigMapPropertySource.class);
 
 	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment) {
-		super(getName(name, namespace), getData(coreV1Api, name, namespace, environment));
+			Environment environment, String prefix) {
+		super(getName(name, namespace), getData(coreV1Api, name, namespace, environment, prefix));
 	}
 
 	private static Map<String, Object> getData(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment) {
+			Environment environment, String prefix) {
 
 		try {
-			List<String> names = new ArrayList<>();
+			Set<String> names = new HashSet<>();
 			names.add(name);
 			if (environment != null) {
 				for (String activeProfile : environment.getActiveProfiles()) {
 					names.add(name + "-" + activeProfile);
 				}
 			}
-			Map<String, Object> result = new LinkedHashMap<>();
+			Map<String, Object> result = new HashMap<>();
 			coreV1Api.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null, null)
 					.getItems().stream().filter(cm -> names.contains(cm.getMetadata().getName()))
-					.forEach(map -> result.putAll(processAllEntries(map.getData(), environment)));
+					.map(map -> processAllEntries(map.getData(), environment)).collect(Collectors.toList())
+					.forEach(result::putAll);
+
+			if (!"".equals(prefix)) {
+				Map<String, Object> withPrefix = CollectionUtils.newHashMap(result.size());
+				result.forEach((key, value) -> withPrefix.put(prefix + "." + key, value));
+				return withPrefix;
+			}
 
 			return result;
 		}

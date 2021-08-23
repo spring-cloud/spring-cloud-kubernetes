@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,9 +27,10 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.util.StringUtils;
+import org.springframework.util.CollectionUtils;
 
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getNamespace;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getConfigMapData;
 
 /**
  * A {@link MapPropertySource} that uses Kubernetes config maps.
@@ -44,47 +44,46 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 	private static final Log LOG = LogFactory.getLog(Fabric8ConfigMapPropertySource.class);
 
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name) {
-		this(client, name, null, null);
+		this(client, name, null, null, "");
 	}
 
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String applicationName, String namespace,
 			Environment environment) {
-		super(getName(applicationName, getNamespace(client, namespace)),
-				getData(client, applicationName, getNamespace(client, namespace), environment));
+		super(getName(applicationName, getApplicationNamespace(client, namespace)),
+				getData(client, applicationName, getApplicationNamespace(client, namespace), environment, ""));
+	}
+
+	public Fabric8ConfigMapPropertySource(KubernetesClient client, String applicationName, String namespace,
+			Environment environment, String prefix) {
+		super(getName(applicationName, getApplicationNamespace(client, namespace)),
+				getData(client, applicationName, getApplicationNamespace(client, namespace), environment, prefix));
 	}
 
 	private static Map<String, Object> getData(KubernetesClient client, String applicationName, String namespace,
-			Environment environment) {
+			Environment environment, String prefix) {
 		try {
-			Map<String, Object> result = new HashMap<>();
-			ConfigMap map = !StringUtils.hasLength(namespace) ? client.configMaps().withName(applicationName).get()
-					: client.configMaps().inNamespace(namespace).withName(applicationName).get();
-
-			if (map != null) {
-				result.putAll(processAllEntries(map.getData(), environment));
-			}
+			Map<String, String> data = getConfigMapData(client, namespace, applicationName);
+			Map<String, Object> result = new HashMap<>(processAllEntries(data, environment));
 
 			if (environment != null) {
 				for (String activeProfile : environment.getActiveProfiles()) {
-
 					String mapNameWithProfile = applicationName + "-" + activeProfile;
-
-					ConfigMap mapWithProfile = !StringUtils.hasLength(namespace)
-							? client.configMaps().withName(mapNameWithProfile).get()
-							: client.configMaps().inNamespace(namespace).withName(mapNameWithProfile).get();
-
-					if (mapWithProfile != null) {
-						result.putAll(processAllEntries(mapWithProfile.getData(), environment));
-					}
-
+					Map<String, String> dataWithProfile = getConfigMapData(client, namespace, mapNameWithProfile);
+					result.putAll(processAllEntries(dataWithProfile, environment));
 				}
+			}
+
+			if (!"".equals(prefix)) {
+				Map<String, Object> withPrefix = CollectionUtils.newHashMap(result.size());
+				result.forEach((key, value) -> withPrefix.put(prefix + "." + key, value));
+				return withPrefix;
 			}
 
 			return result;
 
 		}
 		catch (Exception e) {
-			LOG.warn("Can't read configMap with name: [" + applicationName + "] in namespace:[" + namespace
+			LOG.warn("Can't read configMap with name: [" + applicationName + "] in namespace: [" + namespace
 					+ "]. Ignoring.", e);
 		}
 

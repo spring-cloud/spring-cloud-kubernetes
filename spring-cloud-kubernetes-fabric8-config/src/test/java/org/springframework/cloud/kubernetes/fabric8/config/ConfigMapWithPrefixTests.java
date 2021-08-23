@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Map;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,19 +30,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.config.example2.ExampleApp;
+import org.springframework.cloud.kubernetes.fabric8.config.with_prefix.WithPrefixApp;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
- * @author Charles Moulliard
+ * @author wind57
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = ExampleApp.class,
-		properties = { "spring.cloud.bootstrap.name=multiplecms" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = WithPrefixApp.class,
+		properties = { "spring.cloud.bootstrap.name=same-key-with-prefix" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
-public class MultipleConfigMapsTests {
+public class ConfigMapWithPrefixTests {
 
 	private static KubernetesClient mockClient;
 
@@ -60,56 +61,68 @@ public class MultipleConfigMapsTests {
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		Map<String, String> one = new HashMap<>();
-		one.put("bean.common-message", "c1");
-		one.put("bean.message1", "m1");
-
-		createConfigmap(mockClient, "s1", "defnamespace", one);
+		one.put("one.property", "one");
+		createConfigmap(mockClient, "config-map-one", one);
 
 		Map<String, String> two = new HashMap<>();
-		two.put("bean.common-message", "c2");
-		two.put("bean.message2", "m2");
-
-		createConfigmap(mockClient, "defname", "s2", two);
+		two.put("property", "two");
+		createConfigmap(mockClient, "config-map-two", two);
 
 		Map<String, String> three = new HashMap<>();
-		three.put("bean.common-message", "c3");
-		three.put("bean.message3", "m3");
+		three.put("property", "three");
+		createConfigmap(mockClient, "config-map-three", three);
 
-		createConfigmap(mockClient, "othername", "othernamespace", three);
 	}
 
-	private static void createConfigmap(KubernetesClient client, String configMapName, String namespace,
-			Map<String, String> data) {
+	private static void createConfigmap(KubernetesClient client, String name, Map<String, String> data) {
 
-		client.configMaps().inNamespace(namespace).createNew().withNewMetadata().withName(configMapName).endMetadata()
+		client.configMaps().inNamespace("spring-k8s").createNew().withNewMetadata().withName(name).endMetadata()
 				.addToData(data).done();
 	}
 
-	// the last configmap defined in 'multiplecms.yml' has the highest priority, so
-	// the common property defined in all configmaps is taken from the last one defined
+	/**
+	 * <pre>
+	 *   'spring.cloud.kubernetes.config.useNameAsPrefix=true'
+	 *   'spring.cloud.kubernetes.config.sources[0].useNameAsPrefix=false'
+	 * 	 ("one.property", "one")
+	 *
+	 * 	 As such: @ConfigurationProperties("one")
+	 * </pre>
+	 */
 	@Test
-	public void testCommonMessage() {
-		assertResponse("/common", "c3");
+	public void testOne() {
+		this.webClient.get().uri("/one").exchange().expectStatus().isOk().expectBody(String.class)
+				.value(Matchers.equalTo("one"));
 	}
 
+	/**
+	 * <pre>
+	 *   'spring.cloud.kubernetes.config.useNameAsPrefix=true'
+	 *   'spring.cloud.kubernetes.config.sources[1].explicitPrefix=two'
+	 * 	 ("property", "two")
+	 *
+	 * 	 As such: @ConfigurationProperties("two")
+	 * </pre>
+	 */
 	@Test
-	public void testMessage1() {
-		assertResponse("/m1", "m1");
+	public void testTwo() {
+		this.webClient.get().uri("/two").exchange().expectStatus().isOk().expectBody(String.class)
+				.value(Matchers.equalTo("two"));
 	}
 
+	/**
+	 * <pre>
+	 *   'spring.cloud.kubernetes.config.useNameAsPrefix=true'
+	 *   'spring.cloud.kubernetes.config.sources[2].name=config-map-three'
+	 * 	 ("property", "three")
+	 *
+	 * 	 As such: @ConfigurationProperties(prefix = "config-map-three")
+	 * </pre>
+	 */
 	@Test
-	public void testMessage2() {
-		assertResponse("/m2", "m2");
-	}
-
-	@Test
-	public void testMessage3() {
-		assertResponse("/m3", "m3");
-	}
-
-	private void assertResponse(String path, String expectedMessage) {
-		this.webClient.get().uri(path).exchange().expectStatus().isOk().expectBody().jsonPath("message")
-				.isEqualTo(expectedMessage);
+	public void testThree() {
+		this.webClient.get().uri("/three").exchange().expectStatus().isOk().expectBody(String.class)
+				.value(Matchers.equalTo("three"));
 	}
 
 }
