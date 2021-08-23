@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.profile_name_as_suffix.controller;
+package org.springframework.cloud.kubernetes.client.config.applications.profile_name_as_suffix.controller;
 
-import org.springframework.cloud.kubernetes.client.config.profile_name_as_suffix.properties.One;
-import org.springframework.cloud.kubernetes.client.config.profile_name_as_suffix.properties.Three;
-import org.springframework.cloud.kubernetes.client.config.profile_name_as_suffix.properties.Two;
+import org.springframework.cloud.kubernetes.client.config.applications.profile_name_as_suffix.properties.One;
+import org.springframework.cloud.kubernetes.client.config.applications.profile_name_as_suffix.properties.Three;
+import org.springframework.cloud.kubernetes.client.config.applications.profile_name_as_suffix.properties.Two;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 

@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.profile_name_as_suffix;
+package org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.kubernetes.client.config.profile_name_as_suffix.properties.One;
-import org.springframework.cloud.kubernetes.client.config.profile_name_as_suffix.properties.Three;
-import org.springframework.cloud.kubernetes.client.config.profile_name_as_suffix.properties.Two;
+import org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix.properties.One;
+import org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix.properties.Three;
+import org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix.properties.Two;
 
 @SpringBootApplication
 @EnableConfigurationProperties({ One.class, Two.class, Three.class })
-public class ProfileNameAsSuffixApp {
+public class WithPrefixApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ProfileNameAsSuffixApp.class, args);
+		SpringApplication.run(WithPrefixApp.class, args);
 	}
 
 }

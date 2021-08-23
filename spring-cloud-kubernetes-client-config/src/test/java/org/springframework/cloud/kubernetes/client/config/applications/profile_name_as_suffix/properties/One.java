@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config;
+package org.springframework.cloud.kubernetes.client.config.applications.profile_name_as_suffix.properties;
 
-/**
- * A common place for some constants used in tests.
- *
- * @author wind57
- */
-final class Constants {
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-	private Constants() {
-		throw new AssertionError("no instance provided");
+@ConfigurationProperties("one")
+public class One {
+
+	private String property;
+
+	public String getProperty() {
+		return property;
 	}
 
-	static final String CONFIG_MAP_API = "/api/v1/namespaces/default/configmaps";
+	public void setProperty(String property) {
+		this.property = property;
+	}
 
 }
