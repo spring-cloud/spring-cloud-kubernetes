@@ -175,28 +175,8 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		public NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-
-			// if explicitPrefix is set, it takes priority over useNameAsPrefix
-			// (either the one from 'spring.cloud.kubernetes.config' or
-			// 'spring.cloud.kubernetes.config.sources')
-			if (StringUtils.hasText(this.explicitPrefix)) {
-				return new NormalizedSource(normalizedName, normalizedNamespace, this.explicitPrefix);
-			}
-
-			// useNameAsPrefix is a java.lang.Boolean and if it's != null, users have
-			// specified it explicitly
-			if (this.useNameAsPrefix != null) {
-				if (useNameAsPrefix) {
-					return new NormalizedSource(normalizedName, normalizedNamespace, normalizedName);
-				}
-				return new NormalizedSource(normalizedName, normalizedNamespace, "");
-			}
-
-			if (defaultUseNameAsPrefix) {
-				return new NormalizedSource(normalizedName, normalizedNamespace, normalizedName);
-			}
-
-			return new NormalizedSource(normalizedName, normalizedNamespace, "");
+			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix, normalizedName);
+			return new NormalizedSource(normalizedName, normalizedNamespace, prefix);
 		}
 
 		@Override
