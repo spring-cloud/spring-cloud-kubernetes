@@ -104,7 +104,7 @@ public class ConfigMapWithProfileNameAsSuffixTests {
 	 */
 	@Test
 	public void testOne() {
-		this.webClient.get().uri("/one").exchange().expectStatus().isOk().expectBody(String.class)
+		this.webClient.get().uri("/suffix/one").exchange().expectStatus().isOk().expectBody(String.class)
 			.value(Matchers.equalTo("one"));
 	}
 
@@ -117,7 +117,7 @@ public class ConfigMapWithProfileNameAsSuffixTests {
 	 *   We define config-map 'config-map-two', but we also define 'config-map-two-dev'.
 	 *   This tests proves that data will be read from 'config-map-two' _only_, even if 'config-map-two-dev'
 	 *   also exists. This happens because of the 'useProfileNameAsSuffix=false' property defined at the source level.
-	 *   If this would be incorrect, the value we read from '/two' would have been 'twoDev' and _not_ 'two',
+	 *   If this would be incorrect, the value we read from '/suffix/two' would have been 'twoDev' and _not_ 'two',
 	 *   simply because 'config-map-two-dev' would override the property value.
 	 *
 	 * 	 As such: @ConfigurationProperties("two") must be resolved from 'config-map-two'
@@ -125,7 +125,7 @@ public class ConfigMapWithProfileNameAsSuffixTests {
 	 */
 	@Test
 	public void testTwo() {
-		this.webClient.get().uri("/two").exchange().expectStatus().isOk().expectBody(String.class)
+		this.webClient.get().uri("/suffix/two").exchange().expectStatus().isOk().expectBody(String.class)
 			.value(Matchers.equalTo("two"));
 	}
 
@@ -138,7 +138,7 @@ public class ConfigMapWithProfileNameAsSuffixTests {
 	 *   This tests proves that data will be read from 'config-map-three' _only_, even if 'config-map-three-dev'
 	 *   also exists. This happens because the 'useProfileNameAsSuffix'  property is not defined at the source level,
 	 *   but it is defaulted from the root level, where we set it to false.
-	 *   If this would be incorrect, the value we read from '/three' would have been 'threeDev' and _not_ 'three',
+	 *   If this would be incorrect, the value we read from '/suffix/three' would have been 'threeDev' and _not_ 'three',
 	 *   simply because 'config-map-three-dev' would override the property value.
 	 *
 	 * 	 As such: @ConfigurationProperties("three") must be resolved from 'config-map-three'
@@ -146,7 +146,7 @@ public class ConfigMapWithProfileNameAsSuffixTests {
 	 */
 	@Test
 	public void testThree() {
-		this.webClient.get().uri("/three").exchange().expectStatus().isOk().expectBody(String.class)
+		this.webClient.get().uri("/suffix/three").exchange().expectStatus().isOk().expectBody(String.class)
 			.value(Matchers.equalTo("three"));
 	}
 

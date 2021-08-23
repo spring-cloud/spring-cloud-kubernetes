@@ -91,7 +91,7 @@ public class ConfigMapWithPrefixTests {
 	 */
 	@Test
 	public void testOne() {
-		this.webClient.get().uri("/one").exchange().expectStatus().isOk().expectBody(String.class)
+		this.webClient.get().uri("/prefix/one").exchange().expectStatus().isOk().expectBody(String.class)
 				.value(Matchers.equalTo("one"));
 	}
 
@@ -106,7 +106,7 @@ public class ConfigMapWithPrefixTests {
 	 */
 	@Test
 	public void testTwo() {
-		this.webClient.get().uri("/two").exchange().expectStatus().isOk().expectBody(String.class)
+		this.webClient.get().uri("/prefix/two").exchange().expectStatus().isOk().expectBody(String.class)
 				.value(Matchers.equalTo("two"));
 	}
 
@@ -121,7 +121,7 @@ public class ConfigMapWithPrefixTests {
 	 */
 	@Test
 	public void testThree() {
-		this.webClient.get().uri("/three").exchange().expectStatus().isOk().expectBody(String.class)
+		this.webClient.get().uri("/prefix/three").exchange().expectStatus().isOk().expectBody(String.class)
 				.value(Matchers.equalTo("three"));
 	}
 

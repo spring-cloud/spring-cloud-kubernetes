@@ -37,17 +37,17 @@ public class ProfileNameAsSuffixController {
 		this.three = three;
 	}
 
-	@GetMapping("/one")
+	@GetMapping("/suffix/one")
 	public String one() {
 		return one.getProperty();
 	}
 
-	@GetMapping("/two")
+	@GetMapping("/suffix/two")
 	public String two() {
 		return two.getProperty();
 	}
 
-	@GetMapping("/three")
+	@GetMapping("/suffix/three")
 	public String three() {
 		return three.getProperty();
 	}
