@@ -293,9 +293,11 @@ public class ConfigMapConfigPropertiesTests {
 	 *            useProfileNameAsSuffix: false
 	 * </pre>
 	 *
-	 * source "one" will have "useProfileNameAsSuffix = true". source "two" will have
-	 * "useProfileNameAsSuffix = false". source "two" will have "useProfileNameAsSuffix =
-	 * false".
+	 * <pre>
+	 * 	source "one" will have "useProfileNameAsSuffix = true".
+	 * 	source "two" will have "useProfileNameAsSuffix = false".
+	 * 	source "three" will have "useProfileNameAsSuffix = false".
+	 * </pre>
 	 */
 	@Test
 	public void testUseProfileNameAsSuffixDefaultChangedSourceOverride() {
