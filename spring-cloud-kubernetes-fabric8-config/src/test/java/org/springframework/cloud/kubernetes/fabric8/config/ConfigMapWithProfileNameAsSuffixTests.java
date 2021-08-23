@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,7 +40,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = ProfileNameAsSuffixApp.class,
-	properties = { "spring.cloud.bootstrap.name=profile-name-as-suffix" })
+		properties = { "spring.cloud.bootstrap.name=profile-name-as-suffix" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
 @ActiveProfiles("dev")
@@ -87,7 +86,7 @@ class ConfigMapWithProfileNameAsSuffixTests {
 
 	private static void createConfigmap(String name, Map<String, String> data) {
 		mockClient.configMaps().inNamespace("spring-k8s").createNew().withNewMetadata().withName(name).endMetadata()
-			.addToData(data).done();
+				.addToData(data).done();
 	}
 
 	/**
@@ -104,7 +103,7 @@ class ConfigMapWithProfileNameAsSuffixTests {
 	@Test
 	public void testOne() {
 		this.webClient.get().uri("/suffix/one").exchange().expectStatus().isOk().expectBody(String.class)
-			.value(Matchers.equalTo("one"));
+				.value(Matchers.equalTo("one"));
 	}
 
 	/**
@@ -125,7 +124,7 @@ class ConfigMapWithProfileNameAsSuffixTests {
 	@Test
 	public void testTwo() {
 		this.webClient.get().uri("/suffix/two").exchange().expectStatus().isOk().expectBody(String.class)
-			.value(Matchers.equalTo("two"));
+				.value(Matchers.equalTo("two"));
 	}
 
 	/**
@@ -146,7 +145,7 @@ class ConfigMapWithProfileNameAsSuffixTests {
 	@Test
 	public void testThree() {
 		this.webClient.get().uri("/suffix/three").exchange().expectStatus().isOk().expectBody(String.class)
-			.value(Matchers.equalTo("three"));
+				.value(Matchers.equalTo("three"));
 	}
 
 }

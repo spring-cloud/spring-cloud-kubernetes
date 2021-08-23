@@ -51,4 +51,5 @@ public class ProfileNameAsSuffixController {
 	public String three() {
 		return three.getProperty();
 	}
+
 }

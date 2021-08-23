@@ -56,9 +56,8 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
 			Environment environment, String prefix, boolean useProfileNameAsSuffix) {
-		super(getName(name, getApplicationNamespace(client, namespace)),
-				getData(client, name, getApplicationNamespace(client, namespace),
-					environment, prefix, useProfileNameAsSuffix));
+		super(getName(name, getApplicationNamespace(client, namespace)), getData(client, name,
+				getApplicationNamespace(client, namespace), environment, prefix, useProfileNameAsSuffix));
 	}
 
 	private static Map<String, Object> getData(KubernetesClient client, String name, String namespace,
@@ -85,8 +84,7 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 
 		}
 		catch (Exception e) {
-			LOG.warn("Can't read configMap with name: [" + name + "] in namespace: [" + namespace
-					+ "]. Ignoring.", e);
+			LOG.warn("Can't read configMap with name: [" + name + "] in namespace: [" + namespace + "]. Ignoring.", e);
 		}
 
 		return Collections.emptyMap();

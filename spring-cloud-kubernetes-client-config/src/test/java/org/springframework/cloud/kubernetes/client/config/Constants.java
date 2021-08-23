@@ -21,12 +21,14 @@ package org.springframework.cloud.kubernetes.client.config;
  *
  * @author wind57
  */
-final class Constants {
+public final class Constants {
 
 	private Constants() {
 		throw new AssertionError("no instance provided");
 	}
 
-	static final String CONFIG_MAP_API = "/api/v1/namespaces/default/configmaps";
+	public static final String CONFIG_MAP_API = "/api/v1/namespaces/default/configmaps";
+
+	public static final String CONFIG_MAP_SPRING_K8S_API = "/api/v1/namespaces/spring-k8s/configmaps";
 
 }

@@ -30,4 +30,5 @@ public class Three {
 	public void setProperty(String property) {
 		this.property = property;
 	}
+
 }

@@ -109,7 +109,8 @@ class KubernetesClientConfigMapPropertySourceTests {
 	@Test
 	public void yamlFile() {
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get(Constants.CONFIG_MAP_API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(YAML_CONFIGMAP_LIST))));
+		stubFor(get(Constants.CONFIG_MAP_API)
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(YAML_CONFIGMAP_LIST))));
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(api,
 				"bootstrap-641", "default", new MockEnvironment(), "", true);
 		verify(getRequestedFor(urlEqualTo(Constants.CONFIG_MAP_API)));

@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix.controller;
 
-import org.springframework.cloud.kubernetes.client.config.applications.profile_name_as_suffix.properties.One;
-import org.springframework.cloud.kubernetes.client.config.applications.profile_name_as_suffix.properties.Three;
-import org.springframework.cloud.kubernetes.client.config.applications.profile_name_as_suffix.properties.Two;
+import org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix.properties.One;
+import org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix.properties.Three;
+import org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix.properties.Two;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
