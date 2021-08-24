@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,9 +41,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Ryan Baxter
+ * @author Isik Erhan
  */
 class KubernetesClientConfigMapPropertySourceTests {
 
@@ -97,7 +100,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 		stubFor(get(API)
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(api,
-				"bootstrap-640", "default", new MockEnvironment(), "");
+				"bootstrap-640", "default", new MockEnvironment(), "", false);
 		verify(getRequestedFor(urlEqualTo(API)));
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
@@ -113,7 +116,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(YAML_CONFIGMAP_LIST))));
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(api,
-				"bootstrap-641", "default", new MockEnvironment(), "");
+				"bootstrap-641", "default", new MockEnvironment(), "", false);
 		verify(getRequestedFor(urlEqualTo(API)));
 		assertThat(propertySource.containsProperty("dummy.property.string2")).isTrue();
 		assertThat(propertySource.getProperty("dummy.property.string2")).isEqualTo("a");
@@ -130,7 +133,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 		stubFor(get(API)
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(api,
-				"bootstrap-640", "default", new MockEnvironment(), "prefix");
+				"bootstrap-640", "default", new MockEnvironment(), "prefix", false);
 		verify(getRequestedFor(urlEqualTo(API)));
 		assertThat(propertySource.containsProperty("prefix.spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
@@ -140,6 +143,27 @@ class KubernetesClientConfigMapPropertySourceTests {
 				.isTrue();
 		assertThat(propertySource.getProperty("prefix.logging.level.org.springframework.cloud.kubernetes"))
 				.isEqualTo("TRACE");
+	}
+
+	@Test
+	public void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+
+		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySource(api, "my-config", "default",
+				new MockEnvironment(), "", true)).isInstanceOf(IllegalStateException.class)
+						.hasMessage("Unable to read ConfigMap with name 'my-config' in namespace 'default'");
+		verify(getRequestedFor(urlEqualTo(API)));
+	}
+
+	@Test
+	public void constructorShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+
+		assertThatNoException().isThrownBy((() -> new KubernetesClientConfigMapPropertySource(api, "my-config",
+				"default", new MockEnvironment(), "", false)));
+		verify(getRequestedFor(urlEqualTo(API)));
 	}
 
 }

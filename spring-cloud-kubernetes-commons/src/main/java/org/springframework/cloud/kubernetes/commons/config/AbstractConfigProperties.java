@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package org.springframework.cloud.kubernetes.commons.config;
  * Abstraction over configuration properties.
  *
  * @author Ioannis Canellos
+ * @author Isik Erhan
  */
 public abstract class AbstractConfigProperties {
 
@@ -30,6 +31,8 @@ public abstract class AbstractConfigProperties {
 	protected String namespace;
 
 	protected boolean useNameAsPrefix;
+
+	protected boolean failFast = false;
 
 	public abstract String getConfigurationTarget();
 
@@ -63,6 +66,14 @@ public abstract class AbstractConfigProperties {
 
 	public void setUseNameAsPrefix(boolean useNameAsPrefix) {
 		this.useNameAsPrefix = useNameAsPrefix;
+	}
+
+	public boolean isFailFast() {
+		return failFast;
+	}
+
+	public void setFailFast(boolean failFast) {
+		this.failFast = failFast;
 	}
 
 }

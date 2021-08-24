@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,16 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.Base64;
+import java.util.Collections;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import org.junit.ClassRule;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +40,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
@@ -46,6 +52,9 @@ public class Fabric8SecretsPropertySourceTest {
 	private static final String NAMESPACE = "test";
 
 	private static KubernetesClient mockClient;
+
+	@ClassRule
+	public static KubernetesServer mockServer = new KubernetesServer(false);
 
 	private static final String SECRET_VALUE = "secretValue";
 
@@ -70,6 +79,13 @@ public class Fabric8SecretsPropertySourceTest {
 				.withLabels(singletonMap("foo", "bar")).endMetadata()
 				.addToData("secretName", Base64.getEncoder().encodeToString(SECRET_VALUE.getBytes())).build();
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
+
+		mockServer.before();
+	}
+
+	@AfterAll
+	public static void tearDown() {
+		mockServer.after();
 	}
 
 	@Test
@@ -77,6 +93,30 @@ public class Fabric8SecretsPropertySourceTest {
 		String actual = this.propertySourceLocator.locate(this.environment).toString();
 
 		assertThat(actual).doesNotContain(SECRET_VALUE);
+	}
+
+	@Test
+	public void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
+		final String name = "my-config";
+		final String namespace = "default";
+		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
+
+		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
+		assertThatThrownBy(() -> new Fabric8SecretsPropertySource(mockServer.getClient(), name, namespace,
+				Collections.emptyMap(), true)).isInstanceOf(IllegalStateException.class)
+						.hasMessage("Unable to read Secret with name '" + name + "' or labels [{}] in namespace '"
+								+ namespace + "'");
+	}
+
+	@Test
+	public void constructorShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
+		final String name = "my-config";
+		final String namespace = "default";
+		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
+
+		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
+		assertThatNoException().isThrownBy(() -> new Fabric8SecretsPropertySource(mockServer.getClient(), name,
+				namespace, Collections.emptyMap(), false));
 	}
 
 }

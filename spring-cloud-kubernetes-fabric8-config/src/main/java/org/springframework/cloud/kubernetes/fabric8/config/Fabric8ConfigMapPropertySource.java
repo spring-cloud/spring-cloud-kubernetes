@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,13 +38,14 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
  * @author Ioannis Canellos
  * @author Ali Shahbour
  * @author Michael Moudatsos
+ * @author Isik Erhan
  */
 public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8ConfigMapPropertySource.class);
 
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name) {
-		this(client, name, null, null, "");
+		this(client, name, null, null, "", false);
 	}
 
 	/**
@@ -54,18 +55,19 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 	@Deprecated
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String applicationName, String namespace,
 			Environment environment) {
-		super(getName(applicationName, getApplicationNamespace(client, namespace)),
-				getData(client, applicationName, getApplicationNamespace(client, namespace), environment, ""));
+		this(client, applicationName, namespace, environment, "", false);
 	}
 
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String applicationName, String namespace,
-			Environment environment, String prefix) {
-		super(getName(applicationName, getApplicationNamespace(client, namespace)),
-				getData(client, applicationName, getApplicationNamespace(client, namespace), environment, prefix));
+			Environment environment, String prefix, boolean failFast) {
+		super(getName(applicationName, getApplicationNamespace(client, namespace)), getData(client, applicationName,
+				getApplicationNamespace(client, namespace), environment, prefix, failFast));
 	}
 
 	private static Map<String, Object> getData(KubernetesClient client, String applicationName, String namespace,
-			Environment environment, String prefix) {
+			Environment environment, String prefix, boolean failFast) {
+
+		LOG.info("Loading ConfigMap with name '" + applicationName + "' in namespace '" + namespace + "'");
 		try {
 			Map<String, String> data = getConfigMapData(client, namespace, applicationName);
 			Map<String, Object> result = new HashMap<>(processAllEntries(data, environment));
@@ -88,6 +90,12 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 
 		}
 		catch (Exception e) {
+			if (failFast) {
+				throw new IllegalStateException(
+						"Unable to read ConfigMap with name '" + applicationName + "' in namespace '" + namespace + "'",
+						e);
+			}
+
 			LOG.warn("Can't read configMap with name: [" + applicationName + "] in namespace: [" + namespace
 					+ "]. Ignoring.", e);
 		}

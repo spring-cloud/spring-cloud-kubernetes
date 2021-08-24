@@ -415,6 +415,11 @@ NOTE:  If you use `spring.cloud.kubernetes.config.paths` or `spring.cloud.kubern
 functionality will not work.  You will need to make a `POST` request to the `/actuator/refresh` endpoint or
 restart/redeploy the application.
 
+[#config-map-fail-fast]
+In some cases, your application may be unable to load some of your `ConfigMaps` using the Kubernetes API.
+If you want your application to fail the start-up process in such cases, you can set the
+`spring.cloud.kubernetes.config.fail-fast=true` to make the application start-up fail with an Exception.
+
 .Properties:
 [options="header,footer"]
 |===
@@ -424,6 +429,7 @@ restart/redeploy the application.
 | `spring.cloud.kubernetes.config.namespace` | `String`  | Client namespace             | Sets the Kubernetes namespace where to lookup
 | `spring.cloud.kubernetes.config.paths`     | `List`    | `null`                       | Sets the paths where `ConfigMap` instances are mounted
 | `spring.cloud.kubernetes.config.enableApi` | `Boolean` | `true`                       | Enable or disable consuming `ConfigMap` instances through APIs
+| `spring.cloud.kubernetes.config.fail-fast` | `Boolean` | `false`                      | Enable or disable failing the application start-up when an error occurred while loading a `ConfigMap`
 |===
 
 === Secrets PropertySource
@@ -578,6 +584,8 @@ the `Secret` named `s1` would be looked up in the namespace that the application
 See <<namespace-resolution,namespace-resolution>> to get a better understanding of how the namespace
 of the application is resolved.
 
+<<config-map-fail-fast,Similar to the `ConfigMaps`>>; if you want your application to fail to start 
+when it is unable to load `Secrets` property sources, you can set `spring.cloud.kubernetes.secrets.fail-fast=true`.
 
 .Properties:
 [options="header,footer"]
@@ -589,6 +597,7 @@ of the application is resolved.
 | `spring.cloud.kubernetes.secrets.labels`    | `Map`     | `null`                       | Sets the labels used to lookup secrets
 | `spring.cloud.kubernetes.secrets.paths`     | `List`    | `null`                       | Sets the paths where secrets are mounted (example 1)
 | `spring.cloud.kubernetes.secrets.enableApi` | `Boolean` | `false`                      | Enables or disables consuming secrets through APIs (examples 2 and 3)
+| `spring.cloud.kubernetes.secrets.fail-fast` | `Boolean` | `false`                      | Enable or disable failing the application start-up when an error occurred while loading a `Secret`
 |===
 
 Notes:
