@@ -1,0 +1,22 @@
+apiVersion: skaffold/v2alpha3
+kind: Config
+metadata:
+  name: spring-cloud-kubernetes-reactive-discoveryclient-it
+build:
+  artifacts:
+  - image: springcloud/spring-cloud-kubernetes-reactive-discoveryclient-it
+    jib: {
+      args: [ "-Pjib" ]
+    }
+#    custom:
+#      buildCommand: "../../mvnw clean install -Pskaffold"
+#      dependencies:
+#        paths:
+#          - src
+#          - pom.xml
+deploy:
+  kubectl:
+    manifests:
+    - k8s/deployment-it.yaml
+    - k8s/service-it.yaml
+    - ../permissions.yaml

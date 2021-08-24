@@ -16,31 +16,63 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
+import org.springframework.cloud.client.ConditionalOnReactiveDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * @author Ryan Baxter
  */
 @Configuration
+@ConditionalOnDiscoveryEnabled
 @EnableConfigurationProperties(KubernetesDiscoveryClientProperties.class)
 public class KubernetesDiscoveryClientAutoConfiguration {
 
-	@Bean
-	@ConditionalOnMissingBean
-	public RestTemplate restTemplate() {
-		return new RestTemplateBuilder().build();
+	@Configuration(proxyBeanMethods = false)
+	public static class Servlet {
+
+		@Bean
+		@ConditionalOnClass(name = { "org.springframework.web.client.RestTemplate" })
+		public RestTemplate restTemplate() {
+			return new RestTemplateBuilder().build();
+		}
+
+		@Bean
+		@ConditionalOnClass(name = { "org.springframework.web.client.RestTemplate" })
+		public DiscoveryClient kubernetesDiscoveryClient(RestTemplate restTemplate,
+				KubernetesDiscoveryClientProperties properties) {
+			return new KubernetesDiscoveryClient(restTemplate, properties);
+		}
+
 	}
 
-	@Bean
-	public DiscoveryClient kubernetesDiscoveryClient(RestTemplate restTemplate,
-			KubernetesDiscoveryClientProperties properties) {
-		return new KubernetesDiscoveryClient(restTemplate, properties);
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnReactiveDiscoveryEnabled
+	public static class Reactive {
+
+		@Bean
+		@ConditionalOnClass(name = { "org.springframework.web.reactive.function.client.WebClient" })
+		@ConditionalOnMissingBean(WebClient.Builder.class)
+		public WebClient.Builder webClientBuilder() {
+			return WebClient.builder();
+		}
+
+		@Bean
+		@ConditionalOnClass(name = { "org.springframework.web.reactive.function.client.WebClient" })
+		public ReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(WebClient.Builder webClientBuilder,
+				KubernetesDiscoveryClientProperties properties) {
+			return new KubernetesReactiveDiscoveryClient(webClientBuilder, properties);
+		}
+
 	}
 
 }
