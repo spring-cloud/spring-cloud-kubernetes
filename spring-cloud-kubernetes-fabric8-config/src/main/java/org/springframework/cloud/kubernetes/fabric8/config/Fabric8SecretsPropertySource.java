@@ -25,7 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
-import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
 /**
@@ -43,8 +42,8 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 		super(getSourceName(name, namespace), getSourceData(client, name, namespace, labels));
 	}
 
-	private static Map<String, Object> getSourceData(KubernetesClient client, String name,
-			String namespace, Map<String, String> labels) {
+	private static Map<String, Object> getSourceData(KubernetesClient client, String name, String namespace,
+			Map<String, String> labels) {
 		Map<String, Object> result = new HashMap<>();
 
 		try {
