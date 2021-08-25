@@ -50,7 +50,7 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 		try {
 			// Read for secrets api (named)
 			Secret secret;
-			if (StringUtils.isEmpty(namespace)) {
+			if (!StringUtils.hasLength(namespace)) {
 				secret = client.secrets().withName(name).get();
 			}
 			else {
@@ -60,7 +60,7 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
 			// Read for secrets api (label)
 			if (!labels.isEmpty()) {
-				if (StringUtils.isEmpty(namespace)) {
+				if (!StringUtils.hasLength(namespace)) {
 					client.secrets().withLabels(labels).list().getItems().forEach(s -> putAll(s, result));
 				}
 				else {
