@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.configserver;
 
+import java.util.HashMap;
+
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,6 +26,7 @@ import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.cloud.config.server.environment.EnvironmentRepository;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.util.StringUtils;
 
@@ -59,9 +62,42 @@ public class ConfigMapEnvironmentRepository implements EnvironmentRepository {
 		try {
 			StandardEnvironment springEnv = new StandardEnvironment();
 			springEnv.setActiveProfiles(profiles);
-			KubernetesClientConfigMapPropertySource configMapPropertySource = new KubernetesClientConfigMapPropertySource(
-					coreApi, application, namespace, springEnv, "");
-			environment.add(new PropertySource(configMapPropertySource.getName(), configMapPropertySource.getSource()));
+			KubernetesClientConfigMapPropertySource applicationConfigMapPropertySource = new KubernetesClientConfigMapPropertySource(
+					coreApi, "application", namespace, springEnv, "");
+			KubernetesClientSecretsPropertySource applicationSecretsPropertySource = new KubernetesClientSecretsPropertySource(
+					coreApi, "application", namespace, springEnv, new HashMap<>());
+			if (applicationConfigMapPropertySource.getPropertyNames().length > 0) {
+				LOG.info("Adding PropertySource " + applicationConfigMapPropertySource.getName());
+				LOG.info("PropertySource Names: " + applicationConfigMapPropertySource.getPropertyNames());
+				environment.add(new PropertySource(applicationConfigMapPropertySource.getName(),
+						applicationConfigMapPropertySource.getSource()));
+			}
+			if (applicationSecretsPropertySource.getPropertyNames().length > 0) {
+				LOG.info("Adding PropertySource " + applicationSecretsPropertySource.getName());
+				LOG.info("PropertySource Names: " + applicationSecretsPropertySource.getPropertyNames());
+				environment.add(new PropertySource(applicationSecretsPropertySource.getName(),
+						applicationSecretsPropertySource.getSource()));
+			}
+			if (!"application".equalsIgnoreCase(application)) {
+				KubernetesClientConfigMapPropertySource configMapPropertySource = new KubernetesClientConfigMapPropertySource(
+						coreApi, application, namespace, springEnv, "");
+				KubernetesClientSecretsPropertySource secretsPropertySource = new KubernetesClientSecretsPropertySource(
+						coreApi, application, namespace, springEnv, new HashMap<>());
+				if (configMapPropertySource.getPropertyNames().length > 0) {
+					LOG.info("Adding PropertySource " + configMapPropertySource.getName());
+					LOG.info("PropertySource Names: " + configMapPropertySource.getPropertyNames());
+					environment.add(
+							new PropertySource(configMapPropertySource.getName(), configMapPropertySource.getSource()));
+				}
+				if (secretsPropertySource.getPropertyNames().length > 0) {
+					LOG.info("Adding PropertySource " + secretsPropertySource.getName());
+					LOG.info("PropertySource Names: " + secretsPropertySource.getPropertyNames());
+					environment.add(
+							new PropertySource(secretsPropertySource.getName(), secretsPropertySource.getSource()));
+				}
+
+			}
+
 			return environment;
 		}
 		catch (Exception e) {

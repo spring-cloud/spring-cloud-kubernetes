@@ -26,6 +26,7 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfigura
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 /**
  * @author Ryan Baxter
@@ -36,6 +37,7 @@ import org.springframework.context.annotation.Configuration;
 public class KubernetesConfigServerAutoConfiguration {
 
 	@Bean
+	@Profile("kubernetes")
 	public EnvironmentRepository configMapEnvironmentRepository(CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		return new ConfigMapEnvironmentRepository(coreV1Api, kubernetesNamespaceProvider.getNamespace());
