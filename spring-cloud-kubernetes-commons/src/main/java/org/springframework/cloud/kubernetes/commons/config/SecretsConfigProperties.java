@@ -204,7 +204,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			}
 			SecretsConfigProperties.NormalizedSource other = (SecretsConfigProperties.NormalizedSource) o;
 			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace)
-				&& Objects.equals(this.labels, other,labels);
+				&& Objects.equals(this.labels, other.labels);
 		}
 
 		@Override
