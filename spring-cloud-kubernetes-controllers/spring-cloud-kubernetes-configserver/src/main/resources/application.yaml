@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: kubernetesconfigserver
+
+server:
+  port: 8888
