@@ -36,8 +36,8 @@ public class SecretsPropertySource extends MapPropertySource {
 	}
 
 	protected static String getSourceName(String name, String namespace) {
-		return new StringBuilder().append(PREFIX).append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR).append(name)
-				.append(Constants.PROPERTY_SOURCE_NAME_SEPARATOR).append(namespace).toString();
+		return PREFIX + Constants.PROPERTY_SOURCE_NAME_SEPARATOR + name +
+			Constants.PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
 	}
 
 	protected static void putAll(Map<String, String> data, Map<String, Object> result) {

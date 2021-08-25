@@ -38,14 +38,12 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8SecretsPropertySource.class);
 
-	private static final String PREFIX = "secrets";
-
-	public Fabric8SecretsPropertySource(KubernetesClient client, Environment env, String name, String namespace,
+	public Fabric8SecretsPropertySource(KubernetesClient client, String name, String namespace,
 			Map<String, String> labels) {
-		super(getSourceName(name, namespace), getSourceData(client, env, name, namespace, labels));
+		super(getSourceName(name, namespace), getSourceData(client, name, namespace, labels));
 	}
 
-	private static Map<String, Object> getSourceData(KubernetesClient client, Environment env, String name,
+	private static Map<String, Object> getSourceData(KubernetesClient client, String name,
 			String namespace, Map<String, String> labels) {
 		Map<String, Object> result = new HashMap<>();
 
