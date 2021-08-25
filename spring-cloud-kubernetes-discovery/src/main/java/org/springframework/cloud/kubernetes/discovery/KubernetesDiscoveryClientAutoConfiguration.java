@@ -16,10 +16,16 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import java.util.Arrays;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.concurrent.ConcurrentMapCache;
+import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnReactiveDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -32,7 +38,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * @author Ryan Baxter
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @EnableConfigurationProperties(KubernetesDiscoveryClientProperties.class)
 public class KubernetesDiscoveryClientAutoConfiguration {
@@ -71,6 +77,21 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		public ReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(WebClient.Builder webClientBuilder,
 				KubernetesDiscoveryClientProperties properties) {
 			return new KubernetesReactiveDiscoveryClient(webClientBuilder, properties);
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@EnableCaching
+	public class CachingConfig {
+
+		@Bean
+		@ConditionalOnMissingBean
+		public CacheManager cacheManager() {
+			SimpleCacheManager cacheManager = new SimpleCacheManager();
+			cacheManager.setCaches(
+					Arrays.asList(new ConcurrentMapCache("serviceinstances"), new ConcurrentMapCache("services")));
+			return cacheManager;
 		}
 
 	}

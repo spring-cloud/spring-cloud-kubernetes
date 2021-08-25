@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.web.client.RestTemplate;
@@ -44,12 +45,14 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	@Override
+	@Cacheable("serviceinstances")
 	public List<ServiceInstance> getInstances(String serviceId) {
 		return Arrays.asList(rest.getForEntity(properties.getDiscoveryServerUrl() + "/apps/" + serviceId,
 				KubernetesServiceInstance[].class).getBody());
 	}
 
 	@Override
+	@Cacheable("services")
 	public List<String> getServices() {
 		return Arrays.stream(rest.getForEntity(properties.getDiscoveryServerUrl() + "/apps", Service[].class).getBody())
 				.map(service -> service.getName()).collect(Collectors.toList());

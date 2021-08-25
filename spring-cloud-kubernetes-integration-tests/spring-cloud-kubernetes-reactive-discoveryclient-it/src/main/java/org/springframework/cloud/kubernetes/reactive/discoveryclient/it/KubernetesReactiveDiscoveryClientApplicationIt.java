@@ -16,7 +16,11 @@
 
 package org.springframework.cloud.kubernetes.reactive.discoveryclient.it;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -28,7 +32,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @author Ryan Baxterasdfasdf this is a test
+ * @author Ryan Baxter
  */
 @SpringBootApplication
 @RestController
@@ -42,8 +46,8 @@ public class KubernetesReactiveDiscoveryClientApplicationIt {
 	}
 
 	@GetMapping("/services")
-	public Flux<String> services() {
-		return discoveryClient.getServices();
+	public Mono<List<String>> services() {
+		return discoveryClient.getServices().collect(Collectors.toList());
 	}
 
 	@GetMapping("/service/{serviceId}")
