@@ -33,7 +33,7 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.ge
  */
 public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropertySourceLocator {
 
-	private CoreV1Api coreV1Api;
+	private final CoreV1Api coreV1Api;
 
 	private KubernetesClientProperties kubernetesClientProperties;
 
