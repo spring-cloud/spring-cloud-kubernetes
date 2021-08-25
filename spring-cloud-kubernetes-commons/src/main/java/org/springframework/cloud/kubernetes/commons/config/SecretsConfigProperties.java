@@ -203,12 +203,13 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 				return false;
 			}
 			SecretsConfigProperties.NormalizedSource other = (SecretsConfigProperties.NormalizedSource) o;
-			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace);
+			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace)
+				&& Objects.equals(this.labels, other,labels);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(name, namespace);
+			return Objects.hash(name, namespace, labels);
 		}
 
 	}
