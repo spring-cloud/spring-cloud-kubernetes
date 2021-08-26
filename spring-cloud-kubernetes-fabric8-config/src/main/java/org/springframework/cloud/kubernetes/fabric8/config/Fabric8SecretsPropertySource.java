@@ -46,40 +46,33 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 			Map<String, String> labels) {
 		Map<String, Object> result = new HashMap<>();
 
+		String namespaceToUse = StringUtils.hasLength(namespace) ? namespace : client.getNamespace();
 		try {
-			// Read for secrets api (named)
-			Secret secret;
-			if (!StringUtils.hasLength(namespace)) {
-				secret = client.secrets().withName(name).get();
-			}
-			else {
-				secret = client.secrets().inNamespace(namespace).withName(name).get();
-			}
-			putAll(secret, result);
 
-			// Read for secrets api (label)
-			if (!labels.isEmpty()) {
-				if (!StringUtils.hasLength(namespace)) {
-					client.secrets().withLabels(labels).list().getItems().forEach(s -> putAll(s, result));
-				}
-				else {
-					client.secrets().inNamespace(namespace).withLabels(labels).list().getItems()
-							.forEach(s -> putAll(s, result));
-				}
+			Secret secret = client.secrets().inNamespace(namespaceToUse).withName(name).get();
+
+			// the API is documented that it might return null
+			if (secret == null) {
+				LOG.warn("secret with name : " + name + " in namespace : " + namespaceToUse + " not found");
+			} else {
+				putDataFromSecret(secret, result, namespaceToUse);
 			}
+
+			client.secrets().inNamespace(namespaceToUse).withLabels(labels).list().getItems()
+				.forEach(s -> putDataFromSecret(s, result, namespaceToUse));
+
 		}
 		catch (Exception e) {
-			LOG.warn("Can't read secret with name: [" + name + "] or labels [" + labels + "] in namespace:[" + namespace
+			LOG.warn("Can't read secret with name: [" + name + "] or labels [" + labels + "] in namespace: [" + namespaceToUse
 					+ "] (cause: " + e.getMessage() + "). Ignoring");
 		}
 
 		return result;
 	}
 
-	private static void putAll(Secret secret, Map<String, Object> result) {
-		if (secret != null) {
-			putAll(secret.getData(), result);
-		}
+	private static void putDataFromSecret(Secret secret, Map<String, Object> result, String namespace) {
+		LOG.debug("reading secret with name : " + secret.getMetadata().getName() + " in namespace : " + namespace);
+		putAll(secret.getData(), result);
 	}
 
 }

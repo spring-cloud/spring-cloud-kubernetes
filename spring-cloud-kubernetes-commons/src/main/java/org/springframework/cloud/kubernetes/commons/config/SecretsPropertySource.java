@@ -41,9 +41,7 @@ public class SecretsPropertySource extends MapPropertySource {
 	}
 
 	protected static void putAll(Map<String, String> data, Map<String, Object> result) {
-		if (data != null) {
-			data.forEach((k, v) -> result.put(k, new String(Base64.getDecoder().decode(v)).trim()));
-		}
+		data.forEach((k, v) -> result.put(k, new String(Base64.getDecoder().decode(v)).trim()));
 	}
 
 	@Override
