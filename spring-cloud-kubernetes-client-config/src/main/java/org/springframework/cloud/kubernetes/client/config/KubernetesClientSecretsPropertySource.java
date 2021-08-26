@@ -20,6 +20,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Secret;
@@ -37,15 +38,13 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 
 	private static final Log LOG = LogFactory.getLog(KubernetesClientSecretsPropertySource.class);
 
-	private CoreV1Api coreV1Api;
-
 	public KubernetesClientSecretsPropertySource(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment, Map<String, String> labels) {
-		super(getSourceName(name, namespace), getSourceData(coreV1Api, environment, name, namespace, labels));
+			Map<String, String> labels) {
+		super(getSourceName(name, namespace), getSourceData(coreV1Api, name, namespace, labels));
 
 	}
 
-	private static Map<String, Object> getSourceData(CoreV1Api api, Environment env, String name, String namespace,
+	private static Map<String, Object> getSourceData(CoreV1Api api, String name, String namespace,
 			Map<String, String> labels) {
 		Map<String, Object> result = new HashMap<>();
 
@@ -54,7 +53,6 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 			if (StringUtils.hasText(name)) {
 				Optional<V1Secret> secret;
 				if (!StringUtils.hasText(namespace)) {
-
 					// There could technically be more than one, just return the first
 					secret = api.listSecretForAllNamespaces(null, null, null, null, null, null, null, null, null, null)
 							.getItems().stream().filter(s -> name.equals(s.getMetadata().getName())).findFirst();
@@ -89,14 +87,8 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 	}
 
 	private static String createLabelsSelector(Map<String, String> labels) {
-		StringBuilder selectorString = new StringBuilder();
-		for (String key : labels.keySet()) {
-			if (selectorString.length() != 0) {
-				selectorString.append(",");
-			}
-			selectorString.append(key + "=" + labels.get(key));
-		}
-		return selectorString.toString();
+		return labels.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue())
+			.collect(Collectors.joining(","));
 	}
 
 	private static void putAll(V1Secret secret, Map<String, Object> result) {

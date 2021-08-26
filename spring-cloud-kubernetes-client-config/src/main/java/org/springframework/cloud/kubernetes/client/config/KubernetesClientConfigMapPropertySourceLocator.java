@@ -25,7 +25,7 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySour
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
-import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.getNamespace;
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.NAMESPACE_PROVIDER;
 
 /**
  * @author Ryan Baxter
@@ -56,10 +56,9 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 	protected MapPropertySource getMapPropertySource(String name,
 			ConfigMapConfigProperties.NormalizedSource normalizedSource, String configurationTarget,
 			ConfigurableEnvironment environment) {
-		String fallbackNamespace = kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
-				: kubernetesClientProperties.getNamespace();
-		return new KubernetesClientConfigMapPropertySource(coreV1Api, name,
-				getNamespace(normalizedSource, fallbackNamespace), environment, normalizedSource.getPrefix());
+		String namespace = NAMESPACE_PROVIDER.apply(kubernetesClientProperties, kubernetesNamespaceProvider)
+			.apply(normalizedSource.getNamespace());
+		return new KubernetesClientConfigMapPropertySource(coreV1Api, name, namespace, environment, normalizedSource.getPrefix());
 	}
 
 }

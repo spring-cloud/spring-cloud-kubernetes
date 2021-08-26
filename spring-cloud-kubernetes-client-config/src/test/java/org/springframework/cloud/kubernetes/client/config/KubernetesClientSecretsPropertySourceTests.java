@@ -111,7 +111,7 @@ class KubernetesClientSecretsPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SECRET_LIST))));
 		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(api,
-				"db-secret", "default", new MockEnvironment(), new HashMap<>());
+				"db-secret", "default", new HashMap<>());
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
 		assertThat(propertySource.containsProperty("username")).isTrue();
@@ -123,7 +123,7 @@ class KubernetesClientSecretsPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
 		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(api,
-				"db-secret", null, new MockEnvironment(), new HashMap<>());
+				"db-secret", null, new HashMap<>());
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
 		assertThat(propertySource.containsProperty("username")).isTrue();
@@ -137,7 +137,7 @@ class KubernetesClientSecretsPropertySourceTests {
 		Map<String, String> labels = new HashMap<>();
 		labels.put("spring.cloud.kubernetes.secret", "true");
 		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(api, null,
-				null, new MockEnvironment(), labels);
+				null, labels);
 		assertThat(propertySource.containsProperty("spring.rabbitmq.password")).isTrue();
 		assertThat(propertySource.getProperty("spring.rabbitmq.password")).isEqualTo("password");
 	}
