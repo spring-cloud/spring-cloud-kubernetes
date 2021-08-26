@@ -57,8 +57,9 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 			ConfigMapConfigProperties.NormalizedSource normalizedSource, String configurationTarget,
 			ConfigurableEnvironment environment) {
 		String namespace = NAMESPACE_PROVIDER.apply(kubernetesClientProperties, kubernetesNamespaceProvider)
-			.apply(normalizedSource.getNamespace());
-		return new KubernetesClientConfigMapPropertySource(coreV1Api, name, namespace, environment, normalizedSource.getPrefix());
+				.apply(normalizedSource.getNamespace());
+		return new KubernetesClientConfigMapPropertySource(coreV1Api, name, namespace, environment,
+				normalizedSource.getPrefix());
 	}
 
 }

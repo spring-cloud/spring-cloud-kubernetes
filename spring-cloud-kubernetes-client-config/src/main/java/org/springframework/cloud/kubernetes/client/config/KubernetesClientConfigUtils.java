@@ -16,14 +16,14 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.util.StringUtils;
-
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * @author Ryan Baxter
@@ -33,15 +33,16 @@ public final class KubernetesClientConfigUtils {
 	private KubernetesClientConfigUtils() {
 	}
 
-	// only use KubernetesClientProperties/KubernetesNamespaceProvider if the namespace in the
+	// only use KubernetesClientProperties/KubernetesNamespaceProvider if the namespace in
+	// the
 	// normalized source is not present
-	static final BiFunction<KubernetesClientProperties, KubernetesNamespaceProvider, Function<String, String>>
-		NAMESPACE_PROVIDER = (properties, provider) -> normalizedNamespace -> {
-		if (StringUtils.hasText(normalizedNamespace)) {
-			return normalizedNamespace;
-		}
-		return provider != null ? provider.getNamespace() : properties.getNamespace();
-	};
+	static final BiFunction<KubernetesClientProperties, KubernetesNamespaceProvider, Function<String, String>> NAMESPACE_PROVIDER = (
+			properties, provider) -> normalizedNamespace -> {
+				if (StringUtils.hasText(normalizedNamespace)) {
+					return normalizedNamespace;
+				}
+				return provider != null ? provider.getNamespace() : properties.getNamespace();
+			};
 
 	// deprecated methods below are not used and must be removed at some point in time
 	@Deprecated

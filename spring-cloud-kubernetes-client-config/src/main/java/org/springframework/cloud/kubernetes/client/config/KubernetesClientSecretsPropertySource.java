@@ -28,7 +28,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
-import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
 /**
@@ -87,8 +86,7 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 	}
 
 	private static String createLabelsSelector(Map<String, String> labels) {
-		return labels.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue())
-			.collect(Collectors.joining(","));
+		return labels.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(","));
 	}
 
 	private static void putAll(V1Secret secret, Map<String, Object> result) {
