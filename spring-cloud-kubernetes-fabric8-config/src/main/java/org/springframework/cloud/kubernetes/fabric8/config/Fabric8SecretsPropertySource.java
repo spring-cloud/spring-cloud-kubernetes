@@ -54,7 +54,8 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 			// the API is documented that it might return null
 			if (secret == null) {
 				LOG.warn("secret with name : " + name + " in namespace : " + namespaceToUse + " not found");
-			} else {
+			}
+			else {
 				putDataFromSecret(secret, result, namespaceToUse);
 			}
 
