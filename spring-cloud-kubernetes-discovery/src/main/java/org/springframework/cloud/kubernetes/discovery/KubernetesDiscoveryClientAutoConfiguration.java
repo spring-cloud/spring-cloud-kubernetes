@@ -19,7 +19,11 @@ package org.springframework.cloud.kubernetes.discovery;
 import java.util.Arrays;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.CacheManager;
@@ -40,6 +44,9 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+@ConditionalOnProperty(value = { "spring.cloud.kubernetes.enabled", "spring.cloud.kubernetes.discovery.enabled" },
+		matchIfMissing = true)
 @EnableConfigurationProperties(KubernetesDiscoveryClientProperties.class)
 public class KubernetesDiscoveryClientAutoConfiguration {
 
@@ -47,13 +54,13 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	public static class Servlet {
 
 		@Bean
-		@ConditionalOnClass(name = { "org.springframework.web.client.RestTemplate" })
+		@ConditionalOnMissingClass("org.springframework.web.reactive.function.client.WebClient")
 		public RestTemplate restTemplate() {
 			return new RestTemplateBuilder().build();
 		}
 
 		@Bean
-		@ConditionalOnClass(name = { "org.springframework.web.client.RestTemplate" })
+		@ConditionalOnMissingClass("org.springframework.web.reactive.function.client.WebClient")
 		public DiscoveryClient kubernetesDiscoveryClient(RestTemplate restTemplate,
 				KubernetesDiscoveryClientProperties properties) {
 			return new KubernetesDiscoveryClient(restTemplate, properties);
