@@ -17,10 +17,9 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -37,11 +36,11 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 
 	private boolean enableApi = false;
 
-	private Map<String, String> labels = new HashMap<>();
+	private Map<String, String> labels = Collections.emptyMap();
 
-	private List<String> paths = new LinkedList<>();
+	private List<String> paths = Collections.emptyList();
 
-	private List<Source> sources = new LinkedList<>();
+	private List<Source> sources = Collections.emptyList();
 
 	public boolean isEnableApi() {
 		return this.enableApi;
@@ -81,9 +80,9 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 	}
 
 	/**
-	 * @return A list of Source to use If the user has not specified any Source
+	 * @return A list of Source to use. If the user has not specified any Source
 	 * properties, then a single Source is constructed based on the supplied name and
-	 * namespace
+	 * namespace.
 	 *
 	 * These are the actual name/namespace pairs that are used to create a
 	 * SecretsPropertySource
@@ -114,7 +113,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		/**
 		 * The labels of the Secret to find.
 		 */
-		private Map<String, String> labels = new HashMap<>();
+		private Map<String, String> labels = Collections.emptyMap();
 
 		public Source() {
 		}
@@ -188,6 +187,29 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 
 		public Map<String, String> getLabels() {
 			return labels;
+		}
+
+		@Override
+		public String toString() {
+			return "{ secret name : '" + name + "', namespace : '" + namespace + "'";
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			SecretsConfigProperties.NormalizedSource other = (SecretsConfigProperties.NormalizedSource) o;
+			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace)
+				&& Objects.equals(this.labels, other.labels);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(name, namespace, labels);
 		}
 
 	}

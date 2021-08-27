@@ -137,7 +137,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		KubernetesMockEnvironment environment = new KubernetesMockEnvironment(
 				mock(KubernetesClientSecretsPropertySource.class)).withProperty("db-password", "p455w0rd");
 		KubernetesClientSecretsPropertySourceLocator locator = mock(KubernetesClientSecretsPropertySourceLocator.class);
-		when(locator.locate(environment)).thenReturn(new MockPropertySource().withProperty("db-password", "p455w0rd2"));
+		when(locator.locate(environment)).thenAnswer(ignoreMe -> new MockPropertySource().withProperty("db-password", "p455w0rd2"));
 		ConfigReloadProperties properties = new ConfigReloadProperties();
 		properties.setMonitoringSecrets(true);
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
