@@ -51,8 +51,8 @@ public final class Fabric8ConfigUtils {
 		return namespace;
 	}
 
-	static String getApplicationNamespace(KubernetesClient client, String namespace,
-			String configurationTarget, KubernetesNamespaceProvider provider) {
+	static String getApplicationNamespace(KubernetesClient client, String namespace, String configurationTarget,
+			KubernetesNamespaceProvider provider) {
 
 		if (StringUtils.hasText(namespace)) {
 			LOG.debug(configurationTarget + " namespace from normalized source : " + namespace);

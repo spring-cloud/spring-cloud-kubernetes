@@ -43,9 +43,11 @@ public class Fabric8ConfigMapPropertySourceLocator extends ConfigMapPropertySour
 	private final KubernetesNamespaceProvider provider;
 
 	/**
-	 * This constructor is deprecated. Its usage might cause unexpected behavior when looking for different properties.
-	 * For example, in general, if a namespace is not provided, we might look it up via other means:
-	 * different documented environment variables or from a kubernetes client itself. Using this constructor might not reflect that.
+	 * This constructor is deprecated. Its usage might cause unexpected behavior when
+	 * looking for different properties. For example, in general, if a namespace is not
+	 * provided, we might look it up via other means: different documented environment
+	 * variables or from a kubernetes client itself. Using this constructor might not
+	 * reflect that.
 	 */
 	@Deprecated
 	public Fabric8ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties) {

@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.Map;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
@@ -25,8 +27,6 @@ import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-
-import java.util.Map;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
@@ -45,9 +45,11 @@ public class Fabric8SecretsPropertySourceLocator extends SecretsPropertySourceLo
 	private final KubernetesNamespaceProvider provider;
 
 	/**
-	 * This constructor is deprecated. Its usage might cause unexpected behavior when looking for different properties.
-	 * For example, in general, if a namespace is not provided, we might look it up via other means:
-	 * different documented environment variables or from a kubernetes client itself. Using this constructor might not reflect that.
+	 * This constructor is deprecated. Its usage might cause unexpected behavior when
+	 * looking for different properties. For example, in general, if a namespace is not
+	 * provided, we might look it up via other means: different documented environment
+	 * variables or from a kubernetes client itself. Using this constructor might not
+	 * reflect that.
 	 */
 	@Deprecated
 	public Fabric8SecretsPropertySourceLocator(KubernetesClient client, SecretsConfigProperties properties) {
@@ -67,7 +69,8 @@ public class Fabric8SecretsPropertySourceLocator extends SecretsPropertySourceLo
 	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment,
 			SecretsConfigProperties.NormalizedSource normalizedSource, String configurationTarget) {
 		String secretName = getApplicationName(environment, normalizedSource.getName(), configurationTarget);
-		String secretNamespace = getApplicationNamespace(this.client, normalizedSource.getNamespace(), configurationTarget, provider);
+		String secretNamespace = getApplicationNamespace(this.client, normalizedSource.getNamespace(),
+				configurationTarget, provider);
 		Map<String, String> labels = normalizedSource.getLabels();
 		return new Fabric8SecretsPropertySource(this.client, secretName, secretNamespace, labels);
 	}

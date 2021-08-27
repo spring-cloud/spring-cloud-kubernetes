@@ -22,7 +22,11 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.cloud.kubernetes.commons.*;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
+import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;

@@ -40,9 +40,11 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 	private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
 	/**
-	 * This constructor is deprecated. Its usage might cause unexpected behavior when looking for different properties.
-	 * For example, in general, if a namespace is not provided, we might look it up via other means:
-	 * different documented environment variables or from a kubernetes client itself. Using this constructor might not reflect that.
+	 * This constructor is deprecated. Its usage might cause unexpected behavior when
+	 * looking for different properties. For example, in general, if a namespace is not
+	 * provided, we might look it up via other means: different documented environment
+	 * variables or from a kubernetes client itself. Using this constructor might not
+	 * reflect that.
 	 */
 	@Deprecated
 	public KubernetesClientSecretsPropertySourceLocator(CoreV1Api coreV1Api,
