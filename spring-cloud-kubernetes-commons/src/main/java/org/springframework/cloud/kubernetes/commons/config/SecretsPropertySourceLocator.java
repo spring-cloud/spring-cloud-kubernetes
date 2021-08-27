@@ -23,6 +23,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -60,17 +61,19 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 	}
 
 	@Override
-	public PropertySource locate(Environment environment) {
+	public PropertySource<?> locate(Environment environment) {
 		if (environment instanceof ConfigurableEnvironment) {
 			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
 
 			List<SecretsConfigProperties.NormalizedSource> sources = this.properties.determineSources();
+			Set<SecretsConfigProperties.NormalizedSource> uniqueSources = new HashSet<>(sources);
+			LOG.debug("Secrets normalized sources : " + sources);
 			CompositePropertySource composite = new CompositePropertySource("composite-secrets");
 			// read for secrets mount
 			putPathConfig(composite);
 
 			if (this.properties.isEnableApi()) {
-				sources.forEach(s -> composite.addPropertySource(getKubernetesPropertySourceForSingleSecret(env, s)));
+				uniqueSources.forEach(s -> composite.addPropertySource(getMapPropertySourceForSingleSecret(env, s)));
 			}
 
 			return composite;
@@ -78,7 +81,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 		return null;
 	}
 
-	private MapPropertySource getKubernetesPropertySourceForSingleSecret(ConfigurableEnvironment environment,
+	private MapPropertySource getMapPropertySourceForSingleSecret(ConfigurableEnvironment environment,
 			SecretsConfigProperties.NormalizedSource normalizedSource) {
 
 		String configurationTarget = this.properties.getConfigurationTarget();
