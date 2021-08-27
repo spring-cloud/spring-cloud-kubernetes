@@ -34,6 +34,7 @@ import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 
 /**
  * Auto configuration that reuses Kubernetes config maps as property sources.
@@ -46,6 +47,11 @@ import org.springframework.context.annotation.Import;
 @ConditionalOnClass({ ConfigMap.class, Secret.class })
 @AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 public class Fabric8BootstrapConfiguration {
+
+	@Bean
+	public KubernetesNamespaceProvider provider(Environment env) {
+		return new KubernetesNamespaceProvider(env);
+	}
 
 	@Bean
 	@ConditionalOnKubernetesConfigEnabled
