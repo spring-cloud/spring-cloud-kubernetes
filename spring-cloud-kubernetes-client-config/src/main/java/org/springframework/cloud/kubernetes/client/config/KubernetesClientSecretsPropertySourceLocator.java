@@ -33,17 +33,24 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.ge
  */
 public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropertySourceLocator {
 
-	private CoreV1Api coreV1Api;
+	private final CoreV1Api coreV1Api;
 
-	private KubernetesClientProperties kubernetesClientProperties;
+	private final KubernetesClientProperties kubernetesClientProperties;
 
-	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
+	private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
+	/**
+	 * This constructor is deprecated. Its usage might cause unexpected behavior when looking for different properties.
+	 * For example, in general, if a namespace is not provided, we might look it up via other means:
+	 * different documented environment variables or from a kubernetes client itself. Using this constructor might not reflect that.
+	 */
+	@Deprecated
 	public KubernetesClientSecretsPropertySourceLocator(CoreV1Api coreV1Api,
 			KubernetesClientProperties kubernetesClientProperties, SecretsConfigProperties secretsConfigProperties) {
 		super(secretsConfigProperties);
 		this.coreV1Api = coreV1Api;
 		this.kubernetesClientProperties = kubernetesClientProperties;
+		this.kubernetesNamespaceProvider = null;
 	}
 
 	public KubernetesClientSecretsPropertySourceLocator(CoreV1Api coreV1Api,
@@ -51,6 +58,7 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 		super(secretsConfigProperties);
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
+		this.kubernetesClientProperties = null;
 	}
 
 	@Override

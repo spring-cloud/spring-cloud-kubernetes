@@ -22,10 +22,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
-import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.*;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
@@ -49,15 +46,15 @@ public class Fabric8BootstrapConfiguration {
 	@Bean
 	@ConditionalOnKubernetesConfigEnabled
 	public Fabric8ConfigMapPropertySourceLocator configMapPropertySourceLocator(ConfigMapConfigProperties properties,
-			KubernetesClient client) {
-		return new Fabric8ConfigMapPropertySourceLocator(client, properties);
+			KubernetesClient client, KubernetesNamespaceProvider provider) {
+		return new Fabric8ConfigMapPropertySourceLocator(client, properties, provider);
 	}
 
 	@Bean
 	@ConditionalOnKubernetesSecretsEnabled
 	public Fabric8SecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties,
-			KubernetesClient client) {
-		return new Fabric8SecretsPropertySourceLocator(client, properties);
+			KubernetesClient client, KubernetesNamespaceProvider provider) {
+		return new Fabric8SecretsPropertySourceLocator(client, properties, provider);
 	}
 
 }
