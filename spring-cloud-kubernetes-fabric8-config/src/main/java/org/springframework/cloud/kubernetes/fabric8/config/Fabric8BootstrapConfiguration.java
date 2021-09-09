@@ -26,6 +26,7 @@ import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfi
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
@@ -33,6 +34,7 @@ import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 
 /**
  * Auto configuration that reuses Kubernetes config maps as property sources.
@@ -47,17 +49,22 @@ import org.springframework.context.annotation.Import;
 public class Fabric8BootstrapConfiguration {
 
 	@Bean
+	public KubernetesNamespaceProvider provider(Environment env) {
+		return new KubernetesNamespaceProvider(env);
+	}
+
+	@Bean
 	@ConditionalOnKubernetesConfigEnabled
 	public Fabric8ConfigMapPropertySourceLocator configMapPropertySourceLocator(ConfigMapConfigProperties properties,
-			KubernetesClient client) {
-		return new Fabric8ConfigMapPropertySourceLocator(client, properties);
+			KubernetesClient client, KubernetesNamespaceProvider provider) {
+		return new Fabric8ConfigMapPropertySourceLocator(client, properties, provider);
 	}
 
 	@Bean
 	@ConditionalOnKubernetesSecretsEnabled
 	public Fabric8SecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties,
-			KubernetesClient client) {
-		return new Fabric8SecretsPropertySourceLocator(client, properties);
+			KubernetesClient client, KubernetesNamespaceProvider provider) {
+		return new Fabric8SecretsPropertySourceLocator(client, properties, provider);
 	}
 
 }

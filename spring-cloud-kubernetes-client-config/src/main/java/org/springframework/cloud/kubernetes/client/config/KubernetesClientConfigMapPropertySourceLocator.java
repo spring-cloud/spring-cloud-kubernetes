@@ -34,15 +34,16 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 
 	private final CoreV1Api coreV1Api;
 
-	private KubernetesClientProperties kubernetesClientProperties;
+	private final KubernetesClientProperties kubernetesClientProperties;
 
-	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
+	private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
 	public KubernetesClientConfigMapPropertySourceLocator(CoreV1Api coreV1Api, ConfigMapConfigProperties properties,
 			KubernetesClientProperties kubernetesClientProperties) {
 		super(properties);
 		this.coreV1Api = coreV1Api;
 		this.kubernetesClientProperties = kubernetesClientProperties;
+		this.kubernetesNamespaceProvider = null;
 	}
 
 	public KubernetesClientConfigMapPropertySourceLocator(CoreV1Api coreV1Api, ConfigMapConfigProperties properties,
@@ -50,12 +51,14 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 		super(properties);
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
+		this.kubernetesClientProperties = null;
 	}
 
 	@Override
 	protected MapPropertySource getMapPropertySource(String name,
 			ConfigMapConfigProperties.NormalizedSource normalizedSource, String configurationTarget,
 			ConfigurableEnvironment environment) {
+
 		String fallbackNamespace = kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
 				: kubernetesClientProperties.getNamespace();
 		return new KubernetesClientConfigMapPropertySource(coreV1Api, name,

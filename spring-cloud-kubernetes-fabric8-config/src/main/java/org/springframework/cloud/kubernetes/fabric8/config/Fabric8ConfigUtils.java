@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.util.StringUtils;
 
 /**
@@ -38,6 +39,7 @@ public final class Fabric8ConfigUtils {
 	private Fabric8ConfigUtils() {
 	}
 
+	@Deprecated
 	public static String getApplicationNamespace(KubernetesClient client, String namespace,
 			String configurationTarget) {
 		if (!StringUtils.hasLength(namespace)) {
@@ -47,6 +49,26 @@ public final class Fabric8ConfigUtils {
 		}
 
 		return namespace;
+	}
+
+	static String getApplicationNamespace(KubernetesClient client, String namespace, String configurationTarget,
+			KubernetesNamespaceProvider provider) {
+
+		if (StringUtils.hasText(namespace)) {
+			LOG.debug(configurationTarget + " namespace from normalized source : " + namespace);
+			return namespace;
+		}
+
+		if (provider != null) {
+			String providerNamespace = provider.getNamespace();
+			if (StringUtils.hasText(providerNamespace)) {
+				LOG.debug(configurationTarget + " namespace from provider : " + namespace);
+			}
+		}
+
+		LOG.debug(configurationTarget + " namespace from client : " + client.getNamespace());
+		return client.getNamespace();
+
 	}
 
 	public static String getApplicationNamespace(KubernetesClient client, String namespace) {
