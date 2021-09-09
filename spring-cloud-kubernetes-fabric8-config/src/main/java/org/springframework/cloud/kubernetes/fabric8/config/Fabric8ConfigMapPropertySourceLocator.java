@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
@@ -39,17 +40,35 @@ public class Fabric8ConfigMapPropertySourceLocator extends ConfigMapPropertySour
 
 	private final KubernetesClient client;
 
+	private final KubernetesNamespaceProvider provider;
+
+	/**
+	 * This constructor is deprecated. Its usage might cause unexpected behavior when
+	 * looking for different properties. For example, in general, if a namespace is not
+	 * provided, we might look it up via other means: different documented environment
+	 * variables or from a kubernetes client itself. Using this constructor might not
+	 * reflect that.
+	 */
+	@Deprecated
 	public Fabric8ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties) {
 		super(properties);
 		this.client = client;
+		this.provider = null;
+	}
+
+	public Fabric8ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties,
+			KubernetesNamespaceProvider provider) {
+		super(properties);
+		this.client = client;
+		this.provider = provider;
 	}
 
 	@Override
 	protected MapPropertySource getMapPropertySource(String applicationName, NormalizedSource normalizedSource,
 			String configurationTarget, ConfigurableEnvironment environment) {
-		String namespaceName = getApplicationNamespace(this.client, normalizedSource.getNamespace(),
-				configurationTarget);
-		return new Fabric8ConfigMapPropertySource(this.client, applicationName, namespaceName, environment,
+		String configMapName = getApplicationNamespace(this.client, normalizedSource.getNamespace(),
+				configurationTarget, provider);
+		return new Fabric8ConfigMapPropertySource(this.client, applicationName, configMapName, environment,
 				normalizedSource.getPrefix());
 	}
 

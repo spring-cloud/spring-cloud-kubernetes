@@ -60,12 +60,12 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 			}
 
 			client.secrets().inNamespace(namespaceToUse).withLabels(labels).list().getItems()
-				.forEach(s -> putDataFromSecret(s, result, namespaceToUse));
+					.forEach(s -> putDataFromSecret(s, result, namespaceToUse));
 
 		}
 		catch (Exception e) {
-			LOG.warn("Can't read secret with name: [" + name + "] or labels [" + labels + "] in namespace: [" + namespaceToUse
-					+ "] (cause: " + e.getMessage() + "). Ignoring");
+			LOG.warn("Can't read secret with name: [" + name + "] or labels [" + labels + "] in namespace: ["
+					+ namespaceToUse + "] (cause: " + e.getMessage() + "). Ignoring");
 		}
 
 		return result;
