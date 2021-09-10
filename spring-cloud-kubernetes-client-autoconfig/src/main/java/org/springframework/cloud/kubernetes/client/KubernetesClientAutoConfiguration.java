@@ -42,7 +42,6 @@ public class KubernetesClientAutoConfiguration {
 	@ConditionalOnMissingBean
 	public ApiClient apiClient() {
 		ApiClient apiClient = kubernetesApiClient();
-		io.kubernetes.client.openapi.Configuration.setDefaultApiClient(apiClient);
 		return apiClient;
 	}
 
