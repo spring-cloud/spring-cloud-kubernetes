@@ -35,8 +35,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(classes = App.class, properties = { "kubernetes.informer.enabled=false" })
 // kubernetes.informer is disabled because
 // io.kubernetes...KubernetesInformerAutoConfiguration
-// creates a defaultApiClient that will be autowired instead of the
-// ApiClient created in KubernetesClientAutoConfiguration
+// creates a defaultApiClient that will be autowired instead of the ApiClient
+// created in KubernetesClientAutoConfiguration
 public class KubernetesClientDefaultApiClientTests {
 
 	@Autowired

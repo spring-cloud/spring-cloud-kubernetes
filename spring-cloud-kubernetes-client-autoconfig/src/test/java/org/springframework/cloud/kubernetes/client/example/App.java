@@ -24,11 +24,4 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class App {
 
-	// @Bean
-	// public ApiClient apiClient() {
-	// ApiClient apiClient = mock(ApiClient.class);
-	// when(apiClient.getHttpClient()).thenReturn(new OkHttpClient.Builder().build());
-	// return apiClient;
-	// }
-
 }
