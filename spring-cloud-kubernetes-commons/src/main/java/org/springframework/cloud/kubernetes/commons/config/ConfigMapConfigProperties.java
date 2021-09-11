@@ -85,8 +85,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			return Collections.singletonList(new NormalizedSource(name, namespace, ""));
 		}
 
-		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix))
-			.collect(Collectors.toList());
+		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix)).collect(Collectors.toList());
 	}
 
 	@Override
@@ -165,18 +164,11 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
 
-		// not used, but not removed because of potential compatibility reasons
-		@Deprecated
-		public NormalizedSource normalize(String defaultName, String defaultNamespace) {
-			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
-			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-			return new NormalizedSource(normalizedName, normalizedNamespace, "");
-		}
-
 		public NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix, normalizedName);
+			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix,
+					normalizedName);
 			return new NormalizedSource(normalizedName, normalizedNamespace, prefix);
 		}
 
@@ -206,14 +198,6 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		private final String namespace;
 
 		private final String prefix;
-
-		// not used, but not removed because of potential compatibility reasons
-		@Deprecated
-		NormalizedSource(String name, String namespace) {
-			this.name = name;
-			this.namespace = namespace;
-			this.prefix = "";
-		}
 
 		NormalizedSource(String name, String namespace, String prefix) {
 			this.name = name;

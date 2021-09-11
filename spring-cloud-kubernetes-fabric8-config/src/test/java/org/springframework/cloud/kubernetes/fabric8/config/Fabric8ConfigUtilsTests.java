@@ -41,18 +41,6 @@ public class Fabric8ConfigUtilsTests {
 	private final KubernetesNamespaceProvider provider = Mockito.mock(KubernetesNamespaceProvider.class);
 
 	@Test
-	public void testGetApplicationNamespaceNotPresent() {
-		String result = Fabric8ConfigUtils.getApplicationNamespace(client, "", "target");
-		assertThat(result).isEqualTo("test");
-	}
-
-	@Test
-	public void testGetApplicationNamespacePresent() {
-		String result = Fabric8ConfigUtils.getApplicationNamespace(client, "namespace", "target");
-		assertThat(result).isEqualTo("namespace");
-	}
-
-	@Test
 	void testNamespaceFromNormalizedSource() {
 		String result = Fabric8ConfigUtils.getApplicationNamespace(client, "abc", "target", null);
 		assertThat(result).isEqualTo("abc");

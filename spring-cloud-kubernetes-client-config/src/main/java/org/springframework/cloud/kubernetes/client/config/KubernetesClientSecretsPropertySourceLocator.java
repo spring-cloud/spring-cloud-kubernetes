@@ -18,14 +18,11 @@ package org.springframework.cloud.kubernetes.client.config;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 
@@ -36,56 +33,22 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 
 	private final CoreV1Api coreV1Api;
 
-	private final KubernetesClientProperties kubernetesClientProperties;
-
 	private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
-
-	/**
-	 * This constructor is deprecated. Its usage might cause unexpected behavior when
-	 * looking for different properties. For example, in general, if a namespace is not
-	 * provided, we might look it up via other means: different documented environment
-	 * variables or from a kubernetes client itself. Using this constructor might not
-	 * reflect that.
-	 */
-	@Deprecated
-	public KubernetesClientSecretsPropertySourceLocator(CoreV1Api coreV1Api,
-			KubernetesClientProperties kubernetesClientProperties, SecretsConfigProperties secretsConfigProperties) {
-		super(secretsConfigProperties);
-		this.coreV1Api = coreV1Api;
-		this.kubernetesClientProperties = kubernetesClientProperties;
-		this.kubernetesNamespaceProvider = null;
-	}
 
 	public KubernetesClientSecretsPropertySourceLocator(CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, SecretsConfigProperties secretsConfigProperties) {
 		super(secretsConfigProperties);
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
-		this.kubernetesClientProperties = null;
 	}
 
 	@Override
 	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment,
 			SecretsConfigProperties.NormalizedSource normalizedSource, String configurationTarget) {
 
-		String namespace;
-		String normalizedNamespace = normalizedSource.getNamespace();
+		String namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedSource.getNamespace(),
+			"Secret", kubernetesNamespaceProvider);
 		String secretName = getApplicationName(environment, normalizedSource.getName(), configurationTarget);
-
-		if (StringUtils.hasText(normalizedNamespace)) {
-			namespace = normalizedNamespace;
-		} else if (kubernetesClientProperties != null) {
-			if (StringUtils.hasText(kubernetesClientProperties.getNamespace())) {
-				namespace = kubernetesClientProperties.getNamespace();
-			}
-			else {
-				throw new NamespaceResolutionFailedException(
-					"could not resolve namespace in normalized source or KubernetesClientProperties");
-			}
-		} else {
-			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace,
-				"Secret", kubernetesNamespaceProvider);
-		}
 
 		return new KubernetesClientSecretsPropertySource(coreV1Api, secretName, namespace, environment,
 				normalizedSource.getLabels());

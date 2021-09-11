@@ -69,7 +69,8 @@ public class ConfigMapsTest {
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName, null, null,
+				"");
 
 		assertThat(cmps.getProperty("dummy.property.string1")).isEqualTo("a");
 		assertThat(cmps.getProperty("dummy.property.int1")).isEqualTo("1");
@@ -84,7 +85,8 @@ public class ConfigMapsTest {
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName, null, null,
+				"");
 
 		assertThat(cmps.getProperty("dummy.property.string2")).isEqualTo("a");
 		assertThat(cmps.getProperty("dummy.property.int2")).isEqualTo(1);
@@ -99,7 +101,8 @@ public class ConfigMapsTest {
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName, null, null,
+				"");
 
 		assertThat(cmps.getProperty("dummy.property.string3")).isEqualTo("a");
 		assertThat(cmps.getProperty("dummy.property.int3")).isEqualTo(1);
@@ -114,7 +117,8 @@ public class ConfigMapsTest {
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName, null, null,
+				"");
 
 		// no exception is thrown for unparseable content
 	}
@@ -127,7 +131,8 @@ public class ConfigMapsTest {
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName, null, null,
+				"");
 
 		// no exception is thrown for unparseable content
 	}
@@ -141,7 +146,8 @@ public class ConfigMapsTest {
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName, null, null,
+				"");
 
 		// application.properties should be read correctly
 		assertThat(cmps.getProperty("dummy.property.string1")).isEqualTo("a");

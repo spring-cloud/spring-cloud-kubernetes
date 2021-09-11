@@ -18,14 +18,11 @@ package org.springframework.cloud.kubernetes.client.config;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Ryan Baxter
@@ -34,32 +31,13 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 
 	private final CoreV1Api coreV1Api;
 
-	private final KubernetesClientProperties kubernetesClientProperties;
-
 	private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
-
-	/**
-	 * This constructor is deprecated. Its usage might cause unexpected behavior when
-	 * looking for different properties. For example, in general, if a namespace is not
-	 * provided, we might look it up via other means: different documented environment
-	 * variables or from a kubernetes client itself. Using this constructor might not
-	 * reflect that.
-	 */
-	@Deprecated
-	public KubernetesClientConfigMapPropertySourceLocator(CoreV1Api coreV1Api, ConfigMapConfigProperties properties,
-			KubernetesClientProperties kubernetesClientProperties) {
-		super(properties);
-		this.coreV1Api = coreV1Api;
-		this.kubernetesClientProperties = kubernetesClientProperties;
-		this.kubernetesNamespaceProvider = null;
-	}
 
 	public KubernetesClientConfigMapPropertySourceLocator(CoreV1Api coreV1Api, ConfigMapConfigProperties properties,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		super(properties);
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
-		this.kubernetesClientProperties = null;
 	}
 
 	@Override
@@ -67,23 +45,8 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 			ConfigMapConfigProperties.NormalizedSource normalizedSource, String configurationTarget,
 			ConfigurableEnvironment environment) {
 
-		String namespace;
-		String normalizedNamespace = normalizedSource.getNamespace();
-
-		if (StringUtils.hasText(normalizedNamespace)) {
-			namespace = normalizedNamespace;
-		} else if (kubernetesClientProperties != null) {
-			if (StringUtils.hasText(kubernetesClientProperties.getNamespace())) {
-				namespace = kubernetesClientProperties.getNamespace();
-			}
-			else {
-				throw new NamespaceResolutionFailedException(
-					"could not resolve namespace in normalized source or KubernetesClientProperties");
-			}
-		} else {
-			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace,
-				"Config Map", kubernetesNamespaceProvider);
-		}
+		String namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedSource.getNamespace(),
+			"Config Map", kubernetesNamespaceProvider);
 
 		return new KubernetesClientConfigMapPropertySource(coreV1Api, name, namespace, environment,
 				normalizedSource.getPrefix());
