@@ -74,17 +74,19 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 
 		if (StringUtils.hasText(normalizedNamespace)) {
 			namespace = normalizedNamespace;
-		} else if (kubernetesClientProperties != null) {
+		}
+		else if (kubernetesClientProperties != null) {
 			if (StringUtils.hasText(kubernetesClientProperties.getNamespace())) {
 				namespace = kubernetesClientProperties.getNamespace();
 			}
 			else {
 				throw new NamespaceResolutionFailedException(
-					"could not resolve namespace in normalized source or KubernetesClientProperties");
+						"could not resolve namespace in normalized source or KubernetesClientProperties");
 			}
-		} else {
-			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace,
-				"Secret", kubernetesNamespaceProvider);
+		}
+		else {
+			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace, "Secret",
+					kubernetesNamespaceProvider);
 		}
 
 		return new KubernetesClientSecretsPropertySource(coreV1Api, secretName, namespace, environment,

@@ -87,7 +87,6 @@ public final class KubernetesClientConfigUtils {
 	 * </pre>
 	 *
 	 * If any of the above fail, we throw a NamespaceResolutionFailedException.
-	 *
 	 * @param namespace normalized namespace
 	 * @param configurationTarget Config Map/Secret
 	 * @param provider the provider which computes the namespace
