@@ -16,11 +16,17 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author wind57
@@ -29,6 +35,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class Fabric8ConfigUtilsTests {
 
 	private KubernetesClient client;
+
+	private final DefaultKubernetesClient mockClient = Mockito.mock(DefaultKubernetesClient.class);
+
+	private final KubernetesNamespaceProvider provider = Mockito.mock(KubernetesNamespaceProvider.class);
 
 	@Test
 	public void testGetApplicationNamespaceNotPresent() {
@@ -40,6 +50,32 @@ public class Fabric8ConfigUtilsTests {
 	public void testGetApplicationNamespacePresent() {
 		String result = Fabric8ConfigUtils.getApplicationNamespace(client, "namespace", "target");
 		assertThat(result).isEqualTo("namespace");
+	}
+
+	@Test
+	void testNamespaceFromNormalizedSource() {
+		String result = Fabric8ConfigUtils.getApplicationNamespace(client, "abc", "target", null);
+		assertThat(result).isEqualTo("abc");
+	}
+
+	@Test
+	void testNamespaceFromProvider() {
+		Mockito.when(provider.getNamespace()).thenReturn("def");
+		String result = Fabric8ConfigUtils.getApplicationNamespace(client, "", "target", provider);
+		assertThat(result).isEqualTo("def");
+	}
+
+	@Test
+	void testNamespaceFromClient() {
+		Mockito.when(mockClient.getNamespace()).thenReturn("qwe");
+		String result = Fabric8ConfigUtils.getApplicationNamespace(mockClient, "", "target", null);
+		assertThat(result).isEqualTo("qwe");
+	}
+
+	@Test
+	void testNamespaceResolutionFailed() {
+		assertThatThrownBy(() -> Fabric8ConfigUtils.getApplicationNamespace(mockClient, "", "target", null))
+				.isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 }

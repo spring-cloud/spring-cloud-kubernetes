@@ -16,8 +16,13 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.util.StringUtils;
 
@@ -25,6 +30,8 @@ import org.springframework.util.StringUtils;
  * @author Ryan Baxter
  */
 public final class KubernetesClientConfigUtils {
+
+	private static final Log LOG = LogFactory.getLog(KubernetesClientConfigUtils.class);
 
 	private KubernetesClientConfigUtils() {
 	}
@@ -51,16 +58,51 @@ public final class KubernetesClientConfigUtils {
 		}
 	}
 
+	@Deprecated
 	public static String getNamespace(ConfigMapConfigProperties.NormalizedSource normalizedSource,
 			String fallbackNamespace) {
 		String normalizedNamespace = normalizedSource.getNamespace();
 		return StringUtils.hasText(normalizedNamespace) ? normalizedNamespace : fallbackNamespace;
 	}
 
+	@Deprecated
 	public static String getNamespace(SecretsConfigProperties.NormalizedSource normalizedSource,
 			String fallbackNamespace) {
 		String normalizedNamespace = normalizedSource.getNamespace();
 		return StringUtils.hasText(normalizedNamespace) ? normalizedNamespace : fallbackNamespace;
+	}
+
+	/**
+	 * this method does the namespace resolution for both config map and secrets
+	 * implementations. It tries these places to find the namespace:
+	 *
+	 * <pre>
+	 *     1. from a normalized source (which can be null)
+	 *     2. from property 'spring.cloud.kubernetes.client.namespace', if such is present
+	 *     3. from a String residing in a path denoted by : 'spring.cloud.kubernetes.client.serviceAccountNamespacePath',
+	 *        if such is present
+	 *     4. from a String residing in a path denoted by '/var/run/secrets/kubernetes.io/serviceaccount/namespace',
+	 *        if such is present (kubernetes default path)
+	 * </pre>
+	 *
+	 * If any of the above fail, we throw a NamespaceResolutionFailedException.
+	 */
+	static String getApplicationNamespace(String namespace, String configurationTarget,
+			KubernetesNamespaceProvider provider) {
+		if (StringUtils.hasText(namespace)) {
+			LOG.debug(configurationTarget + " namespace from normalized source : " + namespace);
+			return namespace;
+		}
+
+		if (provider != null) {
+			String providerNamespace = provider.getNamespace();
+			if (StringUtils.hasText(providerNamespace)) {
+				LOG.debug(configurationTarget + " namespace from provider : " + namespace);
+				return providerNamespace;
+			}
+		}
+
+		throw new NamespaceResolutionFailedException("unresolved namespace");
 	}
 
 }

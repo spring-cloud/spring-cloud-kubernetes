@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.util.StringUtils;
 
 /**
@@ -39,6 +40,9 @@ public final class Fabric8ConfigUtils {
 	private Fabric8ConfigUtils() {
 	}
 
+	/*
+	 * this is not used, it is here for compatibility reasons only.
+	 */
 	@Deprecated
 	public static String getApplicationNamespace(KubernetesClient client, String namespace,
 			String configurationTarget) {
@@ -51,6 +55,22 @@ public final class Fabric8ConfigUtils {
 		return namespace;
 	}
 
+	/**
+	 * this method does the namespace resolution for both config map and secrets
+	 * implementations. It tries these places to find the namespace:
+	 *
+	 * <pre>
+	 *     1. from a normalized source (which can be null)
+	 *     2. from property 'spring.cloud.kubernetes.client.namespace', if such is present
+	 *     3. from a String residing in a path denoted by 'spring.cloud.kubernetes.client.serviceAccountNamespacePath',
+	 *        if such is present
+	 *     4. from a String residing in a path denoted by '/var/run/secrets/kubernetes.io/serviceaccount/namespace',
+	 *        if such is present (kubernetes default path)
+	 *     5. from KubernetesClient::getNamespace, which is implementation specific.
+	 * </pre>
+	 *
+	 * If any of the above fail, we throw a NamespaceResolutionFailedException.
+	 */
 	static String getApplicationNamespace(KubernetesClient client, String namespace, String configurationTarget,
 			KubernetesNamespaceProvider provider) {
 
@@ -63,11 +83,16 @@ public final class Fabric8ConfigUtils {
 			String providerNamespace = provider.getNamespace();
 			if (StringUtils.hasText(providerNamespace)) {
 				LOG.debug(configurationTarget + " namespace from provider : " + namespace);
+				return providerNamespace;
 			}
 		}
 
-		LOG.debug(configurationTarget + " namespace from client : " + client.getNamespace());
-		return client.getNamespace();
+		String clientNamespace = client.getNamespace();
+		LOG.debug(configurationTarget + " namespace from client : " + clientNamespace);
+		if (clientNamespace == null) {
+			throw new NamespaceResolutionFailedException("unresolved namespace");
+		}
+		return clientNamespace;
 
 	}
 
@@ -75,7 +100,7 @@ public final class Fabric8ConfigUtils {
 		return !StringUtils.hasLength(namespace) ? client.getNamespace() : namespace;
 	}
 
-	public static Map<String, String> getConfigMapData(KubernetesClient client, String namespace, String name) {
+	static Map<String, String> getConfigMapData(KubernetesClient client, String namespace, String name) {
 		ConfigMap configMap = !StringUtils.hasLength(namespace) ? client.configMaps().withName(name).get()
 				: client.configMaps().inNamespace(namespace).withName(name).get();
 

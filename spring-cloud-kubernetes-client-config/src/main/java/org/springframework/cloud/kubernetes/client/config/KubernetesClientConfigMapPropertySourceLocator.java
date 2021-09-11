@@ -25,8 +25,6 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySour
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
-import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.getNamespace;
-
 /**
  * @author Ryan Baxter
  */
@@ -38,6 +36,14 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 
 	private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
+	/**
+	 * This constructor is deprecated. Its usage might cause unexpected behavior when
+	 * looking for different properties. For example, in general, if a namespace is not
+	 * provided, we might look it up via other means: different documented environment
+	 * variables or from a kubernetes client itself. Using this constructor might not
+	 * reflect that.
+	 */
+	@Deprecated
 	public KubernetesClientConfigMapPropertySourceLocator(CoreV1Api coreV1Api, ConfigMapConfigProperties properties,
 			KubernetesClientProperties kubernetesClientProperties) {
 		super(properties);
@@ -59,10 +65,11 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 			ConfigMapConfigProperties.NormalizedSource normalizedSource, String configurationTarget,
 			ConfigurableEnvironment environment) {
 
-		String fallbackNamespace = kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
-				: kubernetesClientProperties.getNamespace();
-		return new KubernetesClientConfigMapPropertySource(coreV1Api, name,
-				getNamespace(normalizedSource, fallbackNamespace), environment, normalizedSource.getPrefix());
+		String namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedSource.getNamespace(),
+				"Config Map", kubernetesNamespaceProvider);
+
+		return new KubernetesClientConfigMapPropertySource(coreV1Api, name, namespace, environment,
+				normalizedSource.getPrefix());
 	}
 
 }
