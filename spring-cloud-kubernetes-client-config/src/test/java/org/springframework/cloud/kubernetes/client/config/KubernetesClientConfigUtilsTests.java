@@ -46,7 +46,7 @@ class KubernetesClientConfigUtilsTests {
 	}
 
 	@Test
-	public void testNamespaceResolutionFailed() {
+	void testNamespaceResolutionFailed() {
 		assertThatThrownBy(() -> KubernetesClientConfigUtils.getApplicationNamespace("", "target", null))
 				.isInstanceOf(NamespaceResolutionFailedException.class);
 	}

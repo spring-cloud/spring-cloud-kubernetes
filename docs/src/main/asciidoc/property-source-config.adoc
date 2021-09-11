@@ -632,8 +632,8 @@ spring:
 Remember that the same can be done for config maps. If such a namespace is not specified, it will be read (in this order):
 
 1. from property `spring.cloud.kubernetes.client.namespace`
-2. from a String residing in a path denoted by `spring.cloud.kubernetes.client.serviceAccountNamespacePath`
-3. from a String residing in a path denoted by `/var/run/secrets/kubernetes.io/serviceaccount/namespace`
+2. from a String residing in a file denoted by `spring.cloud.kubernetes.client.serviceAccountNamespacePath` property
+3. from a String residing in `/var/run/secrets/kubernetes.io/serviceaccount/namespace` file
 (kubernetes default namespace path)
 4. from a designated client method call (for example fabric8's : `KubernetesClient::getNamespace`), if the clients provide
 such a method.

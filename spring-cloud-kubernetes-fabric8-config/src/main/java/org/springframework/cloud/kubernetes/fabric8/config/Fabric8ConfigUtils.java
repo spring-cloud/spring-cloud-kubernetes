@@ -61,8 +61,9 @@ public final class Fabric8ConfigUtils {
 	 *
 	 * <pre>
 	 *     1. from a normalized source (which can be null)
-	 *     2. from property 'spring.cloud.kubernetes.client.namespace', if such is present
-	 *     3. from a String residing in a path denoted by 'spring.cloud.kubernetes.client.serviceAccountNamespacePath',
+	 *     2. from a String residing in a file denoted by `spring.cloud.kubernetes.client.serviceAccountNamespacePath`
+	 *        property, if such is present
+	 *     3. from a String residing in `/var/run/secrets/kubernetes.io/serviceaccount/namespace` file,
 	 *        if such is present
 	 *     4. from a String residing in a path denoted by '/var/run/secrets/kubernetes.io/serviceaccount/namespace',
 	 *        if such is present (kubernetes default path)
