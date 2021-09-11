@@ -63,14 +63,21 @@ public final class Fabric8ConfigUtils {
 	 *     1. from a normalized source (which can be null)
 	 *     2. from a String residing in a file denoted by `spring.cloud.kubernetes.client.serviceAccountNamespacePath`
 	 *        property, if such is present
-	 *     3. from a String residing in `/var/run/secrets/kubernetes.io/serviceaccount/namespace` file,
-	 *        if such is present
-	 *     4. from a String residing in a path denoted by '/var/run/secrets/kubernetes.io/serviceaccount/namespace',
-	 *        if such is present (kubernetes default path)
-	 *     5. from KubernetesClient::getNamespace, which is implementation specific.
+	 *     3. from a String residing in a file denoted by `spring.cloud.kubernetes.client.serviceAccountNamespacePath`
+	 * 	      property, if such is present
+	 * 	   4. from a String residing in `/var/run/secrets/kubernetes.io/serviceaccount/namespace` file,
+	 * 	  	  if such is present (kubernetes default path)
+	 * 	   5. from KubernetesClient::getNamespace, which is implementation specific.
 	 * </pre>
 	 *
 	 * If any of the above fail, we throw a NamespaceResolutionFailedException.
+	 *
+	 * @param namespace normalized namespace
+	 * @param configurationTarget Config Map/Secret
+	 * @param provider the provider which computes the namespace
+	 * @param client fabric8 Kubernetes client
+	 * @return application namespace
+	 * @throws NamespaceResolutionFailedException when namespace could not be resolved
 	 */
 	static String getApplicationNamespace(KubernetesClient client, String namespace, String configurationTarget,
 			KubernetesNamespaceProvider provider) {

@@ -80,13 +80,19 @@ public final class KubernetesClientConfigUtils {
 	 *     1. from a normalized source (which can be null)
 	 *     2. from a String residing in a file denoted by `spring.cloud.kubernetes.client.serviceAccountNamespacePath`
 	 *        property, if such is present
-	 *     3. from a String residing in `/var/run/secrets/kubernetes.io/serviceaccount/namespace` file,
-	 *        if such is present
-	 *     4. from a String residing in a path denoted by '/var/run/secrets/kubernetes.io/serviceaccount/namespace',
-	 *        if such is present (kubernetes default path)
+	 *     3. from a String residing in a file denoted by `spring.cloud.kubernetes.client.serviceAccountNamespacePath`
+	 * 	      property, if such is present
+	 * 	   4. from a String residing in `/var/run/secrets/kubernetes.io/serviceaccount/namespace` file,
+	 * 	  	  if such is present (kubernetes default path)
 	 * </pre>
 	 *
 	 * If any of the above fail, we throw a NamespaceResolutionFailedException.
+	 *
+	 * @param namespace normalized namespace
+	 * @param configurationTarget Config Map/Secret
+	 * @param provider the provider which computes the namespace
+	 * @return application namespace
+	 * @throws NamespaceResolutionFailedException when namespace could not be resolved
 	 */
 	static String getApplicationNamespace(String namespace, String configurationTarget,
 			KubernetesNamespaceProvider provider) {

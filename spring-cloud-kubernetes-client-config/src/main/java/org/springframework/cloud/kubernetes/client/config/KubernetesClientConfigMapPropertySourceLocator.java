@@ -22,8 +22,10 @@ import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Ryan Baxter
@@ -65,8 +67,23 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 			ConfigMapConfigProperties.NormalizedSource normalizedSource, String configurationTarget,
 			ConfigurableEnvironment environment) {
 
-		String namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedSource.getNamespace(),
+		String namespace;
+		String normalizedNamespace = normalizedSource.getNamespace();
+
+		if (StringUtils.hasText(normalizedNamespace)) {
+			namespace = normalizedNamespace;
+		} else if (kubernetesClientProperties != null) {
+			if (StringUtils.hasText(kubernetesClientProperties.getNamespace())) {
+				namespace = kubernetesClientProperties.getNamespace();
+			}
+			else {
+				throw new NamespaceResolutionFailedException(
+					"could not resolve namespace in normalized source or KubernetesClientProperties");
+			}
+		} else {
+			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace,
 				"Config Map", kubernetesNamespaceProvider);
+		}
 
 		return new KubernetesClientConfigMapPropertySource(coreV1Api, name, namespace, environment,
 				normalizedSource.getPrefix());
