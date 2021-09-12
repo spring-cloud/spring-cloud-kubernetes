@@ -45,7 +45,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
-		public void configAndSecretsBeansAreNotPresent() {
+		void configAndSecretsBeansAreNotPresent() {
 			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
 			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(0);
 		}
@@ -62,7 +62,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
-		public void configAndSecretsBeansArePresent() {
+		void configAndSecretsBeansArePresent() {
 			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(1);
 			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(1);
 		}
@@ -78,7 +78,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
-		public void configAndSecretsBeansArePresent() {
+		void configAndSecretsBeansArePresent() {
 			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(1);
 			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(1);
 		}
@@ -94,7 +94,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
-		public void secretsOnlyPresent() {
+		void secretsOnlyPresent() {
 			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
 			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(1);
 		}
@@ -111,7 +111,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
-		public void secretsOnlyPresent() {
+		void secretsOnlyPresent() {
 			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(1);
 			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(0);
 		}
@@ -128,7 +128,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
-		public void secretsOnlyPresent() {
+		void secretsOnlyPresent() {
 			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
 			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(0);
 		}
