@@ -42,8 +42,8 @@ public class KubernetesConfigConfigurationTest extends KubernetesConfigTestBase 
 
 	@Test
 	public void kubernetesWhenKubernetesDefaultEnabled() {
-		setup(KubernetesClientTestConfiguration.class,
-			"spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.client.namespace=default");
+		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.enabled=true",
+				"spring.cloud.kubernetes.client.namespace=default");
 		assertThat(getContext().containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(getContext().containsBean("secretsPropertySourceLocator")).isTrue();
 	}

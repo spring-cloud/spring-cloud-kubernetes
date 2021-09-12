@@ -43,8 +43,8 @@ public class MissingActuatorTest {
 
 	@Test
 	public void unknownClassProtected(CapturedOutput capturedOutput) {
-		try (ConfigurableApplicationContext context = getApplicationContext(
-				"debug=true", "spring.cloud.kubernetes.client.namespace=default")) {
+		try (ConfigurableApplicationContext context = getApplicationContext("debug=true",
+				"spring.cloud.kubernetes.client.namespace=default")) {
 			String output = capturedOutput.toString();
 			assertThat(output)
 					.doesNotContain("Failed to introspect annotations on"
