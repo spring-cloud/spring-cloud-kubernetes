@@ -10,7 +10,7 @@ containerdConfigPatches:
 # 1 control plane node and 3 workers
 nodes:
   - role: control-plane
-    image: kindest/node:v1.14.10@sha256:6cd43ff41ae9f02bb46c8f455d5323819aec858b99534a290517ebc181b443c6
+    image: kindest/node:v1.22.1@sha256:100b3558428386d1372591f8d62add85b900538d94db8e455b66ebaf05a3ca3a
     kubeadmConfigPatches:
     - |
       kind: InitConfiguration
@@ -25,4 +25,4 @@ nodes:
       hostPort: 443
       protocol: TCP
   - role: worker
-    image: kindest/node:v1.14.10@sha256:6cd43ff41ae9f02bb46c8f455d5323819aec858b99534a290517ebc181b443c6
+    image: kindest/node:v1.22.1@sha256:100b3558428386d1372591f8d62add85b900538d94db8e455b66ebaf05a3ca3a
