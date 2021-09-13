@@ -62,7 +62,7 @@ install_latest_kind() {
 
 # util to install a released kind version into ${BIN_DIR}
 install_kind_release() {
-    VERSION="v0.5.1"
+    VERSION="v0.11.1"
     KIND_BINARY_URL="https://github.com/kubernetes-sigs/kind/releases/download/${VERSION}/kind-linux-amd64"
     if [[ "$OSTYPE" == "darwin"*  ]]; then
         KIND_BINARY_URL="https://github.com/kubernetes-sigs/kind/releases/download/${VERSION}/kind-darwin-amd64"
@@ -73,7 +73,7 @@ install_kind_release() {
 	elif [[ "$OSTYPE" == "win32" ]]; then
         KIND_BINARY_URL="https://github.com/kubernetes-sigs/kind/releases/download/${VERSION}/kind-windows-amd64"
 	else
-        echo "Uknown OS, using linux binary"
+        echo "Unknown OS, using linux binary"
 	fi
     wget -O "${KIND}" "${KIND_BINARY_URL}"
     chmod +x "${KIND}"
