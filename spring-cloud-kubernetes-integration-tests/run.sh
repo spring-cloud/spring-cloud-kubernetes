@@ -62,7 +62,7 @@ install_latest_kind() {
 
 # util to install a released kind version into ${BIN_DIR}
 install_kind_release() {
-    VERSION="v0.5.1"
+    VERSION="v0.11.1"
     KIND_BINARY_URL="https://github.com/kubernetes-sigs/kind/releases/download/${VERSION}/kind-linux-amd64"
     if [[ "$OSTYPE" == "darwin"*  ]]; then
         KIND_BINARY_URL="https://github.com/kubernetes-sigs/kind/releases/download/${VERSION}/kind-darwin-amd64"
@@ -81,7 +81,7 @@ install_kind_release() {
 
 main() {
     # get kind
-    install_latest_kind
+    install_kind_release
 
     # create a cluster
     cd $CURRENT_DIR
