@@ -87,7 +87,7 @@ main() {
     cd $CURRENT_DIR
 
     #TODO what happens if cluster is already there????
-    "${KIND}" create cluster --config=kind-config.yaml --loglevel=debug
+    "${KIND}" create cluster --config=kind-config.yaml -v=2147483647
 
     # set KUBECONFIG to point to the cluster
     kubectl cluster-info --context kind-kind
