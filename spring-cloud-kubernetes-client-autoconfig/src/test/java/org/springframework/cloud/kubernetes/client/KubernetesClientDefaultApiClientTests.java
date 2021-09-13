@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.client.example.App;
+import org.springframework.cloud.kubernetes.client.example.AppWithoutApiClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * itself as the default apiClient. This is to avoid overwriting the user's
  * defaultApiClient if they include this project.
  */
-@SpringBootTest(classes = App.class, properties = { "kubernetes.informer.enabled=false" })
+@SpringBootTest(classes = AppWithoutApiClient.class, properties = { "kubernetes.informer.enabled=false" })
 // kubernetes.informer is disabled because
 // io.kubernetes...KubernetesInformerAutoConfiguration
 // creates a defaultApiClient that will be autowired instead of the ApiClient
