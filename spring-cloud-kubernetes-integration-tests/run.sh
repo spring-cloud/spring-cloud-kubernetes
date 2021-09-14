@@ -81,7 +81,7 @@ install_kind_release() {
 
 main() {
     # get kind
-    install_latest_kind
+    install_kind_release
 
     # create a cluster
     cd $CURRENT_DIR
