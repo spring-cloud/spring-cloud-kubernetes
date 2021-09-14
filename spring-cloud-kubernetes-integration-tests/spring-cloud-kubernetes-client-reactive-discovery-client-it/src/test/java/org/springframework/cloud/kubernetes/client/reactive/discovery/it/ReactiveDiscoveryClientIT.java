@@ -25,9 +25,9 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.NetworkingV1beta1Api;
-import io.kubernetes.client.openapi.models.NetworkingV1beta1Ingress;
+import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -69,7 +69,7 @@ public class ReactiveDiscoveryClientIT {
 
 	private AppsV1Api appsApi;
 
-	private NetworkingV1beta1Api networkingApi;
+	private NetworkingV1Api networkingApi;
 
 	private K8SUtils k8SUtils;
 
@@ -78,7 +78,7 @@ public class ReactiveDiscoveryClientIT {
 		this.client = createApiClient();
 		this.api = new CoreV1Api();
 		this.appsApi = new AppsV1Api();
-		this.networkingApi = new NetworkingV1beta1Api();
+		this.networkingApi = new NetworkingV1Api();
 		this.k8SUtils = new K8SUtils(api, appsApi);
 
 		deployWiremock();
@@ -200,8 +200,8 @@ public class ReactiveDiscoveryClientIT {
 		return deployment;
 	}
 
-	private NetworkingV1beta1Ingress getReactiveDiscoveryItIngress() throws Exception {
-		NetworkingV1beta1Ingress ingress = (NetworkingV1beta1Ingress) k8SUtils
+	private V1Ingress getReactiveDiscoveryItIngress() throws Exception {
+		V1Ingress ingress = (V1Ingress) k8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-reactive-discovery-it-ingress.yaml");
 		return ingress;
 	}
@@ -212,8 +212,8 @@ public class ReactiveDiscoveryClientIT {
 		networkingApi.createNamespacedIngress(NAMESPACE, getWiremockIngress(), null, null, null);
 	}
 
-	private NetworkingV1beta1Ingress getWiremockIngress() throws Exception {
-		NetworkingV1beta1Ingress ingress = (NetworkingV1beta1Ingress) k8SUtils
+	private V1Ingress getWiremockIngress() throws Exception {
+		V1Ingress ingress = (V1Ingress) k8SUtils
 				.readYamlFromClasspath("wiremock-ingress.yaml");
 		return ingress;
 	}

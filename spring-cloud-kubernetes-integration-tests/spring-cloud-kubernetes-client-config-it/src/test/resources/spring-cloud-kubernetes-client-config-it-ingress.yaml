@@ -1,14 +1,18 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: it-ingress
+  namespace: default
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
     - http:
         paths:
-          - path: /client-config-it(/|$)(.*)
+          - path: /core-k8s-client-it(/|$)(.*)
+            pathType: Prefix
             backend:
-              serviceName: spring-cloud-kubernetes-client-config-it
-              servicePort: 8080
+              service:
+                name: spring-cloud-kubernetes-client-config-it
+                port:
+                  number: 8080
