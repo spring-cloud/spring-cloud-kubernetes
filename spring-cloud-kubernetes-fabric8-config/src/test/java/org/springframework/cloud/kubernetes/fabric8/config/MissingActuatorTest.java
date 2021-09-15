@@ -37,13 +37,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ClassPathExclusions({ "spring-boot-actuator-autoconfigure-*.jar", "spring-boot-starter-actuator-*.jar" })
 public class MissingActuatorTest {
 
-	private static ConfigurableApplicationContext getApplicationContext(Class<?> configuration, String... properties) {
-		return new SpringApplicationBuilder(configuration).web(WebApplicationType.NONE).properties(properties).run();
+	private static ConfigurableApplicationContext getApplicationContext(String... properties) {
+		return new SpringApplicationBuilder(Config.class).web(WebApplicationType.NONE).properties(properties).run();
 	}
 
 	@Test
 	public void unknownClassProtected(CapturedOutput capturedOutput) {
-		try (ConfigurableApplicationContext context = getApplicationContext(Config.class, "debug=true")) {
+		try (ConfigurableApplicationContext context = getApplicationContext("debug=true",
+				"spring.cloud.kubernetes.client.namespace=default")) {
 			String output = capturedOutput.toString();
 			assertThat(output)
 					.doesNotContain("Failed to introspect annotations on"

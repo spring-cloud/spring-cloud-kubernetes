@@ -48,17 +48,19 @@ public final class ConfigUtils {
 	}
 
 	/**
-	 *
-	 * @param explicitPrefix value of 'spring.cloud.kubernetes.config.sources.explicitPrefix'
-	 * @param useNameAsPrefix value of 'spring.cloud.kubernetes.config.sources.useNameAsPrefix'
-	 * @param defaultUseNameAsPrefix value of 'spring.cloud.kubernetes.config.defaultUseNameAsPrefix'
-	 * @param normalizedName either the name of 'spring.cloud.kubernetes.config.sources.name' or
-	 *      'spring.cloud.kubernetes.config.name'
-	 *
+	 * @param explicitPrefix value of
+	 * 'spring.cloud.kubernetes.config.sources.explicitPrefix'
+	 * @param useNameAsPrefix value of
+	 * 'spring.cloud.kubernetes.config.sources.useNameAsPrefix'
+	 * @param defaultUseNameAsPrefix value of
+	 * 'spring.cloud.kubernetes.config.defaultUseNameAsPrefix'
+	 * @param normalizedName either the name of
+	 * 'spring.cloud.kubernetes.config.sources.name' or
+	 * 'spring.cloud.kubernetes.config.name'
 	 * @return prefix to use in normalized sources, never null
 	 */
-	public static String findPrefix(String explicitPrefix, Boolean useNameAsPrefix,
-			boolean defaultUseNameAsPrefix, String normalizedName) {
+	public static String findPrefix(String explicitPrefix, Boolean useNameAsPrefix, boolean defaultUseNameAsPrefix,
+			String normalizedName) {
 		// if explicitPrefix is set, it takes priority over useNameAsPrefix
 		// (either the one from 'spring.cloud.kubernetes.config' or
 		// 'spring.cloud.kubernetes.config.sources')
