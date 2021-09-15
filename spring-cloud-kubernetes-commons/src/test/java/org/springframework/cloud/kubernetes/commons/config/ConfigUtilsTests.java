@@ -104,4 +104,5 @@ public class ConfigUtilsTests {
 	public void testUseProfileNameAsSuffixSourcesOverridesDefault() {
 		Assertions.assertFalse(ConfigUtils.useProfileNameAsSuffix(true, false));
 	}
+
 }

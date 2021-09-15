@@ -30,7 +30,6 @@ import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.util.ClientBuilder;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.kubernetes.client.config.Constants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -95,7 +94,7 @@ class ProfileNameAsSuffixConfigurationStub {
 		allConfigMaps.setItems(Arrays.asList(one, two, twoDev, three, threeDev));
 
 		// the actual stub for CoreV1Api calls
-		WireMock.stubFor(WireMock.get(Constants.CONFIG_MAP_SPRING_K8S_API)
+		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps")
 				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
 	}
 

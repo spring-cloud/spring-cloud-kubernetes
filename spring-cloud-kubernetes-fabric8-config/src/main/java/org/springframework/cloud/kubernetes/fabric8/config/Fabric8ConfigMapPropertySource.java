@@ -47,7 +47,6 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 		this(client, name, null, null, "", true);
 	}
 
-
 	/**
 	 * this constructor is present only for compatibility reasons, its usage is
 	 * discouraged.
