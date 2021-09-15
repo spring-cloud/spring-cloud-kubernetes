@@ -9,7 +9,7 @@ spec:
   rules:
     - http:
         paths:
-          - path: /core-k8s-client-it(/|$)(.*)
+          - path: /client-config-it(/|$)(.*)
             pathType: Prefix
             backend:
               service:
