@@ -16,6 +16,3 @@ spec:
                 name: spring-cloud-kubernetes-configuration-watcher-it
                 port:
                   number: 8080
-
-
-

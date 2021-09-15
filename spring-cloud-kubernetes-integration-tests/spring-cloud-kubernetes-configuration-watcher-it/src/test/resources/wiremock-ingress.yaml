@@ -16,7 +16,3 @@ spec:
                 name: config-watcher-wiremock
                 port:
                   number: 8080
-
-
-
-
