@@ -20,12 +20,13 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.util.StringUtils;
 
-import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.getNamespace;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 
 /**
@@ -66,11 +67,30 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 	@Override
 	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment,
 			SecretsConfigProperties.NormalizedSource normalizedSource, String configurationTarget) {
-		String fallbackNamespace = kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
-				: kubernetesClientProperties.getNamespace();
-		return new KubernetesClientSecretsPropertySource(coreV1Api,
-				getApplicationName(environment, normalizedSource.getName(), configurationTarget),
-				getNamespace(normalizedSource, fallbackNamespace), environment, normalizedSource.getLabels());
+
+		String namespace;
+		String normalizedNamespace = normalizedSource.getNamespace();
+		String secretName = getApplicationName(environment, normalizedSource.getName(), configurationTarget);
+
+		if (StringUtils.hasText(normalizedNamespace)) {
+			namespace = normalizedNamespace;
+		}
+		else if (kubernetesClientProperties != null) {
+			if (StringUtils.hasText(kubernetesClientProperties.getNamespace())) {
+				namespace = kubernetesClientProperties.getNamespace();
+			}
+			else {
+				throw new NamespaceResolutionFailedException(
+						"could not resolve namespace in normalized source or KubernetesClientProperties");
+			}
+		}
+		else {
+			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace, "Secret",
+					kubernetesNamespaceProvider);
+		}
+
+		return new KubernetesClientSecretsPropertySource(coreV1Api, secretName, namespace, environment,
+				normalizedSource.getLabels());
 	}
 
 }

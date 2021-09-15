@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config;
+package org.springframework.cloud.kubernetes.client.config;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -28,7 +29,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author wind57
  */
-public class Fabric8BootstrapConfigurationTests {
+public class KubernetesClientBootstrapConfigurationTests {
+
+	@SpringBootApplication
+	static class Application {
+
+	}
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
 			properties = "spring.cloud.kubernetes.enabled=false")
@@ -39,9 +45,9 @@ public class Fabric8BootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
-		public void configAndSecretsBeansAreNotPresent() {
-			assertThat(context.getBeanNamesForType(Fabric8ConfigMapPropertySourceLocator.class)).hasSize(0);
-			assertThat(context.getBeanNamesForType(Fabric8SecretsPropertySourceLocator.class)).hasSize(0);
+		void configAndSecretsBeansAreNotPresent() {
+			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
+			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(0);
 		}
 
 	}
@@ -56,9 +62,9 @@ public class Fabric8BootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
-		public void configAndSecretsBeansArePresent() {
-			assertThat(context.getBeanNamesForType(Fabric8ConfigMapPropertySourceLocator.class)).hasSize(1);
-			assertThat(context.getBeanNamesForType(Fabric8SecretsPropertySourceLocator.class)).hasSize(1);
+		void configAndSecretsBeansArePresent() {
+			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(1);
+			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(1);
 		}
 
 	}
@@ -72,9 +78,9 @@ public class Fabric8BootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
-		public void configAndSecretsBeansArePresent() {
-			assertThat(context.getBeanNamesForType(Fabric8ConfigMapPropertySourceLocator.class)).hasSize(1);
-			assertThat(context.getBeanNamesForType(Fabric8SecretsPropertySourceLocator.class)).hasSize(1);
+		void configAndSecretsBeansArePresent() {
+			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(1);
+			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(1);
 		}
 
 	}
@@ -88,9 +94,9 @@ public class Fabric8BootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
-		public void secretsOnlyPresent() {
-			assertThat(context.getBeanNamesForType(Fabric8ConfigMapPropertySourceLocator.class)).hasSize(0);
-			assertThat(context.getBeanNamesForType(Fabric8SecretsPropertySourceLocator.class)).hasSize(1);
+		void secretsOnlyPresent() {
+			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
+			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(1);
 		}
 
 	}
@@ -105,9 +111,9 @@ public class Fabric8BootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
-		public void secretsOnlyPresent() {
-			assertThat(context.getBeanNamesForType(Fabric8ConfigMapPropertySourceLocator.class)).hasSize(1);
-			assertThat(context.getBeanNamesForType(Fabric8SecretsPropertySourceLocator.class)).hasSize(0);
+		void secretsOnlyPresent() {
+			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(1);
+			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(0);
 		}
 
 	}
@@ -122,9 +128,9 @@ public class Fabric8BootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
-		public void secretsOnlyPresent() {
-			assertThat(context.getBeanNamesForType(Fabric8ConfigMapPropertySourceLocator.class)).hasSize(0);
-			assertThat(context.getBeanNamesForType(Fabric8SecretsPropertySourceLocator.class)).hasSize(0);
+		void secretsOnlyPresent() {
+			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
+			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(0);
 		}
 
 	}

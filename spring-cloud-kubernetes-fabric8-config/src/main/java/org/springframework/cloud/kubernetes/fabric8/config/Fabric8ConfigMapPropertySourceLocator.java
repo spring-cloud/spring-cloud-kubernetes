@@ -66,9 +66,9 @@ public class Fabric8ConfigMapPropertySourceLocator extends ConfigMapPropertySour
 	@Override
 	protected MapPropertySource getMapPropertySource(String applicationName, NormalizedSource normalizedSource,
 			String configurationTarget, ConfigurableEnvironment environment) {
-		String configMapName = getApplicationNamespace(this.client, normalizedSource.getNamespace(),
-				configurationTarget, provider);
-		return new Fabric8ConfigMapPropertySource(this.client, applicationName, configMapName, environment,
+		String namespace = getApplicationNamespace(this.client, normalizedSource.getNamespace(), configurationTarget,
+				provider);
+		return new Fabric8ConfigMapPropertySource(this.client, applicationName, namespace, environment,
 				normalizedSource.getPrefix());
 	}
 
