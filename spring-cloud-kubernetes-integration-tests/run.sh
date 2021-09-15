@@ -73,7 +73,7 @@ install_kind_release() {
 	elif [[ "$OSTYPE" == "win32" ]]; then
         KIND_BINARY_URL="https://github.com/kubernetes-sigs/kind/releases/download/${VERSION}/kind-windows-amd64"
 	else
-        echo "Uknown OS, using linux binary"
+        echo "Unknown OS, using linux binary"
 	fi
     wget -O "${KIND}" "${KIND_BINARY_URL}"
     chmod +x "${KIND}"
@@ -87,7 +87,7 @@ main() {
     cd $CURRENT_DIR
 
     #TODO what happens if cluster is already there????
-    "${KIND}" create cluster --config=kind-config.yaml --loglevel=debug
+    "${KIND}" create cluster --config=kind-config.yaml -v 2147483647
 
     # set KUBECONFIG to point to the cluster
     kubectl cluster-info --context kind-kind
@@ -102,8 +102,7 @@ main() {
 		echo "Loading images into Kind: $i"
 		"${KIND}" load docker-image $i
 	done
-#    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
-    kubectl apply -fhttps://raw.githubusercontent.com/kubernetes/ingress-nginx/12150e318b972a03fb49d827e6cabb8ef62247ef/deploy/static/provider/kind/deploy.yaml
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
     sleep 5 # hold 5 sec so that the pods can be created
     kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=420s
 	

@@ -24,9 +24,9 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.NetworkingV1beta1Api;
-import io.kubernetes.client.openapi.models.NetworkingV1beta1Ingress;
+import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -60,12 +60,6 @@ public class LoadBalancerIT {
 
 	private static final String SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME = "spring-cloud-kubernetes-client-loadbalancer-it";
 
-	private static final String WIREMOCK_HOST = "localhost";
-
-	private static final String WIREMOCK_PATH = "/wiremock";
-
-	private static final int WIREMOCK_PORT = 80;
-
 	private static final String NAMESPACE = "default";
 
 	private ApiClient client;
@@ -74,7 +68,7 @@ public class LoadBalancerIT {
 
 	private AppsV1Api appsApi;
 
-	private NetworkingV1beta1Api networkingApi;
+	private NetworkingV1Api networkingApi;
 
 	private K8SUtils k8SUtils;
 
@@ -83,7 +77,7 @@ public class LoadBalancerIT {
 		this.client = createApiClient();
 		this.api = new CoreV1Api();
 		this.appsApi = new AppsV1Api();
-		this.networkingApi = new NetworkingV1beta1Api();
+		this.networkingApi = new NetworkingV1Api();
 		this.k8SUtils = new K8SUtils(api, appsApi);
 
 		deployWiremock();
@@ -203,8 +197,8 @@ public class LoadBalancerIT {
 		return deployment;
 	}
 
-	private NetworkingV1beta1Ingress getLoadbalancerItIngress() throws Exception {
-		NetworkingV1beta1Ingress ingress = (NetworkingV1beta1Ingress) k8SUtils
+	private V1Ingress getLoadbalancerItIngress() throws Exception {
+		V1Ingress ingress = (V1Ingress) k8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-it-ingress.yaml");
 		return ingress;
 	}
@@ -215,8 +209,8 @@ public class LoadBalancerIT {
 		networkingApi.createNamespacedIngress(NAMESPACE, getWiremockIngress(), null, null, null);
 	}
 
-	private NetworkingV1beta1Ingress getWiremockIngress() throws Exception {
-		NetworkingV1beta1Ingress ingress = (NetworkingV1beta1Ingress) k8SUtils
+	private V1Ingress getWiremockIngress() throws Exception {
+		V1Ingress ingress = (V1Ingress) k8SUtils
 				.readYamlFromClasspath("wiremock-ingress.yaml");
 		return ingress;
 	}

@@ -22,11 +22,11 @@ import java.time.Duration;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.NetworkingV1beta1Api;
-import io.kubernetes.client.openapi.models.NetworkingV1beta1Ingress;
+import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1ReplicationController;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.logging.Log;
@@ -76,7 +76,7 @@ public class ActuatorRefreshRabbitMQIT {
 
 	private AppsV1Api appsApi;
 
-	private NetworkingV1beta1Api networkingApi;
+	private NetworkingV1Api networkingApi;
 
 	private K8SUtils k8SUtils;
 
@@ -85,7 +85,7 @@ public class ActuatorRefreshRabbitMQIT {
 		this.client = createApiClient();
 		this.api = new CoreV1Api();
 		this.appsApi = new AppsV1Api();
-		this.networkingApi = new NetworkingV1beta1Api();
+		this.networkingApi = new NetworkingV1Api();
 		this.k8SUtils = new K8SUtils(api, appsApi);
 
 		deployRabbitMQ();
@@ -226,9 +226,9 @@ public class ActuatorRefreshRabbitMQIT {
 		return deployment;
 	}
 
-	private NetworkingV1beta1Ingress getItIngress() throws Exception {
+	private V1Ingress getItIngress() throws Exception {
 		String urlString = "spring-cloud-kubernetes-configuration-watcher-it-ingress.yaml";
-		NetworkingV1beta1Ingress ingress = (NetworkingV1beta1Ingress) k8SUtils.readYamlFromClasspath(urlString);
+		V1Ingress ingress = (V1Ingress) k8SUtils.readYamlFromClasspath(urlString);
 		return ingress;
 	}
 
