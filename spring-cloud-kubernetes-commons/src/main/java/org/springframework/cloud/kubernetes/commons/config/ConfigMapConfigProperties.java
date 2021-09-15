@@ -86,7 +86,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		}
 
 		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix, useProfileNameAsSuffix))
-				.collect(Collectors.toList());
+			.collect(Collectors.toList());
 	}
 
 	@Override

@@ -1,7 +1,8 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: wiremock-ingress
+  namespace: default
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
@@ -9,6 +10,10 @@ spec:
     - http:
         paths:
           - path: /wiremock(/|$)(.*)
+            pathType: Prefix
             backend:
-              serviceName: servicea-wiremock
-              servicePort: 8080
+              service:
+                name: servicea-wiremock
+                port:
+                  number: 8080
+

@@ -25,7 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
-import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
 /**
@@ -38,51 +37,43 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8SecretsPropertySource.class);
 
-	private static final String PREFIX = "secrets";
-
-	public Fabric8SecretsPropertySource(KubernetesClient client, Environment env, String name, String namespace,
+	public Fabric8SecretsPropertySource(KubernetesClient client, String name, String namespace,
 			Map<String, String> labels) {
-		super(getSourceName(name, namespace), getSourceData(client, env, name, namespace, labels));
+		super(getSourceName(name, namespace), getSourceData(client, name, namespace, labels));
 	}
 
-	private static Map<String, Object> getSourceData(KubernetesClient client, Environment env, String name,
-			String namespace, Map<String, String> labels) {
+	private static Map<String, Object> getSourceData(KubernetesClient client, String name, String namespace,
+			Map<String, String> labels) {
 		Map<String, Object> result = new HashMap<>();
 
+		String namespaceToUse = StringUtils.hasLength(namespace) ? namespace : client.getNamespace();
 		try {
-			// Read for secrets api (named)
-			Secret secret;
-			if (StringUtils.isEmpty(namespace)) {
-				secret = client.secrets().withName(name).get();
+
+			Secret secret = client.secrets().inNamespace(namespaceToUse).withName(name).get();
+
+			// the API is documented that it might return null
+			if (secret == null) {
+				LOG.warn("secret with name : " + name + " in namespace : " + namespaceToUse + " not found");
 			}
 			else {
-				secret = client.secrets().inNamespace(namespace).withName(name).get();
+				putDataFromSecret(secret, result, namespaceToUse);
 			}
-			putAll(secret, result);
 
-			// Read for secrets api (label)
-			if (!labels.isEmpty()) {
-				if (StringUtils.isEmpty(namespace)) {
-					client.secrets().withLabels(labels).list().getItems().forEach(s -> putAll(s, result));
-				}
-				else {
-					client.secrets().inNamespace(namespace).withLabels(labels).list().getItems()
-							.forEach(s -> putAll(s, result));
-				}
-			}
+			client.secrets().inNamespace(namespaceToUse).withLabels(labels).list().getItems()
+					.forEach(s -> putDataFromSecret(s, result, namespaceToUse));
+
 		}
 		catch (Exception e) {
-			LOG.warn("Can't read secret with name: [" + name + "] or labels [" + labels + "] in namespace:[" + namespace
-					+ "] (cause: " + e.getMessage() + "). Ignoring");
+			LOG.warn("Can't read secret with name: [" + name + "] or labels [" + labels + "] in namespace: ["
+					+ namespaceToUse + "] (cause: " + e.getMessage() + "). Ignoring");
 		}
 
 		return result;
 	}
 
-	private static void putAll(Secret secret, Map<String, Object> result) {
-		if (secret != null) {
-			putAll(secret.getData(), result);
-		}
+	private static void putDataFromSecret(Secret secret, Map<String, Object> result, String namespace) {
+		LOG.debug("reading secret with name : " + secret.getMetadata().getName() + " in namespace : " + namespace);
+		putAll(secret.getData(), result);
 	}
 
 }
