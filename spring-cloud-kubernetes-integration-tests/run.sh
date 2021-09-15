@@ -87,7 +87,7 @@ main() {
     cd $CURRENT_DIR
 
     #TODO what happens if cluster is already there????
-    "${KIND}" create cluster --config=kind-config.yaml -v=2147483647
+    "${KIND}" create cluster --config=kind-config.yaml -v 2147483647
 
     # set KUBECONFIG to point to the cluster
     kubectl cluster-info --context kind-kind
@@ -102,8 +102,7 @@ main() {
 		echo "Loading images into Kind: $i"
 		"${KIND}" load docker-image $i
 	done
-#    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
-    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.0.0/deploy/static/provider/cloud/deploy.yaml
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
     sleep 5 # hold 5 sec so that the pods can be created
     kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=420s
 	
