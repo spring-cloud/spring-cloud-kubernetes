@@ -37,7 +37,8 @@ public class KubernetesClientBootstrapConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-			properties = "spring.cloud.kubernetes.enabled=false")
+			properties = { "spring.cloud.kubernetes.enabled=false", "kubernetes.informer.enabled=false",
+					"kubernetes.manifests.enabled=false" })
 	@Nested
 	class KubernetesDisabled {
 
