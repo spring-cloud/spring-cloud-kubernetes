@@ -420,16 +420,27 @@ In some cases, your application may be unable to load some of your `ConfigMaps` 
 If you want your application to fail the start-up process in such cases, you can set the
 `spring.cloud.kubernetes.config.fail-fast=true` to make the application start-up fail with an Exception.
 
+[#config-map-retry]
+You can also make your application retry loading `ConfigMap` property sources on a failure. First, you need to
+set `spring.cloud.kubernetes.config.fail-fast=true`. Then you need to add `spring-retry` 
+and `spring-boot-starter-aop` to your classpath. You can configure retry properties such as
+the maximum number of attempts, backoff options like initial interval, multiplier, max interval by setting the
+`spring.cloud.kubernetes.config.retry.*` properties.
+
 .Properties:
 [options="header,footer"]
 |===
-| Name                                       | Type      | Default                      | Description
-| `spring.cloud.kubernetes.config.enabled`   | `Boolean` | `true`                       | Enable ConfigMaps `PropertySource`
-| `spring.cloud.kubernetes.config.name`      | `String`  | `${spring.application.name}` | Sets the name of `ConfigMap` to look up
-| `spring.cloud.kubernetes.config.namespace` | `String`  | Client namespace             | Sets the Kubernetes namespace where to lookup
-| `spring.cloud.kubernetes.config.paths`     | `List`    | `null`                       | Sets the paths where `ConfigMap` instances are mounted
-| `spring.cloud.kubernetes.config.enableApi` | `Boolean` | `true`                       | Enable or disable consuming `ConfigMap` instances through APIs
-| `spring.cloud.kubernetes.config.fail-fast` | `Boolean` | `false`                      | Enable or disable failing the application start-up when an error occurred while loading a `ConfigMap`
+| Name                                                    | Type      | Default                      | Description
+| `spring.cloud.kubernetes.config.enabled`                | `Boolean` | `true`                       | Enable ConfigMaps `PropertySource`
+| `spring.cloud.kubernetes.config.name`                   | `String`  | `${spring.application.name}` | Sets the name of `ConfigMap` to look up
+| `spring.cloud.kubernetes.config.namespace`              | `String`  | Client namespace             | Sets the Kubernetes namespace where to lookup
+| `spring.cloud.kubernetes.config.paths`                  | `List`    | `null`                       | Sets the paths where `ConfigMap` instances are mounted
+| `spring.cloud.kubernetes.config.enableApi`              | `Boolean` | `true`                       | Enable or disable consuming `ConfigMap` instances through APIs
+| `spring.cloud.kubernetes.config.fail-fast`              | `Boolean` | `false`                      | Enable or disable failing the application start-up when an error occurred while loading a `ConfigMap`
+| `spring.cloud.kubernetes.config.retry.initial-interval` | `Long`    | `1000`                       | Initial retry interval in milliseconds.
+| `spring.cloud.kubernetes.config.retry.max-attempts`     | `Integer` | `6`                          | Maximum number of attempts.
+| `spring.cloud.kubernetes.config.retry.max-interval`     | `Long`    | `2000`                       | Maximum interval for backoff.
+| `spring.cloud.kubernetes.config.retry.multiplier`       | `Double`  | `1.1`                        | Multiplier for next interval.
 |===
 
 === Secrets PropertySource
@@ -587,17 +598,27 @@ of the application is resolved.
 <<config-map-fail-fast,Similar to the `ConfigMaps`>>; if you want your application to fail to start 
 when it is unable to load `Secrets` property sources, you can set `spring.cloud.kubernetes.secrets.fail-fast=true`.
 
+It is also possible to enable retry for `Secret` property sources <<config-map-retry,like the `ConfigMaps`>>.
+As with the `ConfigMap` property sources, first you need to set `spring.cloud.kubernetes.secrets.fail-fast=true`. 
+Then you need to add `spring-retry` and `spring-boot-starter-aop` to your classpath. 
+Retry behavior of the `Secret` property sources can be configured by setting `spring.cloud.kubernetes.secrets.retry.*`
+configuration properties.
+
 .Properties:
 [options="header,footer"]
 |===
-| Name                                        | Type      | Default                      | Description
-| `spring.cloud.kubernetes.secrets.enabled`   | `Boolean` | `true`                       | Enable Secrets `PropertySource`
-| `spring.cloud.kubernetes.secrets.name`      | `String`  | `${spring.application.name}` | Sets the name of the secret to look up
-| `spring.cloud.kubernetes.secrets.namespace` | `String`  | Client namespace             | Sets the Kubernetes namespace where to look up
-| `spring.cloud.kubernetes.secrets.labels`    | `Map`     | `null`                       | Sets the labels used to lookup secrets
-| `spring.cloud.kubernetes.secrets.paths`     | `List`    | `null`                       | Sets the paths where secrets are mounted (example 1)
-| `spring.cloud.kubernetes.secrets.enableApi` | `Boolean` | `false`                      | Enables or disables consuming secrets through APIs (examples 2 and 3)
-| `spring.cloud.kubernetes.secrets.fail-fast` | `Boolean` | `false`                      | Enable or disable failing the application start-up when an error occurred while loading a `Secret`
+| Name                                                     | Type      | Default                      | Description
+| `spring.cloud.kubernetes.secrets.enabled`                | `Boolean` | `true`                       | Enable Secrets `PropertySource`
+| `spring.cloud.kubernetes.secrets.name`                   | `String`  | `${spring.application.name}` | Sets the name of the secret to look up
+| `spring.cloud.kubernetes.secrets.namespace`              | `String`  | Client namespace             | Sets the Kubernetes namespace where to look up
+| `spring.cloud.kubernetes.secrets.labels`                 | `Map`     | `null`                       | Sets the labels used to lookup secrets
+| `spring.cloud.kubernetes.secrets.paths`                  | `List`    | `null`                       | Sets the paths where secrets are mounted (example 1)
+| `spring.cloud.kubernetes.secrets.enableApi`              | `Boolean` | `false`                      | Enables or disables consuming secrets through APIs (examples 2 and 3)
+| `spring.cloud.kubernetes.secrets.fail-fast`              | `Boolean` | `false`                      | Enable or disable failing the application start-up when an error occurred while loading a `Secret`
+| `spring.cloud.kubernetes.secrets.retry.initial-interval` | `Long`    | `1000`                       | Initial retry interval in milliseconds.
+| `spring.cloud.kubernetes.secrets.retry.max-attempts`     | `Integer` | `6`                          | Maximum number of attempts.
+| `spring.cloud.kubernetes.secrets.retry.max-interval`     | `Long`    | `2000`                       | Maximum interval for backoff.
+| `spring.cloud.kubernetes.secrets.retry.multiplier`       | `Double`  | `1.1`                        | Multiplier for next interval.
 |===
 
 Notes:

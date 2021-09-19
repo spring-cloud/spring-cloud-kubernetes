@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -42,6 +43,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.retry.annotation.Retryable;
 
 /**
  * Kubernetes {@link PropertySourceLocator} for secrets.
@@ -49,6 +51,7 @@ import org.springframework.core.env.PropertySource;
  * @author l burgazzoli
  * @author Haytham Mohamed
  * @author wind57
+ * @author Isik Erhan
  */
 public abstract class SecretsPropertySourceLocator implements PropertySourceLocator {
 
@@ -61,6 +64,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 	}
 
 	@Override
+	@Retryable(interceptor = "secretsPropertiesRetryInterceptor")
 	public PropertySource<?> locate(Environment environment) {
 		if (environment instanceof ConfigurableEnvironment) {
 			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
@@ -79,6 +83,12 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			return composite;
 		}
 		return null;
+	}
+
+	@Override
+	@Retryable(interceptor = "secretsPropertiesRetryInterceptor")
+	public Collection<PropertySource<?>> locateCollection(Environment environment) {
+		return PropertySourceLocator.super.locateCollection(environment);
 	}
 
 	private MapPropertySource getMapPropertySourceForSingleSecret(ConfigurableEnvironment environment,

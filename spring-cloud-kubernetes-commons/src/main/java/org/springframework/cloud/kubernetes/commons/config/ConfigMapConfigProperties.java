@@ -31,9 +31,15 @@ import org.springframework.util.StringUtils;
  * Config map configuration properties.
  *
  * @author Ioannis Canellos
+ * @author Isik Erhan
  */
-@ConfigurationProperties("spring.cloud.kubernetes.config")
+@ConfigurationProperties(ConfigMapConfigProperties.PREFIX)
 public class ConfigMapConfigProperties extends AbstractConfigProperties {
+
+	/**
+	 * Prefix for Kubernetes secrets configuration properties.
+	 */
+	public static final String PREFIX = "spring.cloud.kubernetes.config";
 
 	private static final Log LOG = LogFactory.getLog(ConfigMapConfigProperties.class);
 

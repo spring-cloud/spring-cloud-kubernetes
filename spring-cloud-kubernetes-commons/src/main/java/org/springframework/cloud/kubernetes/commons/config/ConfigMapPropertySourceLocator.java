@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -36,6 +37,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.retry.annotation.Retryable;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.KEY_VALUE_TO_PROPERTIES;
@@ -47,6 +49,7 @@ import static org.springframework.cloud.kubernetes.commons.config.PropertySource
  *
  * @author Ioannis Canellos
  * @author Michael Moudatsos
+ * @author Isik Erhan
  */
 public abstract class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 
@@ -62,6 +65,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 			String configurationTarget, ConfigurableEnvironment environment);
 
 	@Override
+	@Retryable(interceptor = "configMapPropertiesRetryInterceptor")
 	public PropertySource<?> locate(Environment environment) {
 		if (environment instanceof ConfigurableEnvironment) {
 			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
@@ -78,6 +82,12 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 			return composite;
 		}
 		return null;
+	}
+
+	@Override
+	@Retryable(interceptor = "configMapPropertiesRetryInterceptor")
+	public Collection<PropertySource<?>> locateCollection(Environment environment) {
+		return PropertySourceLocator.super.locateCollection(environment);
 	}
 
 	private MapPropertySource getMapPropertySourceForSingleConfigMap(ConfigurableEnvironment environment,
