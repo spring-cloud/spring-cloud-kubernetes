@@ -142,7 +142,7 @@ public class LoadBalancerIT {
 		});
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
-		await().timeout(Duration.ofSeconds(60))
+		await().timeout(Duration.ofSeconds(120))
 				.until(() -> rest.getForEntity("http://localhost:80/loadbalancer-it/servicea", String.class)
 						.getStatusCode().is2xxSuccessful());
 		Map<String, Object> result = rest.getForObject("http://localhost:80/loadbalancer-it/servicea", Map.class);
