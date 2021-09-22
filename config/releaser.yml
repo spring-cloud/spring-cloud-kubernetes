@@ -1,2 +1,2 @@
 releaser.maven.build-command: ./scripts/integration-tests.sh
-releaser.maven.deploy-command: ./mvnw dockerfile:push -pl :spring-cloud-kubernetes-configuration-watcher -Pdockerpush && ./mvnw deploy -DskipTests -B -Pfast,deploy {{systemProps}}
+releaser.maven.deploy-command: ./scripts/deploy.sh {{systemProps}}
