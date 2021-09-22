@@ -52,7 +52,6 @@
 |spring.cloud.kubernetes.config.namespace |  | 
 |spring.cloud.kubernetes.config.paths |  | 
 |spring.cloud.kubernetes.config.sources |  | 
-|spring.cloud.kubernetes.config.use-name-as-prefix | `false` | 
 |spring.cloud.kubernetes.discovery.all-namespaces | `false` | If discovering all namespaces.
 |spring.cloud.kubernetes.discovery.cache-loading-timeout-seconds | `60` | Timeout for initializing discovery cache, will abort the application if exceeded.
 |spring.cloud.kubernetes.discovery.enabled | `true` | If Kubernetes Discovery is enabled.
@@ -97,6 +96,5 @@
 |spring.cloud.kubernetes.secrets.namespace |  | 
 |spring.cloud.kubernetes.secrets.paths |  | 
 |spring.cloud.kubernetes.secrets.sources |  | 
-|spring.cloud.kubernetes.secrets.use-name-as-prefix | `false` | 
 
 |===
