@@ -213,7 +213,8 @@ public class ReactiveDiscoveryClientIT {
 	}
 
 	private V1Ingress getWiremockIngress() throws Exception {
-		V1Ingress ingress = (V1Ingress) k8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
+		V1Ingress ingress = (V1Ingress) k8SUtils
+				.readYamlFromClasspath("wiremock-ingress.yaml");
 		return ingress;
 	}
 
