@@ -32,7 +32,7 @@ public abstract class AbstractConfigProperties {
 	// use config map name to prefix properties
 	protected boolean useNameAsPrefix;
 
-	// use profile name to suffix config map name
+	// use profile name to append config map name
 	protected boolean includeProfileSpecificSources = true;
 
 	public abstract String getConfigurationTarget();

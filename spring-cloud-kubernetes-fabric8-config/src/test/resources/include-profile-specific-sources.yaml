@@ -1,6 +1,6 @@
 spring:
   application:
-    name: profile-name-as-suffix
+    name: include-profile-specific-sources
   cloud:
     kubernetes:
       config:
