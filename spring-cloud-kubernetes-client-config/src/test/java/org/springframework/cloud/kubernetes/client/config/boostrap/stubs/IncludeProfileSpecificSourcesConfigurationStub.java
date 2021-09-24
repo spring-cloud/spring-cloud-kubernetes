@@ -44,8 +44,8 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
  */
 @Order(0)
 @Configuration
-@ConditionalOnProperty("profile.name.as.suffix.stub")
-class ProfileNameAsSuffixConfigurationStub {
+@ConditionalOnProperty("include.profile.specific.sources")
+class IncludeProfileSpecificSourcesConfigurationStub {
 
 	@Bean
 	public WireMockServer wireMock() {

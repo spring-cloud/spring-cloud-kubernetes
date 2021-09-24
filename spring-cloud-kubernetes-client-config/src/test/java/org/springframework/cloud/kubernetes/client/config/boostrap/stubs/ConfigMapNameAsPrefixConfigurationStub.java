@@ -38,7 +38,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 
 /**
  * A test bootstrap that takes care to initialize ApiClient _before_ our main bootstrap
- * context; with some stub data already.
+ * context; with some stub data already present.
  *
  * @author wind57
  */

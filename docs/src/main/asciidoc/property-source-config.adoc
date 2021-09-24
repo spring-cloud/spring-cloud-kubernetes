@@ -433,11 +433,11 @@ spring:
   cloud:
     kubernetes:
       config:
-        useProfileNameAsSuffix: false
+        includeProfileSpecificSources: false
         namespace: default-namespace
         sources:
           - name: config-map-one
-            useProfileNameAsSuffix: false
+            includeProfileSpecificSources: false
 ----
 ====
 

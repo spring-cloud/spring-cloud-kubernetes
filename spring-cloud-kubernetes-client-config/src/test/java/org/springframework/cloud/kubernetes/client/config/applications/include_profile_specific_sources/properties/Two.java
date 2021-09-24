@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.applications.profile_name_as_suffix.properties;
+package org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

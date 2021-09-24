@@ -59,18 +59,18 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 	}
 
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
-			Environment environment, String prefix, boolean useProfileNameAsSuffix) {
+			Environment environment, String prefix, boolean includeProfileSpecificSources) {
 		super(getName(name, getApplicationNamespace(client, namespace)), getData(client, name,
-				getApplicationNamespace(client, namespace), environment, prefix, useProfileNameAsSuffix));
+				getApplicationNamespace(client, namespace), environment, prefix, includeProfileSpecificSources));
 	}
 
 	private static Map<String, Object> getData(KubernetesClient client, String name, String namespace,
-			Environment environment, String prefix, boolean useProfileNameAsSuffix) {
+			Environment environment, String prefix, boolean includeProfileSpecificSources) {
 		try {
 			Map<String, String> data = getConfigMapData(client, namespace, name);
 			Map<String, Object> result = new HashMap<>(processAllEntries(data, environment));
 
-			if (environment != null && useProfileNameAsSuffix) {
+			if (environment != null && includeProfileSpecificSources) {
 				for (String activeProfile : environment.getActiveProfiles()) {
 					String mapNameWithProfile = name + "-" + activeProfile;
 					Map<String, String> dataWithProfile = getConfigMapData(client, namespace, mapNameWithProfile);

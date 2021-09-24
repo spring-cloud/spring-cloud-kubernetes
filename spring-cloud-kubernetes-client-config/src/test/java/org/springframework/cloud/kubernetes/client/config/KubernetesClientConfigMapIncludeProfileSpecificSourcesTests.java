@@ -26,22 +26,22 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.client.config.applications.profile_name_as_suffix.ProfileNameAsSuffixApp;
+import org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.IncludeProfileSpecificSourcesApp;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
- * The stub data for this test is in : ConfigMapNameAsPrefixConfigurationStub
+ * The stub data for this test is in : IncludeProfileSpecificSourcesConfigurationStub
  *
  * @author wind57
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = ProfileNameAsSuffixApp.class,
-		properties = { "spring.cloud.bootstrap.name=profile-name-as-suffix", "profile.name.as.suffix.stub=true" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = IncludeProfileSpecificSourcesApp.class,
+		properties = { "spring.cloud.bootstrap.name=include-profile-specific-sources", "include.profile.specific.sources=true" })
 @AutoConfigureWebTestClient
 @ActiveProfiles("dev")
-class KubernetesClientConfigMapProfileNameAsSuffixTests {
+class KubernetesClientConfigMapIncludeProfileSpecificSourcesTests {
 
 	@Autowired
 	private WebTestClient webClient;
@@ -58,8 +58,8 @@ class KubernetesClientConfigMapProfileNameAsSuffixTests {
 
 	/**
 	 * <pre>
-	 *   'spring.cloud.kubernetes.config.useProfileNameAsSuffix=false'
-	 *   'spring.cloud.kubernetes.config.sources[0].useProfileNameAsSuffix=true'
+	 *   'spring.cloud.kubernetes.config.includeProfileSpecificSources=false'
+	 *   'spring.cloud.kubernetes.config.sources[0].includeProfileSpecificSources=true'
 	 *   'spring.cloud.kubernetes.config.sources[0].name=config-map-one'
 	 *
 	 *   We do not define config-map 'config-map-one', but we do define 'config-map-one-dev'.
@@ -69,20 +69,20 @@ class KubernetesClientConfigMapProfileNameAsSuffixTests {
 	 */
 	@Test
 	public void testOne() {
-		this.webClient.get().uri("/suffix/one").exchange().expectStatus().isOk().expectBody(String.class)
+		this.webClient.get().uri("/profile-specific/one").exchange().expectStatus().isOk().expectBody(String.class)
 				.value(Matchers.equalTo("one"));
 	}
 
 	/**
 	 * <pre>
-	 *   'spring.cloud.kubernetes.config.useProfileNameAsSuffix=false'
-	 *   'spring.cloud.kubernetes.config.sources[1].useProfileNameAsSuffix=false'
+	 *   'spring.cloud.kubernetes.config.includeProfileSpecificSources=false'
+	 *   'spring.cloud.kubernetes.config.sources[1].includeProfileSpecificSources=false'
 	 *   'spring.cloud.kubernetes.config.sources[1].name=config-map-two'
 	 *
 	 *   We define config-map 'config-map-two', but we also define 'config-map-two-dev'.
 	 *   This tests proves that data will be read from 'config-map-two' _only_, even if 'config-map-two-dev'
-	 *   also exists. This happens because of the 'useProfileNameAsSuffix=false' property defined at the source level.
-	 *   If this would be incorrect, the value we read from '/suffix/two' would have been 'twoDev' and _not_ 'two',
+	 *   also exists. This happens because of the 'includeProfileSpecificSources=false' property defined at the source level.
+	 *   If this would be incorrect, the value we read from '/profile-specific/two' would have been 'twoDev' and _not_ 'two',
 	 *   simply because 'config-map-two-dev' would override the property value.
 	 *
 	 * 	 As such: @ConfigurationProperties("two") must be resolved from 'config-map-two'
@@ -90,20 +90,20 @@ class KubernetesClientConfigMapProfileNameAsSuffixTests {
 	 */
 	@Test
 	public void testTwo() {
-		this.webClient.get().uri("/suffix/two").exchange().expectStatus().isOk().expectBody(String.class)
+		this.webClient.get().uri("/profile-specific/two").exchange().expectStatus().isOk().expectBody(String.class)
 				.value(Matchers.equalTo("two"));
 	}
 
 	/**
 	 * <pre>
-	 *   'spring.cloud.kubernetes.config.useProfileNameAsSuffix=false'
+	 *   'spring.cloud.kubernetes.config.includeProfileSpecificSources=false'
 	 *   'spring.cloud.kubernetes.config.sources[2].name=config-map-three'
 	 *
 	 *   We define config-map 'config-map-three', but we also define 'config-map-three-dev'.
 	 *   This tests proves that data will be read from 'config-map-three' _only_, even if 'config-map-three-dev'
-	 *   also exists. This happens because the 'useProfileNameAsSuffix'  property is not defined at the source level,
+	 *   also exists. This happens because the 'includeProfileSpecificSources'  property is not defined at the source level,
 	 *   but it is defaulted from the root level, where we set it to false.
-	 *   If this would be incorrect, the value we read from '/suffix/three' would have been 'threeDev' and _not_ 'three',
+	 *   If this would be incorrect, the value we read from '/profile-specific/three' would have been 'threeDev' and _not_ 'three',
 	 *   simply because 'config-map-three-dev' would override the property value.
 	 *
 	 * 	 As such: @ConfigurationProperties("three") must be resolved from 'config-map-three'
@@ -111,7 +111,7 @@ class KubernetesClientConfigMapProfileNameAsSuffixTests {
 	 */
 	@Test
 	public void testThree() {
-		this.webClient.get().uri("/suffix/three").exchange().expectStatus().isOk().expectBody(String.class)
+		this.webClient.get().uri("/profile-specific/three").exchange().expectStatus().isOk().expectBody(String.class)
 				.value(Matchers.equalTo("three"));
 	}
 

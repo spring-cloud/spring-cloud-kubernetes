@@ -1,14 +1,14 @@
 spring:
   application:
-    name: profile-name-as-suffix
+    name: include-profile-specific-sources
   cloud:
     kubernetes:
       config:
-        useProfileNameAsSuffix: false
+        includeProfileSpecificSources: false
         namespace: spring-k8s
         sources:
           - name: config-map-one
-            useProfileNameAsSuffix: true
+            includeProfileSpecificSources: true
           - name: config-map-two
-            useProfileNameAsSuffix: false
+            includeProfileSpecificSources: false
           - name: config-map-three

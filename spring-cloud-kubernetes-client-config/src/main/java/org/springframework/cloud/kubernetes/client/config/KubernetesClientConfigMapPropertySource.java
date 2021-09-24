@@ -46,18 +46,18 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 	}
 
 	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment, String prefix, boolean useProfileNameAsSuffix) {
+			Environment environment, String prefix, boolean includeProfileSpecificSources) {
 		super(getName(name, namespace),
-				getData(coreV1Api, name, namespace, environment, prefix, useProfileNameAsSuffix));
+				getData(coreV1Api, name, namespace, environment, prefix, includeProfileSpecificSources));
 	}
 
 	private static Map<String, Object> getData(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment, String prefix, boolean useProfileNameAsSuffix) {
+			Environment environment, String prefix, boolean includeProfileSpecificSources) {
 
 		try {
 			Set<String> names = new HashSet<>();
 			names.add(name);
-			if (environment != null && useProfileNameAsSuffix) {
+			if (environment != null && includeProfileSpecificSources) {
 				for (String activeProfile : environment.getActiveProfiles()) {
 					names.add(name + "-" + activeProfile);
 				}

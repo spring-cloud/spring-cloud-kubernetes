@@ -82,10 +82,10 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 						"'spring.cloud.kubernetes.config.useNameAsPrefix' is set to 'true', but 'spring.cloud.kubernetes.config.sources'"
 								+ " is empty; as such will default 'useNameAsPrefix' to 'false'");
 			}
-			return Collections.singletonList(new NormalizedSource(name, namespace, "", useProfileNameAsSuffix));
+			return Collections.singletonList(new NormalizedSource(name, namespace, "", includeProfileSpecificSources));
 		}
 
-		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix, useProfileNameAsSuffix))
+		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix, includeProfileSpecificSources))
 				.collect(Collectors.toList());
 	}
 
@@ -116,10 +116,10 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		private Boolean useNameAsPrefix;
 
 		/**
-		 * Use profile name to suffix config map name. Can't be a primitive, we need to
+		 * Use profile name to append to a config map name. Can't be a primitive, we need to
 		 * know if it was explicitly set or not
 		 */
-		protected Boolean useProfileNameAsSuffix;
+		protected Boolean includeProfileSpecificSources;
 
 		/**
 		 * An explicit prefix to be used for properties.
@@ -167,12 +167,12 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			this.explicitPrefix = explicitPrefix;
 		}
 
-		public Boolean getUseProfileNameAsSuffix() {
-			return useProfileNameAsSuffix;
+		public Boolean getIncludeProfileSpecificSources() {
+			return includeProfileSpecificSources;
 		}
 
-		public void setUseProfileNameAsSuffix(Boolean useProfileNameAsSuffix) {
-			this.useProfileNameAsSuffix = useProfileNameAsSuffix;
+		public void setIncludeProfileSpecificSources(Boolean includeProfileSpecificSources) {
+			this.includeProfileSpecificSources = includeProfileSpecificSources;
 		}
 
 		public boolean isEmpty() {
@@ -188,14 +188,14 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		}
 
 		public NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix,
-				boolean defaultUseProfileNameAsSuffix) {
+				boolean defaultIncludeProfileSpecificSources) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
 			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix,
 					normalizedName);
-			boolean useProfileNameAsSuffix = ConfigUtils.useProfileNameAsSuffix(defaultUseProfileNameAsSuffix,
-					this.useProfileNameAsSuffix);
-			return new NormalizedSource(normalizedName, normalizedNamespace, prefix, useProfileNameAsSuffix);
+			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(defaultIncludeProfileSpecificSources,
+					this.includeProfileSpecificSources);
+			return new NormalizedSource(normalizedName, normalizedNamespace, prefix, includeProfileSpecificSources);
 		}
 
 		@Override
@@ -225,7 +225,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		private final String prefix;
 
-		private final boolean useProfileNameAsSuffix;
+		private final boolean includeProfileSpecificSources;
 
 		// not used, but not removed because of potential compatibility reasons
 		@Deprecated
@@ -233,14 +233,14 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			this.name = name;
 			this.namespace = namespace;
 			this.prefix = "";
-			this.useProfileNameAsSuffix = true;
+			this.includeProfileSpecificSources = true;
 		}
 
-		NormalizedSource(String name, String namespace, String prefix, boolean useProfileNameAsSuffix) {
+		NormalizedSource(String name, String namespace, String prefix, boolean includeProfileSpecificSources) {
 			this.name = name;
 			this.namespace = namespace;
 			this.prefix = Objects.requireNonNull(prefix);
-			this.useProfileNameAsSuffix = useProfileNameAsSuffix;
+			this.includeProfileSpecificSources = includeProfileSpecificSources;
 		}
 
 		public String getName() {
@@ -255,8 +255,8 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			return prefix;
 		}
 
-		public boolean isUseProfileNameAsSuffix() {
-			return useProfileNameAsSuffix;
+		public boolean isIncludeProfileSpecificSources() {
+			return includeProfileSpecificSources;
 		}
 
 		@Override

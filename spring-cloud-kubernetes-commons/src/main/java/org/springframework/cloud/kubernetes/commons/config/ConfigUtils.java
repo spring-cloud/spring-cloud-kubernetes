@@ -85,18 +85,18 @@ public final class ConfigUtils {
 	}
 
 	/**
-	 * @param defaultUseProfileNameAsSuffix value of
-	 * 'spring.cloud.kubernetes.config.useProfileNameAsSuffix'
-	 * @param useProfileNameAsSuffix value of
-	 * 'spring.cloud.kubernetes.config.sources.useProfileNameAsSuffix'
+	 * @param defaultIncludeProfileSpecificSources value of
+	 * 'spring.cloud.kubernetes.config.includeProfileSpecificSources'
+	 * @param includeProfileSpecificSources value of
+	 * 'spring.cloud.kubernetes.config.sources.includeProfileSpecificSources'
 	 * @return useProfileNameAsPrefix to be used in normalized sources
 	 */
-	public static boolean useProfileNameAsSuffix(boolean defaultUseProfileNameAsSuffix,
-			Boolean useProfileNameAsSuffix) {
-		if (useProfileNameAsSuffix != null) {
-			return useProfileNameAsSuffix;
+	public static boolean includeProfileSpecificSources(boolean defaultIncludeProfileSpecificSources,
+		Boolean includeProfileSpecificSources) {
+		if (includeProfileSpecificSources != null) {
+			return includeProfileSpecificSources;
 		}
-		return defaultUseProfileNameAsSuffix;
+		return defaultIncludeProfileSpecificSources;
 	}
 
 }

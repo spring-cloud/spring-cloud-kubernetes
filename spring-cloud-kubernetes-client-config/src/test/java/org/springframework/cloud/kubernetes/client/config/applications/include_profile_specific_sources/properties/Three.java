@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.profile_name_as_suffix.properties;
+package org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("one")
-public class One {
+@ConfigurationProperties("three")
+public class Three {
 
 	private String property;
 

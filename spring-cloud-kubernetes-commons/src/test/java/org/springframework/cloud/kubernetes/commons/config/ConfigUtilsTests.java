@@ -60,14 +60,14 @@ public class ConfigUtilsTests {
 	 *     cloud:
 	 *        kubernetes:
 	 *           config:
-	 *              useProfileNameAsSuffix: true
+	 *              includeProfileSpecificSources: true
 	 * </pre>
 	 *
 	 * above will generate "true" for a normalized source
 	 */
 	@Test
-	public void testUseProfileNameAsSuffixOnlyDefaultSet() {
-		Assertions.assertTrue(ConfigUtils.useProfileNameAsSuffix(true, null));
+	public void testUseIncludeProfileSpecificSourcesOnlyDefaultSet() {
+		Assertions.assertTrue(ConfigUtils.includeProfileSpecificSources(true, null));
 	}
 
 	/**
@@ -76,14 +76,14 @@ public class ConfigUtilsTests {
 	 *     cloud:
 	 *        kubernetes:
 	 *           config:
-	 *              useProfileNameAsSuffix: true
+	 *              includeProfileSpecificSources: true
 	 * </pre>
 	 *
 	 * above will generate "false" for a normalized source
 	 */
 	@Test
-	public void testUseProfileNameAsSuffixOnlyDefaultNotSet() {
-		Assertions.assertFalse(ConfigUtils.useProfileNameAsSuffix(false, null));
+	public void testUseIncludeProfileSpecificSourcesOnlyDefaultNotSet() {
+		Assertions.assertFalse(ConfigUtils.includeProfileSpecificSources(false, null));
 	}
 
 	/**
@@ -92,17 +92,17 @@ public class ConfigUtilsTests {
 	 *     cloud:
 	 *        kubernetes:
 	 *           config:
-	 *              useProfileNameAsSuffix: true
+	 *              includeProfileSpecificSources: true
 	 *           sources:
 	 *           - name: one
-	 *             useProfileNameAsSuffix: false
+	 *             includeProfileSpecificSources: false
 	 * </pre>
 	 *
 	 * above will generate "false" for a normalized source
 	 */
 	@Test
-	public void testUseProfileNameAsSuffixSourcesOverridesDefault() {
-		Assertions.assertFalse(ConfigUtils.useProfileNameAsSuffix(true, false));
+	public void testUseIncludeProfileSpecificSourcesSourcesOverridesDefault() {
+		Assertions.assertFalse(ConfigUtils.includeProfileSpecificSources(true, false));
 	}
 
 }

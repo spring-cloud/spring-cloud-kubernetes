@@ -1,3 +1,3 @@
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-org.springframework.cloud.kubernetes.client.config.boostrap.stubs.ProfileNameAsSuffixConfigurationStub, \
+org.springframework.cloud.kubernetes.client.config.boostrap.stubs.IncludeProfileSpecificSourcesConfigurationStub, \
 org.springframework.cloud.kubernetes.client.config.boostrap.stubs.ConfigMapNameAsPrefixConfigurationStub

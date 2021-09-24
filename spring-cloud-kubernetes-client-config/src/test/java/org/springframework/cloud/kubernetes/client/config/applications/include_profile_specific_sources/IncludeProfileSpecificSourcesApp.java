@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.applications.profile_name_as_suffix;
+package org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.kubernetes.client.config.applications.profile_name_as_suffix.properties.One;
-import org.springframework.cloud.kubernetes.client.config.applications.profile_name_as_suffix.properties.Three;
-import org.springframework.cloud.kubernetes.client.config.applications.profile_name_as_suffix.properties.Two;
+import org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.properties.One;
+import org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.properties.Three;
+import org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.properties.Two;
 
 @SpringBootApplication
 @EnableConfigurationProperties({ One.class, Two.class, Three.class })
-public class ProfileNameAsSuffixApp {
+public class IncludeProfileSpecificSourcesApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ProfileNameAsSuffixApp.class, args);
+		SpringApplication.run(IncludeProfileSpecificSourcesApp.class, args);
 	}
 
 }

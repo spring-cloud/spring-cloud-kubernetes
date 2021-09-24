@@ -33,7 +33,7 @@ public abstract class AbstractConfigProperties {
 	protected boolean useNameAsPrefix;
 
 	// use profile name to suffix config map name
-	protected boolean useProfileNameAsSuffix = true;
+	protected boolean includeProfileSpecificSources = true;
 
 	public abstract String getConfigurationTarget();
 
@@ -69,12 +69,11 @@ public abstract class AbstractConfigProperties {
 		this.useNameAsPrefix = useNameAsPrefix;
 	}
 
-	public boolean isUseProfileNameAsSuffix() {
-		return useProfileNameAsSuffix;
+	public boolean isIncludeProfileSpecificSources() {
+		return includeProfileSpecificSources;
 	}
 
-	public void setUseProfileNameAsSuffix(boolean useProfileNameAsSuffix) {
-		this.useProfileNameAsSuffix = useProfileNameAsSuffix;
+	public void setIncludeProfileSpecificSources(boolean includeProfileSpecificSources) {
+		this.includeProfileSpecificSources = includeProfileSpecificSources;
 	}
-
 }
