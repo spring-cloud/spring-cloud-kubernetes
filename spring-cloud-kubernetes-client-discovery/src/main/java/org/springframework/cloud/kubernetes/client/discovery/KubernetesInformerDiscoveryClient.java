@@ -163,7 +163,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 					return addresses.stream()
 							.map(addr -> new KubernetesServiceInstance(
 									addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
-									addr.getIp(), port, metadata, false));
+									addr.getIp(), port, metadata, false, service.getMetadata().getNamespace(),
+									service.getMetadata().getClusterName()));
 				}).collect(Collectors.toList());
 	}
 

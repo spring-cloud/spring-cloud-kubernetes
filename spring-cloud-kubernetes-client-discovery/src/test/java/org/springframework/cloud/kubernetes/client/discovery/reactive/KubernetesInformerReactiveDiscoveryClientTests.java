@@ -116,8 +116,9 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 				new KubernetesNamespaceProvider(new MockEnvironment()), sharedInformerFactory, serviceLister,
 				endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
-				.expectNext(new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false))
+		StepVerifier
+				.create(discoveryClient.getInstances("test-svc-1")).expectNext(new KubernetesServiceInstance("",
+						"test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false, "namespace1", null))
 				.expectComplete().verify();
 
 		verify(kubernetesDiscoveryProperties, times(2)).isAllNamespaces();
@@ -135,8 +136,9 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, endpointsLister, null, null,
 				kubernetesDiscoveryProperties);
 
-		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
-				.expectNext(new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false))
+		StepVerifier
+				.create(discoveryClient.getInstances("test-svc-1")).expectNext(new KubernetesServiceInstance("",
+						"test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false, "namespace1", null))
 				.expectComplete().verify();
 
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
