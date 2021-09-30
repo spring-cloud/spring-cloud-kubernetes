@@ -15,6 +15,10 @@ spec:
       containers:
         - name: spring-cloud-kubernetes-core-k8s-client-it
           image: docker.io/springcloud/spring-cloud-kubernetes-core-k8s-client-it
+          # env variable is needed only as an interim fix : https://github.com/spring-cloud/spring-cloud-kubernetes/issues/874
+          env:
+            - name: BPL_JAVA_NMT_ENABLED
+              value: "false"
           imagePullPolicy: IfNotPresent
           readinessProbe:
             httpGet:

@@ -7,7 +7,7 @@ containerdConfigPatches:
   [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5000"]
     endpoint = ["http://kind-registry:5000"]
 
-# 1 control plane node and 3 workers
+# 1 control plane node and 1 worker
 nodes:
   - role: control-plane
     image: kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6

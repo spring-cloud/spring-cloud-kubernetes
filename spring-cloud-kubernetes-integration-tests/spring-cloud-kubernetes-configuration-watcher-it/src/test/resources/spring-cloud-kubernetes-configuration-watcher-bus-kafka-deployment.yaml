@@ -21,6 +21,9 @@ spec:
               value: bus-kafka
             - name: spring.kafka.bootstrap-servers
               value: kafka:9092
+            # env variable is needed only as an interim fix : https://github.com/spring-cloud/spring-cloud-kubernetes/issues/874
+            - name: BPL_JAVA_NMT_ENABLED
+              value: "false"
           readinessProbe:
             httpGet:
               port: 8888

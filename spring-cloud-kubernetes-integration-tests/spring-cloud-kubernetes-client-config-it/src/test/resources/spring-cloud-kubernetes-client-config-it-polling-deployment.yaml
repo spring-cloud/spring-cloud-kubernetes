@@ -29,5 +29,8 @@ spec:
               value: kubernetes
             - name: SPRING_CLOUD_KUBERNETES_RELOAD_MODE
               value: polling
+            # env variable is needed only as an interim fix : https://github.com/spring-cloud/spring-cloud-kubernetes/issues/874
+            - name: BPL_JAVA_NMT_ENABLED
+              value: "false"
           ports:
             - containerPort: 8080

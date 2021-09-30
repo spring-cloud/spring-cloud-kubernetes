@@ -27,5 +27,8 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: kubernetes
+            # env variable is needed only as an interim fix : https://github.com/spring-cloud/spring-cloud-kubernetes/issues/874
+            - name: BPL_JAVA_NMT_ENABLED
+              value: "false"
           ports:
             - containerPort: 8080
