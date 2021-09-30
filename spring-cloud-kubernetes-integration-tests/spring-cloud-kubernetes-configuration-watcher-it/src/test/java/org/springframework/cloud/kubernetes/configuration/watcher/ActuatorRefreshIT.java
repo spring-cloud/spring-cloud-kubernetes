@@ -178,13 +178,12 @@ public class ActuatorRefreshIT {
 
 	private V1Ingress getWiremockIngress() throws Exception {
 		V1Ingress ingress = (V1Ingress) k8SUtils
-			.readYamlFromClasspath("wiremock-ingress.yaml");
+				.readYamlFromClasspath("wiremock-ingress.yaml");
 		return ingress;
 	}
 
 	private V1Service getWiremockAppService() throws Exception {
-		V1Service service = (V1Service) k8SUtils
-				.readYamlFromClasspath("wiremock-service.yaml");
+		V1Service service = (V1Service) k8SUtils.readYamlFromClasspath("wiremock-service.yaml");
 		return service;
 	}
 
