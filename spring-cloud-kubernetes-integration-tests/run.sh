@@ -120,8 +120,7 @@ main() {
 		echo "Running test: $p"
 		cd  $p
 		${MVN} spring-boot:build-image \
-		     #REMOVE spring-boot.build-image.builder ONCE A BUILDPACK RELEASE WITH https://github.com/paketo-buildpacks/bellsoft-liberica/issues/131 IS RELEASED
-      		-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder:0.1.169-base \
+      		-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder:0.1.169-base
     	"${KIND}" load docker-image docker.io/springcloud/$p:${MVN_VERSION}
      	${MVN} clean install -P it
 		cd ..
