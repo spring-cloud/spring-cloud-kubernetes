@@ -120,7 +120,7 @@ main() {
 		echo "Running test: $p"
 		cd  $p
 		${MVN} spring-boot:build-image \
-      		-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION}
+      		-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder:0.1.169-base
     	"${KIND}" load docker-image docker.io/springcloud/$p:${MVN_VERSION}
      	${MVN} clean install -P it
 		cd ..
