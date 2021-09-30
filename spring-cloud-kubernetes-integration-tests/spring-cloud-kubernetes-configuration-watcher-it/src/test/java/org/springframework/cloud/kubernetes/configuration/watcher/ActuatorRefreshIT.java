@@ -184,7 +184,7 @@ public class ActuatorRefreshIT {
 
 	private V1Service getWiremockAppService() throws Exception {
 		V1Service service = (V1Service) k8SUtils
-			.readYamlFromClasspath("wiremock-service.yaml");
+				.readYamlFromClasspath("wiremock-service.yaml");
 		return service;
 	}
 
