@@ -38,7 +38,6 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.ResolvableType;
 
 /**
@@ -54,26 +53,24 @@ class SpringCloudKubernetesInformerFactoryProcessor extends KubernetesInformerFa
 
 	private final SharedInformerFactory sharedInformerFactory;
 
-	private final KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
+	private final boolean allNamespaces;
 
 	private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
 	@Autowired
-	SpringCloudKubernetesInformerFactoryProcessor(KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider, ApiClient apiClient,
-			SharedInformerFactory sharedInformerFactory) {
+	SpringCloudKubernetesInformerFactoryProcessor(KubernetesNamespaceProvider kubernetesNamespaceProvider,
+			ApiClient apiClient, SharedInformerFactory sharedInformerFactory, boolean allNamespaces) {
 		super();
 		this.apiClient = apiClient;
 		this.sharedInformerFactory = sharedInformerFactory;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
-		this.kubernetesDiscoveryProperties = kubernetesDiscoveryProperties;
+		this.allNamespaces = allNamespaces;
 	}
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		String namespace = kubernetesDiscoveryProperties.isAllNamespaces() ? Namespaces.NAMESPACE_ALL
-				: kubernetesNamespaceProvider.getNamespace() == null ? Namespaces.NAMESPACE_DEFAULT
-						: kubernetesNamespaceProvider.getNamespace();
+		String namespace = allNamespaces ? Namespaces.NAMESPACE_ALL : kubernetesNamespaceProvider.getNamespace() == null
+				? Namespaces.NAMESPACE_DEFAULT : kubernetesNamespaceProvider.getNamespace();
 
 		this.apiClient.setHttpClient(this.apiClient.getHttpClient().newBuilder().readTimeout(Duration.ZERO).build());
 
