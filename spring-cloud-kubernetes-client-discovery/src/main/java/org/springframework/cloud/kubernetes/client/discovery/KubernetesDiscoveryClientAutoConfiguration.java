@@ -48,6 +48,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesDiscoveryEnabled
@@ -80,11 +81,15 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		@Bean
 		@ConditionalOnMissingBean
 		public SpringCloudKubernetesInformerFactoryProcessor discoveryInformerConfigurer(
-				KubernetesNamespaceProvider kubernetesNamespaceProvider,
-				KubernetesDiscoveryProperties kubernetesDiscoveryProperties, ApiClient apiClient,
-				CatalogSharedInformerFactory sharedInformerFactory) {
-			return new SpringCloudKubernetesInformerFactoryProcessor(kubernetesDiscoveryProperties,
-					kubernetesNamespaceProvider, apiClient, sharedInformerFactory);
+				KubernetesNamespaceProvider kubernetesNamespaceProvider, ApiClient apiClient,
+				CatalogSharedInformerFactory sharedInformerFactory, Environment environment) {
+			// Injecting KubernetesDiscoveryProperties here would cause it to be
+			// initialize too early
+			// Instead get the all-namespaces property value from the Environment directly
+			boolean allNamespaces = environment.getProperty("spring.cloud.kubernetes.discovery.all-namespaces",
+					Boolean.class, false);
+			return new SpringCloudKubernetesInformerFactoryProcessor(kubernetesNamespaceProvider, apiClient,
+					sharedInformerFactory, allNamespaces);
 		}
 
 		@Bean
