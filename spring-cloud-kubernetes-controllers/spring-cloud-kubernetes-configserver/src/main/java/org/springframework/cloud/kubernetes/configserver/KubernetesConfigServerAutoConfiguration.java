@@ -23,6 +23,9 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.cloud.config.server.config.ConfigServerAutoConfiguration;
 import org.springframework.cloud.config.server.environment.EnvironmentRepository;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,13 +37,16 @@ import org.springframework.context.annotation.Profile;
 @Configuration
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
 @AutoConfigureBefore({ ConfigServerAutoConfiguration.class })
+@ConditionalOnKubernetesEnabled
+@ConditionalOnKubernetesConfigEnabled
+@ConditionalOnKubernetesSecretsEnabled
 public class KubernetesConfigServerAutoConfiguration {
 
 	@Bean
 	@Profile("kubernetes")
-	public EnvironmentRepository configMapEnvironmentRepository(CoreV1Api coreV1Api,
+	public EnvironmentRepository kubernetesEnvironmentRepository(CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		return new ConfigMapEnvironmentRepository(coreV1Api, kubernetesNamespaceProvider.getNamespace());
+		return new KubernetesEnvironmentRepository(coreV1Api, kubernetesNamespaceProvider.getNamespace());
 	}
 
 }
