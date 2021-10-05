@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: kubernetesconfigserver
+
+server:
+  port: 8888
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: kubernetes
+  profiles:
+    include: "kubernetes"
