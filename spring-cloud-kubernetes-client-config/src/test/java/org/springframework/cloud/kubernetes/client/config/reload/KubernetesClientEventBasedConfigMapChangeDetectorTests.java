@@ -16,7 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
+import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +28,10 @@ import java.util.concurrent.TimeUnit;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import io.kubernetes.client.informer.EventType;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.JSON;
@@ -89,6 +96,11 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 
 	@Test
 	void watch() {
+		GsonBuilder builder = new GsonBuilder();
+		builder.excludeFieldsWithModifiers(Modifier.STATIC, Modifier.TRANSIENT, Modifier.VOLATILE)
+				.registerTypeAdapter(OffsetDateTime.class, new GsonOffsetDateTimeAdapter());
+		Gson gson = builder.create();
+
 		Map<String, String> data = new HashMap<>();
 		data.put("application.properties", "spring.cloud.kubernetes.configuration.watcher.refreshDelay=0\n"
 				+ "logging.level.org.springframework.cloud.kubernetes=TRACE");
@@ -101,8 +113,7 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 				.items(Arrays.asList(applicationConfig));
 		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
 				.whenScenarioStateIs(STARTED).withQueryParam("watch", equalTo("false"))
-				.willReturn(aResponse().withStatus(200).withBody(new Gson().toJson(configMapList)))
-				.willSetStateTo("update"));
+				.willReturn(aResponse().withStatus(200).withBody(gson.toJson(configMapList))).willSetStateTo("update"));
 
 		Watch.Response<V1ConfigMap> watchResponse = new Watch.Response<>(EventType.MODIFIED.name(), new V1ConfigMap()
 				.kind("ConfigMap").metadata(new V1ObjectMeta().namespace("default").name("bar1")).data(updateData));
@@ -154,6 +165,23 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		await().timeout(Duration.ofSeconds(5))
 				.until(() -> Mockito.mockingDetails(strategy).getInvocations().size() > 4);
 		verify(strategy, atLeast(3)).reload();
+	}
+
+	// This is needed when using JDK17 because GSON uses reflection to construct an
+	// OffsetDateTime but that constructor
+	// is protected.
+	public class GsonOffsetDateTimeAdapter extends TypeAdapter<OffsetDateTime> {
+
+		@Override
+		public void write(JsonWriter jsonWriter, OffsetDateTime localDateTime) throws IOException {
+			jsonWriter.value(OffsetDateTime.now().toString());
+		}
+
+		@Override
+		public OffsetDateTime read(JsonReader jsonReader) throws IOException {
+			return OffsetDateTime.now();
+		}
+
 	}
 
 }

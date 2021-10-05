@@ -31,6 +31,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
@@ -40,15 +42,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Ryan Baxter
  */
 class KubernetesClientSecretsPropertySourceLocatorTests {
 
-	private static final String LIST_API = "/api/v1/secrets";
-
-	private static final String LIST_API_WITH_LABEL = "/api/v1/secrets?labelSelector=spring.cloud.kubernetes.secret%3Dtrue";
+	private static final String LIST_API = "/api/v1/namespaces/default/secrets";
 
 	private static final String LIST_BODY = "{\n" + "\t\"kind\": \"SecretList\",\n" + "\t\"apiVersion\": \"v1\",\n"
 			+ "\t\"metadata\": {\n" + "\t\t\"selfLink\": \"/api/v1/secrets\",\n"
@@ -112,10 +113,10 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		sources.add(source1);
 		sources.add(source2);
 		secretsConfigProperties.setName("app");
-		secretsConfigProperties.setNamespace("");
+		secretsConfigProperties.setNamespace("default");
 		secretsConfigProperties.setSources(sources);
 		secretsConfigProperties.setEnableApi(true);
-		PropertySource propertySource = new KubernetesClientSecretsPropertySourceLocator(api,
+		PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(api,
 				new KubernetesClientProperties(), secretsConfigProperties).locate(new MockEnvironment());
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
@@ -127,12 +128,54 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties();
 		secretsConfigProperties.setName("db-secret");
-		secretsConfigProperties.setNamespace("");
+		secretsConfigProperties.setNamespace("default");
 		secretsConfigProperties.setEnableApi(true);
-		PropertySource propertySource = new KubernetesClientSecretsPropertySourceLocator(api,
+		PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(api,
 				new KubernetesClientProperties(), secretsConfigProperties).locate(new MockEnvironment());
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
+	}
+
+	/**
+	 * <pre>
+	 *     1. using the deprecated constructor, and
+	 *     2. not providing the namespace
+	 * </pre>
+	 *
+	 * will result in an Exception
+	 */
+	@Test
+	void testLocateWithoutNamespaceDeprecatedConstructor() {
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get(LIST_API).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
+		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties();
+		secretsConfigProperties.setName("db-secret");
+		secretsConfigProperties.setNamespace(""); // empty on purpose
+		secretsConfigProperties.setEnableApi(true);
+		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySourceLocator(api, new KubernetesClientProperties(),
+				secretsConfigProperties).locate(new MockEnvironment()))
+						.isInstanceOf(NamespaceResolutionFailedException.class);
+	}
+
+	/**
+	 * <pre>
+	 *     1. using the non-deprecated constructor, and
+	 *     2. not providing the namespace
+	 * </pre>
+	 *
+	 * will result in an Exception
+	 */
+	@Test
+	void testLocateWithoutNamespace() {
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get(LIST_API).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
+		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties();
+		secretsConfigProperties.setName("db-secret");
+		secretsConfigProperties.setNamespace(""); // empty on purpose
+		secretsConfigProperties.setEnableApi(true);
+		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySourceLocator(api,
+				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties)
+						.locate(new MockEnvironment())).isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 }

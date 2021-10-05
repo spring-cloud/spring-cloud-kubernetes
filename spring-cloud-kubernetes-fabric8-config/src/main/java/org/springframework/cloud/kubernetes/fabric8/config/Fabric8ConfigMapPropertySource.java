@@ -47,6 +47,11 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 		this(client, name, null, null, "");
 	}
 
+	/**
+	 * this constructor is present only for compatibility reasons, its usage is
+	 * discouraged.
+	 */
+	@Deprecated
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String applicationName, String namespace,
 			Environment environment) {
 		super(getName(applicationName, getApplicationNamespace(client, namespace)),
