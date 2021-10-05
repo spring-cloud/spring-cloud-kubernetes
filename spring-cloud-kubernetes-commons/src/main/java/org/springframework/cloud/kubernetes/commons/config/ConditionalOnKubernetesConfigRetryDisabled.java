@@ -28,8 +28,8 @@ import org.springframework.context.annotation.Conditional;
 
 /**
  * {@link Conditional @Conditional} that matches when at least one of Spring Cloud
- * Kubernetes, Kubernetes Secret property sources or Kubernetes Secret property sources
- * fail fast (thus retry) is disabled.
+ * Kubernetes, Kubernetes ConfigMap property sources or Kubernetes ConfigMap property
+ * sources fail fast (thus retry) is disabled.
  *
  * @author Isik Erhan
  */
@@ -37,17 +37,17 @@ import org.springframework.context.annotation.Conditional;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Conditional(ConditionalOnSecretsPropertiesRetryDisabled.OnSecretsPropertiesRetryDisabled.class)
-public @interface ConditionalOnSecretsPropertiesRetryDisabled {
+@Conditional(ConditionalOnKubernetesConfigRetryDisabled.OnConfigMapPropertiesRetryDisabled.class)
+public @interface ConditionalOnKubernetesConfigRetryDisabled {
 
-	class OnSecretsPropertiesRetryDisabled extends NoneNestedConditions {
+	class OnConfigMapPropertiesRetryDisabled extends NoneNestedConditions {
 
-		OnSecretsPropertiesRetryDisabled() {
+		OnConfigMapPropertiesRetryDisabled() {
 			super(ConfigurationPhase.REGISTER_BEAN);
 		}
 
-		@ConditionalOnSecretsPropertiesRetryEnabled
-		static class OnSecretsPropertiesRetryEnabled {
+		@ConditionalOnKubernetesConfigRetryEnabled
+		static class OnConfigMapPropertiesRetryEnabled {
 
 		}
 

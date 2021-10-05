@@ -23,14 +23,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
+import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
+import org.springframework.context.annotation.Conditional;
 
 /**
- * {@link org.springframework.context.annotation.Conditional @Conditional} that only
- * matches when Spring Cloud Kubernetes, Kubernetes Secret property sources and Kubernetes
- * Secret property sources fail fast (thus retry) are enabled.
+ * {@link Conditional @Conditional} that matches when either or both of
+ * {@link ConditionalOnKubernetesConfigRetryEnabled @ConditionalOnConfigMapPropertiesRetryEnabled}
+ * and
+ * {@link ConditionalOnKubernetesSecretsRetryEnabled @ConditionalOnSecretsPropertiesRetryEnabled}.
  *
  * @author Isik Erhan
  */
@@ -38,9 +38,25 @@ import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecre
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnKubernetesEnabled
-@ConditionalOnKubernetesSecretsEnabled
-@ConditionalOnProperty(prefix = SecretsConfigProperties.PREFIX, name = "fail-fast", havingValue = "true")
-public @interface ConditionalOnSecretsPropertiesRetryEnabled {
+@Conditional(ConditionalOnKubernetesConfigOrSecretsRetryEnabled.OnKubernetesConfigPropertiesRetryEnabled.class)
+public @interface ConditionalOnKubernetesConfigOrSecretsRetryEnabled {
+
+	class OnKubernetesConfigPropertiesRetryEnabled extends AnyNestedCondition {
+
+		OnKubernetesConfigPropertiesRetryEnabled() {
+			super(ConfigurationPhase.REGISTER_BEAN);
+		}
+
+		@ConditionalOnKubernetesConfigRetryEnabled
+		static class OnConfigMapPropertiesRetryEnabled {
+
+		}
+
+		@ConditionalOnKubernetesSecretsRetryEnabled
+		static class OnSecretsPropertiesRetryEnabled {
+
+		}
+
+	}
 
 }

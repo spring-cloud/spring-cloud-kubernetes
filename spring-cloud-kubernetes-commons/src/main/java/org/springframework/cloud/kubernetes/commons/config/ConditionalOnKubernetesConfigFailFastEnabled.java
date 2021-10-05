@@ -24,13 +24,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 
 /**
- * {@link org.springframework.context.annotation.Conditional @Conditional} that only
- * matches when Spring Cloud Kubernetes, Kubernetes ConfigMap property sources and
- * Kubernetes ConfigMap property sources fail fast (thus retry) are enabled.
+ * Provides a more succinct conditional
+ * <code>spring.cloud.kubernetes.config.fail-fast</code>.
  *
  * @author Isik Erhan
  */
@@ -38,9 +35,7 @@ import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabl
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnKubernetesEnabled
-@ConditionalOnKubernetesConfigEnabled
 @ConditionalOnProperty(prefix = ConfigMapConfigProperties.PREFIX, name = "fail-fast", havingValue = "true")
-public @interface ConditionalOnConfigMapPropertiesRetryEnabled {
+public @interface ConditionalOnKubernetesConfigFailFastEnabled {
 
 }

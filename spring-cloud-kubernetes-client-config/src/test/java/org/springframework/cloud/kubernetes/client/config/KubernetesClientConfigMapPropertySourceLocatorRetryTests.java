@@ -106,7 +106,7 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 					"spring.cloud.kubernetes.config.fail-fast=true",
 					"spring.cloud.kubernetes.config.retry.max-attempts=5" },
 			classes = App.class)
-	class ConfigMapRetryEnabled {
+	class ConfigRetryEnabled {
 
 		@SpyBean
 		private KubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
@@ -186,7 +186,7 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 	@Nested
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 			properties = { "spring.cloud.kubernetes.client.namespace=default" }, classes = App.class)
-	class ConfigMapRetryDisabled {
+	class ConfigRetryDisabled {
 
 		@SpyBean
 		private KubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
@@ -208,7 +208,7 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
 			"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true" },
 			classes = App.class)
-	class ConfigMapRetryDisabledButSecretsRetryEnabled {
+	class ConfigRetryDisabledButSecretsRetryEnabled {
 
 		@SpyBean
 		private KubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
@@ -220,7 +220,7 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 		public void locateShouldNotRetry() {
 
 			/*
-			 * Enabling secrets fail-fast causes Spring Retry to be enabled and a
+			 * Enabling "secrets.fail-fast" causes Spring Retry to be enabled and a
 			 * RetryOperationsInterceptor bean with NeverRetryPolicy for config maps to be
 			 * defined. ConfigMapPropertySourceLocator should not retry even Spring Retry
 			 * is enabled.
@@ -228,7 +228,7 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 
 			stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-			assertThat(context.containsBean("configMapPropertiesRetryInterceptor")).isTrue();
+			assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isTrue();
 			Assertions.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
 
 			// verify that propertySourceLocator.locate is called only once

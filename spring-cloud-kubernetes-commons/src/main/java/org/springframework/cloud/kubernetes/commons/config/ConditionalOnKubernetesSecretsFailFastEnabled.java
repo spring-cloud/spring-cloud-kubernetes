@@ -23,13 +23,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.boot.autoconfigure.condition.NoneNestedConditions;
-import org.springframework.context.annotation.Conditional;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 /**
- * {@link Conditional @Conditional} that matches when at least one of Spring Cloud
- * Kubernetes, Kubernetes ConfigMap property sources or Kubernetes ConfigMap property
- * sources fail fast (thus retry) is disabled.
+ * Provides a more succinct conditional
+ * <code>spring.cloud.kubernetes.secrets.fail-fast</code>.
  *
  * @author Isik Erhan
  */
@@ -37,20 +35,7 @@ import org.springframework.context.annotation.Conditional;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Conditional(ConditionalOnConfigMapPropertiesRetryDisabled.OnConfigMapPropertiesRetryDisabled.class)
-public @interface ConditionalOnConfigMapPropertiesRetryDisabled {
-
-	class OnConfigMapPropertiesRetryDisabled extends NoneNestedConditions {
-
-		OnConfigMapPropertiesRetryDisabled() {
-			super(ConfigurationPhase.REGISTER_BEAN);
-		}
-
-		@ConditionalOnConfigMapPropertiesRetryEnabled
-		static class OnConfigMapPropertiesRetryEnabled {
-
-		}
-
-	}
+@ConditionalOnProperty(prefix = SecretsConfigProperties.PREFIX, name = "fail-fast", havingValue = "true")
+public @interface ConditionalOnKubernetesSecretsFailFastEnabled {
 
 }

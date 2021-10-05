@@ -40,7 +40,7 @@ import org.springframework.retry.policy.NeverRetryPolicy;
 @EnableConfigurationProperties({ ConfigMapConfigProperties.class, SecretsConfigProperties.class })
 public class KubernetesBootstrapConfiguration {
 
-	@ConditionalOnKubernetesConfigPropertiesRetryEnabled
+	@ConditionalOnKubernetesConfigOrSecretsRetryEnabled
 	@ConditionalOnClass({ Retryable.class, Aspect.class, AopAutoConfiguration.class })
 	@Configuration(proxyBeanMethods = false)
 	@EnableRetry(proxyTargetClass = true)
@@ -55,27 +55,26 @@ public class KubernetesBootstrapConfiguration {
 		}
 
 		@Bean
-		@ConditionalOnConfigMapPropertiesRetryEnabled
-		public RetryOperationsInterceptor configMapPropertiesRetryInterceptor(
-				ConfigMapConfigProperties configProperties) {
+		@ConditionalOnKubernetesConfigRetryEnabled
+		public RetryOperationsInterceptor kubernetesConfigRetryInterceptor(ConfigMapConfigProperties configProperties) {
 			return retryOperationsInterceptor(configProperties.getRetry());
 		}
 
-		@Bean("configMapPropertiesRetryInterceptor")
-		@ConditionalOnConfigMapPropertiesRetryDisabled
-		public RetryOperationsInterceptor configMapPropertiesRetryInterceptorNoRetry() {
+		@Bean("kubernetesConfigRetryInterceptor")
+		@ConditionalOnKubernetesConfigRetryDisabled
+		public RetryOperationsInterceptor kubernetesConfigRetryInterceptorNoRetry() {
 			return RetryInterceptorBuilder.stateless().retryPolicy(new NeverRetryPolicy()).build();
 		}
 
 		@Bean
-		@ConditionalOnSecretsPropertiesRetryEnabled
-		public RetryOperationsInterceptor secretsPropertiesRetryInterceptor(SecretsConfigProperties configProperties) {
+		@ConditionalOnKubernetesSecretsRetryEnabled
+		public RetryOperationsInterceptor kubernetesSecretsRetryInterceptor(SecretsConfigProperties configProperties) {
 			return retryOperationsInterceptor(configProperties.getRetry());
 		}
 
-		@Bean("secretsPropertiesRetryInterceptor")
-		@ConditionalOnSecretsPropertiesRetryDisabled
-		public RetryOperationsInterceptor secretsPropertiesRetryInterceptorNoRetry() {
+		@Bean("kubernetesSecretsRetryInterceptor")
+		@ConditionalOnKubernetesSecretsRetryDisabled
+		public RetryOperationsInterceptor kubernetesSecretsRetryInterceptorNoRetry() {
 			return RetryInterceptorBuilder.stateless().retryPolicy(new NeverRetryPolicy()).build();
 		}
 

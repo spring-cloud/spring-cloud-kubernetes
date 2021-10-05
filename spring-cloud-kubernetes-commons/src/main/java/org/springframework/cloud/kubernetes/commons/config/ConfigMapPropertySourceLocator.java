@@ -65,7 +65,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 			String configurationTarget, ConfigurableEnvironment environment);
 
 	@Override
-	@Retryable(interceptor = "configMapPropertiesRetryInterceptor")
+	@Retryable(interceptor = "kubernetesConfigRetryInterceptor")
 	public PropertySource<?> locate(Environment environment) {
 		if (environment instanceof ConfigurableEnvironment) {
 			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
@@ -85,7 +85,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	}
 
 	@Override
-	@Retryable(interceptor = "configMapPropertiesRetryInterceptor")
+	@Retryable(interceptor = "kubernetesConfigRetryInterceptor")
 	public Collection<PropertySource<?>> locateCollection(Environment environment) {
 		return PropertySourceLocator.super.locateCollection(environment);
 	}

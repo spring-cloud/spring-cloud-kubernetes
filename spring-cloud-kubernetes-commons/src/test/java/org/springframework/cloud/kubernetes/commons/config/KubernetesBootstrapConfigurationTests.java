@@ -59,7 +59,7 @@ public class KubernetesBootstrapConfigurationTests {
 	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class,
 			properties = { "spring.cloud.kubernetes.config.fail-fast=true" })
 	@Nested
-	public class ConfigMapFailFastEnabled {
+	public class ConfigFailFastEnabled {
 
 		@Autowired
 		ConfigurableApplicationContext context;
@@ -71,8 +71,8 @@ public class KubernetesBootstrapConfigurationTests {
 		public void shouldDefineRequiredBeans() {
 			Map<String, RetryOperationsInterceptor> retryInterceptors = context
 					.getBeansOfType(RetryOperationsInterceptor.class);
-			assertThat(retryInterceptors.containsKey("configMapPropertiesRetryInterceptor")).isTrue();
-			assertThat(retryInterceptors.containsKey("secretsPropertiesRetryInterceptor")).isTrue();
+			assertThat(retryInterceptors.containsKey("kubernetesConfigRetryInterceptor")).isTrue();
+			assertThat(retryInterceptors.containsKey("kubernetesSecretsRetryInterceptor")).isTrue();
 		}
 
 		@Test
@@ -103,8 +103,8 @@ public class KubernetesBootstrapConfigurationTests {
 		public void shouldDefineRequiredBeans() {
 			Map<String, RetryOperationsInterceptor> retryInterceptors = context
 					.getBeansOfType(RetryOperationsInterceptor.class);
-			assertThat(retryInterceptors.containsKey("configMapPropertiesRetryInterceptor")).isTrue();
-			assertThat(retryInterceptors.containsKey("secretsPropertiesRetryInterceptor")).isTrue();
+			assertThat(retryInterceptors.containsKey("kubernetesConfigRetryInterceptor")).isTrue();
+			assertThat(retryInterceptors.containsKey("kubernetesSecretsRetryInterceptor")).isTrue();
 		}
 
 		@Test
@@ -123,7 +123,7 @@ public class KubernetesBootstrapConfigurationTests {
 	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class, properties = {
 			"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.secrets.fail-fast=true" })
 	@Nested
-	public class ConfigMapAndSecretsFailFastEnabledWithDefaultRetryConfiguration {
+	public class ConfigAndSecretsFailFastEnabledWithDefaultRetryConfiguration {
 
 		@Autowired
 		ConfigurableApplicationContext context;
@@ -138,8 +138,8 @@ public class KubernetesBootstrapConfigurationTests {
 		public void shouldDefineRequiredBeans() {
 			Map<String, RetryOperationsInterceptor> retryInterceptors = context
 					.getBeansOfType(RetryOperationsInterceptor.class);
-			assertThat(retryInterceptors.containsKey("configMapPropertiesRetryInterceptor")).isTrue();
-			assertThat(retryInterceptors.containsKey("secretsPropertiesRetryInterceptor")).isTrue();
+			assertThat(retryInterceptors.containsKey("kubernetesConfigRetryInterceptor")).isTrue();
+			assertThat(retryInterceptors.containsKey("kubernetesSecretsRetryInterceptor")).isTrue();
 		}
 
 		@Test
@@ -172,7 +172,7 @@ public class KubernetesBootstrapConfigurationTests {
 					"spring.cloud.kubernetes.config.retry.max-interval=3000",
 					"spring.cloud.kubernetes.config.retry.multiplier=1.5" })
 	@Nested
-	public class ConfigMapFailFastEnabledWithCustomRetryConfiguration {
+	public class ConfigFailFastEnabledWithCustomRetryConfiguration {
 
 		@Autowired
 		ConfigMapConfigProperties configMapConfigProperties;

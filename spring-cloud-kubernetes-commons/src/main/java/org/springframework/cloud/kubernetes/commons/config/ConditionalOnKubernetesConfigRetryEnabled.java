@@ -23,14 +23,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
-import org.springframework.context.annotation.Conditional;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 
 /**
- * {@link Conditional @Conditional} that matches when either or both of
- * {@link ConditionalOnConfigMapPropertiesRetryEnabled @ConditionalOnConfigMapPropertiesRetryEnabled}
- * and
- * {@link ConditionalOnSecretsPropertiesRetryEnabled @ConditionalOnSecretsPropertiesRetryEnabled}.
+ * {@link org.springframework.context.annotation.Conditional @Conditional} that only
+ * matches when Spring Cloud Kubernetes, Kubernetes ConfigMap property sources and
+ * Kubernetes ConfigMap property sources fail fast (thus retry) are enabled.
  *
  * @author Isik Erhan
  */
@@ -38,25 +37,9 @@ import org.springframework.context.annotation.Conditional;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Conditional(ConditionalOnKubernetesConfigPropertiesRetryEnabled.OnKubernetesConfigPropertiesRetryEnabled.class)
-public @interface ConditionalOnKubernetesConfigPropertiesRetryEnabled {
-
-	class OnKubernetesConfigPropertiesRetryEnabled extends AnyNestedCondition {
-
-		OnKubernetesConfigPropertiesRetryEnabled() {
-			super(ConfigurationPhase.REGISTER_BEAN);
-		}
-
-		@ConditionalOnConfigMapPropertiesRetryEnabled
-		static class OnConfigMapPropertiesRetryEnabled {
-
-		}
-
-		@ConditionalOnSecretsPropertiesRetryEnabled
-		static class OnSecretsPropertiesRetryEnabled {
-
-		}
-
-	}
+@ConditionalOnKubernetesEnabled
+@ConditionalOnKubernetesConfigEnabled
+@ConditionalOnKubernetesConfigFailFastEnabled
+public @interface ConditionalOnKubernetesConfigRetryEnabled {
 
 }

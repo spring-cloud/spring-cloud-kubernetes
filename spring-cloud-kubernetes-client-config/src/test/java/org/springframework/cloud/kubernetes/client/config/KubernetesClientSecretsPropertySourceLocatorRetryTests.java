@@ -212,7 +212,7 @@ public class KubernetesClientSecretsPropertySourceLocatorRetryTests {
 					"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.secrets.name=my-secret",
 					"spring.cloud.kubernetes.secrets.enable-api=true" },
 			classes = App.class)
-	class SecretsRetryDisabledButConfigMapRetryEnabled {
+	class SecretsRetryDisabledButConfigRetryEnabled {
 
 		@SpyBean
 		private KubernetesClientSecretsPropertySourceLocator propertySourceLocator;
@@ -224,7 +224,7 @@ public class KubernetesClientSecretsPropertySourceLocatorRetryTests {
 		public void locateShouldNotRetry() {
 
 			/*
-			 * Enabling config map fail-fast causes Spring Retry to be enabled and a
+			 * Enabling "config.fail-fast" causes Spring Retry to be enabled and a
 			 * RetryOperationsInterceptor bean with NeverRetryPolicy for secrets to be
 			 * defined. SecretsPropertySourceLocator should not retry even Spring Retry is
 			 * enabled.
@@ -232,7 +232,7 @@ public class KubernetesClientSecretsPropertySourceLocatorRetryTests {
 
 			stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-			assertThat(context.containsBean("secretsPropertiesRetryInterceptor")).isTrue();
+			assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isTrue();
 			Assertions.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
 
 			// verify that propertySourceLocator.locate is called only once

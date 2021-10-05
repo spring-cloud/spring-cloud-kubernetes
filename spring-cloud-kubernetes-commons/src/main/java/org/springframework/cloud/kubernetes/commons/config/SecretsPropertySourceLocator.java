@@ -64,7 +64,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 	}
 
 	@Override
-	@Retryable(interceptor = "secretsPropertiesRetryInterceptor")
+	@Retryable(interceptor = "kubernetesSecretsRetryInterceptor")
 	public PropertySource<?> locate(Environment environment) {
 		if (environment instanceof ConfigurableEnvironment) {
 			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
@@ -86,7 +86,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 	}
 
 	@Override
-	@Retryable(interceptor = "secretsPropertiesRetryInterceptor")
+	@Retryable(interceptor = "kubernetesSecretsRetryInterceptor")
 	public Collection<PropertySource<?>> locateCollection(Environment environment) {
 		return PropertySourceLocator.super.locateCollection(environment);
 	}

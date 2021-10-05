@@ -71,7 +71,7 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 					"spring.cloud.kubernetes.config.retry.max-attempts=5" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
-	class ConfigMapRetryEnabled {
+	class ConfigRetryEnabled {
 
 		@SpyBean
 		private Fabric8ConfigMapPropertySourceLocator propertySourceLocator;
@@ -138,7 +138,7 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 			properties = { "spring.cloud.kubernetes.client.namespace=default" }, classes = Application.class)
 	@EnableKubernetesMockClient
-	class ConfigMapRetryDisabled {
+	class ConfigRetryDisabled {
 
 		@SpyBean
 		private Fabric8ConfigMapPropertySourceLocator propertySourceLocator;
@@ -160,7 +160,7 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 			"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
-	class ConfigMapRetryDisabledButSecretsRetryEnabled {
+	class ConfigRetryDisabledButSecretsRetryEnabled {
 
 		@SpyBean
 		private Fabric8ConfigMapPropertySourceLocator propertySourceLocator;
@@ -172,7 +172,7 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 		public void locateShouldNotRetry() {
 
 			/*
-			 * Enabling secrets fail-fast causes Spring Retry to be enabled and a
+			 * Enabling "secrets.fail-fast" causes Spring Retry to be enabled and a
 			 * RetryOperationsInterceptor bean with NeverRetryPolicy for config maps to be
 			 * defined. ConfigMapPropertySourceLocator should not retry even Spring Retry
 			 * is enabled.
@@ -180,7 +180,7 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 
 			mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
-			assertThat(context.containsBean("configMapPropertiesRetryInterceptor")).isTrue();
+			assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isTrue();
 			Assertions.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
 
 			// verify that propertySourceLocator.locate is called only once
