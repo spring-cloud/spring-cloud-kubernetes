@@ -23,13 +23,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
 
 /**
  * {@link org.springframework.context.annotation.Conditional @Conditional} that only
- * matches when Spring Cloud Kubernetes, Kubernetes Secret property sources and Kubernetes
- * Secret property sources fail fast (thus retry) are enabled.
+ * matches when Spring Cloud Kubernetes, Kubernetes secrets, Kubernetes secrets fail-fast
+ * and Kubernetes secrets retry are enabled.
  *
  * @author Isik Erhan
  */
@@ -40,6 +41,8 @@ import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecre
 @ConditionalOnKubernetesEnabled
 @ConditionalOnKubernetesSecretsEnabled
 @ConditionalOnKubernetesSecretsFailFastEnabled
+@ConditionalOnProperty(prefix = SecretsConfigProperties.PREFIX + ".retry", name = "enabled", havingValue = "true",
+		matchIfMissing = true)
 public @interface ConditionalOnKubernetesSecretsRetryEnabled {
 
 }

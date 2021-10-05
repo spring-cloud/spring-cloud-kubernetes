@@ -213,6 +213,36 @@ public class KubernetesBootstrapConfigurationTests {
 
 	}
 
+	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class, properties = {
+			"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false" })
+	@Nested
+	public class ConfigFailFastEnabledButRetryDisabled {
+
+		@Autowired
+		ConfigurableApplicationContext context;
+
+		@Test
+		public void shouldNotDefineRetryBeans() {
+			assertThat(context.getBeansOfType(RetryOperationsInterceptor.class)).isEmpty();
+		}
+
+	}
+
+	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class, properties = {
+			"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false" })
+	@Nested
+	public class SecretsFailFastEnabledButRetryDisabled {
+
+		@Autowired
+		ConfigurableApplicationContext context;
+
+		@Test
+		public void shouldNotDefineRetryBeans() {
+			assertThat(context.getBeansOfType(RetryOperationsInterceptor.class)).isEmpty();
+		}
+
+	}
+
 	@Nested
 	public class FailFastEnabledWithoutSpringRetryOnClasspath {
 

@@ -28,9 +28,9 @@ import org.springframework.context.annotation.Conditional;
 
 /**
  * {@link Conditional @Conditional} that matches when either or both of
- * {@link ConditionalOnKubernetesConfigRetryEnabled @ConditionalOnConfigMapPropertiesRetryEnabled}
+ * {@link ConditionalOnKubernetesConfigRetryEnabled @ConditionalOnKubernetesConfigRetryEnabled}
  * and
- * {@link ConditionalOnKubernetesSecretsRetryEnabled @ConditionalOnSecretsPropertiesRetryEnabled}.
+ * {@link ConditionalOnKubernetesSecretsRetryEnabled @ConditionalOnKubernetesSecretsRetryEnabled}.
  *
  * @author Isik Erhan
  */

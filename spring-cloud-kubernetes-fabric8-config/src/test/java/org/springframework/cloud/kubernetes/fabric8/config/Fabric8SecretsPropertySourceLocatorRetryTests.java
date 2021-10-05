@@ -149,7 +149,7 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 					"spring.cloud.kubernetes.secrets.enable-api=true" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
-	class SecretsRetryDisabled {
+	class SecretsFailFastDisabled {
 
 		@SpyBean
 		private Fabric8SecretsPropertySourceLocator propertySourceLocator;
@@ -167,10 +167,10 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 	}
 
 	@Nested
-	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-			properties = { "spring.cloud.kubernetes.client.namespace=default",
-					"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.secrets.name=my-secret",
-					"spring.cloud.kubernetes.secrets.enable-api=true" },
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
+			"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true",
+			"spring.cloud.kubernetes.secrets.retry.enabled=false", "spring.cloud.kubernetes.config.fail-fast=true",
+			"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
 	class SecretsRetryDisabledButConfigRetryEnabled {
@@ -182,10 +182,10 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 		private ApplicationContext context;
 
 		@Test
-		public void locateShouldNotRetry() {
+		public void locateShouldFailWithoutRetrying() {
 
 			/*
-			 * Enabling "config.fail-fast" causes Spring Retry to be enabled and a
+			 * Enabling config retry causes Spring Retry to be enabled and a
 			 * RetryOperationsInterceptor bean with NeverRetryPolicy for secrets to be
 			 * defined. SecretsPropertySourceLocator should not retry even Spring Retry is
 			 * enabled.
@@ -194,7 +194,39 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 			mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
 			assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isTrue();
-			Assertions.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
+			assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
+					.isInstanceOf(IllegalStateException.class)
+					.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");
+
+			// verify that propertySourceLocator.locate is called only once
+			verify(propertySourceLocator, times(1)).locate(any());
+		}
+
+	}
+
+	@Nested
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
+			"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true",
+			"spring.cloud.kubernetes.secrets.retry.enabled=false", "spring.cloud.kubernetes.secrets.name=my-secret",
+			"spring.cloud.kubernetes.secrets.enable-api=true" }, classes = Application.class)
+	@EnableKubernetesMockClient
+	class SecretsFailFastEnabledButRetryDisabled {
+
+		@SpyBean
+		private Fabric8SecretsPropertySourceLocator propertySourceLocator;
+
+		@Autowired
+		private ApplicationContext context;
+
+		@Test
+		public void locateShouldFailWithoutRetrying() {
+
+			mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
+
+			assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isFalse();
+			assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
+					.isInstanceOf(IllegalStateException.class)
+					.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");
 
 			// verify that propertySourceLocator.locate is called only once
 			verify(propertySourceLocator, times(1)).locate(any());

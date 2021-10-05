@@ -186,7 +186,7 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 	@Nested
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 			properties = { "spring.cloud.kubernetes.client.namespace=default" }, classes = App.class)
-	class ConfigRetryDisabled {
+	class ConfigFailFastDisabled {
 
 		@SpyBean
 		private KubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
@@ -206,7 +206,8 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 
 	@Nested
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
-			"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true" },
+			"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.config.fail-fast=true",
+			"spring.cloud.kubernetes.config.retry.enabled=false", "spring.cloud.kubernetes.secrets.fail-fast=true" },
 			classes = App.class)
 	class ConfigRetryDisabledButSecretsRetryEnabled {
 
@@ -217,10 +218,10 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 		private ApplicationContext context;
 
 		@Test
-		public void locateShouldNotRetry() {
+		public void locateShouldFailWithoutRetrying() {
 
 			/*
-			 * Enabling "secrets.fail-fast" causes Spring Retry to be enabled and a
+			 * Enabling secrets retry causes Spring Retry to be enabled and a
 			 * RetryOperationsInterceptor bean with NeverRetryPolicy for config maps to be
 			 * defined. ConfigMapPropertySourceLocator should not retry even Spring Retry
 			 * is enabled.
@@ -229,7 +230,39 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 			stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 			assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isTrue();
-			Assertions.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
+			assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
+					.isInstanceOf(IllegalStateException.class)
+					.hasMessage("Unable to read ConfigMap with name 'application' in namespace 'default'");
+
+			// verify that propertySourceLocator.locate is called only once
+			verify(propertySourceLocator, times(1)).locate(any());
+		}
+
+	}
+
+	@Nested
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+			properties = { "spring.cloud.kubernetes.client.namespace=default",
+					"spring.cloud.kubernetes.config.fail-fast=true",
+					"spring.cloud.kubernetes.config.retry.enabled=false" },
+			classes = App.class)
+	class ConfigFailFastEnabledButRetryDisabled {
+
+		@SpyBean
+		private KubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
+
+		@Autowired
+		private ApplicationContext context;
+
+		@Test
+		public void locateShouldFailWithoutRetrying() {
+
+			stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+
+			assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isFalse();
+			assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
+					.isInstanceOf(IllegalStateException.class)
+					.hasMessage("Unable to read ConfigMap with name 'application' in namespace 'default'");
 
 			// verify that propertySourceLocator.locate is called only once
 			verify(propertySourceLocator, times(1)).locate(any());
