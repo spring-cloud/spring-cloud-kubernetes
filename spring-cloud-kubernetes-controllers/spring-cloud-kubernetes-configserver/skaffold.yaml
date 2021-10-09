@@ -10,7 +10,7 @@ build:
       dependencies:
         paths:
           - src
-#          - pom.xml
+          - pom.xml
 #    jib: {
 #           args: ["-Pjib"]
 #    }

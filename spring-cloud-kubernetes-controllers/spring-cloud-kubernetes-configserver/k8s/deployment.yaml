@@ -42,8 +42,8 @@ items:
       name: namespace-reader
     rules:
       - apiGroups: ["", "extensions", "apps"]
-        resources: ["configmaps", "pods", "services", "endpoints", "secrets"]
-        verbs: ["get", "list", "watch"]
+        resources: ["configmaps", "secrets"]
+        verbs: ["get", "list"]
   - apiVersion: apps/v1
     kind: Deployment
     metadata:
@@ -62,6 +62,11 @@ items:
           - name: spring-cloud-kubernetes-configserver
             image: springcloud/spring-cloud-kubernetes-configserver:2.0.4-SNAPSHOT
             imagePullPolicy: IfNotPresent
+            env:
+              - name: SPRING_PROFILES_INCLUDE
+                value: "kubernetes"
+              - name: SPRING_CLOUD_KUBERNETES_SECRETS_ENABLEAPI
+                value: "true"
             readinessProbe:
               httpGet:
                 port: 8888

@@ -16,13 +16,21 @@
 
 package org.springframework.cloud.kubernetes.configserver;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.config.server.config.ConfigServerAutoConfiguration;
 import org.springframework.cloud.config.server.environment.EnvironmentRepository;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
@@ -30,6 +38,9 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.MapPropertySource;
+
+import static org.springframework.cloud.kubernetes.configserver.KubernetesPropertySourceSupplier.namespaceSplitter;
 
 /**
  * @author Ryan Baxter
@@ -38,15 +49,43 @@ import org.springframework.context.annotation.Profile;
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
 @AutoConfigureBefore({ ConfigServerAutoConfiguration.class })
 @ConditionalOnKubernetesEnabled
-@ConditionalOnKubernetesConfigEnabled
-@ConditionalOnKubernetesSecretsEnabled
+@EnableConfigurationProperties(KubernetesConfigServerProperties.class)
 public class KubernetesConfigServerAutoConfiguration {
 
 	@Bean
 	@Profile("kubernetes")
 	public EnvironmentRepository kubernetesEnvironmentRepository(CoreV1Api coreV1Api,
+			List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		return new KubernetesEnvironmentRepository(coreV1Api, kubernetesNamespaceProvider.getNamespace());
+		return new KubernetesEnvironmentRepository(coreV1Api, kubernetesPropertySourceSuppliers,
+				kubernetesNamespaceProvider.getNamespace());
+	}
+
+	@Bean
+	@ConditionalOnKubernetesConfigEnabled
+	@ConditionalOnProperty(value = "spring.cloud.kubernetes.config.enableApi", matchIfMissing = true)
+	public KubernetesPropertySourceSupplier configMapPropertySourceSupplier(
+			KubernetesConfigServerProperties properties) {
+		return (coreApi, applicationName, namespace, springEnv) -> {
+			List<String> namespaces = namespaceSplitter(properties.getSecretsNamespaces(), namespace);
+			List<MapPropertySource> propertySources = new ArrayList<>();
+			namespaces.forEach(space -> propertySources
+					.add(new KubernetesClientConfigMapPropertySource(coreApi, applicationName, space, springEnv, "")));
+			return propertySources;
+		};
+	}
+
+	@Bean
+	@ConditionalOnKubernetesSecretsEnabled
+	@ConditionalOnProperty("spring.cloud.kubernetes.secrets.enableApi")
+	public KubernetesPropertySourceSupplier secretsPropertySourceSupplier(KubernetesConfigServerProperties properties) {
+		return (coreApi, applicationName, namespace, springEnv) -> {
+			List<String> namespaces = namespaceSplitter(properties.getSecretsNamespaces(), namespace);
+			List<MapPropertySource> propertySources = new ArrayList<>();
+			namespaces.forEach(space -> propertySources.add(new KubernetesClientSecretsPropertySource(coreApi,
+					applicationName, space, springEnv, new HashMap<>())));
+			return propertySources;
+		};
 	}
 
 }
