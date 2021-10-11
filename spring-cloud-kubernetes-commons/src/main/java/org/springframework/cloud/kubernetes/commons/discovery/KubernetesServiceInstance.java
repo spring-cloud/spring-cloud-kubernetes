@@ -51,6 +51,10 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	private final Map<String, String> metadata;
 
+	private final String namespace;
+
+	private final String cluster;
+
 	/**
 	 * @param instanceId the id of the instance.
 	 * @param serviceId the id of the service.
@@ -68,6 +72,31 @@ public class KubernetesServiceInstance implements ServiceInstance {
 		this.metadata = metadata;
 		this.secure = secure;
 		this.uri = createUri(secure ? HTTPS_PREFIX : HTTP_PREFIX, host, port);
+		this.namespace = null;
+		this.cluster = null;
+	}
+
+	/**
+	 * @param instanceId the id of the instance.
+	 * @param serviceId the id of the service.
+	 * @param host the address where the service instance can be found.
+	 * @param port the port on which the service is running.
+	 * @param metadata a map containing metadata.
+	 * @param secure indicates whether or not the connection needs to be secure.
+	 * @param namespace the namespace of the service.
+	 * @param cluster the clust the service resides in.
+	 */
+	public KubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
+			Map<String, String> metadata, Boolean secure, String namespace, String cluster) {
+		this.instanceId = instanceId;
+		this.serviceId = serviceId;
+		this.host = host;
+		this.port = port;
+		this.metadata = metadata;
+		this.secure = secure;
+		this.uri = createUri(secure ? HTTPS_PREFIX : HTTP_PREFIX, host, port);
+		this.namespace = namespace;
+		this.cluster = cluster;
 	}
 
 	@Override
@@ -114,7 +143,11 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	}
 
 	public String getNamespace() {
-		return this.metadata != null ? this.metadata.get(NAMESPACE_METADATA_KEY) : null;
+		return namespace != null ? namespace : this.metadata.get(NAMESPACE_METADATA_KEY);
+	}
+
+	public String getCluster() {
+		return this.cluster;
 	}
 
 	@Override
@@ -129,19 +162,20 @@ public class KubernetesServiceInstance implements ServiceInstance {
 		return port == that.port && Objects.equals(instanceId, that.instanceId)
 				&& Objects.equals(serviceId, that.serviceId) && Objects.equals(host, that.host)
 				&& Objects.equals(uri, that.uri) && Objects.equals(secure, that.secure)
-				&& Objects.equals(metadata, that.metadata);
+				&& Objects.equals(metadata, that.metadata) && Objects.equals(getNamespace(), that.getNamespace())
+				&& Objects.equals(cluster, that.cluster);
 	}
 
 	@Override
 	public String toString() {
 		return "KubernetesServiceInstance{" + "instanceId='" + instanceId + '\'' + ", serviceId='" + serviceId + '\''
-				+ ", host='" + host + '\'' + ", port=" + port + ", uri=" + uri + ", secure=" + secure + ", metadata="
-				+ metadata + '}';
+				+ ", host='" + host + '\'' + ", port=" + port + ", uri=" + uri + ", secure=" + secure + ", namespace="
+				+ getNamespace() + ", cluster=" + cluster + ", metadata=" + metadata + '}';
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(instanceId, serviceId, host, port, uri, secure, metadata);
+		return Objects.hash(instanceId, serviceId, host, port, uri, secure, getNamespace(), cluster, metadata);
 	}
 
 }

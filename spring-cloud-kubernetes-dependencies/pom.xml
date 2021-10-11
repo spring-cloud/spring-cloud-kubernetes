@@ -140,6 +140,12 @@
 				<version>${project.version}</version>
 			</dependency>
 
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-kubernetes-discovery</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
 			<!-- Own dependencies - Starters -->
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
@@ -186,6 +192,12 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-kubernetes-discoveryclient</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
