@@ -71,6 +71,8 @@ public class ConfigMapsMixedTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
+		System.setProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY, "k8s-host");
+
 		Files.createDirectories(Paths.get(FILES_ROOT_PATH));
 		ConfigMapTestUtil.createFileWithContent(FILE_NAME_FULL_PATH,
 				ConfigMapTestUtil.readResourceFile("application-path.yaml"));
@@ -93,6 +95,8 @@ public class ConfigMapsMixedTests {
 			catch (IOException ignored) {
 			}
 		});
+
+		System.clearProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY);
 	}
 
 	@Test

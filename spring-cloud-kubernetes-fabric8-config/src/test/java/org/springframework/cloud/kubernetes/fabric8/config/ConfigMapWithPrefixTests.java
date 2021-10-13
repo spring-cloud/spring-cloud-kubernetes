@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,6 +61,8 @@ public class ConfigMapWithPrefixTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
+		System.setProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY, "k8s-host");
+
 		Map<String, String> one = new HashMap<>();
 		one.put("one.property", "one");
 		createConfigmap(mockClient, "config-map-one", one);
@@ -72,6 +75,11 @@ public class ConfigMapWithPrefixTests {
 		three.put("property", "three");
 		createConfigmap(mockClient, "config-map-three", three);
 
+	}
+
+	@AfterAll
+	public static void afterAll() {
+		System.clearProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY);
 	}
 
 	private static void createConfigmap(KubernetesClient client, String name, Map<String, String> data) {

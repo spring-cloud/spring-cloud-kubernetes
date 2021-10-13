@@ -21,6 +21,7 @@ import java.util.HashMap;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -78,6 +79,12 @@ public class ConfigMapsWithActiveProfilesNameTests {
 		dataWithName.put("application.yml", readResourceFile("application-with-active-profiles-name.yaml"));
 		mockClient.configMaps().inNamespace("test").createNew().withNewMetadata()
 				.withName(APPLICATION_NAME + "-development").endMetadata().addToData(dataWithName).done();
+		System.setProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY, "k8s-host");
+	}
+
+	@AfterAll
+	public static void afterAll() {
+		System.clearProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY);
 	}
 
 	@Test

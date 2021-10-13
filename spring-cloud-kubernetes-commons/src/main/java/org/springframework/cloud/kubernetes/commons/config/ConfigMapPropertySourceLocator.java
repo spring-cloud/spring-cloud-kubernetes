@@ -36,6 +36,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.KEY_VALUE_TO_PROPERTIES;
@@ -63,6 +64,12 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 
 	@Override
 	public PropertySource<?> locate(Environment environment) {
+
+		if (!StringUtils.hasText(environment.getProperty("KUBERNETES_SERVICE_HOST"))) {
+			LOG.info("Running outside kubernetes, will not read any config maps");
+			return new CompositePropertySource("k8s empty config map");
+		}
+
 		if (environment instanceof ConfigurableEnvironment) {
 			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
 

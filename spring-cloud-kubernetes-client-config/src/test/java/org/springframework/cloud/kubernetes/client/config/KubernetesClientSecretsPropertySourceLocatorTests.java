@@ -34,6 +34,8 @@ import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
+import org.springframework.core.env.CompositePropertySource;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -76,6 +78,8 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 
 	private static WireMockServer wireMockServer;
 
+	private static final MockEnvironment ENV = new MockEnvironment();
+
 	@BeforeAll
 	public static void setup() {
 		wireMockServer = new WireMockServer(options().dynamicPort());
@@ -86,6 +90,8 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		client.setDebugging(true);
 		Configuration.setDefaultApiClient(client);
+
+		ENV.setProperty("KUBERNETES_SERVICE_HOST", "k8s-host");
 	}
 
 	@AfterAll
@@ -117,7 +123,7 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		secretsConfigProperties.setSources(sources);
 		secretsConfigProperties.setEnableApi(true);
 		PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(api,
-				new KubernetesClientProperties(), secretsConfigProperties).locate(new MockEnvironment());
+				new KubernetesClientProperties(), secretsConfigProperties).locate(ENV);
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
 	}
@@ -131,7 +137,7 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		secretsConfigProperties.setNamespace("default");
 		secretsConfigProperties.setEnableApi(true);
 		PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(api,
-				new KubernetesClientProperties(), secretsConfigProperties).locate(new MockEnvironment());
+				new KubernetesClientProperties(), secretsConfigProperties).locate(ENV);
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
 	}
@@ -153,8 +159,7 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		secretsConfigProperties.setNamespace(""); // empty on purpose
 		secretsConfigProperties.setEnableApi(true);
 		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySourceLocator(api, new KubernetesClientProperties(),
-				secretsConfigProperties).locate(new MockEnvironment()))
-						.isInstanceOf(NamespaceResolutionFailedException.class);
+				secretsConfigProperties).locate(ENV)).isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 	/**
@@ -174,8 +179,25 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		secretsConfigProperties.setNamespace(""); // empty on purpose
 		secretsConfigProperties.setEnableApi(true);
 		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySourceLocator(api,
-				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties)
-						.locate(new MockEnvironment())).isInstanceOf(NamespaceResolutionFailedException.class);
+				new KubernetesNamespaceProvider(ENV), secretsConfigProperties).locate(ENV))
+						.isInstanceOf(NamespaceResolutionFailedException.class);
+	}
+
+	/**
+	 * KUBERNETES_SERVICE_HOST is not present, as such no config maps are being read
+	 */
+	@Test
+	void testOutsideKubernetes() {
+		CoreV1Api api = new CoreV1Api();
+		KubernetesClientSecretsPropertySourceLocator locator = new KubernetesClientSecretsPropertySourceLocator(api,
+				new KubernetesNamespaceProvider(new MockEnvironment()), new SecretsConfigProperties());
+		// empty environment where "KUBERNETES_SERVICE_HOST" is not present
+		ConfigurableEnvironment environment = new MockEnvironment();
+
+		PropertySource<?> source = locator.locate(environment);
+		assertThat(source).isInstanceOf(CompositePropertySource.class);
+		assertThat(source.getName()).isEqualTo("k8s empty secrets");
+		assertThat(((CompositePropertySource) source).getPropertySources().size()).isEqualTo(0);
 	}
 
 }

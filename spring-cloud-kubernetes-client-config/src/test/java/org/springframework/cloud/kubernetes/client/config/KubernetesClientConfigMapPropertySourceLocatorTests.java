@@ -38,6 +38,8 @@ import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.core.env.CompositePropertySource;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -67,6 +69,8 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 
 	private static WireMockServer wireMockServer;
 
+	private static final MockEnvironment ENV = new MockEnvironment();
+
 	@BeforeAll
 	public static void setup() {
 		wireMockServer = new WireMockServer(options().dynamicPort());
@@ -77,6 +81,8 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		client.setDebugging(true);
 		Configuration.setDefaultApiClient(client);
+
+		ENV.setProperty("KUBERNETES_SERVICE_HOST", "k8s-host");
 	}
 
 	@AfterAll
@@ -99,7 +105,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace("default");
 		PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
-				configMapConfigProperties, kubernetesClientProperties).locate(new MockEnvironment());
+				configMapConfigProperties, kubernetesClientProperties).locate(ENV);
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
 	}
@@ -119,7 +125,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace("dev");
 		PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
-				configMapConfigProperties, kubernetesClientProperties).locate(new MockEnvironment());
+				configMapConfigProperties, kubernetesClientProperties).locate(ENV);
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
 	}
@@ -142,8 +148,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace(""); // empty on purpose
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
-				kubernetesClientProperties).locate(new MockEnvironment()))
-						.isInstanceOf(NamespaceResolutionFailedException.class);
+				kubernetesClientProperties).locate(ENV)).isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 	/**
@@ -164,8 +169,25 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace(""); // empty on purpose
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
-				new KubernetesNamespaceProvider(new MockEnvironment())).locate(new MockEnvironment()))
+				new KubernetesNamespaceProvider(ENV)).locate(ENV))
 						.isInstanceOf(NamespaceResolutionFailedException.class);
+	}
+
+	/**
+	 * KUBERNETES_SERVICE_HOST is not present, as such no config maps are being read
+	 */
+	@Test
+	void testOutsideKubernetes() {
+		CoreV1Api api = new CoreV1Api();
+		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
+				new ConfigMapConfigProperties(), new KubernetesNamespaceProvider(new MockEnvironment()));
+		// empty environment where "KUBERNETES_SERVICE_HOST" is not present
+		ConfigurableEnvironment environment = new MockEnvironment();
+
+		PropertySource<?> source = locator.locate(environment);
+		assertThat(source).isInstanceOf(CompositePropertySource.class);
+		assertThat(source.getName()).isEqualTo("k8s empty config map");
+		assertThat(((CompositePropertySource) source).getPropertySources().size()).isEqualTo(0);
 	}
 
 }

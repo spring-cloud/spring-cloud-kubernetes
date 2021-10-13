@@ -42,6 +42,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.util.StringUtils;
 
 /**
  * Kubernetes {@link PropertySourceLocator} for secrets.
@@ -62,6 +63,12 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 	@Override
 	public PropertySource<?> locate(Environment environment) {
+
+		if (!StringUtils.hasText(environment.getProperty("KUBERNETES_SERVICE_HOST"))) {
+			LOG.info("Running outside kubernetes, will not read any secrets");
+			return new CompositePropertySource("k8s empty secrets");
+		}
+
 		if (environment instanceof ConfigurableEnvironment) {
 			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
 

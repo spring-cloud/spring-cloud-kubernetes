@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,38 +16,39 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.HashMap;
-
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.fabric8.config.example.App;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.core.env.CompositePropertySource;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.reactive.server.WebTestClient;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
-		"spring.application.name=configmap-without-profile-example", "spring.cloud.kubernetes.reload.enabled=false" })
-@ActiveProfiles("development")
-@AutoConfigureWebTestClient
+import static org.assertj.core.api.Assertions.assertThat;
+
+@ExtendWith({ SpringExtension.class, OutputCaptureExtension.class })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
 @EnableKubernetesMockClient(crud = true, https = false)
-public class ConfigMapsWithoutProfilesTests {
+public class Fabric8ConfigMapOutsideKubernetesTest {
 
-	private static final String APPLICATION_NAME = "configmap-without-profile-example";
+	@Autowired
+	private Fabric8ConfigMapPropertySourceLocator propertySourceLocator;
+
+	@Autowired
+	private Environment environment;
 
 	private static KubernetesClient mockClient;
 
-	@Autowired
-	private WebTestClient webClient;
+	private static final String NAMESPACE = "test";
 
 	@BeforeAll
 	public static void setUpBeforeClass() {
@@ -57,31 +58,21 @@ public class ConfigMapsWithoutProfilesTests {
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
+		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, NAMESPACE);
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
-
-		HashMap<String, String> data = new HashMap<>();
-		data.put("application.yml", ConfigMapTestUtil.readResourceFile("application-without-profiles.yaml"));
-		mockClient.configMaps().inNamespace("test").createNew().withNewMetadata().withName(APPLICATION_NAME)
-				.endMetadata().addToData(data).done();
-		System.setProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY, "k8s-host");
 	}
 
-	@AfterAll
-	public static void afterAll() {
-		System.clearProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY);
-	}
-
+	/**
+	 * we do not set KUBERNETES_SERVICE_HOST, as such we get an empty property source
+	 */
 	@Test
-	public void testGreetingEndpoint() {
-		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Hello ConfigMap, World!");
-	}
+	public void testOutsideKubernetes(CapturedOutput output) {
+		PropertySource<?> propertySource = this.propertySourceLocator.locate(this.environment);
+		assertThat(propertySource).isInstanceOf(CompositePropertySource.class);
+		assertThat(propertySource.getName()).isEqualTo("k8s empty config map");
+		assertThat(((CompositePropertySource) propertySource).getPropertyNames()).isEqualTo(new String[0]);
 
-	@Test
-	public void testFarewellEndpoint() {
-		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Goodbye ConfigMap, World!");
+		assertThat(output).contains("Running outside kubernetes, will not read any config maps");
 	}
 
 }

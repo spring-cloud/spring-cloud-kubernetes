@@ -21,6 +21,7 @@ import java.util.HashMap;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,10 +64,17 @@ public class ConfigMapsWithProfilesNoActiveProfileTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
+		System.setProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY, "k8s-host");
+
 		HashMap<String, String> data = new HashMap<>();
 		data.put("application.yml", readResourceFile("application-with-profiles.yaml"));
 		mockClient.configMaps().inNamespace("test").createNew().withNewMetadata().withName(APPLICATION_NAME)
 				.endMetadata().addToData(data).done();
+	}
+
+	@AfterAll
+	public static void afterAll() {
+		System.clearProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY);
 	}
 
 	@Test
