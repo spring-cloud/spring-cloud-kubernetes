@@ -15,6 +15,7 @@
 	<modules>
 		<module>spring-cloud-kubernetes-configuration-watcher</module>
 		<module>spring-cloud-kubernetes-discoveryserver</module>
+		<module>spring-cloud-kubernetes-configserver</module>
 	</modules>
 
 </project>
