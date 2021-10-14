@@ -151,8 +151,8 @@ public class KubernetesInformerDiscoveryClientTests {
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
 		assertThat(discoveryClient.getInstances("test-svc-1").toArray()).isEmpty();
-		assertThat(discoveryClient.getInstances("test-svc-3").toArray())
-				.containsOnly(new KubernetesServiceInstance("", "test-svc-3", "2.2.2.2", 8080, new HashMap<>(), false));
+		assertThat(discoveryClient.getInstances("test-svc-3").toArray()).containsOnly(new KubernetesServiceInstance("",
+				"test-svc-3", "2.2.2.2", 8080, new HashMap<>(), false, "namespace1", null));
 	}
 
 	@Test

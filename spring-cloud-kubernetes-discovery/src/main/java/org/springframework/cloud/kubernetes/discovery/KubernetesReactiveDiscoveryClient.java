@@ -21,6 +21,7 @@ import reactor.core.publisher.Flux;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
@@ -32,6 +33,9 @@ public class KubernetesReactiveDiscoveryClient implements ReactiveDiscoveryClien
 
 	public KubernetesReactiveDiscoveryClient(WebClient.Builder webClientBuilder,
 			KubernetesDiscoveryClientProperties properties) {
+		if (!StringUtils.hasText(properties.getDiscoveryServerUrl())) {
+			throw new DiscoveryServerUrlInvalidException();
+		}
 		this.webClient = webClientBuilder.baseUrl(properties.getDiscoveryServerUrl()).build();
 	}
 

@@ -17,6 +17,7 @@
 package org.springframewok.cloud.kubernetes.discoveryserver;
 
 import java.util.List;
+import java.util.Objects;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -56,14 +57,13 @@ public class DiscoveryServerController {
 				.filter(serviceInstance -> serviceInstance.getInstanceId().equals(instanceId)).singleOrEmpty();
 	}
 
-	public class Service {
+	public static class Service {
 
 		private String name;
 
 		private List<ServiceInstance> serviceInstances;
 
 		public Service() {
-
 		}
 
 		public Service(String name, List<ServiceInstance> serviceInstances) {
@@ -85,6 +85,24 @@ public class DiscoveryServerController {
 
 		public void setServiceInstances(List<ServiceInstance> serviceInstances) {
 			this.serviceInstances = serviceInstances;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			Service service = (Service) o;
+			return Objects.equals(getName(), service.getName())
+					&& Objects.equals(getServiceInstances(), service.getServiceInstances());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getName(), getServiceInstances());
 		}
 
 	}

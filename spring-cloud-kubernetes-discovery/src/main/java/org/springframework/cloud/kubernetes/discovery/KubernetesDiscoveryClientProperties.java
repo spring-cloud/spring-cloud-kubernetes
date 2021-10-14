@@ -24,7 +24,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("spring.cloud.kubernetes.discovery")
 public class KubernetesDiscoveryClientProperties {
 
-	private String discoveryServerUrl = "http://spring-cloud-kubernetes-discoveryserver";
+	private String discoveryServerUrl;
+
+	private boolean enabled = true;
 
 	public String getDiscoveryServerUrl() {
 		return discoveryServerUrl;
@@ -32,6 +34,14 @@ public class KubernetesDiscoveryClientProperties {
 
 	public void setDiscoveryServerUrl(String discoveryServerUrl) {
 		this.discoveryServerUrl = discoveryServerUrl;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 
 }

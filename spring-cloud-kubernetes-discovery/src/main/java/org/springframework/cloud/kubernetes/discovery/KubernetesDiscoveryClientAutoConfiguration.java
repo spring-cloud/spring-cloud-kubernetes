@@ -16,24 +16,24 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import java.util.Arrays;
-
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.concurrent.ConcurrentMapCache;
-import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
+import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.ConditionalOnReactiveDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
+import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
+import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIndicatorProperties;
+import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
@@ -44,10 +44,10 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
-@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnProperty(value = { "spring.cloud.kubernetes.enabled", "spring.cloud.kubernetes.discovery.enabled" },
 		matchIfMissing = true)
-@EnableConfigurationProperties(KubernetesDiscoveryClientProperties.class)
+@EnableConfigurationProperties({ DiscoveryClientHealthIndicatorProperties.class,
+		KubernetesDiscoveryClientProperties.class })
 public class KubernetesDiscoveryClientAutoConfiguration {
 
 	@Configuration(proxyBeanMethods = false)
@@ -64,6 +64,16 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		public DiscoveryClient kubernetesDiscoveryClient(RestTemplate restTemplate,
 				KubernetesDiscoveryClientProperties properties) {
 			return new KubernetesDiscoveryClient(restTemplate, properties);
+		}
+
+		@Bean
+		@ConditionalOnClass({ HealthIndicator.class })
+		@ConditionalOnDiscoveryHealthIndicatorEnabled
+		public InitializingBean indicatorInitializer(ApplicationEventPublisher applicationEventPublisher,
+				ApplicationContext applicationContext) {
+			return () -> applicationEventPublisher
+					.publishEvent(new InstanceRegisteredEvent<>(applicationContext.getId(), null));
+
 		}
 
 	}
@@ -86,19 +96,17 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 			return new KubernetesReactiveDiscoveryClient(webClientBuilder, properties);
 		}
 
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	@EnableCaching
-	public class CachingConfig {
-
 		@Bean
-		@ConditionalOnMissingBean
-		public CacheManager cacheManager() {
-			SimpleCacheManager cacheManager = new SimpleCacheManager();
-			cacheManager.setCaches(
-					Arrays.asList(new ConcurrentMapCache("serviceinstances"), new ConcurrentMapCache("services")));
-			return cacheManager;
+		@ConditionalOnClass(name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
+		@ConditionalOnDiscoveryHealthIndicatorEnabled
+		public ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
+				KubernetesReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties,
+				ApplicationContext applicationContext) {
+			ReactiveDiscoveryClientHealthIndicator healthIndicator = new ReactiveDiscoveryClientHealthIndicator(client,
+					properties);
+			InstanceRegisteredEvent event = new InstanceRegisteredEvent(applicationContext.getId(), null);
+			healthIndicator.onApplicationEvent(event);
+			return healthIndicator;
 		}
 
 	}

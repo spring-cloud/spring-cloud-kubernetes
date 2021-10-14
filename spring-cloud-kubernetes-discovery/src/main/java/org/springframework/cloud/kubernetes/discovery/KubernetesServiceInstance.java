@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.discovery;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.cloud.client.ServiceInstance;
 
@@ -41,6 +42,24 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	private Map<String, String> metadata;
 
 	private String scheme;
+
+	private String namespace;
+
+	public KubernetesServiceInstance() {
+	}
+
+	public KubernetesServiceInstance(String instanceId, String serviceId, String host, int port, boolean secure,
+			URI uri, Map<String, String> metadata, String scheme, String namespace) {
+		this.instanceId = instanceId;
+		this.serviceId = serviceId;
+		this.host = host;
+		this.port = port;
+		this.secure = secure;
+		this.uri = uri;
+		this.metadata = metadata;
+		this.scheme = scheme;
+		this.namespace = namespace;
+	}
 
 	@Override
 	public String getInstanceId() {
@@ -109,9 +128,39 @@ public class KubernetesServiceInstance implements ServiceInstance {
 		this.scheme = scheme;
 	}
 
+	public String getNamespace() {
+		return namespace;
+	}
+
+	public void setNamespace(String namespace) {
+		this.namespace = namespace;
+	}
+
 	@Override
 	public String getScheme() {
 		return scheme;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		KubernetesServiceInstance that = (KubernetesServiceInstance) o;
+		return getPort() == that.getPort() && isSecure() == that.isSecure()
+				&& Objects.equals(getInstanceId(), that.getInstanceId())
+				&& Objects.equals(getServiceId(), that.getServiceId()) && Objects.equals(getHost(), that.getHost())
+				&& Objects.equals(getUri(), that.getUri()) && Objects.equals(getMetadata(), that.getMetadata())
+				&& Objects.equals(getScheme(), that.getScheme()) && Objects.equals(getNamespace(), that.getNamespace());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(getInstanceId(), getServiceId(), getHost(), getPort(), isSecure(), getUri(), getMetadata(),
+				getScheme(), getNamespace());
 	}
 
 }

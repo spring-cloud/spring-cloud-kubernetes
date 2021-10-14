@@ -56,7 +56,7 @@ public class KubernetesNamespaceProviderTests {
 		environment.setProperty(NAMESPACE_PROPERTY, "mynamespace");
 		KubernetesNamespaceProvider p1 = new KubernetesNamespaceProvider(environment);
 		assertThat(p1.getNamespace()).isEqualTo("mynamespace");
-		paths.verify(times(0), () -> Paths.get(PATH));
+		paths.verify(() -> Paths.get(PATH), times(0));
 
 	}
 

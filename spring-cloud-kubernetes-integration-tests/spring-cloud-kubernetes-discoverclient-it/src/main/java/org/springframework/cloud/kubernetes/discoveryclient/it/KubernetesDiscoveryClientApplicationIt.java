@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @author Ryan Baxter this is a test
+ * @author Ryan Baxter
  */
 @SpringBootApplication
 @RestController

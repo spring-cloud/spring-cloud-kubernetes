@@ -37,23 +37,23 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	private static final String COLON = ":";
 
-	private final String instanceId;
+	private String instanceId;
 
-	private final String serviceId;
+	private String serviceId;
 
-	private final String host;
+	private String host;
 
-	private final int port;
+	private int port;
 
-	private final URI uri;
+	private URI uri;
 
-	private final Boolean secure;
+	private Boolean secure;
 
-	private final Map<String, String> metadata;
+	private Map<String, String> metadata;
 
-	private final String namespace;
+	private String namespace;
 
-	private final String cluster;
+	private String cluster;
 
 	/**
 	 * @param instanceId the id of the instance.
@@ -97,6 +97,10 @@ public class KubernetesServiceInstance implements ServiceInstance {
 		this.uri = createUri(secure ? HTTPS_PREFIX : HTTP_PREFIX, host, port);
 		this.namespace = namespace;
 		this.cluster = cluster;
+	}
+
+	// Allows for deserialization
+	public KubernetesServiceInstance() {
 	}
 
 	@Override
@@ -148,6 +152,46 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	public String getCluster() {
 		return this.cluster;
+	}
+
+	public void setInstanceId(String instanceId) {
+		this.instanceId = instanceId;
+	}
+
+	public void setServiceId(String serviceId) {
+		this.serviceId = serviceId;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public void setUri(URI uri) {
+		this.uri = uri;
+	}
+
+	public void setSecure(Boolean secure) {
+		this.secure = secure;
+	}
+
+	public void setMetadata(Map<String, String> metadata) {
+		this.metadata = metadata;
+	}
+
+	public void setNamespace(String namespace) {
+		this.namespace = namespace;
+	}
+
+	public void setCluster(String cluster) {
+		this.cluster = cluster;
+	}
+
+	public Boolean getSecure() {
+		return secure;
 	}
 
 	@Override
