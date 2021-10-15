@@ -51,7 +51,7 @@ public class DiscoveryServerController {
 		return reactiveDiscoveryClient.getInstances(name);
 	}
 
-	@GetMapping("/instance/{name}/{instanceId}")
+	@GetMapping("/app/{name}/{instanceId}")
 	public Mono<ServiceInstance> appInstance(@PathVariable String name, @PathVariable String instanceId) {
 		return reactiveDiscoveryClient.getInstances(name)
 				.filter(serviceInstance -> serviceInstance.getInstanceId().equals(instanceId)).singleOrEmpty();

@@ -121,7 +121,7 @@ public class DiscoveryServerIntegrationTests {
 		kubernetesServiceInstance2Metadata.put(testEndpoints3.getSubsets().get(0).getPorts().get(0).getName(), testEndpoints3.getSubsets().get(0).getPorts().get(0).getPort().toString());
 		kubernetesServiceInstance2Metadata.putAll(testService3.getMetadata().getLabels());
 		KubernetesServiceInstance kubernetesServiceInstance3 = new KubernetesServiceInstance(testEndpoints3.getSubsets().get(0).getAddresses().get(0).getTargetRef().getUid(), testService3.getMetadata().getName(), testEndpoints3.getSubsets().get(0).getAddresses().get(0).getIp(), testEndpoints3.getSubsets().get(0).getPorts().get(0).getPort(), kubernetesServiceInstance2Metadata, false, testService3.getMetadata().getNamespace(), null);
-		webTestClient.get().uri("/instance/test-svc-3/uid2").exchange().expectBody(KubernetesServiceInstance.class).isEqualTo(kubernetesServiceInstance3);
+		webTestClient.get().uri("/app/test-svc-3/uid2").exchange().expectBody(KubernetesServiceInstance.class).isEqualTo(kubernetesServiceInstance3);
 	}
 
 	@SpringBootApplication
