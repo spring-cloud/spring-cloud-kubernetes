@@ -1,0 +1,13 @@
+spring:
+  cloud:
+    kubernetes:
+      discovery:
+        discoveryServerUrl: http://spring-cloud-kubernetes-discoveryserver
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*"
