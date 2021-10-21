@@ -96,10 +96,10 @@ class KubernetesEnvironmentRepositoryTests {
 	public static void before() {
 		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
+			propertySources.add(new KubernetesClientConfigMapPropertySource(coreApi, applicationName, "default",
+					springEnv, "", true));
 			propertySources.add(
-					new KubernetesClientConfigMapPropertySource(coreApi, applicationName, "default", springEnv, ""));
-			propertySources
-					.add(new KubernetesClientConfigMapPropertySource(coreApi, applicationName, "dev", springEnv, ""));
+					new KubernetesClientConfigMapPropertySource(coreApi, applicationName, "dev", springEnv, "", true));
 			return propertySources;
 		});
 		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {

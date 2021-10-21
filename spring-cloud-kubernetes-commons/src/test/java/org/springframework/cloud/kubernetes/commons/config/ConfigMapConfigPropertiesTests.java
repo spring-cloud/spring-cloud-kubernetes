@@ -228,9 +228,9 @@ public class ConfigMapConfigPropertiesTests {
 	 *        	namespace: spring-k8s
 	 * </pre>
 	 *
-	 * a config as above will result in a NormalizedSource where includeProfileSpecificSources
-	 * will be true (this test proves that the change we added is not a breaking change
-	 * for the already existing functionality)
+	 * a config as above will result in a NormalizedSource where
+	 * includeProfileSpecificSources will be true (this test proves that the change we
+	 * added is not a breaking change for the already existing functionality)
 	 */
 	@Test
 	public void testUseIncludeProfileSpecificSourcesNoChanges() {
@@ -256,11 +256,11 @@ public class ConfigMapConfigPropertiesTests {
 	 *        	namespace: spring-k8s
 	 * </pre>
 	 *
-	 * a config as above will result in a NormalizedSource where includeProfileSpecificSources
-	 * will be false. Even if we did not define any sources explicitly, one will still be
-	 * created, by default. That one might "flatMap" into multiple other, because of
-	 * multiple profiles. As such this setting still matters and must be propagated to the
-	 * normalized source.
+	 * a config as above will result in a NormalizedSource where
+	 * includeProfileSpecificSources will be false. Even if we did not define any sources
+	 * explicitly, one will still be created, by default. That one might "flatMap" into
+	 * multiple other, because of multiple profiles. As such this setting still matters
+	 * and must be propagated to the normalized source.
 	 */
 	@Test
 	public void testUseIncludeProfileSpecificSourcesDefaultChanged() {

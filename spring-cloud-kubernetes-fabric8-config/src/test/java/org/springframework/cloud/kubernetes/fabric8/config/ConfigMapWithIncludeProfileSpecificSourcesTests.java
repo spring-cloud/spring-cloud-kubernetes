@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -39,7 +40,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * @author wind57
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = IncludeProfileSpecificSourcesApp.class,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		classes = IncludeProfileSpecificSourcesApp.class,
 		properties = { "spring.cloud.bootstrap.name=include-profile-specific-sources" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
@@ -85,8 +87,8 @@ class ConfigMapWithIncludeProfileSpecificSourcesTests {
 	}
 
 	private static void createConfigmap(String name, Map<String, String> data) {
-		mockClient.configMaps().inNamespace("spring-k8s").createNew().withNewMetadata().withName(name).endMetadata()
-				.addToData(data).done();
+		mockClient.configMaps().inNamespace("spring-k8s")
+				.create(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build());
 	}
 
 	/**
