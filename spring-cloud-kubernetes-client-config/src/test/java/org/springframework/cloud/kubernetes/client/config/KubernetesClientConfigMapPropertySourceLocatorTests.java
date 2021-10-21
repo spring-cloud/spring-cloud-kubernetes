@@ -63,8 +63,6 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 											+ "logging.level.org.springframework.cloud.kubernetes=TRACE")
 							.build());
 
-	private static final String API = "/api/v1/namespaces/default/configmaps";
-
 	private static WireMockServer wireMockServer;
 
 	@BeforeAll
@@ -92,7 +90,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	@Test
 	void locateWithoutSources() {
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get(API)
+		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
 		configMapConfigProperties.setName("bootstrap-640");
@@ -107,7 +105,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	@Test
 	void locateWithSources() {
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get(API)
+		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
 		configMapConfigProperties.setName("fake-name");
@@ -135,7 +133,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	@Test
 	void testLocateWithoutNamespaceDeprecatedConstructor() {
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get(API)
+		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
 		configMapConfigProperties.setName("bootstrap-640");
@@ -157,7 +155,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	@Test
 	void testLocateWithoutNamespace() {
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get(API)
+		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
 		configMapConfigProperties.setName("bootstrap-640");

@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.with_prefix.controller;
+package org.springframework.cloud.kubernetes.fabric8.config.include_profile_specific_sources.controller;
 
-import org.springframework.cloud.kubernetes.fabric8.config.with_prefix.properties.One;
-import org.springframework.cloud.kubernetes.fabric8.config.with_prefix.properties.Three;
-import org.springframework.cloud.kubernetes.fabric8.config.with_prefix.properties.Two;
+import org.springframework.cloud.kubernetes.fabric8.config.include_profile_specific_sources.properties.One;
+import org.springframework.cloud.kubernetes.fabric8.config.include_profile_specific_sources.properties.Three;
+import org.springframework.cloud.kubernetes.fabric8.config.include_profile_specific_sources.properties.Two;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class Controller {
+public class IncludeProfileSpecificSourcesController {
 
 	private final One one;
 
@@ -31,23 +31,23 @@ public class Controller {
 
 	private final Three three;
 
-	public Controller(One one, Two two, Three three) {
+	public IncludeProfileSpecificSourcesController(One one, Two two, Three three) {
 		this.one = one;
 		this.two = two;
 		this.three = three;
 	}
 
-	@GetMapping("/prefix/one")
+	@GetMapping("/profile-specific/one")
 	public String one() {
 		return one.getProperty();
 	}
 
-	@GetMapping("/prefix/two")
+	@GetMapping("/profile-specific/two")
 	public String two() {
 		return two.getProperty();
 	}
 
-	@GetMapping("/prefix/three")
+	@GetMapping("/profile-specific/three")
 	public String three() {
 		return three.getProperty();
 	}

@@ -82,10 +82,11 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 						"'spring.cloud.kubernetes.config.useNameAsPrefix' is set to 'true', but 'spring.cloud.kubernetes.config.sources'"
 								+ " is empty; as such will default 'useNameAsPrefix' to 'false'");
 			}
-			return Collections.singletonList(new NormalizedSource(name, namespace, ""));
+			return Collections.singletonList(new NormalizedSource(name, namespace, "", includeProfileSpecificSources));
 		}
 
-		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix)).collect(Collectors.toList());
+		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix, includeProfileSpecificSources))
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -113,6 +114,12 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		 * know if it was explicitly set or not
 		 */
 		private Boolean useNameAsPrefix;
+
+		/**
+		 * Use profile name to append to a config map name. Can't be a primitive, we need to
+		 * know if it was explicitly set or not
+		 */
+		protected Boolean includeProfileSpecificSources;
 
 		/**
 		 * An explicit prefix to be used for properties.
@@ -160,6 +167,14 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			this.explicitPrefix = explicitPrefix;
 		}
 
+		public Boolean getIncludeProfileSpecificSources() {
+			return includeProfileSpecificSources;
+		}
+
+		public void setIncludeProfileSpecificSources(Boolean includeProfileSpecificSources) {
+			this.includeProfileSpecificSources = includeProfileSpecificSources;
+		}
+
 		public boolean isEmpty() {
 			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
@@ -169,15 +184,18 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		public NormalizedSource normalize(String defaultName, String defaultNamespace) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-			return new NormalizedSource(normalizedName, normalizedNamespace, "");
+			return new NormalizedSource(normalizedName, normalizedNamespace, "", true);
 		}
 
-		public NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix) {
+		public NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix,
+				boolean defaultIncludeProfileSpecificSources) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
 			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix,
 					normalizedName);
-			return new NormalizedSource(normalizedName, normalizedNamespace, prefix);
+			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(defaultIncludeProfileSpecificSources,
+					this.includeProfileSpecificSources);
+			return new NormalizedSource(normalizedName, normalizedNamespace, prefix, includeProfileSpecificSources);
 		}
 
 		@Override
@@ -207,18 +225,22 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		private final String prefix;
 
+		private final boolean includeProfileSpecificSources;
+
 		// not used, but not removed because of potential compatibility reasons
 		@Deprecated
 		NormalizedSource(String name, String namespace) {
 			this.name = name;
 			this.namespace = namespace;
 			this.prefix = "";
+			this.includeProfileSpecificSources = true;
 		}
 
-		NormalizedSource(String name, String namespace, String prefix) {
+		NormalizedSource(String name, String namespace, String prefix, boolean includeProfileSpecificSources) {
 			this.name = name;
 			this.namespace = namespace;
 			this.prefix = Objects.requireNonNull(prefix);
+			this.includeProfileSpecificSources = includeProfileSpecificSources;
 		}
 
 		public String getName() {
@@ -231,6 +253,10 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		public String getPrefix() {
 			return prefix;
+		}
+
+		public boolean isIncludeProfileSpecificSources() {
+			return includeProfileSpecificSources;
 		}
 
 		@Override
