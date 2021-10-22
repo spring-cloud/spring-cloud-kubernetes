@@ -1,0 +1,110 @@
+/*
+ * Copyright 2013-2021 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframewok.cloud.kubernetes.discoveryserver;
+
+import java.util.List;
+import java.util.Objects;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * @author Ryan Baxter
+ */
+@RestController
+public class DiscoveryServerController {
+
+	private KubernetesInformerReactiveDiscoveryClient reactiveDiscoveryClient;
+
+	public DiscoveryServerController(KubernetesInformerReactiveDiscoveryClient reactiveDiscoveryClient) {
+		this.reactiveDiscoveryClient = reactiveDiscoveryClient;
+	}
+
+	@GetMapping("/apps")
+	public Flux<Service> apps() {
+		return reactiveDiscoveryClient.getServices().flatMap(service -> reactiveDiscoveryClient.getInstances(service)
+				.collectList().flatMap(serviceInstances -> Mono.just(new Service(service, serviceInstances))));
+	}
+
+	@GetMapping("/apps/{name}")
+	public Flux<ServiceInstance> appInstances(@PathVariable String name) {
+		return reactiveDiscoveryClient.getInstances(name);
+	}
+
+	@GetMapping("/app/{name}/{instanceId}")
+	public Mono<ServiceInstance> appInstance(@PathVariable String name, @PathVariable String instanceId) {
+		return reactiveDiscoveryClient.getInstances(name)
+				.filter(serviceInstance -> serviceInstance.getInstanceId().equals(instanceId)).singleOrEmpty();
+	}
+
+	public static class Service {
+
+		private String name;
+
+		private List<ServiceInstance> serviceInstances;
+
+		public Service() {
+		}
+
+		public Service(String name, List<ServiceInstance> serviceInstances) {
+			this.name = name;
+			this.serviceInstances = serviceInstances;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public List<ServiceInstance> getServiceInstances() {
+			return serviceInstances;
+		}
+
+		public void setServiceInstances(List<ServiceInstance> serviceInstances) {
+			this.serviceInstances = serviceInstances;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			Service service = (Service) o;
+			return Objects.equals(getName(), service.getName())
+					&& Objects.equals(getServiceInstances(), service.getServiceInstances());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getName(), getServiceInstances());
+		}
+
+	}
+
+}

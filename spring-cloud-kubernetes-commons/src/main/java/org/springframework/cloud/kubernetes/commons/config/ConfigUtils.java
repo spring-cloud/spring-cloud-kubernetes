@@ -84,4 +84,19 @@ public final class ConfigUtils {
 		return "";
 	}
 
+	/**
+	 * @param defaultIncludeProfileSpecificSources value of
+	 * 'spring.cloud.kubernetes.config.includeProfileSpecificSources'
+	 * @param includeProfileSpecificSources value of
+	 * 'spring.cloud.kubernetes.config.sources.includeProfileSpecificSources'
+	 * @return useProfileNameAsPrefix to be used in normalized sources
+	 */
+	public static boolean includeProfileSpecificSources(boolean defaultIncludeProfileSpecificSources,
+			Boolean includeProfileSpecificSources) {
+		if (includeProfileSpecificSources != null) {
+			return includeProfileSpecificSources;
+		}
+		return defaultIncludeProfileSpecificSources;
+	}
+
 }

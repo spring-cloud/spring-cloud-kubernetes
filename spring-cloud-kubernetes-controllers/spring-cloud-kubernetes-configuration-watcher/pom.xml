@@ -82,6 +82,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<image>
+						<builder>paketobuildpacks/builder:0.1.169-base</builder>
 						<name>${env.IMAGE}</name>
 					</image>
 					<goal>build-image</goal>

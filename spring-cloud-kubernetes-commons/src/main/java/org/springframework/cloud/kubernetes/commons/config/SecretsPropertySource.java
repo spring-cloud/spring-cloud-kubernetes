@@ -29,14 +29,12 @@ import org.springframework.core.env.MapPropertySource;
  */
 public class SecretsPropertySource extends MapPropertySource {
 
-	private static final String PREFIX = "secrets";
-
 	public SecretsPropertySource(String name, Map<String, Object> source) {
 		super(name, source);
 	}
 
 	protected static String getSourceName(String name, String namespace) {
-		return PREFIX + Constants.PROPERTY_SOURCE_NAME_SEPARATOR + name + Constants.PROPERTY_SOURCE_NAME_SEPARATOR
+		return "secrets" + Constants.PROPERTY_SOURCE_NAME_SEPARATOR + name + Constants.PROPERTY_SOURCE_NAME_SEPARATOR
 				+ namespace;
 	}
 

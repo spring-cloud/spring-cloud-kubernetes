@@ -47,7 +47,8 @@ public class Fabric8BootstrapConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-			properties = "spring.cloud.kubernetes.enabled=true")
+			properties = { "spring.cloud.kubernetes.secrets.enabled=true",
+					"spring.cloud.kubernetes.client.namespace=default" })
 	@Nested
 	class KubernetesEnabledOnPurpose {
 
@@ -62,7 +63,8 @@ public class Fabric8BootstrapConfigurationTests {
 
 	}
 
-	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class)
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
+			properties = "spring.cloud.kubernetes.client.namespace=default")
 	@Nested
 	class KubernetesEnabled {
 
@@ -94,7 +96,8 @@ public class Fabric8BootstrapConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-			properties = "spring.cloud.kubernetes.secrets.enabled=false")
+			properties = { "spring.cloud.kubernetes.secrets.enabled=false",
+					"spring.cloud.kubernetes.client.namespace=default" })
 	@Nested
 	class KubernetesEnabledSecretsDisabled {
 

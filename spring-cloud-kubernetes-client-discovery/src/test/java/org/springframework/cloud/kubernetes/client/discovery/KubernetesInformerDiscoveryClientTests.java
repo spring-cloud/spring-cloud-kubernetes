@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Cache;
@@ -59,6 +60,11 @@ public class KubernetesInformerDiscoveryClientTests {
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace2"))
 			.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1")).status(new V1ServiceStatus());
 
+	private static final V1Service testService3 = new V1Service()
+			.metadata(new V1ObjectMeta().name("test-svc-3").namespace("namespace1").putLabelsItem("spring", "true")
+					.putLabelsItem("k8s", "true"))
+			.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1")).status(new V1ServiceStatus());
+
 	private static final V1Endpoints testEndpoints1 = new V1Endpoints()
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
 			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(8080))
@@ -91,6 +97,11 @@ public class KubernetesInformerDiscoveryClientTests {
 					.addPortsItem(new V1EndpointPort().name("tcp2").port(443))
 					.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
 
+	private static final V1Endpoints testEndpoints3 = new V1Endpoints()
+			.metadata(new V1ObjectMeta().name("test-svc-3").namespace("namespace1"))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(8080))
+					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
+
 	@Test
 	public void testDiscoveryGetServicesAllNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
@@ -104,6 +115,44 @@ public class KubernetesInformerDiscoveryClientTests {
 				testService2.getMetadata().getName());
 
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+	}
+
+	@Test
+	public void testDiscoveryWithServiceLabels() {
+		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2, testService3);
+
+		Map<String, String> labels = new HashMap<>();
+		labels.put("k8s", "true");
+		labels.put("spring", "true");
+
+		when(kubernetesDiscoveryProperties.getServiceLabels()).thenReturn(labels);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("",
+				sharedInformerFactory, serviceLister, null, null, null, kubernetesDiscoveryProperties);
+
+		assertThat(discoveryClient.getServices().toArray()).containsOnly(testService3.getMetadata().getName());
+
+		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+	}
+
+	@Test
+	public void testDiscoveryInstancesWithServiceLabels() {
+		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2, testService3);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1, testEndpoints3);
+
+		Map<String, String> labels = new HashMap<>();
+		labels.put("k8s", "true");
+		labels.put("spring", "true");
+
+		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(true);
+		when(kubernetesDiscoveryProperties.getServiceLabels()).thenReturn(labels);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("",
+				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
+
+		assertThat(discoveryClient.getInstances("test-svc-1").toArray()).isEmpty();
+		assertThat(discoveryClient.getInstances("test-svc-3").toArray()).containsOnly(new KubernetesServiceInstance("",
+				"test-svc-3", "2.2.2.2", 8080, new HashMap<>(), false, "namespace1", null));
 	}
 
 	@Test
@@ -130,8 +179,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("",
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new KubernetesServiceInstance("",
+				"test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false, "namespace1", null));
 
 		verify(kubernetesDiscoveryProperties, times(2)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
@@ -147,8 +196,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new KubernetesServiceInstance("",
+				"test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false, "namespace1", null));
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
 	}
@@ -180,8 +229,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new KubernetesServiceInstance("",
+				"test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false, "namespace1", null));
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
 		verify(kubernetesDiscoveryProperties, times(1)).isIncludeNotReadyAddresses();
@@ -226,8 +275,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "1.1.1.1", 443, new HashMap<>(), false));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new KubernetesServiceInstance("",
+				"test-svc-1", "1.1.1.1", 443, new HashMap<>(), false, "namespace1", null));
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
 		verify(kubernetesDiscoveryProperties, times(1)).isIncludeNotReadyAddresses();
@@ -245,8 +294,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "1.1.1.1", 80, new HashMap<>(), false));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new KubernetesServiceInstance("",
+				"test-svc-1", "1.1.1.1", 80, new HashMap<>(), false, "namespace1", null));
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
 	}
@@ -262,8 +311,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "1.1.1.1", 443, new HashMap<>(), false));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new KubernetesServiceInstance("",
+				"test-svc-1", "1.1.1.1", 443, new HashMap<>(), false, "namespace1", null));
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).isIncludeNotReadyAddresses();
@@ -281,8 +330,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "1.1.1.1", 80, new HashMap<>(), false));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new KubernetesServiceInstance("",
+				"test-svc-1", "1.1.1.1", 80, new HashMap<>(), false, "namespace1", null));
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
 	}
@@ -297,8 +346,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "1.1.1.1", 443, new HashMap<>(), false));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new KubernetesServiceInstance("",
+				"test-svc-1", "1.1.1.1", 443, new HashMap<>(), false, "namespace1", null));
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
 	}
@@ -313,8 +362,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "1.1.1.1", 80, new HashMap<>(), false));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new KubernetesServiceInstance("",
+				"test-svc-1", "1.1.1.1", 80, new HashMap<>(), false, "namespace1", null));
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
 	}
@@ -330,8 +379,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new KubernetesServiceInstance("", "test-svc-1", "1.1.1.1", 80, new HashMap<>(), false));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new KubernetesServiceInstance("",
+				"test-svc-1", "1.1.1.1", 80, new HashMap<>(), false, "namespace1", null));
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
 	}

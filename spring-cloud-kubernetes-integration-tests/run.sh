@@ -30,6 +30,8 @@ ALL_INTEGRATION_PROJECTS=(
 	"spring-cloud-kubernetes-configuration-watcher-it"
 	"spring-cloud-kubernetes-client-loadbalancer-it"
 	"spring-cloud-kubernetes-client-reactive-discovery-client-it"
+	"spring-cloud-kubernetes-discoverclient-it"
+	"spring-cloud-kubernetes-reactive-discoveryclient-it"
 )
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 
@@ -42,7 +44,8 @@ DEFAULT_PULLING_IMAGES=(
 )
 PULLING_IMAGES=(${PULLING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
 
-LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}} "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${MVN_VERSION}")
+LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}} "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${MVN_VERSION}"
+	"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${MVN_VERSION}")
 # cleanup on exit (useful for running locally)
 cleanup() {
     "${KIND}" delete cluster || true
@@ -62,7 +65,7 @@ install_latest_kind() {
 
 # util to install a released kind version into ${BIN_DIR}
 install_kind_release() {
-    VERSION="v0.5.1"
+    VERSION="v0.11.1"
     KIND_BINARY_URL="https://github.com/kubernetes-sigs/kind/releases/download/${VERSION}/kind-linux-amd64"
     if [[ "$OSTYPE" == "darwin"*  ]]; then
         KIND_BINARY_URL="https://github.com/kubernetes-sigs/kind/releases/download/${VERSION}/kind-darwin-amd64"
@@ -73,7 +76,7 @@ install_kind_release() {
 	elif [[ "$OSTYPE" == "win32" ]]; then
         KIND_BINARY_URL="https://github.com/kubernetes-sigs/kind/releases/download/${VERSION}/kind-windows-amd64"
 	else
-        echo "Uknown OS, using linux binary"
+        echo "Unknown OS, using linux binary"
 	fi
     wget -O "${KIND}" "${KIND_BINARY_URL}"
     chmod +x "${KIND}"
@@ -81,13 +84,13 @@ install_kind_release() {
 
 main() {
     # get kind
-    install_latest_kind
+    install_kind_release
 
     # create a cluster
     cd $CURRENT_DIR
 
     #TODO what happens if cluster is already there????
-    "${KIND}" create cluster --config=kind-config.yaml --loglevel=debug
+    "${KIND}" create cluster --config=kind-config.yaml -v 2147483647
 
     # set KUBECONFIG to point to the cluster
     kubectl cluster-info --context kind-kind
@@ -102,8 +105,7 @@ main() {
 		echo "Loading images into Kind: $i"
 		"${KIND}" load docker-image $i
 	done
-#    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
-    kubectl apply -fhttps://raw.githubusercontent.com/kubernetes/ingress-nginx/12150e318b972a03fb49d827e6cabb8ef62247ef/deploy/static/provider/kind/deploy.yaml
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
     sleep 5 # hold 5 sec so that the pods can be created
     kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=420s
 	
@@ -121,7 +123,7 @@ main() {
 		echo "Running test: $p"
 		cd  $p
 		${MVN} spring-boot:build-image \
-      		-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION}
+      		-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder:0.1.169-base
     	"${KIND}" load docker-image docker.io/springcloud/$p:${MVN_VERSION}
      	${MVN} clean install -P it
 		cd ..

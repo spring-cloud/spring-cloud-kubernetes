@@ -44,30 +44,35 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 	private static final Log LOG = LogFactory.getLog(Fabric8ConfigMapPropertySource.class);
 
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name) {
-		this(client, name, null, null, "");
+		this(client, name, null, null, "", true);
 	}
 
-	public Fabric8ConfigMapPropertySource(KubernetesClient client, String applicationName, String namespace,
+	/**
+	 * this constructor is present only for compatibility reasons, its usage is
+	 * discouraged.
+	 */
+	@Deprecated
+	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
 			Environment environment) {
-		super(getName(applicationName, getApplicationNamespace(client, namespace)),
-				getData(client, applicationName, getApplicationNamespace(client, namespace), environment, ""));
+		super(getName(name, getApplicationNamespace(client, namespace)),
+				getData(client, name, getApplicationNamespace(client, namespace), environment, "", true));
 	}
 
-	public Fabric8ConfigMapPropertySource(KubernetesClient client, String applicationName, String namespace,
-			Environment environment, String prefix) {
-		super(getName(applicationName, getApplicationNamespace(client, namespace)),
-				getData(client, applicationName, getApplicationNamespace(client, namespace), environment, prefix));
+	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
+			Environment environment, String prefix, boolean includeProfileSpecificSources) {
+		super(getName(name, getApplicationNamespace(client, namespace)), getData(client, name,
+				getApplicationNamespace(client, namespace), environment, prefix, includeProfileSpecificSources));
 	}
 
-	private static Map<String, Object> getData(KubernetesClient client, String applicationName, String namespace,
-			Environment environment, String prefix) {
+	private static Map<String, Object> getData(KubernetesClient client, String name, String namespace,
+			Environment environment, String prefix, boolean includeProfileSpecificSources) {
 		try {
-			Map<String, String> data = getConfigMapData(client, namespace, applicationName);
+			Map<String, String> data = getConfigMapData(client, namespace, name);
 			Map<String, Object> result = new HashMap<>(processAllEntries(data, environment));
 
-			if (environment != null) {
+			if (environment != null && includeProfileSpecificSources) {
 				for (String activeProfile : environment.getActiveProfiles()) {
-					String mapNameWithProfile = applicationName + "-" + activeProfile;
+					String mapNameWithProfile = name + "-" + activeProfile;
 					Map<String, String> dataWithProfile = getConfigMapData(client, namespace, mapNameWithProfile);
 					result.putAll(processAllEntries(dataWithProfile, environment));
 				}
@@ -83,8 +88,7 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 
 		}
 		catch (Exception e) {
-			LOG.warn("Can't read configMap with name: [" + applicationName + "] in namespace: [" + namespace
-					+ "]. Ignoring.", e);
+			LOG.warn("Can't read configMap with name: [" + name + "] in namespace: [" + namespace + "]. Ignoring.", e);
 		}
 
 		return Collections.emptyMap();

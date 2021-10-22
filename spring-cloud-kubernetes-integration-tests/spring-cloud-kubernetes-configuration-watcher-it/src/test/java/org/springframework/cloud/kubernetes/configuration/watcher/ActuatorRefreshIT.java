@@ -23,11 +23,11 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.NetworkingV1beta1Api;
-import io.kubernetes.client.openapi.models.NetworkingV1beta1Ingress;
+import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.After;
 import org.junit.Before;
@@ -54,22 +54,6 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
 @RunWith(MockitoJUnitRunner.class)
 public class ActuatorRefreshIT {
 
-	private static final String KIND_REPO_HOST_PORT = "localhost:5000";
-
-	private static final String KIND_REPO_URL = "http://" + KIND_REPO_HOST_PORT;
-
-	private static final String IMAGE = "spring-cloud-kubernetes-configuration-watcher";
-
-	private static final String IMAGE_TAG = "2.0.1-SNAPSHOT";
-
-	private static final String LOCAL_REPO = "docker.io/springcloud";
-
-	private static final String LOCAL_IMAGE = LOCAL_REPO + "/" + IMAGE + ":" + IMAGE_TAG;
-
-	private static final String KIND_IMAGE = KIND_REPO_HOST_PORT + "/" + IMAGE;
-
-	private static final String KIND_IMAGE_WITH_TAG = KIND_IMAGE + ":" + IMAGE_TAG;
-
 	private static final String CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME = "config-watcher-wiremock-deployment";
 
 	private static final String CONFIG_WATCHER_WIREMOCK_APP_NAME = "config-watcher-wiremock";
@@ -92,7 +76,7 @@ public class ActuatorRefreshIT {
 
 	private AppsV1Api appsApi;
 
-	private NetworkingV1beta1Api networkingApi;
+	private NetworkingV1Api networkingApi;
 
 	private K8SUtils k8SUtils;
 
@@ -101,7 +85,7 @@ public class ActuatorRefreshIT {
 		this.client = createApiClient();
 		this.api = new CoreV1Api();
 		this.appsApi = new AppsV1Api();
-		this.networkingApi = new NetworkingV1beta1Api();
+		this.networkingApi = new NetworkingV1Api();
 		this.k8SUtils = new K8SUtils(api, appsApi);
 
 		deployWiremock();
@@ -192,9 +176,8 @@ public class ActuatorRefreshIT {
 		networkingApi.createNamespacedIngress(NAMESPACE, getWiremockIngress(), null, null, null);
 	}
 
-	private NetworkingV1beta1Ingress getWiremockIngress() throws Exception {
-		NetworkingV1beta1Ingress ingress = (NetworkingV1beta1Ingress) k8SUtils
-				.readYamlFromClasspath("wiremock-ingress.yaml");
+	private V1Ingress getWiremockIngress() throws Exception {
+		V1Ingress ingress = (V1Ingress) k8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
 		return ingress;
 	}
 

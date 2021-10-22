@@ -31,6 +31,10 @@ include::service-registry.adoc[]
 
 include::spring-cloud-kubernetes-configuration-watcher.adoc[]
 
+include::spring-cloud-kubernetes-configserver.adoc[]
+
+include::spring-cloud-kubernetes-discoveryserver.adoc[]
+
 include::examples.adoc[]
 
 include::other-resources.adoc[]

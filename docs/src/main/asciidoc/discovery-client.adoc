@@ -9,6 +9,20 @@ access from a Spring Boot application running as a pod.
 This is something that you get for free by adding the following dependency inside your project:
 
 ====
+HTTP Based `DiscoveryClient`
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-discoveryclient</artifactId>
+</dependency>
+----
+====
+
+NOTE: `spring-cloud-starter-kubernetes-discoveryclient` is designed to be used with the
+<<spring-cloud-kubernetes-discoveryserver, Spring Cloud Kubernetes DiscoveryServer>>.
+
+====
 Fabric8 Kubernetes Client
 [source,xml]
 ----

@@ -23,9 +23,9 @@ import java.util.Map;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.NetworkingV1beta1Api;
-import io.kubernetes.client.openapi.models.NetworkingV1beta1Ingress;
+import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -68,7 +68,7 @@ public class ActuatorEndpointIT {
 
 	private static AppsV1Api appsApi;
 
-	private static NetworkingV1beta1Api networkingApi;
+	private static NetworkingV1Api networkingApi;
 
 	private static K8SUtils k8SUtils;
 
@@ -77,7 +77,7 @@ public class ActuatorEndpointIT {
 		client = createApiClient();
 		api = new CoreV1Api();
 		appsApi = new AppsV1Api();
-		networkingApi = new NetworkingV1beta1Api();
+		networkingApi = new NetworkingV1Api();
 		k8SUtils = new K8SUtils(api, appsApi);
 
 		deployCoreK8sClientIt();
@@ -107,8 +107,8 @@ public class ActuatorEndpointIT {
 		return service;
 	}
 
-	private static NetworkingV1beta1Ingress getCoreK8sClientItIngress() throws Exception {
-		NetworkingV1beta1Ingress ingress = (NetworkingV1beta1Ingress) k8SUtils
+	private static V1Ingress getCoreK8sClientItIngress() throws Exception {
+		V1Ingress ingress = (V1Ingress) k8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-core-k8s-client-it-ingress.yaml");
 		return ingress;
 	}
