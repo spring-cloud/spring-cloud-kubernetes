@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: include-profile-specific-sources
+  cloud:
+    kubernetes:
+      config:
+        includeProfileSpecificSources: false
+        namespace: spring-k8s
+        sources:
+          - name: config-map-one
+            includeProfileSpecificSources: true
+          - name: config-map-two
+            includeProfileSpecificSources: false
+          - name: config-map-three

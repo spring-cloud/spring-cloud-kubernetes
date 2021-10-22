@@ -37,17 +37,17 @@ public class Controller {
 		this.three = three;
 	}
 
-	@GetMapping("/one")
+	@GetMapping("/prefix/one")
 	public String one() {
 		return one.getProperty();
 	}
 
-	@GetMapping("/two")
+	@GetMapping("/prefix/two")
 	public String two() {
 		return two.getProperty();
 	}
 
-	@GetMapping("/three")
+	@GetMapping("/prefix/three")
 	public String three() {
 		return three.getProperty();
 	}

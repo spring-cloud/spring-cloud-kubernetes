@@ -30,7 +30,11 @@ public abstract class AbstractConfigProperties {
 
 	protected String namespace;
 
+	// use config map name to prefix properties
 	protected boolean useNameAsPrefix;
+
+	// use profile name to append config map name
+	protected boolean includeProfileSpecificSources = true;
 
 	protected boolean failFast = false;
 
@@ -68,6 +72,14 @@ public abstract class AbstractConfigProperties {
 
 	public void setUseNameAsPrefix(boolean useNameAsPrefix) {
 		this.useNameAsPrefix = useNameAsPrefix;
+	}
+
+	public boolean isIncludeProfileSpecificSources() {
+		return includeProfileSpecificSources;
+	}
+
+	public void setIncludeProfileSpecificSources(boolean includeProfileSpecificSources) {
+		this.includeProfileSpecificSources = includeProfileSpecificSources;
 	}
 
 	public boolean isFailFast() {

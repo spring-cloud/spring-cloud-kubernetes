@@ -70,7 +70,8 @@ public class Fabric8ConfigMapPropertySourceLocator extends ConfigMapPropertySour
 		String namespace = getApplicationNamespace(this.client, normalizedSource.getNamespace(), configurationTarget,
 				provider);
 		return new Fabric8ConfigMapPropertySource(this.client, applicationName, namespace, environment,
-				normalizedSource.getPrefix(), this.properties.isFailFast());
+				normalizedSource.getPrefix(), normalizedSource.isIncludeProfileSpecificSources(),
+				this.properties.isFailFast());
 	}
 
 }

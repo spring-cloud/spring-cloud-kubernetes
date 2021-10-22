@@ -102,7 +102,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		V1Service service = properties.isAllNamespaces() ? this.serviceLister.list().stream()
 				.filter(svc -> serviceId.equals(svc.getMetadata().getName())).findFirst().orElse(null)
 				: this.serviceLister.namespace(this.namespace).get(serviceId);
-		if (service == null) {
+		if (service == null || !matchServiceLabels(service)) {
 			// no such service present in the cluster
 			return new ArrayList<>();
 		}
@@ -163,7 +163,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 					return addresses.stream()
 							.map(addr -> new KubernetesServiceInstance(
 									addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
-									addr.getIp(), port, metadata, false));
+									addr.getIp(), port, metadata, false, service.getMetadata().getNamespace(),
+									service.getMetadata().getClusterName()));
 				}).collect(Collectors.toList());
 	}
 
@@ -205,8 +206,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 	public List<String> getServices() {
 		List<V1Service> services = this.properties.isAllNamespaces() ? this.serviceLister.list()
 				: this.serviceLister.namespace(this.namespace).list();
-		return services.stream().filter(s -> s.getMetadata() != null) // safeguard
-				.map(s -> s.getMetadata().getName()).collect(Collectors.toList());
+		return services.stream().filter(this::matchServiceLabels).map(s -> s.getMetadata().getName())
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -228,6 +229,30 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		}
 		log.info("Cache fully loaded (total " + serviceLister.list().size()
 				+ " services) , discovery client is now available");
+	}
+
+	private boolean matchServiceLabels(V1Service service) {
+		if (log.isDebugEnabled()) {
+			log.debug("Kubernetes Service Label Properties:");
+			if (this.properties.getServiceLabels() != null) {
+				this.properties.getServiceLabels().forEach((key, value) -> log.debug(key + ":" + value));
+			}
+			log.debug("Service " + service.getMetadata().getName() + " labels:");
+			if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
+				service.getMetadata().getLabels().forEach((key, value) -> log.debug(key + ":" + value));
+			}
+		}
+		// safeguard
+		if (service.getMetadata() == null) {
+			return false;
+		}
+		if (properties.getServiceLabels() == null || properties.getServiceLabels().isEmpty()) {
+			return true;
+		}
+		return properties.getServiceLabels().keySet().stream()
+				.allMatch(k -> service.getMetadata().getLabels() != null
+						&& service.getMetadata().getLabels().containsKey(k)
+						&& service.getMetadata().getLabels().get(k).equals(properties.getServiceLabels().get(k)));
 	}
 
 }

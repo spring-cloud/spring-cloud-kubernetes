@@ -115,6 +115,20 @@ access from a Spring Boot application running as a pod.
 This is something that you get for free by adding the following dependency inside your project:
 
 ====
+HTTP Based `DiscoveryClient`
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-discoveryclient</artifactId>
+</dependency>
+----
+====
+
+NOTE: `spring-cloud-starter-kubernetes-discoveryclient` is designed to be used with the
+<<spring-cloud-kubernetes-discoveryserver, Spring Cloud Kubernetes DiscoveryServer>>.
+
+====
 Fabric8 Kubernetes Client
 [source,xml]
 ----
@@ -1391,6 +1405,342 @@ spring:
 ----
 ====
 
+[#spring-cloud-kubernetes-configserver]
+## Spring Cloud Kubernetes Config Server
+
+The Spring Cloud Kubernetes Config Server, is based on https://spring.io/projects/spring-cloud-config[Spring Cloud Config Server] and adds an https://docs.spring.io/spring-cloud-config/docs/current/reference/html/#_environment_repository[environment repository] for Kubernetes
+https://kubernetes.io/docs/concepts/configuration/configmap/[Config Maps] and https://kubernetes.io/docs/concepts/configuration/secret/[Secrets].
+
+This is component is completely optional.  However, it allows you to continue to leverage configuration
+you may have stored in existing environment repositories (Git, SVN, Vault, etc) with applications that you are running on Kubernetes.
+
+A default image is located on Docker Hub which will allow you to easily get a Config Server deployed on Kubernetes without building
+the code and image yourself.  However, if you need to customize the config server behavior you can easily build your own
+image from the source code on GitHub and use that.
+
+### Configuration
+
+#### Enabling The Kubernetes Environment Repository
+To enable the Kubernetes environment repository the `kubernetes` profile must be included in the list of active profiles.
+You may activate other profiles as well to use other environment repository implementations.
+
+#### Config Map and Secret PropertySources
+By default, only Config Map data will be fetched.  To enable Secrets as well you will need to set `spring.cloud.kubernetes.secrets.enableApi=true`.
+You can disable the Config Map `PropertySource` by setting `spring.cloud.kubernetes.config.enableApi=false`.
+
+#### Fetching Config Map and Secret Data From Additional Namespaces
+By default, the Kubernetes environment repository will only fetch Config Map and Secrets from the namespace in which it is deployed.
+If you want to include data from other namespaces you can set `spring.cloud.kubernetes.configserver.config-map-namespaces` and/or `spring.cloud.kubernetes.configserver.secrets-namespaces` to a comma separated
+list of namespace values.
+
+NOTE: If you set `spring.cloud.kubernetes.configserver.config-map-namespaces` and/or `spring.cloud.kubernetes.configserver.secrets-namespaces`
+you will need to include the namespace in which the Config Server is deployed in order to continue to fetch Config Map and Secret data from that namespace.
+
+#### Kubernetes Access Controls
+The Kubernetes Config Server uses the Kubernetes API server to fetch Config Map and Secret data.  In order for it to do that
+it needs ability to `get` and `list` Config Map and Secrets (depending on what you enable/disable).
+
+### Deployment Yaml
+
+Below is a sample deployment, service and permissions configuration you can use to deploy a basic Config Server to Kubernetes.
+
+====
+[source,yaml]
+----
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-configserver
+      name: spring-cloud-kubernetes-configserver
+    spec:
+      ports:
+        - name: http
+          port: 8888
+          targetPort: 8888
+      selector:
+        app: spring-cloud-kubernetes-configserver
+      type: ClusterIP
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-configserver
+      name: spring-cloud-kubernetes-configserver
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-configserver
+      name: spring-cloud-kubernetes-configserver:view
+    roleRef:
+      kind: Role
+      apiGroup: rbac.authorization.k8s.io
+      name: namespace-reader
+    subjects:
+      - kind: ServiceAccount
+        name: spring-cloud-kubernetes-configserver
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      namespace: default
+      name: namespace-reader
+    rules:
+      - apiGroups: ["", "extensions", "apps"]
+        resources: ["configmaps", "secrets"]
+        verbs: ["get", "list"]
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: spring-cloud-kubernetes-configserver-deployment
+    spec:
+      selector:
+        matchLabels:
+          app: spring-cloud-kubernetes-configserver
+      template:
+        metadata:
+          labels:
+            app: spring-cloud-kubernetes-configserver
+        spec:
+          serviceAccount: spring-cloud-kubernetes-configserver
+          containers:
+          - name: spring-cloud-kubernetes-configserver
+            image: springcloud/spring-cloud-kubernetes-configserver
+            imagePullPolicy: IfNotPresent
+            env:
+                - name: SPRING_PROFILES_INCLUDE
+                  value: "kubernetes"
+            readinessProbe:
+              httpGet:
+                port: 8888
+                path: /actuator/health/readiness
+            livenessProbe:
+              httpGet:
+                port: 8888
+                path: /actuator/health/liveness
+            ports:
+            - containerPort: 8888
+
+----
+====
+
+[#spring-cloud-kubernetes-discoveryserver]
+## Spring Cloud Kubernetes Discovery Server
+
+The Spring Cloud Kubernetes Discovery Server provides HTTP endpoints apps can use to gather information
+about services available within a Kubernetes cluster.  The Spring Cloud Kubernetes Discovery Server
+can be used by apps using the `spring-cloud-starter-kubernetes-discoveryclient` to provide data to
+the `DiscoveryClient` implementation provided by that starter.
+
+### Permissions
+The Spring Cloud Discovery server uses
+the Kubernetes API server to get data about Service and Endpoint resrouces so it needs list, watch, and
+get permissions to use those endpoints.  See the below sample Kubernetes deployment YAML for an
+examlpe of how to configure the Service Account on Kubernetes.
+
+
+### Endpoints
+There are three endpoints exposed by the server.
+
+#### `/apps`
+
+A `GET` request sent to `/apps` will return a JSON array of available services.  Each item contains
+the name of the Kubernetes service and service instance information.  Below is a sample response.
+
+====
+[source,json]
+----
+[
+   {
+      "name":"spring-cloud-kubernetes-discoveryserver",
+      "serviceInstances":[
+         {
+            "instanceId":"836a2f25-daee-4af2-a1be-aab9ce2b938f",
+            "serviceId":"spring-cloud-kubernetes-discoveryserver",
+            "host":"10.244.1.6",
+            "port":8761,
+            "uri":"http://10.244.1.6:8761",
+            "secure":false,
+            "metadata":{
+               "app":"spring-cloud-kubernetes-discoveryserver",
+               "kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app\":\"spring-cloud-kubernetes-discoveryserver\"},\"name\":\"spring-cloud-kubernetes-discoveryserver\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"targetPort\":8761}],\"selector\":{\"app\":\"spring-cloud-kubernetes-discoveryserver\"},\"type\":\"ClusterIP\"}}\n",
+               "http":"8761"
+            },
+            "namespace":"default",
+            "scheme":"http"
+         }
+      ]
+   },
+   {
+      "name":"kubernetes",
+      "serviceInstances":[
+         {
+            "instanceId":"1234",
+            "serviceId":"kubernetes",
+            "host":"172.18.0.3",
+            "port":6443,
+            "uri":"http://172.18.0.3:6443",
+            "secure":false,
+            "metadata":{
+               "provider":"kubernetes",
+               "component":"apiserver",
+               "https":"6443"
+            },
+            "namespace":"default",
+            "scheme":"http"
+         }
+      ]
+   }
+]
+----
+====
+
+#### `/app/{name}`
+
+A `GET` request to `/app/{name}` can be used to get instance data for all instances of a given
+service.  Below is a sample response when a `GET` request is made to `/app/kubernetes`.
+
+====
+[source,json]
+----
+[
+     {
+        "instanceId":"1234",
+        "serviceId":"kubernetes",
+        "host":"172.18.0.3",
+        "port":6443,
+        "uri":"http://172.18.0.3:6443",
+        "secure":false,
+        "metadata":{
+           "provider":"kubernetes",
+           "component":"apiserver",
+           "https":"6443"
+        },
+        "namespace":"default",
+        "scheme":"http"
+     }
+]
+----
+====
+
+#### `/app/{name}/{instanceid}`
+
+A `GET` request made to `/app/{name}/{instanceid}` will return the instance data for a specific
+instance of a given service.  Below is a sample response when a `GET` request is made to `/app/kubernetes/1234`.
+
+====
+[source,json]
+----
+ {
+    "instanceId":"1234",
+    "serviceId":"kubernetes",
+    "host":"172.18.0.3",
+    "port":6443,
+    "uri":"http://172.18.0.3:6443",
+    "secure":false,
+    "metadata":{
+       "provider":"kubernetes",
+       "component":"apiserver",
+       "https":"6443"
+    },
+    "namespace":"default",
+    "scheme":"http"
+ }
+----
+====
+
+### Deployment YAML
+
+An image of the Spring Cloud Discovery Server is hosted on Docker Hub.
+
+Below is a sample deployment YAML you can use to deploy the Kubernetes Configuration Watcher to Kubernetes.
+
+====
+[source,yaml]
+----
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-discoveryserver
+      name: spring-cloud-kubernetes-discoveryserver
+    spec:
+      ports:
+        - name: http
+          port: 80
+          targetPort: 8761
+      selector:
+        app: spring-cloud-kubernetes-discoveryserver
+      type: ClusterIP
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-discoveryserver
+      name: spring-cloud-kubernetes-discoveryserver
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-discoveryserver
+      name: spring-cloud-kubernetes-discoveryserver:view
+    roleRef:
+      kind: Role
+      apiGroup: rbac.authorization.k8s.io
+      name: namespace-reader
+    subjects:
+      - kind: ServiceAccount
+        name: spring-cloud-kubernetes-discoveryserver
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      namespace: default
+      name: namespace-reader
+    rules:
+      - apiGroups: ["", "extensions", "apps"]
+        resources: ["services", "endpoints"]
+        verbs: ["get", "list", "watch"]
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: spring-cloud-kubernetes-discoveryserver-deployment
+    spec:
+      selector:
+        matchLabels:
+          app: spring-cloud-kubernetes-discoveryserver
+      template:
+        metadata:
+          labels:
+            app: spring-cloud-kubernetes-discoveryserver
+        spec:
+          serviceAccount: spring-cloud-kubernetes-discoveryserver
+          containers:
+          - name: spring-cloud-kubernetes-discoveryserver
+            image: springcloud/spring-cloud-kubernetes-discoveryserver:2.1.0-SNAPSHOT
+            imagePullPolicy: IfNotPresent
+            readinessProbe:
+              httpGet:
+                port: 8761
+                path: /actuator/health/readiness
+            livenessProbe:
+              httpGet:
+                port: 8761
+                path: /actuator/health/liveness
+            ports:
+            - containerPort: 8761
+
+
+----
+====
+
 == Examples
 
 Spring Cloud Kubernetes tries to make it transparent for your applications to consume Kubernetes Native Services by
@@ -1451,23 +1801,9 @@ the `.mvn` configuration, so if you find you have to do it to make a
 build succeed, please raise a ticket to get the settings added to
 source control.
 
-For hints on how to build the project look in `.travis.yml` if there
-is one. There should be a "script" and maybe "install" command. Also
-look at the "services" section to see if any services need to be
-running locally (e.g. mongo or rabbit).  Ignore the git-related bits
-that you might find in "before_install" since they're related to setting git
-credentials and you already have those.
+The projects that require middleware (i.e. Redis) for testing generally
+require that a local instance of [Docker](https://www.docker.com/get-started) is installed and running.
 
-The projects that require middleware generally include a
-`docker-compose.yml`, so consider using
-https://docs.docker.com/compose/[Docker Compose] to run the middeware servers
-in Docker containers. See the README in the
-https://github.com/spring-cloud-samples/scripts[scripts demo
-repository] for specific instructions about the common cases of mongo,
-rabbit and redis.
-
-NOTE: If all else fails, build with the command from `.travis.yml` (usually
-`./mvnw install`).
 
 === Documentation
 

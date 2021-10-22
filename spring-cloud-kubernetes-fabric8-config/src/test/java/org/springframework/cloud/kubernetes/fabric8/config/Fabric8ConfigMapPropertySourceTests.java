@@ -43,10 +43,9 @@ public class Fabric8ConfigMapPropertySourceTests {
 		final String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
-		assertThatThrownBy(
-				() -> new Fabric8ConfigMapPropertySource(mockClient, name, namespace, new MockEnvironment(), "", true))
-						.isInstanceOf(IllegalStateException.class).hasMessage(
-								"Unable to read ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
+		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(mockClient, name, namespace, new MockEnvironment(),
+				"", false, true)).isInstanceOf(IllegalStateException.class).hasMessage(
+						"Unable to read ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
 	}
 
 	@Test
@@ -57,7 +56,7 @@ public class Fabric8ConfigMapPropertySourceTests {
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 		assertThatNoException().isThrownBy(() -> new Fabric8ConfigMapPropertySource(mockClient, name, namespace,
-				new MockEnvironment(), "", false));
+				new MockEnvironment(), "", false, false));
 	}
 
 }
