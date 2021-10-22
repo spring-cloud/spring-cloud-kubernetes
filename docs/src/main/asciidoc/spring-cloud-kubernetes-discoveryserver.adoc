@@ -125,7 +125,7 @@ instance of a given service.  Below is a sample response when a `GET` request is
 
 ### Deployment YAML
 
-An image of the Spring Cloud Discovery Server is hosted on Docker Hub.
+An image of the Spring Cloud Discovery Server is hosted on https://hub.docker.com/r/springcloud/spring-cloud-kubernetes-discoveryserver[Docker Hub].
 
 Below is a sample deployment YAML you can use to deploy the Kubernetes Configuration Watcher to Kubernetes.
 
