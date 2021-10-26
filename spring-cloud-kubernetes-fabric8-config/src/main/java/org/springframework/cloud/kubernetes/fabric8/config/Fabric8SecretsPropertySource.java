@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,21 +32,24 @@ import org.springframework.util.StringUtils;
  *
  * @author l burgazzoli
  * @author Haytham Mohamed
+ * @author Isik Erhan
  */
 public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8SecretsPropertySource.class);
 
 	public Fabric8SecretsPropertySource(KubernetesClient client, String name, String namespace,
-			Map<String, String> labels) {
-		super(getSourceName(name, namespace), getSourceData(client, name, namespace, labels));
+			Map<String, String> labels, boolean failFast) {
+		super(getSourceName(name, namespace), getSourceData(client, name, namespace, labels, failFast));
 	}
 
 	private static Map<String, Object> getSourceData(KubernetesClient client, String name, String namespace,
-			Map<String, String> labels) {
+			Map<String, String> labels, boolean failFast) {
 		Map<String, Object> result = new HashMap<>();
 
 		String namespaceToUse = StringUtils.hasLength(namespace) ? namespace : client.getNamespace();
+		LOG.info("Loading Secret with name '" + name + "' or with labels [" + labels + "] in namespace '"
+				+ namespaceToUse + "'");
 		try {
 
 			Secret secret = client.secrets().inNamespace(namespaceToUse).withName(name).get();
@@ -64,6 +67,11 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
 		}
 		catch (Exception e) {
+			if (failFast) {
+				throw new IllegalStateException("Unable to read Secret with name '" + name + "' or labels [" + labels
+						+ "] in namespace '" + namespaceToUse + "'", e);
+			}
+
 			LOG.warn("Can't read secret with name: [" + name + "] or labels [" + labels + "] in namespace: ["
 					+ namespaceToUse + "] (cause: " + e.getMessage() + "). Ignoring");
 		}

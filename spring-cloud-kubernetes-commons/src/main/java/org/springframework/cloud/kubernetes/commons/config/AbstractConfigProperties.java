@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package org.springframework.cloud.kubernetes.commons.config;
  * Abstraction over configuration properties.
  *
  * @author Ioannis Canellos
+ * @author Isik Erhan
  */
 public abstract class AbstractConfigProperties {
 
@@ -34,6 +35,10 @@ public abstract class AbstractConfigProperties {
 
 	// use profile name to append config map name
 	protected boolean includeProfileSpecificSources = true;
+
+	protected boolean failFast = false;
+
+	protected RetryProperties retry = new RetryProperties();
 
 	public abstract String getConfigurationTarget();
 
@@ -75,6 +80,81 @@ public abstract class AbstractConfigProperties {
 
 	public void setIncludeProfileSpecificSources(boolean includeProfileSpecificSources) {
 		this.includeProfileSpecificSources = includeProfileSpecificSources;
+	}
+
+	public boolean isFailFast() {
+		return failFast;
+	}
+
+	public void setFailFast(boolean failFast) {
+		this.failFast = failFast;
+	}
+
+	public RetryProperties getRetry() {
+		return retry;
+	}
+
+	public void setRetry(RetryProperties retry) {
+		this.retry = retry;
+	}
+
+	/**
+	 * Kubernetes config retry properties.
+	 */
+	public static class RetryProperties {
+
+		/**
+		 * Initial retry interval in milliseconds.
+		 */
+		private long initialInterval = 1000;
+
+		/**
+		 * Multiplier for next interval.
+		 */
+		private double multiplier = 1.1;
+
+		/**
+		 * Maximum interval for backoff.
+		 */
+		private long maxInterval = 2000;
+
+		/**
+		 * Maximum number of attempts.
+		 */
+		private int maxAttempts = 6;
+
+		public long getInitialInterval() {
+			return this.initialInterval;
+		}
+
+		public void setInitialInterval(long initialInterval) {
+			this.initialInterval = initialInterval;
+		}
+
+		public double getMultiplier() {
+			return this.multiplier;
+		}
+
+		public void setMultiplier(double multiplier) {
+			this.multiplier = multiplier;
+		}
+
+		public long getMaxInterval() {
+			return this.maxInterval;
+		}
+
+		public void setMaxInterval(long maxInterval) {
+			this.maxInterval = maxInterval;
+		}
+
+		public int getMaxAttempts() {
+			return this.maxAttempts;
+		}
+
+		public void setMaxAttempts(int maxAttempts) {
+			this.maxAttempts = maxAttempts;
+		}
+
 	}
 
 }

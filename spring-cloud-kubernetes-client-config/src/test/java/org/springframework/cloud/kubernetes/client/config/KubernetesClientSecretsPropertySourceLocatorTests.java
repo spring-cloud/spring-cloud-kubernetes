@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,10 +42,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Ryan Baxter
+ * @author Isik Erhan
  */
 class KubernetesClientSecretsPropertySourceLocatorTests {
 
@@ -176,6 +178,41 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySourceLocator(api,
 				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties)
 						.locate(new MockEnvironment())).isInstanceOf(NamespaceResolutionFailedException.class);
+	}
+
+	@Test
+	public void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get(LIST_API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+
+		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties();
+		secretsConfigProperties.setName("db-secret");
+		secretsConfigProperties.setNamespace("default");
+		secretsConfigProperties.setEnableApi(true);
+		secretsConfigProperties.setFailFast(true);
+
+		KubernetesClientSecretsPropertySourceLocator locator = new KubernetesClientSecretsPropertySourceLocator(api,
+				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties);
+
+		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
+				.hasMessage("Unable to read Secret with name 'db-secret' or labels [{}] in namespace 'default'");
+	}
+
+	@Test
+	public void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get(LIST_API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+
+		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties();
+		secretsConfigProperties.setName("db-secret");
+		secretsConfigProperties.setNamespace("default");
+		secretsConfigProperties.setEnableApi(true);
+		secretsConfigProperties.setFailFast(false);
+
+		KubernetesClientSecretsPropertySourceLocator locator = new KubernetesClientSecretsPropertySourceLocator(api,
+				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties);
+
+		assertThatNoException().isThrownBy(() -> locator.locate(new MockEnvironment()));
 	}
 
 }
