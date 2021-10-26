@@ -92,7 +92,7 @@ public final class ConfigUtils {
 	 * @return useProfileNameAsPrefix to be used in normalized sources
 	 */
 	public static boolean includeProfileSpecificSources(boolean defaultIncludeProfileSpecificSources,
-		Boolean includeProfileSpecificSources) {
+			Boolean includeProfileSpecificSources) {
 		if (includeProfileSpecificSources != null) {
 			return includeProfileSpecificSources;
 		}

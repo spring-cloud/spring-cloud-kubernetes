@@ -41,6 +41,7 @@ import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
@@ -52,6 +53,7 @@ import org.springframework.core.env.Environment;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesDiscoveryEnabled
+@ConditionalOnKubernetesEnabled
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class,
 		// So that CatalogSharedInformerFactory can be processed in prior to the default
 		// factory

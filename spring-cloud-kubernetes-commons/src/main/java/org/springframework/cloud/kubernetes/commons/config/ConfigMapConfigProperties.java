@@ -116,8 +116,8 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		private Boolean useNameAsPrefix;
 
 		/**
-		 * Use profile name to append to a config map name. Can't be a primitive, we need to
-		 * know if it was explicitly set or not
+		 * Use profile name to append to a config map name. Can't be a primitive, we need
+		 * to know if it was explicitly set or not
 		 */
 		protected Boolean includeProfileSpecificSources;
 
@@ -193,8 +193,8 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
 			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix,
 					normalizedName);
-			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(defaultIncludeProfileSpecificSources,
-					this.includeProfileSpecificSources);
+			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
+					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
 			return new NormalizedSource(normalizedName, normalizedNamespace, prefix, includeProfileSpecificSources);
 		}
 

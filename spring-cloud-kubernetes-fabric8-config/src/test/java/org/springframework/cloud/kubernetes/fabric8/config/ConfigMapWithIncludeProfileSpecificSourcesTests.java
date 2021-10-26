@@ -39,7 +39,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * @author wind57
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = IncludeProfileSpecificSourcesApp.class,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		classes = IncludeProfileSpecificSourcesApp.class,
 		properties = { "spring.cloud.bootstrap.name=include-profile-specific-sources" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)

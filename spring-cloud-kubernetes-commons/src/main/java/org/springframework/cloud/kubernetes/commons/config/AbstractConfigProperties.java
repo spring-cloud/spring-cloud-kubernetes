@@ -76,4 +76,5 @@ public abstract class AbstractConfigProperties {
 	public void setIncludeProfileSpecificSources(boolean includeProfileSpecificSources) {
 		this.includeProfileSpecificSources = includeProfileSpecificSources;
 	}
+
 }
