@@ -54,4 +54,55 @@ public class ConfigUtilsTests {
 		Assertions.assertEquals(result, "");
 	}
 
+	/**
+	 * <pre>
+	 *   spring:
+	 *     cloud:
+	 *        kubernetes:
+	 *           config:
+	 *              includeProfileSpecificSources: true
+	 * </pre>
+	 *
+	 * above will generate "true" for a normalized source
+	 */
+	@Test
+	public void testUseIncludeProfileSpecificSourcesOnlyDefaultSet() {
+		Assertions.assertTrue(ConfigUtils.includeProfileSpecificSources(true, null));
+	}
+
+	/**
+	 * <pre>
+	 *   spring:
+	 *     cloud:
+	 *        kubernetes:
+	 *           config:
+	 *              includeProfileSpecificSources: true
+	 * </pre>
+	 *
+	 * above will generate "false" for a normalized source
+	 */
+	@Test
+	public void testUseIncludeProfileSpecificSourcesOnlyDefaultNotSet() {
+		Assertions.assertFalse(ConfigUtils.includeProfileSpecificSources(false, null));
+	}
+
+	/**
+	 * <pre>
+	 *   spring:
+	 *     cloud:
+	 *        kubernetes:
+	 *           config:
+	 *              includeProfileSpecificSources: true
+	 *           sources:
+	 *           - name: one
+	 *             includeProfileSpecificSources: false
+	 * </pre>
+	 *
+	 * above will generate "false" for a normalized source
+	 */
+	@Test
+	public void testUseIncludeProfileSpecificSourcesSourcesOverridesDefault() {
+		Assertions.assertFalse(ConfigUtils.includeProfileSpecificSources(true, false));
+	}
+
 }

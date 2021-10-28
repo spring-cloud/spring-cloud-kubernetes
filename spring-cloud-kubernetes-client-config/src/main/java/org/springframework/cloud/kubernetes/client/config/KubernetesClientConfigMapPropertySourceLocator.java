@@ -88,7 +88,7 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 		}
 
 		return new KubernetesClientConfigMapPropertySource(coreV1Api, name, namespace, environment,
-				normalizedSource.getPrefix());
+				normalizedSource.getPrefix(), normalizedSource.isIncludeProfileSpecificSources());
 	}
 
 }

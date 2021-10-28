@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,77 +14,44 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config;
+package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.config.with_prefix.WithPrefixApp;
+import org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix.WithPrefixApp;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
+ * The stub data for this test is in : ConfigMapNameAsPrefixConfigurationStub
+ *
  * @author wind57
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = WithPrefixApp.class,
-		properties = { "spring.cloud.bootstrap.name=config-map-name-as-prefix" })
+		properties = { "spring.cloud.bootstrap.name=config-map-name-as-prefix", "config.map.name.as.prefix.stub=true" })
 @AutoConfigureWebTestClient
-@EnableKubernetesMockClient(crud = true, https = false)
-class ConfigMapWithPrefixTests {
-
-	private static KubernetesClient mockClient;
+public class KubernetesClientConfigMapNameAsPrefixTests {
 
 	@Autowired
 	private WebTestClient webClient;
 
-	@BeforeAll
-	public static void setUpBeforeClass() {
-
-		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
-		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
-		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
-
-		System.setProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY, "k8s-host");
-
-		Map<String, String> one = new HashMap<>();
-		one.put("one.property", "one");
-		createConfigmap("config-map-one", one);
-
-		Map<String, String> two = new HashMap<>();
-		two.put("property", "two");
-		createConfigmap("config-map-two", two);
-
-		Map<String, String> three = new HashMap<>();
-		three.put("property", "three");
-		createConfigmap("config-map-three", three);
-
+	@AfterEach
+	public void afterEach() {
+		WireMock.reset();
 	}
 
 	@AfterAll
 	public static void afterAll() {
-		System.clearProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY);
-	}
-
-	private static void createConfigmap(String name, Map<String, String> data) {
-		mockClient.configMaps().inNamespace("spring-k8s").createNew().withNewMetadata().withName(name).endMetadata()
-				.addToData(data).done();
+		WireMock.shutdownServer();
 	}
 
 	/**

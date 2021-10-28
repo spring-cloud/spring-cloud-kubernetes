@@ -353,7 +353,7 @@ Notice that `spring.cloud.kubernetes.config.useNameAsPrefix` has a _lower_ prior
 This allows you to set a "default" strategy for all sources, at the same time allowing to override only a few.
 
 If using the config map name is not an option, you can specify a different strategy, called : `explicitPrefix`. Since this is an _explicit_ prefix that
-you select, it can only be supplied to the `sources` level. At the same time it has a higher priority than `useNameASPrefix`. Let's suppose we have a third config map with these entries:
+you select, it can only be supplied to the `sources` level. At the same time it has a higher priority than `useNameAsPrefix`. Let's suppose we have a third config map with these entries:
 
 
 ====
@@ -399,6 +399,50 @@ will result in three properties being generated:
  - `two.greetings.message` equal to `Say Hello from two`.
 
  - `config-map-three.greetings.message` equal to `Say Hello from three`.
+
+By default, besides reading the config map that is specified in the `sources` configuration, Spring will also try to read
+all properties from "profile aware" sources. The easiest way to explain this is via an example. Let's suppose your application
+enables a profile called "dev" and you have a configuration like the one below:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: spring-k8s
+  cloud:
+    kubernetes:
+      config:
+        namespace: default-namespace
+        sources:
+          - name: config-map-one
+----
+====
+
+Besides reading the `config-map-one`, Spring will also try to read `config-map-one-dev`; in this particular order. Each active profile
+generates such a profile aware config map.
+
+Though your application should not be impacted by such a config map, it can be disabled if needed:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: spring-k8s
+  cloud:
+    kubernetes:
+      config:
+        includeProfileSpecificSources: false
+        namespace: default-namespace
+        sources:
+          - name: config-map-one
+            includeProfileSpecificSources: false
+----
+====
+
+Notice that just like before, there are two levels where you can specify this property: for all config maps or
+for individual ones; the latter having a higher priority.
 
 NOTE: You should check the security configuration section. To access config maps from inside a pod you need to have the correct
 Kubernetes service accounts, roles and role bindings.

@@ -218,4 +218,114 @@ public class ConfigMapConfigPropertiesTests {
 		Assertions.assertEquals(sources.get(3).getPrefix(), "");
 	}
 
+	/**
+	 * <pre>
+	 * 	spring:
+	 *	  cloud:
+	 *      kubernetes:
+	 *        config:
+	 *          name: config-map-a
+	 *        	namespace: spring-k8s
+	 * </pre>
+	 *
+	 * a config as above will result in a NormalizedSource where
+	 * includeProfileSpecificSources will be true (this test proves that the change we
+	 * added is not a breaking change for the already existing functionality)
+	 */
+	@Test
+	public void testUseIncludeProfileSpecificSourcesNoChanges() {
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
+		properties.setSources(Collections.emptyList());
+		properties.setName("config-map-a");
+		properties.setNamespace("spring-k8s");
+
+		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
+		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
+
+		Assertions.assertTrue(sources.get(0).isIncludeProfileSpecificSources());
+	}
+
+	/**
+	 * <pre>
+	 * 	spring:
+	 *	  cloud:
+	 *      kubernetes:
+	 *        config:
+	 *          includeProfileSpecificSources: false
+	 *          name: config-map-a
+	 *        	namespace: spring-k8s
+	 * </pre>
+	 *
+	 * a config as above will result in a NormalizedSource where
+	 * includeProfileSpecificSources will be false. Even if we did not define any sources
+	 * explicitly, one will still be created, by default. That one might "flatMap" into
+	 * multiple other, because of multiple profiles. As such this setting still matters
+	 * and must be propagated to the normalized source.
+	 */
+	@Test
+	public void testUseIncludeProfileSpecificSourcesDefaultChanged() {
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
+		properties.setSources(Collections.emptyList());
+		properties.setName("config-map-a");
+		properties.setNamespace("spring-k8s");
+		properties.setIncludeProfileSpecificSources(false);
+
+		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
+		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
+
+		Assertions.assertFalse(sources.get(0).isIncludeProfileSpecificSources());
+	}
+
+	/**
+	 * <pre>
+	 * 	spring:
+	 *	  cloud:
+	 *      kubernetes:
+	 *        config:
+	 *          includeProfileSpecificSources: false
+	 *          name: config-map-a
+	 *        	namespace: spring-k8s
+	 *        sources:
+	 *          - name: one
+	 *            includeProfileSpecificSources: true
+	 *          - name: two
+	 *          - name: three
+	 *            includeProfileSpecificSources: false
+	 * </pre>
+	 *
+	 * <pre>
+	 * 	source "one" will have "includeProfileSpecificSources = true".
+	 * 	source "two" will have "includeProfileSpecificSources = false".
+	 * 	source "three" will have "includeProfileSpecificSources = false".
+	 * </pre>
+	 */
+	@Test
+	public void testUseIncludeProfileSpecificSourcesDefaultChangedSourceOverride() {
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
+		properties.setSources(Collections.emptyList());
+		properties.setName("config-map-a");
+		properties.setNamespace("spring-k8s");
+		properties.setIncludeProfileSpecificSources(false);
+
+		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source();
+		one.setName("config-map-one");
+		one.setIncludeProfileSpecificSources(true);
+
+		ConfigMapConfigProperties.Source two = new ConfigMapConfigProperties.Source();
+		two.setName("config-map-two");
+
+		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source();
+		three.setName("config-map-three");
+		three.setIncludeProfileSpecificSources(false);
+
+		properties.setSources(Arrays.asList(one, two, three));
+
+		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
+		Assertions.assertEquals(sources.size(), 3);
+
+		Assertions.assertTrue(sources.get(0).isIncludeProfileSpecificSources());
+		Assertions.assertFalse(sources.get(1).isIncludeProfileSpecificSources());
+		Assertions.assertFalse(sources.get(2).isIncludeProfileSpecificSources());
+	}
+
 }
