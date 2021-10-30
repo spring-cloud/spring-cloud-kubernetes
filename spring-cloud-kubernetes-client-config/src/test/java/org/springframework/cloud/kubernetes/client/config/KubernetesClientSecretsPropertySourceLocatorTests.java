@@ -90,8 +90,6 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		client.setDebugging(true);
 		Configuration.setDefaultApiClient(client);
-
-		ENV.setProperty("KUBERNETES_SERVICE_HOST", "k8s-host");
 	}
 
 	@AfterAll

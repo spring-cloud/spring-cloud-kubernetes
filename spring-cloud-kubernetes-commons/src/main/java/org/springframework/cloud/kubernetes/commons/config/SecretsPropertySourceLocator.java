@@ -62,7 +62,6 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 	@Override
 	public PropertySource<?> locate(Environment environment) {
-
 		if (environment instanceof ConfigurableEnvironment) {
 			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
 
