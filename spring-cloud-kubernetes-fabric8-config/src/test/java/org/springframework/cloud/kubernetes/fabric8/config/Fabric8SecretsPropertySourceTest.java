@@ -23,7 +23,6 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +39,8 @@ import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+		properties = "spring.main.cloud-platform=KUBERNETES")
 @TestPropertySource("classpath:/application-secrets.properties")
 @EnableKubernetesMockClient(crud = true, https = false)
 public class Fabric8SecretsPropertySourceTest {
@@ -67,16 +67,10 @@ public class Fabric8SecretsPropertySourceTest {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, NAMESPACE);
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
-		System.setProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY, "k8s-host");
 
 		Secret secret = new SecretBuilder().withNewMetadata().withLabels(singletonMap("foo", "bar")).endMetadata()
 				.addToData("secretName", Base64.getEncoder().encodeToString(SECRET_VALUE.getBytes())).build();
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
-	}
-
-	@AfterAll
-	public static void afterAll() {
-		System.clearProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY);
 	}
 
 	@Test

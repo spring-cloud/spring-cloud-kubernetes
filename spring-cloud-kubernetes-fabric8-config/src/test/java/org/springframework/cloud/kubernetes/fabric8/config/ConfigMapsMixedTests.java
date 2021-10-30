@@ -43,7 +43,8 @@ import static org.assertj.core.util.Lists.newArrayList;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "spring.application.name=" + ConfigMapsMixedTests.APPLICATION_NAME,
 				"spring.cloud.kubernetes.config.enableApi=true",
-				"spring.cloud.kubernetes.config.paths=" + ConfigMapsMixedTests.FILE_NAME_FULL_PATH })
+				"spring.cloud.kubernetes.config.paths=" + ConfigMapsMixedTests.FILE_NAME_FULL_PATH,
+				"spring.main.cloud-platform=KUBERNETES" })
 @EnableKubernetesMockClient(crud = true, https = false)
 public class ConfigMapsMixedTests {
 
@@ -71,8 +72,6 @@ public class ConfigMapsMixedTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		System.setProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY, "k8s-host");
-
 		Files.createDirectories(Paths.get(FILES_ROOT_PATH));
 		ConfigMapTestUtil.createFileWithContent(FILE_NAME_FULL_PATH,
 				ConfigMapTestUtil.readResourceFile("application-path.yaml"));
@@ -95,8 +94,6 @@ public class ConfigMapsMixedTests {
 			catch (IOException ignored) {
 			}
 		});
-
-		System.clearProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY);
 	}
 
 	@Test

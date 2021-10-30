@@ -42,7 +42,8 @@ import static org.assertj.core.util.Lists.newArrayList;
 				"spring.cloud.kubernetes.config.enableApi=false",
 				"spring.cloud.kubernetes.config.paths=" + ConfigMapsFromFilePathsTests.FIRST_FILE_NAME_FULL_PATH + ","
 						+ ConfigMapsFromFilePathsTests.SECOND_FILE_NAME_FULL_PATH + ","
-						+ ConfigMapsFromFilePathsTests.FIRST_FILE_NAME_DUPLICATED_FULL_PATH })
+						+ ConfigMapsFromFilePathsTests.FIRST_FILE_NAME_DUPLICATED_FULL_PATH,
+				"spring.main.cloud-platform=KUBERNETES" })
 @EnableKubernetesMockClient(crud = true, https = false)
 public class ConfigMapsFromFilePathsTests {
 
@@ -81,8 +82,6 @@ public class ConfigMapsFromFilePathsTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		System.setProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY, "k8s-host");
-
 		Files.createDirectories(Paths.get(FILES_ROOT_PATH + "/" + FILES_SUB_PATH));
 		ConfigMapTestUtil.createFileWithContent(FIRST_FILE_NAME_FULL_PATH, "bean.greeting=Hello from path!");
 		ConfigMapTestUtil.createFileWithContent(SECOND_FILE_NAME_FULL_PATH, "bean.farewell=Bye from path!");
@@ -101,8 +100,6 @@ public class ConfigMapsFromFilePathsTests {
 					catch (IOException ignored) {
 					}
 				});
-
-		System.clearProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY);
 	}
 
 	@Test

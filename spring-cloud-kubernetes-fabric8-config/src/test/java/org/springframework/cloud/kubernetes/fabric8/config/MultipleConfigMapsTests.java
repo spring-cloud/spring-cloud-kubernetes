@@ -22,7 +22,6 @@ import java.util.Map;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +38,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = ExampleApp.class,
-		properties = { "spring.cloud.bootstrap.name=multiplecms" })
+		properties = { "spring.cloud.bootstrap.name=multiplecms", "spring.main.cloud-platform=KUBERNETES" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
 public class MultipleConfigMapsTests {
@@ -60,8 +59,6 @@ public class MultipleConfigMapsTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		System.setProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY, "k8s-host");
-
 		Map<String, String> one = new HashMap<>();
 		one.put("bean.common-message", "c1");
 		one.put("bean.message1", "m1");
@@ -79,11 +76,6 @@ public class MultipleConfigMapsTests {
 		three.put("bean.message3", "m3");
 
 		createConfigmap(mockClient, "othername", "othernamespace", three);
-	}
-
-	@AfterAll
-	public static void afterAll() {
-		System.clearProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY);
 	}
 
 	private static void createConfigmap(KubernetesClient client, String configMapName, String namespace,

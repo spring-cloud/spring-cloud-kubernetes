@@ -162,42 +162,4 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 				secretsConfigProperties).locate(ENV)).isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
-	/**
-	 * <pre>
-	 *     1. using the non-deprecated constructor, and
-	 *     2. not providing the namespace
-	 * </pre>
-	 *
-	 * will result in an Exception
-	 */
-	@Test
-	void testLocateWithoutNamespace() {
-		CoreV1Api api = new CoreV1Api();
-		stubFor(get(LIST_API).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
-		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties();
-		secretsConfigProperties.setName("db-secret");
-		secretsConfigProperties.setNamespace(""); // empty on purpose
-		secretsConfigProperties.setEnableApi(true);
-		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySourceLocator(api,
-				new KubernetesNamespaceProvider(ENV), secretsConfigProperties).locate(ENV))
-						.isInstanceOf(NamespaceResolutionFailedException.class);
-	}
-
-	/**
-	 * KUBERNETES_SERVICE_HOST is not present, as such no config maps are being read
-	 */
-	@Test
-	void testOutsideKubernetes() {
-		CoreV1Api api = new CoreV1Api();
-		KubernetesClientSecretsPropertySourceLocator locator = new KubernetesClientSecretsPropertySourceLocator(api,
-				new KubernetesNamespaceProvider(new MockEnvironment()), new SecretsConfigProperties());
-		// empty environment where "KUBERNETES_SERVICE_HOST" is not present
-		ConfigurableEnvironment environment = new MockEnvironment();
-
-		PropertySource<?> source = locator.locate(environment);
-		assertThat(source).isInstanceOf(CompositePropertySource.class);
-		assertThat(source.getName()).isEqualTo("k8s empty secrets");
-		assertThat(((CompositePropertySource) source).getPropertySources().size()).isEqualTo(0);
-	}
-
 }

@@ -23,7 +23,6 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +39,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = WithPrefixApp.class,
-		properties = { "spring.cloud.bootstrap.name=config-map-name-as-prefix" })
+		properties = { "spring.cloud.bootstrap.name=config-map-name-as-prefix",
+				"spring.main.cloud-platform=KUBERNETES" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
 class ConfigMapWithPrefixTests {
@@ -61,8 +61,6 @@ class ConfigMapWithPrefixTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		System.setProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY, "k8s-host");
-
 		Map<String, String> one = new HashMap<>();
 		one.put("one.property", "one");
 		createConfigmap("config-map-one", one);
@@ -75,11 +73,6 @@ class ConfigMapWithPrefixTests {
 		three.put("property", "three");
 		createConfigmap("config-map-three", three);
 
-	}
-
-	@AfterAll
-	public static void afterAll() {
-		System.clearProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY);
 	}
 
 	private static void createConfigmap(String name, Map<String, String> data) {

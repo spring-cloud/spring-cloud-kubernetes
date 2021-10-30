@@ -79,8 +79,6 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		client.setDebugging(true);
 		Configuration.setDefaultApiClient(client);
-
-		ENV.setProperty("KUBERNETES_SERVICE_HOST", "k8s-host");
 	}
 
 	@AfterAll
@@ -169,23 +167,6 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
 				new KubernetesNamespaceProvider(ENV)).locate(ENV))
 						.isInstanceOf(NamespaceResolutionFailedException.class);
-	}
-
-	/**
-	 * KUBERNETES_SERVICE_HOST is not present, as such no config maps are being read
-	 */
-	@Test
-	void testOutsideKubernetes() {
-		CoreV1Api api = new CoreV1Api();
-		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
-				new ConfigMapConfigProperties(), new KubernetesNamespaceProvider(new MockEnvironment()));
-		// empty environment where "KUBERNETES_SERVICE_HOST" is not present
-		ConfigurableEnvironment environment = new MockEnvironment();
-
-		PropertySource<?> source = locator.locate(environment);
-		assertThat(source).isInstanceOf(CompositePropertySource.class);
-		assertThat(source.getName()).isEqualTo("k8s empty config map");
-		assertThat(((CompositePropertySource) source).getPropertySources().size()).isEqualTo(0);
 	}
 
 }

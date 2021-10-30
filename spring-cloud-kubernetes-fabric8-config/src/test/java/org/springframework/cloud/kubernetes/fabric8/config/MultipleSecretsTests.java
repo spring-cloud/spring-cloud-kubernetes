@@ -25,7 +25,6 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +41,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = MultiSecretsApp.class,
-		properties = { "spring.cloud.bootstrap.name=multiple-secrets" })
+		properties = { "spring.cloud.bootstrap.name=multiple-secrets", "spring.main.cloud-platform=KUBERNETES" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
 public class MultipleSecretsTests {
@@ -71,8 +70,6 @@ public class MultipleSecretsTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, DEFAULT_NAMESPACE);
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		System.setProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY, "k8s-host");
-
 		Map<String, String> metadata1 = new HashMap<>();
 		metadata1.put("env", "env1");
 		metadata1.put("version", "1.0");
@@ -90,11 +87,6 @@ public class MultipleSecretsTests {
 				.addToData("secrets.secret2", Base64.getEncoder().encodeToString(SECRET_VALUE_2.getBytes())).build();
 
 		mockClient.secrets().inNamespace(ANOTHER_NAMESPACE).create(secret2);
-	}
-
-	@AfterAll
-	public static void afterAll() {
-		System.clearProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY);
 	}
 
 	@Test

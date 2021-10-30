@@ -21,7 +21,6 @@ import java.util.HashMap;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,8 +37,9 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * @author Charles Moulliard
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
-		"spring.application.name=configmap-with-profile-example", "spring.cloud.kubernetes.reload.enabled=false" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+		properties = { "spring.application.name=configmap-with-profile-example",
+				"spring.cloud.kubernetes.reload.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
 @ActiveProfiles("development")
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
@@ -70,12 +70,6 @@ public class ConfigMapsWithProfilesTests {
 		data.put("application.yml", ConfigMapTestUtil.readResourceFile("application-with-profiles.yaml"));
 		mockClient.configMaps().inNamespace("test").createNew().withNewMetadata().withName(APPLICATION_NAME)
 				.endMetadata().addToData(data).done();
-		System.setProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY, "k8s-host");
-	}
-
-	@AfterAll
-	public static void afterAll() {
-		System.clearProperty(Config.KUBERNETES_SERVICE_HOST_PROPERTY);
 	}
 
 	@Test
