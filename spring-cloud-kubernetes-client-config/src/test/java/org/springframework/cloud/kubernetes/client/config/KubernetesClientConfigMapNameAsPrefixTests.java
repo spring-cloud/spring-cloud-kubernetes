@@ -37,7 +37,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = WithPrefixApp.class,
-		properties = { "spring.cloud.bootstrap.name=config-map-name-as-prefix", "config.map.name.as.prefix.stub=true" })
+		properties = { "spring.cloud.bootstrap.name=config-map-name-as-prefix", "config.map.name.as.prefix.stub=true",
+				"spring.main.cloud-platform=KUBERNETES" })
 @AutoConfigureWebTestClient
 public class KubernetesClientConfigMapNameAsPrefixTests {
 

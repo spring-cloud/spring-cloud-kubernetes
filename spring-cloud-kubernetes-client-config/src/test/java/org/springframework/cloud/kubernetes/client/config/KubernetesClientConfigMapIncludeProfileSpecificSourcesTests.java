@@ -40,7 +40,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		classes = IncludeProfileSpecificSourcesApp.class,
 		properties = { "spring.cloud.bootstrap.name=include-profile-specific-sources",
-				"include.profile.specific.sources=true" })
+				"include.profile.specific.sources=true", "spring.main.cloud-platform=KUBERNETES" })
 @AutoConfigureWebTestClient
 @ActiveProfiles("dev")
 class KubernetesClientConfigMapIncludeProfileSpecificSourcesTests {

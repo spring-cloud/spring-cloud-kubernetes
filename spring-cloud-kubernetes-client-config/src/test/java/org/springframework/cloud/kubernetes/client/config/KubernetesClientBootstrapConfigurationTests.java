@@ -71,7 +71,8 @@ public class KubernetesClientBootstrapConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-			properties = {"spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES"})
+			properties = { "spring.cloud.kubernetes.client.namespace=default",
+					"spring.main.cloud-platform=KUBERNETES" })
 	@Nested
 	class KubernetesEnabled {
 
@@ -87,7 +88,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-			properties = {"spring.cloud.kubernetes.config.enabled=false", "spring.main.cloud-platform=KUBERNETES"})
+			properties = { "spring.cloud.kubernetes.config.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
 	@Nested
 	class KubernetesEnabledConfigDisabled {
 
@@ -139,7 +140,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 	// tests that @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES) has the desired
 	// effect, meaning when it is enabled, both property sources are present
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=abc" })
+			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=abc" })
 	@Nested
 	class KubernetesClientBootstrapConfigurationInsideK8s {
 
