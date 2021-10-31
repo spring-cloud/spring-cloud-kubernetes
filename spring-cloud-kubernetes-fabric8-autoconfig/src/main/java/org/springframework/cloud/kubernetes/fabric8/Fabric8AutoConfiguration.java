@@ -96,7 +96,12 @@ public class Fabric8AutoConfiguration {
 				.withHttpsProxy(or(kubernetesClientProperties.getHttpsProxy(), base.getHttpsProxy()))
 				.withProxyUsername(or(kubernetesClientProperties.getProxyUsername(), base.getProxyUsername()))
 				.withProxyPassword(or(kubernetesClientProperties.getProxyPassword(), base.getProxyPassword()))
-				.withNoProxy(or(kubernetesClientProperties.getNoProxy(), base.getNoProxy())).build();
+				.withNoProxy(or(kubernetesClientProperties.getNoProxy(), base.getNoProxy()))
+				.withUserAgent(
+					or(kubernetesClientProperties.getUserAgent(),
+					or(base.getUserAgent(), KubernetesClientProperties.DEFAULT_USER_AGENT))
+				)
+				.build();
 
 		if (properties.getNamespace() == null || properties.getNamespace().isEmpty()) {
 			LOG.warn("No namespace has been detected. Please specify "
