@@ -29,6 +29,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class KubernetesClientProperties {
 
 	/**
+	 * Default user-agent for kubernetes client.
+	 */
+	public static final String DEFAULT_USER_AGENT = "Spring-Cloud-Kubernetes-Application";
+
+	/**
 	 * Default path for namespace file.
 	 */
 	public static final String SERVICE_ACCOUNT_NAMESPACE_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/namespace";
@@ -86,6 +91,8 @@ public class KubernetesClientProperties {
 	private String[] noProxy;
 
 	private String serviceAccountNamespacePath = SERVICE_ACCOUNT_NAMESPACE_PATH;
+
+	private String userAgent;
 
 	public String getServiceAccountNamespacePath() {
 		return serviceAccountNamespacePath;
@@ -305,6 +312,14 @@ public class KubernetesClientProperties {
 
 	public void setOauthToken(String oauthToken) {
 		this.oauthToken = oauthToken;
+	}
+
+	public String getUserAgent() {
+		return userAgent;
+	}
+
+	public void setUserAgent(String userAgent) {
+		this.userAgent = userAgent;
 	}
 
 }
