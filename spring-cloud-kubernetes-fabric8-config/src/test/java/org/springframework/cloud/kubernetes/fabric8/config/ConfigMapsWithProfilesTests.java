@@ -37,8 +37,9 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * @author Charles Moulliard
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
-		"spring.application.name=configmap-with-profile-example", "spring.cloud.kubernetes.reload.enabled=false" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+		properties = { "spring.application.name=configmap-with-profile-example",
+				"spring.cloud.kubernetes.reload.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
 @ActiveProfiles("development")
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)

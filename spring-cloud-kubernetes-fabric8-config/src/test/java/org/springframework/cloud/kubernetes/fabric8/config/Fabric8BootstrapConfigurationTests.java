@@ -48,7 +48,7 @@ public class Fabric8BootstrapConfigurationTests {
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
 			properties = { "spring.cloud.kubernetes.secrets.enabled=true",
-					"spring.cloud.kubernetes.client.namespace=default" })
+					"spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES" })
 	@Nested
 	class KubernetesEnabledOnPurpose {
 
@@ -64,7 +64,8 @@ public class Fabric8BootstrapConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-			properties = "spring.cloud.kubernetes.client.namespace=default")
+			properties = { "spring.cloud.kubernetes.client.namespace=default",
+					"spring.main.cloud-platform=KUBERNETES" })
 	@Nested
 	class KubernetesEnabled {
 
@@ -80,7 +81,7 @@ public class Fabric8BootstrapConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-			properties = "spring.cloud.kubernetes.config.enabled=false")
+			properties = { "spring.cloud.kubernetes.config.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
 	@Nested
 	class KubernetesEnabledConfigDisabled {
 
@@ -97,7 +98,7 @@ public class Fabric8BootstrapConfigurationTests {
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
 			properties = { "spring.cloud.kubernetes.secrets.enabled=false",
-					"spring.cloud.kubernetes.client.namespace=default" })
+					"spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES" })
 	@Nested
 	class KubernetesEnabledSecretsDisabled {
 
@@ -123,6 +124,41 @@ public class Fabric8BootstrapConfigurationTests {
 
 		@Test
 		public void secretsOnlyPresent() {
+			assertThat(context.getBeanNamesForType(Fabric8ConfigMapPropertySourceLocator.class)).hasSize(0);
+			assertThat(context.getBeanNamesForType(Fabric8SecretsPropertySourceLocator.class)).hasSize(0);
+		}
+
+	}
+
+	// tests that @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES) has the desired
+	// effect, meaning when it is enabled, both property sources are present
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
+			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=abc" })
+	@Nested
+	class Fabric8BootstrapConfigurationInsideK8s {
+
+		@Autowired
+		ConfigurableApplicationContext context;
+
+		@Test
+		public void bothPresent() {
+			assertThat(context.getBeanNamesForType(Fabric8ConfigMapPropertySourceLocator.class)).hasSize(1);
+			assertThat(context.getBeanNamesForType(Fabric8SecretsPropertySourceLocator.class)).hasSize(1);
+		}
+
+	}
+
+	// tests that @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES) has the desired
+	// effect, meaning when it is disabled, no property source bean is present
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class)
+	@Nested
+	class Fabric8BootstrapConfigurationNotInsideK8s {
+
+		@Autowired
+		ConfigurableApplicationContext context;
+
+		@Test
+		public void bothMissing() {
 			assertThat(context.getBeanNamesForType(Fabric8ConfigMapPropertySourceLocator.class)).hasSize(0);
 			assertThat(context.getBeanNamesForType(Fabric8SecretsPropertySourceLocator.class)).hasSize(0);
 		}
