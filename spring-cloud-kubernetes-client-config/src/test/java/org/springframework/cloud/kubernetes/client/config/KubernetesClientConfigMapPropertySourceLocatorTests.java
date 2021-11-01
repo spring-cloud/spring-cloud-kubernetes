@@ -67,6 +67,8 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 
 	private static WireMockServer wireMockServer;
 
+	private static final MockEnvironment ENV = new MockEnvironment();
+
 	@BeforeAll
 	public static void setup() {
 		wireMockServer = new WireMockServer(options().dynamicPort());
@@ -99,7 +101,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace("default");
 		PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
-				configMapConfigProperties, kubernetesClientProperties).locate(new MockEnvironment());
+				configMapConfigProperties, kubernetesClientProperties).locate(ENV);
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
 	}
@@ -119,7 +121,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace("dev");
 		PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
-				configMapConfigProperties, kubernetesClientProperties).locate(new MockEnvironment());
+				configMapConfigProperties, kubernetesClientProperties).locate(ENV);
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
 	}
@@ -142,8 +144,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace(""); // empty on purpose
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
-				kubernetesClientProperties).locate(new MockEnvironment()))
-						.isInstanceOf(NamespaceResolutionFailedException.class);
+				kubernetesClientProperties).locate(ENV)).isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 	/**
@@ -164,7 +165,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace(""); // empty on purpose
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
-				new KubernetesNamespaceProvider(new MockEnvironment())).locate(new MockEnvironment()))
+				new KubernetesNamespaceProvider(ENV)).locate(ENV))
 						.isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 

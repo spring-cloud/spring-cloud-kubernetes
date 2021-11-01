@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.fabric8.config.example.App;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -44,7 +45,8 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+		properties = "spring.main.cloud-platform=KUBERNETES")
 @TestPropertySource("classpath:/application-secrets.properties")
 @EnableKubernetesMockClient(crud = true, https = false)
 public class Fabric8SecretsPropertySourceTest {
@@ -90,9 +92,9 @@ public class Fabric8SecretsPropertySourceTest {
 
 	@Test
 	public void toStringShouldNotExposeSecretValues() {
-		String actual = this.propertySourceLocator.locate(this.environment).toString();
-
-		assertThat(actual).doesNotContain(SECRET_VALUE);
+		PropertySource<?> propertySource = this.propertySourceLocator.locate(this.environment);
+		assertThat(propertySource.toString()).doesNotContain(SECRET_VALUE);
+		assertThat(propertySource.getProperty("secretName")).isEqualTo("secretValue");
 	}
 
 	@Test

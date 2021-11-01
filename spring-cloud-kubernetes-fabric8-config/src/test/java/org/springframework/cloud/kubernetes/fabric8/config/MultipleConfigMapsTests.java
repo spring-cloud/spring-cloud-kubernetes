@@ -39,7 +39,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = ExampleApp.class,
-		properties = { "spring.cloud.bootstrap.name=multiplecms" })
+		properties = { "spring.cloud.bootstrap.name=multiplecms", "spring.main.cloud-platform=KUBERNETES" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
 public class MultipleConfigMapsTests {
