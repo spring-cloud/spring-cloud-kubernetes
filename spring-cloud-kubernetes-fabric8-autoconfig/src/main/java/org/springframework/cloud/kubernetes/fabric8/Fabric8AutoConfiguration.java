@@ -98,10 +98,6 @@ public class Fabric8AutoConfiguration {
 				.withProxyPassword(or(kubernetesClientProperties.getProxyPassword(), base.getProxyPassword()))
 				.withNoProxy(or(kubernetesClientProperties.getNoProxy(), base.getNoProxy())).build();
 
-		if (properties.getNamespace() == null || properties.getNamespace().isEmpty()) {
-			LOG.warn("No namespace has been detected. Please specify "
-					+ "KUBERNETES_NAMESPACE env var, or use a later kubernetes version (1.3 or later)");
-		}
 		return properties;
 	}
 
