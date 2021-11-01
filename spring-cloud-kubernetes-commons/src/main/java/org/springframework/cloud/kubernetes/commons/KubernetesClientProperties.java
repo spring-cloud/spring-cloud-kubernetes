@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.commons;
 import java.time.Duration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.util.StringUtils;
 
 /**
  * Kubernetes client properties.
@@ -28,6 +27,11 @@ import org.springframework.util.StringUtils;
  */
 @ConfigurationProperties("spring.cloud.kubernetes.client")
 public class KubernetesClientProperties {
+
+	/**
+	 * Default user-agent for kubernetes client.
+	 */
+	public static final String DEFAULT_USER_AGENT = "Spring-Cloud-Kubernetes-Application";
 
 	/**
 	 * Default path for namespace file.
@@ -311,7 +315,7 @@ public class KubernetesClientProperties {
 	}
 
 	public String getUserAgent() {
-		return StringUtils.hasText(this.userAgent) ? this.userAgent : "Spring-Cloud-Kubernetes-Application";
+		return userAgent;
 	}
 
 	public void setUserAgent(String userAgent) {
