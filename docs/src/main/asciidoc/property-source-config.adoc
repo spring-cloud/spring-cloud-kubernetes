@@ -720,7 +720,8 @@ Remember that the same can be done for config maps. If such a namespace is not s
 3. from a String residing in `/var/run/secrets/kubernetes.io/serviceaccount/namespace` file
 (kubernetes default namespace path)
 4. from a designated client method call (for example fabric8's : `KubernetesClient::getNamespace`), if the client provides
-such a method.
+such a method. This, in turn, could be configured via environment properties. For example fabric8 client can be configured via
+"KUBERNETES_NAMESPACE" property; consult the client documentation for exact details.
 
 Failure to find a namespace from the above steps will result in an Exception being raised.
 
