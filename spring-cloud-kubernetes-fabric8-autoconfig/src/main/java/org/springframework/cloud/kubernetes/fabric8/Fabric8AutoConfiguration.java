@@ -99,7 +99,7 @@ public class Fabric8AutoConfiguration {
 				.withNoProxy(or(kubernetesClientProperties.getNoProxy(), base.getNoProxy()));
 
 		String userAgent = or(base.getUserAgent(), KubernetesClientProperties.DEFAULT_USER_AGENT);
-		if(!KubernetesClientProperties.DEFAULT_USER_AGENT.equals(kubernetesClientProperties.getUserAgent())) {
+		if (!KubernetesClientProperties.DEFAULT_USER_AGENT.equals(kubernetesClientProperties.getUserAgent())) {
 			userAgent = kubernetesClientProperties.getUserAgent();
 		}
 
