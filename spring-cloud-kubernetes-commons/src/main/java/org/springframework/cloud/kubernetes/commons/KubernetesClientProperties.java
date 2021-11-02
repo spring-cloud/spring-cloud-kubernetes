@@ -92,7 +92,7 @@ public class KubernetesClientProperties {
 
 	private String serviceAccountNamespacePath = SERVICE_ACCOUNT_NAMESPACE_PATH;
 
-	private String userAgent;
+	private String userAgent = DEFAULT_USER_AGENT;
 
 	public String getServiceAccountNamespacePath() {
 		return serviceAccountNamespacePath;

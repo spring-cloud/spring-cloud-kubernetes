@@ -32,7 +32,6 @@ import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.StringUtils;
 
 /**
  * Auto configuration for Kubernetes.
@@ -100,7 +99,7 @@ public class Fabric8AutoConfiguration {
 				.withNoProxy(or(kubernetesClientProperties.getNoProxy(), base.getNoProxy()));
 
 		String userAgent = or(base.getUserAgent(), KubernetesClientProperties.DEFAULT_USER_AGENT);
-		if (StringUtils.hasText(kubernetesClientProperties.getUserAgent())) {
+		if (!kubernetesClientProperties.getUserAgent().equals(KubernetesClientProperties.DEFAULT_USER_AGENT)) {
 			userAgent = kubernetesClientProperties.getUserAgent();
 		}
 
