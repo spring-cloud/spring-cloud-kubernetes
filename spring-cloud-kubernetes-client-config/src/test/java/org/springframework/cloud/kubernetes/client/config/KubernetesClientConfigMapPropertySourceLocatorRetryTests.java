@@ -104,7 +104,7 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 			properties = { "spring.cloud.kubernetes.client.namespace=default",
 					"spring.cloud.kubernetes.config.fail-fast=true",
-					"spring.cloud.kubernetes.config.retry.max-attempts=5" },
+					"spring.cloud.kubernetes.config.retry.max-attempts=5", "spring.main.cloud-platform=KUBERNETES" },
 			classes = App.class)
 	class ConfigRetryEnabled {
 
@@ -184,8 +184,10 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 	}
 
 	@Nested
-	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-			properties = { "spring.cloud.kubernetes.client.namespace=default" }, classes = App.class)
+	@SpringBootTest(
+			webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
+					"spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES" },
+			classes = App.class)
 	class ConfigFailFastDisabled {
 
 		@SpyBean
@@ -205,9 +207,11 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 	}
 
 	@Nested
-	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
-			"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.config.fail-fast=true",
-			"spring.cloud.kubernetes.config.retry.enabled=false", "spring.cloud.kubernetes.secrets.fail-fast=true" },
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+			properties = { "spring.cloud.kubernetes.client.namespace=default",
+					"spring.cloud.kubernetes.config.fail-fast=true",
+					"spring.cloud.kubernetes.config.retry.enabled=false",
+					"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.main.cloud-platform=KUBERNETES" },
 			classes = App.class)
 	class ConfigRetryDisabledButSecretsRetryEnabled {
 
@@ -244,7 +248,7 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 			properties = { "spring.cloud.kubernetes.client.namespace=default",
 					"spring.cloud.kubernetes.config.fail-fast=true",
-					"spring.cloud.kubernetes.config.retry.enabled=false" },
+					"spring.cloud.kubernetes.config.retry.enabled=false", "spring.main.cloud-platform=KUBERNETES" },
 			classes = App.class)
 	class ConfigFailFastEnabledButRetryDisabled {
 
