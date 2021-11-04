@@ -42,7 +42,7 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationC
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.core.env.ConfigurableEnvironment;
 
-import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.kubernetesApiClient;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.createApiClientForInformerClient;
 
 /**
  * @author Ryan Baxter
@@ -69,7 +69,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
 		this.coreV1Api = coreV1Api;
-		this.factory = new SharedInformerFactory();
+		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
 		this.kubernetesClientProperties = kubernetesClientProperties;
 	}
 
@@ -80,7 +80,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
 		this.coreV1Api = coreV1Api;
-		this.factory = new SharedInformerFactory();
+		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
 	}
 
@@ -92,16 +92,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
 		this.kubernetesClientProperties = kubernetesClientProperties;
-		try {
-			ApiClient apiClient = kubernetesApiClient();
-			OkHttpClient httpClient = apiClient.getHttpClient().newBuilder().readTimeout(0, TimeUnit.SECONDS).build();
-			apiClient.setHttpClient(httpClient);
-			this.coreV1Api = new CoreV1Api(apiClient);
-		}
-		catch (Exception e) {
-			LOG.error("Failed to create Kubernetes API client.  Event based ConfigMap monitoring will not work", e);
-		}
-		this.factory = new SharedInformerFactory();
+		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
 	}
 
 	private String getNamespace() {
