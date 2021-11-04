@@ -35,8 +35,8 @@
 		<arquillian.version>1.6.0.Final</arquillian.version>
 		<arquillian-cube.version>1.15.2</arquillian-cube.version>
 		<hoverfly.version>0.13.0</hoverfly.version>
-		<kubernetes-client.version>5.5.0</kubernetes-client.version>
-		<kubernetes-java-client.version>13.0.0</kubernetes-java-client.version>
+		<kubernetes-fabric8-client.version>5.9.0</kubernetes-fabric8-client.version>
+		<kubernetes-native-client.version>13.0.0</kubernetes-native-client.version>
 		<istio-client.version>1.7.7.1</istio-client.version>
 		<mockwebserver.version>0.1.2</mockwebserver.version>
 		<wiremock.version>2.26.3</wiremock.version>
@@ -47,7 +47,7 @@
 			<dependency>
 				<groupId>io.fabric8</groupId>
 				<artifactId>kubernetes-client-bom</artifactId>
-				<version>${kubernetes-client.version}</version>
+				<version>${kubernetes-fabric8-client.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -55,17 +55,17 @@
 			<dependency>
 				<groupId>io.kubernetes</groupId>
 				<artifactId>client-java</artifactId>
-				<version>${kubernetes-java-client.version}</version>
+				<version>${kubernetes-native-client.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.kubernetes</groupId>
 				<artifactId>client-java-extended</artifactId>
-				<version>${kubernetes-java-client.version}</version>
+				<version>${kubernetes-native-client.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.kubernetes</groupId>
 				<artifactId>client-java-spring-integration</artifactId>
-				<version>${kubernetes-java-client.version}</version>
+				<version>${kubernetes-native-client.version}</version>
 			</dependency>
 
 			<dependency>
@@ -244,45 +244,6 @@
 				<artifactId>hoverfly-java</artifactId>
 				<version>${hoverfly.version}</version>
 				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>io.fabric8</groupId>
-				<artifactId>mockwebserver</artifactId>
-				<version>${mockwebserver.version}</version>
-				<scope>test</scope>
-				<exclusions>
-					<exclusion>
-						<groupId>com.fasterxml.jackson.core</groupId>
-						<artifactId>jackson-databind</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>com.fasterxml.jackson.core</groupId>
-						<artifactId>jackson-core</artifactId>
-					</exclusion>
-					<exclusion>
-						<artifactId>tools</artifactId>
-						<groupId>com.sun</groupId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-
-			<dependency>
-				<groupId>io.fabric8</groupId>
-				<artifactId>kubernetes-client</artifactId>
-				<version>${kubernetes-client.version}</version>
-				<type>test-jar</type>
-				<scope>test</scope>
-				<exclusions>
-					<exclusion>
-						<groupId>com.fasterxml.jackson.core</groupId>
-						<artifactId>jackson-databind</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>com.fasterxml.jackson.core</groupId>
-						<artifactId>jackson-core</artifactId>
-					</exclusion>
-				</exclusions>
 			</dependency>
 
 			<dependency>

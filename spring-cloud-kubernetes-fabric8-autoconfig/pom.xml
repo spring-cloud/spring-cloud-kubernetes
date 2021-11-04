@@ -98,12 +98,6 @@
 		</dependency>
 		<dependency>
 			<groupId>io.fabric8</groupId>
-			<artifactId>kubernetes-client</artifactId>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.fabric8</groupId>
 			<artifactId>kubernetes-server-mock</artifactId>
 			<scope>test</scope>
 		</dependency>
@@ -122,6 +116,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-kubernetes-commons</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 
