@@ -16,20 +16,16 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
-import java.util.concurrent.TimeUnit;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.util.CallGeneratorParams;
-import okhttp3.OkHttpClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
