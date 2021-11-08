@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(classes = TestApplication.class,
 	properties = { "spring.application.name=testapp", "spring.cloud.kubernetes.client.namespace=testns",
 		"spring.cloud.kubernetes.client.trustCerts=true", "spring.cloud.kubernetes.config.namespace=testns",
-		g"spring.cloud.kubernetes.secrets.enableApi=true" })
+		"spring.cloud.kubernetes.secrets.enableApi=true" })
 public class CoreTestClientViaSystemProperties {
 
 	@Autowired
