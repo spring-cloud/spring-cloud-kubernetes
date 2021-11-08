@@ -54,14 +54,15 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 	@Deprecated
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
 			Environment environment) {
-		super(getName(name, getApplicationNamespace(client, namespace)),
-				getData(client, name, getApplicationNamespace(client, namespace), environment, "", true));
+		super(getName(name, getApplicationNamespace(client, namespace, "Config Map", null)), getData(client, name,
+				getApplicationNamespace(client, namespace, "Config Map", null), environment, "", true));
 	}
 
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
 			Environment environment, String prefix, boolean includeProfileSpecificSources) {
-		super(getName(name, getApplicationNamespace(client, namespace)), getData(client, name,
-				getApplicationNamespace(client, namespace), environment, prefix, includeProfileSpecificSources));
+		super(getName(name, getApplicationNamespace(client, namespace, "Config Map", null)),
+				getData(client, name, getApplicationNamespace(client, namespace, "Config Map", null), environment,
+						prefix, includeProfileSpecificSources));
 	}
 
 	private static Map<String, Object> getData(KubernetesClient client, String name, String namespace,

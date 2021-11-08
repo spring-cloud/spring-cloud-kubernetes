@@ -55,6 +55,14 @@ public final class Fabric8ConfigUtils {
 		return namespace;
 	}
 
+	/*
+	 * this is not used, it is here for compatibility reasons only.
+	 */
+	@Deprecated
+	public static String getApplicationNamespace(KubernetesClient client, String namespace) {
+		return !StringUtils.hasLength(namespace) ? client.getNamespace() : namespace;
+	}
+
 	/**
 	 * this method does the namespace resolution for both config map and secrets
 	 * implementations. It tries these places to find the namespace:
@@ -100,10 +108,6 @@ public final class Fabric8ConfigUtils {
 		}
 		return clientNamespace;
 
-	}
-
-	public static String getApplicationNamespace(KubernetesClient client, String namespace) {
-		return !StringUtils.hasLength(namespace) ? client.getNamespace() : namespace;
 	}
 
 	static Map<String, String> getConfigMapData(KubernetesClient client, String namespace, String name) {
