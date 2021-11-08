@@ -32,6 +32,8 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySour
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.getApplicationNamespace;
+
 /**
  * @author Ryan Baxter
  */
@@ -42,13 +44,15 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 	@Deprecated
 	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
 			Environment environment) {
-		super(getName(name, namespace), getData(coreV1Api, name, namespace, environment, "", true));
+		super(getName(name, getApplicationNamespace(namespace, "Config Map", null)), getData(coreV1Api,
+				getApplicationNamespace(namespace, "Config Map", null), namespace, environment, "", true));
 	}
 
 	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
 			Environment environment, String prefix, boolean includeProfileSpecificSources) {
-		super(getName(name, namespace),
-				getData(coreV1Api, name, namespace, environment, prefix, includeProfileSpecificSources));
+		super(getName(name, getApplicationNamespace(namespace, "Config Map", null)),
+				getData(coreV1Api, name, getApplicationNamespace(namespace, "Config Map", null), environment, prefix,
+						includeProfileSpecificSources));
 	}
 
 	private static Map<String, Object> getData(CoreV1Api coreV1Api, String name, String namespace,
