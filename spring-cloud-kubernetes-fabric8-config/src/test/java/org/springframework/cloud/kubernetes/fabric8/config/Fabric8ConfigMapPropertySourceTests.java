@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
@@ -39,7 +40,7 @@ class Fabric8ConfigMapPropertySourceTests {
 
 	private KubernetesClient mockClient;
 
-	private final KubernetesClient client = Mockito.mock(KubernetesClient.class);
+	private final DefaultKubernetesClient client = Mockito.mock(DefaultKubernetesClient.class);
 
 	@Test
 	void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
