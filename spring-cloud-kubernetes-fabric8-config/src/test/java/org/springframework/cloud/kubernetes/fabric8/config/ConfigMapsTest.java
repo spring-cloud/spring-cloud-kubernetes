@@ -37,11 +37,14 @@ public class ConfigMapsTest {
 
 	@Test
 	public void testConfigMapList() {
-		mockClient.configMaps().inNamespace("ns1").createNew();
+		mockClient.configMaps().inNamespace("ns1")
+				.create(new ConfigMapBuilder().withNewMetadata().withName("empty").endMetadata().build());
 
 		ConfigMapList configMapList = mockClient.configMaps().inNamespace("ns1").list();
 		assertThat(configMapList).isNotNull();
-		assertThat(configMapList.getItems().size()).isEqualTo(0);
+		// metadata is an element
+		assertThat(configMapList.getItems().size()).isEqualTo(1);
+		assertThat(configMapList.getItems().get(0).getData()).isNull();
 	}
 
 	@Test
@@ -78,7 +81,7 @@ public class ConfigMapsTest {
 
 	@Test
 	public void testConfigMapFromSingleApplicationYaml() {
-		String configMapName = "app-properties-test";
+		String configMapName = "app-yaml-test";
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
 				.addToData("application.yaml", ConfigMapTestUtil.readResourceFile("application.yaml")).build();
 

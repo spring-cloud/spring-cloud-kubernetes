@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,12 +39,18 @@ import org.springframework.mock.env.MockEnvironment;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Ryan Baxter
+ * @author Isik Erhan
  */
 class KubernetesClientSecretsPropertySourceTests {
 
@@ -111,7 +117,7 @@ class KubernetesClientSecretsPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SECRET_LIST))));
 		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(api,
-				"db-secret", "default", new MockEnvironment(), new HashMap<>());
+				"db-secret", "default", new MockEnvironment(), new HashMap<>(), false);
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
 		assertThat(propertySource.containsProperty("username")).isTrue();
@@ -123,7 +129,7 @@ class KubernetesClientSecretsPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
 		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(api,
-				"db-secret", null, new MockEnvironment(), new HashMap<>());
+				"db-secret", null, new MockEnvironment(), new HashMap<>(), false);
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
 		assertThat(propertySource.containsProperty("username")).isTrue();
@@ -137,9 +143,30 @@ class KubernetesClientSecretsPropertySourceTests {
 		Map<String, String> labels = new HashMap<>();
 		labels.put("spring.cloud.kubernetes.secret", "true");
 		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(api, null,
-				null, new MockEnvironment(), labels);
+				null, new MockEnvironment(), labels, false);
 		assertThat(propertySource.containsProperty("spring.rabbitmq.password")).isTrue();
 		assertThat(propertySource.getProperty("spring.rabbitmq.password")).isEqualTo("password");
+	}
+
+	@Test
+	public void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+
+		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySource(api, "db-secret", "default",
+				new MockEnvironment(), null, true)).isInstanceOf(IllegalStateException.class).hasMessage(
+						"Unable to read Secret with name 'db-secret' or labels [null] in namespace 'default'");
+		verify(getRequestedFor(urlEqualTo(API)));
+	}
+
+	@Test
+	public void constructorShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+
+		assertThatNoException().isThrownBy((() -> new KubernetesClientSecretsPropertySource(api, "db-secret", "default",
+				new MockEnvironment(), null, false)));
+		verify(getRequestedFor(urlEqualTo(API)));
 	}
 
 }

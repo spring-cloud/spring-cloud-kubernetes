@@ -21,7 +21,6 @@ import java.util.function.Function;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 
 /**
@@ -43,6 +42,6 @@ import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
  * @author Georgios Andrianakis
  */
 public interface KubernetesClientServicesFunction
-		extends Function<KubernetesClient, FilterWatchListDeletable<Service, ServiceList, Boolean, Watch>> {
+		extends Function<KubernetesClient, FilterWatchListDeletable<Service, ServiceList>> {
 
 }

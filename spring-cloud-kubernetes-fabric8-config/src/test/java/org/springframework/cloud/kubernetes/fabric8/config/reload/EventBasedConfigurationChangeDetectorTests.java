@@ -22,7 +22,6 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
-import io.fabric8.kubernetes.api.model.DoneableConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -55,10 +54,10 @@ public class EventBasedConfigurationChangeDetectorTests {
 		Map<String, String> data = new HashMap<>();
 		data.put("foo", "bar");
 		configMap.setData(data);
-		MixedOperation<ConfigMap, ConfigMapList, DoneableConfigMap, Resource<ConfigMap, DoneableConfigMap>> mixedOperation = mock(
-				MixedOperation.class);
+		MixedOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mixedOperation = mock(MixedOperation.class);
 		when(k8sClient.configMaps()).thenReturn(mixedOperation);
-		Resource<ConfigMap, DoneableConfigMap> resource = mock(Resource.class);
+		Resource<ConfigMap> resource = mock(Resource.class);
+
 		when(resource.get()).thenReturn(configMap);
 		when(mixedOperation.withName(eq("myconfigmap"))).thenReturn(resource);
 		when(mixedOperation.inNamespace("default")).thenReturn(mixedOperation);

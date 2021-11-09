@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
+import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.EndpointsBuilder;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.Config;
@@ -56,22 +60,27 @@ class LoadBalancerAllNamespacesTests {
 
 	@Test
 	void testLoadBalancerDifferentNamespace() {
-		createTestData("service-b", "b");
+		createTestData();
 		String response = restTemplate.getForObject("http://service-b/greeting", String.class);
 		Assertions.assertNotNull(response);
 		Assertions.assertEquals("greeting", response);
 	}
 
-	private void createTestData(String name, String namespace) {
-		client.services().inNamespace(namespace).createNew().withNewMetadata().withName(name).withNamespace(namespace)
-				.endMetadata()
+	private void createTestData() {
+
+		Service service = new ServiceBuilder().withNewMetadata().withName("service-b").withNamespace("b").endMetadata()
 				.withSpec(new ServiceSpecBuilder()
 						.withPorts(new ServicePortBuilder().withProtocol("TCP").withPort(randomServerPort).build())
 						.build())
-				.done();
-		client.endpoints().inNamespace(namespace).createNew().withNewMetadata().withName("service-a")
-				.withNamespace(namespace).endMetadata().addNewSubset().addNewAddress().withIp("localhost").endAddress()
-				.addNewPort().withName("http").withPort(randomServerPort).endPort().endSubset().done();
+				.build();
+
+		Endpoints endpoints = new EndpointsBuilder().withNewMetadata().withName("service-b").withNamespace("b")
+				.endMetadata().addNewSubset().addNewAddress().withIp("localhost").endAddress().addNewPort()
+				.withName("http").withPort(randomServerPort).endPort().endSubset().build();
+
+		client.endpoints().inNamespace("b").create(endpoints);
+		client.services().inNamespace("b").create(service);
+
 	}
 
 }

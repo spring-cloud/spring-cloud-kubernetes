@@ -16,14 +16,13 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader;
 
-import io.fabric8.kubernetes.api.model.DoneablePod;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,10 +50,10 @@ public class Fabric8PodReadinessWatcherTest {
 	private KubernetesClient mockKubernetesClient;
 
 	@Mock
-	private MixedOperation<Pod, PodList, DoneablePod, PodResource<Pod, DoneablePod>> mockPodsOperation;
+	private MixedOperation<Pod, PodList, PodResource<Pod>> mockPodsOperation;
 
 	@Mock
-	private PodResource<Pod, DoneablePod> mockPodResource;
+	private PodResource<Pod> mockPodResource;
 
 	@Mock
 	private Pod mockPod;
@@ -66,7 +65,7 @@ public class Fabric8PodReadinessWatcherTest {
 	private Watch mockWatch;
 
 	@Mock
-	private KubernetesClientException mockKubernetesClientException;
+	private WatcherException mockKubernetesClientException;
 
 	private Fabric8PodReadinessWatcher watcher;
 

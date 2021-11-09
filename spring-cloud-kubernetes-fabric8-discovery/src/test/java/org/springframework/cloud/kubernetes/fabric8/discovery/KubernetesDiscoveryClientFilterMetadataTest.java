@@ -21,8 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.fabric8.kubernetes.api.model.DoneableEndpoints;
-import io.fabric8.kubernetes.api.model.DoneableService;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
 import io.fabric8.kubernetes.api.model.Endpoints;
@@ -35,7 +33,6 @@ import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -74,19 +71,19 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	private KubernetesDiscoveryProperties.Metadata metadata;
 
 	@Mock
-	private MixedOperation<Service, ServiceList, DoneableService, ServiceResource<Service, DoneableService>> serviceOperation;
+	private MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation;
 
 	@Mock
-	private MixedOperation<Endpoints, EndpointsList, DoneableEndpoints, Resource<Endpoints, DoneableEndpoints>> endpointsOperation;
+	private MixedOperation<Endpoints, EndpointsList, Resource<Endpoints>> endpointsOperation;
 
 	@Mock
-	private ServiceResource<Service, DoneableService> serviceResource;
+	private ServiceResource<Service> serviceResource;
 
 	@Mock
-	private Resource<Endpoints, DoneableEndpoints> endpointsResource;
+	private Resource<Endpoints> endpointsResource;
 
 	@Mock
-	FilterWatchListDeletable<Endpoints, EndpointsList, Boolean, Watch> filter;
+	FilterWatchListDeletable<Endpoints, EndpointsList> filter;
 
 	@InjectMocks
 	private KubernetesDiscoveryClient underTest;

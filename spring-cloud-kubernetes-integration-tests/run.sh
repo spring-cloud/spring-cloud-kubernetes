@@ -30,6 +30,8 @@ ALL_INTEGRATION_PROJECTS=(
 	"spring-cloud-kubernetes-configuration-watcher-it"
 	"spring-cloud-kubernetes-client-loadbalancer-it"
 	"spring-cloud-kubernetes-client-reactive-discovery-client-it"
+	"spring-cloud-kubernetes-discoverclient-it"
+	"spring-cloud-kubernetes-reactive-discoveryclient-it"
 )
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 
@@ -42,7 +44,8 @@ DEFAULT_PULLING_IMAGES=(
 )
 PULLING_IMAGES=(${PULLING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
 
-LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}} "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${MVN_VERSION}")
+LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}} "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${MVN_VERSION}"
+	"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${MVN_VERSION}")
 # cleanup on exit (useful for running locally)
 cleanup() {
     "${KIND}" delete cluster || true

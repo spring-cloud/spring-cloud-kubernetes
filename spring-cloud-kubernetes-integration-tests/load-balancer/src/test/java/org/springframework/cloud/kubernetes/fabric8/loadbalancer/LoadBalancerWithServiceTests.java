@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
 import java.util.Collections;
 
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.Config;
@@ -94,11 +95,12 @@ class LoadBalancerWithServiceTests {
 	}
 
 	private void createTestData(String name, String namespace) {
-		client.services().inNamespace(namespace).createNew().withNewMetadata().withName(name).endMetadata()
+		client.services().inNamespace(namespace).create(new ServiceBuilder().withNewMetadata().withName(name)
+				.endMetadata()
 				.withSpec(new ServiceSpecBuilder()
 						.withPorts(new ServicePortBuilder().withProtocol("TCP").withPort(randomServerPort).build())
 						.build())
-				.done();
+				.build());
 	}
 
 }

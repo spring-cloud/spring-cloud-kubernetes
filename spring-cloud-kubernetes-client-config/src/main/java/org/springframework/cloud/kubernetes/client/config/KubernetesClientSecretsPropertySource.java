@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Ryan Baxter
+ * @author Isik Erhan
  */
 public class KubernetesClientSecretsPropertySource extends SecretsPropertySource {
 
@@ -40,15 +41,17 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 	private CoreV1Api coreV1Api;
 
 	public KubernetesClientSecretsPropertySource(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment, Map<String, String> labels) {
-		super(getSourceName(name, namespace), getSourceData(coreV1Api, environment, name, namespace, labels));
+			Environment environment, Map<String, String> labels, boolean failFast) {
+		super(getSourceName(name, namespace), getSourceData(coreV1Api, environment, name, namespace, labels, failFast));
 
 	}
 
 	private static Map<String, Object> getSourceData(CoreV1Api api, Environment env, String name, String namespace,
-			Map<String, String> labels) {
+			Map<String, String> labels, boolean failFast) {
 		Map<String, Object> result = new HashMap<>();
 
+		LOG.info("Loading Secret with name '" + name + "' or with labels [" + labels + "] in namespace '" + namespace
+				+ "'");
 		try {
 			// Read for secrets api (named)
 			if (StringUtils.hasText(name)) {
@@ -81,6 +84,11 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 			}
 		}
 		catch (Exception e) {
+			if (failFast) {
+				throw new IllegalStateException("Unable to read Secret with name '" + name + "' or labels [" + labels
+						+ "] in namespace '" + namespace + "'", e);
+			}
+
 			LOG.warn("Can't read secret with name: [" + name + "] or labels [" + labels + "] in namespace:[" + namespace
 					+ "] (cause: " + e.getMessage() + "). Ignoring", e);
 		}

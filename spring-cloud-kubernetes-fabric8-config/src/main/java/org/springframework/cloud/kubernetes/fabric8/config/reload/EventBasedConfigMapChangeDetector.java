@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
 
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
@@ -79,7 +80,7 @@ public class EventBasedConfigMapChangeDetector extends ConfigurationChangeDetect
 				String name = "config-maps-watch-event";
 				this.watches.put(name, this.kubernetesClient.configMaps().watch(new Watcher<ConfigMap>() {
 					@Override
-					public void eventReceived(Action action, ConfigMap configMap) {
+					public void eventReceived(Watcher.Action action, ConfigMap configMap) {
 						if (log.isDebugEnabled()) {
 							log.debug(name + " received event for ConfigMap " + configMap.getMetadata().getName());
 						}
@@ -87,11 +88,11 @@ public class EventBasedConfigMapChangeDetector extends ConfigurationChangeDetect
 					}
 
 					@Override
-					public void onClose(KubernetesClientException exception) {
+					public void onClose(WatcherException exception) {
 						log.warn("ConfigMaps watch closed", exception);
 						Optional.ofNullable(exception).map(e -> {
 							log.debug("Exception received during watch", e);
-							return exception;
+							return exception.asClientException();
 						}).map(KubernetesClientException::getStatus).map(Status::getCode)
 								.filter(c -> c.equals(HttpURLConnection.HTTP_GONE)).ifPresent(c -> watch());
 					}

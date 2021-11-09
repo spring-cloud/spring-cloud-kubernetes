@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
 
 /**
  * @author Ryan Baxter
+ * @author Isik Erhan
  */
 public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySource {
 
@@ -44,20 +45,21 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 	@Deprecated
 	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
 			Environment environment) {
-		super(getName(name, getApplicationNamespace(namespace, "Config Map", null)), getData(coreV1Api,
-				getApplicationNamespace(namespace, "Config Map", null), namespace, environment, "", true));
+		super(getName(name, getApplicationNamespace(namespace, "Config Map", null)), getData(coreV1Api, name,
+				getApplicationNamespace(namespace, "Config Map", null), environment, "", true, false));
 	}
 
 	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment, String prefix, boolean includeProfileSpecificSources) {
+			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
 		super(getName(name, getApplicationNamespace(namespace, "Config Map", null)),
 				getData(coreV1Api, name, getApplicationNamespace(namespace, "Config Map", null), environment, prefix,
-						includeProfileSpecificSources));
+						includeProfileSpecificSources, failFast));
 	}
 
 	private static Map<String, Object> getData(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment, String prefix, boolean includeProfileSpecificSources) {
+			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
 
+		LOG.info("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
 		try {
 			Set<String> names = new HashSet<>();
 			names.add(name);
@@ -81,6 +83,11 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 			return result;
 		}
 		catch (ApiException e) {
+			if (failFast) {
+				throw new IllegalStateException(
+						"Unable to read ConfigMap with name '" + name + "' in namespace '" + namespace + "'", e);
+			}
+
 			LOG.warn("Unable to get ConfigMap " + name + " in namespace " + namespace, e);
 		}
 		return Collections.emptyMap();

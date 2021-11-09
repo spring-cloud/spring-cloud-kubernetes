@@ -17,6 +17,8 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -24,16 +26,43 @@ import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFa
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * a few tests around namespace resolution
- *
- * @author wind57
+ * @author Isik Erhan
  */
+@EnableKubernetesMockClient
 class Fabric8ConfigMapPropertySourceTests {
 
+	private KubernetesMockServer mockServer;
+
+	private KubernetesClient mockClient;
+
 	private final KubernetesClient client = Mockito.mock(KubernetesClient.class);
+
+	@Test
+	void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
+		final String name = "my-config";
+		final String namespace = "default";
+		final String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
+
+		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
+		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(mockClient, name, namespace, new MockEnvironment(),
+				"", false, true)).isInstanceOf(IllegalStateException.class).hasMessage(
+						"Unable to read ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
+	}
+
+	@Test
+	void constructorShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
+		final String name = "my-config";
+		final String namespace = "default";
+		final String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
+
+		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
+		assertThatNoException().isThrownBy(() -> new Fabric8ConfigMapPropertySource(mockClient, name, namespace,
+				new MockEnvironment(), "", false, false));
+	}
 
 	@Test
 	void deprecatedConstructorWithoutClientNamespaceMustFail() {

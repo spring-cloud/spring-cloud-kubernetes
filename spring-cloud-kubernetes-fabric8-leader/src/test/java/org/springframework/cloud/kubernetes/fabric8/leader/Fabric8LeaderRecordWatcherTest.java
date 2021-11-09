@@ -18,11 +18,10 @@ package org.springframework.cloud.kubernetes.fabric8.leader;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
-import io.fabric8.kubernetes.api.model.DoneableConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -54,13 +53,13 @@ public class Fabric8LeaderRecordWatcherTest {
 	private KubernetesClient mockKubernetesClient;
 
 	@Mock
-	private MixedOperation<ConfigMap, ConfigMapList, DoneableConfigMap, Resource<ConfigMap, DoneableConfigMap>> mockConfigMapsOperation;
+	private MixedOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mockConfigMapsOperation;
 
 	@Mock
-	private NonNamespaceOperation<ConfigMap, ConfigMapList, DoneableConfigMap, Resource<ConfigMap, DoneableConfigMap>> mockInNamespaceOperation;
+	private NonNamespaceOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mockInNamespaceOperation;
 
 	@Mock
-	private Resource<ConfigMap, DoneableConfigMap> mockWithNameResource;
+	private Resource<ConfigMap> mockWithNameResource;
 
 	@Mock
 	private Watch mockWatch;
@@ -69,7 +68,7 @@ public class Fabric8LeaderRecordWatcherTest {
 	private ConfigMap mockConfigMap;
 
 	@Mock
-	private KubernetesClientException mockKubernetesClientException;
+	private WatcherException mockKubernetesClientException;
 
 	private Fabric8LeaderRecordWatcher watcher;
 

@@ -24,12 +24,12 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>3.0.4</version>
+		<version>3.1.0-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 
 	<artifactId>spring-cloud-kubernetes</artifactId>
-	<version>2.0.5-SNAPSHOT</version>
+	<version>2.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes</name>
 
@@ -62,10 +62,10 @@
 
 	<properties>
 		<!-- Dependency Versions -->
-		<spring-cloud-commons.version>3.0.4</spring-cloud-commons.version>
-		<spring-cloud-config.version>3.0.5</spring-cloud-config.version>
-		<spring-cloud-bus.version>3.0.3</spring-cloud-bus.version>
-		<spring-cloud-contract.version>3.0.4</spring-cloud-contract.version>
+		<spring-cloud-commons.version>3.1.0-SNAPSHOT</spring-cloud-commons.version>
+		<spring-cloud-config.version>3.1.0-SNAPSHOT</spring-cloud-config.version>
+		<spring-cloud-bus.version>3.1.0-SNAPSHOT</spring-cloud-bus.version>
+		<spring-cloud-contract.version>3.1.0-SNAPSHOT</spring-cloud-contract.version>
 
 		<!-- Maven Plugin Versions -->
 		<maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
@@ -110,6 +110,8 @@
 		<module>docs</module>
 		<module>spring-cloud-kubernetes-fabric8-loadbalancer</module>
 		<module>spring-cloud-starter-kubernetes-fabric8-loadbalancer</module>
+		<module>spring-cloud-kubernetes-discovery</module>
+		<module>spring-cloud-starter-kubernetes-discoveryclient</module>
 	</modules>
 
 	<dependencyManagement>
