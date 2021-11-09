@@ -59,9 +59,9 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 	@Deprecated
 	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-															 ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-															 KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
-															 KubernetesClientProperties kubernetesClientProperties) {
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
+			KubernetesClientProperties kubernetesClientProperties) {
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
 		this.coreV1Api = coreV1Api;

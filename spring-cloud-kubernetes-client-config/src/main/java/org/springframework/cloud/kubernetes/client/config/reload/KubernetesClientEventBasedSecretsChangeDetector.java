@@ -58,9 +58,9 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	@Deprecated
 	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-														   ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-														   KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
-														   KubernetesClientProperties kubernetesClientProperties) {
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
+			KubernetesClientProperties kubernetesClientProperties) {
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
 		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
