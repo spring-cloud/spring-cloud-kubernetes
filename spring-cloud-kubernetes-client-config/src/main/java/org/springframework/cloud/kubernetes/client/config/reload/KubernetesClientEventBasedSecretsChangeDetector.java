@@ -58,9 +58,9 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	@Deprecated
 	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
-			KubernetesClientProperties kubernetesClientProperties) {
+														   ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+														   KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
+														   KubernetesClientProperties kubernetesClientProperties) {
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
 		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
@@ -69,17 +69,15 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 	}
 
 	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+														   ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+														   KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
+														   KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
-		// We need to pass an APIClient to the SharedInformerFactory because if we use the
-		// default
-		// constructor it will use the configured default APIClient but that may not
-		// contain
+		// We need to pass an APIClient to the SharedInformerFactory because if we use the default
+		// constructor it will use the configured default APIClient but that may not contain
 		// an APIClient configured within the cluster and does not contain the necessary
-		// certificate authorities for the cluster. This results in SSL errors.
+		// certificate authorities for the cluster.  This results in SSL errors.
 		// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
 		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
 		this.coreV1Api = coreV1Api;
@@ -88,9 +86,9 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	@Deprecated
 	public KubernetesClientEventBasedSecretsChangeDetector(ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
-			KubernetesClientProperties kubernetesClientProperties) {
+														   ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+														   KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
+														   KubernetesClientProperties kubernetesClientProperties) {
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
 		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
@@ -99,16 +97,16 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	private String getNamespace() {
 		return kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
-				: kubernetesClientProperties.getNamespace();
+			: kubernetesClientProperties.getNamespace();
 	}
 
 	@PostConstruct
 	public void watch() {
 		if (coreV1Api != null && this.properties.isMonitoringSecrets()) {
 			SharedIndexInformer<V1Secret> configMapInformer = factory.sharedIndexInformerFor(
-					(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(getNamespace(), null, null, null,
-							null, null, null, params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
-					V1Secret.class, V1SecretList.class);
+				(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(getNamespace(), null, null, null,
+					null, null, null, params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
+				V1Secret.class, V1SecretList.class);
 			configMapInformer.addEventHandler(new ResourceEventHandler<V1Secret>() {
 				@Override
 				public void onAdd(V1Secret obj) {
@@ -135,7 +133,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 	private void onEvent(V1Secret secret) {
 		this.log.debug(String.format("onEvent configMap: %s", secret.toString()));
 		boolean changed = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
-				findPropertySources(KubernetesClientSecretsPropertySource.class));
+			findPropertySources(KubernetesClientSecretsPropertySource.class));
 		if (changed) {
 			this.log.info("Detected change in secrets");
 			reloadProperties();
