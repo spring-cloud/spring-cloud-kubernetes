@@ -100,9 +100,10 @@
 |spring.cloud.kubernetes.secrets.labels |  | 
 |spring.cloud.kubernetes.secrets.name |  | 
 |spring.cloud.kubernetes.secrets.namespace |  | 
-|spring.cloud.kubernetes.secrets.paths |  | 
+|spring.cloud.kubernetes.secrets.paths |  |
 |spring.cloud.kubernetes.secrets.retry |  | 
 |spring.cloud.kubernetes.secrets.sources |  | 
-|spring.cloud.kubernetes.secrets.use-name-as-prefix | `false` | 
+|spring.cloud.kubernetes.secrets.use-name-as-prefix | `false` |
+|spring.cloud.kubernetes.userAgent | `Spring-Cloud-Kubernetes-Application` | `User-Agent` header
 
 |===

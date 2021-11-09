@@ -207,15 +207,14 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 			return properties;
 		}
 
-		@ConditionalOnMissingBean(ApiClient.class)
 		@Bean
 		ApiClient apiClient() {
 			ApiClient apiClient = new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build();
 			apiClient.setDebugging(true);
+			apiClient.setReadTimeout(0);
 			return apiClient;
 		}
 
-		@ConditionalOnMissingBean(CoreV1Api.class)
 		@Bean
 		CoreV1Api coreApi(ApiClient apiClient) {
 			return new CoreV1Api(apiClient);
