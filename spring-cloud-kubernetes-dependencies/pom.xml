@@ -246,24 +246,6 @@
 			</dependency>
 
 			<dependency>
-				<groupId>io.fabric8</groupId>
-				<artifactId>kubernetes-client</artifactId>
-				<version>${kubernetes-fabric8-client.version}</version>
-				<type>test-jar</type>
-				<scope>test</scope>
-				<exclusions>
-					<exclusion>
-						<groupId>com.fasterxml.jackson.core</groupId>
-						<artifactId>jackson-databind</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>com.fasterxml.jackson.core</groupId>
-						<artifactId>jackson-core</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-
-			<dependency>
 				<groupId>com.github.tomakehurst</groupId>
 				<artifactId>wiremock-jre8</artifactId>
 				<version>${wiremock.version}</version>
