@@ -70,9 +70,9 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 	}
 
 	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-															 ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-															 KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
-															 KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
 		this.coreV1Api = coreV1Api;
@@ -87,9 +87,9 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 	@Deprecated
 	public KubernetesClientEventBasedConfigMapChangeDetector(ConfigurableEnvironment environment,
-															 ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-															 KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
-															 KubernetesClientProperties kubernetesClientProperties) {
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
+			KubernetesClientProperties kubernetesClientProperties) {
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
 		this.kubernetesClientProperties = kubernetesClientProperties;
@@ -98,17 +98,17 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 	private String getNamespace() {
 		return kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
-			: kubernetesClientProperties.getNamespace();
+				: kubernetesClientProperties.getNamespace();
 	}
 
 	@PostConstruct
 	public void watch() {
 		if (coreV1Api != null && this.properties.isMonitoringConfigMaps()) {
 			SharedIndexInformer<V1ConfigMap> configMapInformer = factory.sharedIndexInformerFor(
-				(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(getNamespace(), null, null,
-					null, null, null, null, params.resourceVersion, null, params.timeoutSeconds, params.watch,
-					null),
-				V1ConfigMap.class, V1ConfigMapList.class);
+					(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(getNamespace(), null, null,
+							null, null, null, null, params.resourceVersion, null, params.timeoutSeconds, params.watch,
+							null),
+					V1ConfigMap.class, V1ConfigMapList.class);
 			configMapInformer.addEventHandler(new ResourceEventHandler<V1ConfigMap>() {
 				@Override
 				public void onAdd(V1ConfigMap obj) {
@@ -140,7 +140,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 	private void onEvent(V1ConfigMap configMap) {
 		this.log.debug(String.format("onEvent configMap: %s", configMap.toString()));
 		boolean changed = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
-			findPropertySources(KubernetesClientConfigMapPropertySource.class));
+				findPropertySources(KubernetesClientConfigMapPropertySource.class));
 		if (changed) {
 			LOG.info("Configuration change detected, reloading properties.");
 			reloadProperties();
