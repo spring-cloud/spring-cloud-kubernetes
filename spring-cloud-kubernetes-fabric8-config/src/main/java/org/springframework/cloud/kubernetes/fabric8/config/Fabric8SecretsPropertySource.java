@@ -25,7 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
-import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
 
@@ -42,16 +41,16 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
 	public Fabric8SecretsPropertySource(KubernetesClient client, String name, String namespace,
 			Map<String, String> labels, boolean failFast) {
-		super(getSourceName(name, getApplicationNamespace(client, namespace, "Secret", null)),
-			getSourceData(client, name, getApplicationNamespace(client, namespace, "Secret", null), labels, failFast));
+		super(getSourceName(name, getApplicationNamespace(client, namespace, "Secret", null)), getSourceData(client,
+				name, getApplicationNamespace(client, namespace, "Secret", null), labels, failFast));
 	}
 
 	private static Map<String, Object> getSourceData(KubernetesClient client, String name, String namespace,
 			Map<String, String> labels, boolean failFast) {
 		Map<String, Object> result = new HashMap<>();
 
-		LOG.info("Loading Secret with name '" + name + "' or with labels [" + labels + "] in namespace '"
-				+ namespace + "'");
+		LOG.info("Loading Secret with name '" + name + "' or with labels [" + labels + "] in namespace '" + namespace
+				+ "'");
 		try {
 
 			Secret secret = client.secrets().inNamespace(namespace).withName(name).get();
