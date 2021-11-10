@@ -35,9 +35,11 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 public class KubernetesClientActuatorTests {
 
 	@Nested
-	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
-			"management.health.kubernetes.enabled=false", "management.endpoint.health.show-details=always",
-			"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health" })
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+			properties = { "spring.main.cloud-platform=KUBERNETES", "management.health.kubernetes.enabled=false",
+					"management.endpoint.health.show-details=always",
+					"management.endpoint.health.show-components=always",
+					"management.endpoints.web.exposure.include=health" })
 	public class DisabledHealthTest {
 
 		@Autowired
@@ -62,9 +64,11 @@ public class KubernetesClientActuatorTests {
 	}
 
 	@Nested
-	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
-			"management.health.kubernetes.enabled=true", "management.endpoint.health.show-details=always",
-			"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health" })
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+			properties = { "spring.main.cloud-platform=KUBERNETES", "management.health.kubernetes.enabled=true",
+					"management.endpoint.health.show-details=always",
+					"management.endpoint.health.show-components=always",
+					"management.endpoints.web.exposure.include=health" })
 	public class EnabledHealthTest {
 
 		@Autowired
