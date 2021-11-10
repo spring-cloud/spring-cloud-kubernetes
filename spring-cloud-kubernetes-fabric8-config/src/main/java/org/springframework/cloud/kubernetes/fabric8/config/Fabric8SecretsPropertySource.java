@@ -27,6 +27,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.util.StringUtils;
 
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
+
 /**
  * Kubernetes property source for secrets.
  *
@@ -40,40 +42,40 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
 	public Fabric8SecretsPropertySource(KubernetesClient client, String name, String namespace,
 			Map<String, String> labels, boolean failFast) {
-		super(getSourceName(name, namespace), getSourceData(client, name, namespace, labels, failFast));
+		super(getSourceName(name, getApplicationNamespace(client, namespace, "Secret", null)),
+			getSourceData(client, name, getApplicationNamespace(client, namespace, "Secret", null), labels, failFast));
 	}
 
 	private static Map<String, Object> getSourceData(KubernetesClient client, String name, String namespace,
 			Map<String, String> labels, boolean failFast) {
 		Map<String, Object> result = new HashMap<>();
 
-		String namespaceToUse = StringUtils.hasLength(namespace) ? namespace : client.getNamespace();
 		LOG.info("Loading Secret with name '" + name + "' or with labels [" + labels + "] in namespace '"
-				+ namespaceToUse + "'");
+				+ namespace + "'");
 		try {
 
-			Secret secret = client.secrets().inNamespace(namespaceToUse).withName(name).get();
+			Secret secret = client.secrets().inNamespace(namespace).withName(name).get();
 
 			// the API is documented that it might return null
 			if (secret == null) {
-				LOG.warn("secret with name : " + name + " in namespace : " + namespaceToUse + " not found");
+				LOG.warn("secret with name : " + name + " in namespace : " + namespace + " not found");
 			}
 			else {
-				putDataFromSecret(secret, result, namespaceToUse);
+				putDataFromSecret(secret, result, namespace);
 			}
 
-			client.secrets().inNamespace(namespaceToUse).withLabels(labels).list().getItems()
-					.forEach(s -> putDataFromSecret(s, result, namespaceToUse));
+			client.secrets().inNamespace(namespace).withLabels(labels).list().getItems()
+					.forEach(s -> putDataFromSecret(s, result, namespace));
 
 		}
 		catch (Exception e) {
 			if (failFast) {
 				throw new IllegalStateException("Unable to read Secret with name '" + name + "' or labels [" + labels
-						+ "] in namespace '" + namespaceToUse + "'", e);
+						+ "] in namespace '" + namespace + "'", e);
 			}
 
 			LOG.warn("Can't read secret with name: [" + name + "] or labels [" + labels + "] in namespace: ["
-					+ namespaceToUse + "] (cause: " + e.getMessage() + "). Ignoring");
+					+ namespace + "] (cause: " + e.getMessage() + "). Ignoring");
 		}
 
 		return result;

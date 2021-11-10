@@ -16,15 +16,18 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 
 import java.util.Collections;
 
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * tests that are supposed to use EnableKubernetesMockClient only
@@ -37,6 +40,8 @@ class Fabric8SecretsPropertySourceMockTests {
 	private static KubernetesMockServer mockServer;
 
 	private static KubernetesClient client;
+
+	private final DefaultKubernetesClient mockClient = Mockito.mock(DefaultKubernetesClient.class);
 
 	@Test
 	void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
@@ -60,6 +65,26 @@ class Fabric8SecretsPropertySourceMockTests {
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 		assertThatNoException().isThrownBy(() -> new Fabric8SecretsPropertySource(client, name,
 			namespace, Collections.emptyMap(), false));
+	}
+
+	@Test
+	void constructorWithoutClientNamespaceMustFail() {
+		Mockito.when(mockClient.getNamespace()).thenReturn(null);
+		assertThatThrownBy(() -> new Fabric8SecretsPropertySource(mockClient, "my-secret", null, Collections.emptyMap(), false))
+			.isInstanceOf(NamespaceResolutionFailedException.class);
+	}
+
+	@Test
+	void constructorWithClientNamespaceMustNotFail() {
+		Mockito.when(mockClient.getNamespace()).thenReturn("namespace");
+		assertThat(new Fabric8SecretsPropertySource(mockClient, "my-secret", null, Collections.emptyMap(), false)).isNotNull();
+	}
+
+	@Test
+	void constructorWithNamespaceMustNotFail() {
+		Mockito.when(mockClient.getNamespace()).thenReturn(null);
+		assertThat(new Fabric8SecretsPropertySource(mockClient, "my-secret", "ns", Collections.emptyMap(), false))
+			.isNotNull();
 	}
 
 }
