@@ -35,7 +35,7 @@ import static org.hamcrest.Matchers.containsString;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
-		properties = { "management.endpoint.health.show-details=always" })
+		properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoint.health.show-details=always" })
 @EnableKubernetesMockClient(crud = true, https = false)
 public class HealthIndicatorTest {
 
