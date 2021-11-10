@@ -35,8 +35,10 @@ class Fabric8ClientUserAgentTests {
 
 	private static final String USER_AGENT = "spring.cloud.kubernetes.client.userAgent=non-default";
 
+	private static final String ENABLED_K8S = "spring.main.cloud-platform=KUBERNETES";
+
 	@Nested
-	@SpringBootTest(classes = App.class)
+	@SpringBootTest(classes = App.class, properties = ENABLED_K8S)
 	class DefaultConfigurationForClient {
 
 		@Autowired
@@ -51,7 +53,7 @@ class Fabric8ClientUserAgentTests {
 	}
 
 	@Nested
-	@SpringBootTest(classes = App.class, properties = USER_AGENT)
+	@SpringBootTest(classes = App.class, properties = { USER_AGENT, ENABLED_K8S })
 	class PropertiesConfigurationForClient {
 
 		@Autowired
