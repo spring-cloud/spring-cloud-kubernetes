@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		classes = KubernetesCommonsAutoConfigurationTests.App.class,
-		properties = { "spring.cloud.kubernetes.client.password=mypassword",
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.password=mypassword",
 				"spring.cloud.kubernetes.client.proxy-password=myproxypassword" })
 public class KubernetesCommonsAutoConfigurationTests {
 
