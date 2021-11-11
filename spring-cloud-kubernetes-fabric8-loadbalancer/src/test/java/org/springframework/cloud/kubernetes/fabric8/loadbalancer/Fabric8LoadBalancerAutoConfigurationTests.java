@@ -53,7 +53,7 @@ class Fabric8LoadBalancerAutoConfigurationTests {
 
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesEnabledAndLoadBalancerEnabled() {
-		setup("spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.loadbalancer.enabled=true");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.loadbalancer.enabled=true");
 		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).hasSize(1);
 	}
 
@@ -65,7 +65,7 @@ class Fabric8LoadBalancerAutoConfigurationTests {
 
 	@Test
 	void kubernetesLoadBalancerWhenDefaultProperties() {
-		setup();
+		setup("spring.main.cloud-platform=KUBERNETES");
 		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).hasSize(1);
 	}
 
