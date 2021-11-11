@@ -21,7 +21,9 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.ConditionalOnReactiveDiscoveryEnabled;
@@ -30,7 +32,6 @@ import org.springframework.cloud.client.discovery.composite.reactive.ReactiveCom
 import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIndicatorProperties;
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.fabric8.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesClientServicesFunction;
@@ -46,7 +47,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnReactiveDiscoveryEnabled
-@ConditionalOnKubernetesEnabled
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnKubernetesDiscoveryEnabled
 @AutoConfigureBefore({ SimpleReactiveDiscoveryClientAutoConfiguration.class,
 		ReactiveCommonsClientAutoConfiguration.class })
