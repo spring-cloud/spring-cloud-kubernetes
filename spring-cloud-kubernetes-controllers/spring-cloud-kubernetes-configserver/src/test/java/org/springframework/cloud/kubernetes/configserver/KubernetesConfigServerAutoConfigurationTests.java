@@ -48,8 +48,7 @@ public class KubernetesConfigServerAutoConfigurationTests {
 
 	@Nested
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-			properties = { "spring.profiles.include=kubernetes,kubernetesdisabled",
-					"spring.cloud.kubernetes.enabled=false", "debug=true" },
+			properties = { "spring.profiles.include=kubernetes,kubernetesdisabled", "debug=true" },
 			classes = { KubernetesConfigServerApplication.class, MockConfig.class })
 	public class KubernetesDisabled {
 
@@ -81,8 +80,9 @@ public class KubernetesConfigServerAutoConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-			classes = { KubernetesConfigServerApplication.class }, properties = { "spring.profiles.include=kubernetes",
-					"debug=true", "spring.cloud.kubernetes.client.namespace=default" })
+			classes = { KubernetesConfigServerApplication.class },
+			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.profiles.include=kubernetes", "debug=true",
+					"spring.cloud.kubernetes.client.namespace=default" })
 	@Nested
 	class KubernetesEnabledProfileIncluded {
 
@@ -98,8 +98,10 @@ public class KubernetesConfigServerAutoConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-			classes = { KubernetesConfigServerApplication.class }, properties = { "spring.profiles.include=kubernetes",
-					"debug=true", "spring.cloud.kubernetes.config.enabled=false" })
+			classes = { KubernetesConfigServerApplication.class },
+			properties = { "spring.main.cloud-platform=KUBERNETES", // STOPSHIP: 11/10/21
+					"spring.profiles.include=kubernetes", "debug=true",
+					"spring.cloud.kubernetes.config.enabled=false" })
 	@Nested
 	class KubernetesEnabledProfileIncludedConfigMapDisabled {
 
@@ -115,8 +117,9 @@ public class KubernetesConfigServerAutoConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-			classes = { KubernetesConfigServerApplication.class }, properties = { "spring.profiles.include=kubernetes",
-					"debug=true", "spring.cloud.kubernetes.client.namespace=default" })
+			classes = { KubernetesConfigServerApplication.class },
+			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.profiles.include=kubernetes", "debug=true",
+					"spring.cloud.kubernetes.client.namespace=default" })
 	@Nested
 	class KubernetesEnabledProfileIncludedSecretsApiDisabled {
 
@@ -135,7 +138,7 @@ public class KubernetesConfigServerAutoConfigurationTests {
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 			classes = { KubernetesConfigServerApplication.class },
-			properties = { "spring.profiles.include=kubernetes", "debug=true",
+			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.profiles.include=kubernetes", "debug=true",
 					"spring.cloud.kubernetes.client.namespace=default",
 					"spring.cloud.kubernetes.secrets.enableApi=true" })
 	@Nested
@@ -154,7 +157,7 @@ public class KubernetesConfigServerAutoConfigurationTests {
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 			classes = { KubernetesConfigServerApplication.class },
-			properties = { "spring.profiles.include=kubernetes", "debug=true",
+			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.profiles.include=kubernetes", "debug=true",
 					"spring.cloud.kubernetes.client.namespace=default",
 					"spring.cloud.kubernetes.config.enableApi=false" })
 	@Nested

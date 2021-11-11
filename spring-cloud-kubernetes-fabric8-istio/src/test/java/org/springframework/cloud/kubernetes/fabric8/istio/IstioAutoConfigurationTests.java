@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class IstioAutoConfigurationTests {
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
-		properties = "spring.main.cloud-platform=KUBERNETES")
+			properties = "spring.main.cloud-platform=KUBERNETES")
 	@Nested
 	class IstioClientPresentByDefault {
 
