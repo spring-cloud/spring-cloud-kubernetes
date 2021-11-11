@@ -24,7 +24,6 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.boot.task.TaskSchedulerBuilder;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.MapPropertySource;
@@ -50,16 +49,6 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 	private TaskScheduler taskExecutor;
 
 	private Duration period = Duration.ofMillis(1500);
-
-	@Deprecated
-	public PollingConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
-			ConfigurationUpdateStrategy strategy, Class propertySourceClass,
-			PropertySourceLocator propertySourceLocator) {
-		super(environment, properties, strategy);
-		this.propertySourceLocator = propertySourceLocator;
-		this.propertySourceClass = propertySourceClass;
-		this.taskExecutor = new TaskSchedulerBuilder().build();
-	}
 
 	public PollingConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			ConfigurationUpdateStrategy strategy, Class propertySourceClass,

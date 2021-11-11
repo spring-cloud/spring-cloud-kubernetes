@@ -57,18 +57,6 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
-	@Deprecated
-	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
-			KubernetesClientProperties kubernetesClientProperties) {
-		super(environment, properties, strategy);
-		this.propertySourceLocator = propertySourceLocator;
-		this.coreV1Api = coreV1Api;
-		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
-		this.kubernetesClientProperties = kubernetesClientProperties;
-	}
-
 	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
@@ -85,17 +73,6 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
 		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
-	}
-
-	@Deprecated
-	public KubernetesClientEventBasedConfigMapChangeDetector(ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
-			KubernetesClientProperties kubernetesClientProperties) {
-		super(environment, properties, strategy);
-		this.propertySourceLocator = propertySourceLocator;
-		this.kubernetesClientProperties = kubernetesClientProperties;
-		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
 	}
 
 	private String getNamespace() {
