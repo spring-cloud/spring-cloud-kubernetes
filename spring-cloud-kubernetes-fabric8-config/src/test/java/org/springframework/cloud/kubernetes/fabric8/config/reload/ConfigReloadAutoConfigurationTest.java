@@ -119,9 +119,8 @@ public class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase 
 
 	@Test
 	public void kubernetesReloadEnabledButSecretAndConfigDisabled() {
-		setup(KubernetesClientTestConfiguration.class,
-				"spring.cloud.kubernetes.config.enabled=false", "spring.cloud.kubernetes.secrets.enabled=false",
-				"spring.cloud.kubernetes.reload.enabled=true");
+		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.config.enabled=false",
+				"spring.cloud.kubernetes.secrets.enabled=false", "spring.cloud.kubernetes.reload.enabled=true");
 		assertThat(this.getContext().containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(this.getContext().containsBean("secretsPropertySourceLocator")).isFalse();
 		assertThat(this.getContext().containsBean("propertyChangeWatcher")).isFalse();

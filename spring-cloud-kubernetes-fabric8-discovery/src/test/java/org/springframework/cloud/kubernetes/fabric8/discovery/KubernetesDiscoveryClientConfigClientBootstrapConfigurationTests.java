@@ -60,8 +60,8 @@ public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 	@Test
 	public void onWhenRequested() throws Exception {
 		setup("server.port=7000", "spring.cloud.config.discovery.enabled=true",
-				"spring.cloud.kubernetes.discovery.enabled:true",
-				"spring.application.name:test", "spring.cloud.config.discovery.service-id:configserver");
+				"spring.cloud.kubernetes.discovery.enabled:true", "spring.application.name:test",
+				"spring.cloud.config.discovery.service-id:configserver");
 		assertEquals(1, this.context.getParent().getBeanNamesForType(DiscoveryClient.class).length);
 		DiscoveryClient client = this.context.getParent().getBean(DiscoveryClient.class);
 		verify(client, atLeast(2)).getInstances("configserver");

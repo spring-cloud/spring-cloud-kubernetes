@@ -91,8 +91,7 @@ public class KubernetesConfigConfigurationTest extends KubernetesConfigTestBase 
 
 	@Test
 	public void kubernetesConfigWhenKubernetesEnabledAndKubernetesConfigDisabled() {
-		setup(KubernetesClientTestConfiguration.class,
-				"spring.cloud.kubernetes.config.enabled=false");
+		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.config.enabled=false");
 		assertThat(getContext().containsBean("configMapPropertySourceLocator")).isFalse();
 	}
 

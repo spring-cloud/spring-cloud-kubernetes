@@ -24,8 +24,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.cloud.CloudPlatform;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
 
 /**
  * @author Haytham Mohamed
@@ -35,7 +35,7 @@ import org.springframework.boot.cloud.CloudPlatform;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnKubernetesAndConfigEnabled
+@ConditionalOnKubernetesConfigEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 public @interface ConditionalOnKubernetesAndConfigEnabled {
 

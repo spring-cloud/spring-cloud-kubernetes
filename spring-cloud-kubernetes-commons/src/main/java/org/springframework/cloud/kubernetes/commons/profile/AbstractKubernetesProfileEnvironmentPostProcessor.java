@@ -58,8 +58,10 @@ public abstract class AbstractKubernetesProfileEnvironmentPostProcessor implemen
 
 		application.addInitializers(ctx -> LOG.replayTo(AbstractKubernetesProfileEnvironmentPostProcessor.class));
 
-		boolean serviceHost = StringUtils.hasText((String) environment.getSystemProperties().get("KUBERNETES_SERVICE_HOST"));
-		boolean servicePort = StringUtils.hasText((String) environment.getSystemProperties().get("KUBERNETES_SERVICE_PORT"));
+		boolean serviceHost = StringUtils
+				.hasText((String) environment.getSystemProperties().get("KUBERNETES_SERVICE_HOST"));
+		boolean servicePort = StringUtils
+				.hasText((String) environment.getSystemProperties().get("KUBERNETES_SERVICE_PORT"));
 		String platformKubernetesEnabled = environment.getProperty("spring.main.cloud-platform");
 
 		// this replicates the @ConditionalOnCloudPlatform(KUBERNETES)

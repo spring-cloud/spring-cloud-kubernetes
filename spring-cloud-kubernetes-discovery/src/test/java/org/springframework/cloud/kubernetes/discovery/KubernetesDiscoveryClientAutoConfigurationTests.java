@@ -41,7 +41,8 @@ class KubernetesDiscoveryClientAutoConfigurationTests {
 	@Test
 	public void shouldWorkWithDefaults() {
 		contextRunner
-				.withPropertyValues("spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver")
+				.withPropertyValues("spring.main.cloud-platform=KUBERNETES",
+						"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver")
 				.withClassLoader(new FilteredClassLoader("org.springframework.web.reactive")).run(context -> {
 					assertThat(context).hasSingleBean(DiscoveryClient.class);
 					assertThat(context).doesNotHaveBean(ReactiveDiscoveryClient.class);
@@ -76,7 +77,8 @@ class KubernetesDiscoveryClientAutoConfigurationTests {
 	@Test
 	public void shouldHaveReactiveDiscoveryClient() {
 		contextRunner
-				.withPropertyValues("spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver")
+				.withPropertyValues("spring.main.cloud-platform=KUBERNETES",
+						"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver")
 				.run(context -> {
 					assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
 					assertThat(context).doesNotHaveBean(DiscoveryClient.class);
@@ -103,7 +105,8 @@ class KubernetesDiscoveryClientAutoConfigurationTests {
 	@Test
 	public void worksWithoutActuator() {
 		contextRunner
-				.withPropertyValues("spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver")
+				.withPropertyValues("spring.main.cloud-platform=KUBERNETES",
+						"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver")
 				.withClassLoader(new FilteredClassLoader("org.springframework.boot.actuate")).run(context -> {
 					assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
 					assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
