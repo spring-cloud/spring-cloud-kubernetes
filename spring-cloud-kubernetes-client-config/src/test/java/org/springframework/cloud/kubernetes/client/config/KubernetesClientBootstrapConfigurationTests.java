@@ -158,7 +158,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 	// tests that @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES) has the desired
 	// effect, meaning when it is disabled, no property source bean is present
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-			properties = { "kubernetes.informer.enabled=false" })
+			properties = { "kubernetes.manifests.enabled=false" })
 	@Nested
 	class KubernetesClientBootstrapConfigurationNotInsideK8s {
 

@@ -23,7 +23,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatfo
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
@@ -38,7 +37,6 @@ import org.springframework.context.annotation.Import;
  * @author Ryan Baxter
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnKubernetesEnabled
 @AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 @Import({ KubernetesCommonsAutoConfiguration.class, KubernetesClientAutoConfiguration.class })
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
