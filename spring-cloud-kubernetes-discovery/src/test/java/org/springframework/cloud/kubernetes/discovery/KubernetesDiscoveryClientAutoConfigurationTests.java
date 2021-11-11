@@ -94,7 +94,7 @@ class KubernetesDiscoveryClientAutoConfigurationTests {
 
 	@Test
 	public void shouldNotHaveDiscoveryClientWhenKubernetesDisabled() {
-		contextRunner.withPropertyValues("spring.cloud.kubernetes.enabled=false").run(context -> {
+		contextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 		});

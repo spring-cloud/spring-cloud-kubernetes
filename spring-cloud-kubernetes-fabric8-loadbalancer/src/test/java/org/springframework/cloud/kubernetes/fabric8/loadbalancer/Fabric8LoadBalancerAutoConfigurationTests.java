@@ -41,13 +41,13 @@ class Fabric8LoadBalancerAutoConfigurationTests {
 
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesDisabledAndLoadBalancerDisabled() {
-		setup("spring.cloud.kubernetes.enabled=false", "spring.cloud.kubernetes.loadbalancer.enabled=false");
+		setup("spring.cloud.kubernetes.loadbalancer.enabled=false");
 		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).isEmpty();
 	}
 
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesDisabledAndLoadBalancerEnabled() {
-		setup("spring.cloud.kubernetes.enabled=false", "spring.cloud.kubernetes.loadbalancer.enabled=true");
+		setup("spring.cloud.kubernetes.loadbalancer.enabled=true");
 		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).isEmpty();
 	}
 
@@ -59,7 +59,7 @@ class Fabric8LoadBalancerAutoConfigurationTests {
 
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesEnabledAndLoadBalancerDisabled() {
-		setup("spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.loadbalancer.enabled=false");
+		setup("spring.cloud.kubernetes.loadbalancer.enabled=false");
 		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).isEmpty();
 	}
 

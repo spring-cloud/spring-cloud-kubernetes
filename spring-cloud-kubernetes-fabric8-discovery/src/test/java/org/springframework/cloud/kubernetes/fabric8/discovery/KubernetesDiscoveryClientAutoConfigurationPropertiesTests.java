@@ -60,7 +60,7 @@ public class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 
 	@Test
 	public void kubernetesDiscoveryWhenKubernetesDisabled() throws Exception {
-		setup("spring.cloud.kubernetes.enabled=false");
+		setup();
 		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
 	}
 
@@ -72,7 +72,7 @@ public class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 
 	@Test
 	public void kubernetesDiscoveryDefaultEnabled() throws Exception {
-		setup("spring.cloud.kubernetes.enabled=true", "spring.main.cloud-platform=KUBERNETES");
+		setup("spring.main.cloud-platform=KUBERNETES");
 		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class)).hasSize(1);
 	}
 

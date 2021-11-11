@@ -46,8 +46,7 @@ public class IstioAutoConfigurationTests {
 
 	}
 
-	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
-			properties = { "spring.cloud.kubernetes.enabled=false" })
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
 	@Nested
 	class IstioClientNotPresentWhenKubernetesDisabled {
 

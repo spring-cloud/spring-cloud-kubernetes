@@ -30,8 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class Fabric8BootstrapConfigurationTests {
 
-	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-			properties = "spring.cloud.kubernetes.enabled=false")
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class)
 	@Nested
 	class KubernetesDisabled {
 
