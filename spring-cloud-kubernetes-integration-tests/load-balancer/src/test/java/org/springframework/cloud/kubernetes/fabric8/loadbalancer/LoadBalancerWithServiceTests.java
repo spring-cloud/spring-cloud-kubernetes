@@ -43,8 +43,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
-		"spring.cloud.kubernetes.loadbalancer.enabled=true" })
+@TestPropertySource(properties = { "spring.main.cloud-platform=KUBERNETES",
+		"spring.cloud.kubernetes.loadbalancer.mode=SERVICE", "spring.cloud.kubernetes.loadbalancer.enabled=true" })
 @EnableKubernetesMockClient(crud = true, https = false)
 class LoadBalancerWithServiceTests {
 
