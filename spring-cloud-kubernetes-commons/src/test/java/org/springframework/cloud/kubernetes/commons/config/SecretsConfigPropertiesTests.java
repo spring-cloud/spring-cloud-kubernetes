@@ -335,7 +335,8 @@ class SecretsConfigPropertiesTests {
 		Assertions.assertFalse(sources.get(2).isIncludeProfileSpecificSources());
 	}
 
-	// a test that shows that hashCode and equality is based on name and namespace only
+	// a test that shows that hashCode and equality is based on name, namespace
+	// and labels only
 	@Test
 	void testHashCodeAndEquality() {
 		SecretsConfigProperties.NormalizedSource left = new SecretsConfigProperties.NormalizedSource("name",
