@@ -21,33 +21,34 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author wind57
  */
-class ConfigMapConfigPropertiesTests {
+class SecretsConfigPropertiesTests {
 
 	/**
 	 * <pre>
 	 * 	spring:
 	 *	  cloud:
 	 *      kubernetes:
-	 *        config:
-	 *          name: config-map-a
+	 *        secrets:
+	 *          name: secret-a
 	 *        	namespace: spring-k8s
 	 * </pre>
 	 *
-	 * a config as above will result in a NormalizedSource where prefix is empty
+	 * a configuration as above will result in a NormalizedSource where prefix is empty
 	 */
 	@Test
 	void testUseNameAsPrefixUnsetEmptySources() {
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
+		SecretsConfigProperties properties = new SecretsConfigProperties();
 		properties.setSources(Collections.emptyList());
-		properties.setName("config-map-a");
+		properties.setName("secret-a");
 		properties.setNamespace("spring-k8s");
 
-		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
+		List<SecretsConfigProperties.NormalizedSource> sources = properties.determineSources();
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
 		Assertions.assertEquals(sources.get(0).getPrefix(), "",
@@ -59,29 +60,29 @@ class ConfigMapConfigPropertiesTests {
 	 * 	spring:
 	 *	  cloud:
 	 *      kubernetes:
-	 *        config:
+	 *        secrets:
 	 *          useNameAsPrefix: true
-	 *          name: config-map-a
+	 *          name: secret-a
 	 *        	namespace: spring-k8s
 	 * </pre>
 	 *
-	 * a config as above will result in a NormalizedSource where prefix is empty, even if
-	 * "useNameAsPrefix: true", because sources are empty
+	 * a configuration as above will result in a NormalizedSource where prefix is empty,
+	 * even if "useNameAsPrefix: true", because sources are empty
 	 */
 	@Test
 	void testUseNameAsPrefixSetEmptySources() {
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
+		SecretsConfigProperties properties = new SecretsConfigProperties();
 		properties.setSources(Collections.emptyList());
 		properties.setUseNameAsPrefix(true);
-		properties.setName("config-map-a");
+		properties.setName("secret-a");
 		properties.setNamespace("spring-k8s");
 
-		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
+		List<SecretsConfigProperties.NormalizedSource> sources = properties.determineSources();
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
 		Assertions.assertEquals(sources.get(0).getPrefix(), "",
 				"empty sources must generate a List with a single NormalizedSource, where prefix is empty,"
-						+ "no matter of 'spring.cloud.kubernetes.config.useNameAsPrefix' value");
+						+ "no matter of 'spring.cloud.kubernetes.secrets.useNameAsPrefix' value");
 	}
 
 	/**
@@ -89,30 +90,30 @@ class ConfigMapConfigPropertiesTests {
 	 * spring:
 	 *	cloud:
 	 *    kubernetes:
-	 *      config:
+	 *      secrets:
 	 *        useNameAsPrefix: true
 	 *        namespace: spring-k8s
 	 *        sources:
-	 *          - name: config-map-one
+	 *          - name: secret-one
 	 * </pre>
 	 *
-	 * a config as above will result in a NormalizedSource where prefix will be equal to
-	 * the config map name
+	 * a configuration as above will result in a NormalizedSource where prefix will be
+	 * equal to the secret name
 	 */
 	@Test
 	void testUseNameAsPrefixUnsetNonEmptySources() {
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
+		SecretsConfigProperties properties = new SecretsConfigProperties();
 		properties.setUseNameAsPrefix(true);
 		properties.setNamespace("spring-k8s");
 
-		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source();
-		one.setName("config-map-one");
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source();
+		one.setName("secret-one");
 		properties.setSources(Collections.singletonList(one));
 
-		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
+		List<SecretsConfigProperties.NormalizedSource> sources = properties.determineSources();
 		Assertions.assertEquals(sources.size(), 1, "a single NormalizedSource is expected");
 
-		Assertions.assertEquals(sources.get(0).getPrefix(), "config-map-one");
+		Assertions.assertEquals(sources.get(0).getPrefix(), "secret-one");
 	}
 
 	/**
@@ -120,47 +121,47 @@ class ConfigMapConfigPropertiesTests {
 	 * spring:
 	 *	cloud:
 	 *    kubernetes:
-	 *      config:
+	 *      secrets:
 	 *        useNameAsPrefix: true
 	 *        namespace: spring-k8s
 	 *        sources:
-	 *          - name: config-map-one
+	 *          - name: secret-one
 	 *            useNameAsPrefix: false
-	 *          - name: config-map-two
+	 *          - name: secret-two
 	 *            useNameAsPrefix: true
-	 *          - name: config-map-three
+	 *          - name: secret-three
 	 * </pre>
 	 *
-	 * this test proves that 'spring.cloud.kubernetes.config.sources[].useNameAsPrefix'
-	 * will override 'spring.cloud.kubernetes.config.useNameAsPrefix'. For the last entry
+	 * this test proves that 'spring.cloud.kubernetes.secrets.sources[].useNameAsPrefix'
+	 * will override 'spring.cloud.kubernetes.secrets.useNameAsPrefix'. For the last entry
 	 * in sources, since there is no explicit 'useNameAsPrefix', the one from
-	 * 'spring.cloud.kubernetes.config.useNameAsPrefix' will be taken.
+	 * 'spring.cloud.kubernetes.secrets.useNameAsPrefix' will be taken.
 	 */
 	@Test
 	void testUseNameAsPrefixSetNonEmptySources() {
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
+		SecretsConfigProperties properties = new SecretsConfigProperties();
 		properties.setUseNameAsPrefix(true);
 		properties.setNamespace("spring-k8s");
 
-		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source();
-		one.setName("config-map-one");
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source();
+		one.setName("secret-one");
 		one.setUseNameAsPrefix(false);
 
-		ConfigMapConfigProperties.Source two = new ConfigMapConfigProperties.Source();
-		two.setName("config-map-two");
+		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source();
+		two.setName("secret-two");
 		two.setUseNameAsPrefix(true);
 
-		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source();
-		three.setName("config-map-three");
+		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source();
+		three.setName("secret-three");
 
 		properties.setSources(Arrays.asList(one, two, three));
 
-		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
+		List<SecretsConfigProperties.NormalizedSource> sources = properties.determineSources();
 		Assertions.assertEquals(sources.size(), 3, "3 NormalizedSources are expected");
 
 		Assertions.assertEquals(sources.get(0).getPrefix(), "");
-		Assertions.assertEquals(sources.get(1).getPrefix(), "config-map-two");
-		Assertions.assertEquals(sources.get(2).getPrefix(), "config-map-three");
+		Assertions.assertEquals(sources.get(1).getPrefix(), "secret-two");
+		Assertions.assertEquals(sources.get(2).getPrefix(), "secret-three");
 	}
 
 	/**
@@ -168,48 +169,48 @@ class ConfigMapConfigPropertiesTests {
 	 * spring:
 	 *	cloud:
 	 *    kubernetes:
-	 *      config:
+	 *      secrets:
 	 *        useNameAsPrefix: false
 	 *        namespace: spring-k8s
 	 *        sources:
-	 *          - name: config-map-one
+	 *          - name: secrets-one
 	 *            useNameAsPrefix: false
 	 *            explicitPrefix: one
-	 *          - name: config-map-two
+	 *          - name: secrets-two
 	 *            useNameAsPrefix: true
 	 *            explicitPrefix: two
-	 *          - name: config-map-three
+	 *          - name: secrets-three
 	 *            explicitPrefix: three
-	 *          - name: config-map-four
+	 *          - name: secrets-four
 	 * </pre>
 	 *
 	 */
 	@Test
 	void testMultipleCases() {
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
+		SecretsConfigProperties properties = new SecretsConfigProperties();
 		properties.setUseNameAsPrefix(false);
 		properties.setNamespace("spring-k8s");
 
-		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source();
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source();
 		one.setNamespace("config-map-one");
 		one.setUseNameAsPrefix(false);
 		one.setExplicitPrefix("one");
 
-		ConfigMapConfigProperties.Source two = new ConfigMapConfigProperties.Source();
-		two.setNamespace("config-map-two");
+		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source();
+		two.setNamespace("secrets-two");
 		two.setUseNameAsPrefix(true);
 		two.setExplicitPrefix("two");
 
-		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source();
-		three.setNamespace("config-map-three");
+		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source();
+		three.setNamespace("secrets-three");
 		three.setExplicitPrefix("three");
 
-		ConfigMapConfigProperties.Source four = new ConfigMapConfigProperties.Source();
-		four.setNamespace("config-map-four");
+		SecretsConfigProperties.Source four = new SecretsConfigProperties.Source();
+		four.setNamespace("secrets-four");
 
 		properties.setSources(Arrays.asList(one, two, three, four));
 
-		List<ConfigMapConfigProperties.NormalizedSource> sources = properties.determineSources();
+		List<SecretsConfigProperties.NormalizedSource> sources = properties.determineSources();
 		Assertions.assertEquals(sources.size(), 4, "4 NormalizedSources are expected");
 
 		Assertions.assertEquals(sources.get(0).getPrefix(), "one");
@@ -223,8 +224,8 @@ class ConfigMapConfigPropertiesTests {
 	 * 	spring:
 	 *	  cloud:
 	 *      kubernetes:
-	 *        config:
-	 *          name: config-map-a
+	 *        secrets:
+	 *          name: secret-a
 	 *        	namespace: spring-k8s
 	 * </pre>
 	 *
@@ -232,6 +233,8 @@ class ConfigMapConfigPropertiesTests {
 	 * includeProfileSpecificSources will be true (this test proves that the change we
 	 * added is not a breaking change for the already existing functionality)
 	 */
+	// TODO enable back when I will add support for profileSpecificSources
+	@Disabled
 	@Test
 	void testUseIncludeProfileSpecificSourcesNoChanges() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
@@ -262,6 +265,8 @@ class ConfigMapConfigPropertiesTests {
 	 * multiple other, because of multiple profiles. As such this setting still matters
 	 * and must be propagated to the normalized source.
 	 */
+	// TODO enable back when I will add support for profileSpecificSources
+	@Disabled
 	@Test
 	void testUseIncludeProfileSpecificSourcesDefaultChanged() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
@@ -299,6 +304,8 @@ class ConfigMapConfigPropertiesTests {
 	 * 	source "three" will have "includeProfileSpecificSources = false".
 	 * </pre>
 	 */
+	// TODO enable back when I will add support for profileSpecificSources
+	@Disabled
 	@Test
 	void testUseIncludeProfileSpecificSourcesDefaultChangedSourceOverride() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
@@ -331,11 +338,11 @@ class ConfigMapConfigPropertiesTests {
 	// a test that shows that hashCode and equality is based on name and namespace only
 	@Test
 	void testHashCodeAndEquality() {
-		ConfigMapConfigProperties.NormalizedSource left = new ConfigMapConfigProperties.NormalizedSource("name",
-				"namespace", "leftPrefix", false);
+		SecretsConfigProperties.NormalizedSource left = new SecretsConfigProperties.NormalizedSource("name",
+				"namespace", Collections.singletonMap("a", "b"), "leftPrefix");
 
-		ConfigMapConfigProperties.NormalizedSource right = new ConfigMapConfigProperties.NormalizedSource("name",
-				"namespace", "rightPrefix", true);
+		SecretsConfigProperties.NormalizedSource right = new SecretsConfigProperties.NormalizedSource("name",
+				"namespace", Collections.singletonMap("a", "b"), "rightPrefix");
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);

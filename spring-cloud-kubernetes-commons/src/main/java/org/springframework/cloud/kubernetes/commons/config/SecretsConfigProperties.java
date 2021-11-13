@@ -22,6 +22,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
 
@@ -39,6 +42,8 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 	 * Prefix for Kubernetes secrets configuration properties.
 	 */
 	public static final String PREFIX = "spring.cloud.kubernetes.secrets";
+
+	private static final Log LOG = LogFactory.getLog(SecretsConfigProperties.class);
 
 	private boolean enableApi = false;
 
@@ -95,12 +100,16 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 	 */
 	public List<SecretsConfigProperties.NormalizedSource> determineSources() {
 		if (this.sources.isEmpty()) {
-			return Collections
-					.singletonList(new SecretsConfigProperties.NormalizedSource(SecretsConfigProperties.this.name,
-							SecretsConfigProperties.this.namespace, SecretsConfigProperties.this.labels));
+			if (useNameAsPrefix) {
+				LOG.warn(
+						"'spring.cloud.kubernetes.secrets.useNameAsPrefix' is set to 'true', but 'spring.cloud.kubernetes.secrets.sources'"
+								+ " is empty; as such will default 'useNameAsPrefix' to 'false'");
+			}
+
+			return Collections.singletonList(new SecretsConfigProperties.NormalizedSource(name, namespace, labels, ""));
 		}
 
-		return this.sources.stream().map(s -> s.normalize(this.name, this.namespace, this.labels))
+		return this.sources.stream().map(s -> s.normalize(name, namespace, labels, useNameAsPrefix))
 				.collect(Collectors.toList());
 	}
 
@@ -121,9 +130,21 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		 */
 		private Map<String, String> labels = Collections.emptyMap();
 
+		/**
+		 * Use secret name as prefix for properties. Can't be a primitive, we need to know
+		 * if it was explicitly set or not
+		 */
+		private Boolean useNameAsPrefix;
+
+		/**
+		 * An explicit prefix to be used for properties.
+		 */
+		private String explicitPrefix;
+
 		public Source() {
 		}
 
+		@Deprecated
 		public Source(String name, String namespace, Map<String, String> labels) {
 			this.name = name;
 			this.namespace = namespace;
@@ -150,6 +171,22 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			this.labels = labels;
 		}
 
+		public Boolean getUseNameAsPrefix() {
+			return useNameAsPrefix;
+		}
+
+		public void setUseNameAsPrefix(Boolean useNameAsPrefix) {
+			this.useNameAsPrefix = useNameAsPrefix;
+		}
+
+		public String getExplicitPrefix() {
+			return explicitPrefix;
+		}
+
+		public void setExplicitPrefix(String explicitPrefix) {
+			this.explicitPrefix = explicitPrefix;
+		}
+
 		public Map<String, String> getLabels() {
 			return this.labels;
 		}
@@ -159,12 +196,16 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		}
 
 		public SecretsConfigProperties.NormalizedSource normalize(String defaultName, String defaultNamespace,
-				Map<String, String> defaultLabels) {
+				Map<String, String> defaultLabels, boolean defaultUseNameAsPrefix) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
 			Map<String, String> normalizedLabels = this.labels.isEmpty() ? defaultLabels : this.labels;
 
-			return new SecretsConfigProperties.NormalizedSource(normalizedName, normalizedNamespace, normalizedLabels);
+			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix,
+					normalizedName);
+
+			return new SecretsConfigProperties.NormalizedSource(normalizedName, normalizedNamespace, normalizedLabels,
+					prefix);
 		}
 
 	}
@@ -177,10 +218,13 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 
 		private final Map<String, String> labels;
 
-		NormalizedSource(String name, String namespace, Map<String, String> labels) {
+		private final String prefix;
+
+		NormalizedSource(String name, String namespace, Map<String, String> labels, String prefix) {
 			this.name = name;
 			this.namespace = namespace;
 			this.labels = labels;
+			this.prefix = Objects.requireNonNull(prefix);
 		}
 
 		public String getName() {
@@ -195,9 +239,13 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			return labels;
 		}
 
+		public String getPrefix() {
+			return prefix;
+		}
+
 		@Override
 		public String toString() {
-			return "{ secret name : '" + name + "', namespace : '" + namespace + "'";
+			return "{ secret : '" + name + "', namespace : '" + namespace + "', prefix : '" + prefix + "' }";
 		}
 
 		@Override

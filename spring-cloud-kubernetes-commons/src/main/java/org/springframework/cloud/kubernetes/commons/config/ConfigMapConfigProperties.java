@@ -122,20 +122,21 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		private Boolean useNameAsPrefix;
 
 		/**
-		 * Use profile name to append to a config map name. Can't be a primitive, we need
-		 * to know if it was explicitly set or not
-		 */
-		protected Boolean includeProfileSpecificSources;
-
-		/**
 		 * An explicit prefix to be used for properties.
 		 */
 		private String explicitPrefix;
+
+		/**
+		 * Use profile name to append to a config map name. Can't be a primitive, we need
+		 * to know if it was explicitly set or not
+		 */
+		private Boolean includeProfileSpecificSources;
 
 		public Source() {
 
 		}
 
+		@Deprecated
 		public Source(String name, String namespace) {
 			this.name = name;
 			this.namespace = namespace;
