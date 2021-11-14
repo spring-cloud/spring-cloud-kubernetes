@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class Controller {
+public class SecretsWithLablesController {
 
 	private final org.springframework.cloud.kubernetes.fabric8.config.secrets_with_labels.properties.One one;
 
-	public Controller(One one) {
+	public SecretsWithLablesController(One one) {
 		this.one = one;
 	}
 
