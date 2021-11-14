@@ -49,8 +49,7 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 			Map<String, String> labels, boolean failFast) {
 		Map<String, Object> result = new HashMap<>();
 
-		LOG.info("Loading Secret with name '" + name + "' or with labels [" + labels + "] in namespace '" + namespace
-				+ "'");
+		LOG.info("Loading Secret with name '" + name + "' in namespace '" + namespace + "'");
 		try {
 
 			Secret secret = client.secrets().inNamespace(namespace).withName(name).get();
@@ -63,8 +62,11 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 				putDataFromSecret(secret, result, namespace);
 			}
 
-			client.secrets().inNamespace(namespace).withLabels(labels).list().getItems()
-					.forEach(s -> putDataFromSecret(s, result, namespace));
+			if (labels != null && !labels.isEmpty()) {
+				LOG.info("Loading Secret with labels '" + labels + "' in namespace '" + namespace + "'");
+				client.secrets().inNamespace(namespace).withLabels(labels).list().getItems()
+						.forEach(s -> putDataFromSecret(s, result, namespace));
+			}
 
 		}
 		catch (Exception e) {
