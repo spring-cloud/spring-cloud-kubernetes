@@ -99,8 +99,8 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 	 */
 	public List<NormalizedSource> determineSources(Environment environment) {
 		if (this.sources.isEmpty()) {
-			return Collections.singletonList(new NormalizedSource(SecretsConfigProperties.this.name,
-					SecretsConfigProperties.this.namespace, SecretsConfigProperties.this.labels));
+			return Collections.singletonList(new NormalizedSource(
+				getApplicationName(environment, this.name, "Secret"), this.namespace, this.labels));
 		}
 
 		return this.sources.stream().flatMap(s -> s.normalize(this.name, this.namespace, this.labels, environment))
@@ -172,8 +172,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			Map<String, String> normalizedLabels = this.labels.isEmpty() ? defaultLabels : this.labels;
 
 			// if users do not specify a name for the secret (normalizedName), we still
-			// default
-			// to one via getApplicationName. Same does not hold for lables.
+			// default to one via getApplicationName. Same does not hold for lables.
 			String secretName = getApplicationName(environment, normalizedName, "Secret");
 			NormalizedSource nameBasedSource = new NormalizedSource(secretName, normalizedNamespace,
 					Collections.emptyMap());
