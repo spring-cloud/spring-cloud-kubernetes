@@ -73,7 +73,6 @@
 |spring.cloud.kubernetes.discovery.service-labels |  | If set, then only the services matching these labels will be fetched from the Kubernetes API server.
 |spring.cloud.kubernetes.discovery.service-name | `unknown` | The service name of the local instance.
 |spring.cloud.kubernetes.discovery.wait-cache-ready | `true` | 
-|spring.main.cloud-platform" | `KUBERNETES` | Whether to enable Kubernetes integration (this will force it and is not recommended)
 |spring.cloud.kubernetes.leader.auto-startup | `true` | Should leader election be started automatically on startup. Default: true
 |spring.cloud.kubernetes.leader.config-map-name | `leaders` | Kubernetes ConfigMap where leaders information will be stored. Default: leaders
 |spring.cloud.kubernetes.leader.enabled | `true` | Should leader election be enabled. Default: true
