@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.logging.DeferredLog;
@@ -58,14 +59,7 @@ public abstract class AbstractKubernetesProfileEnvironmentPostProcessor implemen
 
 		application.addInitializers(ctx -> LOG.replayTo(AbstractKubernetesProfileEnvironmentPostProcessor.class));
 
-		boolean serviceHost = StringUtils
-				.hasText((String) environment.getSystemEnvironment().get("KUBERNETES_SERVICE_HOST"));
-		boolean servicePort = StringUtils
-				.hasText((String) environment.getSystemEnvironment().get("KUBERNETES_SERVICE_PORT"));
-		String platformKubernetesEnabled = environment.getProperty("spring.main.cloud-platform");
-
-		// this replicates the @ConditionalOnCloudPlatform(KUBERNETES)
-		if ("kubernetes".equalsIgnoreCase(platformKubernetesEnabled) || (serviceHost && servicePort)) {
+		if (CloudPlatform.KUBERNETES.isActive(environment)) {
 			addNamespaceFromServiceAccountFile(environment);
 			addKubernetesProfileIfMissing(environment);
 		}
