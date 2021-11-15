@@ -99,8 +99,8 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 	 */
 	public List<NormalizedSource> determineSources(Environment environment) {
 		if (this.sources.isEmpty()) {
-			return Collections.singletonList(new NormalizedSource(
-				getApplicationName(environment, this.name, "Secret"), this.namespace, this.labels));
+			return Collections.singletonList(new NormalizedSource(getApplicationName(environment, this.name, "Secret"),
+					this.namespace, this.labels));
 		}
 
 		return this.sources.stream().flatMap(s -> s.normalize(this.name, this.namespace, this.labels, environment))
