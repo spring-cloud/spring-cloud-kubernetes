@@ -21,9 +21,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 
 /**
  * Properties for configuring Kubernetes secrets.
@@ -93,14 +97,13 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 	 * These are the actual name/namespace pairs that are used to create a
 	 * SecretsPropertySource
 	 */
-	public List<SecretsConfigProperties.NormalizedSource> determineSources() {
+	public List<NormalizedSource> determineSources(Environment environment) {
 		if (this.sources.isEmpty()) {
-			return Collections
-					.singletonList(new SecretsConfigProperties.NormalizedSource(SecretsConfigProperties.this.name,
-							SecretsConfigProperties.this.namespace, SecretsConfigProperties.this.labels));
+			return Collections.singletonList(new NormalizedSource(SecretsConfigProperties.this.name,
+					SecretsConfigProperties.this.namespace, SecretsConfigProperties.this.labels));
 		}
 
-		return this.sources.stream().map(s -> s.normalize(this.name, this.namespace, this.labels))
+		return this.sources.stream().flatMap(s -> s.normalize(this.name, this.namespace, this.labels, environment))
 				.collect(Collectors.toList());
 	}
 
@@ -124,6 +127,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		public Source() {
 		}
 
+		@Deprecated
 		public Source(String name, String namespace, Map<String, String> labels) {
 			this.name = name;
 			this.namespace = namespace;
@@ -158,13 +162,30 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
 
-		public SecretsConfigProperties.NormalizedSource normalize(String defaultName, String defaultNamespace,
-				Map<String, String> defaultLabels) {
+		public Stream<NormalizedSource> normalize(String defaultName, String defaultNamespace,
+				Map<String, String> defaultLabels, Environment environment) {
+
+			Stream.Builder<NormalizedSource> normalizedSources = Stream.builder();
+
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
 			Map<String, String> normalizedLabels = this.labels.isEmpty() ? defaultLabels : this.labels;
 
-			return new SecretsConfigProperties.NormalizedSource(normalizedName, normalizedNamespace, normalizedLabels);
+			// if users do not specify a name for the secret (normalizedName), we still
+			// default
+			// to one via getApplicationName. Same does not hold for lables.
+			String secretName = getApplicationName(environment, normalizedName, "Secret");
+			NormalizedSource nameBasedSource = new NormalizedSource(secretName, normalizedNamespace,
+					Collections.emptyMap());
+			normalizedSources.add(nameBasedSource);
+
+			// if we have labels, we do not care about secret name
+			if (!normalizedLabels.isEmpty()) {
+				NormalizedSource labelsBasedSource = new NormalizedSource(null, normalizedNamespace, labels);
+				normalizedSources.add(labelsBasedSource);
+			}
+
+			return normalizedSources.build();
 		}
 
 	}
@@ -208,7 +229,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			if (o == null || getClass() != o.getClass()) {
 				return false;
 			}
-			SecretsConfigProperties.NormalizedSource other = (SecretsConfigProperties.NormalizedSource) o;
+			NormalizedSource other = (NormalizedSource) o;
 			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace)
 					&& Objects.equals(this.labels, other.labels);
 		}

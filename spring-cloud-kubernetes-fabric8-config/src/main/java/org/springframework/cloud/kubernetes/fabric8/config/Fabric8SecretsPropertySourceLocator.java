@@ -28,7 +28,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
 
 /**
@@ -69,11 +68,10 @@ public class Fabric8SecretsPropertySourceLocator extends SecretsPropertySourceLo
 	@Override
 	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment,
 			SecretsConfigProperties.NormalizedSource normalizedSource, String configurationTarget) {
-		String secretName = getApplicationName(environment, normalizedSource.getName(), configurationTarget);
 		String secretNamespace = getApplicationNamespace(this.client, normalizedSource.getNamespace(),
 				configurationTarget, provider);
 		Map<String, String> labels = normalizedSource.getLabels();
-		return new Fabric8SecretsPropertySource(this.client, secretName, secretNamespace, labels,
+		return new Fabric8SecretsPropertySource(this.client, normalizedSource.getName(), secretNamespace, labels,
 				this.properties.isFailFast());
 	}
 

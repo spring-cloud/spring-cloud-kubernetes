@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
+import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
 
@@ -49,22 +50,27 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 			Map<String, String> labels, boolean failFast) {
 		Map<String, Object> result = new HashMap<>();
 
-		LOG.info("Loading Secret with name '" + name + "' or with labels [" + labels + "] in namespace '" + namespace
-				+ "'");
 		try {
 
-			Secret secret = client.secrets().inNamespace(namespace).withName(name).get();
+			// can come as null or empty, totally valid scenario
+			if (StringUtils.hasText(name)) {
 
-			// the API is documented that it might return null
-			if (secret == null) {
-				LOG.warn("secret with name : " + name + " in namespace : " + namespace + " not found");
-			}
-			else {
-				putDataFromSecret(secret, result, namespace);
+				LOG.info("Loading Secret with name '" + name + "' in namespace '" + namespace + "'");
+				Secret secret = client.secrets().inNamespace(namespace).withName(name).get();
+				// the API is documented that it might return null
+				if (secret == null) {
+					LOG.warn("secret with name : " + name + " in namespace : " + namespace + " not found");
+				}
+				else {
+					putDataFromSecret(secret, result, namespace);
+				}
 			}
 
-			client.secrets().inNamespace(namespace).withLabels(labels).list().getItems()
-					.forEach(s -> putDataFromSecret(s, result, namespace));
+			if (labels != null && !labels.isEmpty()) {
+				LOG.info("Loading Secret with lables '" + labels + "' in namespace '" + namespace + "'");
+				client.secrets().inNamespace(namespace).withLabels(labels).list().getItems()
+						.forEach(s -> putDataFromSecret(s, result, namespace));
+			}
 
 		}
 		catch (Exception e) {

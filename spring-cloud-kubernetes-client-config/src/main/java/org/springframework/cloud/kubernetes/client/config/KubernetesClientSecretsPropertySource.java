@@ -51,10 +51,9 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 			Map<String, String> labels, boolean failFast) {
 		Map<String, Object> result = new HashMap<>();
 
-		LOG.info("Loading Secret with name '" + name + "' or with labels [" + labels + "] in namespace '" + namespace
-				+ "'");
 		try {
 			if (StringUtils.hasText(name)) {
+				LOG.info("Loading Secret with name '" + name + "'in namespace '" + namespace + "'");
 				Optional<V1Secret> secret;
 				secret = api.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
 						.getItems().stream().filter(s -> name.equals(s.getMetadata().getName())).findFirst();
@@ -64,6 +63,7 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 
 			// Read for secrets api (label)
 			if (labels != null && !labels.isEmpty()) {
+				LOG.info("Loading Secret with labels '" + labels + "'in namespace '" + namespace + "'");
 				api.listNamespacedSecret(namespace, null, null, null, null, createLabelsSelector(labels), null, null,
 						null, null, null).getItems().forEach(s -> putAll(s, result));
 			}
