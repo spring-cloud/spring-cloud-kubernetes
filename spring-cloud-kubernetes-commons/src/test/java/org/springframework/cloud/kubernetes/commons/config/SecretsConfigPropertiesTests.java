@@ -35,13 +35,17 @@ class SecretsConfigPropertiesTests {
 
 	private final SecretsConfigProperties properties = new SecretsConfigProperties();
 
-	// assert secret name, when it is not provided explicitly and sources are empty
+	/**
+	 * the case when labels are empty
+	 */
 	@Test
 	void emptySourcesSecretName() {
-		List<SecretsConfigProperties.NormalizedSource> source = properties.determineSources(new MockEnvironment());
+		properties.setNamespace("namespace");
+		List<NormalizedSource> source = properties.determineSources(new MockEnvironment());
 		properties.setSources(Collections.emptyList());
 		Assertions.assertEquals(source.size(), 1);
-		Assertions.assertEquals(source.get(0).getName(), "application");
+		Assertions.assertTrue(source.get(0) instanceof NamedSecretNormalizedSource);
+		Assertions.assertEquals(((NamedSecretNormalizedSource) source.get(0)).getName(), "application");
 	}
 
 	/**
@@ -60,50 +64,51 @@ class SecretsConfigPropertiesTests {
 	 *                       three: 3
 	 * </pre>
 	 *
-	 * proves what there are 5 normalized sources after calling normalize method and put the
-	 * result in a Set.
+	 * proves what there are 5 normalized sources after calling normalize method and put
+	 * the result in a Set.
 	 */
 	@Test
 	void multipleSources() {
 		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source();
+		one.setNamespace("spring-k8s");
 		one.setName("one");
 		one.setLabels(Collections.singletonMap("one", "1"));
 
 		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source();
 		two.setLabels(Collections.singletonMap("two", "2"));
+		two.setNamespace("spring-k8s");
 
 		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source();
 		three.setLabels(Collections.singletonMap("three", "3"));
+		three.setNamespace("spring-k8s");
 
 		properties.setSources(Arrays.asList(one, two, three));
 
-		List<SecretsConfigProperties.NormalizedSource> result = properties.determineSources(new MockEnvironment());
+		List<NormalizedSource> result = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(result.size(), 6);
 
-		Set<SecretsConfigProperties.NormalizedSource> resultAsSet = new LinkedHashSet<>(result);
+		Set<NormalizedSource> resultAsSet = new LinkedHashSet<>(result);
 		Assertions.assertEquals(resultAsSet.size(), 5);
 
-		Iterator<SecretsConfigProperties.NormalizedSource> iterator = resultAsSet.iterator();
+		Iterator<NormalizedSource> iterator = resultAsSet.iterator();
 
-		SecretsConfigProperties.NormalizedSource oneResult = iterator.next();
-		Assertions.assertEquals(oneResult.getName(), "one");
-		Assertions.assertEquals(oneResult.getLabels(), Collections.emptyMap());
+		NormalizedSource oneResult = iterator.next();
+		Assertions.assertEquals(((NamedSecretNormalizedSource) oneResult).getName(), "one");
 
-		SecretsConfigProperties.NormalizedSource twoResult = iterator.next();
-		Assertions.assertNull(twoResult.getName());
-		Assertions.assertEquals(twoResult.getLabels(), Collections.singletonMap("one", "1"));
+		NormalizedSource twoResult = iterator.next();
+		Assertions.assertEquals(((LabeledSecretNormalizedSource) twoResult).getLabels(),
+				Collections.singletonMap("one", "1"));
 
-		SecretsConfigProperties.NormalizedSource threeResult = iterator.next();
-		Assertions.assertEquals(threeResult.getName(), "application");
-		Assertions.assertEquals(threeResult.getLabels(), Collections.emptyMap());
+		NormalizedSource threeResult = iterator.next();
+		Assertions.assertEquals(((NamedSecretNormalizedSource) threeResult).getName(), "application");
 
-		SecretsConfigProperties.NormalizedSource fourResult = iterator.next();
-		Assertions.assertNull(fourResult.getName());
-		Assertions.assertEquals(fourResult.getLabels(), Collections.singletonMap("two", "2"));
+		NormalizedSource fourResult = iterator.next();
+		Assertions.assertEquals(((LabeledSecretNormalizedSource) fourResult).getLabels(),
+				Collections.singletonMap("two", "2"));
 
-		SecretsConfigProperties.NormalizedSource fiveResult = iterator.next();
-		Assertions.assertNull(fiveResult.getName());
-		Assertions.assertEquals(fiveResult.getLabels(), Collections.singletonMap("three", "3"));
+		NormalizedSource fiveResult = iterator.next();
+		Assertions.assertEquals(((LabeledSecretNormalizedSource) fiveResult).getLabels(),
+				Collections.singletonMap("three", "3"));
 
 	}
 

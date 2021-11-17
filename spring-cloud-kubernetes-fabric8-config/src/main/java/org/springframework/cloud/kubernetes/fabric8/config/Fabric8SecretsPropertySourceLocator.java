@@ -16,19 +16,16 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.Map;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
 
 /**
  * Kubernetes {@link PropertySourceLocator} for secrets.
@@ -67,12 +64,10 @@ public class Fabric8SecretsPropertySourceLocator extends SecretsPropertySourceLo
 
 	@Override
 	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment,
-			SecretsConfigProperties.NormalizedSource normalizedSource, String configurationTarget) {
-		String secretNamespace = getApplicationNamespace(this.client, normalizedSource.getNamespace(),
-				configurationTarget, provider);
-		Map<String, String> labels = normalizedSource.getLabels();
-		return new Fabric8SecretsPropertySource(this.client, normalizedSource.getName(), secretNamespace, labels,
-				this.properties.isFailFast());
+			NormalizedSource normalizedSource, String configurationTarget) {
+		Fabric8ConfigContext context = new Fabric8ConfigContext(client, properties.isFailFast(),
+			normalizedSource, configurationTarget);
+		return new Fabric8SecretsPropertySource(context);
 	}
 
 }

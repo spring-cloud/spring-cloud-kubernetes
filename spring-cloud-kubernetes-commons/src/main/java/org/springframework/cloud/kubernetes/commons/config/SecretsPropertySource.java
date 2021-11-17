@@ -21,6 +21,8 @@ import java.util.Map;
 
 import org.springframework.core.env.MapPropertySource;
 
+import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
+
 /**
  * Kubernetes property source for secrets.
  *
@@ -29,13 +31,12 @@ import org.springframework.core.env.MapPropertySource;
  */
 public class SecretsPropertySource extends MapPropertySource {
 
-	public SecretsPropertySource(String name, Map<String, Object> source) {
-		super(name, source);
+	public SecretsPropertySource(Map.Entry<String, Map<String, Object>> entry) {
+		super(entry.getKey(), entry.getValue());
 	}
 
 	protected static String getSourceName(String name, String namespace) {
-		return "secrets" + Constants.PROPERTY_SOURCE_NAME_SEPARATOR + name + Constants.PROPERTY_SOURCE_NAME_SEPARATOR
-				+ namespace;
+		return "secrets" + PROPERTY_SOURCE_NAME_SEPARATOR + name + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
 	}
 
 	protected static void putAll(Map<String, String> data, Map<String, Object> result) {

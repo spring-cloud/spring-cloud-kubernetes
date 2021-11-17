@@ -16,10 +16,10 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -99,8 +99,15 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 	 */
 	public List<NormalizedSource> determineSources(Environment environment) {
 		if (this.sources.isEmpty()) {
-			return Collections.singletonList(new NormalizedSource(getApplicationName(environment, this.name, "Secret"),
-					this.namespace, this.labels));
+
+			List<NormalizedSource> result = new ArrayList<>(2);
+			result.add(new NamedSecretNormalizedSource(this.namespace,
+					getApplicationName(environment, this.name, "Secret")));
+
+			if (!labels.isEmpty()) {
+				result.add(new LabeledSecretNormalizedSource(this.namespace, this.labels));
+			}
+			return result;
 		}
 
 		return this.sources.stream().flatMap(s -> s.normalize(this.name, this.namespace, this.labels, environment))
@@ -171,71 +178,16 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
 			Map<String, String> normalizedLabels = this.labels.isEmpty() ? defaultLabels : this.labels;
 
-			// if users do not specify a name for the secret (normalizedName), we still
-			// default to one via getApplicationName. Same does not hold for lables.
 			String secretName = getApplicationName(environment, normalizedName, "Secret");
-			NormalizedSource nameBasedSource = new NormalizedSource(secretName, normalizedNamespace,
-					Collections.emptyMap());
+			NormalizedSource nameBasedSource = new NamedSecretNormalizedSource(normalizedNamespace, secretName);
 			normalizedSources.add(nameBasedSource);
 
-			// if we have labels, we do not care about secret name
 			if (!normalizedLabels.isEmpty()) {
-				NormalizedSource labelsBasedSource = new NormalizedSource(null, normalizedNamespace, labels);
+				NormalizedSource labelsBasedSource = new LabeledSecretNormalizedSource(normalizedNamespace, labels);
 				normalizedSources.add(labelsBasedSource);
 			}
 
 			return normalizedSources.build();
-		}
-
-	}
-
-	public static class NormalizedSource {
-
-		private final String name;
-
-		private final String namespace;
-
-		private final Map<String, String> labels;
-
-		NormalizedSource(String name, String namespace, Map<String, String> labels) {
-			this.name = name;
-			this.namespace = namespace;
-			this.labels = labels;
-		}
-
-		public String getName() {
-			return this.name;
-		}
-
-		public String getNamespace() {
-			return this.namespace;
-		}
-
-		public Map<String, String> getLabels() {
-			return labels;
-		}
-
-		@Override
-		public String toString() {
-			return "{ secret name : '" + name + "', namespace : '" + namespace + "'";
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			NormalizedSource other = (NormalizedSource) o;
-			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace)
-					&& Objects.equals(this.labels, other.labels);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(name, namespace, labels);
 		}
 
 	}

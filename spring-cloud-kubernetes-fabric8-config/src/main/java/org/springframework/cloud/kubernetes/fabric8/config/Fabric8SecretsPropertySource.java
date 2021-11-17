@@ -16,18 +16,17 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
-import org.springframework.util.StringUtils;
-
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
+import org.springframework.cloud.kubernetes.commons.config.*;
 
 /**
  * Kubernetes property source for secrets.
@@ -38,25 +37,38 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
  */
 public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
-	private static final Log LOG = LogFactory.getLog(Fabric8SecretsPropertySource.class);
+	private static final EnumMap<NormalizedSourceType, Function<Fabric8ConfigContext, Map.Entry<String, Map<String, Object>>>>
+		STRATEGIES = new EnumMap<>(NormalizedSourceType.class);
 
-	public Fabric8SecretsPropertySource(KubernetesClient client, String name, String namespace,
-			Map<String, String> labels, boolean failFast) {
-		super(getSourceName(name, getApplicationNamespace(client, namespace, "Secret", null)), getSourceData(client,
-				name, getApplicationNamespace(client, namespace, "Secret", null), labels, failFast));
+	static {
+		STRATEGIES.put(NormalizedSourceType.NAMED_SECRET, namedSecret());
+		STRATEGIES.put(NormalizedSourceType.LABELED_SECRET, labeledSecret());
 	}
 
-	private static Map<String, Object> getSourceData(KubernetesClient client, String name, String namespace,
-			Map<String, String> labels, boolean failFast) {
-		Map<String, Object> result = new HashMap<>();
+	private static final Log LOG = LogFactory.getLog(Fabric8SecretsPropertySource.class);
 
-		try {
+	public Fabric8SecretsPropertySource(Fabric8ConfigContext context) {
+		super(getSourceData(context));
+	}
 
-			// can come as null or empty, totally valid scenario
-			if (StringUtils.hasText(name)) {
+	private static Map.Entry<String, Map<String, Object>> getSourceData(Fabric8ConfigContext context) {
+		NormalizedSourceType type = context.getNormalizedSource().type();
+		return Optional.ofNullable(STRATEGIES.get(type))
+			.map(x -> x.apply(context))
+			.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
+	}
+
+	private static Function<Fabric8ConfigContext, Map.Entry<String, Map<String, Object>>> namedSecret() {
+		return context -> {
+
+			Map<String, Object> result = new HashMap<>();
+			String name = ((NamedSecretNormalizedSource) context.getNormalizedSource()).getName();
+			String namespace = context.getNormalizedSource().getNamespace();
+
+			try {
 
 				LOG.info("Loading Secret with name '" + name + "' in namespace '" + namespace + "'");
-				Secret secret = client.secrets().inNamespace(namespace).withName(name).get();
+				Secret secret = context.getClient().secrets().inNamespace(namespace).withName(name).get();
 				// the API is documented that it might return null
 				if (secret == null) {
 					LOG.warn("secret with name : " + name + " in namespace : " + namespace + " not found");
@@ -64,26 +76,54 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 				else {
 					putDataFromSecret(secret, result, namespace);
 				}
+
+				return new AbstractMap.SimpleImmutableEntry<>(name, result);
+			}
+			catch (Exception e) {
+				if (context.isFailFast()) {
+					throw new IllegalStateException("Unable to read Secret with name '" + name + " in namespace '" + namespace + "'", e);
+				}
+
+				LOG.warn("Can't read secret with name: [" + name + "] in namespace: [" + namespace + "] (cause: " + e.getMessage() + "). Ignoring");
+				return new AbstractMap.SimpleImmutableEntry<>(name, result);
 			}
 
-			if (labels != null && !labels.isEmpty()) {
+		};
+	}
+
+	private static Function<Fabric8ConfigContext, Map.Entry<String, Map<String, Object>>> labeledSecret() {
+		return context -> {
+
+			Map<String, Object> result = new HashMap<>();
+			Map<String, String> labels = ((LabeledSecretNormalizedSource) context.getNormalizedSource()).getLabels();
+			String namespace = context.getNormalizedSource().getNamespace();
+			// name is either the concatenated labels or the concatenated names
+			// of the secrets that match these labels
+			String name = labels.entrySet().stream().map(en -> en.getKey() + ":" + en.getValue())
+				.collect(Collectors.joining("."));
+
+			try {
+
 				LOG.info("Loading Secret with lables '" + labels + "' in namespace '" + namespace + "'");
-				client.secrets().inNamespace(namespace).withLabels(labels).list().getItems()
-						.forEach(s -> putDataFromSecret(s, result, namespace));
-			}
+				List<Secret> secrets = context.getClient().secrets().inNamespace(namespace).withLabels(labels).list().getItems();
 
-		}
-		catch (Exception e) {
-			if (failFast) {
-				throw new IllegalStateException("Unable to read Secret with name '" + name + "' or labels [" + labels
-						+ "] in namespace '" + namespace + "'", e);
-			}
+				secrets.forEach(s -> putDataFromSecret(s, result, namespace));
+				name = secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName)
+					.collect(Collectors.joining(Constants.PROPERTY_SOURCE_NAME_SEPARATOR));
 
-			LOG.warn("Can't read secret with name: [" + name + "] or labels [" + labels + "] in namespace: ["
+				return new AbstractMap.SimpleImmutableEntry<>(name, result);
+
+			}
+			catch (Exception e) {
+				if (context.isFailFast()) {
+					throw new IllegalStateException("Unable to read Secret with name labels [" + labels + "] in namespace '" + namespace + "'", e);
+				}
+
+				LOG.warn("Can't read secret with labels [" + labels + "] in namespace: ["
 					+ namespace + "] (cause: " + e.getMessage() + "). Ignoring");
-		}
-
-		return result;
+				return new AbstractMap.SimpleImmutableEntry<>(name, result);
+			}
+		};
 	}
 
 	private static void putDataFromSecret(Secret secret, Map<String, Object> result, String namespace) {
