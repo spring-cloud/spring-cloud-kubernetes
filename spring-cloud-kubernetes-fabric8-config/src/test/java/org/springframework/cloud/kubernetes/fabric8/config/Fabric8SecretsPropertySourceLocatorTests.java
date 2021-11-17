@@ -56,8 +56,7 @@ public class Fabric8SecretsPropertySourceLocatorTests {
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name '" + name + "' or labels [{}] in namespace '" + namespace
-						+ "'");
+				.hasMessage("Unable to read Secret with name '" + name + "' in namespace '" + namespace + "'");
 	}
 
 	@Test

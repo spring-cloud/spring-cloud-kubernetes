@@ -16,7 +16,10 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.Objects;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
+
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 
 /**
@@ -26,10 +29,6 @@ import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
  */
 final class Fabric8ConfigContext {
 
-	private Fabric8ConfigContext() {
-		throw new AssertionError("no instance provided");
-	}
-
 	private final KubernetesClient client;
 
 	private final boolean failFast;
@@ -38,12 +37,15 @@ final class Fabric8ConfigContext {
 
 	private final String target;
 
-	Fabric8ConfigContext(KubernetesClient client, boolean failFast,
-			NormalizedSource normalizedSource, String target) {
-		this.client = client;
+	private final String appNamespace;
+
+	Fabric8ConfigContext(KubernetesClient client, boolean failFast, NormalizedSource normalizedSource, String target,
+			String appNamespace) {
+		this.client = Objects.requireNonNull(client);
 		this.failFast = failFast;
-		this.normalizedSource = normalizedSource;
-		this.target = target;
+		this.normalizedSource = Objects.requireNonNull(normalizedSource);
+		this.target = Objects.requireNonNull(target);
+		this.appNamespace = appNamespace;
 	}
 
 	KubernetesClient getClient() {
@@ -61,4 +63,9 @@ final class Fabric8ConfigContext {
 	String getTarget() {
 		return target;
 	}
+
+	String getAppNamespace() {
+		return appNamespace;
+	}
+
 }

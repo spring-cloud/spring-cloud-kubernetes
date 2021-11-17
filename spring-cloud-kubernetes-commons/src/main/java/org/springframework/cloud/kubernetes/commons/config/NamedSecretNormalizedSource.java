@@ -27,7 +27,7 @@ public final class NamedSecretNormalizedSource extends NormalizedSource {
 
 	private final String name;
 
-	NamedSecretNormalizedSource(String namespace, String name) {
+	public NamedSecretNormalizedSource(String namespace, String name) {
 		super(namespace);
 		this.name = Objects.requireNonNull(name);
 	}

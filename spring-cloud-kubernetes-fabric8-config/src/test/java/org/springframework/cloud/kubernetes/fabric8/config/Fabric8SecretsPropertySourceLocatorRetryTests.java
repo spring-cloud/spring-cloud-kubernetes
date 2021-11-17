@@ -48,18 +48,18 @@ import static org.mockito.Mockito.verify;
  * @author Isik Erhan
  */
 @EnableKubernetesMockClient
-public class Fabric8SecretsPropertySourceLocatorRetryTests {
+class Fabric8SecretsPropertySourceLocatorRetryTests {
 
 	private static final String API = "/api/v1/namespaces/default/secrets/my-secret";
 
 	private static final String LIST_API = "/api/v1/namespaces/default/secrets";
 
-	static KubernetesMockServer mockServer;
+	private static KubernetesMockServer mockServer;
 
-	static KubernetesClient mockClient;
+	private static KubernetesClient mockClient;
 
 	@BeforeAll
-	public static void setup() {
+	static void setup() {
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -84,7 +84,7 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 		private Fabric8SecretsPropertySourceLocator propertySourceLocator;
 
 		@Test
-		public void locateShouldNotRetryWhenThereIsNoFailure() {
+		void locateShouldNotRetryWhenThereIsNoFailure() {
 			Map<String, String> data = new HashMap<>();
 			data.put("some.sensitive.prop", Base64.getEncoder().encodeToString("theSensitiveValue".getBytes()));
 			data.put("some.sensitive.number", Base64.getEncoder().encodeToString("1".getBytes()));
@@ -106,7 +106,7 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 		}
 
 		@Test
-		public void locateShouldRetryAndRecover() {
+		void locateShouldRetryAndRecover() {
 			Map<String, String> data = new HashMap<>();
 			data.put("some.sensitive.prop", Base64.getEncoder().encodeToString("theSensitiveValue".getBytes()));
 			data.put("some.sensitive.number", Base64.getEncoder().encodeToString("1".getBytes()));
@@ -129,13 +129,13 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 		}
 
 		@Test
-		public void locateShouldRetryAndFail() {
+		void locateShouldRetryAndFail() {
 			// fail all the 5 requests
 			mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").times(5);
 
 			assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
 					.isInstanceOf(IllegalStateException.class)
-					.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");
+					.hasMessage("Unable to read Secret with name 'my-secret' in namespace 'default'");
 
 			// verify retried 5 times until failure
 			verify(propertySourceLocator, times(5)).locate(any());
@@ -156,7 +156,7 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 		private Fabric8SecretsPropertySourceLocator propertySourceLocator;
 
 		@Test
-		public void locateShouldNotRetry() {
+		void locateShouldNotRetry() {
 			mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
 			Assertions.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
@@ -185,7 +185,7 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 		private ApplicationContext context;
 
 		@Test
-		public void locateShouldFailWithoutRetrying() {
+		void locateShouldFailWithoutRetrying() {
 
 			/*
 			 * Enabling config retry causes Spring Retry to be enabled and a
@@ -199,7 +199,7 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 			assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isTrue();
 			assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
 					.isInstanceOf(IllegalStateException.class)
-					.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");
+					.hasMessage("Unable to read Secret with name 'my-secret' in namespace 'default'");
 
 			// verify that propertySourceLocator.locate is called only once
 			verify(propertySourceLocator, times(1)).locate(any());
@@ -223,14 +223,14 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 		private ApplicationContext context;
 
 		@Test
-		public void locateShouldFailWithoutRetrying() {
+		void locateShouldFailWithoutRetrying() {
 
 			mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
 			assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isFalse();
 			assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
 					.isInstanceOf(IllegalStateException.class)
-					.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");
+					.hasMessage("Unable to read Secret with name 'my-secret' in namespace 'default'");
 
 			// verify that propertySourceLocator.locate is called only once
 			verify(propertySourceLocator, times(1)).locate(any());

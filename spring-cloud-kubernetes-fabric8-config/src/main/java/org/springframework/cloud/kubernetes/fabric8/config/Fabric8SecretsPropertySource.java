@@ -16,17 +16,25 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.config.*;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
+import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSourceType;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 
 /**
  * Kubernetes property source for secrets.
@@ -37,8 +45,8 @@ import org.springframework.cloud.kubernetes.commons.config.*;
  */
 public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
-	private static final EnumMap<NormalizedSourceType, Function<Fabric8ConfigContext, Map.Entry<String, Map<String, Object>>>>
-		STRATEGIES = new EnumMap<>(NormalizedSourceType.class);
+	private static final EnumMap<NormalizedSourceType, Function<Fabric8ConfigContext, Map.Entry<String, Map<String, Object>>>> STRATEGIES = new EnumMap<>(
+			NormalizedSourceType.class);
 
 	static {
 		STRATEGIES.put(NormalizedSourceType.NAMED_SECRET, namedSecret());
@@ -53,9 +61,8 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
 	private static Map.Entry<String, Map<String, Object>> getSourceData(Fabric8ConfigContext context) {
 		NormalizedSourceType type = context.getNormalizedSource().type();
-		return Optional.ofNullable(STRATEGIES.get(type))
-			.map(x -> x.apply(context))
-			.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
+		return Optional.ofNullable(STRATEGIES.get(type)).map(x -> x.apply(context))
+				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
 	}
 
 	private static Function<Fabric8ConfigContext, Map.Entry<String, Map<String, Object>>> namedSecret() {
@@ -63,7 +70,7 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
 			Map<String, Object> result = new HashMap<>();
 			String name = ((NamedSecretNormalizedSource) context.getNormalizedSource()).getName();
-			String namespace = context.getNormalizedSource().getNamespace();
+			String namespace = context.getAppNamespace();
 
 			try {
 
@@ -77,16 +84,18 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 					putDataFromSecret(secret, result, namespace);
 				}
 
-				return new AbstractMap.SimpleImmutableEntry<>(name, result);
 			}
 			catch (Exception e) {
 				if (context.isFailFast()) {
-					throw new IllegalStateException("Unable to read Secret with name '" + name + " in namespace '" + namespace + "'", e);
+					throw new IllegalStateException(
+							"Unable to read Secret with name '" + name + "' in namespace '" + namespace + "'", e);
 				}
 
-				LOG.warn("Can't read secret with name: [" + name + "] in namespace: [" + namespace + "] (cause: " + e.getMessage() + "). Ignoring");
-				return new AbstractMap.SimpleImmutableEntry<>(name, result);
+				LOG.warn("Can't read secret with name: '" + name + "' in namespace: '" + namespace + "' (cause: "
+						+ e.getMessage() + "). Ignoring");
 			}
+
+			return new AbstractMap.SimpleImmutableEntry<>(name, result);
 
 		};
 	}
@@ -96,33 +105,36 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
 			Map<String, Object> result = new HashMap<>();
 			Map<String, String> labels = ((LabeledSecretNormalizedSource) context.getNormalizedSource()).getLabels();
-			String namespace = context.getNormalizedSource().getNamespace();
+			String namespace = context.getAppNamespace();
 			// name is either the concatenated labels or the concatenated names
 			// of the secrets that match these labels
 			String name = labels.entrySet().stream().map(en -> en.getKey() + ":" + en.getValue())
-				.collect(Collectors.joining("."));
+					.collect(Collectors.joining("#"));
 
 			try {
 
 				LOG.info("Loading Secret with lables '" + labels + "' in namespace '" + namespace + "'");
-				List<Secret> secrets = context.getClient().secrets().inNamespace(namespace).withLabels(labels).list().getItems();
+				List<Secret> secrets = context.getClient().secrets().inNamespace(namespace).withLabels(labels).list()
+						.getItems();
 
-				secrets.forEach(s -> putDataFromSecret(s, result, namespace));
-				name = secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName)
-					.collect(Collectors.joining(Constants.PROPERTY_SOURCE_NAME_SEPARATOR));
-
-				return new AbstractMap.SimpleImmutableEntry<>(name, result);
+				if (!secrets.isEmpty()) {
+					secrets.forEach(s -> putDataFromSecret(s, result, namespace));
+					name = secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName)
+							.collect(Collectors.joining(Constants.PROPERTY_SOURCE_NAME_SEPARATOR));
+				}
 
 			}
 			catch (Exception e) {
 				if (context.isFailFast()) {
-					throw new IllegalStateException("Unable to read Secret with name labels [" + labels + "] in namespace '" + namespace + "'", e);
+					throw new IllegalStateException(
+							"Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'", e);
 				}
 
-				LOG.warn("Can't read secret with labels [" + labels + "] in namespace: ["
-					+ namespace + "] (cause: " + e.getMessage() + "). Ignoring");
-				return new AbstractMap.SimpleImmutableEntry<>(name, result);
+				LOG.warn("Can't read secret with labels [" + labels + "] in namespace: '" + namespace + "' (cause: "
+						+ e.getMessage() + "). Ignoring");
 			}
+
+			return new AbstractMap.SimpleImmutableEntry<>(name, result);
 		};
 	}
 

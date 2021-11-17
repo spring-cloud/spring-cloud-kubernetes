@@ -29,7 +29,7 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 
 	private final Map<String, String> labels;
 
-	LabeledSecretNormalizedSource(String namespace, Map<String, String> labels) {
+	public LabeledSecretNormalizedSource(String namespace, Map<String, String> labels) {
 		super(namespace);
 		this.labels = Collections.unmodifiableMap(Objects.requireNonNull(labels));
 	}
