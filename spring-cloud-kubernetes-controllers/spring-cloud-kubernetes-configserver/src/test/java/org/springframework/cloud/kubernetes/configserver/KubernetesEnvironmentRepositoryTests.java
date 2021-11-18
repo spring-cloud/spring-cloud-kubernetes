@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.configserver;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import io.kubernetes.client.openapi.ApiException;
@@ -32,8 +31,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.config.environment.Environment;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigContext;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.core.env.MapPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -104,8 +106,11 @@ class KubernetesEnvironmentRepositoryTests {
 		});
 		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
-			propertySources.add(new KubernetesClientSecretsPropertySource(coreApi, applicationName, "default",
-					new HashMap<>(), false));
+
+			NormalizedSource source = new NamedSecretNormalizedSource("default", applicationName);
+			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, false, source, "Secret", "default");
+
+			propertySources.add(new KubernetesClientSecretsPropertySource(context));
 			return propertySources;
 		});
 	}

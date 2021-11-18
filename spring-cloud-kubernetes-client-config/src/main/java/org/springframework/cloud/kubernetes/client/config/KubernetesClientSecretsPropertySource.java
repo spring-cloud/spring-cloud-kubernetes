@@ -16,21 +16,22 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
+import java.util.AbstractMap;
 import java.util.Base64;
+import java.util.EnumMap;
+import java.util.List;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
-import org.springframework.util.StringUtils;
-
-import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.getApplicationNamespace;
+import org.springframework.cloud.kubernetes.commons.config.*;
 
 /**
  * @author Ryan Baxter
@@ -40,45 +41,94 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 
 	private static final Log LOG = LogFactory.getLog(KubernetesClientSecretsPropertySource.class);
 
-	public KubernetesClientSecretsPropertySource(CoreV1Api coreV1Api, String name, String namespace,
-			Map<String, String> labels, boolean failFast) {
-		super(getSourceName(name, getApplicationNamespace(namespace, "Secret", null)),
-				getSourceData(coreV1Api, name, getApplicationNamespace(namespace, "Secret", null), labels, failFast));
+	private static final EnumMap<NormalizedSourceType, Function<KubernetesClientConfigContext, Map.Entry<String, Map<String, Object>>>> STRATEGIES = new EnumMap<>(
+		NormalizedSourceType.class);
+
+	static {
+		STRATEGIES.put(NormalizedSourceType.NAMED_SECRET, namedSecret());
+		STRATEGIES.put(NormalizedSourceType.LABELED_SECRET, labeledSecret());
+	}
+
+	public KubernetesClientSecretsPropertySource(KubernetesClientConfigContext context) {
+		super(getSourceData(context));
 
 	}
 
-	private static Map<String, Object> getSourceData(CoreV1Api api, String name, String namespace,
-			Map<String, String> labels, boolean failFast) {
-		Map<String, Object> result = new HashMap<>();
+	private static Map.Entry<String, Map<String, Object>> getSourceData(KubernetesClientConfigContext context) {
+		NormalizedSourceType type = context.getNormalizedSource().type();
+		return Optional.ofNullable(STRATEGIES.get(type)).map(x -> x.apply(context))
+			.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
+	}
 
-		try {
-			if (StringUtils.hasText(name)) {
+	private static Function<KubernetesClientConfigContext, Map.Entry<String, Map<String, Object>>> namedSecret() {
+		return context -> {
+
+			Map<String, Object> result = new HashMap<>();
+			String name = ((NamedSecretNormalizedSource) context.getNormalizedSource()).getName();
+			String namespace = context.getAppNamespace();
+
+			try {
+
 				LOG.info("Loading Secret with name '" + name + "'in namespace '" + namespace + "'");
 				Optional<V1Secret> secret;
-				secret = api.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
-						.getItems().stream().filter(s -> name.equals(s.getMetadata().getName())).findFirst();
+				secret = context.getClient().listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
+					.getItems().stream().filter(s -> name.equals(s.getMetadata().getName())).findFirst();
 
 				secret.ifPresent(s -> putAll(s, result));
+
+			}
+			catch (Exception e) {
+				if (context.isFailFast()) {
+					throw new IllegalStateException(
+						"Unable to read Secret with name '" + name + "' in namespace '" + namespace + "'", e);
+				}
+
+				LOG.warn("Can't read secret with name: '" + name + "' in namespace: '" + namespace + "' (cause: "
+					+ e.getMessage() + "). Ignoring");
 			}
 
-			// Read for secrets api (label)
-			if (labels != null && !labels.isEmpty()) {
+			String sourceName = getSourceName(name, namespace);
+			return new AbstractMap.SimpleImmutableEntry<>(sourceName, result);
+
+		};
+	}
+
+	private static Function<KubernetesClientConfigContext, Map.Entry<String, Map<String, Object>>> labeledSecret() {
+		return context -> {
+
+			Map<String, Object> result = new HashMap<>();
+			Map<String, String> labels = ((LabeledSecretNormalizedSource) context.getNormalizedSource()).getLabels();
+			String namespace = context.getAppNamespace();
+			// name is either the concatenated labels or the concatenated names
+			// of the secrets that match these labels
+			String name = labels.entrySet().stream().map(en -> en.getKey() + ":" + en.getValue())
+				.collect(Collectors.joining("#"));
+
+			try {
+
 				LOG.info("Loading Secret with labels '" + labels + "'in namespace '" + namespace + "'");
-				api.listNamespacedSecret(namespace, null, null, null, null, createLabelsSelector(labels), null, null,
-						null, null, null).getItems().forEach(s -> putAll(s, result));
+				List<V1Secret> secrets = context.getClient().listNamespacedSecret(namespace, null, null, null, null,
+					createLabelsSelector(labels), null, null, null, null, null).getItems();
+
+				name = secrets.stream().map(V1Secret::getMetadata).map(V1ObjectMeta::getName)
+					.collect(Collectors.joining(Constants.PROPERTY_SOURCE_NAME_SEPARATOR));
+
+				secrets.forEach(s -> putAll(s, result));
+
 			}
-		}
-		catch (Exception e) {
-			if (failFast) {
-				throw new IllegalStateException("Unable to read Secret with name '" + name + "' or labels [" + labels
-						+ "] in namespace '" + namespace + "'", e);
+			catch (Exception e) {
+				if (context.isFailFast()) {
+					throw new IllegalStateException(
+						"Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'", e);
+				}
+
+				LOG.warn("Can't read secret with labels [" + labels + "] in namespace: '" + namespace + "' (cause: "
+					+ e.getMessage() + "). Ignoring");
 			}
 
-			LOG.warn("Can't read secret with name: [" + name + "] or labels [" + labels + "] in namespace:[" + namespace
-					+ "] (cause: " + e.getMessage() + "). Ignoring", e);
-		}
-
-		return result;
+			String sourceName = getSourceName(name, namespace);
+			return new AbstractMap.SimpleImmutableEntry<>(sourceName, result);
+		};
 	}
 
 	private static String createLabelsSelector(Map<String, String> labels) {

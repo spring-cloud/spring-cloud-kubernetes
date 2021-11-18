@@ -35,7 +35,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -57,36 +59,36 @@ class KubernetesClientSecretsPropertySourceTests {
 	private static final String API = "/api/v1/namespaces/default/secrets";
 
 	private static final V1SecretList SECRET_LIST = new V1SecretListBuilder().addToItems(new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("db-secret").withResourceVersion("0")
-					.withNamespace("default").build())
-			.addToData("password", "p455w0rd".getBytes()).addToData("username", "user".getBytes()).build()).build();
+		.withMetadata(new V1ObjectMetaBuilder().withName("db-secret").withResourceVersion("0")
+			.withNamespace("default").build())
+		.addToData("password", "p455w0rd".getBytes()).addToData("username", "user".getBytes()).build()).build();
 
 	private static final String LIST_API = "/api/v1/secrets";
 
 	private static final String LIST_API_WITH_LABEL = "/api/v1/namespaces/default/secrets?labelSelector=spring.cloud.kubernetes.secret%3Dtrue";
 
 	private static final String LIST_BODY = "{\n" + "\t\"kind\": \"SecretList\",\n" + "\t\"apiVersion\": \"v1\",\n"
-			+ "\t\"metadata\": {\n" + "\t\t\"selfLink\": \"/api/v1/secrets\",\n"
-			+ "\t\t\"resourceVersion\": \"163035\"\n" + "\t},\n" + "\t\"items\": [{\n" + "\t\t\t\"metadata\": {\n"
-			+ "\t\t\t\t\"name\": \"db-secret\",\n" + "\t\t\t\t\"namespace\": \"default\",\n"
-			+ "\t\t\t\t\"selfLink\": \"/api/v1/namespaces/default/secrets/db-secret\",\n"
-			+ "\t\t\t\t\"uid\": \"59ba8e6a-a2d4-416c-b016-22597c193f23\",\n"
-			+ "\t\t\t\t\"resourceVersion\": \"1462\",\n" + "\t\t\t\t\"creationTimestamp\": \"2020-10-28T14:45:02Z\",\n"
-			+ "\t\t\t\t\"labels\": {\n" + "\t\t\t\t\t\"spring.cloud.kubernetes.secret\": \"true\"\n" + "\t\t\t\t}\n"
-			+ "\t\t\t},\n" + "\t\t\t\"data\": {\n" + "\t\t\t\t\"password\": \"cDQ1NXcwcmQ=\",\n"
-			+ "\t\t\t\t\"username\": \"dXNlcg==\"\n" + "\t\t\t},\n" + "\t\t\t\"type\": \"Opaque\"\n" + "\t\t},\n"
-			+ "\t\t{\n" + "\t\t\t\"metadata\": {\n" + "\t\t\t\t\"name\": \"rabbit-password\",\n"
-			+ "\t\t\t\t\"namespace\": \"default\",\n"
-			+ "\t\t\t\t\"selfLink\": \"/api/v1/namespaces/default/secrets/rabbit-password\",\n"
-			+ "\t\t\t\t\"uid\": \"bc211cb4-e7ff-4556-b26e-c54911301740\",\n"
-			+ "\t\t\t\t\"resourceVersion\": \"162708\",\n"
-			+ "\t\t\t\t\"creationTimestamp\": \"2020-10-29T19:47:36Z\",\n" + "\t\t\t\t\"labels\": {\n"
-			+ "\t\t\t\t\t\"spring.cloud.kubernetes.secret\": \"true\"\n" + "\t\t\t\t},\n"
-			+ "\t\t\t\t\"annotations\": {\n"
-			+ "\t\t\t\t\t\"kubectl.kubernetes.io/last-applied-configuration\": \"{\\\"apiVersion\\\":\\\"v1\\\",\\\"data\\\":{\\\"spring.rabbitmq.password\\\":\\\"password\\\"},\\\"kind\\\":\\\"Secret\\\",\\\"metadata\\\":{\\\"annotations\\\":{},\\\"labels\\\":{\\\"spring.cloud.kubernetes.secret\\\":\\\"true\\\"},\\\"name\\\":\\\"rabbit-password\\\",\\\"namespace\\\":\\\"default\\\"},\\\"type\\\":\\\"Opaque\\\"}\\n\"\n"
-			+ "\t\t\t\t}\n" + "\t\t\t},\n" + "\t\t\t\"data\": {\n"
-			+ "\t\t\t\t\"spring.rabbitmq.password\": \"cGFzc3dvcmQ=\"\n" + "\t\t\t},\n" + "\t\t\t\"type\": \"Opaque\"\n"
-			+ "\t\t}\n" + "\t]\n" + "}";
+		+ "\t\"metadata\": {\n" + "\t\t\"selfLink\": \"/api/v1/secrets\",\n"
+		+ "\t\t\"resourceVersion\": \"163035\"\n" + "\t},\n" + "\t\"items\": [{\n" + "\t\t\t\"metadata\": {\n"
+		+ "\t\t\t\t\"name\": \"db-secret\",\n" + "\t\t\t\t\"namespace\": \"default\",\n"
+		+ "\t\t\t\t\"selfLink\": \"/api/v1/namespaces/default/secrets/db-secret\",\n"
+		+ "\t\t\t\t\"uid\": \"59ba8e6a-a2d4-416c-b016-22597c193f23\",\n"
+		+ "\t\t\t\t\"resourceVersion\": \"1462\",\n" + "\t\t\t\t\"creationTimestamp\": \"2020-10-28T14:45:02Z\",\n"
+		+ "\t\t\t\t\"labels\": {\n" + "\t\t\t\t\t\"spring.cloud.kubernetes.secret\": \"true\"\n" + "\t\t\t\t}\n"
+		+ "\t\t\t},\n" + "\t\t\t\"data\": {\n" + "\t\t\t\t\"password\": \"cDQ1NXcwcmQ=\",\n"
+		+ "\t\t\t\t\"username\": \"dXNlcg==\"\n" + "\t\t\t},\n" + "\t\t\t\"type\": \"Opaque\"\n" + "\t\t},\n"
+		+ "\t\t{\n" + "\t\t\t\"metadata\": {\n" + "\t\t\t\t\"name\": \"rabbit-password\",\n"
+		+ "\t\t\t\t\"namespace\": \"default\",\n"
+		+ "\t\t\t\t\"selfLink\": \"/api/v1/namespaces/default/secrets/rabbit-password\",\n"
+		+ "\t\t\t\t\"uid\": \"bc211cb4-e7ff-4556-b26e-c54911301740\",\n"
+		+ "\t\t\t\t\"resourceVersion\": \"162708\",\n"
+		+ "\t\t\t\t\"creationTimestamp\": \"2020-10-29T19:47:36Z\",\n" + "\t\t\t\t\"labels\": {\n"
+		+ "\t\t\t\t\t\"spring.cloud.kubernetes.secret\": \"true\"\n" + "\t\t\t\t},\n"
+		+ "\t\t\t\t\"annotations\": {\n"
+		+ "\t\t\t\t\t\"kubectl.kubernetes.io/last-applied-configuration\": \"{\\\"apiVersion\\\":\\\"v1\\\",\\\"data\\\":{\\\"spring.rabbitmq.password\\\":\\\"password\\\"},\\\"kind\\\":\\\"Secret\\\",\\\"metadata\\\":{\\\"annotations\\\":{},\\\"labels\\\":{\\\"spring.cloud.kubernetes.secret\\\":\\\"true\\\"},\\\"name\\\":\\\"rabbit-password\\\",\\\"namespace\\\":\\\"default\\\"},\\\"type\\\":\\\"Opaque\\\"}\\n\"\n"
+		+ "\t\t\t\t}\n" + "\t\t\t},\n" + "\t\t\t\"data\": {\n"
+		+ "\t\t\t\t\"spring.rabbitmq.password\": \"cGFzc3dvcmQ=\"\n" + "\t\t\t},\n" + "\t\t\t\"type\": \"Opaque\"\n"
+		+ "\t\t}\n" + "\t]\n" + "}";
 
 	private static WireMockServer wireMockServer;
 
@@ -116,8 +118,11 @@ class KubernetesClientSecretsPropertySourceTests {
 	void secretsTest() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SECRET_LIST))));
-		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(api,
-				"db-secret", "default", new HashMap<>(), false);
+
+		NormalizedSource source = new NamedSecretNormalizedSource("default", "db-secret");
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, false, source, "secret", "default");
+
+		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(context);
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
 		assertThat(propertySource.containsProperty("username")).isTrue();
@@ -130,8 +135,11 @@ class KubernetesClientSecretsPropertySourceTests {
 		stubFor(get(LIST_API_WITH_LABEL).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
 		Map<String, String> labels = new HashMap<>();
 		labels.put("spring.cloud.kubernetes.secret", "true");
-		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(api, null,
-				"default", labels, false);
+
+		NormalizedSource source = new LabeledSecretNormalizedSource("default", labels);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, false, source, "secret", "default");
+
+		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(context);
 		assertThat(propertySource.containsProperty("spring.rabbitmq.password")).isTrue();
 		assertThat(propertySource.getProperty("spring.rabbitmq.password")).isEqualTo("password");
 	}
@@ -141,9 +149,12 @@ class KubernetesClientSecretsPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySource(api, "db-secret", "default", null, true))
+		NormalizedSource source = new NamedSecretNormalizedSource("default", "secret");
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, true, source, "secret", "default");
+
+		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySource(context))
 				.isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name 'db-secret' or labels [null] in namespace 'default'");
+				.hasMessage("Unable to read Secret with name 'secret' in namespace 'default'");
 		verify(getRequestedFor(urlEqualTo(API)));
 	}
 
@@ -152,16 +163,12 @@ class KubernetesClientSecretsPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		assertThatNoException().isThrownBy(
-				(() -> new KubernetesClientSecretsPropertySource(api, "db-secret", "default", null, false)));
-		verify(getRequestedFor(urlEqualTo(API)));
-	}
+		NormalizedSource source = new NamedSecretNormalizedSource("db-secret", "secret");
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, false, source, "secret", "default");
 
-	@Test
-	void constructorMustFailWhenNamespaceIsNoProvided() {
-		CoreV1Api api = new CoreV1Api();
-		assertThatThrownBy((() -> new KubernetesClientSecretsPropertySource(api, "db-secret", null, null, false)))
-				.isInstanceOf(NamespaceResolutionFailedException.class);
+		assertThatNoException().isThrownBy(
+				(() -> new KubernetesClientSecretsPropertySource(context)));
+		verify(getRequestedFor(urlEqualTo(API)));
 	}
 
 }

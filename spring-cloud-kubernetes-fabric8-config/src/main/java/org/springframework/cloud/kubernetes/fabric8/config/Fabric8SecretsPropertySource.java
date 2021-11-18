@@ -95,7 +95,8 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 						+ e.getMessage() + "). Ignoring");
 			}
 
-			return new AbstractMap.SimpleImmutableEntry<>(name, result);
+			String sourceName = getSourceName(name, namespace);
+			return new AbstractMap.SimpleImmutableEntry<>(sourceName, result);
 
 		};
 	}
@@ -134,7 +135,8 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 						+ e.getMessage() + "). Ignoring");
 			}
 
-			return new AbstractMap.SimpleImmutableEntry<>(name, result);
+			String sourceName = getSourceName(name, namespace);
+			return new AbstractMap.SimpleImmutableEntry<>(sourceName, result);
 		};
 	}
 
