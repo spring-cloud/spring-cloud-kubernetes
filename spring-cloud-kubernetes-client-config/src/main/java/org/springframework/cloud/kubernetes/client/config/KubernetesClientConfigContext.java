@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.config;
 import java.util.Objects;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 
 /**
@@ -38,8 +39,8 @@ public final class KubernetesClientConfigContext {
 
 	private final String appNamespace;
 
-	public KubernetesClientConfigContext(CoreV1Api client, boolean failFast, NormalizedSource normalizedSource, String target,
-			String appNamespace) {
+	public KubernetesClientConfigContext(CoreV1Api client, boolean failFast, NormalizedSource normalizedSource,
+			String target, String appNamespace) {
 		this.client = Objects.requireNonNull(client);
 		this.failFast = failFast;
 		this.normalizedSource = Objects.requireNonNull(normalizedSource);

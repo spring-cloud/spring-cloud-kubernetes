@@ -19,10 +19,10 @@ package org.springframework.cloud.kubernetes.client.config;
 import java.util.AbstractMap;
 import java.util.Base64;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.HashMap;
-import java.util.Optional;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -31,7 +31,11 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.config.*;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
+import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSourceType;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 
 /**
  * @author Ryan Baxter
@@ -42,7 +46,7 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 	private static final Log LOG = LogFactory.getLog(KubernetesClientSecretsPropertySource.class);
 
 	private static final EnumMap<NormalizedSourceType, Function<KubernetesClientConfigContext, Map.Entry<String, Map<String, Object>>>> STRATEGIES = new EnumMap<>(
-		NormalizedSourceType.class);
+			NormalizedSourceType.class);
 
 	static {
 		STRATEGIES.put(NormalizedSourceType.NAMED_SECRET, namedSecret());
@@ -57,7 +61,7 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 	private static Map.Entry<String, Map<String, Object>> getSourceData(KubernetesClientConfigContext context) {
 		NormalizedSourceType type = context.getNormalizedSource().type();
 		return Optional.ofNullable(STRATEGIES.get(type)).map(x -> x.apply(context))
-			.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
+				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
 	}
 
 	private static Function<KubernetesClientConfigContext, Map.Entry<String, Map<String, Object>>> namedSecret() {
@@ -71,8 +75,9 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 
 				LOG.info("Loading Secret with name '" + name + "'in namespace '" + namespace + "'");
 				Optional<V1Secret> secret;
-				secret = context.getClient().listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
-					.getItems().stream().filter(s -> name.equals(s.getMetadata().getName())).findFirst();
+				secret = context.getClient()
+						.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
+						.getItems().stream().filter(s -> name.equals(s.getMetadata().getName())).findFirst();
 
 				secret.ifPresent(s -> putAll(s, result));
 
@@ -80,11 +85,11 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 			catch (Exception e) {
 				if (context.isFailFast()) {
 					throw new IllegalStateException(
-						"Unable to read Secret with name '" + name + "' in namespace '" + namespace + "'", e);
+							"Unable to read Secret with name '" + name + "' in namespace '" + namespace + "'", e);
 				}
 
 				LOG.warn("Can't read secret with name: '" + name + "' in namespace: '" + namespace + "' (cause: "
-					+ e.getMessage() + "). Ignoring");
+						+ e.getMessage() + "). Ignoring");
 			}
 
 			String sourceName = getSourceName(name, namespace);
@@ -102,16 +107,16 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 			// name is either the concatenated labels or the concatenated names
 			// of the secrets that match these labels
 			String name = labels.entrySet().stream().map(en -> en.getKey() + ":" + en.getValue())
-				.collect(Collectors.joining("#"));
+					.collect(Collectors.joining("#"));
 
 			try {
 
 				LOG.info("Loading Secret with labels '" + labels + "'in namespace '" + namespace + "'");
 				List<V1Secret> secrets = context.getClient().listNamespacedSecret(namespace, null, null, null, null,
-					createLabelsSelector(labels), null, null, null, null, null).getItems();
+						createLabelsSelector(labels), null, null, null, null, null).getItems();
 
 				name = secrets.stream().map(V1Secret::getMetadata).map(V1ObjectMeta::getName)
-					.collect(Collectors.joining(Constants.PROPERTY_SOURCE_NAME_SEPARATOR));
+						.collect(Collectors.joining(Constants.PROPERTY_SOURCE_NAME_SEPARATOR));
 
 				secrets.forEach(s -> putAll(s, result));
 
@@ -119,11 +124,11 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 			catch (Exception e) {
 				if (context.isFailFast()) {
 					throw new IllegalStateException(
-						"Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'", e);
+							"Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'", e);
 				}
 
 				LOG.warn("Can't read secret with labels [" + labels + "] in namespace: '" + namespace + "' (cause: "
-					+ e.getMessage() + "). Ignoring");
+						+ e.getMessage() + "). Ignoring");
 			}
 
 			String sourceName = getSourceName(name, namespace);

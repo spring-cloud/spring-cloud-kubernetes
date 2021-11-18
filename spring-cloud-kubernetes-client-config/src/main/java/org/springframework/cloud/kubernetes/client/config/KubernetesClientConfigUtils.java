@@ -24,7 +24,6 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.util.StringUtils;
 
 /**
@@ -49,7 +48,8 @@ public final class KubernetesClientConfigUtils {
 	}
 
 	@Deprecated
-	public static String getNamespace(NormalizedSource normalizedSource, KubernetesClientProperties kubernetesClientProperties) {
+	public static String getNamespace(NormalizedSource normalizedSource,
+			KubernetesClientProperties kubernetesClientProperties) {
 		if (!StringUtils.hasText(normalizedSource.getNamespace())) {
 			return kubernetesClientProperties.getNamespace();
 		}

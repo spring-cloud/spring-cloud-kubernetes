@@ -89,12 +89,11 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 		}
 		else {
 			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace,
-				properties.getConfigurationTarget(), kubernetesNamespaceProvider);
+					properties.getConfigurationTarget(), kubernetesNamespaceProvider);
 		}
 
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(
-			coreV1Api, properties.isFailFast(), normalizedSource, properties.getConfigurationTarget(), namespace
-		);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, properties.isFailFast(),
+				normalizedSource, properties.getConfigurationTarget(), namespace);
 
 		return new KubernetesClientSecretsPropertySource(context);
 	}
