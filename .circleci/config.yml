@@ -19,8 +19,6 @@ version: 2.1
 jobs:
   build:
     machine: true
-    # Ubuntu 20.04, Docker v20.10.7, Docker Compose v1.29.2
-    image: ubuntu-2004:202107-02
     environment:
       _JAVA_OPTIONS: "-Xms4g -Xmx4g"
     steps:
