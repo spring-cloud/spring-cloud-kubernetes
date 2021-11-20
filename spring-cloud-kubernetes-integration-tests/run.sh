@@ -18,11 +18,7 @@ CURRENT_DIR="$(pwd)"
 
 MVN="${CURRENT_DIR}/../mvnw"
 
-MVN_VERSION=$($MVN -q \
-    -Dexec.executable=echo \
-    -Dexec.args='${project.version}' \
-    --non-recursive \
-    exec:exec)
+PROJECT_VERSION=$($MVN help:evaluate -Dexpression=project.version -q -DforceStdout)
 
 ALL_INTEGRATION_PROJECTS=(
 	"spring-cloud-kubernetes-core-k8s-client-it"
@@ -44,8 +40,8 @@ DEFAULT_PULLING_IMAGES=(
 )
 PULLING_IMAGES=(${PULLING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
 
-LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}} "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${MVN_VERSION}"
-	"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${MVN_VERSION}")
+LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}} "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${PROJECT_VERSION}"
+	"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${PROJECT_VERSION}")
 # cleanup on exit (useful for running locally)
 cleanup() {
     "${KIND}" delete cluster || true
@@ -123,8 +119,8 @@ main() {
 		echo "Running test: $p"
 		cd  $p
 		${MVN} spring-boot:build-image \
-      		-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder
-    	"${KIND}" load docker-image docker.io/springcloud/$p:${MVN_VERSION}
+      		-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${PROJECT_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder
+    	"${KIND}" load docker-image docker.io/springcloud/$p:${PROJECT_VERSION}
      	${MVN} clean install -P it
 		cd ..
 	done

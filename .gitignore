@@ -84,3 +84,4 @@ crashlytics-build.properties
 .attach_pid*
 .vscode/
 .java-version
+*Dockerfile
