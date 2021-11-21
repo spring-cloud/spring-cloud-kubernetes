@@ -193,7 +193,7 @@ public class ActuatorRefreshKafkaIT {
 	}
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils
+		V1Deployment deployment = (V1Deployment) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-bus-kafka-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
@@ -203,7 +203,7 @@ public class ActuatorRefreshKafkaIT {
 
 	private V1Deployment getItDeployment() throws Exception {
 		String urlString = "spring-cloud-kubernetes-configuration-watcher-it-bus-kafka-deployment.yaml";
-		V1Deployment deployment = (V1Deployment) k8SUtils.readYamlFromClasspath(urlString);
+		V1Deployment deployment = (V1Deployment) K8SUtils.readYamlFromClasspath(urlString);
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
@@ -211,38 +211,38 @@ public class ActuatorRefreshKafkaIT {
 	}
 
 	private V1Service getConfigWatcherService() throws Exception {
-		return (V1Service) k8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-service.yaml");
+		return (V1Service) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-service.yaml");
 	}
 
 	private V1ConfigMap getConfigWatcherConfigMap() throws Exception {
-		return (V1ConfigMap) k8SUtils
+		return (V1ConfigMap) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
 	}
 
 	private V1Service getItAppService() throws Exception {
-		return (V1Service) k8SUtils
+		return (V1Service) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-it-service.yaml");
 	}
 
 	private V1Ingress getItIngress() throws Exception {
-		return (V1Ingress) k8SUtils
+		return (V1Ingress) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-it-ingress.yaml");
 	}
 
 	private V1Deployment getKafkaDeployment() throws Exception {
-		return (V1Deployment) k8SUtils.readYamlFromClasspath("kafka-deployment.yaml");
+		return (V1Deployment) K8SUtils.readYamlFromClasspath("kafka-deployment.yaml");
 	}
 
 	private V1Service getKafkaService() throws Exception {
-		return (V1Service) k8SUtils.readYamlFromClasspath("kafka-service.yaml");
+		return (V1Service) K8SUtils.readYamlFromClasspath("kafka-service.yaml");
 	}
 
 	private V1Deployment getZookeeperDeployment() throws Exception {
-		return (V1Deployment) k8SUtils.readYamlFromClasspath("zookeeper-deployment.yaml");
+		return (V1Deployment) K8SUtils.readYamlFromClasspath("zookeeper-deployment.yaml");
 	}
 
 	private V1Service getZookeeperService() throws Exception {
-		return (V1Service) k8SUtils.readYamlFromClasspath("zookeeper-service.yaml");
+		return (V1Service) K8SUtils.readYamlFromClasspath("zookeeper-service.yaml");
 	}
 
 }

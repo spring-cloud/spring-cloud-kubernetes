@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,42 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.it;
+package org.springframework.cloud.kubernetes.fabric8.simple.core;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
+/**
+ * @author wind57
+ */
+@EnableConfigurationProperties(SimpleCoreProperties.class)
 @SpringBootApplication
-@RestController
-public class SimpleCoreApplication {
+public class SimpleCoreApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SimpleCoreApplication.class, args);
-	}
-
-	@Value("${greeting.message}")
-	private String message;
-
-	@GetMapping("/greeting")
-	public Greeting home() {
-		return new Greeting(message);
-	}
-
-	public static class Greeting {
-
-		private final String message;
-
-		public Greeting(String message) {
-			this.message = message;
-		}
-
-		public String getMessage() {
-			return this.message;
-		}
-
+		SpringApplication.run(SimpleCoreApp.class, args);
 	}
 
 }

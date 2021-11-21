@@ -123,8 +123,8 @@ public class K8SUtils {
 		return yamlObj;
 	}
 
-	public Object readYamlFromClasspath(String fileName) throws Exception {
-		ClassLoader classLoader = getClass().getClassLoader();
+	public static Object readYamlFromClasspath(String fileName) throws Exception {
+		ClassLoader classLoader = K8SUtils.class.getClassLoader();
 		File file = new File(classLoader.getResource(fileName).getFile());
 		return Yaml.load(file);
 	}

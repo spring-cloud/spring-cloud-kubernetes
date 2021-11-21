@@ -147,7 +147,7 @@ public class ActuatorRefreshIT {
 	}
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils
+		V1Deployment deployment = (V1Deployment) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-http-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
@@ -162,24 +162,24 @@ public class ActuatorRefreshIT {
 	}
 
 	private V1Service getConfigWatcherService() throws Exception {
-		return (V1Service) k8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-service.yaml");
+		return (V1Service) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-service.yaml");
 	}
 
 	private V1ConfigMap getConfigWatcherConfigMap() throws Exception {
-		return (V1ConfigMap) k8SUtils
+		return (V1ConfigMap) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
 	}
 
 	private V1Ingress getWiremockIngress() throws Exception {
-		return (V1Ingress) k8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
+		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
 	}
 
 	private V1Service getWiremockAppService() throws Exception {
-		return (V1Service) k8SUtils.readYamlFromClasspath("wiremock-service.yaml");
+		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock-service.yaml");
 	}
 
 	private V1Deployment getWiremockDeployment() throws Exception {
-		return (V1Deployment) k8SUtils.readYamlFromClasspath("wiremock-deployment.yaml");
+		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock-deployment.yaml");
 	}
 
 }

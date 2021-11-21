@@ -172,7 +172,7 @@ public class LoadBalancerIT {
 	}
 
 	private V1Deployment getLoadbalancerServiceItDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils
+		V1Deployment deployment = (V1Deployment) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-service-it-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
@@ -181,7 +181,7 @@ public class LoadBalancerIT {
 	}
 
 	private V1Deployment getLoadbalancerPodItDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils
+		V1Deployment deployment = (V1Deployment) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-service-it-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
@@ -196,25 +196,25 @@ public class LoadBalancerIT {
 	}
 
 	private V1Ingress getLoadbalancerItIngress() throws Exception {
-		return (V1Ingress) k8SUtils
+		return (V1Ingress) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-it-ingress.yaml");
 	}
 
 	private V1Service getLoadbalancerItService() throws Exception {
-		return (V1Service) k8SUtils
+		return (V1Service) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-it-service.yaml");
 	}
 
 	private V1Ingress getWiremockIngress() throws Exception {
-		return (V1Ingress) k8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
+		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
 	}
 
 	private V1Service getWiremockAppService() throws Exception {
-		return (V1Service) k8SUtils.readYamlFromClasspath("wiremock-service.yaml");
+		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock-service.yaml");
 	}
 
 	private V1Deployment getWireockDeployment() throws Exception {
-		return (V1Deployment) k8SUtils.readYamlFromClasspath("wiremock-deployment.yaml");
+		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock-deployment.yaml");
 	}
 
 }

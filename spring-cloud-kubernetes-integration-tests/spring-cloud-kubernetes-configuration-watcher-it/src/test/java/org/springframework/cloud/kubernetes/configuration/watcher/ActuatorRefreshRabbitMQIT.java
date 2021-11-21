@@ -185,7 +185,7 @@ public class ActuatorRefreshRabbitMQIT {
 	}
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils
+		V1Deployment deployment = (V1Deployment) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-bus-amqp-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
@@ -194,13 +194,13 @@ public class ActuatorRefreshRabbitMQIT {
 	}
 
 	private V1Service getItAppService() throws Exception {
-		return (V1Service) k8SUtils
+		return (V1Service) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-it-service.yaml");
 	}
 
 	private V1Deployment getItDeployment() throws Exception {
 		String urlString = "spring-cloud-kubernetes-configuration-watcher-it-bus-amqp-deployment.yaml";
-		V1Deployment deployment = (V1Deployment) k8SUtils.readYamlFromClasspath(urlString);
+		V1Deployment deployment = (V1Deployment) K8SUtils.readYamlFromClasspath(urlString);
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
@@ -208,25 +208,25 @@ public class ActuatorRefreshRabbitMQIT {
 	}
 
 	private V1Service getConfigWatcherService() throws Exception {
-		return (V1Service) k8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-service.yaml");
+		return (V1Service) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-service.yaml");
 	}
 
 	private V1ConfigMap getConfigWatcherConfigMap() throws Exception {
-		return (V1ConfigMap) k8SUtils
+		return (V1ConfigMap) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
 	}
 
 	private V1Ingress getItIngress() throws Exception {
-		return (V1Ingress) k8SUtils
+		return (V1Ingress) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-it-ingress.yaml");
 	}
 
 	private V1ReplicationController getRabbitMQReplicationController() throws Exception {
-		return (V1ReplicationController) k8SUtils.readYamlFromClasspath("rabbitmq-controller.yaml");
+		return (V1ReplicationController) K8SUtils.readYamlFromClasspath("rabbitmq-controller.yaml");
 	}
 
 	private V1Service getRabbitMQService() throws Exception {
-		return (V1Service) k8SUtils.readYamlFromClasspath("rabbitmq-service.yaml");
+		return (V1Service) K8SUtils.readYamlFromClasspath("rabbitmq-service.yaml");
 	}
 
 }

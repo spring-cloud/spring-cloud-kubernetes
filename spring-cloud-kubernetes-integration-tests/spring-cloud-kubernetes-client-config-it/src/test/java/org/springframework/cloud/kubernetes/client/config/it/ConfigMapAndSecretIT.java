@@ -185,7 +185,7 @@ public class ConfigMapAndSecretIT {
 	}
 
 	private static V1Deployment getConfigK8sClientItDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils
+		V1Deployment deployment = (V1Deployment) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
@@ -194,7 +194,7 @@ public class ConfigMapAndSecretIT {
 	}
 
 	private static V1Deployment getConfigK8sClientItPollingDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils
+		V1Deployment deployment = (V1Deployment) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-polling-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
@@ -203,19 +203,19 @@ public class ConfigMapAndSecretIT {
 	}
 
 	private static V1Service getConfigK8sClientItService() throws Exception {
-		return (V1Service) k8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-service.yaml");
+		return (V1Service) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-service.yaml");
 	}
 
 	private static V1Ingress getConfigK8sClientItIngress() throws Exception {
-		return (V1Ingress) k8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-ingress.yaml");
+		return (V1Ingress) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-ingress.yaml");
 	}
 
 	private static V1ConfigMap getConfigK8sClientItConfigMap() throws Exception {
-		return (V1ConfigMap) k8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-configmap.yaml");
+		return (V1ConfigMap) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-configmap.yaml");
 	}
 
 	private static V1Secret getConfigK8sClientItCSecret() throws Exception {
-		return (V1Secret) k8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-secret.yaml");
+		return (V1Secret) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-secret.yaml");
 	}
 
 }

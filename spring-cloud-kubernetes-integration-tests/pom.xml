@@ -154,18 +154,20 @@
 	</dependencyManagement>
 
 	<modules>
-		<module>simple-core</module>
-		<module>simple-configmap</module>
-		<module>istio</module>
-		<module>discovery</module>
-		<module>load-balancer</module>
+<!--		<module>simple-configmap</module>-->
+<!--		<module>istio</module>-->
+<!--		<module>discovery</module>-->
+<!--		<module>load-balancer</module>-->
 
-		<module>spring-cloud-kubernetes-discovery-client-it</module>
-		<module>spring-cloud-kubernetes-reactive-discovery-client-it</module>
-		<module>spring-cloud-kubernetes-client-config-it</module>
-		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>
-		<module>spring-cloud-kubernetes-client-reactive-discovery-client-it</module>
-		<module>spring-cloud-kubernetes-configuration-watcher-it</module>
-		<module>spring-cloud-kubernetes-core-k8s-client-it</module>
+		<module>spring-cloud-kubernetes-fabric8-client-simple-core</module>
+
+		<!-- TODO wind57: enable back after testing -->
+<!--		<module>spring-cloud-kubernetes-discovery-client-it</module>-->
+<!--		<module>spring-cloud-kubernetes-reactive-discovery-client-it</module>-->
+<!--		<module>spring-cloud-kubernetes-client-config-it</module>-->
+<!--		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>-->
+<!--		<module>spring-cloud-kubernetes-client-reactive-discovery-client-it</module>-->
+<!--		<module>spring-cloud-kubernetes-configuration-watcher-it</module>-->
+<!--		<module>spring-cloud-kubernetes-core-k8s-client-it</module>-->
 	</modules>
 </project>

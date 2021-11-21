@@ -178,7 +178,7 @@ public class ActuatorEndpointIT {
 	}
 
 	private static V1Deployment getCoreK8sClientItDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils
+		V1Deployment deployment = (V1Deployment) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-core-k8s-client-it-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
@@ -187,11 +187,11 @@ public class ActuatorEndpointIT {
 	}
 
 	private static V1Service getCoreK8sClientItService() throws Exception {
-		return (V1Service) k8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-core-k8s-client-it-service.yaml");
+		return (V1Service) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-core-k8s-client-it-service.yaml");
 	}
 
 	private static V1Ingress getCoreK8sClientItIngress() throws Exception {
-		return (V1Ingress) k8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-core-k8s-client-it-ingress.yaml");
+		return (V1Ingress) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-core-k8s-client-it-ingress.yaml");
 	}
 
 }
