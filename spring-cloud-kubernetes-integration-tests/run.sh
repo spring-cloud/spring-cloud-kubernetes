@@ -122,6 +122,7 @@ main() {
 		cd  $p
 		${MVN} spring-boot:build-image \
       		-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${PROJECT_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder
+    	echo "Loading docker image " docker.io/springcloud/$p:${PROJECT_VERSION}
     	"${KIND}" load docker-image docker.io/springcloud/$p:${PROJECT_VERSION}
      	${MVN} clean install -P it
 		cd ..
