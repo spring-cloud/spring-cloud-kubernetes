@@ -15,14 +15,13 @@
 #
 
 orbs:
-  kube-orb: circleci/kubernetes@0.11.0
+  kube-orb: circleci/kubernetes@0.12.1
 version: 2.1
 jobs:
   build:
     machine: true
     environment:
       _JAVA_OPTIONS: "-Xms2g -Xmx2g"
-      _SERVICE_OCCURENCE: 5
     steps:
       - checkout
       - restore_cache:
@@ -33,20 +32,21 @@ jobs:
       - run:
           name: dependencies
           command: |
-            ./mvnw -s .settings.xml -U --fail-never dependency:go-offline -Dservice.occurence=${_SERVICE_OCCURENCE} || true
+            ./mvnw -s .settings.xml -U --fail-never dependency:go-offline || true
       - save_cache:
           paths:
             - ~/.m2
           key: spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+      - kube-orb/install-kubectl
           # TODO wind57 enable back after testing
-#      - run:
-#          name: Run regular tests
-#          command: |
-#            ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} #org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-#            mkdir -p $HOME/artifacts/junit/
-#            find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
-#            find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
-#            bash <(curl -s https://codecov.io/bash)
+      #      - run:
+      #          name: Run regular tests
+      #          command: |
+      #            ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} #org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      #            mkdir -p $HOME/artifacts/junit/
+      #            find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
+      #            find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
+      #            bash <(curl -s https://codecov.io/bash)
       - run:
           name: Run Kind Integration Tests
           command: |
