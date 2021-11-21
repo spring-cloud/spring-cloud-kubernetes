@@ -34,8 +34,8 @@ ALL_INTEGRATION_PROJECTS=(
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 
 DEFAULT_PULLING_IMAGES=(
+	"jettech/kube-webhook-certgen:v1.2.2"
 	# TODO wind57 enable back
-	#"jettech/kube-webhook-certgen:v1.2.2"
 	#"rabbitmq:3-management"
 	#"zookeeper:3.6.2"
 	#"rodolpheche/wiremock:2.27.2"
