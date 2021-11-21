@@ -21,7 +21,7 @@ jobs:
   build:
     machine: true
     environment:
-      _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
+      _JAVA_OPTIONS: "-Xms2g -Xmx2g"
       _SERVICE_OCCURENCE: 5
     steps:
       - checkout
@@ -38,15 +38,6 @@ jobs:
           paths:
             - ~/.m2
           key: spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-          # TODO wind57 enable back after testing
-#      - run:
-#          name: Run regular tests
-#          command: |
-#            ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} #org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-#            mkdir -p $HOME/artifacts/junit/
-#            find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
-#            find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
-#            bash <(curl -s https://codecov.io/bash)
       - run:
           name: Run Kind Integration Tests
           command: |
