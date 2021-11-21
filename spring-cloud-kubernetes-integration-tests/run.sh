@@ -35,19 +35,16 @@ INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 
 DEFAULT_PULLING_IMAGES=(
 	"jettech/kube-webhook-certgen:v1.2.2"
-	# TODO wind57 enable back
-	#"rabbitmq:3-management"
-	#"zookeeper:3.6.2"
-	#"rodolpheche/wiremock:2.27.2"
-	#"wurstmeister/kafka:2.13-2.6.0"
+	"rabbitmq:3-management"
+	"zookeeper:3.6.2"
+	"rodolpheche/wiremock:2.27.2"
+	"wurstmeister/kafka:2.13-2.6.0"
 )
 PULLING_IMAGES=(${PULLING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
 
-# TODO wind57
-LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
-#LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}}) "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${PROJECT_VERSION}"
-#	"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${PROJECT_VERSION}")
-# cleanup on exit (useful for running locally)
+LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}}) "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${PROJECT_VERSION}"
+	"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${PROJECT_VERSION}")
+cleanup on exit (useful for running locally)
 cleanup() {
     "${KIND}" delete cluster || true
     rm -rf "${BIN_DIR}"
