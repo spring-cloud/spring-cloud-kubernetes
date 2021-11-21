@@ -29,11 +29,9 @@ import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 
@@ -51,7 +49,6 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
 /**
  * @author Ryan Baxter
  */
-@RunWith(MockitoJUnitRunner.class)
 public class ActuatorRefreshIT {
 
 	private static final String CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME = "config-watcher-wiremock-deployment";
@@ -80,7 +77,7 @@ public class ActuatorRefreshIT {
 
 	private K8SUtils k8SUtils;
 
-	@Before
+	@BeforeEach
 	public void setup() throws Exception {
 		this.client = createApiClient();
 		this.api = new CoreV1Api();
@@ -122,7 +119,7 @@ public class ActuatorRefreshIT {
 		verify(postRequestedFor(urlEqualTo("/actuator/refresh")));
 	}
 
-	@After
+	@AfterEach
 	public void after() throws Exception {
 
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
@@ -149,18 +146,6 @@ public class ActuatorRefreshIT {
 		api.createNamespacedService(NAMESPACE, getConfigWatcherService(), null, null, null);
 	}
 
-	private V1Service getConfigWatcherService() throws Exception {
-		V1Service service = (V1Service) k8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-service.yaml");
-		return service;
-	}
-
-	private V1ConfigMap getConfigWatcherConfigMap() throws Exception {
-		V1ConfigMap configMap = (V1ConfigMap) k8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
-		return configMap;
-	}
-
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) k8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-http-deployment.yaml");
@@ -171,24 +156,30 @@ public class ActuatorRefreshIT {
 	}
 
 	private void deployWiremock() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getWireockDeployment(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getWiremockDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getWiremockAppService(), null, null, null);
 		networkingApi.createNamespacedIngress(NAMESPACE, getWiremockIngress(), null, null, null);
 	}
 
+	private V1Service getConfigWatcherService() throws Exception {
+		return (V1Service) k8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-service.yaml");
+	}
+
+	private V1ConfigMap getConfigWatcherConfigMap() throws Exception {
+		return (V1ConfigMap) k8SUtils
+				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
+	}
+
 	private V1Ingress getWiremockIngress() throws Exception {
-		V1Ingress ingress = (V1Ingress) k8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
-		return ingress;
+		return (V1Ingress) k8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
 	}
 
 	private V1Service getWiremockAppService() throws Exception {
-		V1Service service = (V1Service) k8SUtils.readYamlFromClasspath("wiremock-service.yaml");
-		return service;
+		return (V1Service) k8SUtils.readYamlFromClasspath("wiremock-service.yaml");
 	}
 
-	private V1Deployment getWireockDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils.readYamlFromClasspath("wiremock-deployment.yaml");
-		return deployment;
+	private V1Deployment getWiremockDeployment() throws Exception {
+		return (V1Deployment) k8SUtils.readYamlFromClasspath("wiremock-deployment.yaml");
 	}
 
 }

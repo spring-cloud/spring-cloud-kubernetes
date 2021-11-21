@@ -34,8 +34,6 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
@@ -51,12 +49,11 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
 /**
  * @author Ryan Baxter
  */
-@RunWith(MockitoJUnitRunner.class)
 public class ActuatorRefreshRabbitMQIT {
 
 	private static final Log LOG = LogFactory.getLog(ActuatorRefreshRabbitMQIT.class);
 
-	private Log log = LogFactory.getLog(getClass());
+	private final Log log = LogFactory.getLog(getClass());
 
 	private static final String CONFIG_WATCHER_IT_IMAGE = "spring-cloud-kubernetes-configuration-watcher-it";
 
@@ -110,14 +107,11 @@ public class ActuatorRefreshRabbitMQIT {
 			@Override
 			public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
 				LOG.warn("Received response status code: " + clientHttpResponse.getRawStatusCode());
-				if (clientHttpResponse.getRawStatusCode() == 503) {
-					return false;
-				}
-				return true;
+				return clientHttpResponse.getRawStatusCode() != 503;
 			}
 
 			@Override
-			public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
+			public void handleError(ClientHttpResponse clientHttpResponse) {
 
 			}
 		});
@@ -187,19 +181,7 @@ public class ActuatorRefreshRabbitMQIT {
 
 	private void deployRabbitMQ() throws Exception {
 		api.createNamespacedService(NAMESPACE, getRabbitMQService(), null, null, null);
-		api.createNamespacedReplicationController(NAMESPACE, getRabbitMQRepplicationController(), null, null, null);
-	}
-
-	private V1Service getConfigWatcherService() throws Exception {
-		V1Service service = (V1Service) k8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-service.yaml");
-		return service;
-	}
-
-	private V1ConfigMap getConfigWatcherConfigMap() throws Exception {
-		V1ConfigMap configMap = (V1ConfigMap) k8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
-		return configMap;
+		api.createNamespacedReplicationController(NAMESPACE, getRabbitMQReplicationController(), null, null, null);
 	}
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
@@ -212,9 +194,8 @@ public class ActuatorRefreshRabbitMQIT {
 	}
 
 	private V1Service getItAppService() throws Exception {
-		String urlString = "spring-cloud-kubernetes-configuration-watcher-it-service.yaml";
-		V1Service service = (V1Service) k8SUtils.readYamlFromClasspath(urlString);
-		return service;
+		return (V1Service) k8SUtils
+				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-it-service.yaml");
 	}
 
 	private V1Deployment getItDeployment() throws Exception {
@@ -226,23 +207,26 @@ public class ActuatorRefreshRabbitMQIT {
 		return deployment;
 	}
 
-	private V1Ingress getItIngress() throws Exception {
-		String urlString = "spring-cloud-kubernetes-configuration-watcher-it-ingress.yaml";
-		V1Ingress ingress = (V1Ingress) k8SUtils.readYamlFromClasspath(urlString);
-		return ingress;
+	private V1Service getConfigWatcherService() throws Exception {
+		return (V1Service) k8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-service.yaml");
 	}
 
-	private V1ReplicationController getRabbitMQRepplicationController() throws Exception {
-		String urlString = "rabbitmq-controller.yaml";
-		V1ReplicationController replicationController = (V1ReplicationController) k8SUtils
-				.readYamlFromClasspath(urlString);
-		return replicationController;
+	private V1ConfigMap getConfigWatcherConfigMap() throws Exception {
+		return (V1ConfigMap) k8SUtils
+				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
+	}
+
+	private V1Ingress getItIngress() throws Exception {
+		return (V1Ingress) k8SUtils
+				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-it-ingress.yaml");
+	}
+
+	private V1ReplicationController getRabbitMQReplicationController() throws Exception {
+		return (V1ReplicationController) k8SUtils.readYamlFromClasspath("rabbitmq-controller.yaml");
 	}
 
 	private V1Service getRabbitMQService() throws Exception {
-		String urlString = "rabbitmq-service.yaml";
-		V1Service service = (V1Service) k8SUtils.readYamlFromClasspath(urlString);
-		return service;
+		return (V1Service) k8SUtils.readYamlFromClasspath("rabbitmq-service.yaml");
 	}
 
 }
