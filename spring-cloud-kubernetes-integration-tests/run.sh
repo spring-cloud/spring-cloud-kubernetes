@@ -20,14 +20,15 @@ MVN="${CURRENT_DIR}/../mvnw"
 
 PROJECT_VERSION=$($MVN help:evaluate -Dexpression=project.version -q -DforceStdout)
 
+# TODO iterate through all modules instead of this
 ALL_INTEGRATION_PROJECTS=(
 	"spring-cloud-kubernetes-core-k8s-client-it"
 	"spring-cloud-kubernetes-client-config-it"
 	"spring-cloud-kubernetes-configuration-watcher-it"
 	"spring-cloud-kubernetes-client-loadbalancer-it"
 	"spring-cloud-kubernetes-client-reactive-discovery-client-it"
-	"spring-cloud-kubernetes-discoverclient-it"
-	"spring-cloud-kubernetes-reactive-discoveryclient-it"
+	"spring-cloud-kubernetes-discovery-client-it"
+	"spring-cloud-kubernetes-reactive-discovery-client-it"
 )
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 
