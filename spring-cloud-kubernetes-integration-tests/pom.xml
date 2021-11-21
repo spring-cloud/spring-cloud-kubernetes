@@ -166,7 +166,6 @@
 		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>
 		<module>spring-cloud-kubernetes-client-reactive-discovery-client-it</module>
 		<module>spring-cloud-kubernetes-configuration-watcher-it</module>
-		<module>spring-cloud-kubernetes-configuration-watcher-it</module>
 		<module>spring-cloud-kubernetes-core-k8s-client-it</module>
 	</modules>
 </project>
