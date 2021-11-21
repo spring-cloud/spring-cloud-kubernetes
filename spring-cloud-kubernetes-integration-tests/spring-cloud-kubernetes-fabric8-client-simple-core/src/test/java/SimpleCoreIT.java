@@ -40,7 +40,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 /**
  * @author wind57
  */
-class SimpleCoreTests {
+class SimpleCoreIT {
 
 	private static final String NAMESPACE = "default";
 
