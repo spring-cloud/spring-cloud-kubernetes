@@ -42,9 +42,9 @@ DEFAULT_PULLING_IMAGES=(
 )
 PULLING_IMAGES=(${PULLING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
 
-LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}}) "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${PROJECT_VERSION}"
+LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}} "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${PROJECT_VERSION}"
 	"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${PROJECT_VERSION}")
-cleanup on exit (useful for running locally)
+# cleanup on exit (useful for running locally)
 cleanup() {
     "${KIND}" delete cluster || true
     rm -rf "${BIN_DIR}"
