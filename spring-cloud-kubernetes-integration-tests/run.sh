@@ -30,6 +30,7 @@ ALL_INTEGRATION_PROJECTS=(
 #	"spring-cloud-kubernetes-discovery-client-it"
 #	"spring-cloud-kubernetes-reactive-discovery-client-it"
 	"spring-cloud-kubernetes-fabric8-client-simple-core"
+	"spring-cloud-kubernetes-fabric8-client-configmap"
 )
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 

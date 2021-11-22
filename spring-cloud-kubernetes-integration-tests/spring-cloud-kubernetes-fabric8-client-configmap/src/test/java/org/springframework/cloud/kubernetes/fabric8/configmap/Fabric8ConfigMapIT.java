@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+package org.springframework.cloud.kubernetes.fabric8.configmap;
+
 import java.io.FileInputStream;
 import java.time.Duration;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
@@ -37,10 +40,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-/**
- * @author wind57
- */
-class SimpleCoreIT {
+public class Fabric8ConfigMapIT {
 
 	private static final String NAMESPACE = "default";
 
@@ -51,6 +51,8 @@ class SimpleCoreIT {
 	private static String serviceName;
 
 	private static String ingressName;
+
+	private static String configMapName;
 
 	@BeforeAll
 	public static void setup() {
@@ -67,21 +69,21 @@ class SimpleCoreIT {
 	@Test
 	public void test() {
 		WebClient client = WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
-				.baseUrl("localhost/fabric8-client-simple-core/message").build();
+				.baseUrl("localhost/fabric8-configmap/key1").build();
 
 		String result = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 				.retryWhen(Retry.fixedDelay(15, Duration.ofSeconds(1))
 						.filter(x -> ((WebClientResponseException) x).getStatusCode().value() == 503))
 				.block();
 
-		// value must come from application-kubernetes.yml
-		Assertions.assertEquals("Hello from k8s profile", result);
+		Assertions.assertEquals("value1", result);
 	}
 
 	private static void deleteManifests() {
 
 		try {
 
+			client.configMaps().inNamespace(NAMESPACE).withName(configMapName).delete();
 			client.apps().deployments().inNamespace(NAMESPACE).withName(deploymentName).delete();
 			client.services().inNamespace(NAMESPACE).withName(serviceName).delete();
 			client.network().v1().ingresses().inNamespace(NAMESPACE).withName(ingressName).delete();
@@ -96,6 +98,10 @@ class SimpleCoreIT {
 	private static void deployManifests() {
 
 		try {
+
+			ConfigMap configMap = client.configMaps().load(getConfigMap()).get();
+			configMapName = configMap.getMetadata().getName();
+			client.configMaps().create(configMap);
 
 			Deployment deployment = client.apps().deployments().load(getDeployment()).get();
 
@@ -114,7 +120,7 @@ class SimpleCoreIT {
 			ingressName = ingress.getMetadata().getName();
 			client.network().v1().ingresses().inNamespace(NAMESPACE).create(ingress);
 
-			Fabric8Utils.waitForDeployment(client, "spring-cloud-kubernetes-fabric8-client-simple-core-deployment",
+			Fabric8Utils.waitForDeployment(client, "spring-cloud-kubernetes-fabric8-client-configmap-deployment",
 					NAMESPACE, 2, 600);
 
 		}
@@ -125,15 +131,19 @@ class SimpleCoreIT {
 	}
 
 	private static FileInputStream getService() throws Exception {
-		return Fabric8Utils.inputStream("simple-core-service.yaml");
+		return Fabric8Utils.inputStream("fabric8-service.yaml");
 	}
 
 	private static FileInputStream getDeployment() throws Exception {
-		return Fabric8Utils.inputStream("simple-core-deployment.yaml");
+		return Fabric8Utils.inputStream("fabric8-deployment.yaml");
 	}
 
 	private static FileInputStream getIngress() throws Exception {
-		return Fabric8Utils.inputStream("simple-core-ingress.yaml");
+		return Fabric8Utils.inputStream("fabric8-ingress.yaml");
+	}
+
+	private static FileInputStream getConfigMap() throws Exception {
+		return Fabric8Utils.inputStream("fabric8-configmap.yaml");
 	}
 
 }

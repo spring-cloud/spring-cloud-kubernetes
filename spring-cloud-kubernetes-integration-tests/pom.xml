@@ -160,6 +160,7 @@
 <!--		<module>load-balancer</module>-->
 
 		<module>spring-cloud-kubernetes-fabric8-client-simple-core</module>
+		<module>spring-cloud-kubernetes-fabric8-client-configmap</module>
 
 		<!-- TODO wind57: enable back after testing -->
 <!--		<module>spring-cloud-kubernetes-discovery-client-it</module>-->
