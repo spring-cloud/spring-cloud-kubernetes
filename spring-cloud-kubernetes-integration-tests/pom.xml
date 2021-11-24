@@ -161,6 +161,7 @@
 
 		<module>spring-cloud-kubernetes-fabric8-client-simple-core</module>
 		<module>spring-cloud-kubernetes-fabric8-client-configmap</module>
+		<module>spring-cloud-kubernetes-fabric8-istio-it</module>
 
 		<!-- TODO wind57: enable back after testing -->
 <!--		<module>spring-cloud-kubernetes-discovery-client-it</module>-->

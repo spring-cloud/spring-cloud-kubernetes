@@ -12,7 +12,7 @@ BIN_DIR="$(mktemp -d)"
 # kind binary will be here
 KIND="${BIN_DIR}/kind"
 
-ISTIOCTL="${BIN_DIR}/istio-1.6.2/bin/istioctl"
+ISTIO="${BIN_DIR}/istio"
 
 CURRENT_DIR="$(pwd)"
 
@@ -31,6 +31,7 @@ ALL_INTEGRATION_PROJECTS=(
 #	"spring-cloud-kubernetes-reactive-discovery-client-it"
 	"spring-cloud-kubernetes-fabric8-client-simple-core"
 	"spring-cloud-kubernetes-fabric8-client-configmap"
+	"spring-cloud-kubernetes-fabric8-istio-it"
 )
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 
@@ -46,6 +47,7 @@ PULLING_IMAGES=(${PULLING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
 LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}} "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${PROJECT_VERSION}"
 	"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${PROJECT_VERSION}")
 # cleanup on exit (useful for running locally)
+
 cleanup() {
     "${KIND}" delete cluster || true
     rm -rf "${BIN_DIR}"
@@ -81,9 +83,45 @@ install_kind_release() {
     chmod +x "${KIND}"
 }
 
+# util to install a released istio version into ${BIN_DIR}
+install_istio_release() {
+    ISTIO_VERSION="1.12.0"
+	ISTIO_BINARY_URL="https://github.com/istio/istio/releases/download/$ISTIO_VERSION/istio-$ISTIO_VERSION-linux-amd64.tar.gz"
+    if [[ "$OSTYPE" == "darwin"*  ]]; then
+        ISTIO_BINARY_URL="https://github.com/istio/istio/releases/download/$ISTIO_VERSION/istio-$ISTIO_VERSION-osx-arm64.tar.gz"
+	else
+        echo "Unknown OS, using linux binary"
+	fi
+	# seems like wget can't do both --output-document and --directory-prefix? At least on my Mac
+	# this is the case. To be on the safe side, download, then rename
+    wget --directory-prefix "${ISTIO}" "${ISTIO_BINARY_URL}"
+    find "${ISTIO}" -type file -name "istio-*.tar.gz" -exec mv "{}" "${ISTIO}/istio.tar.gz" \;
+    tar -xf "$BIN_DIR/istio/istio.tar.gz" -C "$BIN_DIR/istio"
+    chmod +x "${ISTIO}/istio-$ISTIO_VERSION/bin/istioctl"
+    export PATH=$PATH:"$ISTIO/istio-$ISTIO_VERSION/bin"
+
+    if ! [ -x "$(command -v istioctl)" ]; then
+      echo 'Problem installing istioctl, check the script'
+      exit 1
+    fi
+}
+
+enable_istio() {
+	kubectl create namespace istio-test
+	kubectl label namespace istio-test istio-injection=enabled
+	install_istio_release
+	# remove taint, otherwise istio will not start
+	kubectl taint node kind-control-plane node-role.kubernetes.io/master:NoSchedule-
+
+	# for Mac M1 : https://github.com/istio/istio/issues/21094#issuecomment-956117650
+	istioctl install --set profile=demo -y
+}
+
 main() {
     # get kind
     install_kind_release
+    install_istio_release
+    enable_istio
 
     # create a cluster
     cd $CURRENT_DIR
@@ -107,8 +145,8 @@ main() {
     kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
     sleep 5 # hold 5 sec so that the pods can be created
     kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=420s
-	
-	
+
+
 
     # This creates the service account, role, and role binding necessary for Spring Cloud k8s apps
 	kubectl apply -f ./permissions.yaml

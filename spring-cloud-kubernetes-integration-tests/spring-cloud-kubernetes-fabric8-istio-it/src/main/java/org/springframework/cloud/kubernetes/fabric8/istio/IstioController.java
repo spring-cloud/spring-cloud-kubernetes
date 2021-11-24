@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,38 +14,36 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.it;
+package org.springframework.cloud.kubernetes.fabric8.istio;
 
 import java.util.Arrays;
 import java.util.List;
 
 import me.snowdrop.istio.client.IstioClient;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@SpringBootApplication
+/**
+ * @author wind57
+ */
 @RestController
-public class IstioApplication {
+public class IstioController {
 
-	@Autowired
-	private Environment environment;
+	private final Environment environment;
 
-	// used just to ensure that the IstioClient is properly injected into the context
-	@Autowired
-	private IstioClient istioClient;
+	// not used, but just to prove that it is injected
+	private final IstioClient istioClient;
 
-	public static void main(String[] args) {
-		SpringApplication.run(IstioApplication.class, args);
+	public IstioController(Environment environment, IstioClient istioClient) {
+		this.environment = environment;
+		this.istioClient = istioClient;
 	}
 
 	@GetMapping("/profiles")
 	public List<String> profiles() {
-		return Arrays.asList(this.environment.getActiveProfiles());
+		return Arrays.asList(environment.getActiveProfiles());
 	}
 
 }
