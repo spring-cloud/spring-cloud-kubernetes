@@ -95,7 +95,7 @@ install_istio_release() {
 	# seems like wget can't do both --output-document and --directory-prefix? At least on my Mac
 	# this is the case. To be on the safe side, download, then rename
     wget --directory-prefix "${ISTIO}" "${ISTIO_BINARY_URL}"
-    find "${ISTIO}" -type file -name "istio-*.tar.gz" -exec mv "{}" "${ISTIO}/istio.tar.gz" \;
+    find "${ISTIO}" -type f -name "istio-*.tar.gz" -exec mv "{}" "${ISTIO}/istio.tar.gz" \;
     tar -xf "$BIN_DIR/istio/istio.tar.gz" -C "$BIN_DIR/istio"
     chmod +x "${ISTIO}/istio-$ISTIO_VERSION/bin/istioctl"
     export PATH=$PATH:"$ISTIO/istio-$ISTIO_VERSION/bin"
