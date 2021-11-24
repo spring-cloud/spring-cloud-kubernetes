@@ -112,7 +112,6 @@
 		<module>spring-cloud-starter-kubernetes-fabric8-loadbalancer</module>
 		<module>spring-cloud-kubernetes-discovery</module>
 		<module>spring-cloud-starter-kubernetes-discoveryclient</module>
-		<module>spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-discovery</module>
 	</modules>
 
 	<dependencyManagement>
