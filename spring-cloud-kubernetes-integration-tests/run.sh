@@ -120,8 +120,6 @@ enable_istio() {
 main() {
     # get kind
     install_kind_release
-    install_istio_release
-    enable_istio
 
     # create a cluster
     cd $CURRENT_DIR
@@ -131,6 +129,10 @@ main() {
 
     # set KUBECONFIG to point to the cluster
     kubectl cluster-info --context kind-kind
+
+    # istio
+    install_istio_release
+    enable_istio
 
 	#setup nginx ingress
 	# pulling necessary images for setting up the integration test environment
