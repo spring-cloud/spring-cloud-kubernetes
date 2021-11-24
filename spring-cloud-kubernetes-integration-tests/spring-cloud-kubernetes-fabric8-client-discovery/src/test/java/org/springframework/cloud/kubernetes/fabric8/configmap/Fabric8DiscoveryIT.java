@@ -57,6 +57,8 @@ public class Fabric8DiscoveryIT {
 
 	private static String mockServiceName;
 
+	private static String mockDeploymentName;
+
 	@BeforeAll
 	public static void setup() {
 		Config config = Config.autoConfigure(null);
@@ -97,6 +99,7 @@ public class Fabric8DiscoveryIT {
 			client.network().v1().ingresses().inNamespace(NAMESPACE).withName(ingressName).delete();
 
 			client.services().inNamespace(NAMESPACE).withName(mockServiceName).delete();
+			client.apps().deployments().inNamespace(NAMESPACE).withName(mockDeploymentName).delete();
 
 		}
 		catch (Exception e) {
@@ -140,6 +143,10 @@ public class Fabric8DiscoveryIT {
 
 		try {
 
+			Deployment deployment = client.apps().deployments().load(getMockDeployment()).get();
+			client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
+			mockDeploymentName = deployment.getMetadata().getName();
+
 			Service service = client.services().load(getMockService()).get();
 			mockServiceName = service.getMetadata().getName();
 			client.services().inNamespace(NAMESPACE).create(service);
@@ -167,6 +174,10 @@ public class Fabric8DiscoveryIT {
 
 	private static FileInputStream getMockService() throws Exception {
 		return Fabric8Utils.inputStream("fabric8-discovery-wiremock-service.yaml");
+	}
+
+	private static FileInputStream getMockDeployment() throws Exception {
+		return Fabric8Utils.inputStream("fabric8-discovery-wiremock-deployment.yaml");
 	}
 
 }
