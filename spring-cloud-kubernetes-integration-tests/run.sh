@@ -32,6 +32,7 @@ ALL_INTEGRATION_PROJECTS=(
 	"spring-cloud-kubernetes-fabric8-client-simple-core"
 	"spring-cloud-kubernetes-fabric8-client-configmap"
 	"spring-cloud-kubernetes-fabric8-istio-it"
+	"spring-cloud-kubernetes-fabric8-client-discovery"
 )
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 
