@@ -21,12 +21,14 @@ import java.io.FileInputStream;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
+import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import static org.awaitility.Awaitility.await;
+import static org.junit.Assert.fail;
 
 /**
  * @author wind57
@@ -51,6 +53,12 @@ public final class Fabric8Utils {
 				.until(() -> isDeploymentReady(client, deploymentName, namespace));
 	}
 
+	public static void waitForEndpoint(KubernetesClient client, String endpointName, String namespace, int pollSeconds,
+			int maxSeconds) {
+		await().pollInterval(Duration.ofSeconds(pollSeconds)).atMost(maxSeconds, TimeUnit.SECONDS)
+				.until(() -> isEndpointReady(client, endpointName, namespace));
+	}
+
 	private static boolean isDeploymentReady(KubernetesClient client, String deploymentName, String namespace) {
 
 		Deployment deployment = client.apps().deployments().inNamespace(namespace).withName(deploymentName).get();
@@ -58,6 +66,17 @@ public final class Fabric8Utils {
 		Integer availableReplicas = deployment.getStatus().getAvailableReplicas();
 		LOG.info("Available replicas for " + deploymentName + ": " + availableReplicas);
 		return availableReplicas != null && availableReplicas >= 1;
+	}
+
+	private static boolean isEndpointReady(KubernetesClient client, String endpointName, String namespace) {
+
+		Endpoints endpoint = client.endpoints().inNamespace(namespace).withName(endpointName).get();
+
+		if (endpoint.getSubsets().isEmpty()) {
+			fail("no endpoints for " + endpointName);
+		}
+
+		return endpoint.getSubsets().get(0).getAddresses().size() >= 1;
 	}
 
 }
