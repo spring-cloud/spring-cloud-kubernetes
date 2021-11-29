@@ -20,15 +20,14 @@ MVN="${CURRENT_DIR}/../mvnw"
 
 PROJECT_VERSION=$($MVN help:evaluate -Dexpression=project.version -q -DforceStdout)
 
-# TODO wind57 iterate through all modules instead of this
 ALL_INTEGRATION_PROJECTS=(
-#	"spring-cloud-kubernetes-core-k8s-client-it"
-#	"spring-cloud-kubernetes-client-config-it"
-#	"spring-cloud-kubernetes-configuration-watcher-it"
-#	"spring-cloud-kubernetes-client-loadbalancer-it"
-#	"spring-cloud-kubernetes-client-reactive-discovery-client-it"
-#	"spring-cloud-kubernetes-discovery-client-it"
-#	"spring-cloud-kubernetes-reactive-discovery-client-it"
+	"spring-cloud-kubernetes-core-k8s-client-it"
+	"spring-cloud-kubernetes-client-config-it"
+	"spring-cloud-kubernetes-configuration-watcher-it"
+	"spring-cloud-kubernetes-client-loadbalancer-it"
+	"spring-cloud-kubernetes-client-reactive-discovery-client-it"
+	"spring-cloud-kubernetes-discovery-client-it"
+	"spring-cloud-kubernetes-reactive-discovery-client-it"
 	"spring-cloud-kubernetes-fabric8-client-simple-core"
 	"spring-cloud-kubernetes-fabric8-client-configmap"
 	"spring-cloud-kubernetes-fabric8-istio-it"
