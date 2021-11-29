@@ -54,10 +54,10 @@ jobs:
             sudo apt install snapd
       - kube-orb/install-kubectl
       - run:
-          name: Build Configuration Watcher Image
+          name: Build Controller Images
           command: |
-            cd spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configuration-watcher
-            ../../mvnw clean install
+            cd spring-cloud-kubernetes-controllers
+            ../mvnw clean install -DskipTests
       - run:
           name: Run Kind Integration Tests
           command: |
