@@ -56,7 +56,7 @@ jobs:
       - run:
           name: Build Configuration Watcher Image
           command: |
-            cd /spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configuration-watcher
+            cd spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configuration-watcher
             ../../mvnw clean install
       - run:
           name: Run Kind Integration Tests
