@@ -34,20 +34,20 @@ jobs:
       _SERVICE_OCCURENCE: 5
     steps:
       - checkout
-#      - run:
-#          name: Run regular tests
-#          command: |
-#            ./mvnw -s .settings.xml  -DfailIfNoTests=false -Dservice.occurence=${_SERVICE_OCCURENCE} org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-#            -Dtest=$(for file in $(circleci tests glob **/src/test/**/**.java | grep -v 'spring-cloud-kubernetes-integration-tests'| circleci tests split --split-by=timings); \
-#                      do basename $file \
-#                      | sed -e "s/.java/,/"; \
-#                      done | tr -d '\r\n') \
-#                      -e test
-#            mkdir -p $HOME/artifacts/junit/
-#            find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
-#            find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
-#            bash <(curl -s https://codecov.io/bash)
-#      - kube-orb/install-kubectl
+      - run:
+          name: Run regular tests
+          command: |
+            ./mvnw -s .settings.xml  -DfailIfNoTests=false -Dservice.occurence=${_SERVICE_OCCURENCE} org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+            -Dtest=$(for file in $(circleci tests glob **/src/test/**/**.java | grep -v 'spring-cloud-kubernetes-integration-tests'| circleci tests split --split-by=timings); \
+                      do basename $file \
+                      | sed -e "s/.java/,/"; \
+                      done | tr -d '\r\n') \
+                      -e test
+            mkdir -p $HOME/artifacts/junit/
+            find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
+            find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
+            bash <(curl -s https://codecov.io/bash)
+      - kube-orb/install-kubectl
       - run:
           name: Build Configuration Watcher Image
           command: |
