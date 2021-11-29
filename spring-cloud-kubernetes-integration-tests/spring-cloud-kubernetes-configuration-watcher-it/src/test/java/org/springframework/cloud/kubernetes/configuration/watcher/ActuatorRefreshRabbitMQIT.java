@@ -31,9 +31,9 @@ import io.kubernetes.client.openapi.models.V1ReplicationController;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
@@ -53,7 +53,7 @@ public class ActuatorRefreshRabbitMQIT {
 
 	private static final Log LOG = LogFactory.getLog(ActuatorRefreshRabbitMQIT.class);
 
-	private final Log log = LogFactory.getLog(getClass());
+	private Log log = LogFactory.getLog(getClass());
 
 	private static final String CONFIG_WATCHER_IT_IMAGE = "spring-cloud-kubernetes-configuration-watcher-it";
 
@@ -77,7 +77,7 @@ public class ActuatorRefreshRabbitMQIT {
 
 	private K8SUtils k8SUtils;
 
-	@Before
+	@BeforeEach
 	public void setup() throws Exception {
 		this.client = createApiClient();
 		this.api = new CoreV1Api();
@@ -99,8 +99,8 @@ public class ActuatorRefreshRabbitMQIT {
 	public void testRefresh() throws Exception {
 		// Create new configmap to trigger controller to signal app to refresh
 		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName(CONFIG_WATCHER_IT_IMAGE)
-				.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "hello world")
-				.build();
+			.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "hello world")
+			.build();
 		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
 		RestTemplate rest = new RestTemplateBuilder().build();
 		rest.setErrorHandler(new ResponseErrorHandler() {
@@ -119,7 +119,7 @@ public class ActuatorRefreshRabbitMQIT {
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
 		await().timeout(Duration.ofSeconds(60)).until(
-				() -> rest.getForEntity("http://localhost:80/it", String.class).getStatusCode().is2xxSuccessful());
+			() -> rest.getForEntity("http://localhost:80/it", String.class).getStatusCode().is2xxSuccessful());
 
 		// Wait a bit before we verify
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(90)).until(() -> {
@@ -131,21 +131,21 @@ public class ActuatorRefreshRabbitMQIT {
 		assertThat(rest.getForObject("http://localhost:80/it", Boolean.class)).isTrue();
 	}
 
-	@After
+	@AfterEach
 	public void after() throws Exception {
 		api.deleteNamespacedService("rabbitmq-service", NAMESPACE, null, null, null, null, null, null);
 		api.deleteNamespacedService(CONFIG_WATCHER_IT_IMAGE, NAMESPACE, null, null, null, null, null, null);
 		api.deleteNamespacedService(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
-				null);
+			null);
 
 		appsApi.deleteNamespacedDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE, null, null, null,
-				null, null, null);
+			null, null, null);
 		appsApi.deleteNamespacedDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE, null, null,
-				null, null, null, null);
+			null, null, null, null);
 
 		try {
 			api.deleteNamespacedReplicationController(RABBIT_MQ_CONTROLLER_NAME, NAMESPACE, null, null, null, null,
-					null, null);
+				null, null);
 		}
 		catch (Exception e) {
 			// swallowing this exception, the delete does actually happen, its a problem
@@ -158,7 +158,7 @@ public class ActuatorRefreshRabbitMQIT {
 		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
 
 		api.deleteNamespacedConfigMap(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
-				null);
+			null);
 		api.deleteNamespacedConfigMap(CONFIG_WATCHER_IT_IMAGE, NAMESPACE, null, null, null, null, null, null);
 
 		// Check to make sure the controller deployment is deleted
@@ -186,25 +186,24 @@ public class ActuatorRefreshRabbitMQIT {
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) K8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-bus-amqp-deployment.yaml");
+			.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-bus-amqp-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
-				+ getPomVersion();
+			+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
-	}
-
-	private V1Service getItAppService() throws Exception {
-		return (V1Service) K8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-it-service.yaml");
 	}
 
 	private V1Deployment getItDeployment() throws Exception {
 		String urlString = "spring-cloud-kubernetes-configuration-watcher-it-bus-amqp-deployment.yaml";
 		V1Deployment deployment = (V1Deployment) K8SUtils.readYamlFromClasspath(urlString);
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
-				+ getPomVersion();
+			+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
+	}
+
+	private V1Service getItAppService() throws Exception {
+		return (V1Service) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-it-service.yaml");
 	}
 
 	private V1Service getConfigWatcherService() throws Exception {
@@ -212,13 +211,12 @@ public class ActuatorRefreshRabbitMQIT {
 	}
 
 	private V1ConfigMap getConfigWatcherConfigMap() throws Exception {
-		return (V1ConfigMap) K8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
+		return (V1ConfigMap) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
 	}
 
 	private V1Ingress getItIngress() throws Exception {
 		return (V1Ingress) K8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-it-ingress.yaml");
+			.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-it-ingress.yaml");
 	}
 
 	private V1ReplicationController getRabbitMQReplicationController() throws Exception {
