@@ -52,7 +52,7 @@ jobs:
           name: Build Controller Images
           command: |
             cd spring-cloud-kubernetes-controllers
-            ../../mvnw clean install -DskipTests
+            ../mvnw clean install -DskipTests
       - run:
           name: Run Kind Integration Tests
           command: |
