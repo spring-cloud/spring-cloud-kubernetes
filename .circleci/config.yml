@@ -42,7 +42,7 @@ jobs:
                                | sed 's/.\{5\}$//' \
                                | circleci tests split --split-by=timings --timings-type=classname)
             echo $CLASSNAMES
-            TEST_ARG=$(echo $CLASSNAMES | sed `s/ /,/g'`)
+            TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
             echo $TEST_ARG
             ./mvnw -s .settings.xml  -DfailIfNoTests=false -Dtest=$TEST_ARG -e test
             mkdir -p $HOME/artifacts/junit/
