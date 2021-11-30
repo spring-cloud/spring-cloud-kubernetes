@@ -27,7 +27,7 @@ workflows:
             - build
 jobs:
   test:
-    parallelism: 4 # parallel containers to split the tests among
+    parallelism: 8 # parallel containers to split the tests among
     machine: true
     environment:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
@@ -37,6 +37,7 @@ jobs:
       - run:
           name: Run regular tests
           command: |
+            echo $(circleci tests glob **/src/test/**/**.java | grep -v 'spring-cloud-kubernetes-integration-tests'| circleci tests split --split-by=timings)
             ./mvnw -s .settings.xml  -DfailIfNoTests=false -Dservice.occurence=${_SERVICE_OCCURENCE} org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
             -Dtest=$(for file in $(circleci tests glob **/src/test/**/**.java | grep -v 'spring-cloud-kubernetes-integration-tests'| circleci tests split --split-by=timings); \
                       do basename $file \
