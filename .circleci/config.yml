@@ -42,7 +42,9 @@ jobs:
                                | sed 's/.\{5\}$//' \
                                | circleci tests split --split-by=timings --timings-type=classname)
             echo $CLASSNAMES
-            ./mvnw -s .settings.xml  -DfailIfNoTests=false -Dtest=$CLASSNAMES -e test
+            TEST_ARG=$(echo $CLASSNAMES | sed `s/ /,/g'`)
+            echo $TEST_ARG
+            ./mvnw -s .settings.xml  -DfailIfNoTests=false -Dtest=$TEST_ARG -e test
             mkdir -p $HOME/artifacts/junit/
             find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
