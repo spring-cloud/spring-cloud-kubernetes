@@ -117,6 +117,8 @@ main() {
 
 	# running tests..
 	if [[ $CIRCLECI ]]; then
+		SPLIT_TESTS=circleci tests split < ${INTEGRATION_PROJECTS}
+		echo "split tests $SPLIT_TESTS"
 		PROJECT=${INTEGRATION_PROJECTS[$CIRCLE_NODE_INDEX]}
 		echo "Running test: $PROJECT"
 		cd  $PROJECT
