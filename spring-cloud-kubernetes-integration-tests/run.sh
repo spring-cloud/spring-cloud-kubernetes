@@ -116,15 +116,26 @@ main() {
 	#"${ISTIOCTL}" install --set profile=demo
 
 	# running tests..
-	for p in "${INTEGRATION_PROJECTS[@]}"; do
-		echo "Running test: $p"
-		cd  $p
+	if [[ $CIRCLECI ]]; then
+		PROJECT = ${INTEGRATION_PROJECTS[$CIRCLE_NODE_INDEX]}
+		echo "Running test: $PROJECT"
+		cd  $PROJECT
 		${MVN} spring-boot:build-image \
-      		-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder
-    	"${KIND}" load docker-image docker.io/springcloud/$p:${MVN_VERSION}
-     	${MVN} clean install -P it
+			-Dspring-boot.build-image.imageName=docker.io/springcloud/$PROJECT:${MVN_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder
+		"${KIND}" load docker-image docker.io/springcloud/$PROJECT:${MVN_VERSION}
+		${MVN} clean install -P it
 		cd ..
-	done
+	else
+		for p in "${INTEGRATION_PROJECTS[@]}"; do
+			echo "Running test: $p"
+			cd  $p
+			${MVN} spring-boot:build-image \
+				-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder
+			"${KIND}" load docker-image docker.io/springcloud/$p:${MVN_VERSION}
+			${MVN} clean install -P it
+			cd ..
+		done
+	fi
 
     # teardown will happen automatically on exit
 }
