@@ -124,15 +124,7 @@ main() {
 		PROJECTS=$(echo $SPLIT_PROJECTS | tr " " "\n")
 		run_tests "${PROJECTS[@]}"
 	else
-		for p in "${INTEGRATION_PROJECTS[@]}"; do
-			echo "Running test: $p"
-			cd  $p
-			${MVN} spring-boot:build-image \
-				-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder
-			"${KIND}" load docker-image docker.io/springcloud/$p:${MVN_VERSION}
-			${MVN} clean install -P it
-			cd ..
-		done
+		run_tests "${INTEGRATION_PROJECTS[@]}"
 	fi
 
     # teardown will happen automatically on exit
