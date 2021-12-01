@@ -117,16 +117,12 @@ main() {
 
 	# running tests..
 	if [[ $CIRCLECI ]]; then
-		SPLIT_TESTS=$(printf "%s\n" "${INTEGRATION_PROJECTS[@]}" | circleci tests split)
-		echo "split tests $SPLIT_TESTS"
-		PROJECT=${INTEGRATION_PROJECTS[$CIRCLE_NODE_INDEX]}
-		echo "Running test: $PROJECT"
-		cd  $PROJECT
-		${MVN} spring-boot:build-image \
-			-Dspring-boot.build-image.imageName=docker.io/springcloud/$PROJECT:${MVN_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder
-		"${KIND}" load docker-image docker.io/springcloud/$PROJECT:${MVN_VERSION}
-		${MVN} clean install -P it
-		cd ..
+		#This splits projects across all circleci instances, it returns a list of projects separated by a space
+		SPLIT_PROJECTS=$(printf "%s\n" "${INTEGRATION_PROJECTS[@]}" | circleci tests split)
+		echo "split tests $SPLIT_PROJECTS"
+		#This splits the projects back into an array so we can iterate over them
+		PROJECTS=$(echo $SPLIT_PROJECTS | tr " " "\n")
+		run_tests "${PROJECTS[@]}"
 	else
 		for p in "${INTEGRATION_PROJECTS[@]}"; do
 			echo "Running test: $p"
@@ -140,6 +136,18 @@ main() {
 	fi
 
     # teardown will happen automatically on exit
+}
+
+run_tests() {
+	for p in "$@"; do
+		echo "Running test: $p"
+		cd  $p
+		${MVN} spring-boot:build-image \
+			-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder
+		"${KIND}" load docker-image docker.io/springcloud/$p:${MVN_VERSION}
+		${MVN} clean install -P it
+		cd ..
+	done
 }
 
 main
