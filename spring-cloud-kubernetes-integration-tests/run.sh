@@ -117,7 +117,7 @@ main() {
 
 	# running tests..
 	if [[ $CIRCLECI ]]; then
-		PROJECT = ${INTEGRATION_PROJECTS[$CIRCLE_NODE_INDEX]}
+		PROJECT=${INTEGRATION_PROJECTS[$CIRCLE_NODE_INDEX]}
 		echo "Running test: $PROJECT"
 		cd  $PROJECT
 		${MVN} spring-boot:build-image \
