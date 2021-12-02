@@ -147,4 +147,4 @@ run_tests() {
 	done
 }
 
-#main
+main
