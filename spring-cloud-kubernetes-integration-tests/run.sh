@@ -124,7 +124,7 @@ main() {
 		SPLIT_PROJECTS=$(printf "%s\n" "${INTEGRATION_PROJECTS[@]}" | circleci tests split)
 		echo "split tests $SPLIT_PROJECTS"
 		#This splits the projects back into an array so we can iterate over them
-		PROJECTS=$(echo $SPLIT_PROJECTS | tr " " "\n")
+		IFS=' ' read -ra PROJECTS <<< "$SPLIT_PROJECTS"
 		run_tests "${PROJECTS[@]}"
 	else
 		run_tests "${INTEGRATION_PROJECTS[@]}"
