@@ -121,10 +121,10 @@ main() {
 	# running tests..
 	if [[ $CIRCLECI ]]; then
 		#This splits projects across all circleci instances, it returns a list of projects separated by a space
-		SPLIT_PROJECTS=$(printf "%s\n" "${INTEGRATION_PROJECTS[@]}" | circleci tests split)
+		SPLIT_PROJECTS=$(printf "%s\n" "${INTEGRATION_PROJECTS[@]}" | circleci tests split | sed 's/ /,/g')
 		echo "split tests $SPLIT_PROJECTS"
 		#This splits the projects back into an array so we can iterate over them
-		IFS=$'\n' read -ra PROJECTS <<< "$SPLIT_PROJECTS"
+		IFS=',' read -ra PROJECTS <<< "$SPLIT_PROJECTS"
 		echo "projects $PROJECTS"
 		run_tests "${PROJECTS[@]}"
 	else
@@ -147,4 +147,4 @@ run_tests() {
 	done
 }
 
-main
+#main
