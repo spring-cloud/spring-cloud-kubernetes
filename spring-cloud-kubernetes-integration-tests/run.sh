@@ -125,6 +125,7 @@ main() {
 		echo "split tests $SPLIT_PROJECTS"
 		#This splits the projects back into an array so we can iterate over them
 		IFS=' ' read -ra PROJECTS <<< "$SPLIT_PROJECTS"
+		echo "projects $PROJECTS"
 		run_tests "${PROJECTS[@]}"
 	else
 		run_tests "${INTEGRATION_PROJECTS[@]}"
@@ -134,7 +135,8 @@ main() {
 }
 
 run_tests() {
-	for p in "$@"; do
+	arr=("$@")
+	for p in "${arr[@]}"; do
 		echo "Running test: $p"
 		cd  $p
 		${MVN} spring-boot:build-image \
