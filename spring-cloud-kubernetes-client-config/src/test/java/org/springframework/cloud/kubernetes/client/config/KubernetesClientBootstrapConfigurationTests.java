@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -130,6 +131,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
+		@Disabled("fails on jenkins https://github.com/spring-cloud/spring-cloud-kubernetes/issues/927")
 		void secretsOnlyPresent() {
 			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
 			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(0);
@@ -165,6 +167,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
+		@Disabled("fails on jenkins https://github.com/spring-cloud/spring-cloud-kubernetes/issues/927")
 		public void bothMissing() {
 			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
 			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(0);
