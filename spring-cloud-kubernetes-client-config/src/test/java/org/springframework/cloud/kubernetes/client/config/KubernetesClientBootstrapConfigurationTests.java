@@ -125,13 +125,13 @@ public class KubernetesClientBootstrapConfigurationTests {
 			properties = { "spring.cloud.kubernetes.secrets.enabled=false",
 					"spring.cloud.kubernetes.config.enabled=false" })
 	@Nested
+	@Disabled("fails on jenkins https://github.com/spring-cloud/spring-cloud-kubernetes/issues/927")
 	class KubernetesEnabledSecretsAndConfigDisabled {
 
 		@Autowired
 		ConfigurableApplicationContext context;
 
 		@Test
-		@Disabled("fails on jenkins https://github.com/spring-cloud/spring-cloud-kubernetes/issues/927")
 		void secretsOnlyPresent() {
 			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
 			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(0);
@@ -161,13 +161,13 @@ public class KubernetesClientBootstrapConfigurationTests {
 	// effect, meaning when it is disabled, no property source bean is present
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class)
 	@Nested
+	@Disabled("fails on jenkins https://github.com/spring-cloud/spring-cloud-kubernetes/issues/927")
 	class KubernetesClientBootstrapConfigurationNotInsideK8s {
 
 		@Autowired
 		ConfigurableApplicationContext context;
 
 		@Test
-		@Disabled("fails on jenkins https://github.com/spring-cloud/spring-cloud-kubernetes/issues/927")
 		public void bothMissing() {
 			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
 			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(0);
