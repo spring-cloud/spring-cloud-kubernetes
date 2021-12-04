@@ -21,7 +21,7 @@ workflows:
   version: 2
   build:
     jobs:
-      - build
+      - test
 jobs:
   test:
     parallelism: 5 # parallel containers to split the tests among
@@ -54,30 +54,3 @@ jobs:
 #            find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
 #            find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
 #            bash <(curl -s https://codecov.io/bash)
-  build:
-    machine: true
-    environment:
-      _JAVA_OPTIONS: "-Xms2g -Xmx2g"
-      _SERVICE_OCCURENCE: 5
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - spring-cloud-kubernetes-{{ .Branch }}
-            - spring-cloud-kubernetes
-      - run:
-          name: dependencies
-          command: |
-            ./mvnw -s .settings.xml -U --fail-never dependency:go-offline -Dservice.occurence=${_SERVICE_OCCURENCE} || true
-      - run:
-          name: build
-          command: |
-            ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} -DskipTests
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-notify:
-  webhooks:
-    - url: https://webhooks.gitter.im/e/22e6bb4eb945dd61ba54
