@@ -122,7 +122,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
 			properties = { "spring.cloud.kubernetes.secrets.enabled=false",
-					"spring.cloud.kubernetes.config.enabled=false" })
+					"spring.cloud.kubernetes.config.enabled=false", "kubernetes.informer.enabled=false" })
 	@Nested
 	class KubernetesEnabledSecretsAndConfigDisabled {
 
@@ -157,7 +157,8 @@ public class KubernetesClientBootstrapConfigurationTests {
 
 	// tests that @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES) has the desired
 	// effect, meaning when it is disabled, no property source bean is present
-	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class)
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
+	properties = {"kubernetes.informer.enabled=false"})
 	@Nested
 	class KubernetesClientBootstrapConfigurationNotInsideK8s {
 
