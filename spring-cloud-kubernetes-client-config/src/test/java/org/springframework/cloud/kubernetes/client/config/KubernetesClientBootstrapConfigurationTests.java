@@ -124,7 +124,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
 			properties = { "spring.cloud.kubernetes.secrets.enabled=false",
 					"spring.cloud.kubernetes.config.enabled=false", "kubernetes.informer.enabled=false" })
-	@Neste
+	@Nested
 	class KubernetesEnabledSecretsAndConfigDisabled {
 
 		@Autowired
