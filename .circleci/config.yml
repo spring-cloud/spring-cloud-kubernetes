@@ -44,7 +44,7 @@ jobs:
             echo $CLASSNAMES
             TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
             echo $TEST_ARG
-            ./mvnw -s .settings.xml  -DfailIfNoTests=false -Dtest=$TEST_ARG -e test
+            ./mvnw -s .settings.xml  -DfailIfNoTests=false -Dtest=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent test -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
             mkdir -p $HOME/artifacts/junit/
             find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
@@ -55,11 +55,12 @@ jobs:
             sudo apt update
             sudo apt install snapd
       - kube-orb/install-kubectl
+      - attach_workspace:
+            at: ./
       - run:
-          name: Build Controller Images
+          name: Load Controller Images From Workspace
           command: |
-            cd spring-cloud-kubernetes-controllers
-            ../mvnw clean install -DskipTests
+            docker load -i ./docker-images/spring-cloud-kubernetes-configuration-watcher.tar
       - run:
           name: Run Kind Integration Tests
           command: |
@@ -153,6 +154,16 @@ jobs:
           name: build
           command: |
             ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} -DskipTests
+      - run:
+          name: save docker images
+          command: |
+            TAG=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+            echo $TAG
+            mkdir docker-images
+            docker save -o docker-images/spring-cloud-kubernetes-configuration-watcher.tar docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${TAG}
+      - persist_to_workspace:
+          root: ./
+          paths: docker-images
       - save_cache:
           paths:
             - ~/.m2
