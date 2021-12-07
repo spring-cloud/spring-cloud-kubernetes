@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,10 +42,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Ryan Baxter
+ * @author Isik Erhan
  */
 class KubernetesClientSecretsPropertySourceLocatorTests {
 
@@ -75,6 +77,8 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 			+ "\t\t}\n" + "\t]\n" + "}";
 
 	private static WireMockServer wireMockServer;
+
+	private static final MockEnvironment ENV = new MockEnvironment();
 
 	@BeforeAll
 	public static void setup() {
@@ -117,7 +121,7 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		secretsConfigProperties.setSources(sources);
 		secretsConfigProperties.setEnableApi(true);
 		PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(api,
-				new KubernetesClientProperties(), secretsConfigProperties).locate(new MockEnvironment());
+				new KubernetesClientProperties(), secretsConfigProperties).locate(ENV);
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
 	}
@@ -131,7 +135,7 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		secretsConfigProperties.setNamespace("default");
 		secretsConfigProperties.setEnableApi(true);
 		PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(api,
-				new KubernetesClientProperties(), secretsConfigProperties).locate(new MockEnvironment());
+				new KubernetesClientProperties(), secretsConfigProperties).locate(ENV);
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
 	}
@@ -153,29 +157,42 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		secretsConfigProperties.setNamespace(""); // empty on purpose
 		secretsConfigProperties.setEnableApi(true);
 		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySourceLocator(api, new KubernetesClientProperties(),
-				secretsConfigProperties).locate(new MockEnvironment()))
-						.isInstanceOf(NamespaceResolutionFailedException.class);
+				secretsConfigProperties).locate(ENV)).isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
-	/**
-	 * <pre>
-	 *     1. using the non-deprecated constructor, and
-	 *     2. not providing the namespace
-	 * </pre>
-	 *
-	 * will result in an Exception
-	 */
 	@Test
-	void testLocateWithoutNamespace() {
+	public void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get(LIST_API).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
+		stubFor(get(LIST_API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties();
 		secretsConfigProperties.setName("db-secret");
-		secretsConfigProperties.setNamespace(""); // empty on purpose
+		secretsConfigProperties.setNamespace("default");
 		secretsConfigProperties.setEnableApi(true);
-		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySourceLocator(api,
-				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties)
-						.locate(new MockEnvironment())).isInstanceOf(NamespaceResolutionFailedException.class);
+		secretsConfigProperties.setFailFast(true);
+
+		KubernetesClientSecretsPropertySourceLocator locator = new KubernetesClientSecretsPropertySourceLocator(api,
+				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties);
+
+		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
+				.hasMessage("Unable to read Secret with name 'db-secret' or labels [{}] in namespace 'default'");
+	}
+
+	@Test
+	public void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get(LIST_API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+
+		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties();
+		secretsConfigProperties.setName("db-secret");
+		secretsConfigProperties.setNamespace("default");
+		secretsConfigProperties.setEnableApi(true);
+		secretsConfigProperties.setFailFast(false);
+
+		KubernetesClientSecretsPropertySourceLocator locator = new KubernetesClientSecretsPropertySourceLocator(api,
+				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties);
+
+		assertThatNoException().isThrownBy(() -> locator.locate(new MockEnvironment()));
 	}
 
 }

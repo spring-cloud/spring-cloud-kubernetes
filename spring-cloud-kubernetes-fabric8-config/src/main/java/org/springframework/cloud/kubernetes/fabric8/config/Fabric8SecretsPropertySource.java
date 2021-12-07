@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,47 +25,56 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
-import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
 
 /**
  * Kubernetes property source for secrets.
  *
  * @author l burgazzoli
  * @author Haytham Mohamed
+ * @author Isik Erhan
  */
 public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8SecretsPropertySource.class);
 
 	public Fabric8SecretsPropertySource(KubernetesClient client, String name, String namespace,
-			Map<String, String> labels) {
-		super(getSourceName(name, namespace), getSourceData(client, name, namespace, labels));
+			Map<String, String> labels, boolean failFast) {
+		super(getSourceName(name, getApplicationNamespace(client, namespace, "Secret", null)), getSourceData(client,
+				name, getApplicationNamespace(client, namespace, "Secret", null), labels, failFast));
 	}
 
 	private static Map<String, Object> getSourceData(KubernetesClient client, String name, String namespace,
-			Map<String, String> labels) {
+			Map<String, String> labels, boolean failFast) {
 		Map<String, Object> result = new HashMap<>();
 
-		String namespaceToUse = StringUtils.hasLength(namespace) ? namespace : client.getNamespace();
+		LOG.info("Loading Secret with name '" + name + "' or with labels [" + labels + "] in namespace '" + namespace
+				+ "'");
 		try {
 
-			Secret secret = client.secrets().inNamespace(namespaceToUse).withName(name).get();
+			Secret secret = client.secrets().inNamespace(namespace).withName(name).get();
 
 			// the API is documented that it might return null
 			if (secret == null) {
-				LOG.warn("secret with name : " + name + " in namespace : " + namespaceToUse + " not found");
+				LOG.warn("secret with name : " + name + " in namespace : " + namespace + " not found");
 			}
 			else {
-				putDataFromSecret(secret, result, namespaceToUse);
+				putDataFromSecret(secret, result, namespace);
 			}
 
-			client.secrets().inNamespace(namespaceToUse).withLabels(labels).list().getItems()
-					.forEach(s -> putDataFromSecret(s, result, namespaceToUse));
+			client.secrets().inNamespace(namespace).withLabels(labels).list().getItems()
+					.forEach(s -> putDataFromSecret(s, result, namespace));
 
 		}
 		catch (Exception e) {
+			if (failFast) {
+				throw new IllegalStateException("Unable to read Secret with name '" + name + "' or labels [" + labels
+						+ "] in namespace '" + namespace + "'", e);
+			}
+
 			LOG.warn("Can't read secret with name: [" + name + "] or labels [" + labels + "] in namespace: ["
-					+ namespaceToUse + "] (cause: " + e.getMessage() + "). Ignoring");
+					+ namespace + "] (cause: " + e.getMessage() + "). Ignoring");
 		}
 
 		return result;

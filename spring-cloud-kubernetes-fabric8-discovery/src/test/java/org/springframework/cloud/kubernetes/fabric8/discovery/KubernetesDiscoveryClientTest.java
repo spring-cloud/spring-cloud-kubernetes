@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -24,35 +23,32 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
-import io.fabric8.kubernetes.api.model.EndpointsList;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServiceList;
-import io.fabric8.kubernetes.api.model.ServiceListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ExtendWith(SpringExtension.class)
+@EnableKubernetesMockClient(crud = true, https = false)
 public class KubernetesDiscoveryClientTest {
 
-	@ClassRule
-	public static KubernetesServer mockServer = new KubernetesServer(false);
+	private KubernetesClient mockClient;
 
-	private static KubernetesClient mockClient;
-
-	@Before
+	@BeforeEach
 	public void setup() {
-		mockClient = mockServer.getClient();
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
@@ -60,6 +56,11 @@ public class KubernetesDiscoveryClientTest {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
+	}
+
+	@AfterEach
+	public void after() {
+		mockClient.close();
 	}
 
 	@Test
@@ -72,28 +73,12 @@ public class KubernetesDiscoveryClientTest {
 				.withUid("10").endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset()
 				.build();
 
-		List<Endpoints> endpointsList = new ArrayList<>();
-		endpointsList.add(endPoint);
-
-		EndpointsList endpoints = new EndpointsList();
-		endpoints.setItems(endpointsList);
-
-		mockServer.expect().get()
-				.withPath(
-						"/api/v1/namespaces/test/endpoints?labelSelector=l%3Dv&fieldSelector=metadata.name%3Dendpoint")
-				.andReturn(200, endpoints).once();
-
-		mockServer.expect().get().withPath("/api/v1/endpoints?fieldSelector=metadata.name%3Dendpoint")
-				.andReturn(200, endpoints).once();
-
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dendpoint")
-				.andReturn(200, endpoints).once();
+		mockClient.endpoints().inNamespace("test").create(endPoint);
 
 		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
 				.withLabels(labels).endMetadata().build();
 
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint").andReturn(200, service)
-				.always();
+		mockClient.services().inNamespace("test").create(service);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		properties.setServiceLabels(labels);
@@ -114,29 +99,17 @@ public class KubernetesDiscoveryClientTest {
 		Map<String, String> labels = new HashMap<>();
 		labels.put("l2", "v2");
 
-		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
 				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
 				.withUid("20").endTargetRef().endAddress().addNewPort("mgmt", "mgmt_tcp", 900, "TCP")
 				.addNewPort("http", "http_tcp", 80, "TCP").endSubset().build();
 
-		List<Endpoints> endpointsList = new ArrayList<>();
-		endpointsList.add(endPoint1);
-
-		EndpointsList endpoints = new EndpointsList();
-		endpoints.setItems(endpointsList);
-
-		mockServer.expect().get().withPath(
-				"/api/v1/namespaces/test/endpoints?labelSelector=l2%3Dv2&fieldSelector=metadata.name%3Dendpoint")
-				.andReturn(200, endpoints).once();
-
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dendpoint")
-				.andReturn(200, endpoints).once();
+		mockClient.endpoints().inNamespace("test").create(endPoint);
 
 		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
 				.withLabels(labels).withAnnotations(labels).endMetadata().build();
 
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint").andReturn(200, service)
-				.always();
+		mockClient.services().inNamespace("test").create(service);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		properties.setPrimaryPortName("http_tcp");
@@ -161,16 +134,7 @@ public class KubernetesDiscoveryClientTest {
 				.withUid("30").endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset()
 				.build();
 
-		List<Endpoints> endpointsList = new ArrayList<>();
-		endpointsList.add(endPoint);
-
-		EndpointsList endpoints = new EndpointsList();
-		endpoints.setItems(endpointsList);
-
-		mockServer.expect().get()
-				.withPath(
-						"/api/v1/namespaces/test/endpoints?labelSelector=l%3Dv&fieldSelector=metadata.name%3Dendpoint")
-				.andReturn(200, endpoints).once();
+		mockClient.endpoints().inNamespace("test").create(endPoint);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		properties.setServiceLabels(labels);
@@ -194,24 +158,12 @@ public class KubernetesDiscoveryClientTest {
 				.withUid("50").endTargetRef().endAddress().addNewPort("https", "https_tcp", 443, "TCP").endSubset()
 				.build();
 
-		List<Endpoints> endpointsList = new ArrayList<>();
-		endpointsList.add(endPoint);
-
-		EndpointsList endpoints = new EndpointsList();
-		endpoints.setItems(endpointsList);
-
-		mockServer.expect().get().withPath(
-				"/api/v1/namespaces/test/endpoints?labelSelector=l1%3Dv1&fieldSelector=metadata.name%3Dendpoint")
-				.andReturn(200, endpoints).once();
-
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dendpoint")
-				.andReturn(200, endpoints).once();
+		mockClient.endpoints().inNamespace("test").create(endPoint);
 
 		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
 				.withLabels(labels).endMetadata().build();
 
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint").andReturn(200, service)
-				.always();
+		mockClient.services().inNamespace("test").create(service);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		properties.setServiceLabels(labels);
@@ -229,19 +181,23 @@ public class KubernetesDiscoveryClientTest {
 
 	@Test
 	public void getServicesShouldReturnAllServicesWhenNoLabelsAreAppliedToTheClient() {
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/services").andReturn(200, new ServiceListBuilder()
-				.addNewItem().withNewMetadata().withName("s1").withLabels(new HashMap<String, String>() {
-					{
-						put("label", "value");
-					}
-				}).endMetadata().endItem().addNewItem().withNewMetadata().withName("s2")
-				.withLabels(new HashMap<String, String>() {
-					{
-						put("label", "value");
-						put("label2", "value2");
-					}
-				}).endMetadata().endItem().addNewItem().withNewMetadata().withName("s3").endMetadata().endItem()
-				.build()).once();
+
+		Map<String, String> service1Labels = Collections.singletonMap("label", "value");
+		Service service1 = new ServiceBuilder().withNewMetadata().withName("s1").withNamespace("test")
+				.withLabels(service1Labels).endMetadata().build();
+
+		Map<String, String> service2Labels = new HashMap<>();
+		service2Labels.put("label", "value");
+		service2Labels.put("label2", "value2");
+		Service service2 = new ServiceBuilder().withNewMetadata().withName("s2").withNamespace("test")
+				.withLabels(service2Labels).endMetadata().build();
+
+		Service service3 = new ServiceBuilder().withNewMetadata().withName("s3").withNamespace("test").endMetadata()
+				.build();
+
+		mockClient.services().inNamespace("test").create(service1);
+		mockClient.services().inNamespace("test").create(service2);
+		mockClient.services().inNamespace("test").create(service3);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
@@ -254,28 +210,24 @@ public class KubernetesDiscoveryClientTest {
 
 	@Test
 	public void getServicesShouldReturnOnlyMatchingServicesWhenLabelsAreAppliedToTheClient() {
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/services?labelSelector=label%3Dvalue")
-				.andReturn(200, new ServiceListBuilder().addNewItem().withNewMetadata().withName("s1")
-						.withLabels(new HashMap<String, String>() {
-							{
-								put("label", "value");
-							}
-						}).endMetadata().endItem().addNewItem().withNewMetadata().withName("s2")
-						.withLabels(new HashMap<String, String>() {
-							{
-								put("label", "value");
-								put("label2", "value2");
-							}
-						}).endMetadata().endItem().build())
-				.once();
+
+		Map<String, String> service1Labels = Collections.singletonMap("label", "value");
+		Service service1 = new ServiceBuilder().withNewMetadata().withName("s1").withNamespace("test")
+				.withLabels(service1Labels).endMetadata().build();
+
+		Map<String, String> service2Labels = new HashMap<>();
+		service2Labels.put("label", "value");
+		service2Labels.put("label2", "value2");
+		Service service2 = new ServiceBuilder().withNewMetadata().withName("s2").withNamespace("test")
+				.withLabels(service2Labels).endMetadata().build();
+
+		mockClient.services().inNamespace("test").create(service1);
+		mockClient.services().inNamespace("test").create(service2);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				client -> client.services().withLabels(new HashMap<String, String>() {
-					{
-						put("label", "value");
-					}
-				}), new ServicePortSecureResolver(properties));
+				client -> client.services().withLabels(Collections.singletonMap("label", "value")),
+				new ServicePortSecureResolver(properties));
 
 		final List<String> services = discoveryClient.getServices();
 
@@ -288,55 +240,21 @@ public class KubernetesDiscoveryClientTest {
 				.endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef().withUid("60")
 				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset().build();
 
-		Endpoints endpoints2 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test2")
+		Endpoints endPoints2 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test2")
 				.endMetadata().addNewSubset().addNewAddress().withIp("ip2").withNewTargetRef().withUid("70")
 				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset().build();
 
-		List<Endpoints> endpointsList = new ArrayList<>();
-		endpointsList.add(endPoints1);
-		endpointsList.add(endpoints2);
-
-		EndpointsList endpoints = new EndpointsList();
-		endpoints.setItems(endpointsList);
-
-		mockServer.expect().get().withPath("/api/v1/endpoints?fieldSelector=metadata.name%3Dendpoint")
-				.andReturn(200, endpoints).once();
-
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints/endpoint").andReturn(200, endPoints1)
-				.once();
-
-		mockServer.expect().get().withPath("/api/v1/namespaces/test2/endpoints/endpoint").andReturn(200, endpoints2)
-				.once();
+		mockClient.endpoints().inNamespace("test").create(endPoints1);
+		mockClient.endpoints().inNamespace("test2").create(endPoints2);
 
 		Service service1 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
-				.withLabels(new HashMap<String, String>() {
-					{
-						put("l", "v");
-					}
-				}).endMetadata().build();
+				.withLabels(Collections.singletonMap("l", "v")).endMetadata().build();
 
 		Service service2 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace("test2")
-				.withLabels(new HashMap<String, String>() {
-					{
-						put("l", "v");
-					}
-				}).endMetadata().build();
+				.withLabels(Collections.singletonMap("l", "v")).endMetadata().build();
 
-		List<Service> servicesList = new ArrayList<>();
-		servicesList.add(service1);
-		servicesList.add(service2);
-
-		ServiceList services = new ServiceList();
-		services.setItems(servicesList);
-
-		mockServer.expect().get().withPath("/api/v1/services?fieldSelector=metadata.name%3Dendpoint")
-				.andReturn(200, services).once();
-
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint").andReturn(200, service1)
-				.always();
-
-		mockServer.expect().get().withPath("/api/v1/namespaces/test2/services/endpoint").andReturn(200, service2)
-				.always();
+		mockClient.services().inNamespace("test").create(service1);
+		mockClient.services().inNamespace("test2").create(service2);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		properties.setAllNamespaces(true);
@@ -362,14 +280,7 @@ public class KubernetesDiscoveryClientTest {
 		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint1").withNamespace("test")
 				.withLabels(Collections.emptyMap()).endMetadata().build();
 
-		List<Endpoints> endpointsList = new ArrayList<>();
-		endpointsList.add(endPoint);
-
-		EndpointsList endpoints = new EndpointsList();
-		endpoints.setItems(endpointsList);
-
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dendpoint1")
-				.andReturn(200, endpoints).once();
+		mockClient.endpoints().inNamespace("test").create(endPoint);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 
@@ -391,19 +302,12 @@ public class KubernetesDiscoveryClientTest {
 				.withUid("80").endTargetRef().endAddress().addNewPort("http", "https", 443, "TCP")
 				.addNewPort("http", "http", 80, "TCP").endSubset().build();
 
-		List<Endpoints> endpointsList = new ArrayList<>();
-		endpointsList.add(endPoint1);
-
-		EndpointsList endpoints = new EndpointsList();
-		endpoints.setItems(endpointsList);
-
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dendpoint2")
-				.andReturn(200, endpoints).once();
+		mockClient.endpoints().inNamespace("test").create(endPoint1);
 
 		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint2").withNamespace("test")
 				.withLabels(labels).withAnnotations(labels).endMetadata().build();
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint2").andReturn(200, service)
-				.always();
+
+		mockClient.services().inNamespace("test").create(service);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 
@@ -428,19 +332,12 @@ public class KubernetesDiscoveryClientTest {
 				.addNewPort("http", "https2", 8443, "TCP").addNewPort("http", "http1", 80, "TCP")
 				.addNewPort("http", "http2", 8080, "TCP").endSubset().build();
 
-		List<Endpoints> endpointsList = new ArrayList<>();
-		endpointsList.add(endPoint1);
-
-		EndpointsList endpoints = new EndpointsList();
-		endpoints.setItems(endpointsList);
-
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dendpoint3")
-				.andReturn(200, endpoints).once();
+		mockClient.endpoints().inNamespace("test").create(endPoint1);
 
 		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint3").withNamespace("test")
 				.withLabels(labels).withAnnotations(labels).endMetadata().build();
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint3").andReturn(200, service)
-				.always();
+
+		mockClient.services().inNamespace("test").create(service);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 
@@ -464,20 +361,12 @@ public class KubernetesDiscoveryClientTest {
 				.addNewPort("http", "https2", 8443, "TCP").addNewPort("http", "http1", 80, "TCP")
 				.addNewPort("http", "http2", 8080, "TCP").endSubset().build();
 
-		List<Endpoints> endpointsList = new ArrayList<>();
-		endpointsList.add(endPoint1);
-
-		EndpointsList endpoints = new EndpointsList();
-		endpoints.setItems(endpointsList);
-
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dendpoint4")
-				.andReturn(200, endpoints).once();
+		mockClient.endpoints().inNamespace("test").create(endPoint1);
 
 		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint4").withNamespace("test")
 				.withLabels(labels).withAnnotations(labels).endMetadata().build();
 
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint4").andReturn(200, service)
-				.always();
+		mockClient.services().inNamespace("test").create(service);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		properties.setPrimaryPortName("oops");
@@ -501,19 +390,12 @@ public class KubernetesDiscoveryClientTest {
 				.withUid("110").endTargetRef().endAddress().addNewPort("http", "https", 443, "TCP")
 				.addNewPort("http", "http", 80, "TCP").endSubset().build();
 
-		List<Endpoints> endpointsList = new ArrayList<>();
-		endpointsList.add(endPoint1);
-
-		EndpointsList endpoints = new EndpointsList();
-		endpoints.setItems(endpointsList);
-
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dendpoint5")
-				.andReturn(200, endpoints).once();
+		mockClient.endpoints().inNamespace("test").create(endPoint1);
 
 		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
 				.withLabels(labels).withAnnotations(labels).endMetadata().build();
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint5").andReturn(200, service)
-				.always();
+
+		mockClient.services().inNamespace("test").create(service);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 
@@ -527,6 +409,7 @@ public class KubernetesDiscoveryClientTest {
 				.hasSize(1);
 	}
 
+	//
 	@Test
 	public void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedOrHttpsPortShouldFallBackToHttp() {
 		Map<String, String> labels = new HashMap<>();
@@ -536,19 +419,12 @@ public class KubernetesDiscoveryClientTest {
 				.withUid("120").endTargetRef().endAddress().addNewPort("http", "https1", 443, "TCP")
 				.addNewPort("http", "https2", 8443, "TCP").addNewPort("http", "http", 80, "TCP").endSubset().build();
 
-		List<Endpoints> endpointsList = new ArrayList<>();
-		endpointsList.add(endPoint1);
-
-		EndpointsList endpoints = new EndpointsList();
-		endpoints.setItems(endpointsList);
-
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dendpoint5")
-				.andReturn(200, endpoints).once();
+		mockClient.endpoints().inNamespace("test").create(endPoint1);
 
 		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
 				.withLabels(labels).withAnnotations(labels).endMetadata().build();
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint5").andReturn(200, service)
-				.always();
+
+		mockClient.services().inNamespace("test").create(service);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 
@@ -571,19 +447,12 @@ public class KubernetesDiscoveryClientTest {
 				.withUid("130").endTargetRef().endAddress().addNewPort("http", "https", 443, "TCP")
 				.addNewPort("http", "http", 80, "TCP").endSubset().build();
 
-		List<Endpoints> endpointsList = new ArrayList<>();
-		endpointsList.add(endPoint1);
-
-		EndpointsList endpoints = new EndpointsList();
-		endpoints.setItems(endpointsList);
-
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dendpoint5")
-				.andReturn(200, endpoints).once();
+		mockClient.endpoints().inNamespace("test").create(endPoint1);
 
 		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
 				.withLabels(labels).withAnnotations(labels).endMetadata().build();
-		mockServer.expect().get().withPath("/api/v1/namespaces/test/services/endpoint5").andReturn(200, service)
-				.always();
+
+		mockClient.services().inNamespace("test").create(service);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 

@@ -7,7 +7,7 @@ https://kubernetes.io/docs/concepts/configuration/configmap/[Config Maps] and ht
 This is component is completely optional.  However, it allows you to continue to leverage configuration
 you may have stored in existing environment repositories (Git, SVN, Vault, etc) with applications that you are running on Kubernetes.
 
-A default image is located on Docker Hub which will allow you to easily get a Config Server deployed on Kubernetes without building
+A default image is located on https://hub.docker.com/r/springcloud/spring-cloud-kubernetes-configserver[Docker Hub] which will allow you to easily get a Config Server deployed on Kubernetes without building
 the code and image yourself.  However, if you need to customize the config server behavior you can easily build your own
 image from the source code on GitHub and use that.
 

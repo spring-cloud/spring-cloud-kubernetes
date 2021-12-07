@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.Map;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
@@ -40,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(classes = TestApplication.class,
 		properties = { "spring.application.name=testapp", "spring.cloud.kubernetes.client.namespace=testns",
 				"spring.cloud.kubernetes.client.trustCerts=true", "spring.cloud.kubernetes.config.namespace=testns",
-				"spring.cloud.kubernetes.secrets.enableApi=true" })
+				"spring.cloud.kubernetes.secrets.enableApi=true", "spring.main.cloud-platform=KUBERNETES" })
 @EnableKubernetesMockClient(crud = true, https = false)
 public class CoreTest {
 
@@ -51,13 +50,6 @@ public class CoreTest {
 
 	@Autowired
 	private Config config;
-
-	// not a fan of changing the type from KubernetesClient, but because of:
-	// https://github.com/fabric8io/kubernetes-client/issues/3145
-	// there is no way to do it otherwise at this time. When that is fixed, I will fix
-	// this also
-	@Autowired
-	private DefaultKubernetesClient client;
 
 	@BeforeAll
 	public static void setUpBeforeClass() {
@@ -87,12 +79,6 @@ public class CoreTest {
 		assertThat(config.getMasterUrl()).isEqualTo(mockClient.getConfiguration().getMasterUrl());
 		assertThat(config.getNamespace()).isEqualTo("testns");
 		assertThat(config.isTrustCerts()).isTrue();
-	}
-
-	@Test
-	public void kubernetesClientBeanShouldBeConfigurableViaSystemProperties() {
-		assertThat(client).isNotNull();
-		assertThat(client.getConfiguration().getMasterUrl()).isEqualTo(mockClient.getConfiguration().getMasterUrl());
 	}
 
 	@Test

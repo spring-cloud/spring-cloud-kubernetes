@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.fabric8.config.example.App;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -38,10 +39,11 @@ import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+		properties = "spring.main.cloud-platform=KUBERNETES")
 @TestPropertySource("classpath:/application-secrets.properties")
 @EnableKubernetesMockClient(crud = true, https = false)
-public class Fabric8SecretsPropertySourceTest {
+class Fabric8SecretsPropertySourceTest {
 
 	private static final String NAMESPACE = "test";
 
@@ -56,7 +58,7 @@ public class Fabric8SecretsPropertySourceTest {
 	private Environment environment;
 
 	@BeforeAll
-	public static void setUpBeforeClass() {
+	static void setUpBeforeClass() {
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
@@ -70,13 +72,14 @@ public class Fabric8SecretsPropertySourceTest {
 				.withLabels(singletonMap("foo", "bar")).endMetadata()
 				.addToData("secretName", Base64.getEncoder().encodeToString(SECRET_VALUE.getBytes())).build();
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
+
 	}
 
 	@Test
-	public void toStringShouldNotExposeSecretValues() {
-		String actual = this.propertySourceLocator.locate(this.environment).toString();
-
-		assertThat(actual).doesNotContain(SECRET_VALUE);
+	void toStringShouldNotExposeSecretValues() {
+		PropertySource<?> propertySource = this.propertySourceLocator.locate(this.environment);
+		assertThat(propertySource.toString()).doesNotContain(SECRET_VALUE);
+		assertThat(propertySource.getProperty("secretName")).isEqualTo("secretValue");
 	}
 
 }

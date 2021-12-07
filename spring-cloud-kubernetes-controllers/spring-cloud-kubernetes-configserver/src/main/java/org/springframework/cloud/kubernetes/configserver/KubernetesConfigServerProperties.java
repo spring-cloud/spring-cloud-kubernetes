@@ -25,16 +25,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("spring.cloud.kubernetes.configserver")
 public class KubernetesConfigServerProperties {
 
-	private String conigMapNamespaces = "";
+	private String configMapNamespaces = "";
 
 	private String secretsNamespaces = "";
 
-	public String getConigMapNamespaces() {
-		return conigMapNamespaces;
+	public String getConfigMapNamespaces() {
+		return configMapNamespaces;
 	}
 
-	public void setConigMapNamespaces(String conigMapNamespaces) {
-		this.conigMapNamespaces = conigMapNamespaces;
+	public void setConfigMapNamespaces(String configMapNamespaces) {
+		this.configMapNamespaces = configMapNamespaces;
 	}
 
 	public String getSecretsNamespaces() {

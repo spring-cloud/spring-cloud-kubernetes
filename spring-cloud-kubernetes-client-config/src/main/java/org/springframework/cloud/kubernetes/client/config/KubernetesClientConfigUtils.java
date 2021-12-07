@@ -95,7 +95,7 @@ public final class KubernetesClientConfigUtils {
 	static String getApplicationNamespace(String namespace, String configurationTarget,
 			KubernetesNamespaceProvider provider) {
 		if (StringUtils.hasText(namespace)) {
-			LOG.debug(configurationTarget + " namespace from normalized source : " + namespace);
+			LOG.debug(configurationTarget + " namespace from normalized source or passed directly : " + namespace);
 			return namespace;
 		}
 

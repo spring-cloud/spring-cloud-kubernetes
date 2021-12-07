@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,10 +46,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Ryan Baxter
+ * @author Isik Erhan
  */
 class KubernetesClientConfigMapPropertySourceLocatorTests {
 
@@ -64,6 +66,8 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 							.build());
 
 	private static WireMockServer wireMockServer;
+
+	private static final MockEnvironment ENV = new MockEnvironment();
 
 	@BeforeAll
 	public static void setup() {
@@ -97,7 +101,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace("default");
 		PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
-				configMapConfigProperties, kubernetesClientProperties).locate(new MockEnvironment());
+				configMapConfigProperties, kubernetesClientProperties).locate(ENV);
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
 	}
@@ -117,7 +121,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace("dev");
 		PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
-				configMapConfigProperties, kubernetesClientProperties).locate(new MockEnvironment());
+				configMapConfigProperties, kubernetesClientProperties).locate(ENV);
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
 	}
@@ -140,8 +144,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace(""); // empty on purpose
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
-				kubernetesClientProperties).locate(new MockEnvironment()))
-						.isInstanceOf(NamespaceResolutionFailedException.class);
+				kubernetesClientProperties).locate(ENV)).isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 	/**
@@ -162,8 +165,43 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace(""); // empty on purpose
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
-				new KubernetesNamespaceProvider(new MockEnvironment())).locate(new MockEnvironment()))
+				new KubernetesNamespaceProvider(ENV)).locate(ENV))
 						.isInstanceOf(NamespaceResolutionFailedException.class);
+	}
+
+	@Test
+	public void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get("/api/v1/namespaces/default/configmaps")
+				.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
+		configMapConfigProperties.setName("bootstrap-640");
+		configMapConfigProperties.setNamespace("default");
+		configMapConfigProperties.setFailFast(true);
+
+		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
+				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
+
+		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
+				.hasMessage("Unable to read ConfigMap with name 'bootstrap-640' in namespace 'default'");
+	}
+
+	@Test
+	public void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get("/api/v1/namespaces/default/configmaps")
+				.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
+		configMapConfigProperties.setName("bootstrap-640");
+		configMapConfigProperties.setNamespace("default");
+		configMapConfigProperties.setFailFast(false);
+
+		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
+				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
+
+		assertThatNoException().isThrownBy(() -> locator.locate(new MockEnvironment()));
 	}
 
 }

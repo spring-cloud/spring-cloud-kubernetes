@@ -55,7 +55,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
 			properties = { "spring.cloud.kubernetes.secrets.enabled=true",
-					"spring.cloud.kubernetes.client.namespace=default" })
+					"spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES" })
 	@Nested
 	class KubernetesEnabledOnPurpose {
 
@@ -71,7 +71,8 @@ public class KubernetesClientBootstrapConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-			properties = "spring.cloud.kubernetes.client.namespace=default")
+			properties = { "spring.cloud.kubernetes.client.namespace=default",
+					"spring.main.cloud-platform=KUBERNETES" })
 	@Nested
 	class KubernetesEnabled {
 
@@ -87,7 +88,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-			properties = "spring.cloud.kubernetes.config.enabled=false")
+			properties = { "spring.cloud.kubernetes.config.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
 	@Nested
 	class KubernetesEnabledConfigDisabled {
 
@@ -104,7 +105,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
 			properties = { "spring.cloud.kubernetes.secrets.enabled=false",
-					"spring.cloud.kubernetes.client.namespace=default" })
+					"spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES" })
 	@Nested
 	class KubernetesEnabledSecretsDisabled {
 
@@ -121,7 +122,7 @@ public class KubernetesClientBootstrapConfigurationTests {
 
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
 			properties = { "spring.cloud.kubernetes.secrets.enabled=false",
-					"spring.cloud.kubernetes.config.enabled=false" })
+					"spring.cloud.kubernetes.config.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
 	@Nested
 	class KubernetesEnabledSecretsAndConfigDisabled {
 
@@ -130,6 +131,42 @@ public class KubernetesClientBootstrapConfigurationTests {
 
 		@Test
 		void secretsOnlyPresent() {
+			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
+			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(0);
+		}
+
+	}
+
+	// tests that @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES) has the desired
+	// effect, meaning when it is enabled, both property sources are present
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
+			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=abc" })
+	@Nested
+	class KubernetesClientBootstrapConfigurationInsideK8s {
+
+		@Autowired
+		ConfigurableApplicationContext context;
+
+		@Test
+		public void bothPresent() {
+			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(1);
+			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(1);
+		}
+
+	}
+
+	// tests that @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES) has the desired
+	// effect, meaning when it is disabled, no property source bean is present
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
+			properties = { "kubernetes.informer.enabled=false" })
+	@Nested
+	class KubernetesClientBootstrapConfigurationNotInsideK8s {
+
+		@Autowired
+		ConfigurableApplicationContext context;
+
+		@Test
+		public void bothMissing() {
 			assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
 			assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(0);
 		}
