@@ -55,11 +55,16 @@ jobs:
             sudo apt update
             sudo apt install snapd
       - kube-orb/install-kubectl
+      - attach_workspace:
+            at: docker-images
       - run:
           name: Build Controller Images
           command: |
-            cd spring-cloud-kubernetes-controllers
-            ../mvnw clean install -DskipTests
+            docker load -i ./docker-images/spring-cloud-kubernetes-configuration-watcher.tar
+            docker load -i ./docker-images/spring-cloud-kubernetes-discoveryserver.tar
+            docker load -i ./docker-images/spring-cloud-kubernetes-configserver.tar
+#            cd spring-cloud-kubernetes-controllers
+#            ../mvnw clean install -DskipTests
       - run:
           name: Run Kind Integration Tests
           command: |
@@ -153,6 +158,18 @@ jobs:
           name: build
           command: |
             ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} -DskipTests
+      - run:
+          name: save docker images
+          command: |
+            TAG=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+            echo $TAG
+            mkdir docker-images
+            docker save -o docker-images/spring-cloud-kubernetes-configuration-watcher.tar docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${TAG}
+            docker save -o docker-images/spring-cloud-kubernetes-discoveryserver.tar docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${TAG}
+            docker save -o docker-images/spring-cloud-kubernetes-configserver.tar springcloud docker.io/springcloud/spring-cloud-kubernetes-configserver:${TAG}
+      - persist_to_workspace:
+          root: ./
+          paths: docker-images
       - save_cache:
           paths:
             - ~/.m2
