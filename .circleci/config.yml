@@ -164,7 +164,7 @@ jobs:
             mkdir docker-images
             docker save -o docker-images/spring-cloud-kubernetes-configuration-watcher.tar docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${TAG}
             docker save -o docker-images/spring-cloud-kubernetes-discoveryserver.tar docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${TAG}
-            docker save -o docker-images/spring-cloud-kubernetes-configserver.tar springcloud docker.io/springcloud/spring-cloud-kubernetes-configserver:${TAG}
+            docker save -o docker-images/spring-cloud-kubernetes-configserver.tar docker.io/springcloud/spring-cloud-kubernetes-configserver:${TAG}
       - persist_to_workspace:
           root: ./
           paths: docker-images
