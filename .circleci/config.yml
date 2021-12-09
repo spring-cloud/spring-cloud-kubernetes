@@ -56,7 +56,7 @@ jobs:
             sudo apt install snapd
       - kube-orb/install-kubectl
       - attach_workspace:
-            at: docker-images
+            at: ./
       - run:
           name: Build Controller Images
           command: |
