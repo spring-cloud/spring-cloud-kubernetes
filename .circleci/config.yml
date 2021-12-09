@@ -58,13 +58,9 @@ jobs:
       - attach_workspace:
             at: ./
       - run:
-          name: Build Controller Images
+          name: Load Controller Images From Workspace
           command: |
             docker load -i ./docker-images/spring-cloud-kubernetes-configuration-watcher.tar
-#            docker load -i ./docker-images/spring-cloud-kubernetes-discoveryserver.tar
-#            docker load -i ./docker-images/spring-cloud-kubernetes-configserver.tar
-#            cd spring-cloud-kubernetes-controllers
-#            ../mvnw clean install -DskipTests
       - run:
           name: Run Kind Integration Tests
           command: |
@@ -165,8 +161,6 @@ jobs:
             echo $TAG
             mkdir docker-images
             docker save -o docker-images/spring-cloud-kubernetes-configuration-watcher.tar docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${TAG}
-#            docker save -o docker-images/spring-cloud-kubernetes-discoveryserver.tar docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${TAG}
-#            docker save -o docker-images/spring-cloud-kubernetes-configserver.tar springcloud docker.io/springcloud/spring-cloud-kubernetes-configserver:${TAG}
       - persist_to_workspace:
           root: ./
           paths: docker-images
