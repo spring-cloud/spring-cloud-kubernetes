@@ -116,7 +116,9 @@ main() {
 	#"${ISTIOCTL}" install --set profile=demo
 
 	# running tests..
-	if [[ $CIRCLECI ]]; then
+	if [[ -z ${CIRCLECI+x} ]]; then
+		run_tests "${INTEGRATION_PROJECTS[@]}"
+	else
 		#This splits projects across all circleci instances, it returns a list of projects separated by a space
 		SPLIT_PROJECTS=$(printf "%s\n" "${INTEGRATION_PROJECTS[@]}" | circleci tests split)
 		SPLIT_PROJECTS=$(echo $SPLIT_PROJECTS | sed 's/ /,/g')
@@ -125,8 +127,6 @@ main() {
 		IFS=',' read -ra PROJECTS <<< "$SPLIT_PROJECTS"
 		echo "projects $PROJECTS"
 		run_tests "${PROJECTS[@]}"
-	else
-		run_tests "${INTEGRATION_PROJECTS[@]}"
 	fi
 
     # teardown will happen automatically on exit
