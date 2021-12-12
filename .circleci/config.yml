@@ -46,3 +46,5 @@ jobs:
             find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
             bash <(curl -s https://codecov.io/bash)
+      - store_test_results:
+          path: test-results
