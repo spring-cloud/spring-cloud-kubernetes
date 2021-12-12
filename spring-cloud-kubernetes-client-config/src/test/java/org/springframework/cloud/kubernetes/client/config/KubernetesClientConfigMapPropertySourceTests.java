@@ -31,6 +31,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.mock.env.MockEnvironment;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -142,6 +143,30 @@ class KubernetesClientConfigMapPropertySourceTests {
 				.isTrue();
 		assertThat(propertySource.getProperty("prefix.logging.level.org.springframework.cloud.kubernetes"))
 				.isEqualTo("TRACE");
+	}
+
+	@Test
+	void deprecatedConstructorWithoutNamespaceMustFail() {
+		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySource(new CoreV1Api(), "configmap", null,
+				new MockEnvironment())).isInstanceOf(NamespaceResolutionFailedException.class);
+	}
+
+	@Test
+	void constructorWithoutNamespaceMustFail() {
+		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySource(new CoreV1Api(), "configmap", null,
+				new MockEnvironment(), "", false, false)).isInstanceOf(NamespaceResolutionFailedException.class);
+	}
+
+	@Test
+	void deprecatedConstructorWithNamespaceMustNotFail() {
+		assertThat(new KubernetesClientConfigMapPropertySource(new CoreV1Api(), "configmap", "namespace",
+				new MockEnvironment())).isNotNull();
+	}
+
+	@Test
+	void constructorWithNamespaceMustNotFail() {
+		assertThat(new KubernetesClientConfigMapPropertySource(new CoreV1Api(), "configmap", "namespace",
+				new MockEnvironment(), "", false, false)).isNotNull();
 	}
 
 	@Test
