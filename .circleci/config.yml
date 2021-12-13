@@ -38,6 +38,7 @@ jobs:
             CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" | grep -v 'spring-cloud-kubernetes-integration-tests' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//' \
+                               | xargs grep -l '@Test' \
                                | circleci tests split --split-by=timings --timings-type=classname)
             echo "********************************"
             echo "********************************"
