@@ -26,6 +26,7 @@ jobs:
   test:
     parallelism: 5 # parallel containers to split the tests among
     machine: true
+    resource_class: xlarge
     environment:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
       _SERVICE_OCCURENCE: 5
