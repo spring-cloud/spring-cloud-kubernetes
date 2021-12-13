@@ -28,7 +28,7 @@ jobs:
     machine: true
     resource_class: large
     environment:
-      _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
+      _JAVA_OPTIONS: "-Xms8g -Xmx8g"
       _SERVICE_OCCURENCE: 5
     steps:
       - checkout
