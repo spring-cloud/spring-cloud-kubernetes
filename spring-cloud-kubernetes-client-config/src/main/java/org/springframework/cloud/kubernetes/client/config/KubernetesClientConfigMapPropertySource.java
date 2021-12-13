@@ -32,6 +32,8 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySour
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.getApplicationNamespace;
+
 /**
  * @author Ryan Baxter
  * @author Isik Erhan
@@ -43,19 +45,21 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 	@Deprecated
 	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
 			Environment environment) {
-		super(getName(name, namespace), getData(coreV1Api, name, namespace, environment, "", true, false));
+		super(getName(name, getApplicationNamespace(namespace, "Config Map", null)), getData(coreV1Api, name,
+				getApplicationNamespace(namespace, "Config Map", null), environment, "", true, false));
 	}
 
 	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
 			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
-		super(getName(name, namespace),
-				getData(coreV1Api, name, namespace, environment, prefix, includeProfileSpecificSources, failFast));
+		super(getName(name, getApplicationNamespace(namespace, "Config Map", null)),
+				getData(coreV1Api, name, getApplicationNamespace(namespace, "Config Map", null), environment, prefix,
+						includeProfileSpecificSources, failFast));
 	}
 
 	private static Map<String, Object> getData(CoreV1Api coreV1Api, String name, String namespace,
 			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
 
-		LOG.info("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
+		LOG.debug("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
 		try {
 			Set<String> names = new HashSet<>();
 			names.add(name);

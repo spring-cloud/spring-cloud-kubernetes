@@ -31,6 +31,12 @@ public final class KubernetesClientUtils {
 	private KubernetesClientUtils() {
 	}
 
+	public static ApiClient createApiClientForInformerClient() {
+		ApiClient apiClient = kubernetesApiClient();
+		apiClient.setReadTimeout(0);
+		return apiClient;
+	}
+
 	public static ApiClient kubernetesApiClient() {
 		try {
 			// Assume we are running in a cluster

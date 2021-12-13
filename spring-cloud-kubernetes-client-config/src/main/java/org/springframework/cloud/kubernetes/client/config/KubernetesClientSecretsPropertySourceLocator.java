@@ -90,8 +90,8 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 					kubernetesNamespaceProvider);
 		}
 
-		return new KubernetesClientSecretsPropertySource(coreV1Api, secretName, namespace, environment,
-				normalizedSource.getLabels(), this.properties.isFailFast());
+		return new KubernetesClientSecretsPropertySource(coreV1Api, secretName, namespace, normalizedSource.getLabels(),
+				this.properties.isFailFast());
 	}
 
 }

@@ -63,7 +63,7 @@ public class Fabric8AutoConfiguration {
 	@ConditionalOnMissingBean(Config.class)
 	public Config kubernetesClientConfig(KubernetesClientProperties kubernetesClientProperties) {
 		Config base = Config.autoConfigure(null);
-		Config properties = new ConfigBuilder(base)
+		ConfigBuilder builder = new ConfigBuilder(base)
 				// Only set values that have been explicitly specified
 				.withMasterUrl(or(kubernetesClientProperties.getMasterUrl(), base.getMasterUrl()))
 				.withApiVersion(or(kubernetesClientProperties.getApiVersion(), base.getApiVersion()))
@@ -96,7 +96,14 @@ public class Fabric8AutoConfiguration {
 				.withHttpsProxy(or(kubernetesClientProperties.getHttpsProxy(), base.getHttpsProxy()))
 				.withProxyUsername(or(kubernetesClientProperties.getProxyUsername(), base.getProxyUsername()))
 				.withProxyPassword(or(kubernetesClientProperties.getProxyPassword(), base.getProxyPassword()))
-				.withNoProxy(or(kubernetesClientProperties.getNoProxy(), base.getNoProxy())).build();
+				.withNoProxy(or(kubernetesClientProperties.getNoProxy(), base.getNoProxy()));
+
+		String userAgent = or(base.getUserAgent(), KubernetesClientProperties.DEFAULT_USER_AGENT);
+		if (!kubernetesClientProperties.getUserAgent().equals(KubernetesClientProperties.DEFAULT_USER_AGENT)) {
+			userAgent = kubernetesClientProperties.getUserAgent();
+		}
+
+		Config properties = builder.withUserAgent(userAgent).build();
 
 		return properties;
 	}

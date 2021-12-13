@@ -35,7 +35,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.mock.env.MockEnvironment;
+import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -63,7 +63,7 @@ class KubernetesClientSecretsPropertySourceTests {
 
 	private static final String LIST_API = "/api/v1/secrets";
 
-	private static final String LIST_API_WITH_LABEL = "/api/v1/secrets?labelSelector=spring.cloud.kubernetes.secret%3Dtrue";
+	private static final String LIST_API_WITH_LABEL = "/api/v1/namespaces/default/secrets?labelSelector=spring.cloud.kubernetes.secret%3Dtrue";
 
 	private static final String LIST_BODY = "{\n" + "\t\"kind\": \"SecretList\",\n" + "\t\"apiVersion\": \"v1\",\n"
 			+ "\t\"metadata\": {\n" + "\t\t\"selfLink\": \"/api/v1/secrets\",\n"
@@ -91,7 +91,7 @@ class KubernetesClientSecretsPropertySourceTests {
 	private static WireMockServer wireMockServer;
 
 	@BeforeAll
-	public static void setup() {
+	static void setup() {
 		wireMockServer = new WireMockServer(options().dynamicPort());
 
 		wireMockServer.start();
@@ -103,21 +103,21 @@ class KubernetesClientSecretsPropertySourceTests {
 	}
 
 	@AfterAll
-	public static void after() {
+	static void after() {
 		wireMockServer.stop();
 	}
 
 	@AfterEach
-	public void afterEach() {
+	void afterEach() {
 		WireMock.reset();
 	}
 
 	@Test
-	public void secretsTest() {
+	void secretsTest() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SECRET_LIST))));
 		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(api,
-				"db-secret", "default", new MockEnvironment(), new HashMap<>(), false);
+				"db-secret", "default", new HashMap<>(), false);
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
 		assertThat(propertySource.containsProperty("username")).isTrue();
@@ -125,48 +125,43 @@ class KubernetesClientSecretsPropertySourceTests {
 	}
 
 	@Test
-	public void secretsNullNamespaceTest() {
-		CoreV1Api api = new CoreV1Api();
-		stubFor(get(LIST_API).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
-		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(api,
-				"db-secret", null, new MockEnvironment(), new HashMap<>(), false);
-		assertThat(propertySource.containsProperty("password")).isTrue();
-		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
-		assertThat(propertySource.containsProperty("username")).isTrue();
-		assertThat(propertySource.getProperty("username")).isEqualTo("user");
-	}
-
-	@Test
-	public void secretLabelsTest() {
+	void secretLabelsTest() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(LIST_API_WITH_LABEL).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
 		Map<String, String> labels = new HashMap<>();
 		labels.put("spring.cloud.kubernetes.secret", "true");
 		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(api, null,
-				null, new MockEnvironment(), labels, false);
+				"default", labels, false);
 		assertThat(propertySource.containsProperty("spring.rabbitmq.password")).isTrue();
 		assertThat(propertySource.getProperty("spring.rabbitmq.password")).isEqualTo("password");
 	}
 
 	@Test
-	public void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
+	void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySource(api, "db-secret", "default",
-				new MockEnvironment(), null, true)).isInstanceOf(IllegalStateException.class).hasMessage(
-						"Unable to read Secret with name 'db-secret' or labels [null] in namespace 'default'");
+		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySource(api, "db-secret", "default", null, true))
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessage("Unable to read Secret with name 'db-secret' or labels [null] in namespace 'default'");
 		verify(getRequestedFor(urlEqualTo(API)));
 	}
 
 	@Test
-	public void constructorShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
+	void constructorShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		assertThatNoException().isThrownBy((() -> new KubernetesClientSecretsPropertySource(api, "db-secret", "default",
-				new MockEnvironment(), null, false)));
+		assertThatNoException().isThrownBy(
+				(() -> new KubernetesClientSecretsPropertySource(api, "db-secret", "default", null, false)));
 		verify(getRequestedFor(urlEqualTo(API)));
+	}
+
+	@Test
+	void constructorMustFailWhenNamespaceIsNoProvided() {
+		CoreV1Api api = new CoreV1Api();
+		assertThatThrownBy((() -> new KubernetesClientSecretsPropertySource(api, "db-secret", null, null, false)))
+				.isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 }
