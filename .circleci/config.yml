@@ -38,6 +38,13 @@ jobs:
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//' \
                                | circleci tests split --split-by=timings --timings-type=classname)
+            echo "********************************"
+            echo "********************************"
+            echo "********************************"
+            echo "********************************"
+            echo "********************************"
+            echo "********************************"
+            echo "********************************"
             echo $CLASSNAMES
             TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
             echo $TEST_ARG
