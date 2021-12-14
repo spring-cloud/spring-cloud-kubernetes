@@ -63,13 +63,6 @@ jobs:
             cd spring-cloud-kubernetes-integration-tests
             ./run.sh
       - run:
-          name: Run integration tests
-          command: |
-            /snap/bin/microk8s.kubectl config view --raw > /tmp/kubeconfig
-            export KUBECONFIG=/tmp/kubeconfig
-            cd spring-cloud-kubernetes-integration-tests
-            ../mvnw -Ddocker.host='unix:///var/snap/microk8s/current/docker.sock' -Dimage.registry='localhost:32000' clean package fabric8:build verify -Pfmp,it,spring
-      - run:
           name: "Aggregate test results"
           when: always
           command: |
