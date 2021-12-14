@@ -17,16 +17,12 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.Base64;
-import java.util.Collections;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import org.junit.ClassRule;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,22 +37,17 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = "spring.main.cloud-platform=KUBERNETES")
 @TestPropertySource("classpath:/application-secrets.properties")
 @EnableKubernetesMockClient(crud = true, https = false)
-public class Fabric8SecretsPropertySourceTest {
+class Fabric8SecretsPropertySourceTest {
 
 	private static final String NAMESPACE = "test";
 
 	private static KubernetesClient mockClient;
-
-	@ClassRule
-	public static KubernetesServer mockServer = new KubernetesServer(false);
 
 	private static final String SECRET_VALUE = "secretValue";
 
@@ -67,7 +58,7 @@ public class Fabric8SecretsPropertySourceTest {
 	private Environment environment;
 
 	@BeforeAll
-	public static void setUpBeforeClass() {
+	static void setUpBeforeClass() {
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
@@ -82,43 +73,13 @@ public class Fabric8SecretsPropertySourceTest {
 				.addToData("secretName", Base64.getEncoder().encodeToString(SECRET_VALUE.getBytes())).build();
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 
-		mockServer.before();
-	}
-
-	@AfterAll
-	public static void tearDown() {
-		mockServer.after();
 	}
 
 	@Test
-	public void toStringShouldNotExposeSecretValues() {
+	void toStringShouldNotExposeSecretValues() {
 		PropertySource<?> propertySource = this.propertySourceLocator.locate(this.environment);
 		assertThat(propertySource.toString()).doesNotContain(SECRET_VALUE);
 		assertThat(propertySource.getProperty("secretName")).isEqualTo("secretValue");
-	}
-
-	@Test
-	public void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
-		final String name = "my-config";
-		final String namespace = "default";
-		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
-
-		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
-		assertThatThrownBy(() -> new Fabric8SecretsPropertySource(mockServer.getClient(), name, namespace,
-				Collections.emptyMap(), true)).isInstanceOf(IllegalStateException.class)
-						.hasMessage("Unable to read Secret with name '" + name + "' or labels [{}] in namespace '"
-								+ namespace + "'");
-	}
-
-	@Test
-	public void constructorShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
-		final String name = "my-config";
-		final String namespace = "default";
-		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
-
-		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
-		assertThatNoException().isThrownBy(() -> new Fabric8SecretsPropertySource(mockServer.getClient(), name,
-				namespace, Collections.emptyMap(), false));
 	}
 
 }

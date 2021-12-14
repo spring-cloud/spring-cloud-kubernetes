@@ -41,6 +41,7 @@
 |spring.cloud.kubernetes.client.service-account-namespace-path | `/var/run/secrets/kubernetes.io/serviceaccount/namespace` | 
 |spring.cloud.kubernetes.client.trust-certs |  | 
 |spring.cloud.kubernetes.client.trustCerts | `false` | Kubernetes API Trust Certificates
+|spring.cloud.kubernetes.client.user-agent | `Spring-Cloud-Kubernetes-Application` | 
 |spring.cloud.kubernetes.client.username |  | Kubernetes API Username
 |spring.cloud.kubernetes.client.watch-reconnect-interval |  | 
 |spring.cloud.kubernetes.client.watch-reconnect-limit |  | 
@@ -71,7 +72,6 @@
 |spring.cloud.kubernetes.discovery.order |  | 
 |spring.cloud.kubernetes.discovery.primary-port-name |  | If set then the port with a given name is used as primary when multiple ports are defined for a service.
 |spring.cloud.kubernetes.discovery.service-labels |  | If set, then only the services matching these labels will be fetched from the Kubernetes API server.
-|spring.cloud.kubernetes.discovery.service-name | `unknown` | The service name of the local instance.
 |spring.cloud.kubernetes.discovery.wait-cache-ready | `true` | 
 |spring.cloud.kubernetes.enabled | `true` | Whether to enable Kubernetes integration.
 |spring.cloud.kubernetes.leader.auto-startup | `true` | Should leader election be started automatically on startup. Default: true

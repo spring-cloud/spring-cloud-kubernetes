@@ -44,6 +44,11 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8ConfigMapPropertySource.class);
 
+	/**
+	 * this constructor is present only for compatibility reasons, its usage is
+	 * discouraged.
+	 */
+	@Deprecated
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name) {
 		this(client, name, null, null, "", true, false);
 	}
@@ -55,21 +60,21 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 	@Deprecated
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
 			Environment environment) {
-		super(getName(name, getApplicationNamespace(client, namespace)),
-				getData(client, name, getApplicationNamespace(client, namespace), environment, "", true, false));
+		super(getName(name, getApplicationNamespace(client, namespace, "Config Map", null)), getData(client, name,
+				getApplicationNamespace(client, namespace, "Config Map", null), environment, "", true, false));
 	}
 
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
 			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
-		super(getName(name, getApplicationNamespace(client, namespace)),
-				getData(client, name, getApplicationNamespace(client, namespace), environment, prefix,
-						includeProfileSpecificSources, failFast));
+		super(getName(name, getApplicationNamespace(client, namespace, "Config Map", null)),
+				getData(client, name, getApplicationNamespace(client, namespace, "Config Map", null), environment,
+						prefix, includeProfileSpecificSources, failFast));
 	}
 
 	private static Map<String, Object> getData(KubernetesClient client, String name, String namespace,
 			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
 
-		LOG.info("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
+		LOG.debug("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
 		try {
 			Map<String, String> data = getConfigMapData(client, namespace, name);
 			Map<String, Object> result = new HashMap<>(processAllEntries(data, environment));

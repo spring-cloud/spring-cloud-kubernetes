@@ -105,7 +105,7 @@ class KubernetesEnvironmentRepositoryTests {
 		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 			propertySources.add(new KubernetesClientSecretsPropertySource(coreApi, applicationName, "default",
-					springEnv, new HashMap<>(), false));
+					new HashMap<>(), false));
 			return propertySources;
 		});
 	}

@@ -55,14 +55,17 @@ public class EventBasedConfigurationChangeDetectorTests {
 		data.put("foo", "bar");
 		configMap.setData(data);
 		MixedOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mixedOperation = mock(MixedOperation.class);
+		when(k8sClient.configMaps()).thenReturn(mixedOperation);
 		Resource<ConfigMap> resource = mock(Resource.class);
+
 		when(resource.get()).thenReturn(configMap);
 		when(mixedOperation.withName(eq("myconfigmap"))).thenReturn(resource);
-		when(k8sClient.configMaps()).thenReturn(mixedOperation);
+		when(mixedOperation.inNamespace("default")).thenReturn(mixedOperation);
+		when(k8sClient.getNamespace()).thenReturn("default");
 
 		Fabric8ConfigMapPropertySource fabric8ConfigMapPropertySource = new Fabric8ConfigMapPropertySource(k8sClient,
 				"myconfigmap");
-		env.getPropertySources().addFirst(new BootstrapPropertySource(fabric8ConfigMapPropertySource));
+		env.getPropertySources().addFirst(new BootstrapPropertySource<>(fabric8ConfigMapPropertySource));
 
 		ConfigurationUpdateStrategy configurationUpdateStrategy = mock(ConfigurationUpdateStrategy.class);
 		Fabric8ConfigMapPropertySourceLocator configMapLocator = mock(Fabric8ConfigMapPropertySourceLocator.class);

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2018-2021 to the original authors.
+# Copyright (C) 2018 to the original authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,37 +27,48 @@ workflows:
             - build
 jobs:
   test:
-    parallelism: 8 # parallel containers to split the tests among
+    parallelism: 5 # parallel containers to split the tests among
     machine: true
     environment:
-      _JAVA_OPTIONS: "-Xms2g -Xmx2g"
+      _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
       _SERVICE_OCCURENCE: 5
     steps:
       - checkout
       - run:
           name: Run regular tests
           command: |
-            ./mvnw -s .settings.xml  -DfailIfNoTests=false -Dservice.occurence=${_SERVICE_OCCURENCE} org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-            -Dtest=$(for file in $(circleci tests glob **/src/test/**/**.java | grep -v 'spring-cloud-kubernetes-integration-tests'| circleci tests split --split-by=timings); \
-                      do basename $file \
-                      | sed -e "s/.java/,/"; \
-                      done | tr -d '\r\n') \
-                      -e test
+            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" | grep -v 'spring-cloud-kubernetes-integration-tests' \
+                               | xargs grep -l '@Test' \
+                               | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
+                               | sed 's/.\{5\}$//' \
+                               | circleci tests split --split-by=timings --timings-type=classname)
+            echo $CLASSNAMES
+            TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
+            echo $TEST_ARG
+            ./mvnw -s .settings.xml  -DfailIfNoTests=false -Dtest=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent test -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
             mkdir -p $HOME/artifacts/junit/
             find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
             bash <(curl -s https://codecov.io/bash)
       - kube-orb/install-kubectl
+      - attach_workspace:
+          at: ./
       - run:
-          name: Build Controller Images
+          name: Load Controller Images From Workspace
           command: |
-            cd spring-cloud-kubernetes-controllers
-            ../mvnw clean install -DskipTests
+            docker load -i ./docker-images/spring-cloud-kubernetes-configuration-watcher.tar
       - run:
           name: Run Kind Integration Tests
           command: |
             cd spring-cloud-kubernetes-integration-tests
             ./run.sh
+      - run:
+          name: Run integration tests
+          command: |
+            /snap/bin/microk8s.kubectl config view --raw > /tmp/kubeconfig
+            export KUBECONFIG=/tmp/kubeconfig
+            cd spring-cloud-kubernetes-integration-tests
+            ../mvnw -Ddocker.host='unix:///var/snap/microk8s/current/docker.sock' -Dimage.registry='localhost:32000' clean package fabric8:build verify -Pfmp,it,spring
       - run:
           name: "Aggregate test results"
           when: always
@@ -86,11 +97,21 @@ jobs:
       - run:
           name: dependencies
           command: |
-            ./mvnw -s .settings.xml -U --fail-never dependency:go-offline -Dservice.occurence=${_SERVICE_OCCURENCE} || true
+            ./mvnw -s .settings.xml -U dependency:resolve-plugins dependency:go-offline -B -Dservice.occurence=${_SERVICE_OCCURENCE} || true
       - run:
           name: build
           command: |
             ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} -DskipTests
+      - run:
+          name: save docker images
+          command: |
+            TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+            echo $TAG
+            mkdir docker-images
+            docker save -o docker-images/spring-cloud-kubernetes-configuration-watcher.tar docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${TAG}
+      - persist_to_workspace:
+          root: ./
+          paths: docker-images
       - save_cache:
           paths:
             - ~/.m2
