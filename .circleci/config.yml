@@ -83,11 +83,11 @@ jobs:
       _SERVICE_OCCURENCE: 5
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - v1-spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - spring-cloud-kubernetes-{{ .Branch }}
-            - spring-cloud-kubernetes
+#      - restore_cache:
+#          keys:
+#            - v1-spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+#            - spring-cloud-kubernetes-{{ .Branch }}
+#            - spring-cloud-kubernetes
       - run:
           name: dependencies
           command: |
@@ -107,10 +107,10 @@ jobs:
       - persist_to_workspace:
           root: ./
           paths: docker-images
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: v1-spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+#      - save_cache:
+#          paths:
+#            - ~/.m2
+#          key: v1-spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
 notify:
   webhooks:
     - url: https://webhooks.gitter.im/e/22e6bb4eb945dd61ba54
