@@ -41,7 +41,7 @@ jobs:
                                | xargs grep -l '@Test' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//' \
-                               | circleci tests split --split-by=timings --timings-type=classname)
+                               | circleci tests split --split-by=timings)
             echo $CLASSNAMES
             TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
             echo $TEST_ARG
