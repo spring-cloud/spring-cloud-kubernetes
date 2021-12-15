@@ -272,6 +272,9 @@ spring:
 
 In the preceding example, if `spring.cloud.kubernetes.config.namespace` had not been set,
 the `ConfigMap` named `c1` would be looked up in the namespace that the application runs.
+See <<namespace-resolution,Namespace resolution>> to get a better understanding of how the namespace
+of the application is resolved.
+
 
 Any matching `ConfigMap` that is found is processed as follows:
 
@@ -494,6 +497,179 @@ spec:
 ----
 ====
 
+You could run into a situation where there are multiple configs maps that have the same property names. For example:
+
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: config-map-one
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello from one
+----
+====
+
+and
+
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: config-map-two
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello from two
+----
+====
+
+Depending on the order in which you place these in `bootstrap.yaml|properties`, you might end up with an un-expected result (the last config map wins). For example:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: cloud-k8s-app
+  cloud:
+    kubernetes:
+      config:
+        namespace: default-namespace
+        sources:
+         - name: config-map-two
+         - name: config-map-one
+----
+====
+
+will result in property `greetings.message` being `Say Hello from one`.
+
+There is a way to change this default configuration by specifying `useNameAsPrefix`. For example:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: with-prefix
+  cloud:
+    kubernetes:
+      config:
+        useNameAsPrefix: true
+        namespace: default-namespace
+        sources:
+          - name: config-map-one
+            useNameAsPrefix: false
+          - name: config-map-two
+----
+====
+
+Such a configuration will result in two properties being generated:
+
+ - `greetings.message` equal to `Say Hello from one`.
+
+ - `config-map-two.greetings.message` equal to `Say Hello from two`
+
+Notice that `spring.cloud.kubernetes.config.useNameAsPrefix` has a _lower_ priority than `spring.cloud.kubernetes.config.sources.useNameAsPrefix`.
+This allows you to set a "default" strategy for all sources, at the same time allowing to override only a few.
+
+If using the config map name is not an option, you can specify a different strategy, called : `explicitPrefix`. Since this is an _explicit_ prefix that
+you select, it can only be supplied to the `sources` level. At the same time it has a higher priority than `useNameAsPrefix`. Let's suppose we have a third config map with these entries:
+
+
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: config-map-three
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello from three
+----
+====
+
+A configuration like the one below:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: with-prefix
+  cloud:
+    kubernetes:
+      config:
+        useNameAsPrefix: true
+        namespace: default-namespace
+        sources:
+          - name: config-map-one
+            useNameAsPrefix: false
+          - name: config-map-two
+            explicitPrefix: two
+          - name: config-map-three
+----
+====
+
+will result in three properties being generated:
+
+ - `greetings.message` equal to `Say Hello from one`.
+
+ - `two.greetings.message` equal to `Say Hello from two`.
+
+ - `config-map-three.greetings.message` equal to `Say Hello from three`.
+
+By default, besides reading the config map that is specified in the `sources` configuration, Spring will also try to read
+all properties from "profile aware" sources. The easiest way to explain this is via an example. Let's suppose your application
+enables a profile called "dev" and you have a configuration like the one below:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: spring-k8s
+  cloud:
+    kubernetes:
+      config:
+        namespace: default-namespace
+        sources:
+          - name: config-map-one
+----
+====
+
+Besides reading the `config-map-one`, Spring will also try to read `config-map-one-dev`; in this particular order. Each active profile
+generates such a profile aware config map.
+
+Though your application should not be impacted by such a config map, it can be disabled if needed:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: spring-k8s
+  cloud:
+    kubernetes:
+      config:
+        includeProfileSpecificSources: false
+        namespace: default-namespace
+        sources:
+          - name: config-map-one
+            includeProfileSpecificSources: false
+----
+====
+
+Notice that just like before, there are two levels where you can specify this property: for all config maps or
+for individual ones; the latter having a higher priority.
+
 NOTE: You should check the security configuration section. To access config maps from inside a pod you need to have the correct
 Kubernetes service accounts, roles and role bindings.
 
@@ -659,7 +835,7 @@ spring:
         sources:
          # Spring Cloud Kubernetes looks up a Secret named s1 in namespace default-namespace
          - name: s1
-         # Spring Cloud Kubernetes looks up a Secret named default-name in whatever namespace n2
+         # Spring Cloud Kubernetes looks up a Secret named default-name in namespace n2
          - namespace: n2
          # Spring Cloud Kubernetes looks up a Secret named s3 in namespace n3
          - namespace: n3
@@ -669,6 +845,8 @@ spring:
 
 In the preceding example, if `spring.cloud.kubernetes.secrets.namespace` had not been set,
 the `Secret` named `s1` would be looked up in the namespace that the application runs.
+See <<namespace-resolution,namespace-resolution>> to get a better understanding of how the namespace
+of the application is resolved.
 
 
 .Properties:
@@ -693,6 +871,45 @@ https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Bi
 
 You can find an example of an application that uses secrets (though it has not been updated to use the new `spring-cloud-kubernetes` project) at
 https://github.com/fabric8-quickstarts/spring-boot-camel-config[spring-boot-camel-config]
+
+[[namespace-resolution]]
+=== Namespace resolution
+Finding an application namespace happens on a best-effort basis. There are some steps that we iterate in order
+to find it. The easiest and most common one, is to specify it in the proper configuration, for example:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: app
+  cloud:
+    kubernetes:
+      secrets:
+        name: secret
+        namespace: default
+        sources:
+         # Spring Cloud Kubernetes looks up a Secret named 'a' in namespace 'default'
+         - name: a
+         # Spring Cloud Kubernetes looks up a Secret named 'secret' in namespace 'b'
+         - namespace: b
+         # Spring Cloud Kubernetes looks up a Secret named 'd' in namespace 'c'
+         - namespace: c
+           name: d
+----
+====
+
+Remember that the same can be done for config maps. If such a namespace is not specified, it will be read (in this order):
+
+1. from property `spring.cloud.kubernetes.client.namespace`
+2. from a String residing in a file denoted by `spring.cloud.kubernetes.client.serviceAccountNamespacePath` property
+3. from a String residing in `/var/run/secrets/kubernetes.io/serviceaccount/namespace` file
+(kubernetes default namespace path)
+4. from a designated client method call (for example fabric8's : `KubernetesClient::getNamespace`), if the client provides
+such a method. This, in turn, could be configured via environment properties. For example fabric8 client can be configured via
+"KUBERNETES_NAMESPACE" property; consult the client documentation for exact details.
+
+Failure to find a namespace from the above steps will result in an Exception being raised.
 
 === `PropertySource` Reload
 
@@ -856,13 +1073,16 @@ The Kubernetes health indicator (which is part of the core module) exposes the f
 * Pod name, IP address, namespace, service account, node name, and its IP address
 * A flag that indicates whether the Spring Boot application is internal or external to Kubernetes
 
+You can disable this `HealthContributor` by setting `management.health.kubernetes.enabled`
+to `false` in `application.[properties | yaml]`.
+
 == Info Contributor
 
 Spring Cloud Kubernetes includes an `InfoContributor` which adds Pod information to
 Spring Boot's `/info` Acturator endpoint.
 
 You can disable this `InfoContributor` by setting `management.info.kubernetes.enabled`
-to `false` in `bootstrap.[properties | yaml]`.
+to `false` in `application.[properties | yaml]`.
 
 == Leader Election
 The Spring Cloud Kubernetes leader election mechanism implements the leader election API of Spring Integration using a Kubernetes ConfigMap.
@@ -1276,23 +1496,9 @@ the `.mvn` configuration, so if you find you have to do it to make a
 build succeed, please raise a ticket to get the settings added to
 source control.
 
-For hints on how to build the project look in `.travis.yml` if there
-is one. There should be a "script" and maybe "install" command. Also
-look at the "services" section to see if any services need to be
-running locally (e.g. mongo or rabbit).  Ignore the git-related bits
-that you might find in "before_install" since they're related to setting git
-credentials and you already have those.
+The projects that require middleware (i.e. Redis) for testing generally
+require that a local instance of [Docker](https://www.docker.com/get-started) is installed and running.
 
-The projects that require middleware generally include a
-`docker-compose.yml`, so consider using
-https://docs.docker.com/compose/[Docker Compose] to run the middeware servers
-in Docker containers. See the README in the
-https://github.com/spring-cloud-samples/scripts[scripts demo
-repository] for specific instructions about the common cases of mongo,
-rabbit and redis.
-
-NOTE: If all else fails, build with the command from `.travis.yml` (usually
-`./mvnw install`).
 
 === Documentation
 
@@ -1525,3 +1731,54 @@ Go to `File` -> `Settings` -> `Other settings` -> `Checkstyle`. There click on t
 - `checkstyle.additional.suppressions.file` - this variable corresponds to suppressions in your local project. E.g. you're working on `spring-cloud-contract`. Then point to the `project-root/src/checkstyle/checkstyle-suppressions.xml` folder. Example for `spring-cloud-contract` would be: `/home/username/spring-cloud-contract/src/checkstyle/checkstyle-suppressions.xml`.
 
 IMPORTANT: Remember to set the `Scan Scope` to `All sources` since we apply checkstyle rules for production and test sources.
+
+=== Duplicate Finder
+
+Spring Cloud Build brings along the  `basepom:duplicate-finder-maven-plugin`, that enables flagging duplicate and conflicting classes and resources on the java classpath.
+
+==== Duplicate Finder configuration
+
+Duplicate finder is *enabled by default* and will run in the `verify` phase of your Maven build, but it will only take effect in your project if you add the `duplicate-finder-maven-plugin` to the `build` section of the projecst's `pom.xml`.
+
+.pom.xml
+[source,xml]
+----
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.basepom.maven</groupId>
+            <artifactId>duplicate-finder-maven-plugin</artifactId>
+        </plugin>
+    </plugins>
+</build>
+----
+
+For other properties, we have set defaults as listed in the https://github.com/basepom/duplicate-finder-maven-plugin/wiki[plugin documentation].
+
+You can easily override them but setting the value of the selected property prefixed with `duplicate-finder-maven-plugin`. For example, set `duplicate-finder-maven-plugin.skip` to `true` in order to skip duplicates check in your build.
+
+If you need to add `ignoredClassPatterns` or `ignoredResourcePatterns` to your setup, make sure to add them in the plugin configuration section of your project:
+
+[source,xml]
+----
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.basepom.maven</groupId>
+            <artifactId>duplicate-finder-maven-plugin</artifactId>
+            <configuration>
+                <ignoredClassPatterns>
+                    <ignoredClassPattern>org.joda.time.base.BaseDateTime</ignoredClassPattern>
+                    <ignoredClassPattern>.*module-info</ignoredClassPattern>
+                </ignoredClassPatterns>
+                <ignoredResourcePatterns>
+                    <ignoredResourcePattern>changelog.txt</ignoredResourcePattern>
+                </ignoredResourcePatterns>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+
+
+----
+
