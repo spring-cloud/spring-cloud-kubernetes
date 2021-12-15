@@ -177,9 +177,9 @@ main() {
 
 run_tests() {
 	arr=("$@")
-	cd spring-cloud-kubernetes-test-support
+	cd ../spring-cloud-kubernetes-test-support
 	${MVN} clean install
-	cd ..
+	cd ../spring-cloud-kubernetes-integration-tests
 	for p in "${arr[@]}"; do
 		echo "Running test: $p"
 		cd  $p
