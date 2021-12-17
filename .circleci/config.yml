@@ -67,10 +67,10 @@ jobs:
                 done
             done
 
+            ALL_TESTS=()
+            ALL_TESTS=("${NON_NESTED_CLASSNAMES[@]}" "${FLATTENED_NESTED_CLASSNAMES[@]}")
             echo '**********************************'
-            echo "${NON_NESTED_CLASSNAMES[@]}"
-            echo ${ROOT_NESTED_CLASSNAMES[@]}"
-            echo ${FLATTENED_NESTED_CLASSNAMES[@]}"
+            echo "${ALL_TESTS[@]}"
             echo '**********************************'
 
 
