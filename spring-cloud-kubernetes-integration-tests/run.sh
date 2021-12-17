@@ -186,7 +186,8 @@ run_tests() {
 		${MVN} spring-boot:build-image \
 			-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${PROJECT_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder
 		"${KIND}" load docker-image docker.io/springcloud/$p:${PROJECT_VERSION}
-		${MVN} clean install -P it
+		# empty excludeITTests, so that integration tests will run
+		${MVN} clean install -DexcludeITTests=
 		cd ..
 	done
 }

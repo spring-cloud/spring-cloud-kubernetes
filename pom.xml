@@ -82,6 +82,7 @@
 		</maven-checkstyle-plugin.failsOnViolation>
 		<maven-checkstyle-plugin.includeTestSourceDirectory>true
 		</maven-checkstyle-plugin.includeTestSourceDirectory>
+		<excludeITTests>**/*IT.java</excludeITTests>
 	</properties>
 
 	<modules>
@@ -209,6 +210,9 @@
 					<includes>
 						<include>${testsToRun}</include>
 					</includes>
+					<excludes>
+						<exclude>${excludeITTests}</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -366,6 +370,9 @@
 							<includes>
 								<include>${testsToRun}</include>
 							</includes>
+							<excludes>
+								<exclude>${excludeITTests}</exclude>
+							</excludes>
 							<!-- Sets the VM argument line used when unit tests are run. -->
 							<argLine>${surefireArgLine}</argLine>
 						</configuration>
