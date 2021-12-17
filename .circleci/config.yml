@@ -65,6 +65,7 @@ jobs:
 
             for p in "${ROOT_NESTED_CLASSNAMES[@]}"; do
                 echo '33333'
+                echo $p
                 # find inner @Nested class names
             	flattened=$("$p" | xargs cat | grep 'class ' | awk '{print $3}' | tail -n +2)
                 echo '44444'
