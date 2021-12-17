@@ -63,7 +63,7 @@ jobs:
                 for flat in "${flat_array[@]}"; do
                   x=$($p | sed 's/.*src.test.java.//g' | sed 's@/@.@g' | sed 's/.\{5\}$//')
                   y="$x\\$"$x""
-                  FLATTENED_NESTED_CLASSNAMES[$i]=$x
+                  FLATTENED_NESTED_CLASSNAMES[$i]=$y
                   let i+=1
                 done
             done
