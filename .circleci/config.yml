@@ -53,13 +53,22 @@ jobs:
                                | xargs grep -l '@Nested' \
                                | xargs grep -l '@Test')
 
+            # deleteme
+            echo '11111111111'
+            echo $ROOT_NESTED_CLASSNAMES
+
             FLATTENED_NESTED_CLASSNAMES=()
             i=0
 
+            # deleteme
+            echo '222222'
+
             for p in "${ROOT_NESTED_CLASSNAMES[@]}"; do
+                echo '33333'
                 # find inner @Nested class names
             	flattened=$("$p" | xargs cat | grep 'class ' | awk '{print $3}' | tail -n +2)
-
+                echo '44444'
+                echo $flattened
                 for flat in "${flattened[@]}"; do
                   x="$p\\$$flat"
                   echo "found one $x"
