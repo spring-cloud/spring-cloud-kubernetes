@@ -67,9 +67,9 @@ jobs:
                 echo '33333'
                 echo $p
                 # find inner @Nested class names
-            	flattened=$("$p" | xargs cat | grep 'class ' | awk '{print $3}' | tail -n +2)
+            	flattened=$(cat $p | grep 'class ' | awk '{print $2}' | tail -n +2)
                 echo '44444'
-                echo $flattened
+                echo "${flattened[@]}"
                 for flat in "${flattened[@]}"; do
                   x="$p\\$$flat"
                   echo "found one $x"
