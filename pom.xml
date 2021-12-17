@@ -77,6 +77,8 @@
 		<restassured.version>3.0.2</restassured.version>
 		<spock-spring.version>1.3-groovy-2.5</spock-spring.version>
 
+		<excludeITTests>**/*IT.java</excludeITTests>
+
 		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
 		<maven-checkstyle-plugin.failsOnViolation>true
 		</maven-checkstyle-plugin.failsOnViolation>
@@ -209,6 +211,9 @@
 					<includes>
 						<include>${testsToRun}</include>
 					</includes>
+					<excludes>
+						<exclude>${excludeITTests}</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -368,6 +373,9 @@
 							</includes>
 							<!-- Sets the VM argument line used when unit tests are run. -->
 							<argLine>${surefireArgLine}</argLine>
+							<excludes>
+								<exclude>${excludeITTests}</exclude>
+							</excludes>
 						</configuration>
 					</plugin>
 				</plugins>
