@@ -58,7 +58,7 @@ jobs:
 
             for p in "${ROOT_NESTED_CLASSNAMES[@]}"; do
                 # find inner @Nested class names
-            	flattened=$(cat $p | grep 'class ' | awk '{print $(NF-1)' | tail -n +2)
+            	flattened=$(cat $p | grep 'class ' | awk '{print $(NF-1)}' | tail -n +2)
                 for flat in "${flattened[@]}"; do
                   x="$p\\$$flat"
                   echo "found one $x"
