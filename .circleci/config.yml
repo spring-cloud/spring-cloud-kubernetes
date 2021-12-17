@@ -37,13 +37,45 @@ jobs:
       - run:
           name: Run regular tests
           command: |
-            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" | grep -v 'spring-cloud-kubernetes-integration-tests' \
+
+            # circleci tests split --split-by=timings
+            # find class names that do not have @Nested inside them
+            NON_NESTED_CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
+                               | grep -v 'spring-cloud-kubernetes-integration-tests' \
+                               | grep -v '@Nested'
                                | xargs grep -l '@Test' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
-                               | sed 's/.\{5\}$//' \
-                               | circleci tests split --split-by=timings)
-            echo $CLASSNAMES
-            TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
+                               | sed 's/.\{5\}$//')
+
+            # find classnames that have @Nested inside them
+            ROOT_NESTED_CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
+                               | grep -v 'spring-cloud-kubernetes-integration-tests' \
+                               | xargs grep -l '@Nested' \
+                               | xargs grep -l '@Test')
+
+            FLATTENED_NESTED_CLASSNAMES=()
+            i=0
+
+            for p in "${ROOT_NESTED_CLASSNAMES[@]}"; do
+                # find inner @Nested class names
+            	flattened=$("$p" | xargs cat | grep 'class ' | awk '{print $3}' | tail -n +2)
+
+                for flat in "${flattened[@]}"; do
+                  x="$p\\$$flat"
+                  echo "found one $x"
+                  FLATTENED_NESTED_CLASSNAMES[$i]=$x
+                  let i+=1
+                done
+            done
+
+            echo '**********************************'
+            echo $NON_NESTED_CLASSNAMES
+            echo $ROOT_NESTED_CLASSNAMES
+            echo $FLATTENED_NESTED_CLASSNAMES
+            echo '**********************************'
+
+
+            TEST_ARG=$(echo $NON_NESTED_CLASSNAMES | sed 's/ /,/g')
             echo $TEST_ARG
             ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent test -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
             mkdir -p $HOME/artifacts/junit/
