@@ -64,6 +64,8 @@ jobs:
                   x=$(echo $p | sed 's/.*src.test.java.//g' | sed 's@/@.@g' | sed 's/.\{5\}$//')
                   y="$x\\$"$flat""
                   FLATTENED_NESTED_CLASSNAMES[$i]=$y
+                  echo '---------'
+                  echo "${FLATTENED_NESTED_CLASSNAMES[i]}"
                   let i+=1
                 done
             done
@@ -71,8 +73,8 @@ jobs:
             ALL_TESTS=()
             ALL_TESTS=("${NON_NESTED_CLASSNAMES[@]}" "${FLATTENED_NESTED_CLASSNAMES[@]}")
             echo '**********************************'
-            echo $ALL_TESTS
-            echo $FLATTENED_NESTED_CLASSNAMES
+            echo "${ALL_TESTS[@]}"
+            echo "${FLATTENED_NESTED_CLASSNAMES[@]}"
             echo '**********************************'
 
 
