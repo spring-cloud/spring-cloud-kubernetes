@@ -42,7 +42,7 @@ jobs:
             # find class names that do not have @Nested inside them
             NON_NESTED_CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
                                | grep -v 'spring-cloud-kubernetes-integration-tests' \
-                               | grep -v '@Nested'
+                               | grep -v '@Nested' \
                                | xargs grep -l '@Test' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//')
