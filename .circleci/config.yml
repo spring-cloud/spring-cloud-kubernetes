@@ -80,6 +80,10 @@ jobs:
             echo "${FLATTENED_NESTED_CLASSNAMES[@]}"
             echo '11111111111111111111'
 
+            echo '2222222222222222222'
+            echo "${NON_NESTED_CLASSNAMES[@]}"
+            echo '2222222222222222222'
+
 
             TEST_ARG=$(echo $NON_NESTED_CLASSNAMES | sed 's/ /,/g')
             echo $TEST_ARG
