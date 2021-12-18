@@ -71,7 +71,10 @@ jobs:
             ALL_TESTS=("${NON_NESTED_CLASSNAMES[@]}" "${FLATTENED_NESTED_CLASSNAMES[@]}")
 
             TEST_ARG=$(echo $ALL_TESTS | sed 's/ /,/g')
-            $TEST_ARG | circleci tests split --split-by=timings
+            SPLIT_TESTS=$TEST_ARG | circleci tests split --split-by=timings
+            echo '********************************'
+            echo "${SPLIT_TESTS[@]}"
+            echo '********************************'
             ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent test -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
             mkdir -p $HOME/artifacts/junit/
             find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
