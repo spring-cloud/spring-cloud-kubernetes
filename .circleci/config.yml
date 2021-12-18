@@ -72,20 +72,8 @@ jobs:
 
             ALL_TESTS=()
             ALL_TESTS=("${NON_NESTED_CLASSNAMES[@]}" "${FLATTENED_NESTED_CLASSNAMES[@]}")
-            echo '**********************************'
-            echo "${ALL_TESTS[@]}"
-            echo '**********************************'
 
-            echo '11111111111111111111'
-            echo "${FLATTENED_NESTED_CLASSNAMES[@]}"
-            echo '11111111111111111111'
-
-            echo '2222222222222222222'
-            echo "${NON_NESTED_CLASSNAMES[@]}"
-            echo '2222222222222222222'
-
-
-            TEST_ARG=$(echo $NON_NESTED_CLASSNAMES | sed 's/ /,/g')
+            TEST_ARG=$(echo $ALL_TESTS | sed 's/ /,/g')
             echo $TEST_ARG
             ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent test -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
             mkdir -p $HOME/artifacts/junit/
