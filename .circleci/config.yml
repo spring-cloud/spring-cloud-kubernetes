@@ -74,8 +74,11 @@ jobs:
             ALL_TESTS=("${NON_NESTED_CLASSNAMES[@]}" "${FLATTENED_NESTED_CLASSNAMES[@]}")
             echo '**********************************'
             echo "${ALL_TESTS[@]}"
-            echo "${FLATTENED_NESTED_CLASSNAMES[@]}"
             echo '**********************************'
+
+            echo '11111111111111111111'
+            echo "${FLATTENED_NESTED_CLASSNAMES[@]}"
+            echo '11111111111111111111'
 
 
             TEST_ARG=$(echo $NON_NESTED_CLASSNAMES | sed 's/ /,/g')
