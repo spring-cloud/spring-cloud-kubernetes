@@ -72,7 +72,7 @@ jobs:
             echo '-----------------------'
 
             echo '-----------------------'
-            echo "${FLATTENED_NESTED_CLASSNAMES[@]}'
+            echo "${FLATTENED_NESTED_CLASSNAMES[@]}"
             echo '-----------------------'
 
             ALL_TESTS=()
