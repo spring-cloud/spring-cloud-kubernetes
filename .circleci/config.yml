@@ -71,7 +71,7 @@ jobs:
             ALL_TESTS=("${NON_NESTED_CLASSNAMES[@]}" "${FLATTENED_NESTED_CLASSNAMES[@]}")
 
             TEST_ARG=$(echo $ALL_TESTS | sed 's/ /,/g')
-            SPLIT_TESTS=$TEST_ARG | circleci tests split --split-by=timings
+            SPLIT_TESTS=$( echo $TEST_ARG | circleci tests split --split-by=timings)
             echo '********************************'
             echo "${SPLIT_TESTS[@]}"
             echo '********************************'
