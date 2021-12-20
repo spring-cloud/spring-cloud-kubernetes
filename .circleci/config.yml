@@ -46,7 +46,7 @@ jobs:
             cat test.txt
             echo '11111'
 
-            TEST=$(circleci tests split --split-by=timings test.txt)
+            TEST=$(cat test.txt | circleci tests split --split-by=timings)
             echo '222222222'
             echo $TEST
             echo '222222222'
