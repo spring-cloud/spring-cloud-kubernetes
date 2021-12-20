@@ -41,12 +41,9 @@ jobs:
                                            | xargs grep -l '@Test' \
                                            | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                            | sed 's/.\{5\}$//')
-            echo '--------'
-            echo "${CLASSNAMES[@]}"
-            echo '--------'
+            echo $CLASSNAME > test.txt
 
-            #SPLIT_TESTS=$(echo "${ALL_TESTS[*]}" | circleci tests split --split-by=timings)
-            TEST=$(echo "${CLASSNAMES[*]}" | circleci tests split --split-by=timings)
+            TEST=$(circleci tests split --split-by=timings test.txt)
             echo '222222222'
             echo "${TEST[@]}"
             echo '222222222'
