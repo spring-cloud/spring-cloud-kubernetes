@@ -37,19 +37,6 @@ jobs:
       - run:
           name: Run regular tests
           command: |
-            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" | grep -v 'spring-cloud-kubernetes-integration-tests' \
-                                           | xargs grep -l '@Test' \
-                                           | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
-                                           | sed 's/.\{5\}$//')
-            echo '*****************'
-            echo $CLASSNAMES
-            echo '*****************'
-            echo "${CLASSNAMES[@]}"
-            echo '*****************'
-            echo "${CLASSNAMES[0]}"
-
-
-
             # find class names that do not have @Nested inside them
             NON_NESTED_CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
                                | grep -v 'spring-cloud-kubernetes-integration-tests' \
@@ -57,38 +44,33 @@ jobs:
                                | xargs grep -l '@Test' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//')
+            read -a NON_NESTED_CLASSNAMES_ARRAY <<< $NON_NESTED_CLASSNAMES
 
             # find classnames that have @Nested inside them
             ROOT_NESTED_CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
                                | grep -v 'spring-cloud-kubernetes-integration-tests' \
                                | xargs grep -l '@Nested' \
                                | xargs grep -l '@Test')
+            read -a ARRAY_ROOT_NESTED_CLASSNAMES <<< $ROOT_NESTED_CLASSNAMES
 
-            FLATTENED_NESTED_CLASSNAMES=()
+            FLATTENED_NESTED_CLASSNAMES_ARRAY=()
             i=0
 
-            for p in "${ROOT_NESTED_CLASSNAMES[@]}"; do
-                # find inner @Nested class names
+            for p in "${ARRAY_ROOT_NESTED_CLASSNAMES[@]}"; do
+            	# find inner @Nested class names
             	flattened=$(cat $p | awk '/@Nested/, /@Test/' | grep 'class .*{' | awk '{print $(NF-1)}' | tr '\n' ' ')
-                flat_array=($flattened)
-                for flat in "${flat_array[@]}"; do
-                  x=$(echo $p | sed 's/.*src.test.java.//g' | sed 's@/@.@g' | sed 's/.\{5\}$//')
-                  y="$x\\$"$flat""
-                  FLATTENED_NESTED_CLASSNAMES[$i]=$y
-                  let i+=1
-                done
+            	read -a flat_array <<< $flattened
+            	for flat in "${flat_array[@]}"; do
+            		x=$(echo $p | sed 's/.*src.test.java.//g' | sed 's@/@.@g' | sed 's/.\{5\}$//')
+            		y="$x\\$"$flat""
+            		FLATTENED_NESTED_CLASSNAMES_ARRAY[$i]=$y
+                    let i+=1
+            	done
             done
 
-            FLATTENED_NESTED_CLASSNAMES_SPLIT=$(echo "${FLATTENED_NESTED_CLASSNAMES[@]}" | tr ' ' '\n')
+            ALL_TESTS=( "${NON_NESTED_CLASSNAMES_ARRAY[@]}"  "${FLATTENED_NESTED_CLASSNAMES_ARRAY[@]}"
 
-            ALL_TESTS=()
-            ALL_TESTS=("${NON_NESTED_CLASSNAMES[@]}" "${FLATTENED_NESTED_CLASSNAMES_SPLIT[@]}")
-
-            echo '-----------------------'
-            echo "${ALL_TESTS[@]}"
-            echo '-----------------------'
-
-            SPLIT_TESTS=$(echo $ALL_TESTS | circleci tests split --split-by=timings)
+            SPLIT_TESTS=$(echo "${ALL_TESTS[*]}" | circleci tests split --split-by=timings)
             TEST_ARG=$(echo SPLIT_TESTS | sed 's/ /,/g')
             echo '********************************'
             echo "${SPLIT_TESTS[@]}"
