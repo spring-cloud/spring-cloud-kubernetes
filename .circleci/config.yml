@@ -45,7 +45,6 @@ jobs:
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//')
             declare -a 'NON_NESTED_CLASSNAMES_ARRAY=($NON_NESTED_CLASSNAMES)'
-            #read -ra NON_NESTED_CLASSNAMES_ARRAY <<< $NON_NESTED_CLASSNAMES
 
             # find classnames that have @Nested inside them
             ROOT_NESTED_CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
@@ -53,7 +52,6 @@ jobs:
                                | xargs grep -l '@Nested' \
                                | xargs grep -l '@Test')
             declare -a 'ARRAY_ROOT_NESTED_CLASSNAMES=($NON_NESTED_CLASSNAMES)'
-            #read -ra ARRAY_ROOT_NESTED_CLASSNAMES <<< $ROOT_NESTED_CLASSNAMES
 
             FLATTENED_NESTED_CLASSNAMES_ARRAY=()
             i=0
@@ -62,7 +60,6 @@ jobs:
             	# find inner @Nested class names
             	flattened=$(cat $p | awk '/@Nested/, /@Test/' | grep 'class .*{' | awk '{print $(NF-1)}' | tr '\n' ' ')
                 declare -a 'flat_array=($flattened)'
-            	#read -a flat_array <<< $flattened
             	for flat in "${flat_array[@]}"; do
             		x=$(echo $p | sed 's/.*src.test.java.//g' | sed 's@/@.@g' | sed 's/.\{5\}$//')
             		y="$x\\$"$flat""
