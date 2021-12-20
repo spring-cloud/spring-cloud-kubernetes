@@ -52,17 +52,13 @@ jobs:
                                | xargs grep -l '@Nested' \
                                | xargs grep -l '@Test')
 
-            echo '111111111'
-            echo '${ROOT_NESTED_CLASSNAMES[@]}'
-
-            declare -a 'ARRAY_ROOT_NESTED_CLASSNAMES=($ROOT_NON_NESTED_CLASSNAMES)'
+            declare -a 'ARRAY_ROOT_NESTED_CLASSNAMES=($ROOT_NESTED_CLASSNAMES)'
 
             FLATTENED_NESTED_CLASSNAMES_ARRAY=()
             i=0
 
             for p in "${ARRAY_ROOT_NESTED_CLASSNAMES[@]}"; do
             	# find inner @Nested class names
-                echo "---- $p"
                 flattened=$(cat $p | awk '/@Nested/, /@Test/' | tr '\n' ' ' | awk '{ for (i = 1; i <= NF; ++i) { if( $i == "class") { print $(i+1) } } }')
                 declare -a 'flat_array=($flattened)'
             	for flat in "${flat_array[@]}"; do
