@@ -45,7 +45,7 @@ jobs:
 
             TEST=$(circleci tests split --split-by=timings test.txt)
             echo '222222222'
-            echo "${TEST[@]}"
+            echo "TEST
             echo '222222222'
 
 
