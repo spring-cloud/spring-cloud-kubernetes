@@ -44,7 +44,7 @@ jobs:
                                | xargs grep -l '@Test' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//')
-            declare -a 'NON_NESTED_CLASSNAMES_ARRAY=($NON_NESTED_CLASSNAMES)'
+            declare -a 'NON_NESTED_CLASSNAMES_ARRAY=($ROOT_NON_NESTED_CLASSNAMES)'
 
             # find classnames that have @Nested inside them
             ROOT_NESTED_CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
@@ -69,7 +69,7 @@ jobs:
             	done
             done
 
-            ALL_TESTS=( "${NON_NESTED_CLASSNAMES_ARRAY[@]}"  "${FLATTENED_NESTED_CLASSNAMES_ARRAY[@]} )"
+            ALL_TESTS=( "${NON_NESTED_CLASSNAMES_ARRAY[@]}"  "${FLATTENED_NESTED_CLASSNAMES_ARRAY[@]}" )
 
             SPLIT_TESTS=$(echo "${ALL_TESTS[*]}" | circleci tests split --split-by=timings)
             TEST_ARG=$(echo SPLIT_TESTS | sed 's/ /,/g')
