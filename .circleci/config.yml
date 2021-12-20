@@ -38,7 +38,7 @@ jobs:
           name: Run regular tests
           command: |
             # find class names that do not have @Nested inside them
-            NON_NESTED_CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
+            ROOT_NON_NESTED_CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
                                | grep -v 'spring-cloud-kubernetes-integration-tests' \
                                | grep -v '@Nested' \
                                | xargs grep -l '@Test' \
@@ -51,13 +51,14 @@ jobs:
                                | grep -v 'spring-cloud-kubernetes-integration-tests' \
                                | xargs grep -l '@Nested' \
                                | xargs grep -l '@Test')
-            declare -a 'ARRAY_ROOT_NESTED_CLASSNAMES=($NON_NESTED_CLASSNAMES)'
+            declare -a 'ARRAY_ROOT_NESTED_CLASSNAMES=($ROOT_NON_NESTED_CLASSNAMES)'
 
             FLATTENED_NESTED_CLASSNAMES_ARRAY=()
             i=0
 
             for p in "${ARRAY_ROOT_NESTED_CLASSNAMES[@]}"; do
             	# find inner @Nested class names
+                echo "---- $p"
                 flattened=$(cat $p | awk '/@Nested/, /@Test/' | tr '\n' ' ' | awk '{ for (i = 1; i <= NF; ++i) { if( $i == "class") { print $(i+1) } } }')
                 declare -a 'flat_array=($flattened)'
             	for flat in "${flat_array[@]}"; do
