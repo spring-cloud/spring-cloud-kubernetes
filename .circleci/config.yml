@@ -72,7 +72,7 @@ jobs:
             ALL_TESTS=( "${NON_NESTED_CLASSNAMES_ARRAY[@]}"  "${FLATTENED_NESTED_CLASSNAMES_ARRAY[@]}" )
 
             echo '-----------------'
-            echo '${ALL_TESTS[@]}'
+            echo "${ALL_TESTS[*]}"
             echo '-----------------'
 
             SPLIT_TESTS=$(echo "${ALL_TESTS[*]}" | circleci tests split --split-by=timings)
