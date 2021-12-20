@@ -41,16 +41,16 @@ jobs:
                                            | xargs grep -l '@Test' \
                                            | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                            | sed 's/.\{5\}$//')
-            echo $CLASSNAMES > test.txt
-            echo '11111'
-            cat test.txt
-            echo '11111'
 
-            TEST=$(cat test.txt | circleci tests split --split-by=timings)
-            echo '222222222'
+            echo '111111111'
+            echo $CLASSNAMES
+            echo '111111111'
+
+            TEST=$(echo $CLASSNAMES | circleci tests split --split-by=timings)
+
+            echo '2222222'
             echo $TEST
-            echo '222222222'
-
+            echo '2222222'
 
             # find class names that do not have @Nested inside them
             ROOT_NON_NESTED_CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
