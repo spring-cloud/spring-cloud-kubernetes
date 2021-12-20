@@ -51,6 +51,10 @@ jobs:
                                | grep -v 'spring-cloud-kubernetes-integration-tests' \
                                | xargs grep -l '@Nested' \
                                | xargs grep -l '@Test')
+
+            echo '111111111'
+            echo '${ROOT_NESTED_CLASSNAMES[@]}'
+
             declare -a 'ARRAY_ROOT_NESTED_CLASSNAMES=($ROOT_NON_NESTED_CLASSNAMES)'
 
             FLATTENED_NESTED_CLASSNAMES_ARRAY=()
