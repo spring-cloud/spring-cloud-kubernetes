@@ -42,6 +42,9 @@ jobs:
                                            | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                            | sed 's/.\{5\}$//')
             echo $CLASSNAME > test.txt
+            echo '11111'
+            cat test.txt
+            echo '11111'
 
             TEST=$(circleci tests split --split-by=timings test.txt)
             echo '222222222'
