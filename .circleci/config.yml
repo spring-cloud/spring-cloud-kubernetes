@@ -44,14 +44,14 @@ jobs:
                                | xargs grep -l '@Test' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//')
-            read -a NON_NESTED_CLASSNAMES_ARRAY <\\<< $NON_NESTED_CLASSNAMES
+            read -a NON_NESTED_CLASSNAMES_ARRAY <<< $NON_NESTED_CLASSNAMES
 
             # find classnames that have @Nested inside them
             ROOT_NESTED_CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
                                | grep -v 'spring-cloud-kubernetes-integration-tests' \
                                | xargs grep -l '@Nested' \
                                | xargs grep -l '@Test')
-            read -a ARRAY_ROOT_NESTED_CLASSNAMES <\\<< $ROOT_NESTED_CLASSNAMES
+            read -a ARRAY_ROOT_NESTED_CLASSNAMES <<< $ROOT_NESTED_CLASSNAMES
 
             FLATTENED_NESTED_CLASSNAMES_ARRAY=()
             i=0
