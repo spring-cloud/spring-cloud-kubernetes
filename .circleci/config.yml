@@ -44,11 +44,17 @@ jobs:
                                | xargs grep -l '@Test' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//' \
-                               > all_tests.txt
+                               > /tmp/all_tests.txt
 
             echo '22222222222'
-            cat all_tests.txt
+            cat /tmp/all_tests.txt
             echo '22222222222'
+
+            cat /tmp/all_tests.txt | circleci tests split --split-by=timings > /tmp/test_file.txt
+
+            echo '333333333'
+            cat /tmp/test_file.txt
+            echo '333333333'
 
             # find classnames that have @Nested inside them
             ROOT_NESTED_CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
@@ -65,16 +71,16 @@ jobs:
             	for flat in "${flat_array[@]}"; do
             		x=$(echo $p | sed 's/.*src.test.java.//g' | sed 's@/@.@g' | sed 's/.\{5\}$//')
             		y="$x\\$"$flat""
-            		echo -e $y >> all_tests.txt
+            		echo -e $y >> /tmp/all_tests.txt
             	done
             done
 
             echo '-----'
-            cat all_tests.txt
+            cat /tmp/all_tests.txt
             echo '-----'
 
 
-            cat all_tests.txt | circleci tests split --split-by=timings > /tmp/this_node_tests.txt
+            cat /tmp/all_tests.txt | circleci tests split --split-by=timings > /tmp/this_node_tests.txt
             tr ' ' ',' < /tmp/this_node_tests.txt > /tmp/this_node_tests_comma_separated.txt
 
             echo '1111111'
