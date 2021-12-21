@@ -42,6 +42,7 @@ jobs:
                                | grep -v 'spring-cloud-kubernetes-integration-tests' \
                                | grep -v '@Nested' \
                                | xargs grep -l '@Test' \
+                               | xargs grep -L '@Nested' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//' \
                                > /tmp/all_tests.txt
