@@ -46,6 +46,10 @@ jobs:
                                | sed 's/.\{5\}$//' \
                                > all_tests.txt
 
+            echo '22222222222'
+            cat all_tests.txt
+            echo '22222222222'
+
             # find classnames that have @Nested inside them
             ROOT_NESTED_CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
                                | grep -v 'spring-cloud-kubernetes-integration-tests' \
