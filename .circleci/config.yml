@@ -44,7 +44,11 @@ jobs:
 
             echo $CLASSNAMES | tr ' ' '\n' > all_tests.txt
 
-            TEST=$(circleci tests split --split-by=timings all_tests.txt)
+            echo '1111111'
+            cat all_tests.txt
+            echo '1111111'
+
+            TEST=$(cat all_tests.txt | circleci tests split --split-by=timings)
             echo '-----'
             echo $TEST
             echo '-----'
