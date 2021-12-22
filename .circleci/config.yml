@@ -68,7 +68,7 @@ jobs:
 
             cat /tmp/all_tests.txt | circleci tests split --split-by=timings > /tmp/this_node_tests.txt
             tr '\n' ',' < /tmp/this_node_tests.txt > /tmp/this_node_tests_comma_separated.txt
-            sed -i '' 's/\\$/\\\\$/' /tmp/this_node_tests_comma_separated.txt
+            sed -i 's/\\$/\\\\$/' /tmp/this_node_tests_comma_separated.txt
 
             echo '------- tests for this node ----------'
             cat /tmp/this_node_tests_comma_separated.txt
