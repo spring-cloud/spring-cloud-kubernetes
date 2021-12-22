@@ -167,6 +167,10 @@ jobs:
       - store_test_results:
           path: ~/junit/
           destination: testartifacts
+      - run:
+          name: show test results
+          command: |
+            ls -l ~/junit/
   build:
     machine: true
     environment:
