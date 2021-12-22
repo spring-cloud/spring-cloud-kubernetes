@@ -161,16 +161,16 @@ jobs:
             mkdir -p ~/junit/
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} ~/junit/ \;
             bash <(curl -s https://codecov.io/bash)
+      - run:
+          name: "show test results"
+          command: |
+            ls -l ~/junit/
       - store_artifacts:
           path: ~/junit/
           destination: artifacts
       - store_test_results:
           path: ~/junit/
           destination: testartifacts
-      - run:
-          name: show test results
-          command: |
-            ls -l ~/junit/
   build:
     machine: true
     environment:
