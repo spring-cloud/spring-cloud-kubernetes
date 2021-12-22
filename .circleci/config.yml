@@ -37,12 +37,12 @@ jobs:
       - run:
           name: Run regular tests
           command: |
+            # | xargs grep -L '@Nested' \
             # find class names that do not have @Nested inside them
             circleci tests glob "**/src/test/**/**.java" \
                                | grep -v 'spring-cloud-kubernetes-integration-tests' \
                                | grep -v '@Nested' \
                                | xargs grep -l '@Test' \
-                               # | xargs grep -L '@Nested' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//' \
                                > /tmp/all_tests.txt
