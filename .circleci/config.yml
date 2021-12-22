@@ -89,6 +89,13 @@ jobs:
           name: Load Controller Images From Workspace
           command: |
             docker load -i ./docker-images/spring-cloud-kubernetes-configuration-watcher.tar
+      - run:
+          name: "Aggregate test results"
+          when: always
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} ~/junit/ \;
+            bash <(curl -s https://codecov.io/bash)
       - store_artifacts:
           path: ~/junit/
           destination: artifacts
