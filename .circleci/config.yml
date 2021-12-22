@@ -66,7 +66,11 @@ jobs:
             	done
             done
 
-            cat /tmp/all_tests.txt | circleci tests split --split-by=timings > /tmp/this_node_tests.txt
+            echo '------'
+            cat /tmp/all_tests.txt
+            echo '------'
+
+            cat /tmp/all_tests.txt | circleci tests split --split-by=timings --timings-type=classname > /tmp/this_node_tests.txt
             tr '\n' ',' < /tmp/this_node_tests.txt > /tmp/this_node_tests_comma_separated.txt
             sed -i 's/\\$/\\\\$/' /tmp/this_node_tests_comma_separated.txt
 
