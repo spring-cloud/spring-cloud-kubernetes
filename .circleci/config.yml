@@ -105,7 +105,8 @@ jobs:
       - run:
           name: "show test results"
           command: |
-            ls -l ~/junit/
+            ls -l $CIRCLE_INTERNAL_TASK_DATA/circle-test-results
+            cat $CIRCLE_INTERNAL_TASK_DATA/circle-test-results/results.json
   build:
     machine: true
     environment:
