@@ -44,17 +44,14 @@ jobs:
                                | xargs grep -l '@Test' \
                                | xargs grep -L '@Nested' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
-                               | sed 's/.\{5\}$//' \
-                               > /tmp/all_tests.txt
+                               | sed 's/.\{5\}$//' \ > /tmp/all_tests.txt
 
             # find classnames that have @Nested inside them
             ROOT_NESTED_CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
                                | grep -v 'spring-cloud-kubernetes-integration-tests' \
                                | xargs grep -l '@Nested' \
                                | xargs grep -l '@Test')
-
             declare -a 'ARRAY_ROOT_NESTED_CLASSNAMES=($ROOT_NESTED_CLASSNAMES)'
-
             for p in "${ARRAY_ROOT_NESTED_CLASSNAMES[@]}"; do
             	# find inner @Nested class names
                 flattened=$(cat $p | awk '/@Nested/, /@Test/' | tr '\n' ' ' | awk '{ for (i = 1; i <= NF; ++i) { if( $i == "class") { print $(i+1) } } }')
@@ -69,7 +66,6 @@ jobs:
             cat /tmp/all_tests.txt | circleci tests split --split-by=timings > /tmp/this_node_tests.txt
             tr '\n' ',' < /tmp/this_node_tests.txt > /tmp/this_node_tests_comma_separated.txt
             sed -i 's/\\$/\\\\$/' /tmp/this_node_tests_comma_separated.txt
-
             echo '------- tests for this node ----------'
             cat /tmp/this_node_tests_comma_separated.txt
             echo -e '\n--------------------------------------'
