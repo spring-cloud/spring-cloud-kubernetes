@@ -24,12 +24,12 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>3.1.1-SNAPSHOT</version>
+		<version>4.0.0-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 
 	<artifactId>spring-cloud-kubernetes</artifactId>
-	<version>2.1.1-SNAPSHOT</version>
+	<version>3.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes</name>
 
@@ -62,10 +62,10 @@
 
 	<properties>
 		<!-- Dependency Versions -->
-		<spring-cloud-commons.version>3.1.1-SNAPSHOT</spring-cloud-commons.version>
-		<spring-cloud-config.version>3.1.1-SNAPSHOT</spring-cloud-config.version>
-		<spring-cloud-bus.version>3.1.1-SNAPSHOT</spring-cloud-bus.version>
-		<spring-cloud-contract.version>3.1.1-SNAPSHOT</spring-cloud-contract.version>
+		<spring-cloud-commons.version>4.0.0-SNAPSHOT</spring-cloud-commons.version>
+		<spring-cloud-config.version>4.0.0-SNAPSHOT</spring-cloud-config.version>
+		<spring-cloud-bus.version>4.0.0-SNAPSHOT</spring-cloud-bus.version>
+		<spring-cloud-contract.version>4.0.0-SNAPSHOT</spring-cloud-contract.version>
 
 		<!-- Maven Plugin Versions -->
 		<maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
@@ -151,13 +151,13 @@
 				<scope>import</scope>
 			</dependency>
 
-			<dependency>
+			<!--<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-contract-dependencies</artifactId>
 				<version>${spring-cloud-contract.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
-			</dependency>
+			</dependency>-->
 
 			<dependency>
 				<groupId>org.codehaus.groovy</groupId>
@@ -193,8 +193,8 @@
 				<version>${maven-compiler-plugin.version}</version>
 				<inherited>true</inherited>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
+					<source>17</source>
+					<target>17</target>
 				</configuration>
 			</plugin>
 
