@@ -30,9 +30,13 @@ jobs:
     parallelism: 5 # parallel containers to split the tests among
     machine: true
     environment:
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
       _SERVICE_OCCURENCE: 5
     steps:
+      - run:
+          name: Install OpenJDK 17
+          command: sudo apt-get update && sudo apt-get install -y openjdk-17-jdk
       - checkout
       - run:
           name: Run regular tests
@@ -140,9 +144,13 @@ jobs:
   build:
     machine: true
     environment:
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
       _JAVA_OPTIONS: "-Xms2g -Xmx2g"
       _SERVICE_OCCURENCE: 5
     steps:
+      - run:
+          name: Install OpenJDK 17
+          command: sudo apt-get update && sudo apt-get install -y openjdk-17-jdk
       - checkout
       - restore_cache:
           keys:
