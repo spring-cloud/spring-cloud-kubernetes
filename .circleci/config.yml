@@ -150,7 +150,7 @@ jobs:
     steps:
       - run:
           name: Install OpenJDK 17
-          command: apt-get update && apt-get install -y openjdk-17-jdk
+          command: sudo apt-get update && sudo apt-get install -y openjdk-17-jdk
       - checkout
       - restore_cache:
           keys:
