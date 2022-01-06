@@ -146,12 +146,12 @@ jobs:
       _JAVA_OPTIONS: "-Xms2g -Xmx2g"
       _SERVICE_OCCURENCE: 5
     steps:
-      - checkout
       - run:
           name: Install OpenJDK 17
           command: |
-            # sudo apt-get update && sudo apt-get install -y openjdk-17-jdk
-            ./mvnw -version
+            sudo apt-get update && sudo apt-get install -y openjdk-17-jdk
+            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+      - checkout
       - restore_cache:
           keys:
             - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
