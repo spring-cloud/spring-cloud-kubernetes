@@ -31,11 +31,12 @@ jobs:
     machine: true
     environment:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
       _SERVICE_OCCURENCE: 5
     steps:
       - run:
           name: Install OpenJDK 17
-          command: apt-get update && apt-get install -y openjdk-17-jdk
+          command: sudo apt-get update && sudo apt-get install -y openjdk-17-jdk
       - checkout
       - run:
           name: Run regular tests
@@ -48,7 +49,6 @@ jobs:
             echo $CLASSNAMES
             TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
             echo $TEST_ARG
-            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
             ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent test -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
             mkdir -p $HOME/artifacts/junit/
             find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
@@ -127,7 +127,6 @@ jobs:
             /snap/bin/microk8s.kubectl config view --raw > /tmp/kubeconfig
             export KUBECONFIG=/tmp/kubeconfig
             cd spring-cloud-kubernetes-integration-tests
-            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
             ../mvnw -Ddocker.host='unix:///var/snap/microk8s/current/docker.sock' -Dimage.registry='localhost:32000' clean package fabric8:build verify -Pfmp,it,spring
       - run:
           name: "Aggregate test results"
@@ -146,6 +145,7 @@ jobs:
     machine: true
     environment:
       _JAVA_OPTIONS: "-Xms2g -Xmx2g"
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
       _SERVICE_OCCURENCE: 5
     steps:
       - run:
@@ -161,17 +161,14 @@ jobs:
       - run:
           name: dependencies
           command: |
-            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
             ./mvnw -s .settings.xml -U dependency:resolve-plugins dependency:go-offline -B -Dservice.occurence=${_SERVICE_OCCURENCE} || true
       - run:
           name: build
           command: |
-            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
             ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} -DskipTests
       - run:
           name: save docker images
           command: |
-            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
             TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
             echo $TAG
             mkdir docker-images
