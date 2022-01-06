@@ -158,6 +158,10 @@ jobs:
             - spring-cloud-kubernetes-{{ .Branch }}
             - spring-cloud-kubernetes
       - run:
+          name: View Maven output
+          command: |
+            ./mvnw -version
+      - run:
           name: dependencies
           command: |
             ./mvnw -s .settings.xml -U dependency:resolve-plugins dependency:go-offline -B -Dservice.occurence=${_SERVICE_OCCURENCE} || true
