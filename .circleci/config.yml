@@ -29,11 +29,14 @@ jobs:
   test:
     parallelism: 5 # parallel containers to split the tests among
     machine:
-      image: circleci/openjdk:17.0.1-buster-browsers-legacy
+      image: ubuntu-2004:202111-02
     environment:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
       _SERVICE_OCCURENCE: 5
     steps:
+      - run:
+          name: Install OpenJDK 17
+          command: apt-get update && apt-get install -y openjdk-17-jdk
       - checkout
       - run:
           name: Run regular tests
@@ -140,11 +143,14 @@ jobs:
           destination: testartifacts
   build:
     machine:
-      image: circleci/openjdk:17.0.1-buster-browsers-legacy
+      image: ubuntu-2004:202111-02
     environment:
       _JAVA_OPTIONS: "-Xms2g -Xmx2g"
       _SERVICE_OCCURENCE: 5
     steps:
+      - run:
+          name: Install OpenJDK 17
+          command: apt-get update && apt-get install -y openjdk-17-jdk
       - checkout
       - restore_cache:
           keys:
