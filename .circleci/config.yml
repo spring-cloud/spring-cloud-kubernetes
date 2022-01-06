@@ -159,11 +159,13 @@ jobs:
       - run:
           name: dependencies
           command: |
-            JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./mvnw -s .settings.xml -U dependency:resolve-plugins dependency:go-offline -B -Dservice.occurence=${_SERVICE_OCCURENCE} || true
+            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+            ./mvnw -version
+            ./mvnw -s .settings.xml -U dependency:resolve-plugins dependency:go-offline -B -Dservice.occurence=${_SERVICE_OCCURENCE} || true
       - run:
           name: build
           command: |
-            JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} -DskipTests
+            ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} -DskipTests
       - run:
           name: save docker images
           command: |
