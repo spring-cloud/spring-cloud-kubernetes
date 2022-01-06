@@ -29,7 +29,7 @@ jobs:
   test:
     parallelism: 5 # parallel containers to split the tests among
     machine: true
-    image: cimg/openjdk:17.0.1
+      image: cimg/openjdk:17.0.1
     environment:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
       _SERVICE_OCCURENCE: 5
@@ -140,7 +140,7 @@ jobs:
           destination: testartifacts
   build:
     machine: true
-    image: cimg/openjdk:17.0.1
+      image: cimg/openjdk:17.0.1
     environment:
       _JAVA_OPTIONS: "-Xms2g -Xmx2g"
       _SERVICE_OCCURENCE: 5
