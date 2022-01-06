@@ -28,8 +28,7 @@ workflows:
 jobs:
   test:
     parallelism: 5 # parallel containers to split the tests among
-    machine:
-      image: ubuntu-2004:202111-02
+    machine: true
     environment:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
       _SERVICE_OCCURENCE: 5
@@ -142,8 +141,7 @@ jobs:
           path: ~/junit/
           destination: testartifacts
   build:
-    machine:
-      image: ubuntu-2004:202111-02
+    machine: true
     environment:
       _JAVA_OPTIONS: "-Xms2g -Xmx2g"
       _SERVICE_OCCURENCE: 5
@@ -151,8 +149,8 @@ jobs:
       - run:
           name: Install OpenJDK 17
           command: |
-            sudo apt-get update && sudo apt-get install -y openjdk-17-jdk
-            mvn -version
+            # sudo apt-get update && sudo apt-get install -y openjdk-17-jdk
+            ./mvnw -version
       - checkout
       - restore_cache:
           keys:
