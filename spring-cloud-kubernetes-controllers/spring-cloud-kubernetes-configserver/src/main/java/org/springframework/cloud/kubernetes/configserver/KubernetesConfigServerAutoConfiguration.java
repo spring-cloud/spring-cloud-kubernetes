@@ -84,7 +84,7 @@ public class KubernetesConfigServerAutoConfiguration {
 			List<String> namespaces = namespaceSplitter(properties.getSecretsNamespaces(), namespace);
 			List<MapPropertySource> propertySources = new ArrayList<>();
 			namespaces.forEach(space -> propertySources.add(new KubernetesClientSecretsPropertySource(coreApi,
-					applicationName, space, springEnv, new HashMap<>(), false)));
+					applicationName, space, new HashMap<>(), false)));
 			return propertySources;
 		};
 	}

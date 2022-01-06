@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
 import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -26,6 +23,8 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.util.CallGeneratorParams;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -76,10 +75,12 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
 		this.coreV1Api = coreV1Api;
-		// We need to pass an APIClient to the SharedInformerFactory because if we use the default
-		// constructor it will use the configured default APIClient but that may not contain
+		// We need to pass an APIClient to the SharedInformerFactory because if we use the
+		// default
+		// constructor it will use the configured default APIClient but that may not
+		// contain
 		// an APIClient configured within the cluster and does not contain the necessary
-		// certificate authorities for the cluster.  This results in SSL errors.
+		// certificate authorities for the cluster. This results in SSL errors.
 		// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
 		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
