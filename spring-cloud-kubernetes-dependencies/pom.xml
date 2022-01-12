@@ -40,6 +40,7 @@
 		<istio-client.version>1.5.5</istio-client.version>
 		<mockwebserver.version>0.1.2</mockwebserver.version>
 		<wiremock.version>2.26.3</wiremock.version>
+		<commons.collections4.version>4.4</commons.collections4.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -49,6 +50,12 @@
 				<version>${kubernetes-client.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-collections4</artifactId>
+				<version>${commons.collections4.version}</version>
 			</dependency>
 
 			<dependency>
