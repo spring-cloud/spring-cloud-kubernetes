@@ -115,9 +115,8 @@ public class ConfigMapAndSecretIT {
 
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
-		await().timeout(Duration.ofSeconds(60))
-			.pollInterval(Duration.ofSeconds(2))
-			.until(() -> rest.getForEntity(MYPROPERTY_URL, String.class).getStatusCode().is2xxSuccessful());
+		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
+				.until(() -> rest.getForEntity(MYPROPERTY_URL, String.class).getStatusCode().is2xxSuccessful());
 
 		String myProperty = rest.getForObject(MYPROPERTY_URL, String.class);
 		assertThat(myProperty).isEqualTo("from-config-map");
@@ -129,9 +128,8 @@ public class ConfigMapAndSecretIT {
 		data.replace("application.yaml", data.get("application.yaml").replace("from-config-map", "from-unit-test"));
 		configMap.data(data);
 		api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null);
-		await().timeout(Duration.ofSeconds(60))
-			.pollInterval(Duration.ofSeconds(2))
-			.until(() -> rest.getForObject(MYPROPERTY_URL, String.class).equals("from-unit-test"));
+		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
+				.until(() -> rest.getForObject(MYPROPERTY_URL, String.class).equals("from-unit-test"));
 		myProperty = rest.getForObject(MYPROPERTY_URL, String.class);
 		assertThat(myProperty).isEqualTo("from-unit-test");
 
@@ -140,9 +138,8 @@ public class ConfigMapAndSecretIT {
 		secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
 		secret.setData(secretData);
 		api.replaceNamespacedSecret(APP_NAME, NAMESPACE, secret, null, null, null);
-		await().timeout(Duration.ofSeconds(60))
-			.pollInterval(Duration.ofSeconds(2))
-			.until(() -> rest.getForObject(MYSECRET_URL, String.class).equals("p455w1rd"));
+		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
+				.until(() -> rest.getForObject(MYSECRET_URL, String.class).equals("p455w1rd"));
 		mySecret = rest.getForObject(MYSECRET_URL, String.class);
 		assertThat(mySecret).isEqualTo("p455w1rd");
 

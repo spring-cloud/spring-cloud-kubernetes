@@ -101,13 +101,13 @@ public class Fabric8ClientLoadbalancerIT {
 		deployPodManifests();
 
 		WebClient client = WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
-			.baseUrl("localhost/loadbalancer-it/servicea").build();
+				.baseUrl("localhost/loadbalancer-it/servicea").build();
 
 		@SuppressWarnings("unchecked")
 		Map<String, String> mapResult = (Map<String, String>) client.method(HttpMethod.GET).retrieve()
-			.bodyToMono(Map.class).retryWhen(Retry.fixedDelay(15, Duration.ofSeconds(1))
-				.filter(x -> ((WebClientResponseException) x).getStatusCode().value() == 503))
-			.block();
+				.bodyToMono(Map.class).retryWhen(Retry.fixedDelay(15, Duration.ofSeconds(1))
+						.filter(x -> ((WebClientResponseException) x).getStatusCode().value() == 503))
+				.block();
 
 		assertThat(mapResult.containsKey("mappings")).isTrue();
 		assertThat(mapResult.containsKey("meta")).isTrue();

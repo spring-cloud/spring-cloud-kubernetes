@@ -121,9 +121,9 @@ public class ReactiveDiscoveryClientIT {
 
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
-		await().timeout(Duration.ofSeconds(60))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> rest.getForEntity("http://localhost:80/reactive-discovery-it/actuator/health", String.class)
+		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(1))
+				.until(() -> rest
+						.getForEntity("http://localhost:80/reactive-discovery-it/actuator/health", String.class)
 						.getStatusCode().is2xxSuccessful());
 
 		Map<String, Object> health = rest.getForObject("http://localhost:80/reactive-discovery-it/actuator/health",
@@ -150,8 +150,7 @@ public class ReactiveDiscoveryClientIT {
 		RestTemplate rest = createRestTemplate();
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
-		await().timeout(Duration.ofSeconds(60))
-				.pollInterval(Duration.ofSeconds(1))
+		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(1))
 				.until(() -> rest.getForEntity("http://localhost:80/reactive-discovery-it/services", String.class)
 						.getStatusCode().is2xxSuccessful());
 		String result = rest.getForObject("http://localhost:80/reactive-discovery-it/services", String.class);

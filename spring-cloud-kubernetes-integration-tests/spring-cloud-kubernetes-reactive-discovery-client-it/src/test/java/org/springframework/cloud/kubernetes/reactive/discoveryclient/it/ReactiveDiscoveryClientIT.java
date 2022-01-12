@@ -208,23 +208,19 @@ class ReactiveDiscoveryClientIT {
 	}
 
 	private V1Service getDiscoveryService() throws Exception {
-		return (V1Service) K8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-discoveryclient-it-service.yaml");
+		return (V1Service) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-discoveryclient-it-service.yaml");
 	}
 
 	private static V1Ingress getDiscoveryServerIngress() throws Exception {
-		return (V1Ingress) K8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-discoveryserver-ingress.yaml");
+		return (V1Ingress) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-discoveryserver-ingress.yaml");
 	}
 
 	private V1Ingress getDiscoveryItIngress() throws Exception {
-		return (V1Ingress) K8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-discoveryclient-it-ingress.yaml");
+		return (V1Ingress) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-discoveryclient-it-ingress.yaml");
 	}
 
 	private static V1Service getDiscoveryServerService() throws Exception {
-		return (V1Service) K8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-discoveryserver-service.yaml");
+		return (V1Service) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-discoveryserver-service.yaml");
 	}
 
 }
