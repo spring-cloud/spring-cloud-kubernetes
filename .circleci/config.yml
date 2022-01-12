@@ -28,11 +28,21 @@ workflows:
 jobs:
   test:
     parallelism: 5 # parallel containers to split the tests among
-    machine: true
+    machine:
+      image: "ubuntu-2004:202111-02"
     environment:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
       _SERVICE_OCCURENCE: 5
     steps:
+      - run:
+          name: Install OpenJDK 17
+          command: |
+            wget -qO - https://adoptium.jfrog.io/adoptium/api/gpg/key/public | sudo apt-key add -
+            sudo add-apt-repository --yes https://adoptium.jfrog.io/adoptium/deb/
+            sudo apt-get update && sudo apt-get install temurin-17-jdk
+            sudo update-alternatives --set java /usr/lib/jvm/temurin-17-jdk-amd64/bin/java
+            sudo update-alternatives --set javac /usr/lib/jvm/temurin-17-jdk-amd64/bin/javac
+            java -version
       - checkout
       - run:
           name: Run regular tests
@@ -114,11 +124,21 @@ jobs:
           command: |
             cat $CIRCLE_INTERNAL_TASK_DATA/circle-test-results/results.json
   build:
-    machine: true
+    machine:
+      image: "ubuntu-2004:202111-02"
     environment:
       _JAVA_OPTIONS: "-Xms2g -Xmx2g"
       _SERVICE_OCCURENCE: 5
     steps:
+      - run:
+          name: Install OpenJDK 17
+          command: |
+            wget -qO - https://adoptium.jfrog.io/adoptium/api/gpg/key/public | sudo apt-key add -
+            sudo add-apt-repository --yes https://adoptium.jfrog.io/adoptium/deb/
+            sudo apt-get update && sudo apt-get install temurin-17-jdk
+            sudo update-alternatives --set java /usr/lib/jvm/temurin-17-jdk-amd64/bin/java
+            sudo update-alternatives --set javac /usr/lib/jvm/temurin-17-jdk-amd64/bin/javac
+            java -version
       - checkout
       - restore_cache:
           keys:
