@@ -137,7 +137,8 @@ jobs:
             /snap/bin/microk8s.kubectl config view --raw > /tmp/kubeconfig
             export KUBECONFIG=/tmp/kubeconfig
             cd spring-cloud-kubernetes-integration-tests
-            export JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-arm64
+            ls -l /usr/lib/jvm/temurin-17-jdk-amd64
+            export JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64
             echo "#########"
             ../mvnw -version
             ../mvnw -Ddocker.host='unix:///var/snap/microk8s/current/docker.sock' -Dimage.registry='localhost:32000' clean package fabric8:build verify -Pfmp,it,spring
