@@ -18,7 +18,7 @@
 	</description>
 
 	<properties>
-		<java.version>1.8</java.version>
+		<java.version>17</java.version>
 		<fmp.version>3.5.42</fmp.version>
 		<arquillian-cube.version>1.18.2</arquillian-cube.version>
 		<arquillian.version>1.4.0.Final</arquillian.version>
