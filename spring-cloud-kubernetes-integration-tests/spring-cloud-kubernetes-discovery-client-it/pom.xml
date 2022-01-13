@@ -105,39 +105,6 @@
 				<env.IMAGE>springcloud/${project.artifactId}:${project.version}</env.IMAGE>
 			</properties>
 		</profile>
-		<profile>
-			<id>jib</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.google.cloud.tools</groupId>
-						<artifactId>jib-maven-plugin</artifactId>
-						<version>${jib.version}</version>
-						<configuration>
-							<from>
-								<image>${base.image}</image>
-							</from>
-							<to>
-								<image>spring-cloud/${project.artifactId}</image>
-							</to>
-							<container>
-								<user>nobody:nogroup</user>
-								<environment>
-								</environment>
-							</container>
-						</configuration>
-						<executions>
-							<execution>
-								<phase>package</phase>
-								<goals>
-									<goal>dockerBuild</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
 	</profiles>
 
 </project>
