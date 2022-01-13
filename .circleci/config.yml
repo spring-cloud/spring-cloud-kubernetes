@@ -78,11 +78,11 @@ jobs:
             docker load -i ./docker-images/spring-cloud-kubernetes-configuration-watcher.tar
             docker load -i ./docker-images/spring-cloud-kubernetes-discoveryserver.tar
             docker load -i ./docker-images/spring-cloud-kubernetes-configserver.tar
-      - run:
-          name: Run Kind Integration Tests
-          command: |
-            cd spring-cloud-kubernetes-integration-tests
-            ./run.sh
+#      - run:
+#          name: Run Kind Integration Tests
+#          command: |
+#            cd spring-cloud-kubernetes-integration-tests
+#            ./run.sh
       - run:
           name: Launch Kubernetes with microk8s
           command: |
@@ -131,13 +131,13 @@ jobs:
 
             # create the namespace where the istio integration test will run
             /snap/bin/microk8s.kubectl create -f .circleci/istio-test-namespace.yml
-#      - run:
-#          name: Run integration tests
-#          command: |
-#            /snap/bin/microk8s.kubectl config view --raw > /tmp/kubeconfig
-#            export KUBECONFIG=/tmp/kubeconfig
-#            cd spring-cloud-kubernetes-integration-tests
-#            ../mvnw -Ddocker.host='unix:///var/snap/microk8s/current/docker.sock' -Dimage.registry='localhost:32000' clean package fabric8:build verify -Pfmp,it,spring
+      - run:
+          name: Run integration tests
+          command: |
+            /snap/bin/microk8s.kubectl config view --raw > /tmp/kubeconfig
+            export KUBECONFIG=/tmp/kubeconfig
+            cd spring-cloud-kubernetes-integration-tests
+            ../mvnw -Ddocker.host='unix:///var/snap/microk8s/current/docker.sock' -Dimage.registry='localhost:32000' clean package fabric8:build verify -Pfmp,it,spring
       - run:
           name: "Aggregate test results"
           when: always
