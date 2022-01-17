@@ -18,9 +18,9 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>io.fabric8</groupId>
-						<artifactId>fabric8-maven-plugin</artifactId>
-						<version>${fabric8.maven.plugin.version}</version>
+						<groupId>org.eclipse.jkube</groupId>
+						<artifactId>kubernetes-maven-plugin</artifactId>
+						<version>${kubernetes.maven.plugin.version}</version>
 						<executions>
 							<execution>
 								<id>fmp</id>
@@ -48,9 +48,9 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>io.fabric8</groupId>
-						<artifactId>fabric8-maven-plugin</artifactId>
-						<version>${fabric8.maven.plugin.version}</version>
+						<groupId>org.eclipse.jkube</groupId>
+						<artifactId>kubernetes-maven-plugin</artifactId>
+						<version>${kubernetes.maven.plugin.version}</version>
 						<executions>
 							<execution>
 								<id>fmp</id>
@@ -70,9 +70,9 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>io.fabric8</groupId>
-						<artifactId>fabric8-maven-plugin</artifactId>
-						<version>${fabric8.maven.plugin.version}</version>
+						<groupId>org.eclipse.jkube</groupId>
+						<artifactId>kubernetes-maven-plugin</artifactId>
+						<version>${kubernetes.maven.plugin.version}</version>
 						<executions>
 							<execution>
 								<id>fmp</id>
