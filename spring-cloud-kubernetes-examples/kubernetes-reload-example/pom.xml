@@ -118,12 +118,12 @@
 				<configuration>
 					<enricher>
 						<config>
-							<fmp-controller>
+							<jkube-controller>
 								<name>spring-cloud-reload</name>
-							</fmp-controller>
-							<fmp-service>
+							</jkube-controller>
+							<jkube-service>
 								<name>spring-cloud-reload</name>
-							</fmp-service>
+							</jkube-service>
 						</config>
 					</enricher>
 				</configuration>
@@ -152,13 +152,13 @@
 						<configuration>
 							<enricher>
 								<config>
-									<fmp-controller>
+									<jkube-controller>
 										<name>spring-cloud-reload</name>
-									</fmp-controller>
-									<fmp-service>
+									</jkube-controller>
+									<jkube-service>
 										<name>spring-cloud-reload</name>
 										<type>NodePort</type>
-									</fmp-service>
+									</jkube-service>
 								</config>
 							</enricher>
 						</configuration>

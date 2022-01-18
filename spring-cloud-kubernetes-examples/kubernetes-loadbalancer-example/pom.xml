@@ -33,9 +33,9 @@
 						<configuration>
 							<enricher>
 								<config>
-									<fmp-service>
+									<jkube-service>
 										<type>NodePort</type>
-									</fmp-service>
+									</jkube-service>
 								</config>
 							</enricher>
 						</configuration>
