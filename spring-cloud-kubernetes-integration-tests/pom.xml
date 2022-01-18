@@ -83,9 +83,10 @@
 							<execution>
 								<id>fabric8</id>
 								<goals>
-									<goal>resource</goal>
 									<goal>build</goal>
+									<goal>resource</goal>
 								</goals>
+								<phase>package</phase>
 							</execution>
 						</executions>
 					</plugin>
@@ -165,15 +166,15 @@
 	<modules>
 		<module>simple-core</module>
 		<module>simple-configmap</module>
-<!--		<module>istio</module>-->
+		<!--		<module>istio</module>-->
 		<module>discovery</module>
 		<module>load-balancer</module>
-        <!-- Add this module back once we convert everything over to kind -->
-<!--		<module>spring-cloud-kubernetes-client-config-it</module>-->
-<!--		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>-->
-<!--		<module>spring-cloud-kubernetes-client-reactive-discovery-client-it</module>-->
-<!--		<module>spring-cloud-kubernetes-configuration-watcher-it</module>-->
-<!--		<module>spring-cloud-kubernetes-configuration-watcher-it</module>-->
-<!--		<module>spring-cloud-kubernetes-core-k8s-client-it</module>-->
+		<!-- Add this module back once we convert everything over to kind -->
+		<!--		<module>spring-cloud-kubernetes-client-config-it</module>-->
+		<!--		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>-->
+		<!--		<module>spring-cloud-kubernetes-client-reactive-discovery-client-it</module>-->
+		<!--		<module>spring-cloud-kubernetes-configuration-watcher-it</module>-->
+		<!--		<module>spring-cloud-kubernetes-configuration-watcher-it</module>-->
+		<!--		<module>spring-cloud-kubernetes-core-k8s-client-it</module>-->
 	</modules>
 </project>
