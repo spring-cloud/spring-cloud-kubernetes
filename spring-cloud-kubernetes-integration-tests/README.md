@@ -8,12 +8,12 @@ lifecycle of the test applications is controlled by [Arquillian Cube](http://arq
 
 # Basics
 
-With FMP and Arquillian Cube setup for our project we need to configure the following things in order to properly get
+With JKube and Arquillian Cube setup for our project we need to configure the following things in order to properly get
 our test applications onto our cluster of choice:
 
 * The `KUBECONFIG` environment variable needs to be set to the location of the Kubernetes configuration file
 we will use to access our cluster (this can be skipped if this file is already present in the standard locations that kubectl assumes)
-* The `docker.host` system property needs to be set to the URL where the docker daemon we will use to build images is listening
+* The `jkube.docker.host` system property needs to be set to the URL where the docker daemon we will use to build images is listening
 This can be skipped when we use the default unix socket on a Linux machine
 * The Docker image registry were out built images will be stored needs to be set using the `image.registry` environment variable   
 
@@ -78,7 +78,7 @@ microk8s.kubectl create -f .circleci/istio-test-namespace.yml
 
 ```bash
 cd spring-cloud-kubernetes-integration-tests
-KUBECONFIG=/tmp/kubeconfig mvn -Ddocker.host='unix:///var/snap/microk8s/current/docker.sock' -Dimage.registry='localhost:32000' clean package fabric8:build verify -Pfmp,it
+KUBECONFIG=/tmp/kubeconfig mvn -Djkube.docker.host='unix:///var/snap/microk8s/current/docker.sock' clean package verify -Pk8s,it,spring
 ```
 
 The command above will for each test project:
@@ -106,7 +106,7 @@ provide a Kubernetes server runs within a Docker container on your local system.
 ** `docker run -d -p 5000:5000 --restart=always --name registry registry:2`
 * [Configure the Docker daemon to trust the local registry](https://docs.docker.com/docker-for-mac/#daemon) 
 * Export the docker config `kubectl config view --raw > /tmp/kubeconfig`
-* Run the tests `KUBECONFIG=/tmp/kubeconfig mvn -Ddocker.host='unix:///var/run/docker.sock' -Dimage.registry='127.0.0.1:5000' clean package fabric8:build verify -Pfmp,it,spring`
+* Run the tests `KUBECONFIG=/tmp/kubeconfig mvn -Djkube.docker.host='unix:///var/snap/microk8s/current/docker.sock' clean package verify -Pk8s,it,spring`
 
 ## Launching one of the applications manually
 
@@ -115,12 +115,12 @@ For example to launch the `simple-core` application
     
  ```bash
  cd spring-cloud-kubernetes-integration-tests/simple-core
- KUBECONFIG=/tmp/kubeconfig mvn -Ddocker.host='unix:///var/snap/microk8s/current/docker.sock' -Dimage.registry='localhost:32000' clean package fabric8:build fabric8:deploy -Pfmp
+ KUBECONFIG=/tmp/kubeconfig mvn -Djkube.docker.host='unix:///var/snap/microk8s/current/docker.sock' clean package verify -Pk8s,it,spring
  ```
  
  When it's time to take down the application, simply execute: 
  
 
  ```bash
-  KUBECONFIG=/tmp/kubeconfig mvn fabric8:undeploy -Pfmp
+  KUBECONFIG=/tmp/kubeconfig mvn k8s:undeploy -Pk8s
   ```
