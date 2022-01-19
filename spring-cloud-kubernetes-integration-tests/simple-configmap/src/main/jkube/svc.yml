@@ -1,4 +1,4 @@
-# We are using an FMP fragment to ensure that NodePort is used correctly
+# We are using a JKube fragment to ensure that NodePort is used correctly
 spec:
   ports:
     - protocol: TCP
