@@ -4,6 +4,7 @@
 
 	<extension qualifier="kubernetes">
 		<property name="namespace.use.existing">istio-test</property>
+		<property name="env.config.url">file:./target/classes/META-INF/jkube/kubernetes.yml</property>
 	</extension>
 
 </arquillian>
