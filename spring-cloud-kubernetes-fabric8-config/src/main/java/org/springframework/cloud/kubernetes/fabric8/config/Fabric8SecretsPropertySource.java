@@ -49,7 +49,7 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 			Map<String, String> labels, boolean failFast) {
 		Map<String, Object> result = new HashMap<>();
 
-		LOG.info("Loading Secret with name '" + name + "' or with labels [" + labels + "] in namespace '" + namespace
+		LOG.debug("Loading Secret with name '" + name + "' or with labels [" + labels + "] in namespace '" + namespace
 				+ "'");
 		try {
 

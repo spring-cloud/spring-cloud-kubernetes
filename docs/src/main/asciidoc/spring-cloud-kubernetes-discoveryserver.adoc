@@ -194,7 +194,7 @@ items:
           serviceAccount: spring-cloud-kubernetes-discoveryserver
           containers:
           - name: spring-cloud-kubernetes-discoveryserver
-            image: springcloud/spring-cloud-kubernetes-discoveryserver:2.1.0-SNAPSHOT
+            image: springcloud/spring-cloud-kubernetes-discoveryserver:3.0.0-SNAPSHOT
             imagePullPolicy: IfNotPresent
             readinessProbe:
               httpGet:

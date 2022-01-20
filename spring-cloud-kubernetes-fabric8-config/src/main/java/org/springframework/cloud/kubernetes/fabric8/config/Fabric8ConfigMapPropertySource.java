@@ -54,7 +54,7 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 	private static Map<String, Object> getData(KubernetesClient client, String name, String namespace,
 			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
 
-		LOG.info("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
+		LOG.debug("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
 		try {
 			Map<String, String> data = getConfigMapData(client, namespace, name);
 			Map<String, Object> result = new HashMap<>(processAllEntries(data, environment));

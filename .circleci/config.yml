@@ -17,31 +17,45 @@
 orbs:
   kube-orb: circleci/kubernetes@0.11.0
 version: 2.1
+workflows:
+  version: 2
+  build-then-test:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
 jobs:
-  build:
-    machine: true
+  test:
+    parallelism: 5 # parallel containers to split the tests among
+    machine:
+      image: "ubuntu-2004:202111-02"
     environment:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
       _SERVICE_OCCURENCE: 5
     steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - spring-cloud-kubernetes-{{ .Branch }}
-            - spring-cloud-kubernetes
       - run:
-          name: dependencies
+          name: Install OpenJDK 17
           command: |
-            ./mvnw -s .settings.xml -U --fail-never dependency:go-offline -Dservice.occurence=${_SERVICE_OCCURENCE} || true
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+            wget -qO - https://adoptium.jfrog.io/adoptium/api/gpg/key/public | sudo apt-key add -
+            sudo add-apt-repository --yes https://adoptium.jfrog.io/adoptium/deb/
+            sudo apt-get update && sudo apt-get install temurin-17-jdk
+            sudo update-alternatives --set java /usr/lib/jvm/temurin-17-jdk-amd64/bin/java
+            sudo update-alternatives --set javac /usr/lib/jvm/temurin-17-jdk-amd64/bin/javac
+            java -version
+      - checkout
       - run:
           name: Run regular tests
           command: |
-            ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} #org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" | grep -v 'spring-cloud-kubernetes-integration-tests' \
+                               | xargs grep -l '@Test' \
+                               | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
+                               | sed 's/.\{5\}$//' \
+                               | circleci tests split --split-by=timings)
+            echo $CLASSNAMES
+            TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
+            echo $TEST_ARG
+            ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent test -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
             mkdir -p $HOME/artifacts/junit/
             find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
@@ -52,6 +66,14 @@ jobs:
             sudo apt update
             sudo apt install snapd
       - kube-orb/install-kubectl
+      - attach_workspace:
+          at: ./
+      - run:
+          name: Load Controller Images From Workspace
+          command: |
+            docker load -i ./docker-images/spring-cloud-kubernetes-configuration-watcher.tar
+            docker load -i ./docker-images/spring-cloud-kubernetes-discoveryserver.tar
+            docker load -i ./docker-images/spring-cloud-kubernetes-configserver.tar
       - run:
           name: Run Kind Integration Tests
           command: |
@@ -111,7 +133,7 @@ jobs:
             /snap/bin/microk8s.kubectl config view --raw > /tmp/kubeconfig
             export KUBECONFIG=/tmp/kubeconfig
             cd spring-cloud-kubernetes-integration-tests
-            ../mvnw -Ddocker.host='unix:///var/snap/microk8s/current/docker.sock' -Dimage.registry='localhost:32000' clean package fabric8:build verify -Pfmp,it,spring
+            ../mvnw -Djkube.docker.host='unix:///var/snap/microk8s/current/docker.sock' clean package verify -Pk8s,it,spring
       - run:
           name: "Aggregate test results"
           when: always
@@ -125,6 +147,52 @@ jobs:
       - store_test_results:
           path: ~/junit/
           destination: testartifacts
+  build:
+    machine:
+      image: "ubuntu-2004:202111-02"
+    environment:
+      _JAVA_OPTIONS: "-Xms2g -Xmx2g"
+      _SERVICE_OCCURENCE: 5
+    steps:
+      - run:
+          name: Install OpenJDK 17
+          command: |
+            wget -qO - https://adoptium.jfrog.io/adoptium/api/gpg/key/public | sudo apt-key add -
+            sudo add-apt-repository --yes https://adoptium.jfrog.io/adoptium/deb/
+            sudo apt-get update && sudo apt-get install temurin-17-jdk
+            sudo update-alternatives --set java /usr/lib/jvm/temurin-17-jdk-amd64/bin/java
+            sudo update-alternatives --set javac /usr/lib/jvm/temurin-17-jdk-amd64/bin/javac
+            java -version
+      - checkout
+      - restore_cache:
+          keys:
+            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - spring-cloud-kubernetes-{{ .Branch }}
+            - spring-cloud-kubernetes
+      - run:
+          name: dependencies
+          command: |
+            ./mvnw -s .settings.xml -U dependency:resolve-plugins dependency:go-offline -B -Dservice.occurence=${_SERVICE_OCCURENCE} || true
+      - run:
+          name: build
+          command: |
+            ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} -DskipTests
+      - run:
+          name: save docker images
+          command: |
+            TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+            echo $TAG
+            mkdir docker-images
+            docker save -o docker-images/spring-cloud-kubernetes-configuration-watcher.tar docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${TAG}
+            docker save -o docker-images/spring-cloud-kubernetes-discoveryserver.tar docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${TAG}
+            docker save -o docker-images/spring-cloud-kubernetes-configserver.tar docker.io/springcloud/spring-cloud-kubernetes-configserver:${TAG}
+      - persist_to_workspace:
+          root: ./
+          paths: docker-images
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
 notify:
   webhooks:
     - url: https://webhooks.gitter.im/e/22e6bb4eb945dd61ba54

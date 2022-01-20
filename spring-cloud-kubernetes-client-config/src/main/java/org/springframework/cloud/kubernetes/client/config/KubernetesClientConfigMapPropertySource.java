@@ -52,7 +52,7 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 	private static Map<String, Object> getData(CoreV1Api coreV1Api, String name, String namespace,
 			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
 
-		LOG.info("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
+		LOG.debug("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
 		try {
 			Set<String> names = new HashSet<>();
 			names.add(name);

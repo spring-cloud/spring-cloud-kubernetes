@@ -1,4 +1,4 @@
-# we are using an FMP fragment to ensure that NodePort is used correctly
+# we are using a JKube fragment to ensure that NodePort is used correctly
 kind: Service
 apiVersion: v1
 metadata:
