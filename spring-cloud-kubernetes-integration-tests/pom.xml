@@ -18,8 +18,7 @@
 	</description>
 
 	<properties>
-		<java.version>1.8</java.version>
-		<fmp.version>3.5.42</fmp.version>
+		<java.version>17</java.version>
 		<arquillian-cube.version>1.18.2</arquillian-cube.version>
 		<arquillian.version>1.4.0.Final</arquillian.version>
 		<rest-assured.version>3.2.0</rest-assured.version>
@@ -54,29 +53,33 @@
 
 	<profiles>
 		<profile>
-			<id>fmp</id>
+			<id>k8s</id>
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>io.fabric8</groupId>
-						<artifactId>fabric8-maven-plugin</artifactId>
-						<version>${fmp.version}</version>
+						<groupId>org.eclipse.jkube</groupId>
+						<artifactId>kubernetes-maven-plugin</artifactId>
 						<configuration>
-							<!--
-                                FMP can work with Openshift as well, so here we explicitly force it
-                                to work with vanilla Kubernetes and Docker builds
-                            -->
-							<buildStrategy>docker</buildStrategy>
-							<mode>kubernetes</mode>
-							<pushRegistry>${image.registry}</pushRegistry>
+							<generator>
+								<includes>
+									<include>spring-boot</include>
+								</includes>
+								<config>
+									<spring-boot>
+										<!-- TODO: Remove when Eclipse JKube 1.6.0 is released -->
+										<from>quay.io/jkube/jkube-java:0.0.13</from>
+									</spring-boot>
+								</config>
+							</generator>
 						</configuration>
 						<executions>
 							<execution>
-								<id>fabric8</id>
+								<id>jkube</id>
 								<goals>
-									<goal>resource</goal>
 									<goal>build</goal>
+									<goal>resource</goal>
 								</goals>
+								<phase>package</phase>
 							</execution>
 						</executions>
 					</plugin>
