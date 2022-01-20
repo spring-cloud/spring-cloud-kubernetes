@@ -326,7 +326,6 @@
 					<plugin>
 						<groupId>org.jacoco</groupId>
 						<artifactId>jacoco-maven-plugin</artifactId>
-						<version>0.8.7</version>
 						<executions>
 							<execution>
 								<id>pre-unit-test</id>
@@ -359,13 +358,13 @@
 						<configuration>
 							<parallel>all</parallel>
 							<reuseForks>false</reuseForks>
+							<!-- Sets the VM argument line used when unit tests are run. -->
+							<argLine>${surefireArgLine}</argLine>
 							<!-- workaround for https://issues.apache.org/jira/projects/SUREFIRE/issues/SUREFIRE-1633?filter=allopenissues -->
 							<!-- we run tests with mvn -DtestsToRun=.... in the pipeline-->
 							<includes>
 								<include>${testsToRun}</include>
 							</includes>
-							<!-- Sets the VM argument line used when unit tests are run. -->
-							<argLine>${surefireArgLine}</argLine>
 							<excludes>
 								<exclude>${excludeITTests}</exclude>
 							</excludes>
