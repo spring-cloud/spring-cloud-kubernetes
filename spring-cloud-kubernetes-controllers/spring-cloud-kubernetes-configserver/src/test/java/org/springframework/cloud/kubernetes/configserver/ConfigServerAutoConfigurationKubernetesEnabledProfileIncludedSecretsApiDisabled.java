@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.configserver;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -27,8 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Ryan Baxter
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	classes = { KubernetesConfigServerApplication.class }, properties = { "spring.profiles.include=kubernetes",
-	"debug=true", "spring.cloud.kubernetes.client.namespace=default" })
+		classes = { KubernetesConfigServerApplication.class }, properties = { "spring.profiles.include=kubernetes",
+				"debug=true", "spring.cloud.kubernetes.client.namespace=default" })
 class ConfigServerAutoConfigurationKubernetesEnabledProfileIncludedSecretsApiDisabled {
 
 	@Autowired
@@ -39,7 +40,7 @@ class ConfigServerAutoConfigurationKubernetesEnabledProfileIncludedSecretsApiDis
 		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(1);
 		assertThat(context.getBeanNamesForType(KubernetesPropertySourceSupplier.class)).hasSize(1);
 		assertThat(context.getBeanNamesForType(KubernetesPropertySourceSupplier.class)[0])
-			.isEqualTo("configMapPropertySourceSupplier");
+				.isEqualTo("configMapPropertySourceSupplier");
 	}
 
 }

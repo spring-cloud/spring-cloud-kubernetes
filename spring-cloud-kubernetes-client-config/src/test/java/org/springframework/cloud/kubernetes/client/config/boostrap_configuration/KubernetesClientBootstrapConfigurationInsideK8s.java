@@ -14,32 +14,34 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.configserver;
+package org.springframework.cloud.kubernetes.client.config.boostrap_configuration;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author Ryan Baxter
+ * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = { KubernetesConfigServerApplication.class },
-		properties = { "spring.profiles.include=kubernetes", "debug=true",
-				"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.enableApi=true" })
-class ConfigServerAutoConfigurationKubernetesEnabledProfileIncludedSecretsApiEnabled {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
+	properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=abc" })
+class KubernetesClientBootstrapConfigurationInsideK8s {
 
 	@Autowired
 	private ConfigurableApplicationContext context;
 
+	// tests that @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES) has the desired
+	// effect, meaning when it is enabled, both property sources are present
 	@Test
-	void runTest() {
-		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(1);
-		assertThat(context.getBeanNamesForType(KubernetesPropertySourceSupplier.class)).hasSize(2);
+	public void bothPresent() {
+		assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(1);
+		assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(1);
 	}
 
 }

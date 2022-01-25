@@ -14,32 +14,31 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.configserver;
+package org.springframework.cloud.kubernetes.client.config.boostrap_configuration;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @author Ryan Baxter
- */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = { KubernetesConfigServerApplication.class },
-		properties = { "spring.profiles.include=kubernetes", "debug=true",
-				"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.enableApi=true" })
-class ConfigServerAutoConfigurationKubernetesEnabledProfileIncludedSecretsApiEnabled {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
+	properties = { "kubernetes.informer.enabled=false" })
+class KubernetesClientBootstrapConfigurationNotInsideK8s {
 
 	@Autowired
 	private ConfigurableApplicationContext context;
 
+	// tests that @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES) has the desired
+	// effect, meaning when it is disabled, no property source bean is present
 	@Test
-	void runTest() {
-		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(1);
-		assertThat(context.getBeanNamesForType(KubernetesPropertySourceSupplier.class)).hasSize(2);
+	void bothMissing() {
+		assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
+		assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(0);
 	}
 
 }

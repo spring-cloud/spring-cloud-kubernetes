@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.configserver;
+package org.springframework.cloud.kubernetes.fabric8.istio;
 
+import me.snowdrop.istio.client.IstioClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,21 +26,18 @@ import org.springframework.context.ConfigurableApplicationContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author Ryan Baxter
+ * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = { KubernetesConfigServerApplication.class },
-		properties = { "spring.profiles.include=kubernetes", "debug=true",
-				"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.enableApi=true" })
-class ConfigServerAutoConfigurationKubernetesEnabledProfileIncludedSecretsApiEnabled {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+		properties = { "spring.cloud.istio.enabled=true" })
+class IstioAutoConfigurationClientPresentWhenIstioEnabled {
 
 	@Autowired
 	private ConfigurableApplicationContext context;
 
 	@Test
-	void runTest() {
-		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(1);
-		assertThat(context.getBeanNamesForType(KubernetesPropertySourceSupplier.class)).hasSize(2);
+	void istioClientIsPresent() {
+		assertThat(context.getBeanNamesForType(IstioClient.class)).hasSize(1);
 	}
 
 }
