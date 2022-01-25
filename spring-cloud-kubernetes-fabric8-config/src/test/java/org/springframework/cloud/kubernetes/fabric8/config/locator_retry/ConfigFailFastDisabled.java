@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.retry;
+package org.springframework.cloud.kubernetes.fabric8.config.locator_retry;
 
-import io.fabric8.kubernetes.api.model.SecretListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -28,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -39,16 +38,12 @@ import static org.mockito.Mockito.verify;
  * @author Isik Erhan
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = { "spring.cloud.kubernetes.client.namespace=default",
-				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
-				"spring.main.cloud-platform=KUBERNETES" },
+		properties = { "spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class SecretsFailFastDisabled {
+class ConfigFailFastDisabled {
 
-	private static final String API = "/api/v1/namespaces/default/secrets/my-secret";
-
-	private static final String LIST_API = "/api/v1/namespaces/default/secrets";
+	private static final String API = "/api/v1/namespaces/default/configmaps/application";
 
 	private static KubernetesMockServer mockServer;
 
@@ -62,13 +57,10 @@ class SecretsFailFastDisabled {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
-
-		// return empty secret list to not fail context creation
-		mockServer.expect().withPath(LIST_API).andReturn(200, new SecretListBuilder().build()).always();
 	}
 
 	@SpyBean
-	private Fabric8SecretsPropertySourceLocator propertySourceLocator;
+	private Fabric8ConfigMapPropertySourceLocator propertySourceLocator;
 
 	@Test
 	void locateShouldNotRetry() {
@@ -76,7 +68,7 @@ class SecretsFailFastDisabled {
 
 		Assertions.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
 
-		// verify locate is called only once
+		// verify that propertySourceLocator.locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());
 	}
 

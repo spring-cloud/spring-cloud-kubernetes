@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,31 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.bootstrap;
+package org.springframework.cloud.kubernetes.commons.config.bootstrap;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.config.Application;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.App;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author wind57
+ * @author Isik Erhan
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-		properties = "spring.cloud.kubernetes.enabled=false")
-class KubernetesDisabled {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = App.class, properties = {
+		"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false" })
+class SecretsFailFastEnabledButRetryDisabled {
 
 	@Autowired
 	private ConfigurableApplicationContext context;
 
 	@Test
-	void configAndSecretsBeansAreNotPresent() {
-		assertThat(context.getBeanNamesForType(Fabric8ConfigMapPropertySourceLocator.class)).hasSize(0);
-		assertThat(context.getBeanNamesForType(Fabric8SecretsPropertySourceLocator.class)).hasSize(0);
+	void shouldNotDefineRetryBeans() {
+		assertThat(context.getBeansOfType(RetryOperationsInterceptor.class)).isEmpty();
 	}
 
 }

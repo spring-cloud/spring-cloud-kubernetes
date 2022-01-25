@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,41 +27,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author wind57
- *
- * test "User-Agent" functionality
  */
-class Fabric8ClientUserAgentTests {
+@SpringBootTest(classes = App.class)
+class Fabric8UserAgentDefaultConfigurationTests {
 
-	private static final String USER_AGENT = "spring.cloud.kubernetes.client.userAgent=non-default";
+	@Autowired
+	private KubernetesClient client;
 
-	@Nested
-	@SpringBootTest(classes = App.class)
-	class DefaultConfigurationForClient {
-
-		@Autowired
-		private KubernetesClient client;
-
-		@Test
-		void testUserAgent() {
-			String userAgent = client.getConfiguration().getUserAgent();
-			assertThat(userAgent).isEqualTo("Spring-Cloud-Kubernetes-Application");
-		}
-
-	}
-
-	@Nested
-	@SpringBootTest(classes = App.class, properties = USER_AGENT)
-	class PropertiesConfigurationForClient {
-
-		@Autowired
-		private KubernetesClient client;
-
-		@Test
-		void testUserAgent() {
-			String userAgent = client.getConfiguration().getUserAgent();
-			assertThat(userAgent).isEqualTo("non-default");
-		}
-
+	@Test
+	void testUserAgent() {
+		String userAgent = client.getConfiguration().getUserAgent();
+		assertThat(userAgent).isEqualTo("Spring-Cloud-Kubernetes-Application");
 	}
 
 }

@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.retry;
+package org.springframework.cloud.kubernetes.fabric8.config.locator_retry;
 
-import io.fabric8.kubernetes.api.model.SecretListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
+import org.springframework.context.ApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -40,15 +42,13 @@ import static org.mockito.Mockito.verify;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		properties = { "spring.cloud.kubernetes.client.namespace=default",
-				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
+				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
 				"spring.main.cloud-platform=KUBERNETES" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class SecretsFailFastDisabled {
+class ConfigFailFastEnabledButRetryDisabled {
 
-	private static final String API = "/api/v1/namespaces/default/secrets/my-secret";
-
-	private static final String LIST_API = "/api/v1/namespaces/default/secrets";
+	private static final String API = "/api/v1/namespaces/default/configmaps/application";
 
 	private static KubernetesMockServer mockServer;
 
@@ -62,21 +62,25 @@ class SecretsFailFastDisabled {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
-
-		// return empty secret list to not fail context creation
-		mockServer.expect().withPath(LIST_API).andReturn(200, new SecretListBuilder().build()).always();
 	}
 
 	@SpyBean
-	private Fabric8SecretsPropertySourceLocator propertySourceLocator;
+	private Fabric8ConfigMapPropertySourceLocator propertySourceLocator;
+
+	@Autowired
+	private ApplicationContext context;
 
 	@Test
-	void locateShouldNotRetry() {
+	void locateShouldFailWithoutRetrying() {
+
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
-		Assertions.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
+		assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isFalse();
+		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessage("Unable to read ConfigMap with name 'application' in namespace 'default'");
 
-		// verify locate is called only once
+		// verify that propertySourceLocator.locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());
 	}
 

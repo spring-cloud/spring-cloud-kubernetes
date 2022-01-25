@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.retry;
+package org.springframework.cloud.kubernetes.fabric8.config.locator_retry;
 
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.fabric8.kubernetes.api.model.SecretListBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -33,7 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -46,17 +44,15 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Isik Erhan
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
-		"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true",
-		"spring.cloud.kubernetes.secrets.retry.max-attempts=5", "spring.cloud.kubernetes.secrets.name=my-secret",
-		"spring.cloud.kubernetes.secrets.enable-api=true", "spring.main.cloud-platform=KUBERNETES" },
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+		properties = { "spring.cloud.kubernetes.client.namespace=default",
+				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.max-attempts=5",
+				"spring.main.cloud-platform=KUBERNETES" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class SecretsRetryEnabled {
+class ConfigRetryEnabled {
 
-	private static final String API = "/api/v1/namespaces/default/secrets/my-secret";
-
-	private static final String LIST_API = "/api/v1/namespaces/default/secrets";
+	private static final String API = "/api/v1/namespaces/default/configmaps/application";
 
 	private static KubernetesMockServer mockServer;
 
@@ -70,23 +66,20 @@ class SecretsRetryEnabled {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
-
-		// return empty secret list to not fail context creation
-		mockServer.expect().withPath(LIST_API).andReturn(200, new SecretListBuilder().build()).always();
 	}
 
 	@SpyBean
-	private Fabric8SecretsPropertySourceLocator propertySourceLocator;
+	private Fabric8ConfigMapPropertySourceLocator propertySourceLocator;
 
 	@Test
 	void locateShouldNotRetryWhenThereIsNoFailure() {
 		Map<String, String> data = new HashMap<>();
-		data.put("some.sensitive.prop", Base64.getEncoder().encodeToString("theSensitiveValue".getBytes()));
-		data.put("some.sensitive.number", Base64.getEncoder().encodeToString("1".getBytes()));
+		data.put("some.prop", "theValue");
+		data.put("some.number", "0");
 
-		// return secret without failing
+		// return config map without failing
 		mockServer.expect().withPath(API).andReturn(200,
-				new SecretBuilder().withNewMetadata().withName("my-secret").endMetadata().addToData(data).build())
+				new ConfigMapBuilder().withNewMetadata().withName("application").endMetadata().addToData(data).build())
 				.once();
 
 		PropertySource<?> propertySource = Assertions
@@ -96,20 +89,20 @@ class SecretsRetryEnabled {
 		verify(propertySourceLocator, times(1)).locate(any());
 
 		// validate the contents of the property source
-		assertThat(propertySource.getProperty("some.sensitive.prop")).isEqualTo("theSensitiveValue");
-		assertThat(propertySource.getProperty("some.sensitive.number")).isEqualTo("1");
+		assertThat(propertySource.getProperty("some.prop")).isEqualTo("theValue");
+		assertThat(propertySource.getProperty("some.number")).isEqualTo("0");
 	}
 
 	@Test
 	void locateShouldRetryAndRecover() {
 		Map<String, String> data = new HashMap<>();
-		data.put("some.sensitive.prop", Base64.getEncoder().encodeToString("theSensitiveValue".getBytes()));
-		data.put("some.sensitive.number", Base64.getEncoder().encodeToString("1".getBytes()));
+		data.put("some.prop", "theValue");
+		data.put("some.number", "0");
 
 		// fail 3 times then succeed at the 4th call
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").times(3);
 		mockServer.expect().withPath(API).andReturn(200,
-				new SecretBuilder().withNewMetadata().withName("my-secret").endMetadata().addToData(data).build())
+				new ConfigMapBuilder().withNewMetadata().withName("application").endMetadata().addToData(data).build())
 				.once();
 
 		PropertySource<?> propertySource = Assertions
@@ -119,8 +112,8 @@ class SecretsRetryEnabled {
 		verify(propertySourceLocator, times(4)).locate(any());
 
 		// validate the contents of the property source
-		assertThat(propertySource.getProperty("some.sensitive.prop")).isEqualTo("theSensitiveValue");
-		assertThat(propertySource.getProperty("some.sensitive.number")).isEqualTo("1");
+		assertThat(propertySource.getProperty("some.prop")).isEqualTo("theValue");
+		assertThat(propertySource.getProperty("some.number")).isEqualTo("0");
 	}
 
 	@Test
@@ -130,7 +123,7 @@ class SecretsRetryEnabled {
 
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
 				.isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");
+				.hasMessage("Unable to read ConfigMap with name 'application' in namespace 'default'");
 
 		// verify retried 5 times until failure
 		verify(propertySourceLocator, times(5)).locate(any());

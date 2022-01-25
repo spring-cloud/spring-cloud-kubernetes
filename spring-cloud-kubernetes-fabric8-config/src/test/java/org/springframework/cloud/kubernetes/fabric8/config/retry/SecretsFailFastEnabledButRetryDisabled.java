@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.kubernetes.fabric8.config.retry;
@@ -24,6 +23,7 @@ import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -41,11 +41,12 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Isik Erhan
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
-	"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true",
-	"spring.cloud.kubernetes.secrets.retry.enabled=false", "spring.cloud.kubernetes.secrets.name=my-secret",
-	"spring.cloud.kubernetes.secrets.enable-api=true", "spring.main.cloud-platform=KUBERNETES" },
-	classes = Application.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+		properties = { "spring.cloud.kubernetes.client.namespace=default",
+				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false",
+				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
+				"spring.main.cloud-platform=KUBERNETES" },
+		classes = Application.class)
 @EnableKubernetesMockClient
 class SecretsFailFastEnabledButRetryDisabled {
 
@@ -53,9 +54,9 @@ class SecretsFailFastEnabledButRetryDisabled {
 
 	private static final String LIST_API = "/api/v1/namespaces/default/secrets";
 
-	static KubernetesMockServer mockServer;
+	private static KubernetesMockServer mockServer;
 
-	static KubernetesClient mockClient;
+	private static KubernetesClient mockClient;
 
 	@BeforeAll
 	static void setup() {
@@ -83,8 +84,8 @@ class SecretsFailFastEnabledButRetryDisabled {
 
 		assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isFalse();
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
-			.isInstanceOf(IllegalStateException.class)
-			.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());

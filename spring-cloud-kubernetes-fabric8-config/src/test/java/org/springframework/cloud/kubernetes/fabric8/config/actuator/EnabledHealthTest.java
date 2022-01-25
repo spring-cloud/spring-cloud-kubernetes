@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.config.actuator;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.ReactiveHealthContributorRegistry;
@@ -31,10 +32,10 @@ import static org.hamcrest.Matchers.containsString;
 /**
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
-	"management.health.kubernetes.enabled=true", "management.endpoint.health.show-details=always",
-	"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health",
-	"spring.cloud.kubernetes.client.namespace=default" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+		properties = { "management.health.kubernetes.enabled=true", "management.endpoint.health.show-details=always",
+				"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health",
+				"spring.cloud.kubernetes.client.namespace=default" })
 class EnabledHealthTest {
 
 	@Autowired
@@ -49,11 +50,11 @@ class EnabledHealthTest {
 	@Test
 	void healthEndpointShouldContainKubernetes() {
 		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-			.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
-			.value(containsString("kubernetes"));
+				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
+				.value(containsString("kubernetes"));
 
 		Assertions.assertNotNull(registry.getContributor("kubernetes"),
-			"reactive kubernetes contributor must be present when 'management.health.kubernetes.enabled=true'");
+				"reactive kubernetes contributor must be present when 'management.health.kubernetes.enabled=true'");
 	}
 
 }

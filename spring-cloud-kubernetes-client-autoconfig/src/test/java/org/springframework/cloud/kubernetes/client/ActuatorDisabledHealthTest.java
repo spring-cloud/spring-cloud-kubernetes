@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.actuator;
+package org.springframework.cloud.kubernetes.client;
 
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -23,21 +24,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.ReactiveHealthContributorRegistry;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.config.example.App;
+import org.springframework.cloud.kubernetes.client.example.App;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
-
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
 
 /**
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "management.health.kubernetes.enabled=false", "management.endpoint.health.show-details=always",
-				"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health",
-				"spring.cloud.kubernetes.client.namespace=default" })
-class DisabledHealthTest {
+				"management.endpoint.health.show-components=always",
+				"management.endpoints.web.exposure.include=health" })
+class ActuatorDisabledHealthTest {
 
 	@Autowired
 	private ReactiveHealthContributorRegistry registry;
@@ -52,7 +50,7 @@ class DisabledHealthTest {
 	void healthEndpointShouldContainKubernetes() {
 		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
 				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
-				.value(not(containsString("kubernetes")));
+				.value(Matchers.not(Matchers.containsString("kubernetes")));
 
 		Assertions.assertNull(registry.getContributor("kubernetes"),
 				"reactive kubernetes contributor must NOT be present when 'management.health.kubernetes.enabled=false'");

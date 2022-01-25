@@ -14,33 +14,31 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.bootstrap;
+package org.springframework.cloud.kubernetes.configserver;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.config.Application;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author wind57
+ * @author Ryan Baxter
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-		properties = "spring.cloud.kubernetes.enabled=false")
-class KubernetesDisabled {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+	properties = { "spring.profiles.include=kubernetes,kubernetesdisabled",
+		"spring.cloud.kubernetes.enabled=false", "debug=true" },
+	classes = { KubernetesConfigServerApplication.class, MockConfig.class })
+class ConfigServerAutoConfigurationKubernetesDisabled {
 
 	@Autowired
 	private ConfigurableApplicationContext context;
 
 	@Test
-	void configAndSecretsBeansAreNotPresent() {
-		assertThat(context.getBeanNamesForType(Fabric8ConfigMapPropertySourceLocator.class)).hasSize(0);
-		assertThat(context.getBeanNamesForType(Fabric8SecretsPropertySourceLocator.class)).hasSize(0);
+	void runTest() {
+		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(0);
 	}
 
 }
