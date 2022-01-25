@@ -42,13 +42,13 @@ public class Fabric8ConfigUtilsTests {
 
 	@Test
 	public void testGetApplicationNamespaceNotPresent() {
-		String result = Fabric8ConfigUtils.getApplicationNamespace(client, "", "target");
+		String result = Fabric8ConfigUtils.getApplicationNamespace(client, "", "target", null);
 		assertThat(result).isEqualTo("test");
 	}
 
 	@Test
 	public void testGetApplicationNamespacePresent() {
-		String result = Fabric8ConfigUtils.getApplicationNamespace(client, "namespace", "target");
+		String result = Fabric8ConfigUtils.getApplicationNamespace(client, "namespace", "target", null);
 		assertThat(result).isEqualTo("namespace");
 	}
 

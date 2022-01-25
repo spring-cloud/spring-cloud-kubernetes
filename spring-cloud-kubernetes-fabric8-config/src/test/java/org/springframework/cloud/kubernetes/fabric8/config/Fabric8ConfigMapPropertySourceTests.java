@@ -66,64 +66,28 @@ class Fabric8ConfigMapPropertySourceTests {
 	}
 
 	@Test
-	void deprecatedConstructorWithoutClientNamespaceMustFail() {
-
-		Mockito.when(client.getNamespace()).thenReturn(null);
-		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(client, "configmap"))
-				.isInstanceOf(NamespaceResolutionFailedException.class);
-	}
-
-	@Test
-	void deprecatedConstructorWithClientNamespaceMustNotFail() {
-
-		Mockito.when(client.getNamespace()).thenReturn("some");
-		assertThat(new Fabric8ConfigMapPropertySource(client, "configmap")).isNotNull();
-	}
-
-	@Test
-	void anotherDeprecatedConstructorWithoutClientNamespaceMustFail() {
-
-		Mockito.when(client.getNamespace()).thenReturn(null);
-		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(client, "configmap", null, new MockEnvironment()))
-				.isInstanceOf(NamespaceResolutionFailedException.class);
-	}
-
-	@Test
-	void anotherDeprecatedConstructorWithClientNamespaceMustNotFail() {
-
-		Mockito.when(client.getNamespace()).thenReturn("some-namespace");
-		assertThat(new Fabric8ConfigMapPropertySource(client, "configmap", null, new MockEnvironment())).isNotNull();
-	}
-
-	@Test
-	void anotherDeprecatedConstructorWithNamespaceMustNotFail() {
-
-		Mockito.when(client.getNamespace()).thenReturn(null);
-		assertThat(new Fabric8ConfigMapPropertySource(client, "configmap", "namespace", new MockEnvironment()))
-				.isNotNull();
-	}
-
-	@Test
 	void constructorWithoutClientNamespaceMustFail() {
 
 		Mockito.when(client.getNamespace()).thenReturn(null);
-		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(client, "configmap", null, new MockEnvironment()))
-				.isInstanceOf(NamespaceResolutionFailedException.class);
+		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(client, "configmap", null, new MockEnvironment(),
+				"", false, false)).isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 	@Test
 	void constructorWithClientNamespaceMustNotFail() {
 
 		Mockito.when(client.getNamespace()).thenReturn("namespace");
-		assertThat(new Fabric8ConfigMapPropertySource(client, "configmap", null, new MockEnvironment())).isNotNull();
+		assertThat(
+				new Fabric8ConfigMapPropertySource(client, "configmap", null, new MockEnvironment(), "", false, false))
+						.isNotNull();
 	}
 
 	@Test
 	void constructorWithNamespaceMustNotFail() {
 
 		Mockito.when(client.getNamespace()).thenReturn(null);
-		assertThat(new Fabric8ConfigMapPropertySource(client, "configmap", "namespace", new MockEnvironment()))
-				.isNotNull();
+		assertThat(new Fabric8ConfigMapPropertySource(client, "configmap", "namespace", new MockEnvironment(), "",
+				false, false)).isNotNull();
 	}
 
 }

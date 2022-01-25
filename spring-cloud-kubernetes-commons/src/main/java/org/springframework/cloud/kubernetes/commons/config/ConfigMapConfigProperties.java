@@ -185,14 +185,6 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
 
-		// not used, but not removed because of potential compatibility reasons
-		@Deprecated
-		public NormalizedSource normalize(String defaultName, String defaultNamespace) {
-			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
-			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-			return new NormalizedSource(normalizedName, normalizedNamespace, "", true);
-		}
-
 		public NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix,
 				boolean defaultIncludeProfileSpecificSources) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
@@ -232,15 +224,6 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		private final String prefix;
 
 		private final boolean includeProfileSpecificSources;
-
-		// not used, but not removed because of potential compatibility reasons
-		@Deprecated
-		NormalizedSource(String name, String namespace) {
-			this.name = name;
-			this.namespace = namespace;
-			this.prefix = "";
-			this.includeProfileSpecificSources = true;
-		}
 
 		NormalizedSource(String name, String namespace, String prefix, boolean includeProfileSpecificSources) {
 			this.name = name;
