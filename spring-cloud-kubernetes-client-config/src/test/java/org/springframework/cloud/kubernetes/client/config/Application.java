@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.boostrap_configuration;
+package org.springframework.cloud.kubernetes.client.config;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-class Application {
+public class Application {
 
 }
