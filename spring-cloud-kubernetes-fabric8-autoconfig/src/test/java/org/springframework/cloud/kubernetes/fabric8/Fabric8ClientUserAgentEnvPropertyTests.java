@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * test "User-Agent" functionality via system properties
  */
-@SpringBootTest(classes = App.class)
+@SpringBootTest(classes = App.class, properties = "spring.main.cloud-platform=KUBERNETES")
 class Fabric8ClientUserAgentEnvPropertyTests {
 
 	@Autowired

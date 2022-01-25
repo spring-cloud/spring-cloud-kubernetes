@@ -20,8 +20,9 @@ import org.aspectj.lang.annotation.Aspect;
 
 import org.springframework.boot.autoconfigure.aop.AopAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -36,7 +37,7 @@ import org.springframework.retry.policy.NeverRetryPolicy;
  * @author Isik Erhan
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnKubernetesEnabled
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @EnableConfigurationProperties({ ConfigMapConfigProperties.class, SecretsConfigProperties.class })
 public class KubernetesBootstrapConfiguration {
 
