@@ -41,31 +41,31 @@ class Fabric8LoadBalancerAutoConfigurationTests {
 
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesDisabledAndLoadBalancerDisabled() {
-		setup("spring.cloud.kubernetes.enabled=false", "spring.cloud.kubernetes.loadbalancer.enabled=false");
+		setup("spring.cloud.kubernetes.loadbalancer.enabled=false");
 		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).isEmpty();
 	}
 
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesDisabledAndLoadBalancerEnabled() {
-		setup("spring.cloud.kubernetes.enabled=false", "spring.cloud.kubernetes.loadbalancer.enabled=true");
+		setup("spring.cloud.kubernetes.loadbalancer.enabled=true");
 		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).isEmpty();
 	}
 
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesEnabledAndLoadBalancerEnabled() {
-		setup("spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.loadbalancer.enabled=true");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.loadbalancer.enabled=true");
 		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).hasSize(1);
 	}
 
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesEnabledAndLoadBalancerDisabled() {
-		setup("spring.cloud.kubernetes.enabled=true", "spring.cloud.kubernetes.loadbalancer.enabled=false");
+		setup("spring.cloud.kubernetes.loadbalancer.enabled=false");
 		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).isEmpty();
 	}
 
 	@Test
 	void kubernetesLoadBalancerWhenDefaultProperties() {
-		setup();
+		setup("spring.main.cloud-platform=KUBERNETES");
 		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).hasSize(1);
 	}
 

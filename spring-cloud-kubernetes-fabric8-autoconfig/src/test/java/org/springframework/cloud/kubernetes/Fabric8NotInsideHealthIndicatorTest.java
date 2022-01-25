@@ -37,7 +37,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
-		properties = { "management.endpoint.health.show-details=always" })
+		properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoint.health.show-details=always" })
 @EnableKubernetesMockClient(crud = true, https = false)
 public class Fabric8NotInsideHealthIndicatorTest {
 

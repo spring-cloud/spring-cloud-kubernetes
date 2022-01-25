@@ -22,8 +22,10 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.commons.util.TaskSchedulerWrapper;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
@@ -48,7 +50,7 @@ import org.springframework.core.env.AbstractEnvironment;
  * @author Kris Iyer
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnMissingBean(ConfigReloadAutoConfiguration.class)
 @EnableConfigurationProperties(ConfigReloadProperties.class)
 public class ConfigReloadDefaultAutoConfiguration {

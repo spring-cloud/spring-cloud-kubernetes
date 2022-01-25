@@ -20,9 +20,10 @@ import io.fabric8.kubernetes.client.Config;
 import me.snowdrop.istio.client.DefaultIstioClient;
 import me.snowdrop.istio.client.IstioClient;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -33,7 +34,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(value = "spring.cloud.istio.enabled", matchIfMissing = true)
-@ConditionalOnKubernetesEnabled
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 public class IstioAutoConfiguration {
 
 	@Bean

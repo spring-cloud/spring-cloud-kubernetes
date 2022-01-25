@@ -66,9 +66,9 @@ public class Fabric8ActuatorTests {
 
 	@Nested
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class, properties = {
-			"management.health.kubernetes.enabled=true", "management.endpoint.health.show-details=always",
-			"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health",
-			"spring.cloud.kubernetes.client.namespace=default" })
+			"spring.main.cloud-platform=KUBERNETES", "management.health.kubernetes.enabled=true",
+			"management.endpoint.health.show-details=always", "management.endpoint.health.show-components=always",
+			"management.endpoints.web.exposure.include=health", "spring.cloud.kubernetes.client.namespace=default" })
 	public class EnabledHealthTest {
 
 		@Autowired

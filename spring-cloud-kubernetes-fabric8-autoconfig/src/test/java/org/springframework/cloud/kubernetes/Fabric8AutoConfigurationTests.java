@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
-		properties = { "spring.cloud.kubernetes.client.password=mypassword",
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.password=mypassword",
 				"spring.cloud.kubernetes.client.proxy-password=myproxypassword" })
 @EnableKubernetesMockClient(crud = true, https = false)
 public class Fabric8AutoConfigurationTests {

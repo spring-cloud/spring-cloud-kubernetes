@@ -20,8 +20,9 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
@@ -35,7 +36,7 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
  * @author Ryan Baxter
  */
 @Configuration
-@ConditionalOnKubernetesEnabled
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter(KubernetesCommonsAutoConfiguration.class)
 public class KubernetesClientAutoConfiguration {
 
