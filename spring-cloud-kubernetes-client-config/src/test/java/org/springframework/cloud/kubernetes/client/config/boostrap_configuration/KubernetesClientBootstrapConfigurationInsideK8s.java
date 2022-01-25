@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-	properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=abc" })
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=abc" })
 class KubernetesClientBootstrapConfigurationInsideK8s {
 
 	@Autowired

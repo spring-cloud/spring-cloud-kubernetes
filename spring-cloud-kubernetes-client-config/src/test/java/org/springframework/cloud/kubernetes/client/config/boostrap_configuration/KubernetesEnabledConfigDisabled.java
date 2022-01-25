@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-	properties = { "spring.cloud.kubernetes.config.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
+		properties = { "spring.cloud.kubernetes.config.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
 class KubernetesEnabledConfigDisabled {
 
 	@Autowired

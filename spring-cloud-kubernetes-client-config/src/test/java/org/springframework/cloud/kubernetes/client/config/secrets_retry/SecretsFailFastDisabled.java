@@ -34,7 +34,6 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.mock.env.MockEnvironment;
 
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -48,10 +47,10 @@ import static org.mockito.Mockito.verify;
  * @author Isik Erhan
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-	properties = { "spring.cloud.kubernetes.client.namespace=default",
-		"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
-		"spring.main.cloud-platform=KUBERNETES" },
-	classes = Application.class)
+		properties = { "spring.cloud.kubernetes.client.namespace=default",
+				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
+				"spring.main.cloud-platform=KUBERNETES" },
+		classes = Application.class)
 class SecretsFailFastDisabled {
 
 	private static final String API = "/api/v1/namespaces/default/secrets";
@@ -68,7 +67,7 @@ class SecretsFailFastDisabled {
 
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
-			.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
+				.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
 		stubConfigMapAndSecretsDefaults();
 	}
 

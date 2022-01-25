@@ -31,8 +31,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-	properties = { "spring.cloud.kubernetes.enabled=false", "kubernetes.informer.enabled=false",
-		"kubernetes.manifests.enabled=false" })
+		properties = { "spring.cloud.kubernetes.enabled=false", "kubernetes.informer.enabled=false",
+				"kubernetes.manifests.enabled=false" })
 class KubernetesDisabled {
 
 	@Autowired

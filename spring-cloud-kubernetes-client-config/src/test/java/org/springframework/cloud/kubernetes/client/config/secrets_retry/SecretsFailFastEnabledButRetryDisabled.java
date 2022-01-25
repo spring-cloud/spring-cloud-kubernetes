@@ -36,7 +36,6 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecret
 import org.springframework.context.ApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
 
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -51,11 +50,12 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Isik Erhan
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
-	"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true",
-	"spring.cloud.kubernetes.secrets.retry.enabled=false", "spring.cloud.kubernetes.secrets.name=my-secret",
-	"spring.cloud.kubernetes.secrets.enable-api=true", "spring.main.cloud-platform=KUBERNETES" },
-	classes = Application.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+		properties = { "spring.cloud.kubernetes.client.namespace=default",
+				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false",
+				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
+				"spring.main.cloud-platform=KUBERNETES" },
+		classes = Application.class)
 class SecretsFailFastEnabledButRetryDisabled {
 
 	private static final String API = "/api/v1/namespaces/default/secrets";
@@ -74,7 +74,7 @@ class SecretsFailFastEnabledButRetryDisabled {
 
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
-			.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
+				.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
 		stubConfigMapAndSecretsDefaults();
 	}
 
@@ -82,7 +82,7 @@ class SecretsFailFastEnabledButRetryDisabled {
 		// return empty config map / secret list to not fail context creation
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1SecretList()))));
 		stubFor(get(CONFIG_MAPS_API)
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1ConfigMapList()))));
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1ConfigMapList()))));
 	}
 
 	@AfterAll
@@ -110,8 +110,8 @@ class SecretsFailFastEnabledButRetryDisabled {
 
 		assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isFalse();
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
-			.isInstanceOf(IllegalStateException.class)
-			.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());

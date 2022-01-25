@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package org.springframework.cloud.kubernetes.client.config.boostrap_configuration;
 
 import org.junit.jupiter.api.Test;
@@ -32,8 +31,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-	properties = { "spring.cloud.kubernetes.secrets.enabled=false",
-		"spring.cloud.kubernetes.config.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
+		properties = { "spring.cloud.kubernetes.secrets.enabled=false", "spring.cloud.kubernetes.config.enabled=false",
+				"spring.main.cloud-platform=KUBERNETES" })
 class KubernetesEnabledSecretsAndConfigDisabled {
 
 	@Autowired

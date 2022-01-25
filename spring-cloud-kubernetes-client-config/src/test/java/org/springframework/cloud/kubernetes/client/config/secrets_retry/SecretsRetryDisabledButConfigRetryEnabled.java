@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.config.secrets_retry;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.JSON;
+import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
@@ -35,7 +36,6 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecret
 import org.springframework.context.ApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
 
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -51,15 +51,16 @@ import static org.mockito.Mockito.verify;
  * @author Isik Erhan
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-	properties = { "spring.cloud.kubernetes.client.namespace=default",
-		"spring.cloud.kubernetes.secrets.fail-fast=true",
-		"spring.cloud.kubernetes.secrets.retry.enabled=false",
-		"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.secrets.name=my-secret",
-		"spring.cloud.kubernetes.secrets.enable-api=true", "spring.main.cloud-platform=KUBERNETES" },
-	classes = Application.class)
+		properties = { "spring.cloud.kubernetes.client.namespace=default",
+				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false",
+				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.secrets.name=my-secret",
+				"spring.cloud.kubernetes.secrets.enable-api=true", "spring.main.cloud-platform=KUBERNETES" },
+		classes = Application.class)
 class SecretsRetryDisabledButConfigRetryEnabled {
 
 	private static final String API = "/api/v1/namespaces/default/secrets";
+
+	private static final String CONFIG_MAPS_API = "/api/v1/namespaces/default/configmaps";
 
 	private static WireMockServer wireMockServer;
 
@@ -73,13 +74,15 @@ class SecretsRetryDisabledButConfigRetryEnabled {
 
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
-			.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
+				.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
 		stubConfigMapAndSecretsDefaults();
 	}
 
 	private static void stubConfigMapAndSecretsDefaults() {
 		// return empty config map / secret list to not fail context creation
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1SecretList()))));
+		stubFor(get(CONFIG_MAPS_API)
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1ConfigMapList()))));
 	}
 
 	@AfterAll
@@ -114,8 +117,8 @@ class SecretsRetryDisabledButConfigRetryEnabled {
 
 		assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isTrue();
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
-			.isInstanceOf(IllegalStateException.class)
-			.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());
