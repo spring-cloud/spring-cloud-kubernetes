@@ -19,12 +19,10 @@ package org.springframework.cloud.kubernetes.commons.config.reload;
 import java.time.Duration;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.boot.task.TaskSchedulerBuilder;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.MapPropertySource;
@@ -50,16 +48,6 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 	private TaskScheduler taskExecutor;
 
 	private Duration period = Duration.ofMillis(1500);
-
-	@Deprecated
-	public PollingSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
-			ConfigurationUpdateStrategy strategy, Class propertySourceClass,
-			PropertySourceLocator propertySourceLocator) {
-		super(environment, properties, strategy);
-		this.propertySourceClass = propertySourceClass;
-		this.propertySourceLocator = propertySourceLocator;
-		this.taskExecutor = new TaskSchedulerBuilder().build();
-	}
 
 	public PollingSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			ConfigurationUpdateStrategy strategy, Class propertySourceClass,

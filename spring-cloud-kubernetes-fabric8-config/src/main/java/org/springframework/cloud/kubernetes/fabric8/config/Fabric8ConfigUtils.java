@@ -40,29 +40,6 @@ public final class Fabric8ConfigUtils {
 	private Fabric8ConfigUtils() {
 	}
 
-	/*
-	 * this is not used, it is here for compatibility reasons only.
-	 */
-	@Deprecated
-	public static String getApplicationNamespace(KubernetesClient client, String namespace,
-			String configurationTarget) {
-		if (!StringUtils.hasLength(namespace)) {
-			LOG.debug(configurationTarget + " namespace has not been set, taking it from client (ns="
-					+ client.getNamespace() + ")");
-			namespace = client.getNamespace();
-		}
-
-		return namespace;
-	}
-
-	/*
-	 * this is not used, it is here for compatibility reasons only.
-	 */
-	@Deprecated
-	public static String getApplicationNamespace(KubernetesClient client, String namespace) {
-		return !StringUtils.hasLength(namespace) ? client.getNamespace() : namespace;
-	}
-
 	/**
 	 * this method does the namespace resolution for both config map and secrets
 	 * implementations. It tries these places to find the namespace:
@@ -118,7 +95,7 @@ public final class Fabric8ConfigUtils {
 		ConfigMap configMap = client.configMaps().inNamespace(namespace).withName(name).get();
 
 		if (configMap == null) {
-			LOG.warn("config-map with name : '" + name + "' not present in namespace : '" + namespace + "'");
+			LOG.info("config-map with name : '" + name + "' not present in namespace : '" + namespace + "'");
 			return Collections.emptyMap();
 		}
 

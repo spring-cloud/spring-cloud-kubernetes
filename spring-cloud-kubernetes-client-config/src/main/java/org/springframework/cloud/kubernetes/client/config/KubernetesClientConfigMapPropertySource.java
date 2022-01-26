@@ -42,13 +42,6 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 
 	private static final Log LOG = LogFactory.getLog(KubernetesClientConfigMapPropertySource.class);
 
-	@Deprecated
-	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment) {
-		super(getName(name, getApplicationNamespace(namespace, "Config Map", null)), getData(coreV1Api, name,
-				getApplicationNamespace(namespace, "Config Map", null), environment, "", true, false));
-	}
-
 	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
 			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
 		super(getName(name, getApplicationNamespace(namespace, "Config Map", null)),
@@ -59,7 +52,7 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 	private static Map<String, Object> getData(CoreV1Api coreV1Api, String name, String namespace,
 			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
 
-		LOG.info("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
+		LOG.debug("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
 		try {
 			Set<String> names = new HashSet<>();
 			names.add(name);

@@ -18,9 +18,7 @@ package org.springframework.cloud.kubernetes.client.config;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
@@ -36,36 +34,13 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 
 	private final CoreV1Api coreV1Api;
 
-	private final KubernetesClientProperties kubernetesClientProperties;
-
 	private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
-
-	private final SecretsConfigProperties properties;
-
-	/**
-	 * This constructor is deprecated. Its usage might cause unexpected behavior when
-	 * looking for different properties. For example, in general, if a namespace is not
-	 * provided, we might look it up via other means: different documented environment
-	 * variables or from a kubernetes client itself. Using this constructor might not
-	 * reflect that.
-	 */
-	@Deprecated
-	public KubernetesClientSecretsPropertySourceLocator(CoreV1Api coreV1Api,
-			KubernetesClientProperties kubernetesClientProperties, SecretsConfigProperties secretsConfigProperties) {
-		super(secretsConfigProperties);
-		this.coreV1Api = coreV1Api;
-		this.kubernetesClientProperties = kubernetesClientProperties;
-		this.kubernetesNamespaceProvider = null;
-		this.properties = secretsConfigProperties;
-	}
 
 	public KubernetesClientSecretsPropertySourceLocator(CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, SecretsConfigProperties secretsConfigProperties) {
 		super(secretsConfigProperties);
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
-		this.kubernetesClientProperties = null;
-		this.properties = secretsConfigProperties;
 	}
 
 	@Override
@@ -77,15 +52,6 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 
 		if (StringUtils.hasText(normalizedNamespace)) {
 			namespace = normalizedNamespace;
-		}
-		else if (kubernetesClientProperties != null) {
-			if (StringUtils.hasText(kubernetesClientProperties.getNamespace())) {
-				namespace = kubernetesClientProperties.getNamespace();
-			}
-			else {
-				throw new NamespaceResolutionFailedException(
-						"could not resolve namespace in normalized source or KubernetesClientProperties");
-			}
 		}
 		else {
 			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace,

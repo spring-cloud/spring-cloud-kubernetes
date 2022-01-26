@@ -19,11 +19,8 @@ package org.springframework.cloud.kubernetes.client.config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
-import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.util.StringUtils;
 
 /**
@@ -34,41 +31,6 @@ public final class KubernetesClientConfigUtils {
 	private static final Log LOG = LogFactory.getLog(KubernetesClientConfigUtils.class);
 
 	private KubernetesClientConfigUtils() {
-	}
-
-	@Deprecated
-	public static String getNamespace(ConfigMapConfigProperties.NormalizedSource normalizedSource,
-			KubernetesClientProperties kubernetesClientProperties) {
-		if (!StringUtils.hasText(normalizedSource.getNamespace())) {
-			return kubernetesClientProperties.getNamespace();
-		}
-		else {
-			return normalizedSource.getNamespace();
-		}
-	}
-
-	@Deprecated
-	public static String getNamespace(NormalizedSource normalizedSource,
-			KubernetesClientProperties kubernetesClientProperties) {
-		if (!StringUtils.hasText(normalizedSource.getNamespace())) {
-			return kubernetesClientProperties.getNamespace();
-		}
-		else {
-			return normalizedSource.getNamespace();
-		}
-	}
-
-	@Deprecated
-	public static String getNamespace(ConfigMapConfigProperties.NormalizedSource normalizedSource,
-			String fallbackNamespace) {
-		String normalizedNamespace = normalizedSource.getNamespace();
-		return StringUtils.hasText(normalizedNamespace) ? normalizedNamespace : fallbackNamespace;
-	}
-
-	@Deprecated
-	public static String getNamespace(NormalizedSource normalizedSource, String fallbackNamespace) {
-		String normalizedNamespace = normalizedSource.getNamespace();
-		return StringUtils.hasText(normalizedNamespace) ? normalizedNamespace : fallbackNamespace;
 	}
 
 	/**

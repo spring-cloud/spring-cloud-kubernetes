@@ -113,7 +113,7 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 
 	@Test
 	public void kubernetesWatchersWhenKubernetesDisabled() throws Exception {
-		setup("spring.cloud.kubernetes.enabled=false");
+		setup();
 		assertThat(context.containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(context.containsBean("secretsPropertySourceLocator")).isFalse();
 		assertThat(context.containsBean("configMapPropertyChangePollingWatcher")).isFalse();

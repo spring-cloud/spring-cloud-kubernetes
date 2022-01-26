@@ -36,7 +36,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = "spring.cloud.kubernetes.discovery.all-namespaces=true")
+@TestPropertySource(properties = { "spring.main.cloud-platform=KUBERNETES",
+		"spring.cloud.kubernetes.discovery.all-namespaces=true" })
 @EnableKubernetesMockClient(crud = true, https = false)
 class LoadBalancerAllNamespacesTests {
 

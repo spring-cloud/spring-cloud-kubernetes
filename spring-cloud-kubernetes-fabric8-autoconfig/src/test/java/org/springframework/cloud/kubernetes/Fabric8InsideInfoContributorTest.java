@@ -47,8 +47,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @Import(Fabric8InsideInfoContributorTest.InfoContributorTestConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
-		properties = { "management.endpoints.web.exposure.include=info", "management.endpoint.info.show-details=always",
-				"management.info.kubernetes.enabled=true" })
+		properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=info",
+				"management.endpoint.info.show-details=always", "management.info.kubernetes.enabled=true" })
 public class Fabric8InsideInfoContributorTest {
 
 	@Autowired
