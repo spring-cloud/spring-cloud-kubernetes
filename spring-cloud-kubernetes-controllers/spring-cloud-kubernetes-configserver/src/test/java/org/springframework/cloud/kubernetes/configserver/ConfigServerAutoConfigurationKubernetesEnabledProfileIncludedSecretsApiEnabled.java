@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		classes = { KubernetesConfigServerApplication.class },
-		properties = { "spring.profiles.include=kubernetes", "debug=true",
+		properties = { "spring.profiles.include=kubernetes", "debug=true", "spring.main.cloud-platform=KUBERNETES",
 				"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.enableApi=true" })
 class ConfigServerAutoConfigurationKubernetesEnabledProfileIncludedSecretsApiEnabled {
 
