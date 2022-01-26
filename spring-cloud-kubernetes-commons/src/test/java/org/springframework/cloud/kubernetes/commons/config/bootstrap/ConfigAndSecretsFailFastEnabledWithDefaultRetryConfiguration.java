@@ -34,13 +34,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Isik Erhan
  */
-@SpringBootTest(
-	webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = App.class,
-	properties = {
-		"spring.cloud.kubernetes.config.fail-fast=true",
-		"spring.cloud.kubernetes.secrets.fail-fast=true",
-        "spring.main.cloud-platform=KUBERNETES"
-})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = App.class,
+		properties = { "spring.cloud.kubernetes.config.fail-fast=true",
+				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.main.cloud-platform=KUBERNETES" })
 public class ConfigAndSecretsFailFastEnabledWithDefaultRetryConfiguration {
 
 	@Autowired

@@ -40,7 +40,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * defaultApiClient that will be autowired instead of the ApiClient created in
  * KubernetesClientAutoConfiguration
  */
-@SpringBootTest(classes = App.class, properties = "kubernetes.informer.enabled=false")
+@SpringBootTest(classes = App.class,
+		properties = { "kubernetes.informer.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
 class ApiClientUserAgentDefaultHeader {
 
 	@Autowired

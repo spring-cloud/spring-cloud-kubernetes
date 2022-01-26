@@ -30,8 +30,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "management.health.kubernetes.enabled=true", "management.endpoint.health.show-details=always",
-				"management.endpoint.health.show-components=always",
-				"management.endpoints.web.exposure.include=health" })
+				"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health",
+				"spring.main.cloud-platform=KUBERNETES" })
 class ActuatorEnabledHealthTest {
 
 	@Autowired
