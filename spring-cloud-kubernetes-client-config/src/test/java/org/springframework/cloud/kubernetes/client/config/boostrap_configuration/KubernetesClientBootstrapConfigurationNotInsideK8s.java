@@ -28,7 +28,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-		properties = { "kubernetes.informer.enabled=false" })
+		properties = { "kubernetes.manifests.enabled=false" })
 class KubernetesClientBootstrapConfigurationNotInsideK8s {
 
 	@Autowired

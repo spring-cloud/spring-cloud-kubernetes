@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author wind57
  */
-@SpringBootTest(classes = App.class)
+@SpringBootTest(classes = App.class, properties = "spring.main.cloud-platform=KUBERNETES")
 class Fabric8UserAgentDefaultConfigurationTests {
 
 	@Autowired

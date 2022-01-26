@@ -28,7 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+		properties = "spring.main.cloud-platform=KUBERNETES")
 class IstioAutoConfigurationClientPresentByDefault {
 
 	@Autowired
