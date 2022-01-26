@@ -34,7 +34,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 				"spring.cloud.kubernetes.config.retry.max-attempts=3",
 				"spring.cloud.kubernetes.config.retry.initial-interval=1500",
 				"spring.cloud.kubernetes.config.retry.max-interval=3000",
-				"spring.cloud.kubernetes.config.retry.multiplier=1.5" })
+				"spring.cloud.kubernetes.config.retry.multiplier=1.5",
+				"spring.main.cloud-platform=KUBERNETES"
+})
 class ConfigFailFastEnabledWithCustomRetryConfiguration {
 
 	@Autowired

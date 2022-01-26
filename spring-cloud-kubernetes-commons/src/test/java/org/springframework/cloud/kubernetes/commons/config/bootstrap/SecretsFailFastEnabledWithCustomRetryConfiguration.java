@@ -34,7 +34,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 				"spring.cloud.kubernetes.secrets.retry.max-attempts=3",
 				"spring.cloud.kubernetes.secrets.retry.initial-interval=1500",
 				"spring.cloud.kubernetes.secrets.retry.max-interval=3000",
-				"spring.cloud.kubernetes.secrets.retry.multiplier=1.5" })
+				"spring.cloud.kubernetes.secrets.retry.multiplier=1.5",
+				"spring.main.cloud-platform=KUBERNETES"
+})
 class SecretsFailFastEnabledWithCustomRetryConfiguration {
 
 	@Autowired
