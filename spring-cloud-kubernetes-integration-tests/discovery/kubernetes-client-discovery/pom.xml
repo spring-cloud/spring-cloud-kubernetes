@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>discovery-parent</artifactId>
-		<version>3.0.0-M1</version>
+		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>kubernetes-client-discovery</artifactId>
