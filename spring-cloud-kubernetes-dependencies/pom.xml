@@ -23,11 +23,11 @@
 	<parent>
 		<artifactId>spring-cloud-dependencies-parent</artifactId>
 		<groupId>org.springframework.cloud</groupId>
-		<version>4.0.0-SNAPSHOT</version>
+		<version>4.0.0-M1</version>
 		<relativePath/>
 	</parent>
 	<artifactId>spring-cloud-kubernetes-dependencies</artifactId>
-	<version>3.0.0-SNAPSHOT</version>
+	<version>3.0.0-M1</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes :: Dependencies</name>
 	<description>Spring Cloud Kubernetes Dependencies</description>
