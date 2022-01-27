@@ -65,7 +65,7 @@
 		<spring-cloud-commons.version>4.0.0-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-config.version>4.0.0-SNAPSHOT</spring-cloud-config.version>
 		<spring-cloud-bus.version>4.0.0-SNAPSHOT</spring-cloud-bus.version>
-		<spring-cloud-contract.version>4.0.0-SNAPSHOT</spring-cloud-contract.version>
+		<!--<spring-cloud-contract.version>4.0.0-SNAPSHOT</spring-cloud-contract.version>-->
 
 		<!-- Maven Plugin Versions -->
 		<maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
