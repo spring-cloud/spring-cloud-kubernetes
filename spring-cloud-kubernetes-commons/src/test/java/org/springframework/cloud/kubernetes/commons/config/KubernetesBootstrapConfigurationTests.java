@@ -57,7 +57,7 @@ public class KubernetesBootstrapConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class,
-			properties = { "spring.cloud.kubernetes.config.fail-fast=true" })
+			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.fail-fast=true" })
 	@Nested
 	public class ConfigFailFastEnabled {
 
@@ -89,7 +89,7 @@ public class KubernetesBootstrapConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class,
-			properties = { "spring.cloud.kubernetes.secrets.fail-fast=true" })
+			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.secrets.fail-fast=true" })
 	@Nested
 	public class SecretsFailFastEnabled {
 
@@ -120,8 +120,9 @@ public class KubernetesBootstrapConfigurationTests {
 
 	}
 
-	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class, properties = {
-			"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.secrets.fail-fast=true" })
+	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class,
+			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.fail-fast=true",
+					"spring.cloud.kubernetes.secrets.fail-fast=true" })
 	@Nested
 	public class ConfigAndSecretsFailFastEnabledWithDefaultRetryConfiguration {
 
@@ -166,7 +167,7 @@ public class KubernetesBootstrapConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class,
-			properties = { "spring.cloud.kubernetes.config.fail-fast=true",
+			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.fail-fast=true",
 					"spring.cloud.kubernetes.config.retry.max-attempts=3",
 					"spring.cloud.kubernetes.config.retry.initial-interval=1500",
 					"spring.cloud.kubernetes.config.retry.max-interval=3000",
@@ -190,7 +191,7 @@ public class KubernetesBootstrapConfigurationTests {
 	}
 
 	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class,
-			properties = { "spring.cloud.kubernetes.secrets.fail-fast=true",
+			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.secrets.fail-fast=true",
 					"spring.cloud.kubernetes.secrets.retry.max-attempts=3",
 					"spring.cloud.kubernetes.secrets.retry.initial-interval=1500",
 					"spring.cloud.kubernetes.secrets.retry.max-interval=3000",
@@ -213,8 +214,9 @@ public class KubernetesBootstrapConfigurationTests {
 
 	}
 
-	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class, properties = {
-			"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false" })
+	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class,
+			properties = { "spring.cloud.kubernetes.config.fail-fast=true",
+					"spring.cloud.kubernetes.config.retry.enabled=false" })
 	@Nested
 	public class ConfigFailFastEnabledButRetryDisabled {
 
@@ -228,8 +230,9 @@ public class KubernetesBootstrapConfigurationTests {
 
 	}
 
-	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class, properties = {
-			"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false" })
+	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class,
+			properties = { "spring.cloud.kubernetes.secrets.fail-fast=true",
+					"spring.cloud.kubernetes.secrets.retry.enabled=false" })
 	@Nested
 	public class SecretsFailFastEnabledButRetryDisabled {
 

@@ -135,9 +135,9 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 	}
 
 	@Nested
-	@SpringBootTest(
-			webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
-					"spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES" },
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+			properties = { "spring.cloud.kubernetes.client.namespace=default",
+					"spring.main.cloud-platform=KUBERNETES" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
 	class ConfigFailFastDisabled {

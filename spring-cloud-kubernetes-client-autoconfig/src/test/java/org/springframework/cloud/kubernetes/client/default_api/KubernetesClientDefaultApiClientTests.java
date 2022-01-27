@@ -50,7 +50,10 @@ class KubernetesClientDefaultApiClientTests {
 
 	private static final String USER_AGENT = "spring.cloud.kubernetes.client.userAgent=non-default";
 
-	@SpringBootTest(classes = KubernetesClientDefaultApiClientTests.App.class, properties = DISABLE_INFORMER)
+	private static final String ENABLED_K8S = "spring.main.cloud-platform=KUBERNETES";
+
+	@SpringBootTest(classes = KubernetesClientDefaultApiClientTests.App.class,
+			properties = { DISABLE_INFORMER, ENABLED_K8S })
 	@Nested
 	class DefaultApiClientNotSameAsApiClient {
 
@@ -72,7 +75,8 @@ class KubernetesClientDefaultApiClientTests {
 
 	}
 
-	@SpringBootTest(classes = KubernetesClientDefaultApiClientTests.App.class, properties = DISABLE_INFORMER)
+	@SpringBootTest(classes = KubernetesClientDefaultApiClientTests.App.class,
+			properties = { DISABLE_INFORMER, ENABLED_K8S })
 	@Nested
 	class ApiClientUserAgentDefaultHeader {
 
@@ -94,7 +98,7 @@ class KubernetesClientDefaultApiClientTests {
 	}
 
 	@SpringBootTest(classes = KubernetesClientDefaultApiClientTests.App.class,
-			properties = { DISABLE_INFORMER, USER_AGENT })
+			properties = { DISABLE_INFORMER, USER_AGENT, ENABLED_K8S })
 	@Nested
 	class ApiClientUserAgentNonDefaultHeader {
 

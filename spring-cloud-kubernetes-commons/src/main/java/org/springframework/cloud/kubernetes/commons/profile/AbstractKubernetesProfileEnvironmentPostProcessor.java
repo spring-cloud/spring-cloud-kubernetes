@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.logging.DeferredLog;
@@ -58,12 +59,10 @@ public abstract class AbstractKubernetesProfileEnvironmentPostProcessor implemen
 
 		application.addInitializers(ctx -> LOG.replayTo(AbstractKubernetesProfileEnvironmentPostProcessor.class));
 
-		boolean kubernetesEnabled = environment.getProperty("spring.cloud.kubernetes.enabled", Boolean.class, true);
-		if (!kubernetesEnabled) {
-			return;
+		if (CloudPlatform.KUBERNETES.isActive(environment)) {
+			addNamespaceFromServiceAccountFile(environment);
+			addKubernetesProfileIfMissing(environment);
 		}
-		addNamespaceFromServiceAccountFile(environment);
-		addKubernetesProfileIfMissing(environment);
 	}
 
 	protected abstract boolean isInsideKubernetes(Environment environment);

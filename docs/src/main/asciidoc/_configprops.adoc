@@ -73,7 +73,6 @@
 |spring.cloud.kubernetes.discovery.primary-port-name |  | If set then the port with a given name is used as primary when multiple ports are defined for a service.
 |spring.cloud.kubernetes.discovery.service-labels |  | If set, then only the services matching these labels will be fetched from the Kubernetes API server.
 |spring.cloud.kubernetes.discovery.wait-cache-ready | `true` | 
-|spring.cloud.kubernetes.enabled | `true` | Whether to enable Kubernetes integration.
 |spring.cloud.kubernetes.leader.auto-startup | `true` | Should leader election be started automatically on startup. Default: true
 |spring.cloud.kubernetes.leader.config-map-name | `leaders` | Kubernetes ConfigMap where leaders information will be stored. Default: leaders
 |spring.cloud.kubernetes.leader.enabled | `true` | Should leader election be enabled. Default: true

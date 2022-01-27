@@ -31,7 +31,8 @@ import static org.springframework.cloud.kubernetes.commons.profile.AbstractKuber
 /**
  * @author Thomas Vitale
  */
-@SpringBootTest(properties = { ENV_SERVICE_HOST + "=10.0.0.1", ENV_SERVICE_PORT + "=80" }, classes = { App.class })
+@SpringBootTest(properties = { ENV_SERVICE_HOST + "=10.0.0.1", ENV_SERVICE_PORT + "=80",
+		"spring.main.cloud-platform=KUBERNETES" }, classes = { App.class })
 class KubernetesClientProfileEnvironmentPostProcessorTests {
 
 	@Autowired

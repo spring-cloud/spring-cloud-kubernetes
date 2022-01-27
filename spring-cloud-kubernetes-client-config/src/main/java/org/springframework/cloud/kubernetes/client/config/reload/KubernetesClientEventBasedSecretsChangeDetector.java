@@ -55,18 +55,6 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
-	@Deprecated
-	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
-			KubernetesClientProperties kubernetesClientProperties) {
-		super(environment, properties, strategy);
-		this.propertySourceLocator = propertySourceLocator;
-		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
-		this.coreV1Api = coreV1Api;
-		this.kubernetesClientProperties = kubernetesClientProperties;
-	}
-
 	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
@@ -74,26 +62,15 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
 		// We need to pass an APIClient to the SharedInformerFactory because if we use the
-		// default
-		// constructor it will use the configured default APIClient but that may not
-		// contain
-		// an APIClient configured within the cluster and does not contain the necessary
+		// default constructor it will use the configured default APIClient but that may
+		// not
+		// contain an APIClient configured within the cluster and does not contain the
+		// necessary
 		// certificate authorities for the cluster. This results in SSL errors.
 		// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
 		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
-	}
-
-	@Deprecated
-	public KubernetesClientEventBasedSecretsChangeDetector(ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
-			KubernetesClientProperties kubernetesClientProperties) {
-		super(environment, properties, strategy);
-		this.propertySourceLocator = propertySourceLocator;
-		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
-		this.kubernetesClientProperties = kubernetesClientProperties;
 	}
 
 	private String getNamespace() {

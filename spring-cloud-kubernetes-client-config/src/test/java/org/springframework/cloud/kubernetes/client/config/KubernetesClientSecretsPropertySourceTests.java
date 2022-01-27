@@ -61,8 +61,6 @@ class KubernetesClientSecretsPropertySourceTests {
 					.withNamespace("default").build())
 			.addToData("password", "p455w0rd".getBytes()).addToData("username", "user".getBytes()).build()).build();
 
-	private static final String LIST_API = "/api/v1/secrets";
-
 	private static final String LIST_API_WITH_LABEL = "/api/v1/namespaces/default/secrets?labelSelector=spring.cloud.kubernetes.secret%3Dtrue";
 
 	private static final String LIST_BODY = "{\n" + "\t\"kind\": \"SecretList\",\n" + "\t\"apiVersion\": \"v1\",\n"
@@ -104,6 +102,7 @@ class KubernetesClientSecretsPropertySourceTests {
 
 	@AfterAll
 	static void after() {
+		WireMock.shutdownServer();
 		wireMockServer.stop();
 	}
 

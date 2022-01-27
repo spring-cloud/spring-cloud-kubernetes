@@ -19,8 +19,10 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
@@ -34,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
-@ConditionalOnProperty(name = "spring.cloud.kubernetes.enabled", matchIfMissing = true)
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter({ Fabric8AutoConfiguration.class })
 public class KubernetesCatalogWatchAutoConfiguration {
 

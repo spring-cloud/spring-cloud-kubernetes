@@ -146,21 +146,9 @@ class KubernetesClientConfigMapPropertySourceTests {
 	}
 
 	@Test
-	void deprecatedConstructorWithoutNamespaceMustFail() {
-		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySource(new CoreV1Api(), "configmap", null,
-				new MockEnvironment())).isInstanceOf(NamespaceResolutionFailedException.class);
-	}
-
-	@Test
 	void constructorWithoutNamespaceMustFail() {
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySource(new CoreV1Api(), "configmap", null,
 				new MockEnvironment(), "", false, false)).isInstanceOf(NamespaceResolutionFailedException.class);
-	}
-
-	@Test
-	void deprecatedConstructorWithNamespaceMustNotFail() {
-		assertThat(new KubernetesClientConfigMapPropertySource(new CoreV1Api(), "configmap", "namespace",
-				new MockEnvironment())).isNotNull();
 	}
 
 	@Test

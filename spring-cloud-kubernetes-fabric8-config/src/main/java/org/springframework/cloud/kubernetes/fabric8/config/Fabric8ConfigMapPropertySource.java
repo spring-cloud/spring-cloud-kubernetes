@@ -44,26 +44,6 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8ConfigMapPropertySource.class);
 
-	/**
-	 * this constructor is present only for compatibility reasons, its usage is
-	 * discouraged.
-	 */
-	@Deprecated
-	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name) {
-		this(client, name, null, null, "", true, false);
-	}
-
-	/**
-	 * this constructor is present only for compatibility reasons, its usage is
-	 * discouraged.
-	 */
-	@Deprecated
-	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
-			Environment environment) {
-		super(getName(name, getApplicationNamespace(client, namespace, "Config Map", null)), getData(client, name,
-				getApplicationNamespace(client, namespace, "Config Map", null), environment, "", true, false));
-	}
-
 	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
 			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
 		super(getName(name, getApplicationNamespace(client, namespace, "Config Map", null)),

@@ -23,8 +23,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
 
 /**
@@ -38,7 +39,7 @@ import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecre
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnKubernetesEnabled
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnKubernetesSecretsEnabled
 @ConditionalOnKubernetesSecretsFailFastEnabled
 @ConditionalOnProperty(prefix = SecretsConfigProperties.PREFIX + ".retry", name = "enabled", havingValue = "true",
