@@ -88,16 +88,12 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 						"'spring.cloud.kubernetes.config.useNameAsPrefix' is set to 'true', but 'spring.cloud.kubernetes.config.sources'"
 								+ " is empty; as such will default 'useNameAsPrefix' to 'false'");
 			}
-			return Collections.singletonList(new NormalizedSource(name, namespace, "", includeProfileSpecificSources));
+			return Collections.singletonList(
+					new NamedConfigMapNormalizedSource(name, namespace, "", includeProfileSpecificSources));
 		}
 
 		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix, includeProfileSpecificSources))
 				.collect(Collectors.toList());
-	}
-
-	@Override
-	public String getConfigurationTarget() {
-		return "Config Map";
 	}
 
 	/**
@@ -134,11 +130,6 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		public Source() {
 
-		}
-
-		public Source(String name, String namespace) {
-			this.name = name;
-			this.namespace = namespace;
 		}
 
 		public String getName() {
@@ -193,7 +184,8 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 					normalizedName);
 			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
 					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
-			return new NormalizedSource(normalizedName, normalizedNamespace, prefix, includeProfileSpecificSources);
+			return new NamedConfigMapNormalizedSource(normalizedName, normalizedNamespace, prefix,
+					includeProfileSpecificSources);
 		}
 
 		@Override
@@ -205,63 +197,6 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 				return false;
 			}
 			Source other = (Source) o;
-			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(name, namespace);
-		}
-
-	}
-
-	public static class NormalizedSource {
-
-		private final String name;
-
-		private final String namespace;
-
-		private final String prefix;
-
-		private final boolean includeProfileSpecificSources;
-
-		NormalizedSource(String name, String namespace, String prefix, boolean includeProfileSpecificSources) {
-			this.name = name;
-			this.namespace = namespace;
-			this.prefix = Objects.requireNonNull(prefix);
-			this.includeProfileSpecificSources = includeProfileSpecificSources;
-		}
-
-		public String getName() {
-			return this.name;
-		}
-
-		public String getNamespace() {
-			return this.namespace;
-		}
-
-		public String getPrefix() {
-			return prefix;
-		}
-
-		public boolean isIncludeProfileSpecificSources() {
-			return includeProfileSpecificSources;
-		}
-
-		@Override
-		public String toString() {
-			return "{ config-map name : '" + name + "', namespace : '" + namespace + "', prefix : '" + prefix + "' }";
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			NormalizedSource other = (NormalizedSource) o;
 			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace);
 		}
 

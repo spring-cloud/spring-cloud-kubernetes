@@ -45,4 +45,6 @@ public abstract class NormalizedSource {
 	 */
 	public abstract NormalizedSourceType type();
 
+	public abstract String target();
+
 }

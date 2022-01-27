@@ -31,6 +31,11 @@ public enum NormalizedSourceType {
 	/**
 	 * denotes the fact that this is a secret source based on labels.
 	 */
-	LABELED_SECRET
+	LABELED_SECRET,
+
+	/**
+	 * denotes the fact that this is a config map source based on name.
+	 */
+	NAMED_CONFIG_MAP
 
 }

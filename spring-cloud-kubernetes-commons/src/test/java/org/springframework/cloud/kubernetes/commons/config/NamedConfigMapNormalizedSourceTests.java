@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,13 @@ import org.junit.jupiter.api.Test;
 /**
  * @author wind57
  */
-class NamedSecretNormalizedSourceTests {
+class NamedConfigMapNormalizedSourceTests {
 
 	@Test
 	void testEqualsAndHashCode() {
-		NamedSecretNormalizedSource left = new NamedSecretNormalizedSource("namespace", "name");
-		NamedSecretNormalizedSource right = new NamedSecretNormalizedSource("namespace", "name");
+		NamedConfigMapNormalizedSource left = new NamedConfigMapNormalizedSource("name", "namespace", "prefix", false);
+		NamedConfigMapNormalizedSource right = new NamedConfigMapNormalizedSource("name", "namespace",
+				"non-equal-prefix", true);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -35,14 +36,14 @@ class NamedSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("namespace", "name");
-		Assertions.assertSame(source.type(), NormalizedSourceType.NAMED_SECRET);
+		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", "prefix", false);
+		Assertions.assertSame(one.type(), NormalizedSourceType.NAMED_CONFIG_MAP);
 	}
 
 	@Test
 	void testTarget() {
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("namespace", "name");
-		Assertions.assertEquals(source.target(), "Secret");
+		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", "prefix", false);
+		Assertions.assertEquals(one.target(), "Config Map");
 	}
 
 }

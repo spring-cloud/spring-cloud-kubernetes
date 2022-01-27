@@ -31,7 +31,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties.NormalizedSource;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
@@ -39,7 +38,6 @@ import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.retry.annotation.Retryable;
 
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.KEY_VALUE_TO_PROPERTIES;
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.PROPERTIES_TO_MAP;
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.yamlParserGenerator;
@@ -61,14 +59,13 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 		this.properties = properties;
 	}
 
-	protected abstract MapPropertySource getMapPropertySource(String applicationName, NormalizedSource normalizedSource,
-			String configurationTarget, ConfigurableEnvironment environment);
+	protected abstract MapPropertySource getMapPropertySource(NormalizedSource normalizedSource,
+			ConfigurableEnvironment environment);
 
 	@Override
 	@Retryable(interceptor = "kubernetesConfigRetryInterceptor")
 	public PropertySource<?> locate(Environment environment) {
-		if (environment instanceof ConfigurableEnvironment) {
-			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
+		if (environment instanceof ConfigurableEnvironment env) {
 
 			CompositePropertySource composite = new CompositePropertySource("composite-configmap");
 			if (this.properties.isEnableApi()) {
@@ -93,9 +90,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	private MapPropertySource getMapPropertySourceForSingleConfigMap(ConfigurableEnvironment environment,
 			NormalizedSource normalizedSource) {
 
-		String configurationTarget = this.properties.getConfigurationTarget();
-		String applicationName = getApplicationName(environment, normalizedSource.getName(), configurationTarget);
-		return getMapPropertySource(applicationName, normalizedSource, configurationTarget, environment);
+		return getMapPropertySource(normalizedSource, environment);
 	}
 
 	private void addPropertySourcesFromPaths(Environment environment, CompositePropertySource composite) {

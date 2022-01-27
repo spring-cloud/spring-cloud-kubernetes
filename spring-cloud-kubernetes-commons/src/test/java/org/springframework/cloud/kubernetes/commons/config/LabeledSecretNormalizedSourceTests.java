@@ -50,4 +50,10 @@ class LabeledSecretNormalizedSourceTests {
 		Assertions.assertThrows(RuntimeException.class, () -> source.getLabels().put("c", "d"));
 	}
 
+	@Test
+	void testTarget() {
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels);
+		Assertions.assertEquals(source.target(), "Secret");
+	}
+
 }

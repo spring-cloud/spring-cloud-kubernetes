@@ -84,11 +84,6 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		this.sources = sources;
 	}
 
-	@Override
-	public String getConfigurationTarget() {
-		return "Secret";
-	}
-
 	/**
 	 * @return A list of Source to use. If the user has not specified any Source
 	 * properties, then a single Source is constructed based on the supplied name and

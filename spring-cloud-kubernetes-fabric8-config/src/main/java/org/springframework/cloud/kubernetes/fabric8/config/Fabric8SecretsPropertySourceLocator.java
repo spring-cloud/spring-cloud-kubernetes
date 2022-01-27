@@ -50,11 +50,11 @@ public class Fabric8SecretsPropertySourceLocator extends SecretsPropertySourceLo
 
 	@Override
 	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment,
-			NormalizedSource normalizedSource, String configurationTarget) {
+			NormalizedSource normalizedSource) {
 		String appNamespace = Fabric8ConfigUtils.getApplicationNamespace(client, normalizedSource.getNamespace(),
-				configurationTarget, provider);
+				normalizedSource.target(), provider);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, properties.isFailFast(), normalizedSource,
-				configurationTarget, appNamespace);
+				appNamespace);
 		return new Fabric8SecretsPropertySource(context);
 	}
 

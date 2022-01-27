@@ -35,16 +35,13 @@ final class Fabric8ConfigContext {
 
 	private final NormalizedSource normalizedSource;
 
-	private final String target;
-
 	private final String appNamespace;
 
-	Fabric8ConfigContext(KubernetesClient client, boolean failFast, NormalizedSource normalizedSource, String target,
+	Fabric8ConfigContext(KubernetesClient client, boolean failFast, NormalizedSource normalizedSource,
 			String appNamespace) {
 		this.client = Objects.requireNonNull(client);
 		this.failFast = failFast;
 		this.normalizedSource = Objects.requireNonNull(normalizedSource);
-		this.target = Objects.requireNonNull(target);
 		this.appNamespace = appNamespace;
 	}
 
@@ -58,10 +55,6 @@ final class Fabric8ConfigContext {
 
 	NormalizedSource getNormalizedSource() {
 		return normalizedSource;
-	}
-
-	String getTarget() {
-		return target;
 	}
 
 	String getAppNamespace() {

@@ -68,4 +68,9 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 		return NormalizedSourceType.LABELED_SECRET;
 	}
 
+	@Override
+	public String target() {
+		return "Secret";
+	}
+
 }
