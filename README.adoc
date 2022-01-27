@@ -1088,7 +1088,7 @@ Notes:
 
 == Kubernetes Ecosystem Awareness
 
-All of the features described earlier in this guide work equally well, regardless of whether your application is running inside
+All features described earlier in this guide work equally well, regardless of whether your application is running inside
 Kubernetes. This is really helpful for development and troubleshooting.
 From a development point of view, this lets you start your Spring Boot application and debug one
 of the modules that is part of this project. You need not deploy it in Kubernetes,
@@ -1106,6 +1106,12 @@ Be aware that when `spring-cloud-kubernetes-config` is on the classpath, `spring
 (or the profile specific one),  otherwise it should be in `application.{properties|yml}` (or the profile specific one).
 Also note that these properties: `spring.cloud.kubernetes.config.enabled` and `spring.cloud.kubernetes.secrets.enabled`
 only take effect when set in `bootstrap.{properties|yml}`.
+
+=== Functional changes since 2.1.x version
+
+In versions prior to `2.1.x`, Kubernetes awareness was implemented using `spring.cloud.kubernetes.enabled` property. This
+property was removed and is un-supported. Instead, we use Spring Boot API: https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/autoconfigure/condition/ConditionalOnCloudPlatform.html[ConditionalOnCloudPlatform].
+If it is needed to explicitly enable or disable this awareness, use `spring.main.cloud-platform=NONE/KUBERNETES`.
 
 === Kubernetes Profile Autoconfiguration
 
