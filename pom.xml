@@ -74,8 +74,7 @@
 		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
 		<kubernetes.maven.plugin.version>1.5.1</kubernetes.maven.plugin.version>
 		<groovy.version>2.4.12</groovy.version>
-		<!-- FIXME: 3.0.0 -->
-		<rest-assured.version>3.2.0</rest-assured.version>
+		<restassured.version>3.0.2</restassured.version>
 
 		<excludeITTests>**/*IT.java</excludeITTests>
 
@@ -169,13 +168,6 @@
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-test-support</artifactId>
 				<version>${spring-cloud-commons.version}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>io.rest-assured</groupId>
-				<artifactId>rest-assured</artifactId>
-				<version>${rest-assured.version}</version>
 				<scope>test</scope>
 			</dependency>
 		</dependencies>
