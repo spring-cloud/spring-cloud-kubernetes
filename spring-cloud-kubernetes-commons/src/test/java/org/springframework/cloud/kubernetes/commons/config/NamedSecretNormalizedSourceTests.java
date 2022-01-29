@@ -26,8 +26,8 @@ class NamedSecretNormalizedSourceTests {
 
 	@Test
 	void testEqualsAndHashCode() {
-		NamedSecretNormalizedSource left = new NamedSecretNormalizedSource("namespace", "name");
-		NamedSecretNormalizedSource right = new NamedSecretNormalizedSource("namespace", "name");
+		NamedSecretNormalizedSource left = new NamedSecretNormalizedSource("namespace", false, "name");
+		NamedSecretNormalizedSource right = new NamedSecretNormalizedSource("namespace", true, "name");
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -35,13 +35,13 @@ class NamedSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("namespace", "name");
+		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("namespace", false, "name");
 		Assertions.assertSame(source.type(), NormalizedSourceType.NAMED_SECRET);
 	}
 
 	@Test
 	void testTarget() {
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("namespace", "name");
+		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("namespace", false, "name");
 		Assertions.assertEquals(source.target(), "Secret");
 	}
 

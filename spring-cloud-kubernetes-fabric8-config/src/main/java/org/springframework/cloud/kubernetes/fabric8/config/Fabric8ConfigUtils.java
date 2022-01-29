@@ -66,7 +66,7 @@ public final class Fabric8ConfigUtils {
 			KubernetesNamespaceProvider provider) {
 
 		if (StringUtils.hasText(namespace)) {
-			LOG.debug(configurationTarget + " namespace from normalized source or passed directly : " + namespace);
+			LOG.debug(configurationTarget + " namespace from normalized source : " + namespace);
 			return namespace;
 		}
 

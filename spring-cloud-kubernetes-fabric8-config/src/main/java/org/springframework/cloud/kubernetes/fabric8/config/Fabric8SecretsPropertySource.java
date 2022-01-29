@@ -45,7 +45,7 @@ import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource
  */
 public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
-	private static final EnumMap<NormalizedSourceType, Function<Fabric8ConfigContext, Map.Entry<String, Map<String, Object>>>> STRATEGIES = new EnumMap<>(
+	private static final EnumMap<NormalizedSourceType, Function<Fabric8ConfigContext, SourceData>> STRATEGIES = new EnumMap<>(
 			NormalizedSourceType.class);
 
 	static {
@@ -60,22 +60,22 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 	}
 
 	private static Map.Entry<String, Map<String, Object>> getSourceData(Fabric8ConfigContext context) {
-		NormalizedSourceType type = context.getNormalizedSource().type();
+		NormalizedSourceType type = context.normalizedSource().type();
 		return Optional.ofNullable(STRATEGIES.get(type)).map(x -> x.apply(context))
 				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
 	}
 
-	private static Function<Fabric8ConfigContext, Map.Entry<String, Map<String, Object>>> namedSecret() {
+	private static Function<Fabric8ConfigContext, SourceData> namedSecret() {
 		return context -> {
 
 			Map<String, Object> result = new HashMap<>();
-			String name = ((NamedSecretNormalizedSource) context.getNormalizedSource()).getName();
-			String namespace = context.getAppNamespace();
+			String name = ((NamedSecretNormalizedSource) context.normalizedSource()).getName();
+			String namespace = context.namespace();
 
 			try {
 
 				LOG.info("Loading Secret with name '" + name + "' in namespace '" + namespace + "'");
-				Secret secret = context.getClient().secrets().inNamespace(namespace).withName(name).get();
+				Secret secret = context.client().secrets().inNamespace(namespace).withName(name).get();
 				// the API is documented that it might return null
 				if (secret == null) {
 					LOG.warn("secret with name : " + name + " in namespace : " + namespace + " not found");
@@ -86,7 +86,7 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
 			}
 			catch (Exception e) {
-				if (context.isFailFast()) {
+				if (((NamedSecretNormalizedSource) context.normalizedSource()).isFailFast()) {
 					throw new IllegalStateException(
 							"Unable to read Secret with name '" + name + "' in namespace '" + namespace + "'", e);
 				}
@@ -101,12 +101,12 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 		};
 	}
 
-	private static Function<Fabric8ConfigContext, Map.Entry<String, Map<String, Object>>> labeledSecret() {
+	private static Function<Fabric8ConfigContext, SourceData> labeledSecret() {
 		return context -> {
 
 			Map<String, Object> result = new HashMap<>();
-			Map<String, String> labels = ((LabeledSecretNormalizedSource) context.getNormalizedSource()).getLabels();
-			String namespace = context.getAppNamespace();
+			Map<String, String> labels = ((LabeledSecretNormalizedSource) context.normalizedSource()).getLabels();
+			String namespace = context.namespace();
 			// name is either the concatenated labels or the concatenated names
 			// of the secrets that match these labels
 			String name = labels.entrySet().stream().map(en -> en.getKey() + ":" + en.getValue())
@@ -115,7 +115,7 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 			try {
 
 				LOG.info("Loading Secret with lables '" + labels + "' in namespace '" + namespace + "'");
-				List<Secret> secrets = context.getClient().secrets().inNamespace(namespace).withLabels(labels).list()
+				List<Secret> secrets = context.client().secrets().inNamespace(namespace).withLabels(labels).list()
 						.getItems();
 
 				if (!secrets.isEmpty()) {
@@ -126,7 +126,7 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
 			}
 			catch (Exception e) {
-				if (context.isFailFast()) {
+				if (((LabeledSecretNormalizedSource) context.normalizedSource()).isFailFast()) {
 					throw new IllegalStateException(
 							"Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'", e);
 				}

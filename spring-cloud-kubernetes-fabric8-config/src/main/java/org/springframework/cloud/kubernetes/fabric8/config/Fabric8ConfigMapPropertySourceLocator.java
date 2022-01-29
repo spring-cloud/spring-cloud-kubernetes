@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;

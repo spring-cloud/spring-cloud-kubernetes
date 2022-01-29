@@ -27,6 +27,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
+
 /**
  * Kubernetes {@link PropertySourceLocator} for secrets.
  *
@@ -51,10 +53,9 @@ public class Fabric8SecretsPropertySourceLocator extends SecretsPropertySourceLo
 	@Override
 	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment,
 			NormalizedSource normalizedSource) {
-		String appNamespace = Fabric8ConfigUtils.getApplicationNamespace(client, normalizedSource.getNamespace(),
+		String namespace = getApplicationNamespace(client, normalizedSource.getNamespace(),
 				normalizedSource.target(), provider);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(client, properties.isFailFast(), normalizedSource,
-				appNamespace);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(client, normalizedSource, namespace);
 		return new Fabric8SecretsPropertySource(context);
 	}
 

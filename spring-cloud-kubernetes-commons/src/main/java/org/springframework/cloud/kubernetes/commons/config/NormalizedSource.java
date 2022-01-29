@@ -17,11 +17,12 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 /**
- * Base class for Normalized Sources.
+ * Base class for Normalized Sources. It should contain all the "normalized" properties
+ * that users can specify, either explicitly or implicitly.
  *
  * @author wind57
  */
-public abstract class NormalizedSource {
+public sealed abstract class NormalizedSource permits NamedSecretNormalizedSource,LabeledSecretNormalizedSource,NamedConfigMapNormalizedSource {
 
 	private final String namespace;
 
@@ -29,6 +30,7 @@ public abstract class NormalizedSource {
 		this.namespace = namespace;
 	}
 
+	// this can return a null, which is perfectly fine.
 	public String getNamespace() {
 		return this.namespace;
 	}

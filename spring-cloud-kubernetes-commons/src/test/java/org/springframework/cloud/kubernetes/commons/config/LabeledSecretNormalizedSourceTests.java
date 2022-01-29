@@ -31,8 +31,8 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testEqualsAndHashCode() {
-		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels);
-		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels);
+		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", false, labels);
+		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", true, labels);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -40,19 +40,19 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", false, labels);
 		Assertions.assertSame(source.type(), NormalizedSourceType.LABELED_SECRET);
 	}
 
 	@Test
 	void testImmutableGetLabels() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", false, labels);
 		Assertions.assertThrows(RuntimeException.class, () -> source.getLabels().put("c", "d"));
 	}
 
 	@Test
 	void testTarget() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", false, labels);
 		Assertions.assertEquals(source.target(), "Secret");
 	}
 

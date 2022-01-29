@@ -29,9 +29,12 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 
 	private final Map<String, String> labels;
 
-	public LabeledSecretNormalizedSource(String namespace, Map<String, String> labels) {
+	private final boolean failFast;
+
+	public LabeledSecretNormalizedSource(String namespace, boolean failFast, Map<String, String> labels) {
 		super(namespace);
 		this.labels = Collections.unmodifiableMap(Objects.requireNonNull(labels));
+		this.failFast = failFast;
 	}
 
 	/**
@@ -39,6 +42,10 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 	 */
 	public Map<String, String> getLabels() {
 		return labels;
+	}
+
+	public boolean isFailFast() {
+		return failFast;
 	}
 
 	@Override

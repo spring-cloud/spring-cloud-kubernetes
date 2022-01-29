@@ -96,16 +96,17 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		if (this.sources.isEmpty()) {
 
 			List<NormalizedSource> result = new ArrayList<>(2);
-			result.add(new NamedSecretNormalizedSource(this.namespace,
+			result.add(new NamedSecretNormalizedSource(this.namespace, this.isFailFast(),
 					getApplicationName(environment, this.name, "Secret")));
 
 			if (!labels.isEmpty()) {
-				result.add(new LabeledSecretNormalizedSource(this.namespace, this.labels));
+				result.add(new LabeledSecretNormalizedSource(this.namespace, this.isFailFast(), this.labels));
 			}
 			return result;
 		}
 
-		return this.sources.stream().flatMap(s -> s.normalize(this.name, this.namespace, this.labels, environment))
+		return this.sources.stream()
+				.flatMap(s -> s.normalize(this.name, this.namespace, this.labels, this.isFailFast(), environment))
 				.collect(Collectors.toList());
 	}
 
@@ -165,7 +166,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		}
 
 		public Stream<NormalizedSource> normalize(String defaultName, String defaultNamespace,
-				Map<String, String> defaultLabels, Environment environment) {
+				Map<String, String> defaultLabels, boolean failFast, Environment environment) {
 
 			Stream.Builder<NormalizedSource> normalizedSources = Stream.builder();
 
@@ -174,11 +175,13 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			Map<String, String> normalizedLabels = this.labels.isEmpty() ? defaultLabels : this.labels;
 
 			String secretName = getApplicationName(environment, normalizedName, "Secret");
-			NormalizedSource nameBasedSource = new NamedSecretNormalizedSource(normalizedNamespace, secretName);
+			NormalizedSource nameBasedSource = new NamedSecretNormalizedSource(normalizedNamespace, failFast,
+					secretName);
 			normalizedSources.add(nameBasedSource);
 
 			if (!normalizedLabels.isEmpty()) {
-				NormalizedSource labelsBasedSource = new LabeledSecretNormalizedSource(normalizedNamespace, labels);
+				NormalizedSource labelsBasedSource = new LabeledSecretNormalizedSource(normalizedNamespace, failFast,
+						labels);
 				normalizedSources.add(labelsBasedSource);
 			}
 
