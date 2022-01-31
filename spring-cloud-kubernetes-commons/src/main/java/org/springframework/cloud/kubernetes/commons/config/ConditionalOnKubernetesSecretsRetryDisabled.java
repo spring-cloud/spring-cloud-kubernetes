@@ -23,34 +23,26 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.boot.autoconfigure.condition.NoneNestedConditions;
-import org.springframework.context.annotation.Conditional;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
 
 /**
- * {@link Conditional @Conditional} that matches when at least one of Spring Cloud
- * Kubernetes, Kubernetes Secret property sources or Kubernetes Secret property sources
- * fail fast (thus retry) is disabled.
+ * {@link org.springframework.context.annotation.Conditional @Conditional} that only
+ * matches when Spring Cloud Kubernetes, Kubernetes secrets and Kubernetes secrets retry
+ * are disabled.
  *
  * @author Isik Erhan
+ * @author wind57
  */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Conditional(ConditionalOnKubernetesSecretsRetryDisabled.OnSecretsPropertiesRetryDisabled.class)
+@ConditionalOnKubernetesEnabled
+@ConditionalOnKubernetesSecretsEnabled
+@ConditionalOnProperty(prefix = SecretsConfigProperties.PREFIX + ".retry", name = "enabled", havingValue = "false",
+		matchIfMissing = true)
 public @interface ConditionalOnKubernetesSecretsRetryDisabled {
-
-	class OnSecretsPropertiesRetryDisabled extends NoneNestedConditions {
-
-		OnSecretsPropertiesRetryDisabled() {
-			super(ConfigurationPhase.REGISTER_BEAN);
-		}
-
-		@ConditionalOnKubernetesSecretsRetryEnabled
-		static class OnSecretsPropertiesRetryEnabled {
-
-		}
-
-	}
 
 }

@@ -46,6 +46,7 @@ import static org.mockito.Mockito.verify;
 
 /**
  * @author Isik Erhan
+ * @author wind57
  */
 @EnableKubernetesMockClient
 public class Fabric8SecretsPropertySourceLocatorRetryTests {
@@ -72,10 +73,12 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 	}
 
 	@Nested
-	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
-			"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true",
-			"spring.cloud.kubernetes.secrets.retry.max-attempts=5", "spring.cloud.kubernetes.secrets.name=my-secret",
-			"spring.cloud.kubernetes.secrets.enable-api=true", "spring.main.cloud-platform=KUBERNETES" },
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+			properties = { "spring.cloud.kubernetes.client.namespace=default",
+					"spring.cloud.kubernetes.secrets.fail-fast=true",
+					"spring.cloud.kubernetes.secrets.retry.max-attempts=5",
+					"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
+					"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.secrets.retry.enabled=true" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
 	class SecretsRetryEnabled {
@@ -188,12 +191,9 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 		public void locateShouldFailWithoutRetrying() {
 
 			/*
-			 * Enabling config retry causes Spring Retry to be enabled and a
-			 * RetryOperationsInterceptor bean with NeverRetryPolicy for secrets to be
-			 * defined. SecretsPropertySourceLocator should not retry even Spring Retry is
-			 * enabled.
+			 * By default, we enable Spring Retry with NeverRetryPolicy policies for
+			 * secrets and configmaps. As such, no actual retries must happen.
 			 */
-
 			mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
 			assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isTrue();
@@ -227,7 +227,7 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 
 			mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
-			assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isFalse();
+			assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isTrue();
 			assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
 					.isInstanceOf(IllegalStateException.class)
 					.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");

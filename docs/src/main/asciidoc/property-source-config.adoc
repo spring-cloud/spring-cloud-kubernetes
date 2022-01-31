@@ -466,14 +466,10 @@ If you want your application to fail the start-up process in such cases, you can
 
 [#config-map-retry]
 You can also make your application retry loading `ConfigMap` property sources on a failure. First, you need to
-set `spring.cloud.kubernetes.config.fail-fast=true`. Then you need to add `spring-retry` 
+set `spring.cloud.kubernetes.config.retry.enabled=true`. Then you need to add `spring-retry`
 and `spring-boot-starter-aop` to your classpath. You can configure retry properties such as
 the maximum number of attempts, backoff options like initial interval, multiplier, max interval by setting the
 `spring.cloud.kubernetes.config.retry.*` properties.
-
-NOTE: If you already have `spring-retry` and `spring-boot-starter-aop` on the classpath for some reason
-and want to enable fail-fast, but do not want retry to be enabled; you can disable retry for `ConfigMap` `PropertySources`
-by setting `spring.cloud.kubernetes.config.retry.enabled=false`.
 
 .Properties:
 [options="header,footer"]
@@ -648,14 +644,10 @@ of the application is resolved.
 when it is unable to load `Secrets` property sources, you can set `spring.cloud.kubernetes.secrets.fail-fast=true`.
 
 It is also possible to enable retry for `Secret` property sources <<config-map-retry,like the `ConfigMaps`>>.
-As with the `ConfigMap` property sources, first you need to set `spring.cloud.kubernetes.secrets.fail-fast=true`. 
+As with the `ConfigMap` property sources, first you need to set `spring.cloud.kubernetes.secrets.retry.enabled=true`.
 Then you need to add `spring-retry` and `spring-boot-starter-aop` to your classpath. 
 Retry behavior of the `Secret` property sources can be configured by setting the `spring.cloud.kubernetes.secrets.retry.*`
 properties.
-
-NOTE: If you already have `spring-retry` and `spring-boot-starter-aop` on the classpath for some reason
-and want to enable fail-fast, but do not want retry to be enabled; you can disable retry for `Secrets` `PropertySources`
-by setting `spring.cloud.kubernetes.secrets.retry.enabled=false`.
 
 .Properties:
 [options="header,footer"]

@@ -29,10 +29,11 @@ import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabl
 
 /**
  * {@link org.springframework.context.annotation.Conditional @Conditional} that only
- * matches when Spring Cloud Kubernetes, Kubernetes config, Kubernetes config fail-fast
- * and Kubernetes config retry are enabled.
+ * matches when Spring Cloud Kubernetes, Kubernetes config and Kubernetes config retry are
+ * enabled.
  *
  * @author Isik Erhan
+ * @author wind57
  */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
@@ -40,9 +41,7 @@ import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabl
 @Inherited
 @ConditionalOnKubernetesEnabled
 @ConditionalOnKubernetesConfigEnabled
-@ConditionalOnKubernetesConfigFailFastEnabled
-@ConditionalOnProperty(prefix = ConfigMapConfigProperties.PREFIX + ".retry", name = "enabled", havingValue = "true",
-		matchIfMissing = true)
+@ConditionalOnProperty(prefix = ConfigMapConfigProperties.PREFIX + ".retry", name = "enabled", havingValue = "true")
 public @interface ConditionalOnKubernetesConfigRetryEnabled {
 
 }

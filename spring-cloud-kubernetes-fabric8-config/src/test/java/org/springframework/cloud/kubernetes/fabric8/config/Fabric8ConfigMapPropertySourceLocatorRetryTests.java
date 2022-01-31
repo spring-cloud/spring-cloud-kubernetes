@@ -44,6 +44,7 @@ import static org.mockito.Mockito.verify;
 
 /**
  * @author Isik Erhan
+ * @author wind57
  */
 @EnableKubernetesMockClient
 public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
@@ -68,7 +69,8 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 			properties = { "spring.cloud.kubernetes.client.namespace=default",
 					"spring.cloud.kubernetes.config.fail-fast=true",
-					"spring.cloud.kubernetes.config.retry.max-attempts=5", "spring.main.cloud-platform=KUBERNETES" },
+					"spring.cloud.kubernetes.config.retry.max-attempts=5", "spring.main.cloud-platform=KUBERNETES",
+					"spring.cloud.kubernetes.config.retry.enabled=true" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
 	class ConfigRetryEnabled {
@@ -177,12 +179,9 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 		public void locateShouldFailWithoutRetrying() {
 
 			/*
-			 * Enabling secrets retry causes Spring Retry to be enabled and a
-			 * RetryOperationsInterceptor bean with NeverRetryPolicy for config maps to be
-			 * defined. ConfigMapPropertySourceLocator should not retry even Spring Retry
-			 * is enabled.
+			 * By default, we enable Spring Retry with NeverRetryPolicy policies for
+			 * secrets and configmaps. As such, no actual retries must happen
 			 */
-
 			mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
 			assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isTrue();
@@ -216,7 +215,7 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 
 			mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
-			assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isFalse();
+			assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isTrue();
 			assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
 					.isInstanceOf(IllegalStateException.class)
 					.hasMessage("Unable to read ConfigMap with name 'application' in namespace 'default'");

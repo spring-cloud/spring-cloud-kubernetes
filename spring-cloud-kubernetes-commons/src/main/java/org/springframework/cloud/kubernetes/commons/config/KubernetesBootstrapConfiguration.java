@@ -40,7 +40,6 @@ import org.springframework.retry.policy.NeverRetryPolicy;
 @EnableConfigurationProperties({ ConfigMapConfigProperties.class, SecretsConfigProperties.class })
 public class KubernetesBootstrapConfiguration {
 
-	@ConditionalOnKubernetesConfigOrSecretsRetryEnabled
 	@ConditionalOnClass({ Retryable.class, Aspect.class, AopAutoConfiguration.class })
 	@Configuration(proxyBeanMethods = false)
 	@EnableRetry(proxyTargetClass = true)

@@ -58,6 +58,7 @@ import static org.mockito.Mockito.verify;
 
 /**
  * @author Isik Erhan
+ * @author wind57
  */
 public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 
@@ -104,7 +105,8 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 			properties = { "spring.cloud.kubernetes.client.namespace=default",
 					"spring.cloud.kubernetes.config.fail-fast=true",
-					"spring.cloud.kubernetes.config.retry.max-attempts=5", "spring.main.cloud-platform=KUBERNETES" },
+					"spring.cloud.kubernetes.config.retry.max-attempts=5", "spring.main.cloud-platform=KUBERNETES",
+					"spring.cloud.kubernetes.config.retry.enabled=true" },
 			classes = App.class)
 	class ConfigRetryEnabled {
 
@@ -225,12 +227,9 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 		public void locateShouldFailWithoutRetrying() {
 
 			/*
-			 * Enabling secrets retry causes Spring Retry to be enabled and a
-			 * RetryOperationsInterceptor bean with NeverRetryPolicy for config maps to be
-			 * defined. ConfigMapPropertySourceLocator should not retry even Spring Retry
-			 * is enabled.
+			 * By default, we enable Spring Retry with NeverRetryPolicy policies for
+			 * secrets and configmaps. As such, no actual retries must happen.
 			 */
-
 			stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 			assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isTrue();
@@ -263,7 +262,7 @@ public class KubernetesClientConfigMapPropertySourceLocatorRetryTests {
 
 			stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-			assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isFalse();
+			assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isTrue();
 			assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
 					.isInstanceOf(IllegalStateException.class)
 					.hasMessage("Unable to read ConfigMap with name 'application' in namespace 'default'");

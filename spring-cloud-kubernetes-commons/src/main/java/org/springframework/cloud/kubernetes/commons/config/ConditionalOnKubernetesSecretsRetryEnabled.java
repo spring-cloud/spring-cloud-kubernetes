@@ -29,10 +29,11 @@ import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecre
 
 /**
  * {@link org.springframework.context.annotation.Conditional @Conditional} that only
- * matches when Spring Cloud Kubernetes, Kubernetes secrets, Kubernetes secrets fail-fast
- * and Kubernetes secrets retry are enabled.
+ * matches when Spring Cloud Kubernetes, Kubernetes secrets and Kubernetes secrets retry
+ * are enabled.
  *
  * @author Isik Erhan
+ * @author wind57
  */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
@@ -40,9 +41,7 @@ import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecre
 @Inherited
 @ConditionalOnKubernetesEnabled
 @ConditionalOnKubernetesSecretsEnabled
-@ConditionalOnKubernetesSecretsFailFastEnabled
-@ConditionalOnProperty(prefix = SecretsConfigProperties.PREFIX + ".retry", name = "enabled", havingValue = "true",
-		matchIfMissing = true)
+@ConditionalOnProperty(prefix = SecretsConfigProperties.PREFIX + ".retry", name = "enabled", havingValue = "true")
 public @interface ConditionalOnKubernetesSecretsRetryEnabled {
 
 }

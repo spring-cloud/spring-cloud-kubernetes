@@ -39,22 +39,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Isik Erhan
+ * @author wind57
  */
 public class KubernetesBootstrapConfigurationTests {
-
-	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class)
-	@Nested
-	public class FailFastDisabled {
-
-		@Autowired
-		ConfigurableApplicationContext context;
-
-		@Test
-		public void shouldNotDefineRetryBeans() {
-			assertThat(context.getBeansOfType(RetryOperationsInterceptor.class)).isEmpty();
-		}
-
-	}
 
 	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class,
 			properties = { "spring.cloud.kubernetes.config.fail-fast=true" })
@@ -213,23 +200,12 @@ public class KubernetesBootstrapConfigurationTests {
 
 	}
 
-	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class, properties = {
-			"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false" })
-	@Nested
-	public class ConfigFailFastEnabledButRetryDisabled {
-
-		@Autowired
-		ConfigurableApplicationContext context;
-
-		@Test
-		public void shouldNotDefineRetryBeans() {
-			assertThat(context.getBeansOfType(RetryOperationsInterceptor.class)).isEmpty();
-		}
-
-	}
-
-	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class, properties = {
-			"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false" })
+	// by default, we must get two interceptors that are based on NeverRetryPolicy.
+	// there is no way to test the actual type of the retry policy, so we just assert
+	// presence here.
+	// there are tests in each individual client projects, where these policies are
+	// validated properly.
+	@SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = App.class)
 	@Nested
 	public class SecretsFailFastEnabledButRetryDisabled {
 
@@ -237,8 +213,8 @@ public class KubernetesBootstrapConfigurationTests {
 		ConfigurableApplicationContext context;
 
 		@Test
-		public void shouldNotDefineRetryBeans() {
-			assertThat(context.getBeansOfType(RetryOperationsInterceptor.class)).isEmpty();
+		public void shouldDefineRetryBeansWithoutActualRetry() {
+			assertThat(context.getBeansOfType(RetryOperationsInterceptor.class)).hasSize(2);
 		}
 
 	}
