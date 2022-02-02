@@ -29,8 +29,8 @@ import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabl
 
 /**
  * {@link org.springframework.context.annotation.Conditional @Conditional} that only
- * matches when Spring Cloud Kubernetes, Kubernetes config and Kubernetes config retry are
- * disabled.
+ * matches when Spring Cloud Kubernetes is enabled, Kubernetes ConfigMap is enabled
+ * and Kubernetes ConfigMap retry is disabled.
  *
  * @author Isik Erhan
  * @author wind57

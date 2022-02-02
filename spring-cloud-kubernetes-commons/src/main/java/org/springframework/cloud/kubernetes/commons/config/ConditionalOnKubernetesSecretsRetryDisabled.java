@@ -29,8 +29,8 @@ import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecre
 
 /**
  * {@link org.springframework.context.annotation.Conditional @Conditional} that only
- * matches when Spring Cloud Kubernetes, Kubernetes secrets and Kubernetes secrets retry
- * are disabled.
+ * matches when Spring Cloud Kubernetes is enabled, Kubernetes Secrets is enabled
+ * and Kubernetes Secrets retry is disabled.
  *
  * @author Isik Erhan
  * @author wind57
