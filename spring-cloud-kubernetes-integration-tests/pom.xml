@@ -63,12 +63,6 @@
 								<includes>
 									<include>spring-boot</include>
 								</includes>
-								<config>
-									<spring-boot>
-										<!-- TODO: Remove when Eclipse JKube 1.6.0 is released -->
-										<from>quay.io/jkube/jkube-java:0.0.13</from>
-									</spring-boot>
-								</config>
 							</generator>
 						</configuration>
 						<executions>
