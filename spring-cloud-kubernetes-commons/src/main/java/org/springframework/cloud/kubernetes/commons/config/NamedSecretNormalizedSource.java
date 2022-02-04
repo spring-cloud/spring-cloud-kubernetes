@@ -25,22 +25,15 @@ import java.util.Objects;
  */
 public final class NamedSecretNormalizedSource extends NormalizedSource {
 
-	private final String name;
-
 	private final boolean failFast;
 
 	public NamedSecretNormalizedSource(String namespace, boolean failFast, String name) {
-		super(namespace);
-		this.name = Objects.requireNonNull(name);
+		super(namespace, name);
 		this.failFast = failFast;
 	}
 
 	public boolean isFailFast() {
 		return failFast;
-	}
-
-	public String getName() {
-		return name;
 	}
 
 	@Override

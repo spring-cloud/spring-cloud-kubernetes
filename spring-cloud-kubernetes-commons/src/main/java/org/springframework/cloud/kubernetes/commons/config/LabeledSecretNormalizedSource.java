@@ -32,7 +32,7 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 	private final boolean failFast;
 
 	public LabeledSecretNormalizedSource(String namespace, boolean failFast, Map<String, String> labels) {
-		super(namespace);
+		super(namespace, null);
 		this.labels = Collections.unmodifiableMap(Objects.requireNonNull(labels));
 		this.failFast = failFast;
 	}

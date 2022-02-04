@@ -26,13 +26,20 @@ public sealed abstract class NormalizedSource permits NamedSecretNormalizedSourc
 
 	private final String namespace;
 
-	NormalizedSource(String namespace) {
+	private final String name;
+
+	NormalizedSource(String namespace, String name) {
 		this.namespace = namespace;
+		this.name = name;
 	}
 
 	// this can return a null, which is perfectly fine.
 	public String getNamespace() {
 		return this.namespace;
+	}
+
+	public String getName() {
+		return this.name;
 	}
 
 	public abstract String toString();

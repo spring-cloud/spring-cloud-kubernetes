@@ -25,8 +25,6 @@ import java.util.Objects;
  */
 public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 
-	private final String name;
-
 	private final String namespace;
 
 	private final String prefix;
@@ -37,16 +35,11 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 
 	public NamedConfigMapNormalizedSource(String name, String namespace, String prefix,
 			boolean includeProfileSpecificSources, boolean failFast) {
-		super(namespace);
-		this.name = name;
+		super(namespace, name);
 		this.namespace = namespace;
 		this.prefix = Objects.requireNonNull(prefix);
 		this.includeProfileSpecificSources = includeProfileSpecificSources;
 		this.failFast = failFast;
-	}
-
-	public String getName() {
-		return name;
 	}
 
 	public String getPrefix() {
@@ -87,7 +80,7 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(name, namespace);
+		return Objects.hash(getName(), getNamespace());
 	}
 
 	@Override
