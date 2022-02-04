@@ -33,22 +33,20 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 
 	private final boolean includeProfileSpecificSources;
 
+	private final boolean failFast;
+
 	public NamedConfigMapNormalizedSource(String name, String namespace, String prefix,
-			boolean includeProfileSpecificSources) {
+			boolean includeProfileSpecificSources, boolean failFast) {
 		super(namespace);
 		this.name = name;
 		this.namespace = namespace;
 		this.prefix = Objects.requireNonNull(prefix);
 		this.includeProfileSpecificSources = includeProfileSpecificSources;
+		this.failFast = failFast;
 	}
 
 	public String getName() {
 		return name;
-	}
-
-	@Override
-	public String getNamespace() {
-		return namespace;
 	}
 
 	public String getPrefix() {
@@ -57,6 +55,15 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 
 	public boolean isIncludeProfileSpecificSources() {
 		return includeProfileSpecificSources;
+	}
+
+	public boolean isFailFast() {
+		return failFast;
+	}
+
+	@Override
+	public String getNamespace() {
+		return namespace;
 	}
 
 	@Override

@@ -16,15 +16,13 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.*;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.CollectionUtils;
@@ -44,48 +42,28 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8ConfigMapPropertySource.class);
 
-	public Fabric8ConfigMapPropertySource(KubernetesClient client, String name, String namespace,
-			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
-		super(getName(name, getApplicationNamespace(client, namespace, "Config Map", null)),
-				getData(client, name, getApplicationNamespace(client, namespace, "Config Map", null), environment,
-						prefix, includeProfileSpecificSources, failFast));
+	private static final EnumMap<NormalizedSourceType, ContextToSourceData> STRATEGIES = new EnumMap<>(NormalizedSourceType.class);
+
+	// there is a single strategy here at the moment (unlike secrets), but this can change.
+	// to be on par with secrets implementation, I am keeping it the same.
+	static {
+		STRATEGIES.put(NormalizedSourceType.NAMED_CONFIG_MAP, namedConfigMap());
 	}
 
-	private static Map<String, Object> getData(KubernetesClient client, String name, String namespace,
-			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
+	public Fabric8ConfigMapPropertySource(Fabric8ConfigContext context) {
+		super(getSourceData(context));
+	}
 
-		LOG.debug("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
-		try {
-			Map<String, String> data = getConfigMapData(client, namespace, name);
-			Map<String, Object> result = new HashMap<>(processAllEntries(data, environment));
+	private static SourceData getSourceData(Fabric8ConfigContext context) {
+		NormalizedSourceType type = context.normalizedSource().type();
+		return Optional.ofNullable(STRATEGIES.get(type)).map(x -> x.apply(context))
+			.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
+	}
 
-			if (environment != null && includeProfileSpecificSources) {
-				for (String activeProfile : environment.getActiveProfiles()) {
-					String mapNameWithProfile = name + "-" + activeProfile;
-					Map<String, String> dataWithProfile = getConfigMapData(client, namespace, mapNameWithProfile);
-					result.putAll(processAllEntries(dataWithProfile, environment));
-				}
-			}
-
-			if (!"".equals(prefix)) {
-				Map<String, Object> withPrefix = CollectionUtils.newHashMap(result.size());
-				result.forEach((key, value) -> withPrefix.put(prefix + "." + key, value));
-				return withPrefix;
-			}
-
-			return result;
-
-		}
-		catch (Exception e) {
-			if (failFast) {
-				throw new IllegalStateException(
-						"Unable to read ConfigMap with name '" + name + "' in namespace '" + namespace + "'", e);
-			}
-
-			LOG.warn("Can't read configMap with name: [" + name + "] in namespace: [" + namespace + "]. Ignoring.", e);
-		}
-
-		return Collections.emptyMap();
+	private static ContextToSourceData namedConfigMap() {
+		return NamedConfigMapContextToSourceDataProvider.of(
+			ConfigMapPropertySource::processAllEntries,
+			ConfigMapPropertySource::getSourceName).get();
 	}
 
 }

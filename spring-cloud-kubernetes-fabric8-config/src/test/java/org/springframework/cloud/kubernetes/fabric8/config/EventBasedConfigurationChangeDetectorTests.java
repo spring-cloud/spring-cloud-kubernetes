@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.reload;
+package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,10 +28,11 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySource;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.fabric8.config.reload.EventBasedConfigMapChangeDetector;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,8 +64,9 @@ public class EventBasedConfigurationChangeDetectorTests {
 		when(mixedOperation.inNamespace("default")).thenReturn(mixedOperation);
 		when(k8sClient.getNamespace()).thenReturn("default");
 
-		Fabric8ConfigMapPropertySource fabric8ConfigMapPropertySource = new Fabric8ConfigMapPropertySource(k8sClient,
-				"myconfigmap", "default", new MockEnvironment(), "", true, false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("myconfigmap", "default", "", true, false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(k8sClient, source, "", new MockEnvironment());
+		Fabric8ConfigMapPropertySource fabric8ConfigMapPropertySource = new Fabric8ConfigMapPropertySource(context);
 		env.getPropertySources().addFirst(new BootstrapPropertySource<>(fabric8ConfigMapPropertySource));
 
 		ConfigurationUpdateStrategy configurationUpdateStrategy = mock(ConfigurationUpdateStrategy.class);

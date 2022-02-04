@@ -89,10 +89,11 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 								+ " is empty; as such will default 'useNameAsPrefix' to 'false'");
 			}
 			return Collections.singletonList(
-					new NamedConfigMapNormalizedSource(name, namespace, "", includeProfileSpecificSources));
+					new NamedConfigMapNormalizedSource(name, namespace, "", includeProfileSpecificSources, failFast));
 		}
 
-		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix, includeProfileSpecificSources))
+		return sources.stream()
+				.map(s -> s.normalize(name, namespace, useNameAsPrefix, includeProfileSpecificSources, failFast))
 				.collect(Collectors.toList());
 	}
 
@@ -177,7 +178,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		}
 
 		public NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix,
-				boolean defaultIncludeProfileSpecificSources) {
+				boolean defaultIncludeProfileSpecificSources, boolean failFast) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
 			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix,
@@ -185,7 +186,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
 					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
 			return new NamedConfigMapNormalizedSource(normalizedName, normalizedNamespace, prefix,
-					includeProfileSpecificSources);
+					includeProfileSpecificSources, failFast);
 		}
 
 		@Override

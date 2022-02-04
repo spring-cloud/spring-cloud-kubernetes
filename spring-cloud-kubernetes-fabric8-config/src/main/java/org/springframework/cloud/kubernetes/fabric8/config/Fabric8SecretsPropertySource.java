@@ -16,21 +16,12 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.AbstractMap;
 import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
-import io.fabric8.kubernetes.api.model.Secret;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSourceType;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
-
-import static org.springframework.cloud.kubernetes.fabric8.config.LabeledSecretContextToSourceDataProvider.of;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
 /**
  * Kubernetes property source for secrets.
@@ -48,62 +39,22 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 		STRATEGIES.put(NormalizedSourceType.LABELED_SECRET, labeledSecret());
 	}
 
-	private static final Log LOG = LogFactory.getLog(Fabric8SecretsPropertySource.class);
-
 	public Fabric8SecretsPropertySource(Fabric8ConfigContext context) {
-		super(null);
-		//TODO
-		//super(getSourceData(context));
+		super(getSourceData(context));
 	}
 
-	private static Map.Entry<String, Map<String, Object>> getSourceData(Fabric8ConfigContext context) {
-		//TODO
-//		NormalizedSourceType type = context.normalizedSource().type();
-//		return Optional.ofNullable(STRATEGIES.get(type)).map(x -> x.apply(context))
-//				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
-		return null;
+	private static SourceData getSourceData(Fabric8ConfigContext context) {
+		NormalizedSourceType type = context.normalizedSource().type();
+		return Optional.ofNullable(STRATEGIES.get(type)).map(x -> x.apply(context))
+				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
 	}
 
 	private static ContextToSourceData namedSecret() {
-		return null;
-		//TODO
-//		return context -> {
-//
-//			Map<String, Object> result = new HashMap<>();
-//			String name = ((NamedSecretNormalizedSource) context.normalizedSource()).getName();
-//			String namespace = context.namespace();
-//
-//			try {
-//
-//				LOG.info("Loading Secret with name '" + name + "' in namespace '" + namespace + "'");
-//				Secret secret = context.client().secrets().inNamespace(namespace).withName(name).get();
-//				// the API is documented that it might return null
-//				if (secret == null) {
-//					LOG.warn("secret with name : " + name + " in namespace : " + namespace + " not found");
-//				}
-//				else {
-//					putDataFromSecret(secret, result, namespace);
-//				}
-//
-//			}
-//			catch (Exception e) {
-//				if (((NamedSecretNormalizedSource) context.normalizedSource()).isFailFast()) {
-//					throw new IllegalStateException(
-//							"Unable to read Secret with name '" + name + "' in namespace '" + namespace + "'", e);
-//				}
-//
-//				LOG.warn("Can't read secret with name: '" + name + "' in namespace: '" + namespace + "' (cause: "
-//						+ e.getMessage() + "). Ignoring");
-//			}
-//
-//			String sourceName = getSourceName(name, namespace);
-//			return new AbstractMap.SimpleImmutableEntry<>(sourceName, result);
-//
-//		};
+		return NamedSecretContextToSourceDataProvider.of(SecretsPropertySource::getSourceName).get();
 	}
 
 	private static ContextToSourceData labeledSecret() {
-		return of(SecretsPropertySource::getSourceName).get();
+		return LabeledSecretContextToSourceDataProvider.of(SecretsPropertySource::getSourceName).get();
 	}
 
 }

@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.core.env.Environment;
 
 /**
  * A context/holder for various data needed to compute property sources.
@@ -26,4 +27,5 @@ import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
  * @author wind57
  */
 
-final record Fabric8ConfigContext(KubernetesClient client, NormalizedSource normalizedSource, String namespace) {}
+final record Fabric8ConfigContext(KubernetesClient client, NormalizedSource normalizedSource,
+		String namespace, Environment environment) {}

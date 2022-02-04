@@ -43,10 +43,10 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Context
 
 	private static final Log LOG = LogFactory.getLog(LabeledSecretContextToSourceDataProvider.class);
 
-	private final BiFunction<String, String, String> sourceNameFunction;
+	private final BiFunction<String, String, String> sourceNameMapper;
 
 	private LabeledSecretContextToSourceDataProvider(BiFunction<String, String, String> sourceNameFunction) {
-		this.sourceNameFunction = Objects.requireNonNull(sourceNameFunction);
+		this.sourceNameMapper = Objects.requireNonNull(sourceNameFunction);
 	}
 
 	static LabeledSecretContextToSourceDataProvider of(BiFunction<String, String, String> sourceNameFunction) {
@@ -101,7 +101,7 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Context
 					+ e.getMessage() + "). Ignoring");
 			}
 
-			String sourceName = sourceNameFunction.apply(name, namespace);
+			String sourceName = sourceNameMapper.apply(name, namespace);
 			return new SourceData(sourceName, result);
 		};
 	}

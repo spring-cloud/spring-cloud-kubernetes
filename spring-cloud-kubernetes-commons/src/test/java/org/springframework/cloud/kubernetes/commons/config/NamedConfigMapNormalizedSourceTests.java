@@ -26,9 +26,10 @@ class NamedConfigMapNormalizedSourceTests {
 
 	@Test
 	void testEqualsAndHashCode() {
-		NamedConfigMapNormalizedSource left = new NamedConfigMapNormalizedSource("name", "namespace", "prefix", false);
+		NamedConfigMapNormalizedSource left = new NamedConfigMapNormalizedSource("name", "namespace", "prefix", false,
+				true);
 		NamedConfigMapNormalizedSource right = new NamedConfigMapNormalizedSource("name", "namespace",
-				"non-equal-prefix", true);
+				"non-equal-prefix", true, false);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -36,13 +37,15 @@ class NamedConfigMapNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", "prefix", false);
+		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", "prefix", false,
+				true);
 		Assertions.assertSame(one.type(), NormalizedSourceType.NAMED_CONFIG_MAP);
 	}
 
 	@Test
 	void testTarget() {
-		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", "prefix", false);
+		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", "prefix", false,
+				true);
 		Assertions.assertEquals(one.target(), "Config Map");
 	}
 

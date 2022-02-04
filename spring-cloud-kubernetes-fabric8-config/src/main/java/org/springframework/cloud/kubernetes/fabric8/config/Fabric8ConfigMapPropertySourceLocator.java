@@ -50,21 +50,13 @@ public class Fabric8ConfigMapPropertySourceLocator extends ConfigMapPropertySour
 		this.provider = provider;
 	}
 
-	//TODO delete this
 	@Override
 	protected MapPropertySource getMapPropertySource(NormalizedSource normalizedSource, ConfigurableEnvironment environment) {
-		return null;
+		// NormalizedSource has a namespace, but users can skip it. In such cases we try to get it elsewhere
+		String namespace = getApplicationNamespace(this.client, normalizedSource.getNamespace(),
+			normalizedSource.target(), provider);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(client, normalizedSource, namespace, environment);
+		return new Fabric8ConfigMapPropertySource(context);
 	}
-
-	//TODO
-//	@Override
-//	protected MapPropertySource getMapPropertySource(String applicationName, NormalizedSource normalizedSource,
-//			String configurationTarget, ConfigurableEnvironment environment) {
-//		String namespace = getApplicationNamespace(this.client, normalizedSource.getNamespace(), configurationTarget,
-//				provider);
-//		return new Fabric8ConfigMapPropertySource(this.client, applicationName, namespace, environment,
-//				normalizedSource.getPrefix(), normalizedSource.isIncludeProfileSpecificSources(),
-//				this.properties.isFailFast());
-//	}
 
 }

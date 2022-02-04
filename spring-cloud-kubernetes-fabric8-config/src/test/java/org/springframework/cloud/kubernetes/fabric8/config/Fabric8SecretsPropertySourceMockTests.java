@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
+import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -49,7 +50,7 @@ class Fabric8SecretsPropertySourceMockTests {
 		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
 
 		NamedSecretNormalizedSource named = new NamedSecretNormalizedSource(namespace, true, name);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(client, named, "default");
+		Fabric8ConfigContext context = new Fabric8ConfigContext(client, named, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 		assertThatThrownBy(() -> new Fabric8SecretsPropertySource(context)).isInstanceOf(IllegalStateException.class)
@@ -63,7 +64,7 @@ class Fabric8SecretsPropertySourceMockTests {
 		final String path = String.format("/api/v1/namespaces/%s/secrets?labelSelector=", namespace) + "a%3Db";
 
 		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, true, labels);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default");
+		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 		assertThatThrownBy(() -> new Fabric8SecretsPropertySource(context)).isInstanceOf(IllegalStateException.class)
@@ -77,7 +78,7 @@ class Fabric8SecretsPropertySourceMockTests {
 		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
 
 		NamedSecretNormalizedSource named = new NamedSecretNormalizedSource(namespace, false, name);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(client, named, "default");
+		Fabric8ConfigContext context = new Fabric8ConfigContext(client, named, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 		assertThatNoException().isThrownBy(() -> new Fabric8SecretsPropertySource(context));
@@ -90,7 +91,7 @@ class Fabric8SecretsPropertySourceMockTests {
 		final String path = String.format("/api/v1/namespaces/%s/secrets?labelSelector=", namespace) + "a%3Db";
 
 		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, false, labels);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default");
+		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 		assertThatNoException().isThrownBy(() -> new Fabric8SecretsPropertySource(context));

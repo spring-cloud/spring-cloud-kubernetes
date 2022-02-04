@@ -49,11 +49,11 @@ public abstract class ConfigMapPropertySource extends MapPropertySource {
 
 	private static final Log LOG = LogFactory.getLog(ConfigMapPropertySource.class);
 
-	public ConfigMapPropertySource(String name, Map<String, Object> source) {
-		super(name, source);
+	public ConfigMapPropertySource(SourceData sourceData) {
+		super(sourceData.sourceName(), sourceData.sourceData());
 	}
 
-	protected static String getName(String applicationName, String namespace) {
+	protected static String getSourceName(String applicationName, String namespace) {
 		return PREFIX + PROPERTY_SOURCE_NAME_SEPARATOR + applicationName + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
 	}
 
