@@ -22,6 +22,7 @@ import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
@@ -49,14 +50,21 @@ public class Fabric8ConfigMapPropertySourceLocator extends ConfigMapPropertySour
 		this.provider = provider;
 	}
 
+	//TODO delete this
 	@Override
-	protected MapPropertySource getMapPropertySource(String applicationName, NormalizedSource normalizedSource,
-			String configurationTarget, ConfigurableEnvironment environment) {
-		String namespace = getApplicationNamespace(this.client, normalizedSource.getNamespace(), configurationTarget,
-				provider);
-		return new Fabric8ConfigMapPropertySource(this.client, applicationName, namespace, environment,
-				normalizedSource.getPrefix(), normalizedSource.isIncludeProfileSpecificSources(),
-				this.properties.isFailFast());
+	protected MapPropertySource getMapPropertySource(NormalizedSource normalizedSource, ConfigurableEnvironment environment) {
+		return null;
 	}
+
+	//TODO
+//	@Override
+//	protected MapPropertySource getMapPropertySource(String applicationName, NormalizedSource normalizedSource,
+//			String configurationTarget, ConfigurableEnvironment environment) {
+//		String namespace = getApplicationNamespace(this.client, normalizedSource.getNamespace(), configurationTarget,
+//				provider);
+//		return new Fabric8ConfigMapPropertySource(this.client, applicationName, namespace, environment,
+//				normalizedSource.getPrefix(), normalizedSource.isIncludeProfileSpecificSources(),
+//				this.properties.isFailFast());
+//	}
 
 }

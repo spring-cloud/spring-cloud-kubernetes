@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.Base64;
-import java.util.Map;
-
 import org.springframework.core.env.MapPropertySource;
 
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
@@ -31,16 +28,12 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.PROP
  */
 public class SecretsPropertySource extends MapPropertySource {
 
-	public SecretsPropertySource(Map.Entry<String, Map<String, Object>> entry) {
-		super(entry.getKey(), entry.getValue());
+	public SecretsPropertySource(SourceData sourceData) {
+		super(sourceData.sourceName(), sourceData.sourceData());
 	}
 
 	protected static String getSourceName(String name, String namespace) {
 		return "secrets" + PROPERTY_SOURCE_NAME_SEPARATOR + name + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
-	}
-
-	protected static void putAll(Map<String, String> data, Map<String, Object> result) {
-		data.forEach((k, v) -> result.put(k, new String(Base64.getDecoder().decode(v)).trim()));
 	}
 
 	@Override

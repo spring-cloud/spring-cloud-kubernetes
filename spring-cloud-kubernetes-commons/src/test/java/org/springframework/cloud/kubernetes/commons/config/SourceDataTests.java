@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config;
+package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.Map;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author wind57
  */
-final record SourceData(String sourceName, Map<String, Object> sourceData) { }
+class SourceDataTests {
+
+	@Test
+	void testEmpty() {
+		Assertions.assertEquals(SourceData.emptyRecord("name").sourceData().size(), 0);
+	}
+
+}
