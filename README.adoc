@@ -1107,9 +1107,9 @@ Be aware that when `spring-cloud-kubernetes-config` is on the classpath, `spring
 Also note that these properties: `spring.cloud.kubernetes.config.enabled` and `spring.cloud.kubernetes.secrets.enabled`
 only take effect when set in `bootstrap.{properties|yml}`.
 
-=== Functional changes since 2.1.x version
+=== Breaking Changes In 3.0.x
 
-In versions prior to `2.1.x`, Kubernetes awareness was implemented using `spring.cloud.kubernetes.enabled` property. This
+In versions of Spring Cloud Kubernetes prior to `3.0.x`, Kubernetes awareness was implemented using `spring.cloud.kubernetes.enabled` property. This
 property was removed and is un-supported. Instead, we use Spring Boot API: https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/autoconfigure/condition/ConditionalOnCloudPlatform.html[ConditionalOnCloudPlatform].
 If it is needed to explicitly enable or disable this awareness, use `spring.main.cloud-platform=NONE/KUBERNETES`.
 
@@ -1871,7 +1871,7 @@ To see the list of all Kubernetes related configuration properties please check 
 
 == Building
 
-:jdkversion: 1.8
+:jdkversion: 17
 
 === Basic Compile and Test
 

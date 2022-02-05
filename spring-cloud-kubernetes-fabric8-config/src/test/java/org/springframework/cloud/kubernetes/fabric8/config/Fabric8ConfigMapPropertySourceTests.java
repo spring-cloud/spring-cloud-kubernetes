@@ -70,16 +70,6 @@ class Fabric8ConfigMapPropertySourceTests {
 	}
 
 	@Test
-	void constructorWithoutClientNamespaceMustFail() {
-
-		Mockito.when(client.getNamespace()).thenReturn(null);
-		NormalizedSource source = new NamedConfigMapNormalizedSource("configmap", null, "", false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
-		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(context))
-			.isInstanceOf(NamespaceResolutionFailedException.class);
-	}
-
-	@Test
 	void constructorWithClientNamespaceMustNotFail() {
 
 		Mockito.when(client.getNamespace()).thenReturn("namespace");

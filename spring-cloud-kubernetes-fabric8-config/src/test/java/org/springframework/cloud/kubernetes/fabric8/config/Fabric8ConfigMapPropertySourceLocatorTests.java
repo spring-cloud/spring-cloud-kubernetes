@@ -16,13 +16,18 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.Test;
 
+import org.mockito.Mockito;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -32,17 +37,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author Isik Erhan
  */
 @EnableKubernetesMockClient
-public class Fabric8ConfigMapPropertySourceLocatorTests {
+class Fabric8ConfigMapPropertySourceLocatorTests {
 
-	KubernetesMockServer mockServer;
+	private KubernetesMockServer mockServer;
 
-	KubernetesClient mockClient;
+	private KubernetesClient mockClient;
+
+	private final DefaultKubernetesClient client = Mockito.mock(DefaultKubernetesClient.class);
 
 	@Test
-	public void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
-		final String name = "my-config";
-		final String namespace = "default";
-		final String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
+	void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
+		String name = "my-config";
+		String namespace = "default";
+		String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 
@@ -59,10 +66,10 @@ public class Fabric8ConfigMapPropertySourceLocatorTests {
 	}
 
 	@Test
-	public void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
-		final String name = "my-config";
-		final String namespace = "default";
-		final String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
+	void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
+		String name = "my-config";
+		String namespace = "default";
+		String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 
@@ -75,6 +82,22 @@ public class Fabric8ConfigMapPropertySourceLocatorTests {
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		assertThatNoException().isThrownBy(() -> locator.locate(new MockEnvironment()));
+	}
+
+	@Test
+	void constructorWithoutClientNamespaceMustFail() {
+
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
+		configMapConfigProperties.setName("name");
+		configMapConfigProperties.setNamespace(null);
+		configMapConfigProperties.setFailFast(false);
+
+		Mockito.when(client.getNamespace()).thenReturn(null);
+		Fabric8ConfigMapPropertySourceLocator source = new Fabric8ConfigMapPropertySourceLocator(client,
+			configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("name", null, "prefix", false, false);
+		assertThatThrownBy(() -> source.getMapPropertySource(normalizedSource, new MockEnvironment()))
+			.isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 }
