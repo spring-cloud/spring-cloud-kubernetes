@@ -63,7 +63,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Contex
 
 	/*
 	 * Computes a ContextSourceData (think content) for config map(s) based on name.
-	 * There could be potentially many secrets read (we also read profile based config maps). In such a case
+	 * There could be potentially many config maps read (we also read profile based sources). In such a case
 	 * the name of the property source is going to be the concatenated config map names, while the value
 	 * is all the data that those config maps hold.
 	 */

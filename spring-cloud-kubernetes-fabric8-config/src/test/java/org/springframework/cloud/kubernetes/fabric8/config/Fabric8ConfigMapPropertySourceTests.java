@@ -85,8 +85,7 @@ class Fabric8ConfigMapPropertySourceTests {
 		Mockito.when(client.getNamespace()).thenReturn("namespace");
 		NormalizedSource source = new NamedConfigMapNormalizedSource("configmap", null, "", false, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
-		assertThat(
-				new Fabric8ConfigMapPropertySource(context)).isNotNull();
+		assertThat(new Fabric8ConfigMapPropertySource(context)).isNotNull();
 	}
 
 	@Test
