@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
@@ -30,6 +31,7 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getConfigMapData;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 
@@ -71,12 +73,12 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Contex
 		return fabric8ConfigContext -> {
 
 			NamedConfigMapNormalizedSource source = (NamedConfigMapNormalizedSource) fabric8ConfigContext.normalizedSource();
-			String configMapName = source.getName();
+			String sourceName = source.getName();
 			String namespace = source.getNamespace();
 			Environment environment = fabric8ConfigContext.environment();
 			KubernetesClient client = fabric8ConfigContext.client();
 			String prefix = source.getPrefix();
-			String sourceName = configMapName;
+			String configMapName = sourceName != null ? sourceName : appName(environment, source).get();
 
 			Map<String, Object> result = new HashMap<>();
 
@@ -90,7 +92,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Contex
 						String configMapNameWithProfile = configMapName + "-" + activeProfile;
 						Map<String, String> dataWithProfile = getConfigMapData(client, namespace, configMapNameWithProfile);
 						if (!dataWithProfile.isEmpty()) {
-							sourceName = sourceName + PROPERTY_SOURCE_NAME_SEPARATOR + configMapNameWithProfile;
+							configMapName = configMapName + PROPERTY_SOURCE_NAME_SEPARATOR + configMapNameWithProfile;
 							result.putAll(entriesProcessor.apply(dataWithProfile, environment));
 						}
 					}
@@ -99,7 +101,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Contex
 				if (!"".equals(prefix)) {
 					Map<String, Object> withPrefix = CollectionUtils.newHashMap(result.size());
 					result.forEach((key, value) -> withPrefix.put(prefix + "." + key, value));
-					return new SourceData(sourceNameMapper.apply(sourceName, namespace), withPrefix);
+					return new SourceData(sourceNameMapper.apply(configMapName, namespace), withPrefix);
 				}
 
 			}
@@ -112,8 +114,15 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Contex
 				LOG.warn("Can't read configMap with name: [" + configMapName + "] in namespace: [" + namespace + "]. Ignoring.", e);
 			}
 
-			return new SourceData(sourceNameMapper.apply(sourceName, namespace), result);
+			return new SourceData(sourceNameMapper.apply(configMapName, namespace), result);
 		};
 
 	}
+
+	// unlike a Secret, users have the option not to specify the config map name in properties.
+	// in such cases we will try to get it elsewhere. getApplicationName method has that logic.
+	private Supplier<String> appName(Environment environment, NormalizedSource normalizedSource) {
+		return () -> getApplicationName(environment, normalizedSource.getName(), normalizedSource.target());
+	}
+
 }

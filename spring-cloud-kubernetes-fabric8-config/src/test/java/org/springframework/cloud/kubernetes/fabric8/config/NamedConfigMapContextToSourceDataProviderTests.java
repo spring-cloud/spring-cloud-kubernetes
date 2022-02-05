@@ -150,7 +150,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	/**
 	 * we have two config maps deployed. one matches the query name. the other matches
 	 * the active profile + name, thus is taken also. This takes into consideration
-	 * the prefix, that we explicitly specify. Notice that prefix worls for profile based
+	 * the prefix, that we explicitly specify. Notice that prefix works for profile based
 	 * config maps as well.
 	 */
 	@Test
@@ -184,6 +184,27 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
 		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
 
+	}
+
+	// this tests makes sure that even if NormalizedSource has no name (which is a valid case for config maps),
+	// it will default to "application" and such a config map will be read.
+	@Test
+	void matchWithoutName() {
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("application")
+			.endMetadata()
+			.addToData("color", "red").build();
+
+		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
+
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource(null, NAMESPACE, "", true, false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, new MockEnvironment());
+
+		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(
+			Dummy::processEntries, Dummy::sourceName).get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.application.default");
+		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("color", "red"));
 	}
 
 	// needed only to allow access to the super methods

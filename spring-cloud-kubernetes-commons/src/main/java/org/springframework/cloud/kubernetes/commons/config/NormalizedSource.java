@@ -33,11 +33,12 @@ public sealed abstract class NormalizedSource permits NamedSecretNormalizedSourc
 		this.name = name;
 	}
 
-	// this can return a null, which is perfectly fine.
+	// this can return null, which is perfectly fine.
 	public String getNamespace() {
 		return this.namespace;
 	}
 
+	// this can return null (for a secret based on labels, for example)
 	public String getName() {
 		return this.name;
 	}
