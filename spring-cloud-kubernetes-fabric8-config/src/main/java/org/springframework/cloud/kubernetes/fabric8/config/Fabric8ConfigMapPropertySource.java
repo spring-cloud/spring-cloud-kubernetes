@@ -16,19 +16,13 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.*;
+import java.util.EnumMap;
+import java.util.Optional;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.cloud.kubernetes.commons.config.*;
-import org.springframework.core.env.Environment;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSourceType;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.util.CollectionUtils;
-
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getConfigMapData;
 
 /**
  * A {@link MapPropertySource} that uses Kubernetes config maps.
@@ -40,9 +34,8 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
  */
 public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 
-	private static final Log LOG = LogFactory.getLog(Fabric8ConfigMapPropertySource.class);
-
-	private static final EnumMap<NormalizedSourceType, ContextToSourceData> STRATEGIES = new EnumMap<>(NormalizedSourceType.class);
+	private static final EnumMap<NormalizedSourceType, ContextToSourceData> STRATEGIES = new EnumMap<>(
+			NormalizedSourceType.class);
 
 	// there is a single strategy here at the moment (unlike secrets), but this can change.
 	// to be on par with secrets implementation, I am keeping it the same.
@@ -57,13 +50,12 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 	private static SourceData getSourceData(Fabric8ConfigContext context) {
 		NormalizedSourceType type = context.normalizedSource().type();
 		return Optional.ofNullable(STRATEGIES.get(type)).map(x -> x.apply(context))
-			.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
+				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
 	}
 
 	private static ContextToSourceData namedConfigMap() {
-		return NamedConfigMapContextToSourceDataProvider.of(
-			ConfigMapPropertySource::processAllEntries,
-			ConfigMapPropertySource::getSourceName).get();
+		return NamedConfigMapContextToSourceDataProvider
+				.of(ConfigMapPropertySource::processAllEntries, ConfigMapPropertySource::getSourceName).get();
 	}
 
 }

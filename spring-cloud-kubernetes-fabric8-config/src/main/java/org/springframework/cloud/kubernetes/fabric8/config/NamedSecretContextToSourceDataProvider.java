@@ -16,17 +16,18 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import io.fabric8.kubernetes.api.model.Secret;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
+
+import io.fabric8.kubernetes.api.model.Secret;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.dataFromSecret;
 
@@ -86,4 +87,5 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<ContextTo
 			return new SourceData(sourceName, result);
 		};
 	}
+
 }

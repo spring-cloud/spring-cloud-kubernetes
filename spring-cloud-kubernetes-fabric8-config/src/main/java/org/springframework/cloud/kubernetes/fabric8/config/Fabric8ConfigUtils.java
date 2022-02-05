@@ -107,7 +107,7 @@ public final class Fabric8ConfigUtils {
 	}
 
 	/**
-	 * return decoded data from a secret within a namespace
+	 * return decoded data from a secret within a namespace.
 	 */
 	static Map<String, Object> dataFromSecret(Secret secret, String namespace) {
 		LOG.debug("reading secret with name : " + secret.getMetadata().getName() + " in namespace : " + namespace);

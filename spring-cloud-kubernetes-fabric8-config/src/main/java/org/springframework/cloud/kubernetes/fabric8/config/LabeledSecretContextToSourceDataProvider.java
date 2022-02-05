@@ -16,13 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Secret;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,8 +24,16 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.dataFromSecret;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Secret;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
+
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.dataFromSecret;
 
 /**
  * Provides an implementation of {@link ContextToSourceData} for a labeled secret.
@@ -55,38 +56,40 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Context
 
 	/*
 	 * Computes a ContextSourceData (think content) for secret(s) based on some labels.
-	 * There could be many secrets that are read based on incoming labels, for which
-	 * we will be computing a single Map<String, Object> in the end.
+	 * There could be many secrets that are read based on incoming labels, for which we
+	 * will be computing a single Map<String, Object> in the end.
 	 *
-	 * If there is no secret found for the provided labels, we will return an "empty" SourceData.
-	 * Its name is going to be the concatenated labels mapped to an empty Map.
+	 * If there is no secret found for the provided labels, we will return an "empty"
+	 * SourceData. Its name is going to be the concatenated labels mapped to an empty Map.
 	 *
-	 * If we find secret(s) for the provided labels, its name is going to be the concatenated secret names
-	 * mapped to the data they hold as a Map.
+	 * If we find secret(s) for the provided labels, its name is going to be the
+	 * concatenated secret names mapped to the data they hold as a Map.
 	 */
 	@Override
 	public ContextToSourceData get() {
 
-		return fabric8ConfigContext -> {
+		return context -> {
 
-			LabeledSecretNormalizedSource source = ((LabeledSecretNormalizedSource) fabric8ConfigContext.normalizedSource());
+			LabeledSecretNormalizedSource source = ((LabeledSecretNormalizedSource) context
+					.normalizedSource());
 			Map<String, String> labels = source.getLabels();
 
 			Map<String, Object> result = new HashMap<>();
-			String namespace = fabric8ConfigContext.namespace();
+			String namespace = context.namespace();
 			String name = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, labels.keySet());
 
 			try {
 
 				LOG.info("Loading Secret(s) with labels '" + labels + "' in namespace '" + namespace + "'");
-				List<Secret> secrets = fabric8ConfigContext.client().secrets().inNamespace(namespace).withLabels(labels).list()
-					.getItems();
+				List<Secret> secrets = context.client().secrets().inNamespace(namespace).withLabels(labels)
+						.list().getItems();
 
 				if (!secrets.isEmpty()) {
 					secrets.forEach(secret -> result.putAll(dataFromSecret(secret, namespace)));
 					name = secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName)
-						.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-				} else {
+							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+				}
+				else {
 					LOG.info("No Secret(s) with labels '" + labels + "' in namespace '" + namespace + "' found.");
 				}
 
@@ -94,11 +97,11 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Context
 			catch (Exception e) {
 				if (source.isFailFast()) {
 					throw new IllegalStateException(
-						"Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'", e);
+							"Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'", e);
 				}
 
 				LOG.warn("Can't read secret with labels [" + labels + "] in namespace: '" + namespace + "' (cause: "
-					+ e.getMessage() + "). Ignoring");
+						+ e.getMessage() + "). Ignoring");
 			}
 
 			String sourceName = sourceNameMapper.apply(name, namespace);

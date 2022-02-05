@@ -65,7 +65,7 @@ public class EventBasedConfigurationChangeDetectorTests {
 		when(k8sClient.getNamespace()).thenReturn("default");
 
 		NormalizedSource source = new NamedConfigMapNormalizedSource("myconfigmap", "default", "", true, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(k8sClient, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(k8sClient, source, "default", new MockEnvironment());
 		Fabric8ConfigMapPropertySource fabric8ConfigMapPropertySource = new Fabric8ConfigMapPropertySource(context);
 		env.getPropertySources().addFirst(new BootstrapPropertySource<>(fabric8ConfigMapPropertySource));
 

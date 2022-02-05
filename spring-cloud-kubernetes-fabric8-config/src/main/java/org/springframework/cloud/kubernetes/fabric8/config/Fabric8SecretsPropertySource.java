@@ -32,7 +32,8 @@ import org.springframework.cloud.kubernetes.commons.config.SourceData;
  */
 public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
-	private static final EnumMap<NormalizedSourceType, ContextToSourceData> STRATEGIES = new EnumMap<>(NormalizedSourceType.class);
+	private static final EnumMap<NormalizedSourceType, ContextToSourceData> STRATEGIES = new EnumMap<>(
+			NormalizedSourceType.class);
 
 	static {
 		STRATEGIES.put(NormalizedSourceType.NAMED_SECRET, namedSecret());

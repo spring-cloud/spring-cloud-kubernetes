@@ -27,5 +27,6 @@ import org.springframework.core.env.Environment;
  * @author wind57
  */
 
-final record Fabric8ConfigContext(KubernetesClient client, NormalizedSource normalizedSource,
-		String namespace, Environment environment) {}
+final record Fabric8ConfigContext(KubernetesClient client, NormalizedSource normalizedSource, String namespace,
+		Environment environment) {
+}

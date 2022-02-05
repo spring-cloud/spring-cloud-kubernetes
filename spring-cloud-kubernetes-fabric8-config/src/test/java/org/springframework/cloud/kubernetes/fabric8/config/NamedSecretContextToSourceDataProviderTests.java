@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Map;
+
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
@@ -25,17 +29,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.cloud.kubernetes.commons.config.*;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.MapPropertySource;
 import org.springframework.mock.env.MockEnvironment;
-
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Map;
-import java.util.function.BiFunction;
-
-import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 
 /**
  * Tests only for the happy-path scenarios. All others are tested elsewhere.
@@ -67,21 +63,20 @@ class NamedSecretContextToSourceDataProviderTests {
 		mockClient.secrets().inNamespace(NAMESPACE).delete();
 	}
 
-
 	/**
 	 * we have a single secret deployed. it matched the name in our queries
 	 */
 	@Test
 	void singleSecretMatchAgainstLabels() {
 
-		Secret secret = new SecretBuilder().withNewMetadata().withName("red")
-			.endMetadata()
-			.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
+		Secret secret = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
+				.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 
 		NormalizedSource normalizedSource = new NamedSecretNormalizedSource(NAMESPACE, true, "red");
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
+				new MockEnvironment());
 
 		ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
@@ -92,30 +87,28 @@ class NamedSecretContextToSourceDataProviderTests {
 	}
 
 	/**
-	 * we have three secret deployed. one of them has a name that matches (red), the other two
-	 * have different names, thus no match.
+	 * we have three secret deployed. one of them has a name that matches (red), the other
+	 * two have different names, thus no match.
 	 */
 	@Test
 	void twoSecretMatchAgainstLabels() {
 
-		Secret red = new SecretBuilder().withNewMetadata().withName("red")
-			.endMetadata()
-			.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
+		Secret red = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
+				.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
 
-		Secret blue = new SecretBuilder().withNewMetadata().withName("blue")
-			.endMetadata()
-			.addToData("color", Base64.getEncoder().encodeToString("really-blue".getBytes())).build();
+		Secret blue = new SecretBuilder().withNewMetadata().withName("blue").endMetadata()
+				.addToData("color", Base64.getEncoder().encodeToString("really-blue".getBytes())).build();
 
-		Secret yellow = new SecretBuilder().withNewMetadata().withName("yellow")
-			.endMetadata()
-			.addToData("color", Base64.getEncoder().encodeToString("really-yeallow".getBytes())).build();
+		Secret yellow = new SecretBuilder().withNewMetadata().withName("yellow").endMetadata()
+				.addToData("color", Base64.getEncoder().encodeToString("really-yeallow".getBytes())).build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(red);
 		mockClient.secrets().inNamespace(NAMESPACE).create(blue);
 		mockClient.secrets().inNamespace(NAMESPACE).create(yellow);
 
 		NormalizedSource normalizedSource = new NamedSecretNormalizedSource(NAMESPACE, true, "red");
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
+				new MockEnvironment());
 
 		ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
@@ -132,14 +125,14 @@ class NamedSecretContextToSourceDataProviderTests {
 	@Test
 	void testSecretNoMatch() {
 
-		Secret pink = new SecretBuilder().withNewMetadata().withName("pink")
-			.endMetadata()
-			.addToData("color", Base64.getEncoder().encodeToString("pink".getBytes())).build();
+		Secret pink = new SecretBuilder().withNewMetadata().withName("pink").endMetadata()
+				.addToData("color", Base64.getEncoder().encodeToString("pink".getBytes())).build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(pink);
 
 		NormalizedSource normalizedSource = new NamedSecretNormalizedSource(NAMESPACE, true, "blue");
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
+				new MockEnvironment());
 
 		ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
@@ -148,8 +141,33 @@ class NamedSecretContextToSourceDataProviderTests {
 		Assertions.assertEquals(sourceData.sourceData(), Collections.emptyMap());
 	}
 
+	/**
+	 * NamedSecretContextToSourceDataProvider gets as input a Fabric8ConfigContext. This context
+	 * has a namespace as well as a NormalizedSource, that has a namespace too. It is easy to get
+	 * confused in code on which namespace to use. This test makes sure that we use the proper one.
+	 */
+	@Test
+	void namespaceMatch() {
+
+		Secret secret = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
+			.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
+
+		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
+
+		// different namespace
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource(NAMESPACE + "nope", true, "red");
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
+			new MockEnvironment());
+
+		ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secrets.red.default");
+		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
+	}
+
 	// needed only to allow access to the super methods
-	private static class Dummy extends SecretsPropertySource {
+	private static final class Dummy extends SecretsPropertySource {
 
 		private Dummy() {
 			super(SourceData.emptyRecord("dummy-name"));

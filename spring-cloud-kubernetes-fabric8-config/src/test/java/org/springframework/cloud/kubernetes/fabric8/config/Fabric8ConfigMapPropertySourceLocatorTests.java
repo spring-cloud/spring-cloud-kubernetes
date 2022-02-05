@@ -21,8 +21,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.Test;
-
 import org.mockito.Mockito;
+
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
@@ -94,10 +94,10 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 
 		Mockito.when(client.getNamespace()).thenReturn(null);
 		Fabric8ConfigMapPropertySourceLocator source = new Fabric8ConfigMapPropertySourceLocator(client,
-			configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
+				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("name", null, "prefix", false, false);
 		assertThatThrownBy(() -> source.getMapPropertySource(normalizedSource, new MockEnvironment()))
-			.isInstanceOf(NamespaceResolutionFailedException.class);
+				.isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 }

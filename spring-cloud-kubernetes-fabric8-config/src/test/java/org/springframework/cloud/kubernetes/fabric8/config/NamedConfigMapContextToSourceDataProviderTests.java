@@ -16,8 +16,14 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Map;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -25,12 +31,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.cloud.kubernetes.commons.config.*;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
-
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * Tests only for the happy-path scenarios. All others are tested elsewhere.
@@ -62,24 +66,23 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		mockClient.configMaps().inNamespace(NAMESPACE).delete();
 	}
 
-
 	/**
 	 * we have a single config map deployed. it does not match our query.
 	 */
 	@Test
 	void noMatch() {
 
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("red")
-			.endMetadata()
-			.addToData("color", "really-red").build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
+				.addToData("color", "really-red").build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("blue", NAMESPACE, "", true, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
+				new MockEnvironment());
 
-		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(
-			Dummy::processEntries, Dummy::sourceName).get();
+		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
+				.of(Dummy::processEntries, Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.blue.default");
@@ -93,17 +96,17 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@Test
 	void match() {
 
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("red")
-			.endMetadata()
-			.addToData("color", "really-red").build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
+				.addToData("color", "really-red").build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, "", true, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
+				new MockEnvironment());
 
-		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(
-			Dummy::processEntries, Dummy::sourceName).get();
+		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
+				.of(Dummy::processEntries, Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
@@ -112,19 +115,17 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	}
 
 	/**
-	 * we have two config maps deployed. one matches the query name. the other matches
-	 * the active profile + name, thus is taken also.
+	 * we have two config maps deployed. one matches the query name. the other matches the
+	 * active profile + name, thus is taken also.
 	 */
 	@Test
 	void matchIncludeSingleProfile() {
 
-		ConfigMap red = new ConfigMapBuilder().withNewMetadata().withName("red")
-			.endMetadata()
-			.addToData("color", "really-red").build();
+		ConfigMap red = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
+				.addToData("color", "really-red").build();
 
-		ConfigMap redWithProfile = new ConfigMapBuilder().withNewMetadata().withName("red-with-profile")
-			.endMetadata()
-			.addToData("taste", "mango").build();
+		ConfigMap redWithProfile = new ConfigMapBuilder().withNewMetadata().withName("red-with-profile").endMetadata()
+				.addToData("taste", "mango").build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(red);
 		mockClient.configMaps().inNamespace(NAMESPACE).create(redWithProfile);
@@ -136,8 +137,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
-		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(
-			Dummy::processEntries, Dummy::sourceName).get();
+		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
+				.of(Dummy::processEntries, Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-profile.default");
@@ -148,21 +149,19 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	}
 
 	/**
-	 * we have two config maps deployed. one matches the query name. the other matches
-	 * the active profile + name, thus is taken also. This takes into consideration
-	 * the prefix, that we explicitly specify. Notice that prefix works for profile based
+	 * we have two config maps deployed. one matches the query name. the other matches the
+	 * active profile + name, thus is taken also. This takes into consideration the
+	 * prefix, that we explicitly specify. Notice that prefix works for profile based
 	 * config maps as well.
 	 */
 	@Test
 	void matchIncludeSingleProfileWithPrefix() {
 
-		ConfigMap red = new ConfigMapBuilder().withNewMetadata().withName("red")
-			.endMetadata()
-			.addToData("color", "really-red").build();
+		ConfigMap red = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
+				.addToData("color", "really-red").build();
 
-		ConfigMap redWithProfile = new ConfigMapBuilder().withNewMetadata().withName("red-with-profile")
-			.endMetadata()
-			.addToData("taste", "mango").build();
+		ConfigMap redWithProfile = new ConfigMapBuilder().withNewMetadata().withName("red-with-profile").endMetadata()
+				.addToData("taste", "mango").build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(red);
 		mockClient.configMaps().inNamespace(NAMESPACE).create(redWithProfile);
@@ -175,8 +174,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
-		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(
-			Dummy::processEntries, Dummy::sourceName).get();
+		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
+				.of(Dummy::processEntries, Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-profile.default");
@@ -186,29 +185,56 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 	}
 
-	// this tests makes sure that even if NormalizedSource has no name (which is a valid case for config maps),
+	// this tests makes sure that even if NormalizedSource has no name (which is a valid
+	// case for config maps),
 	// it will default to "application" and such a config map will be read.
 	@Test
 	void matchWithoutName() {
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("application")
-			.endMetadata()
-			.addToData("color", "red").build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("application").endMetadata()
+				.addToData("color", "red").build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource(null, NAMESPACE, "", true, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
+				new MockEnvironment());
 
-		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(
-			Dummy::processEntries, Dummy::sourceName).get();
+		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
+				.of(Dummy::processEntries, Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.application.default");
 		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("color", "red"));
 	}
 
+	/**
+	 * NamedSecretContextToSourceDataProvider gets as input a Fabric8ConfigContext. This context
+	 * has a namespace as well as a NormalizedSource, that has a namespace too. It is easy to get
+	 * confused in code on which namespace to use. This test makes sure that we use the proper one.
+	 */
+	@Test
+	void namespaceMatch() {
+
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
+			.addToData("color", "really-red").build();
+
+		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
+
+		// different namespace
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE + "nope", "", true, false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
+			new MockEnvironment());
+
+		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
+			.of(Dummy::processEntries, Dummy::sourceName).get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
+		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("color", "really-red"));
+	}
+
 	// needed only to allow access to the super methods
-	private static class Dummy extends ConfigMapPropertySource {
+	private static final class Dummy extends ConfigMapPropertySource {
 
 		private Dummy() {
 			super(SourceData.emptyRecord("dummy-name"));

@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -51,10 +50,10 @@ class Fabric8ConfigMapPropertySourceTests {
 		final String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
-		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, "", false, true);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
-		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(context)).isInstanceOf(IllegalStateException.class).hasMessage(
-						"Unable to read ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
+		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, "default", false, true);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "default", new MockEnvironment());
+		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(context)).isInstanceOf(IllegalStateException.class)
+				.hasMessage("Unable to read ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
 	}
 
 	@Test

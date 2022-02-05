@@ -16,14 +16,15 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
-
 import java.util.function.Function;
 
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
+
 /**
- * A more succinct way to define the Function<Fabric8ConfigContext, SourceData>
+ * A more succinct way to define a Function from Fabric8ConfigContext to SourceData.
  *
  * @author wind57
  */
 interface ContextToSourceData extends Function<Fabric8ConfigContext, SourceData> {
+
 }

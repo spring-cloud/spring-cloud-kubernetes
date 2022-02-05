@@ -16,24 +16,25 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
-import org.springframework.core.env.Environment;
-import org.springframework.util.CollectionUtils;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
+import org.springframework.core.env.Environment;
+import org.springframework.util.CollectionUtils;
+
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getConfigMapData;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getConfigMapData;
 
 /**
  * Provides an implementation of {@link ContextToSourceData} for a named config map.
@@ -49,48 +50,51 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Contex
 	private final BiFunction<String, String, String> sourceNameMapper;
 
 	private NamedConfigMapContextToSourceDataProvider(
-		BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor,
-		BiFunction<String, String, String> sourceNameMapper) {
+			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor,
+			BiFunction<String, String, String> sourceNameMapper) {
 		this.entriesProcessor = Objects.requireNonNull(entriesProcessor);
 		this.sourceNameMapper = Objects.requireNonNull(sourceNameMapper);
 	}
 
 	static NamedConfigMapContextToSourceDataProvider of(
-		BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor,
-		BiFunction<String, String, String> sourceNameMapper) {
+			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor,
+			BiFunction<String, String, String> sourceNameMapper) {
 		return new NamedConfigMapContextToSourceDataProvider(entriesProcessor, sourceNameMapper);
 	}
 
 	/*
-	 * Computes a ContextSourceData (think content) for config map(s) based on name.
-	 * There could be potentially many config maps read (we also read profile based sources). In such a case
-	 * the name of the property source is going to be the concatenated config map names, while the value
-	 * is all the data that those config maps hold.
+	 * Computes a ContextSourceData (think content) for config map(s) based on name. There
+	 * could be potentially many config maps read (we also read profile based sources). In
+	 * such a case the name of the property source is going to be the concatenated config
+	 * map names, while the value is all the data that those config maps hold.
 	 */
 	@Override
 	public ContextToSourceData get() {
 
-		return fabric8ConfigContext -> {
+		return context -> {
 
-			NamedConfigMapNormalizedSource source = (NamedConfigMapNormalizedSource) fabric8ConfigContext.normalizedSource();
+			NamedConfigMapNormalizedSource source = (NamedConfigMapNormalizedSource) context
+					.normalizedSource();
 			String sourceName = source.getName();
-			String namespace = source.getNamespace();
-			Environment environment = fabric8ConfigContext.environment();
-			KubernetesClient client = fabric8ConfigContext.client();
+			// namespace has to be read from context, not from the normalized source
+			String namespace = context.namespace();
+			Environment environment = context.environment();
+			KubernetesClient client = context.client();
 			String prefix = source.getPrefix();
 			String configMapName = sourceName != null ? sourceName : appName(environment, source).get();
 
 			Map<String, Object> result = new HashMap<>();
 
-			LOG.debug("Loading ConfigMap with name '" + configMapName + "' in namespace '" + namespace + "'");
+			LOG.info("Loading ConfigMap with name '" + configMapName + "' in namespace '" + namespace + "'");
 			try {
 				Map<String, String> data = getConfigMapData(client, namespace, configMapName);
 				result.putAll(entriesProcessor.apply(data, environment));
 
-				if (fabric8ConfigContext.environment() != null && source.isIncludeProfileSpecificSources()) {
+				if (context.environment() != null && source.isIncludeProfileSpecificSources()) {
 					for (String activeProfile : environment.getActiveProfiles()) {
 						String configMapNameWithProfile = configMapName + "-" + activeProfile;
-						Map<String, String> dataWithProfile = getConfigMapData(client, namespace, configMapNameWithProfile);
+						Map<String, String> dataWithProfile = getConfigMapData(client, namespace,
+								configMapNameWithProfile);
 						if (!dataWithProfile.isEmpty()) {
 							configMapName = configMapName + PROPERTY_SOURCE_NAME_SEPARATOR + configMapNameWithProfile;
 							result.putAll(entriesProcessor.apply(dataWithProfile, environment));
@@ -107,11 +111,12 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Contex
 			}
 			catch (Exception e) {
 				if (source.isFailFast()) {
-					throw new IllegalStateException(
-						"Unable to read ConfigMap with name '" + configMapName + "' in namespace '" + namespace + "'", e);
+					throw new IllegalStateException("Unable to read ConfigMap with name '" + configMapName
+							+ "' in namespace '" + namespace + "'", e);
 				}
 
-				LOG.warn("Can't read configMap with name: [" + configMapName + "] in namespace: [" + namespace + "]. Ignoring.", e);
+				LOG.warn("Can't read configMap with name: [" + configMapName + "] in namespace: [" + namespace
+						+ "]. Ignoring.", e);
 			}
 
 			return new SourceData(sourceNameMapper.apply(configMapName, namespace), result);
