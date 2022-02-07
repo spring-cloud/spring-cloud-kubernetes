@@ -21,6 +21,7 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.StringUtils;
@@ -43,24 +44,29 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 	}
 
 	@Override
-	protected MapPropertySource getMapPropertySource(String name,
-			ConfigMapConfigProperties.NormalizedSource normalizedSource, String configurationTarget,
-			ConfigurableEnvironment environment) {
-
-		String namespace;
-		String normalizedNamespace = normalizedSource.getNamespace();
-
-		if (StringUtils.hasText(normalizedNamespace)) {
-			namespace = normalizedNamespace;
-		}
-		else {
-			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace, "Config Map",
-					kubernetesNamespaceProvider);
-		}
-
-		return new KubernetesClientConfigMapPropertySource(coreV1Api, name, namespace, environment,
-				normalizedSource.getPrefix(), normalizedSource.isIncludeProfileSpecificSources(),
-				this.properties.isFailFast());
+	protected MapPropertySource getMapPropertySource(NormalizedSource normalizedSource, ConfigurableEnvironment environment) {
+		return null;
 	}
+
+//	@Override
+//	protected MapPropertySource getMapPropertySource(String name,
+//			ConfigMapConfigProperties.NormalizedSource normalizedSource, String configurationTarget,
+//			ConfigurableEnvironment environment) {
+//
+//		String namespace;
+//		String normalizedNamespace = normalizedSource.getNamespace();
+//
+//		if (StringUtils.hasText(normalizedNamespace)) {
+//			namespace = normalizedNamespace;
+//		}
+//		else {
+//			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace, "Config Map",
+//					kubernetesNamespaceProvider);
+//		}
+//
+//		return new KubernetesClientConfigMapPropertySource(coreV1Api, name, namespace, environment,
+//				normalizedSource.getPrefix(), normalizedSource.isIncludeProfileSpecificSources(),
+//				this.properties.isFailFast());
+//	}
 
 }

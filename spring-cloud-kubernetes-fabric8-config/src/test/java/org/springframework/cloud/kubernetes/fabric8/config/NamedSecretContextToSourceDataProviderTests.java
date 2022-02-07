@@ -30,7 +30,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.config.*;
+import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.mock.env.MockEnvironment;
 
 /**
@@ -78,7 +81,7 @@ class NamedSecretContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secrets.red.default");
@@ -110,7 +113,7 @@ class NamedSecretContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secrets.red.default");
@@ -134,7 +137,7 @@ class NamedSecretContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secrets.blue.default");
@@ -142,24 +145,25 @@ class NamedSecretContextToSourceDataProviderTests {
 	}
 
 	/**
-	 * NamedSecretContextToSourceDataProvider gets as input a Fabric8ConfigContext. This context
-	 * has a namespace as well as a NormalizedSource, that has a namespace too. It is easy to get
-	 * confused in code on which namespace to use. This test makes sure that we use the proper one.
+	 * NamedSecretContextToSourceDataProvider gets as input a Fabric8ConfigContext. This
+	 * context has a namespace as well as a NormalizedSource, that has a namespace too. It
+	 * is easy to get confused in code on which namespace to use. This test makes sure
+	 * that we use the proper one.
 	 */
 	@Test
 	void namespaceMatch() {
 
 		Secret secret = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
-			.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
+				.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 
 		// different namespace
 		NormalizedSource normalizedSource = new NamedSecretNormalizedSource(NAMESPACE + "nope", true, "red");
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-			new MockEnvironment());
+				new MockEnvironment());
 
-		ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secrets.red.default");

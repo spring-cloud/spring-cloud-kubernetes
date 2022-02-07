@@ -32,11 +32,11 @@ import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.dataFromSecret;
 
 /**
- * Provides an implementation of {@link ContextToSourceData} for a named secret.
+ * Provides an implementation of {@link Fabric8ContextToSourceData} for a named secret.
  *
  * @author wind57
  */
-final class NamedSecretContextToSourceDataProvider implements Supplier<ContextToSourceData> {
+final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8ContextToSourceData> {
 
 	private static final Log LOG = LogFactory.getLog(LabeledSecretContextToSourceDataProvider.class);
 
@@ -51,22 +51,22 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<ContextTo
 	}
 
 	@Override
-	public ContextToSourceData get() {
+	public Fabric8ContextToSourceData get() {
 		return context -> {
 
 			NamedSecretNormalizedSource source = (NamedSecretNormalizedSource) context.normalizedSource();
 
 			Map<String, Object> result = new HashMap<>();
-			String name = source.getName();
+			String secretName = source.getName();
 			String namespace = context.namespace();
 
 			try {
 
-				LOG.info("Loading Secret with name '" + name + "' in namespace '" + namespace + "'");
-				Secret secret = context.client().secrets().inNamespace(namespace).withName(name).get();
+				LOG.info("Loading Secret with name '" + secretName + "' in namespace '" + namespace + "'");
+				Secret secret = context.client().secrets().inNamespace(namespace).withName(secretName).get();
 				// the API is documented that it might return null
 				if (secret == null) {
-					LOG.warn("secret with name : " + name + " in namespace : " + namespace + " not found");
+					LOG.warn("secret with name : " + secretName + " in namespace : " + namespace + " not found");
 				}
 				else {
 					result = dataFromSecret(secret, namespace);
@@ -76,14 +76,14 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<ContextTo
 			catch (Exception e) {
 				if (source.isFailFast()) {
 					throw new IllegalStateException(
-							"Unable to read Secret with name '" + name + "' in namespace '" + namespace + "'", e);
+							"Unable to read Secret with name '" + secretName + "' in namespace '" + namespace + "'", e);
 				}
 
-				LOG.warn("Can't read secret with name: '" + name + "' in namespace: '" + namespace + "' (cause: "
+				LOG.warn("Can't read secret with name: '" + secretName + "' in namespace: '" + namespace + "' (cause: "
 						+ e.getMessage() + "). Ignoring");
 			}
 
-			String sourceName = sourceNameMapper.apply(name, namespace);
+			String sourceName = sourceNameMapper.apply(secretName, namespace);
 			return new SourceData(sourceName, result);
 		};
 	}

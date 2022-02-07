@@ -44,24 +44,29 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 	}
 
 	@Override
-	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment,
-			NormalizedSource normalizedSource, String configurationTarget) {
-
-		String namespace;
-		String normalizedNamespace = normalizedSource.getNamespace();
-
-		if (StringUtils.hasText(normalizedNamespace)) {
-			namespace = normalizedNamespace;
-		}
-		else {
-			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace,
-					properties.getConfigurationTarget(), kubernetesNamespaceProvider);
-		}
-
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, properties.isFailFast(),
-				normalizedSource, properties.getConfigurationTarget(), namespace);
-
-		return new KubernetesClientSecretsPropertySource(context);
+	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment, NormalizedSource normalizedSource) {
+		return null;
 	}
+
+//	@Override
+//	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment,
+//			NormalizedSource normalizedSource, String configurationTarget) {
+//
+//		String namespace;
+//		String normalizedNamespace = normalizedSource.getNamespace();
+//
+//		if (StringUtils.hasText(normalizedNamespace)) {
+//			namespace = normalizedNamespace;
+//		}
+//		else {
+//			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace,
+//					properties.getConfigurationTarget(), kubernetesNamespaceProvider);
+//		}
+//
+//		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, properties.isFailFast(),
+//				normalizedSource, properties.getConfigurationTarget(), namespace);
+//
+//		return new KubernetesClientSecretsPropertySource(context);
+//	}
 
 }

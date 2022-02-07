@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config;
-
-import java.util.function.Function;
+package org.springframework.cloud.kubernetes.client.config;
 
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
+import java.util.function.Function;
+
 /**
- * A more succinct way to define a Function from Fabric8ConfigContext to SourceData.
+ * A more succinct way to define a Function from KubernetesClientConfigContext to SourceData.
  *
  * @author wind57
  */
-interface ContextToSourceData extends Function<Fabric8ConfigContext, SourceData> {
-
+interface KubernetesClientToSourceData extends Function<KubernetesClientConfigContext, SourceData> {
 }

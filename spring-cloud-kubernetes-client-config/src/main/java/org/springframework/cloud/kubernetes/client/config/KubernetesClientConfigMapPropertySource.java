@@ -29,6 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 
@@ -39,51 +40,19 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
  * @author Isik Erhan
  */
 public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySource {
-
-	private static final Log LOG = LogFactory.getLog(KubernetesClientConfigMapPropertySource.class);
-
-	public KubernetesClientConfigMapPropertySource(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
-		super(getName(name, getApplicationNamespace(namespace, "Config Map", null)),
-				getData(coreV1Api, name, getApplicationNamespace(namespace, "Config Map", null), environment, prefix,
-						includeProfileSpecificSources, failFast));
+	public KubernetesClientConfigMapPropertySource(SourceData sourceData) {
+		super(sourceData);
 	}
 
-	private static Map<String, Object> getData(CoreV1Api coreV1Api, String name, String namespace,
-			Environment environment, String prefix, boolean includeProfileSpecificSources, boolean failFast) {
-
-		LOG.debug("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
-		try {
-			Set<String> names = new HashSet<>();
-			names.add(name);
-			if (environment != null && includeProfileSpecificSources) {
-				for (String activeProfile : environment.getActiveProfiles()) {
-					names.add(name + "-" + activeProfile);
-				}
-			}
-			Map<String, Object> result = new HashMap<>();
-			coreV1Api.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null, null)
-					.getItems().stream().filter(cm -> names.contains(cm.getMetadata().getName()))
-					.map(map -> processAllEntries(map.getData(), environment)).collect(Collectors.toList())
-					.forEach(result::putAll);
-
-			if (!"".equals(prefix)) {
-				Map<String, Object> withPrefix = CollectionUtils.newHashMap(result.size());
-				result.forEach((key, value) -> withPrefix.put(prefix + "." + key, value));
-				return withPrefix;
-			}
-
-			return result;
-		}
-		catch (ApiException e) {
-			if (failFast) {
-				throw new IllegalStateException(
-						"Unable to read ConfigMap with name '" + name + "' in namespace '" + namespace + "'", e);
-			}
-
-			LOG.warn("Unable to get ConfigMap " + name + " in namespace " + namespace, e);
-		}
-		return Collections.emptyMap();
-	}
+//	private static final Log LOG = LogFactory.getLog(KubernetesClientConfigMapPropertySource.class);
+//
+//	public KubernetesClientConfigMapPropertySource(KubernetesClientConfigContext context) {
+//		super(getName(name, getApplicationNamespace(namespace, "Config Map", null)),
+//				getData(coreV1Api, name, getApplicationNamespace(namespace, "Config Map", null), environment, prefix,
+//						includeProfileSpecificSources, failFast));
+//	}
+//
+//	private static SourceData getData(KubernetesClientConfigContext context) {
+//	}
 
 }

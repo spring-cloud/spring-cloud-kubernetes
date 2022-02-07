@@ -36,11 +36,11 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.PROP
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.dataFromSecret;
 
 /**
- * Provides an implementation of {@link ContextToSourceData} for a labeled secret.
+ * Provides an implementation of {@link Fabric8ContextToSourceData} for a labeled secret.
  *
  * @author wind57
  */
-final class LabeledSecretContextToSourceDataProvider implements Supplier<ContextToSourceData> {
+final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8ContextToSourceData> {
 
 	private static final Log LOG = LogFactory.getLog(LabeledSecretContextToSourceDataProvider.class);
 
@@ -66,27 +66,26 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Context
 	 * concatenated secret names mapped to the data they hold as a Map.
 	 */
 	@Override
-	public ContextToSourceData get() {
+	public Fabric8ContextToSourceData get() {
 
 		return context -> {
 
-			LabeledSecretNormalizedSource source = ((LabeledSecretNormalizedSource) context
-					.normalizedSource());
+			LabeledSecretNormalizedSource source = ((LabeledSecretNormalizedSource) context.normalizedSource());
 			Map<String, String> labels = source.getLabels();
 
 			Map<String, Object> result = new HashMap<>();
 			String namespace = context.namespace();
-			String name = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, labels.keySet());
+			String sourceName = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, labels.keySet());
 
 			try {
 
 				LOG.info("Loading Secret(s) with labels '" + labels + "' in namespace '" + namespace + "'");
-				List<Secret> secrets = context.client().secrets().inNamespace(namespace).withLabels(labels)
-						.list().getItems();
+				List<Secret> secrets = context.client().secrets().inNamespace(namespace).withLabels(labels).list()
+						.getItems();
 
 				if (!secrets.isEmpty()) {
 					secrets.forEach(secret -> result.putAll(dataFromSecret(secret, namespace)));
-					name = secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName)
+					sourceName = secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName)
 							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 				}
 				else {
@@ -104,8 +103,8 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Context
 						+ e.getMessage() + "). Ignoring");
 			}
 
-			String sourceName = sourceNameMapper.apply(name, namespace);
-			return new SourceData(sourceName, result);
+			String propertySourceName = sourceNameMapper.apply(sourceName, namespace);
+			return new SourceData(propertySourceName, result);
 		};
 	}
 

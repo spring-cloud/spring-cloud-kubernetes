@@ -32,12 +32,13 @@ import org.springframework.core.env.MapPropertySource;
  * @author Michael Moudatsos
  * @author Isik Erhan
  */
-public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
+public final class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 
-	private static final EnumMap<NormalizedSourceType, ContextToSourceData> STRATEGIES = new EnumMap<>(
+	private static final EnumMap<NormalizedSourceType, Fabric8ContextToSourceData> STRATEGIES = new EnumMap<>(
 			NormalizedSourceType.class);
 
-	// there is a single strategy here at the moment (unlike secrets), but this can change.
+	// there is a single strategy here at the moment (unlike secrets), but this can
+	// change.
 	// to be on par with secrets implementation, I am keeping it the same.
 	static {
 		STRATEGIES.put(NormalizedSourceType.NAMED_CONFIG_MAP, namedConfigMap());
@@ -53,7 +54,7 @@ public class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
 				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
 	}
 
-	private static ContextToSourceData namedConfigMap() {
+	private static Fabric8ContextToSourceData namedConfigMap() {
 		return NamedConfigMapContextToSourceDataProvider
 				.of(ConfigMapPropertySource::processAllEntries, ConfigMapPropertySource::getSourceName).get();
 	}

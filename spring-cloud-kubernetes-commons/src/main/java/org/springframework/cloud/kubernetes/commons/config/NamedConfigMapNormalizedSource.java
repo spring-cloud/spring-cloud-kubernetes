@@ -25,8 +25,6 @@ import java.util.Objects;
  */
 public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 
-	private final String namespace;
-
 	private final String prefix;
 
 	private final boolean includeProfileSpecificSources;
@@ -36,7 +34,6 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 	public NamedConfigMapNormalizedSource(String name, String namespace, String prefix,
 			boolean includeProfileSpecificSources, boolean failFast) {
 		super(namespace, name);
-		this.namespace = namespace;
 		this.prefix = Objects.requireNonNull(prefix);
 		this.includeProfileSpecificSources = includeProfileSpecificSources;
 		this.failFast = failFast;
@@ -52,11 +49,6 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 
 	public boolean isFailFast() {
 		return failFast;
-	}
-
-	@Override
-	public String getNamespace() {
-		return namespace;
 	}
 
 	@Override

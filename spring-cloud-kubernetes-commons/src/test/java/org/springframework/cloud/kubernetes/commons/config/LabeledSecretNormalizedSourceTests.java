@@ -56,4 +56,11 @@ class LabeledSecretNormalizedSourceTests {
 		Assertions.assertEquals(source.target(), "Secret");
 	}
 
+	@Test
+	void testFreeze() {
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", false, labels);
+		source.freeze();
+		Assertions.assertThrows(IllegalArgumentException.class, source::getNamespace);
+	}
+
 }

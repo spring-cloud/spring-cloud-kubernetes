@@ -16,14 +16,11 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -32,7 +29,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.config.*;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -81,7 +81,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
+		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
 				.of(Dummy::processEntries, Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
@@ -105,7 +105,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
+		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
 				.of(Dummy::processEntries, Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
@@ -137,7 +137,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
-		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
+		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
 				.of(Dummy::processEntries, Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
@@ -174,7 +174,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
-		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
+		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
 				.of(Dummy::processEntries, Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
@@ -185,7 +185,49 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 	}
 
-	// this tests makes sure that even if NormalizedSource has no name (which is a valid
+	/**
+	 * we have three config maps deployed. one matches the query name. the other two match
+	 * the active profile + name, thus are taken also. This takes into consideration the
+	 * prefix, that we explicitly specify. Notice that prefix works for profile based
+	 * config maps as well.
+	 */
+	@Test
+	void matchIncludeTwoProfilesWithPrefix() {
+
+		ConfigMap red = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
+				.addToData("color", "really-red").build();
+
+		ConfigMap redWithTaste = new ConfigMapBuilder().withNewMetadata().withName("red-with-taste").endMetadata()
+				.addToData("taste", "mango").build();
+
+		ConfigMap redWithShape = new ConfigMapBuilder().withNewMetadata().withName("red-with-shape").endMetadata()
+				.addToData("shape", "round").build();
+
+		mockClient.configMaps().inNamespace(NAMESPACE).create(red);
+		mockClient.configMaps().inNamespace(NAMESPACE).create(redWithTaste);
+		mockClient.configMaps().inNamespace(NAMESPACE).create(redWithShape);
+
+		// add one more profile and specify that we want profile based config maps
+		// also append prefix
+		MockEnvironment env = new MockEnvironment();
+		env.setActiveProfiles("with-taste", "with-shape");
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, "some", true, false);
+
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
+
+		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
+				.of(Dummy::processEntries, Dummy::sourceName).get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-taste.red-with-shape.default");
+		Assertions.assertEquals(sourceData.sourceData().size(), 3);
+		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
+		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
+		Assertions.assertEquals(sourceData.sourceData().get("some.shape"), "round");
+
+	}
+
+	// this test makes sure that even if NormalizedSource has no name (which is a valid
 	// case for config maps),
 	// it will default to "application" and such a config map will be read.
 	@Test
@@ -199,7 +241,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
+		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
 				.of(Dummy::processEntries, Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
@@ -208,25 +250,27 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	}
 
 	/**
-	 * NamedSecretContextToSourceDataProvider gets as input a Fabric8ConfigContext. This context
-	 * has a namespace as well as a NormalizedSource, that has a namespace too. It is easy to get
-	 * confused in code on which namespace to use. This test makes sure that we use the proper one.
+	 * NamedSecretContextToSourceDataProvider gets as input a Fabric8ConfigContext. This
+	 * context has a namespace as well as a NormalizedSource, that has a namespace too. It
+	 * is easy to get confused in code on which namespace to use. This test makes sure
+	 * that we use the proper one.
 	 */
 	@Test
 	void namespaceMatch() {
 
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
-			.addToData("color", "really-red").build();
+				.addToData("color", "really-red").build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
 		// different namespace
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE + "nope", "", true, false);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE + "nope", "", true,
+				false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-			new MockEnvironment());
+				new MockEnvironment());
 
-		ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-			.of(Dummy::processEntries, Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
+				.of(Dummy::processEntries, Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");

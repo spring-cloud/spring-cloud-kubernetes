@@ -90,7 +90,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		ContextToSourceData data = LabeledSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = LabeledSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secrets.test-secret.default");
@@ -123,7 +123,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		ContextToSourceData data = LabeledSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = LabeledSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secrets.red-secret.red-secret-again.default");
@@ -148,7 +148,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		ContextToSourceData data = LabeledSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = LabeledSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secrets.color.default");
@@ -156,24 +156,25 @@ class LabeledSecretContextToSourceDataProviderTests {
 	}
 
 	/**
-	 * LabeledSecretContextToSourceDataProvider gets as input a Fabric8ConfigContext. This context
-	 * has a namespace as well as a NormalizedSource, that has a namespace too. It is easy to get
-	 * confused in code on which namespace to use. This test makes sure that we use the proper one.
+	 * LabeledSecretContextToSourceDataProvider gets as input a Fabric8ConfigContext. This
+	 * context has a namespace as well as a NormalizedSource, that has a namespace too. It
+	 * is easy to get confused in code on which namespace to use. This test makes sure
+	 * that we use the proper one.
 	 */
 	@Test
 	void namespaceMatch() {
 
 		Secret secret = new SecretBuilder().withNewMetadata().withName("test-secret").withLabels(LABELS).endMetadata()
-			.addToData("secretName", Base64.getEncoder().encodeToString("secretValue".getBytes())).build();
+				.addToData("secretName", Base64.getEncoder().encodeToString("secretValue".getBytes())).build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 
 		// different namespace
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE + "nope", true, LABELS);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-			new MockEnvironment());
+				new MockEnvironment());
 
-		ContextToSourceData data = LabeledSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = LabeledSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secrets.test-secret.default");

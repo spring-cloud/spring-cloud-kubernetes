@@ -53,10 +53,11 @@ public class Fabric8ConfigMapPropertySourceLocator extends ConfigMapPropertySour
 	@Override
 	protected MapPropertySource getMapPropertySource(NormalizedSource normalizedSource,
 			ConfigurableEnvironment environment) {
-		// NormalizedSource has a namespace, but users can skip it. In such cases we try
-		// to get it elsewhere
+		// NormalizedSource has a namespace, but users can skip it.
+		// In such cases we try to get it elsewhere
 		String namespace = getApplicationNamespace(this.client, normalizedSource.getNamespace(),
 				normalizedSource.target(), provider);
+		normalizedSource.freeze();
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, normalizedSource, namespace, environment);
 		return new Fabric8ConfigMapPropertySource(context);
 	}

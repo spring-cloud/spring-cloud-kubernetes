@@ -17,8 +17,10 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -37,11 +39,12 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.PROP
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getConfigMapData;
 
 /**
- * Provides an implementation of {@link ContextToSourceData} for a named config map.
+ * Provides an implementation of {@link Fabric8ContextToSourceData} for a named config
+ * map.
  *
  * @author wind57
  */
-final class NamedConfigMapContextToSourceDataProvider implements Supplier<ContextToSourceData> {
+final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric8ContextToSourceData> {
 
 	private static final Log LOG = LogFactory.getLog(NamedConfigMapContextToSourceDataProvider.class);
 
@@ -63,40 +66,46 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Contex
 	}
 
 	/*
-	 * Computes a ContextSourceData (think content) for config map(s) based on name. There
-	 * could be potentially many config maps read (we also read profile based sources). In
-	 * such a case the name of the property source is going to be the concatenated config
-	 * map names, while the value is all the data that those config maps hold.
+	 * Computes a ContextToSourceData (think content) for config map(s) based on name.
+	 * There could be potentially many config maps read (we also read profile based
+	 * sources). In such a case the name of the property source is going to be the
+	 * concatenated config map names, while the value is all the data that those config
+	 * maps hold.
 	 */
 	@Override
-	public ContextToSourceData get() {
+	public Fabric8ContextToSourceData get() {
 
 		return context -> {
 
-			NamedConfigMapNormalizedSource source = (NamedConfigMapNormalizedSource) context
-					.normalizedSource();
-			String sourceName = source.getName();
+			NamedConfigMapNormalizedSource source = (NamedConfigMapNormalizedSource) context.normalizedSource();
 			// namespace has to be read from context, not from the normalized source
 			String namespace = context.namespace();
 			Environment environment = context.environment();
 			KubernetesClient client = context.client();
 			String prefix = source.getPrefix();
-			String configMapName = sourceName != null ? sourceName : appName(environment, source).get();
+
+			// user specified or computed config map name
+			String initialConfigMapName = source.getName() != null ? source.getName()
+					: appName(environment, source).get();
+			// needed to keep track of what error message to display
+			String currentConfigMapName = initialConfigMapName;
+			// needed to compute the final property source name
+			Set<String> propertySourceNames = new LinkedHashSet<>();
+			propertySourceNames.add(initialConfigMapName);
 
 			Map<String, Object> result = new HashMap<>();
 
-			LOG.info("Loading ConfigMap with name '" + configMapName + "' in namespace '" + namespace + "'");
+			LOG.info("Loading ConfigMap with name '" + initialConfigMapName + "' in namespace '" + namespace + "'");
 			try {
-				Map<String, String> data = getConfigMapData(client, namespace, configMapName);
+				Map<String, String> data = getConfigMapData(client, namespace, currentConfigMapName);
 				result.putAll(entriesProcessor.apply(data, environment));
 
 				if (context.environment() != null && source.isIncludeProfileSpecificSources()) {
 					for (String activeProfile : environment.getActiveProfiles()) {
-						String configMapNameWithProfile = configMapName + "-" + activeProfile;
-						Map<String, String> dataWithProfile = getConfigMapData(client, namespace,
-								configMapNameWithProfile);
+						currentConfigMapName = initialConfigMapName + "-" + activeProfile;
+						Map<String, String> dataWithProfile = getConfigMapData(client, namespace, currentConfigMapName);
 						if (!dataWithProfile.isEmpty()) {
-							configMapName = configMapName + PROPERTY_SOURCE_NAME_SEPARATOR + configMapNameWithProfile;
+							propertySourceNames.add(currentConfigMapName);
 							result.putAll(entriesProcessor.apply(dataWithProfile, environment));
 						}
 					}
@@ -105,27 +114,31 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Contex
 				if (!"".equals(prefix)) {
 					Map<String, Object> withPrefix = CollectionUtils.newHashMap(result.size());
 					result.forEach((key, value) -> withPrefix.put(prefix + "." + key, value));
-					return new SourceData(sourceNameMapper.apply(configMapName, namespace), withPrefix);
+					String names = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
+					return new SourceData(sourceNameMapper.apply(names, namespace), withPrefix);
 				}
 
 			}
 			catch (Exception e) {
 				if (source.isFailFast()) {
-					throw new IllegalStateException("Unable to read ConfigMap with name '" + configMapName
+					throw new IllegalStateException("Unable to read ConfigMap with name '" + currentConfigMapName
 							+ "' in namespace '" + namespace + "'", e);
 				}
 
-				LOG.warn("Can't read configMap with name: [" + configMapName + "] in namespace: [" + namespace
+				LOG.warn("Can't read configMap with name: [" + currentConfigMapName + "] in namespace: [" + namespace
 						+ "]. Ignoring.", e);
 			}
 
-			return new SourceData(sourceNameMapper.apply(configMapName, namespace), result);
+			String names = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
+			return new SourceData(sourceNameMapper.apply(names, namespace), result);
 		};
 
 	}
 
-	// unlike a Secret, users have the option not to specify the config map name in properties.
-	// in such cases we will try to get it elsewhere. getApplicationName method has that logic.
+	// unlike a Secret, users have the option not to specify the config map name in
+	// properties.
+	// in such cases we will try to get it elsewhere. getApplicationName method has that
+	// logic.
 	private Supplier<String> appName(Environment environment, NormalizedSource normalizedSource) {
 		return () -> getApplicationName(environment, normalizedSource.getName(), normalizedSource.target());
 	}

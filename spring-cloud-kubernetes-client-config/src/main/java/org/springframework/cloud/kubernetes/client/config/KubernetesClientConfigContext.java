@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,56 +16,16 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.Objects;
-
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.core.env.Environment;
 
 /**
  * A context/holder for various data needed to compute property sources.
  *
  * @author wind57
  */
-public final class KubernetesClientConfigContext {
-
-	private final CoreV1Api client;
-
-	private final boolean failFast;
-
-	private final NormalizedSource normalizedSource;
-
-	private final String target;
-
-	private final String appNamespace;
-
-	public KubernetesClientConfigContext(CoreV1Api client, boolean failFast, NormalizedSource normalizedSource,
-			String target, String appNamespace) {
-		this.client = Objects.requireNonNull(client);
-		this.failFast = failFast;
-		this.normalizedSource = Objects.requireNonNull(normalizedSource);
-		this.target = Objects.requireNonNull(target);
-		this.appNamespace = appNamespace;
-	}
-
-	CoreV1Api getClient() {
-		return client;
-	}
-
-	boolean isFailFast() {
-		return failFast;
-	}
-
-	NormalizedSource getNormalizedSource() {
-		return normalizedSource;
-	}
-
-	String getTarget() {
-		return target;
-	}
-
-	String getAppNamespace() {
-		return appNamespace;
-	}
-
+final record KubernetesClientConfigContext(CoreV1Api client, NormalizedSource normalizedSource, String namespace,
+	Environment environment) {
 }

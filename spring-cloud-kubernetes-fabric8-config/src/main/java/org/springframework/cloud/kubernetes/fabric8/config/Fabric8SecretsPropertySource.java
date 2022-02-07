@@ -30,9 +30,9 @@ import org.springframework.cloud.kubernetes.commons.config.SourceData;
  * @author Haytham Mohamed
  * @author Isik Erhan
  */
-public class Fabric8SecretsPropertySource extends SecretsPropertySource {
+public final class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
-	private static final EnumMap<NormalizedSourceType, ContextToSourceData> STRATEGIES = new EnumMap<>(
+	private static final EnumMap<NormalizedSourceType, Fabric8ContextToSourceData> STRATEGIES = new EnumMap<>(
 			NormalizedSourceType.class);
 
 	static {
@@ -50,11 +50,11 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
 	}
 
-	private static ContextToSourceData namedSecret() {
+	private static Fabric8ContextToSourceData namedSecret() {
 		return NamedSecretContextToSourceDataProvider.of(SecretsPropertySource::getSourceName).get();
 	}
 
-	private static ContextToSourceData labeledSecret() {
+	private static Fabric8ContextToSourceData labeledSecret() {
 		return LabeledSecretContextToSourceDataProvider.of(SecretsPropertySource::getSourceName).get();
 	}
 

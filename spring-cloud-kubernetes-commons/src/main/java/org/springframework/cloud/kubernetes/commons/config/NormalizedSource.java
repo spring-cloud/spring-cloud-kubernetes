@@ -28,19 +28,32 @@ public sealed abstract class NormalizedSource permits NamedSecretNormalizedSourc
 
 	private final String name;
 
+	private boolean frozen;
+
 	NormalizedSource(String namespace, String name) {
 		this.namespace = namespace;
 		this.name = name;
 	}
 
 	// this can return null, which is perfectly fine.
-	public String getNamespace() {
+	public final String getNamespace() {
+		if (frozen) {
+			throw new IllegalArgumentException("namespace must be queried elsewhere");
+		}
 		return this.namespace;
 	}
 
 	// this can return null (for a secret based on labels, for example)
-	public String getName() {
+	public final String getName() {
 		return this.name;
+	}
+
+	/**
+	 * calling this method will result in an Exceptions being thrown when calling some
+	 * getters. At the moment, this is done for the namespace only.
+	 */
+	public final void freeze() {
+		this.frozen = true;
 	}
 
 	public abstract String toString();
