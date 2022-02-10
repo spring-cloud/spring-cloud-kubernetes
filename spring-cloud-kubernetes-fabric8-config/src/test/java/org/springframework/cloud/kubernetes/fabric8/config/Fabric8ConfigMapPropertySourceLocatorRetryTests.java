@@ -16,7 +16,10 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -24,17 +27,30 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
+import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.cloud.autoconfigure.ConfigurationPropertiesRebinderAutoConfiguration;
+import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
+import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadAutoConfiguration;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
+import org.springframework.retry.annotation.RetryConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -223,6 +239,44 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 
 			// verify that propertySourceLocator.locate is called only once
 			verify(propertySourceLocator, times(1)).locate(any());
+		}
+
+	}
+
+	@Nested
+	@EnableKubernetesMockClient
+	public class EnableRetryWithoutFailFastTest {
+
+		private ConfigurableApplicationContext context;
+
+		protected void setup(String... env) {
+			List<String> envList = (env != null) ? new ArrayList<>(Arrays.asList(env)) : new ArrayList<>();
+			envList.add("spring.cloud.kubernetes.client.namespace=default");
+			String[] envArray = envList.toArray(new String[0]);
+
+			context = new SpringApplicationBuilder(RetryConfiguration.class, PropertyPlaceholderAutoConfiguration.class,
+					ConfigReloadAutoConfiguration.class, RefreshAutoConfiguration.class,
+					EndpointAutoConfiguration.class, InfoEndpointAutoConfiguration.class,
+					RefreshEndpointAutoConfiguration.class, ConfigurationPropertiesBindingPostProcessor.class,
+					ConfigurationPropertiesRebinderAutoConfiguration.class, Fabric8BootstrapConfiguration.class,
+					Fabric8RetryBootstrapConfiguration.class, KubernetesBootstrapConfiguration.class)
+							.web(org.springframework.boot.WebApplicationType.NONE).properties(envArray).run();
+		}
+
+		@AfterEach
+		public void afterEach() {
+			if (this.context != null) {
+				this.context.close();
+				this.context = null;
+			}
+		}
+
+		@Test
+		public void doesNotContainRetryableConfigMapPropertySourceLocator() throws Exception {
+			mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
+			setup("debug=true", "spring.main.cloud-platform=KUBERNETES",
+					"spring.cloud.kubernetes.test.enable-retry=true");
+			assertThat(context.containsBean("retryableConfigMapPropertySourceLocator")).isFalse();
 		}
 
 	}
