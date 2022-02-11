@@ -48,9 +48,9 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 	private CoreV1Api coreV1Api = null;
 
-	private KubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
+	private final KubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
 
-	private SharedInformerFactory factory;
+	private final SharedInformerFactory factory;
 
 	private KubernetesClientProperties kubernetesClientProperties;
 
