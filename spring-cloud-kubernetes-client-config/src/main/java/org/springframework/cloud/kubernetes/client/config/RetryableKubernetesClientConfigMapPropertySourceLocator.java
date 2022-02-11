@@ -31,7 +31,8 @@ import org.springframework.retry.annotation.Retryable;
  *
  * @author Ryan Baxter
  */
-class RetryableKubernetesClientConfigMapPropertySourceLocator extends KubernetesClientConfigMapPropertySourceLocator {
+public class RetryableKubernetesClientConfigMapPropertySourceLocator
+		extends KubernetesClientConfigMapPropertySourceLocator {
 
 	RetryableKubernetesClientConfigMapPropertySourceLocator(CoreV1Api coreV1Api, ConfigMapConfigProperties properties,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {

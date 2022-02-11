@@ -31,7 +31,8 @@ import org.springframework.retry.annotation.Retryable;
  *
  * @author Ryan Baxter
  */
-class RetryableKubernetesClientSecretsPropertySourceLocator extends KubernetesClientSecretsPropertySourceLocator {
+public class RetryableKubernetesClientSecretsPropertySourceLocator
+		extends KubernetesClientSecretsPropertySourceLocator {
 
 	RetryableKubernetesClientSecretsPropertySourceLocator(CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, SecretsConfigProperties secretsConfigProperties) {

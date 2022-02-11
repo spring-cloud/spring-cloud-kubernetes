@@ -36,7 +36,7 @@ import org.mockito.MockedStatic;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.config.RetryableKubernetesClientSecretsPropertySourceLocator;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -98,7 +98,7 @@ class SecretsRetryEnabled {
 	}
 
 	@SpyBean
-	private KubernetesClientSecretsPropertySourceLocator propertySourceLocator;
+	private RetryableKubernetesClientSecretsPropertySourceLocator propertySourceLocator;
 
 	@Test
 	void locateShouldNotRetryWhenThereIsNoFailure() {

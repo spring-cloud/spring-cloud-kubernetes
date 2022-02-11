@@ -25,7 +25,6 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.cloud.CloudPlatform;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesConfigOrSecretsRetryEnabled;
@@ -43,7 +42,6 @@ import org.springframework.context.annotation.Import;
  * @author Ryan Baxter
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnKubernetesEnabled
 @AutoConfigureBefore(Fabric8BootstrapConfiguration.class)
 @Import({ KubernetesCommonsAutoConfiguration.class, Fabric8AutoConfiguration.class })
 @ConditionalOnClass({ ConfigMap.class, Secret.class })
