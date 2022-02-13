@@ -29,32 +29,34 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 
 	private final boolean includeProfileSpecificSources;
 
-	private final boolean failFast;
-
-	public NamedConfigMapNormalizedSource(String name, String namespace, String prefix,
-			boolean includeProfileSpecificSources, boolean failFast) {
-		super(namespace, name);
+	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast, String prefix,
+			boolean includeProfileSpecificSources) {
+		super(name, namespace, failFast);
 		this.prefix = Objects.requireNonNull(prefix);
 		this.includeProfileSpecificSources = includeProfileSpecificSources;
-		this.failFast = failFast;
 	}
 
-	public String getPrefix() {
+	public String prefix() {
 		return prefix;
 	}
 
-	public boolean isIncludeProfileSpecificSources() {
+	public boolean profileSpecificSources() {
 		return includeProfileSpecificSources;
 	}
 
-	public boolean isFailFast() {
-		return failFast;
+	@Override
+	public NormalizedSourceType type() {
+		return NormalizedSourceType.NAMED_CONFIG_MAP;
+	}
+
+	@Override
+	public String target() {
+		return "Config Map";
 	}
 
 	@Override
 	public String toString() {
-		return "{ config-map name : '" + getName() + "', namespace : '" + getNamespace() + "', prefix : '" + getPrefix()
-				+ "' }";
+		return "{ config-map name : '" + name() + "', namespace : '" + namespace() + "', prefix : '" + prefix() + "' }";
 	}
 
 	@Override
@@ -66,23 +68,12 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 			return false;
 		}
 		NamedConfigMapNormalizedSource other = (NamedConfigMapNormalizedSource) o;
-		return Objects.equals(this.getName(), other.getName())
-				&& Objects.equals(this.getNamespace(), other.getNamespace());
+		return Objects.equals(this.name(), other.name()) && Objects.equals(this.namespace(), other.namespace());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(getName(), getNamespace());
-	}
-
-	@Override
-	public NormalizedSourceType type() {
-		return NormalizedSourceType.NAMED_CONFIG_MAP;
-	}
-
-	@Override
-	public String target() {
-		return "Config Map";
+		return Objects.hash(name(), namespace());
 	}
 
 }

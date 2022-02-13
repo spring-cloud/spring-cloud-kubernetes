@@ -16,11 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.ApiException;
@@ -29,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSourceType;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
@@ -40,19 +37,33 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
  * @author Isik Erhan
  */
 public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySource {
-	public KubernetesClientConfigMapPropertySource(SourceData sourceData) {
-		super(sourceData);
+
+	private static final EnumMap<NormalizedSourceType, KubernetesClientContextToSourceData> STRATEGIES = new EnumMap<>(
+		NormalizedSourceType.class);
+
+	// there is a single strategy here at the moment (unlike secrets),
+	// but this can change.
+	// to be on par with secrets implementation, I am keeping it the same
+	static {
+		STRATEGIES.put(NormalizedSourceType.NAMED_CONFIG_MAP, namedConfigMap());
 	}
 
-//	private static final Log LOG = LogFactory.getLog(KubernetesClientConfigMapPropertySource.class);
-//
-//	public KubernetesClientConfigMapPropertySource(KubernetesClientConfigContext context) {
-//		super(getName(name, getApplicationNamespace(namespace, "Config Map", null)),
-//				getData(coreV1Api, name, getApplicationNamespace(namespace, "Config Map", null), environment, prefix,
-//						includeProfileSpecificSources, failFast));
-//	}
-//
-//	private static SourceData getData(KubernetesClientConfigContext context) {
-//	}
+	KubernetesClientConfigMapPropertySource(KubernetesClientConfigContext context) {
+		super(getSourceData(context));
+	}
+
+	private static SourceData getSourceData(KubernetesClientConfigContext context) {
+		NormalizedSourceType type = context.normalizedSource().type();
+		return Optional.ofNullable(STRATEGIES.get(type)).map(x -> x.apply(context))
+			.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
+	}
+
+	// we need to pass various functions because the code we are interested in
+	// is protected in ConfigMapPropertySource, and must stay that way.
+	private static KubernetesClientContextToSourceData namedConfigMap() {
+		return NamedConfigMapContextToSourceDataProvider.of(ConfigMapPropertySource::processAllEntries,
+			ConfigMapPropertySource::getSourceName, ConfigMapPropertySource::withPrefix).get();
+	}
+
 
 }

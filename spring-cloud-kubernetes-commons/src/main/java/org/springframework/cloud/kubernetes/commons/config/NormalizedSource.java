@@ -28,15 +28,18 @@ public sealed abstract class NormalizedSource permits NamedSecretNormalizedSourc
 
 	private final String name;
 
+	private final boolean failFast;
+
 	private boolean frozen;
 
-	NormalizedSource(String namespace, String name) {
-		this.namespace = namespace;
+	protected NormalizedSource(String name, String namespace, boolean failFast) {
 		this.name = name;
+		this.namespace = namespace;
+		this.failFast = failFast;
 	}
 
 	// this can return null, which is perfectly fine.
-	public final String getNamespace() {
+	public final String namespace() {
 		if (frozen) {
 			throw new IllegalArgumentException("namespace must be queried elsewhere");
 		}
@@ -44,9 +47,21 @@ public sealed abstract class NormalizedSource permits NamedSecretNormalizedSourc
 	}
 
 	// this can return null (for a secret based on labels, for example)
-	public final String getName() {
+	public final String name() {
 		return this.name;
 	}
+
+	public final boolean failFast() {
+		return failFast;
+	}
+
+	/**
+	 * type of this normalized source. Callers are sensitive towards the actual type
+	 * specified.
+	 */
+	public abstract NormalizedSourceType type();
+
+	public abstract String target();
 
 	/**
 	 * calling this method will result in an Exceptions being thrown when calling some
@@ -61,13 +76,5 @@ public sealed abstract class NormalizedSource permits NamedSecretNormalizedSourc
 	public abstract boolean equals(Object o);
 
 	public abstract int hashCode();
-
-	/**
-	 * type of this normalized source. Callers are sensitive towards the actual type
-	 * specified.
-	 */
-	public abstract NormalizedSourceType type();
-
-	public abstract String target();
 
 }

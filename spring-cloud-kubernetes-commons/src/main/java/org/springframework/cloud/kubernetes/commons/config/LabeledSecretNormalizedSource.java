@@ -29,28 +29,31 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 
 	private final Map<String, String> labels;
 
-	private final boolean failFast;
-
 	public LabeledSecretNormalizedSource(String namespace, boolean failFast, Map<String, String> labels) {
-		super(namespace, null);
+		super(null, namespace, failFast);
 		this.labels = Collections.unmodifiableMap(Objects.requireNonNull(labels));
-		this.failFast = failFast;
 	}
 
 	/**
 	 * will return an immutable Map.
 	 */
-	public Map<String, String> getLabels() {
+	public Map<String, String> labels() {
 		return labels;
 	}
 
-	public boolean isFailFast() {
-		return failFast;
+	@Override
+	public NormalizedSourceType type() {
+		return NormalizedSourceType.LABELED_SECRET;
+	}
+
+	@Override
+	public String target() {
+		return "Secret";
 	}
 
 	@Override
 	public String toString() {
-		return "{ secret labels : '" + getLabels() + "', namespace : '" + getNamespace() + "'";
+		return "{ secret labels : '" + labels() + "', namespace : '" + namespace() + "'";
 	}
 
 	@Override
@@ -62,22 +65,12 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 			return false;
 		}
 		LabeledSecretNormalizedSource other = (LabeledSecretNormalizedSource) o;
-		return Objects.equals(getLabels(), other.getLabels()) && Objects.equals(getNamespace(), other.getNamespace());
+		return Objects.equals(labels(), other.labels()) && Objects.equals(namespace(), other.namespace());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(getLabels(), getNamespace());
-	}
-
-	@Override
-	public NormalizedSourceType type() {
-		return NormalizedSourceType.LABELED_SECRET;
-	}
-
-	@Override
-	public String target() {
-		return "Secret";
+		return Objects.hash(labels(), namespace());
 	}
 
 }

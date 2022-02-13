@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config;
+package org.springframework.cloud.kubernetes.client.config;
+
+import io.kubernetes.client.openapi.models.V1Secret;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-import io.fabric8.kubernetes.api.model.Secret;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
-
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.dataFromSecret;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.dataFromSecret;
 
 /**
- * Provides an implementation of {@link Fabric8ContextToSourceData} for a named secret.
+ * Provides an implementation of {@link KubernetesClientContextToSourceData} for a named secret.
  *
  * @author wind57
  */
-final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8ContextToSourceData> {
+final class NamedSecretContextToSourceDataProvider implements Supplier<KubernetesClientContextToSourceData> {
 
-	private static final Log LOG = LogFactory.getLog(LabeledSecretContextToSourceDataProvider.class);
+	private static final Log LOG = LogFactory.getLog(NamedSecretContextToSourceDataProvider.class);
 
 	private final BiFunction<String, String, String> sourceNameMapper;
 
@@ -52,37 +52,33 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 	}
 
 	@Override
-	public Fabric8ContextToSourceData get() {
+	public KubernetesClientContextToSourceData get() {
 		return context -> {
 
 			NamedSecretNormalizedSource source = (NamedSecretNormalizedSource) context.normalizedSource();
 
 			Map<String, Object> result = new HashMap<>();
-			String secretName = source.name();
 			String namespace = context.namespace();
 
 			try {
 
-				LOG.info("Loading Secret with name '" + secretName + "' in namespace '" + namespace + "'");
-				Secret secret = context.client().secrets().inNamespace(namespace).withName(secretName).get();
-				// the API is documented that it might return null
-				if (secret == null) {
-					LOG.warn("secret with name : " + secretName + " in namespace : " + namespace + " not found");
-				}
-				else {
-					result = dataFromSecret(secret, namespace);
-				}
+				LOG.info("Loading Secret with name '" + source.name() + "'in namespace '" + namespace + "'");
+				Optional<V1Secret> secret;
+				secret = context.client()
+						.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
+						.getItems().stream().filter(s -> source.name().equals(s.getMetadata().getName())).findFirst();
+
+				secret.ifPresent(s -> result.putAll(dataFromSecret(s, namespace)));
 
 			}
 			catch (Exception e) {
-				String message = "Unable to read Secret with name '" + secretName + "' in namespace '" + namespace
-						+ "'";
+				String message = "Unable to read Secret with name '" + source.name() + "' in namespace '" + namespace + "'";
 				onException(source.failFast(), message, e);
 			}
 
-			String sourceName = sourceNameMapper.apply(secretName, namespace);
-			return new SourceData(sourceName, result);
+			String propertySourceName = sourceNameMapper.apply(source.name(), namespace);
+			return new SourceData(propertySourceName, result);
+
 		};
 	}
-
 }

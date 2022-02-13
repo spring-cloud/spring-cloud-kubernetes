@@ -105,7 +105,7 @@ class ConfigFailFastEnabledButRetryDisabled {
 		assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isFalse();
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
 				.isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read ConfigMap with name 'application' in namespace 'default'");
+				.hasMessage("Unable to read ConfigMap(s) in namespace 'default'");
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());

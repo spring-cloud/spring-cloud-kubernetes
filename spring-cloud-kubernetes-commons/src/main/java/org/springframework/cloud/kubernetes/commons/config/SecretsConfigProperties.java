@@ -96,8 +96,8 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		if (this.sources.isEmpty()) {
 
 			List<NormalizedSource> result = new ArrayList<>(2);
-			result.add(new NamedSecretNormalizedSource(this.namespace, this.isFailFast(),
-					getApplicationName(environment, this.name, "Secret")));
+			String name = getApplicationName(environment, this.name, "Secret");
+			result.add(new NamedSecretNormalizedSource(name, this.namespace, this.isFailFast()));
 
 			if (!labels.isEmpty()) {
 				result.add(new LabeledSecretNormalizedSource(this.namespace, this.isFailFast(), this.labels));
@@ -175,8 +175,8 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			Map<String, String> normalizedLabels = this.labels.isEmpty() ? defaultLabels : this.labels;
 
 			String secretName = getApplicationName(environment, normalizedName, "Secret");
-			NormalizedSource nameBasedSource = new NamedSecretNormalizedSource(normalizedNamespace, failFast,
-					secretName);
+			NormalizedSource nameBasedSource = new NamedSecretNormalizedSource(secretName, normalizedNamespace,
+					failFast);
 			normalizedSources.add(nameBasedSource);
 
 			if (!normalizedLabels.isEmpty()) {

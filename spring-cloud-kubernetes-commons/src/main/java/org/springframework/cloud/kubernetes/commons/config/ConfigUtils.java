@@ -99,4 +99,14 @@ public final class ConfigUtils {
 		return defaultIncludeProfileSpecificSources;
 	}
 
+	/**
+	 * action to take when an Exception happens when dealing with a source.
+	 */
+	public static void onException(boolean failFast, String message, Exception e) {
+		if (failFast) {
+			throw new IllegalStateException(message, e);
+		}
+		LOG.warn(message + ". Ignoring.", e);
+	}
+
 }

@@ -37,14 +37,14 @@ public final class Fabric8ConfigMapPropertySource extends ConfigMapPropertySourc
 	private static final EnumMap<NormalizedSourceType, Fabric8ContextToSourceData> STRATEGIES = new EnumMap<>(
 			NormalizedSourceType.class);
 
-	// there is a single strategy here at the moment (unlike secrets), but this can
-	// change.
-	// to be on par with secrets implementation, I am keeping it the same.
+	// there is a single strategy here at the moment (unlike secrets),
+	// but this can change.
+	// to be on par with secrets implementation, I am keeping it the same
 	static {
 		STRATEGIES.put(NormalizedSourceType.NAMED_CONFIG_MAP, namedConfigMap());
 	}
 
-	public Fabric8ConfigMapPropertySource(Fabric8ConfigContext context) {
+	Fabric8ConfigMapPropertySource(Fabric8ConfigContext context) {
 		super(getSourceData(context));
 	}
 
@@ -54,9 +54,11 @@ public final class Fabric8ConfigMapPropertySource extends ConfigMapPropertySourc
 				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
 	}
 
+	// we need to pass various functions because the code we are interested in
+	// is protected in ConfigMapPropertySource, and must stay that way.
 	private static Fabric8ContextToSourceData namedConfigMap() {
-		return NamedConfigMapContextToSourceDataProvider
-				.of(ConfigMapPropertySource::processAllEntries, ConfigMapPropertySource::getSourceName).get();
+		return NamedConfigMapContextToSourceDataProvider.of(ConfigMapPropertySource::processAllEntries,
+				ConfigMapPropertySource::getSourceName, ConfigMapPropertySource::withPrefix).get();
 	}
 
 }

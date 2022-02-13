@@ -40,7 +40,7 @@ public final class Fabric8SecretsPropertySource extends SecretsPropertySource {
 		STRATEGIES.put(NormalizedSourceType.LABELED_SECRET, labeledSecret());
 	}
 
-	public Fabric8SecretsPropertySource(Fabric8ConfigContext context) {
+	Fabric8SecretsPropertySource(Fabric8ConfigContext context) {
 		super(getSourceData(context));
 	}
 

@@ -43,7 +43,7 @@ public class Fabric8SecretsPropertySourceLocator extends SecretsPropertySourceLo
 
 	private final KubernetesNamespaceProvider provider;
 
-	public Fabric8SecretsPropertySourceLocator(KubernetesClient client, SecretsConfigProperties properties,
+	Fabric8SecretsPropertySourceLocator(KubernetesClient client, SecretsConfigProperties properties,
 			KubernetesNamespaceProvider provider) {
 		super(properties);
 		this.client = client;
@@ -55,7 +55,7 @@ public class Fabric8SecretsPropertySourceLocator extends SecretsPropertySourceLo
 			NormalizedSource normalizedSource) {
 		// NormalizedSource has a namespace, but users can skip it.
 		// In such cases we try to get it elsewhere
-		String namespace = getApplicationNamespace(client, normalizedSource.getNamespace(), normalizedSource.target(),
+		String namespace = getApplicationNamespace(client, normalizedSource.namespace(), normalizedSource.target(),
 				provider);
 		normalizedSource.freeze();
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, normalizedSource, namespace, environment);

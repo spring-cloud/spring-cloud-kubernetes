@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.util.CollectionUtils;
 
 import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_PROPERTIES;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_YAML;
@@ -79,15 +80,27 @@ public abstract class ConfigMapPropertySource extends MapPropertySource {
 		return defaultProcessAllEntries(input, environment);
 	}
 
-	protected static Map<String, Object> defaultProcessAllEntries(Map<String, String> input, Environment environment) {
+	/*
+	 * this method will return a SourceData that has a name in the form :
+	 * "configmap.my-configmap.my-configmap-2.namespace" and the "data" from the context
+	 * is appended with prefix. So if incoming is "a=b", the result will be : "prefix.a=b"
+	 */
+	protected static SourceData withPrefix(ConfigMapPrefixContext context) {
+		Map<String, Object> withPrefix = CollectionUtils.newHashMap(context.data().size());
+		context.data().forEach((key, value) -> withPrefix.put(context.prefix() + "." + key, value));
+
+		String propertySourceTokens = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, context.propertySourceNames());
+		return new SourceData(getSourceName(propertySourceTokens, context.namespace()), withPrefix);
+	}
+
+	private static Map<String, Object> defaultProcessAllEntries(Map<String, String> input, Environment environment) {
 
 		return input.entrySet().stream().map(e -> extractProperties(e.getKey(), e.getValue(), environment))
 				.flatMap(m -> m.entrySet().stream())
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, throwingMerger(), HashMap::new));
 	}
 
-	protected static Map<String, Object> extractProperties(String resourceName, String content,
-			Environment environment) {
+	private static Map<String, Object> extractProperties(String resourceName, String content, Environment environment) {
 
 		if (resourceName.equals(APPLICATION_YAML) || resourceName.equals(APPLICATION_YML)) {
 			return yamlParserGenerator(environment).andThen(PROPERTIES_TO_MAP).apply(content);

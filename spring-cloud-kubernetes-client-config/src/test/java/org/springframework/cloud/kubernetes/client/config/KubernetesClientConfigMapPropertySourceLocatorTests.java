@@ -183,7 +183,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read ConfigMap with name 'bootstrap-640' in namespace 'default'");
+				.hasMessage("Unable to read ConfigMap(s) in namespace 'default'");
 	}
 
 	@Test

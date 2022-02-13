@@ -50,7 +50,7 @@ class Fabric8ConfigMapPropertySourceTests {
 		final String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
-		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, "default", false, true);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, true, "default", true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "default", new MockEnvironment());
 		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(context)).isInstanceOf(IllegalStateException.class)
 				.hasMessage("Unable to read ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
@@ -63,7 +63,7 @@ class Fabric8ConfigMapPropertySourceTests {
 		final String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
-		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, "", false, false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, false, "", false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 		assertThatNoException().isThrownBy(() -> new Fabric8ConfigMapPropertySource(context));
 	}
@@ -72,7 +72,7 @@ class Fabric8ConfigMapPropertySourceTests {
 	void constructorWithClientNamespaceMustNotFail() {
 
 		Mockito.when(client.getNamespace()).thenReturn("namespace");
-		NormalizedSource source = new NamedConfigMapNormalizedSource("configmap", null, "", false, false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("configmap", null, false, "", false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 		assertThat(new Fabric8ConfigMapPropertySource(context)).isNotNull();
 	}
@@ -81,7 +81,7 @@ class Fabric8ConfigMapPropertySourceTests {
 	void constructorWithNamespaceMustNotFail() {
 
 		Mockito.when(client.getNamespace()).thenReturn(null);
-		NormalizedSource source = new NamedConfigMapNormalizedSource("configMap", null, "", false, true);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("configMap", null, false, "", true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 		assertThat(new Fabric8ConfigMapPropertySource(context)).isNotNull();
 	}

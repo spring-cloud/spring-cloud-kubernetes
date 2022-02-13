@@ -25,20 +25,23 @@ import java.util.Objects;
  */
 public final class NamedSecretNormalizedSource extends NormalizedSource {
 
-	private final boolean failFast;
-
-	public NamedSecretNormalizedSource(String namespace, boolean failFast, String name) {
-		super(namespace, name);
-		this.failFast = failFast;
+	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast) {
+		super(name, namespace, failFast);
 	}
 
-	public boolean isFailFast() {
-		return failFast;
+	@Override
+	public NormalizedSourceType type() {
+		return NormalizedSourceType.NAMED_SECRET;
+	}
+
+	@Override
+	public String target() {
+		return "Secret";
 	}
 
 	@Override
 	public String toString() {
-		return "{ secret name : '" + getName() + "', namespace : '" + getNamespace() + "'";
+		return "{ secret name : '" + name() + "', namespace : '" + namespace() + "'";
 	}
 
 	@Override
@@ -50,22 +53,12 @@ public final class NamedSecretNormalizedSource extends NormalizedSource {
 			return false;
 		}
 		NamedSecretNormalizedSource other = (NamedSecretNormalizedSource) o;
-		return Objects.equals(getName(), other.getName()) && Objects.equals(getNamespace(), other.getNamespace());
+		return Objects.equals(name(), other.name()) && Objects.equals(namespace(), other.namespace());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(getName(), getNamespace());
-	}
-
-	@Override
-	public NormalizedSourceType type() {
-		return NormalizedSourceType.NAMED_SECRET;
-	}
-
-	@Override
-	public String target() {
-		return "Secret";
+		return Objects.hash(name(), namespace());
 	}
 
 }

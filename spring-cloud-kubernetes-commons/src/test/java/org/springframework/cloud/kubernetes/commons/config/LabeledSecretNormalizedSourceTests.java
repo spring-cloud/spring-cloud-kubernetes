@@ -47,7 +47,7 @@ class LabeledSecretNormalizedSourceTests {
 	@Test
 	void testImmutableGetLabels() {
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", false, labels);
-		Assertions.assertThrows(RuntimeException.class, () -> source.getLabels().put("c", "d"));
+		Assertions.assertThrows(RuntimeException.class, () -> source.labels().put("c", "d"));
 	}
 
 	@Test
@@ -60,7 +60,15 @@ class LabeledSecretNormalizedSourceTests {
 	void testFreeze() {
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", false, labels);
 		source.freeze();
-		Assertions.assertThrows(IllegalArgumentException.class, source::getNamespace);
+		Assertions.assertThrows(IllegalArgumentException.class, source::namespace);
+	}
+
+	@Test
+	void testConstructorFields() {
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", false, labels);
+		Assertions.assertNull(source.name());
+		Assertions.assertEquals(source.namespace(), "namespace");
+		Assertions.assertFalse(source.failFast());
 	}
 
 }

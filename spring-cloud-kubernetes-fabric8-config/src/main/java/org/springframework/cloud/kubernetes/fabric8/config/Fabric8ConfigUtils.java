@@ -37,7 +37,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Ioannis Canellos
  */
-public final class Fabric8ConfigUtils {
+final class Fabric8ConfigUtils {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8ConfigUtils.class);
 

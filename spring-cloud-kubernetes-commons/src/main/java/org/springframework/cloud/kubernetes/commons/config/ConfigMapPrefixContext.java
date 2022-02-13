@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config;
+package org.springframework.cloud.kubernetes.commons.config;
 
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
-
-import java.util.function.Function;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * A more succinct way to define a Function from KubernetesClientConfigContext to SourceData.
+ * A holder for data needed to compute prefix based properties, in case of a config map.
  *
  * @author wind57
  */
-interface KubernetesClientToSourceData extends Function<KubernetesClientConfigContext, SourceData> {
+public final record ConfigMapPrefixContext(Map<String, Object> data, String prefix, String namespace,
+		Set<String> propertySourceNames) {
 }

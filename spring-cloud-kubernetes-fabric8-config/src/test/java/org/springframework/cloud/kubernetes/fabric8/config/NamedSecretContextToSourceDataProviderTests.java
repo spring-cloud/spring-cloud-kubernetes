@@ -77,7 +77,7 @@ class NamedSecretContextToSourceDataProviderTests {
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource(NAMESPACE, true, "red");
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -109,7 +109,7 @@ class NamedSecretContextToSourceDataProviderTests {
 		mockClient.secrets().inNamespace(NAMESPACE).create(blue);
 		mockClient.secrets().inNamespace(NAMESPACE).create(yellow);
 
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource(NAMESPACE, true, "red");
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -133,7 +133,7 @@ class NamedSecretContextToSourceDataProviderTests {
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(pink);
 
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource(NAMESPACE, true, "blue");
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("blue", NAMESPACE, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -159,7 +159,7 @@ class NamedSecretContextToSourceDataProviderTests {
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 
 		// different namespace
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource(NAMESPACE + "nope", true, "red");
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE + "nope", true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 

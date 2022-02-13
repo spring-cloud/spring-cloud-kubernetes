@@ -32,6 +32,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.dataFromSecret;
 
@@ -71,7 +72,7 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 		return context -> {
 
 			LabeledSecretNormalizedSource source = ((LabeledSecretNormalizedSource) context.normalizedSource());
-			Map<String, String> labels = source.getLabels();
+			Map<String, String> labels = source.labels();
 
 			Map<String, Object> result = new HashMap<>();
 			String namespace = context.namespace();
@@ -94,13 +95,8 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 
 			}
 			catch (Exception e) {
-				if (source.isFailFast()) {
-					throw new IllegalStateException(
-							"Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'", e);
-				}
-
-				LOG.warn("Can't read secret with labels [" + labels + "] in namespace: '" + namespace + "' (cause: "
-						+ e.getMessage() + "). Ignoring");
+				String message = "Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'";
+				onException(source.failFast(), message, e);
 			}
 
 			String propertySourceName = sourceNameMapper.apply(sourceName, namespace);

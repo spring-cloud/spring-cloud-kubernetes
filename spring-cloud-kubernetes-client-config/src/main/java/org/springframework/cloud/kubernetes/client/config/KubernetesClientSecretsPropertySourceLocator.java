@@ -44,29 +44,22 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 	}
 
 	@Override
-	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment, NormalizedSource normalizedSource) {
-		return null;
-	}
+	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment, NormalizedSource source) {
 
-//	@Override
-//	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment,
-//			NormalizedSource normalizedSource, String configurationTarget) {
-//
-//		String namespace;
-//		String normalizedNamespace = normalizedSource.getNamespace();
-//
-//		if (StringUtils.hasText(normalizedNamespace)) {
-//			namespace = normalizedNamespace;
-//		}
-//		else {
-//			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace,
-//					properties.getConfigurationTarget(), kubernetesNamespaceProvider);
-//		}
-//
-//		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, properties.isFailFast(),
-//				normalizedSource, properties.getConfigurationTarget(), namespace);
-//
-//		return new KubernetesClientSecretsPropertySource(context);
-//	}
+		String namespace;
+		String normalizedNamespace = source.namespace();
+
+		if (StringUtils.hasText(normalizedNamespace)) {
+			namespace = normalizedNamespace;
+		}
+		else {
+			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace,
+					source.target(), kubernetesNamespaceProvider);
+		}
+
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, source, namespace, environment);
+
+		return new KubernetesClientSecretsPropertySource(context);
+	}
 
 }

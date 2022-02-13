@@ -40,11 +40,11 @@ import org.springframework.context.annotation.Import;
 @AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 @Import({ KubernetesCommonsAutoConfiguration.class, KubernetesClientAutoConfiguration.class })
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-public class KubernetesClientBootstrapConfiguration {
+class KubernetesClientBootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesConfigEnabled
-	public KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator(
+	KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator(
 			ConfigMapConfigProperties properties, CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		return new KubernetesClientConfigMapPropertySourceLocator(coreV1Api, properties, kubernetesNamespaceProvider);
@@ -52,7 +52,7 @@ public class KubernetesClientBootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesSecretsEnabled
-	public KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties,
+	KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties,
 			CoreV1Api coreV1Api, KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		return new KubernetesClientSecretsPropertySourceLocator(coreV1Api, kubernetesNamespaceProvider, properties);
 	}

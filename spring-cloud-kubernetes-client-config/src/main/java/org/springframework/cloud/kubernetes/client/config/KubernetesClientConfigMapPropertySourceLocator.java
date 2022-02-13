@@ -44,29 +44,23 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 	}
 
 	@Override
-	protected MapPropertySource getMapPropertySource(NormalizedSource normalizedSource, ConfigurableEnvironment environment) {
-		return null;
-	}
+	protected MapPropertySource getMapPropertySource(NormalizedSource source,
+			ConfigurableEnvironment environment) {
 
-//	@Override
-//	protected MapPropertySource getMapPropertySource(String name,
-//			ConfigMapConfigProperties.NormalizedSource normalizedSource, String configurationTarget,
-//			ConfigurableEnvironment environment) {
-//
-//		String namespace;
-//		String normalizedNamespace = normalizedSource.getNamespace();
-//
-//		if (StringUtils.hasText(normalizedNamespace)) {
-//			namespace = normalizedNamespace;
-//		}
-//		else {
-//			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace, "Config Map",
-//					kubernetesNamespaceProvider);
-//		}
-//
-//		return new KubernetesClientConfigMapPropertySource(coreV1Api, name, namespace, environment,
-//				normalizedSource.getPrefix(), normalizedSource.isIncludeProfileSpecificSources(),
-//				this.properties.isFailFast());
-//	}
+		String namespace;
+		String normalizedNamespace = source.namespace();
+		source.freeze();
+
+		if (StringUtils.hasText(normalizedNamespace)) {
+			namespace = normalizedNamespace;
+		}
+		else {
+			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace, source.target(),
+					kubernetesNamespaceProvider);
+		}
+
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, source, namespace, environment);
+		return new KubernetesClientConfigMapPropertySource(context);
+	}
 
 }

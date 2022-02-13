@@ -22,7 +22,8 @@ import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.core.env.Environment;
 
 /**
- * A context/holder for various data needed to compute property sources.
+ * A context/holder for various data needed to compute property sources. This can be seen
+ * as an enhanced NormalizedSource.
  *
  * @author wind57
  */

@@ -19,6 +19,8 @@ package org.springframework.cloud.kubernetes.client.config;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -27,8 +29,11 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.dataFromSecret;
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
 
 /**
  * Provides an implementation of {@link KubernetesClientContextToSourceData} for a labeled secret.
@@ -37,7 +42,17 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.PROP
  */
 final class LabeledSecretContextToSourceDataProvider implements Supplier<KubernetesClientContextToSourceData> {
 
-	private static final Log LOG = LogFactory.getLog(NamedConfigMapContextToSourceDataProvider.class);
+	private static final Log LOG = LogFactory.getLog(LabeledSecretContextToSourceDataProvider.class);
+
+	private final BiFunction<String, String, String> sourceNameMapper;
+
+	private LabeledSecretContextToSourceDataProvider(BiFunction<String, String, String> sourceNameFunction) {
+		this.sourceNameMapper = Objects.requireNonNull(sourceNameFunction);
+	}
+
+	static LabeledSecretContextToSourceDataProvider of(BiFunction<String, String, String> sourceNameFunction) {
+		return new LabeledSecretContextToSourceDataProvider(sourceNameFunction);
+	}
 
 	/*
 	 * Computes a ContextSourceData (think content) for secret(s) based on some labels.
@@ -55,12 +70,10 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Kuberne
 		return context -> {
 
 			Map<String, Object> result = new HashMap<>();
-			Map<String, String> labels = ((LabeledSecretNormalizedSource) context.normalizedSource()).getLabels();
+			LabeledSecretNormalizedSource source = (LabeledSecretNormalizedSource) context.normalizedSource();
+			Map<String, String> labels = source.labels();
 			String namespace = context.namespace();
-			// name is either the concatenated labels or the concatenated names
-			// of the secrets that match these labels
-			String name = labels.entrySet().stream().map(en -> en.getKey() + ":" + en.getValue())
-					.collect(Collectors.joining("#"));
+			String sourceName = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, labels.keySet());
 
 			try {
 
@@ -68,24 +81,21 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Kuberne
 				List<V1Secret> secrets = context.client().listNamespacedSecret(namespace, null, null, null, null,
 						createLabelsSelector(labels), null, null, null, null, null).getItems();
 
-				name = secrets.stream().map(V1Secret::getMetadata).map(V1ObjectMeta::getName)
+				if (!secrets.isEmpty()) {
+					sourceName = secrets.stream().map(V1Secret::getMetadata).map(V1ObjectMeta::getName)
 						.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 
-				secrets.forEach(s -> putAll(s, result));
+					secrets.forEach(s -> result.putAll(dataFromSecret(s, namespace)));
+				}
 
 			}
 			catch (Exception e) {
-				if (context.normalizedSource()) {
-					throw new IllegalStateException(
-							"Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'", e);
-				}
-
-				LOG.warn("Can't read secret with labels [" + labels + "] in namespace: '" + namespace + "' (cause: "
-						+ e.getMessage() + "). Ignoring");
+				String message = "Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'";
+				onException(source.failFast(), message, e);
 			}
 
-			String sourceName = getSourceName(name, namespace);
-			return new AbstractMap.SimpleImmutableEntry<>(sourceName, result);
+			String propertySourceName = sourceNameMapper.apply(sourceName, namespace);
+			return new SourceData(propertySourceName, result);
 		};
 	}
 
@@ -93,11 +103,4 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Kuberne
 		return labels.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(","));
 	}
 
-//	private static void putAll(V1Secret secret, Map<String, Object> result) {
-//		Map<String, String> secretData = new HashMap<>();
-//		if (secret.getData() != null) {
-//			secret.getData().forEach((key, value) -> secretData.put(key, Base64.getEncoder().encodeToString(value)));
-//			putAll(secretData, result);
-//		}
-//	}
 }

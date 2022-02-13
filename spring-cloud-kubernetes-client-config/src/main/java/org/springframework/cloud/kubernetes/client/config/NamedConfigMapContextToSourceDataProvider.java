@@ -18,18 +18,20 @@ package org.springframework.cloud.kubernetes.client.config;
 
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.ApiException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapPrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.Environment;
-import org.springframework.util.CollectionUtils;
 
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 
@@ -46,17 +48,22 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 
 	private final BiFunction<String, String, String> sourceNameMapper;
 
+	private final Function<ConfigMapPrefixContext, SourceData> withPrefix;
+
 	private NamedConfigMapContextToSourceDataProvider(
-		BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor,
-		BiFunction<String, String, String> sourceNameMapper) {
+			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor,
+			BiFunction<String, String, String> sourceNameMapper,
+			Function<ConfigMapPrefixContext, SourceData> withPrefix) {
 		this.entriesProcessor = Objects.requireNonNull(entriesProcessor);
 		this.sourceNameMapper = Objects.requireNonNull(sourceNameMapper);
+		this.withPrefix = Objects.requireNonNull(withPrefix);
 	}
 
 	static NamedConfigMapContextToSourceDataProvider of(
 		BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor,
-		BiFunction<String, String, String> sourceNameMapper) {
-		return new NamedConfigMapContextToSourceDataProvider(entriesProcessor, sourceNameMapper);
+		BiFunction<String, String, String> sourceNameMapper,
+		Function<ConfigMapPrefixContext, SourceData> withPrefix) {
+		return new NamedConfigMapContextToSourceDataProvider(entriesProcessor, sourceNameMapper, withPrefix);
 	}
 
 	@Override
@@ -65,7 +72,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 		return context -> {
 
 			NamedConfigMapNormalizedSource source = (NamedConfigMapNormalizedSource) context.normalizedSource();
-			String sourceName = source.getName();
+			String sourceName = source.name();
 			// namespace has to be read from context, not from the normalized source
 			String namespace = context.namespace();
 			Environment environment = context.environment();
@@ -77,7 +84,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 			try {
 				Set<String> names = new HashSet<>();
 				names.add(configMapName);
-				if (environment != null && source.isIncludeProfileSpecificSources()) {
+				if (environment != null && source.profileSpecificSources()) {
 					for (String activeProfile : environment.getActiveProfiles()) {
 						names.add(configMapName + "-" + activeProfile);
 					}
@@ -100,21 +107,18 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 						propertySourceNames.add(entry.getValue());
 					});
 
-				if (!"".equals(source.getPrefix())) {
-					Map<String, Object> withPrefix = CollectionUtils.newHashMap(result.size());
-					result.forEach((key, value) -> withPrefix.put(source.getPrefix() + "." + key, value));
-
-					String propertySourceTokens = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
-					return new SourceData(sourceNameMapper.apply(propertySourceTokens, namespace), withPrefix);
+				if (!"".equals(source.prefix())) {
+					ConfigMapPrefixContext prefixContext = new ConfigMapPrefixContext(result, source.prefix(),
+						namespace, propertySourceNames);
+					return withPrefix.apply(prefixContext);
 				}
 
 			}
 			catch (ApiException e) {
-				if (source.isFailFast()) {
-					throw new IllegalStateException("Unable to read ConfigMap(s) in namespace '" + namespace + "'", e);
-				}
-
-				LOG.warn("Unable to read ConfigMap(s) in namespace '" + namespace + "'", e);
+				// we could make the error tell exactly what config map we could not read,
+				// this would mean separate calls to kubeapi server via the client, though.
+				String message = "Unable to read ConfigMap(s) in namespace '" + namespace + "'";
+				onException(source.failFast(), message, e);
 			}
 
 			String propertySourceTokens = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
@@ -126,6 +130,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 	// unlike a Secret, users have the option not to specify the config map name in properties.
 	// in such cases we will try to get it elsewhere. getApplicationName method has that logic.
 	private Supplier<String> appName(Environment environment, NormalizedSource normalizedSource) {
-		return () -> getApplicationName(environment, normalizedSource.getName(), normalizedSource.target());
+		return () -> getApplicationName(environment, normalizedSource.name(), normalizedSource.target());
 	}
+
 }

@@ -89,7 +89,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 								+ " is empty; as such will default 'useNameAsPrefix' to 'false'");
 			}
 			return Collections.singletonList(
-					new NamedConfigMapNormalizedSource(name, namespace, "", includeProfileSpecificSources, failFast));
+					new NamedConfigMapNormalizedSource(name, namespace, failFast, "", includeProfileSpecificSources));
 		}
 
 		return sources.stream()
@@ -185,8 +185,8 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 					normalizedName);
 			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
 					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
-			return new NamedConfigMapNormalizedSource(normalizedName, normalizedNamespace, prefix,
-					includeProfileSpecificSources, failFast);
+			return new NamedConfigMapNormalizedSource(normalizedName, normalizedNamespace, failFast, prefix,
+					includeProfileSpecificSources);
 		}
 
 		@Override

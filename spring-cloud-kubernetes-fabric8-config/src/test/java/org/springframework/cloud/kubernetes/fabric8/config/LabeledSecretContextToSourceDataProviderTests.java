@@ -103,7 +103,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 * does not (color=blue).
 	 */
 	@Test
-	void twoSecretMatchAgainstLabels() {
+	void twoSecretsMatchAgainstLabels() {
 
 		Secret redOne = new SecretBuilder().withNewMetadata().withName("red-secret").withLabels(RED_LABEL).endMetadata()
 				.addToData("colorOne", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
@@ -137,7 +137,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 * one secret deployed (pink), does not match our query (blue).
 	 */
 	@Test
-	void testSecretNoMatch() {
+	void secretNoMatch() {
 
 		Secret pink = new SecretBuilder().withNewMetadata().withName("pink-secret").withLabels(PINK_LABEL).endMetadata()
 				.addToData("color", Base64.getEncoder().encodeToString("pink".getBytes())).build();

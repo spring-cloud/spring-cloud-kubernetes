@@ -26,10 +26,10 @@ class NamedConfigMapNormalizedSourceTests {
 
 	@Test
 	void testEqualsAndHashCode() {
-		NamedConfigMapNormalizedSource left = new NamedConfigMapNormalizedSource("name", "namespace", "prefix", false,
+		NamedConfigMapNormalizedSource left = new NamedConfigMapNormalizedSource("name", "namespace", false, "prefix",
 				true);
-		NamedConfigMapNormalizedSource right = new NamedConfigMapNormalizedSource("name", "namespace",
-				"non-equal-prefix", true, false);
+		NamedConfigMapNormalizedSource right = new NamedConfigMapNormalizedSource("name", "namespace", true,
+				"non-equal-prefix", false);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -37,16 +37,25 @@ class NamedConfigMapNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", "prefix", false,
+		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, "prefix",
 				true);
 		Assertions.assertSame(one.type(), NormalizedSourceType.NAMED_CONFIG_MAP);
 	}
 
 	@Test
 	void testTarget() {
-		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", "prefix", false,
+		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, "prefix",
 				true);
 		Assertions.assertEquals(one.target(), "Config Map");
+	}
+
+	@Test
+	void testConstructorFields() {
+		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, "prefix",
+				true);
+		Assertions.assertEquals(one.name(), "name");
+		Assertions.assertEquals(one.namespace(), "namespace");
+		Assertions.assertFalse(one.failFast());
 	}
 
 }

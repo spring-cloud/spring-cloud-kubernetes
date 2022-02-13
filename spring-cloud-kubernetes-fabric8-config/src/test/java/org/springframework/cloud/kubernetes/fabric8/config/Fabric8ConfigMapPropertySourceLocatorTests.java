@@ -95,7 +95,7 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 		Mockito.when(client.getNamespace()).thenReturn(null);
 		Fabric8ConfigMapPropertySourceLocator source = new Fabric8ConfigMapPropertySourceLocator(client,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("name", null, "prefix", false, false);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("name", null, false, "prefix", false);
 		assertThatThrownBy(() -> source.getMapPropertySource(normalizedSource, new MockEnvironment()))
 				.isInstanceOf(NamespaceResolutionFailedException.class);
 	}

@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import io.kubernetes.client.proto.V1;
+import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -80,14 +80,16 @@ public final class KubernetesClientConfigUtils {
 	/**
 	 * return decoded data from a secret within a namespace.
 	 */
-	static Map<String, Object> dataFromSecret(V1.Secret secret, String namespace) {
+	static Map<String, Object> dataFromSecret(V1Secret secret, String namespace) {
 		LOG.debug("reading secret with name : " + secret.getMetadata().getName() + " in namespace : " + namespace);
-		return secretData(secret.getStringDataMap());
-	}
+		Map<String, byte[]> data = secret.getData();
 
-	private static Map<String, Object> secretData(Map<String, String> data) {
 		Map<String, Object> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
-		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));
+		data.forEach((k, v) -> {
+			String decodedValue = new String(Base64.getDecoder().decode(v)).trim();
+			result.put(k, decodedValue);
+		});
+
 		return result;
 	}
 

@@ -47,23 +47,23 @@ import org.springframework.core.env.Environment;
 @ConditionalOnClass({ ConfigMap.class, Secret.class })
 @AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-public class Fabric8BootstrapConfiguration {
+class Fabric8BootstrapConfiguration {
 
 	@Bean
-	public KubernetesNamespaceProvider provider(Environment env) {
+	KubernetesNamespaceProvider provider(Environment env) {
 		return new KubernetesNamespaceProvider(env);
 	}
 
 	@Bean
 	@ConditionalOnKubernetesConfigEnabled
-	public Fabric8ConfigMapPropertySourceLocator configMapPropertySourceLocator(ConfigMapConfigProperties properties,
+	Fabric8ConfigMapPropertySourceLocator configMapPropertySourceLocator(ConfigMapConfigProperties properties,
 			KubernetesClient client, KubernetesNamespaceProvider provider) {
 		return new Fabric8ConfigMapPropertySourceLocator(client, properties, provider);
 	}
 
 	@Bean
 	@ConditionalOnKubernetesSecretsEnabled
-	public Fabric8SecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties,
+	Fabric8SecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties,
 			KubernetesClient client, KubernetesNamespaceProvider provider) {
 		return new Fabric8SecretsPropertySourceLocator(client, properties, provider);
 	}
