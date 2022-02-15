@@ -28,6 +28,8 @@ import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfi
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesConfigRetryDisabled;
+import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesSecretsRetryDisabled;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
@@ -56,6 +58,7 @@ public class Fabric8BootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesConfigEnabled
+	@ConditionalOnKubernetesConfigRetryDisabled
 	public Fabric8ConfigMapPropertySourceLocator configMapPropertySourceLocator(ConfigMapConfigProperties properties,
 			KubernetesClient client, KubernetesNamespaceProvider provider) {
 		return new Fabric8ConfigMapPropertySourceLocator(client, properties, provider);
@@ -63,6 +66,7 @@ public class Fabric8BootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesSecretsEnabled
+	@ConditionalOnKubernetesSecretsRetryDisabled
 	public Fabric8SecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties,
 			KubernetesClient client, KubernetesNamespaceProvider provider) {
 		return new Fabric8SecretsPropertySourceLocator(client, properties, provider);

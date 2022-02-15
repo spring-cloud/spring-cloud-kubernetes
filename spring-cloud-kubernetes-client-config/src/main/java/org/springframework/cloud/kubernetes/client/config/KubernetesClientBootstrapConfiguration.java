@@ -26,6 +26,8 @@ import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfi
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesConfigRetryDisabled;
+import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesSecretsRetryDisabled;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
@@ -44,6 +46,7 @@ public class KubernetesClientBootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesConfigEnabled
+	@ConditionalOnKubernetesConfigRetryDisabled
 	public KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator(
 			ConfigMapConfigProperties properties, CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
@@ -52,6 +55,7 @@ public class KubernetesClientBootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesSecretsEnabled
+	@ConditionalOnKubernetesSecretsRetryDisabled
 	public KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties,
 			CoreV1Api coreV1Api, KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		return new KubernetesClientSecretsPropertySourceLocator(coreV1Api, kubernetesNamespaceProvider, properties);
