@@ -101,11 +101,14 @@ class KubernetesEnvironmentRepositoryTests {
 		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
-			NormalizedSource defaultSource = new NamedConfigMapNormalizedSource(applicationName, "default", false, "", true);
-			KubernetesClientConfigContext defaultContext = new KubernetesClientConfigContext(coreApi, defaultSource, "default", springEnv);
+			NormalizedSource defaultSource = new NamedConfigMapNormalizedSource(applicationName, "default", false, "",
+					true);
+			KubernetesClientConfigContext defaultContext = new KubernetesClientConfigContext(coreApi, defaultSource,
+					"default", springEnv);
 
 			NormalizedSource devSource = new NamedConfigMapNormalizedSource(applicationName, "dev", false, "", true);
-			KubernetesClientConfigContext devContext = new KubernetesClientConfigContext(coreApi, devSource, "dev", springEnv);
+			KubernetesClientConfigContext devContext = new KubernetesClientConfigContext(coreApi, devSource, "dev",
+					springEnv);
 
 			propertySources.add(new KubernetesClientConfigMapPropertySource(defaultContext));
 			propertySources.add(new KubernetesClientConfigMapPropertySource(devContext));
@@ -115,7 +118,8 @@ class KubernetesEnvironmentRepositoryTests {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
 			NormalizedSource source = new NamedSecretNormalizedSource(applicationName, "default", false);
-			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, "default", springEnv);
+			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, "default",
+					springEnv);
 
 			propertySources.add(new KubernetesClientSecretsPropertySource(context));
 			return propertySources;
