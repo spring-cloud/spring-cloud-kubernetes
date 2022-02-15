@@ -34,6 +34,7 @@ import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigContext;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.core.env.MapPropertySource;
@@ -98,18 +99,16 @@ class KubernetesEnvironmentRepositoryTests {
 	public static void before() {
 		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
-			propertySources.add(new KubernetesClientConfigMapPropertySource(coreApi, applicationName, "default",
-					springEnv, "", true, false));
-			propertySources.add(new KubernetesClientConfigMapPropertySource(coreApi, applicationName, "dev", springEnv,
-					"", true, false));
+			NormalizedSource source = new NamedConfigMapNormalizedSource(applicationName, "default", false, "", true);
+			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, "default", springEnv);
+			propertySources.add(new KubernetesClientConfigMapPropertySource(context));
 			return propertySources;
 		});
 		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
-			NormalizedSource source = new NamedSecretNormalizedSource("default", applicationName);
-			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, false, source, "Secret",
-					"default");
+			NormalizedSource source = new NamedSecretNormalizedSource(applicationName, "default", false);
+			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, "default", springEnv);
 
 			propertySources.add(new KubernetesClientSecretsPropertySource(context));
 			return propertySources;
