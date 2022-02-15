@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.client.config;
 
 import java.util.Base64;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -51,11 +52,16 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
  */
 class LabeledSecretContextToSourceDataProviderTests {
 
-	private static final Map<String, String> LABELS = Map.of("label1", "value1", "label2", "value2");
+	private static final Map<String, String> LABELS = new LinkedHashMap<>();
 
 	private static final Map<String, String> RED_LABEL = Map.of("color", "red");
 
 	private static final String NAMESPACE = "default";
+
+	static {
+		LABELS.put("label2", "value2");
+		LABELS.put("label1", "value1");
+	}
 
 	@BeforeAll
 	static void setup() {

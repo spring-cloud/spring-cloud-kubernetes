@@ -18,9 +18,8 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.Base64;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.LockSupport;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
@@ -30,7 +29,6 @@ import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
@@ -49,7 +47,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 	private static final String NAMESPACE = "default";
 
-	private static final Map<String, String> LABELS = Map.of("label1", "value1", "label2", "value2");
+	private static final Map<String, String> LABELS = new LinkedHashMap<>();
 
 	private static final Map<String, String> RED_LABEL = Map.of("color", "red");
 
@@ -58,6 +56,11 @@ class LabeledSecretContextToSourceDataProviderTests {
 	private static final Map<String, String> BLUE_LABEL = Map.of("color", "blue");
 
 	private static KubernetesClient mockClient;
+
+	static {
+		LABELS.put("label2", "value2");
+		LABELS.put("label1", "value1");
+	}
 
 	@BeforeAll
 	static void beforeAll() {
@@ -72,20 +75,9 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 	}
 
-	@BeforeEach
-	void beforeEach() {
-		mockClient.secrets().inNamespace(NAMESPACE).delete();
-		while (mockClient.secrets().inNamespace(NAMESPACE).list().getItems().size() != 0) {
-			LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(100));
-		}
-	}
-
 	@AfterEach
 	void afterEach() {
 		mockClient.secrets().inNamespace(NAMESPACE).delete();
-		while (mockClient.secrets().inNamespace(NAMESPACE).list().getItems().size() != 0) {
-			LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(100));
-		}
 	}
 
 	/**
