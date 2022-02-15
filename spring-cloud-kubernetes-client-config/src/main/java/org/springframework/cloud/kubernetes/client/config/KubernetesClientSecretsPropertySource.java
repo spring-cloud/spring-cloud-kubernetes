@@ -16,34 +16,25 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.AbstractMap;
-import java.util.Base64;
 import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Secret;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.cloud.kubernetes.commons.config.*;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSourceType;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
 /**
  * @author Ryan Baxter
  * @author Isik Erhan
  */
 public class KubernetesClientSecretsPropertySource extends SecretsPropertySource {
+
 	public KubernetesClientSecretsPropertySource(SourceData sourceData) {
 		super(sourceData);
 	}
 
 	private static final EnumMap<NormalizedSourceType, KubernetesClientContextToSourceData> STRATEGIES = new EnumMap<>(
-		NormalizedSourceType.class);
+			NormalizedSourceType.class);
 
 	static {
 		STRATEGIES.put(NormalizedSourceType.NAMED_SECRET, namedSecret());
@@ -57,7 +48,7 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 	private static SourceData getSourceData(KubernetesClientConfigContext context) {
 		NormalizedSourceType type = context.normalizedSource().type();
 		return Optional.ofNullable(STRATEGIES.get(type)).map(x -> x.apply(context))
-			.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
+				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
 	}
 
 	private static KubernetesClientContextToSourceData namedSecret() {

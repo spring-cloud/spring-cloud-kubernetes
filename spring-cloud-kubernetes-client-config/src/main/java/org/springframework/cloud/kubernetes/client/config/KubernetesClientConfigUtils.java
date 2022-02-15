@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+
 import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,10 +28,6 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Ryan Baxter
@@ -86,11 +86,15 @@ public final class KubernetesClientConfigUtils {
 
 		Map<String, Object> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
 		data.forEach((k, v) -> {
-			String decodedValue = new String(Base64.getDecoder().decode(v)).trim();
+			String decodedValue = decoded(v);
 			result.put(k, decodedValue);
 		});
 
 		return result;
+	}
+
+	private static String decoded(byte[] value) {
+		return new String(Base64.getDecoder().decode(Base64.getEncoder().encodeToString(value))).trim();
 	}
 
 }

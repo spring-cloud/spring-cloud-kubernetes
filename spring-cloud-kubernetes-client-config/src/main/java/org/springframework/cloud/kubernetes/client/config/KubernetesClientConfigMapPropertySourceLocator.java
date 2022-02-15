@@ -44,8 +44,7 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 	}
 
 	@Override
-	protected MapPropertySource getMapPropertySource(NormalizedSource source,
-			ConfigurableEnvironment environment) {
+	protected MapPropertySource getMapPropertySource(NormalizedSource source, ConfigurableEnvironment environment) {
 
 		String namespace;
 		String normalizedNamespace = source.namespace();
@@ -59,7 +58,8 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 					kubernetesNamespaceProvider);
 		}
 
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, source, namespace, environment);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, source, namespace,
+				environment);
 		return new KubernetesClientConfigMapPropertySource(context);
 	}
 

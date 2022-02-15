@@ -16,12 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import io.kubernetes.client.openapi.models.V1Secret;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -29,11 +23,19 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import io.kubernetes.client.openapi.models.V1Secret;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
+
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.dataFromSecret;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
 
 /**
- * Provides an implementation of {@link KubernetesClientContextToSourceData} for a named secret.
+ * Provides an implementation of {@link KubernetesClientContextToSourceData} for a named
+ * secret.
  *
  * @author wind57
  */
@@ -72,7 +74,8 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 
 			}
 			catch (Exception e) {
-				String message = "Unable to read Secret with name '" + source.name() + "' in namespace '" + namespace + "'";
+				String message = "Unable to read Secret with name '" + source.name() + "' in namespace '" + namespace
+						+ "'";
 				onException(source.failFast(), message, e);
 			}
 
@@ -81,4 +84,5 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 
 		};
 	}
+
 }

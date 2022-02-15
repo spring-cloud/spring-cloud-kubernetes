@@ -100,7 +100,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			result.add(new NamedSecretNormalizedSource(name, this.namespace, this.isFailFast()));
 
 			if (!labels.isEmpty()) {
-				result.add(new LabeledSecretNormalizedSource(this.namespace, this.isFailFast(), this.labels));
+				result.add(new LabeledSecretNormalizedSource(this.namespace, this.labels, this.isFailFast()));
 			}
 			return result;
 		}
@@ -180,8 +180,8 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			normalizedSources.add(nameBasedSource);
 
 			if (!normalizedLabels.isEmpty()) {
-				NormalizedSource labelsBasedSource = new LabeledSecretNormalizedSource(normalizedNamespace, failFast,
-						labels);
+				NormalizedSource labelsBasedSource = new LabeledSecretNormalizedSource(normalizedNamespace, labels,
+						failFast);
 				normalizedSources.add(labelsBasedSource);
 			}
 

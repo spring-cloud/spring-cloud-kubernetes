@@ -63,7 +63,7 @@ class Fabric8SecretsPropertySourceMockTests {
 		final Map<String, String> labels = Collections.singletonMap("a", "b");
 		final String path = String.format("/api/v1/namespaces/%s/secrets?labelSelector=", namespace) + "a%3Db";
 
-		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, true, labels);
+		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
@@ -90,7 +90,7 @@ class Fabric8SecretsPropertySourceMockTests {
 		final Map<String, String> labels = Collections.singletonMap("a", "b");
 		final String path = String.format("/api/v1/namespaces/%s/secrets?labelSelector=", namespace) + "a%3Db";
 
-		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, false, labels);
+		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();

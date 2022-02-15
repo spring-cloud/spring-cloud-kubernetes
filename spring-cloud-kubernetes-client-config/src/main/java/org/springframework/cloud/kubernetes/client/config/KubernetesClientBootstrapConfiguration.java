@@ -44,9 +44,8 @@ class KubernetesClientBootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesConfigEnabled
-	KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator(
-			ConfigMapConfigProperties properties, CoreV1Api coreV1Api,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+	KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator(ConfigMapConfigProperties properties,
+			CoreV1Api coreV1Api, KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		return new KubernetesClientConfigMapPropertySourceLocator(coreV1Api, properties, kubernetesNamespaceProvider);
 	}
 

@@ -28,15 +28,17 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
-import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.dataFromSecret;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
+import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 
 /**
- * Provides an implementation of {@link KubernetesClientContextToSourceData} for a labeled secret.
+ * Provides an implementation of {@link KubernetesClientContextToSourceData} for a labeled
+ * secret.
  *
  * @author wind57
  */
@@ -83,7 +85,7 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Kuberne
 
 				if (!secrets.isEmpty()) {
 					sourceName = secrets.stream().map(V1Secret::getMetadata).map(V1ObjectMeta::getName)
-						.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 
 					secrets.forEach(s -> result.putAll(dataFromSecret(s, namespace)));
 				}

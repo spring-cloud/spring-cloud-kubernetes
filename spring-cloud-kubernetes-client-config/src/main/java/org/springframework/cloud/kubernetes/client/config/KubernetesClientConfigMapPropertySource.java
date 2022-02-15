@@ -16,21 +16,12 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.EnumMap;
+import java.util.Optional;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSourceType;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
-import org.springframework.core.env.Environment;
-import org.springframework.util.CollectionUtils;
-
-import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.getApplicationNamespace;
 
 /**
  * @author Ryan Baxter
@@ -39,7 +30,7 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
 public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySource {
 
 	private static final EnumMap<NormalizedSourceType, KubernetesClientContextToSourceData> STRATEGIES = new EnumMap<>(
-		NormalizedSourceType.class);
+			NormalizedSourceType.class);
 
 	// there is a single strategy here at the moment (unlike secrets),
 	// but this can change.
@@ -55,15 +46,14 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 	private static SourceData getSourceData(KubernetesClientConfigContext context) {
 		NormalizedSourceType type = context.normalizedSource().type();
 		return Optional.ofNullable(STRATEGIES.get(type)).map(x -> x.apply(context))
-			.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
+				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
 	}
 
 	// we need to pass various functions because the code we are interested in
 	// is protected in ConfigMapPropertySource, and must stay that way.
 	private static KubernetesClientContextToSourceData namedConfigMap() {
 		return NamedConfigMapContextToSourceDataProvider.of(ConfigMapPropertySource::processAllEntries,
-			ConfigMapPropertySource::getSourceName, ConfigMapPropertySource::withPrefix).get();
+				ConfigMapPropertySource::getSourceName, ConfigMapPropertySource::withPrefix).get();
 	}
-
 
 }

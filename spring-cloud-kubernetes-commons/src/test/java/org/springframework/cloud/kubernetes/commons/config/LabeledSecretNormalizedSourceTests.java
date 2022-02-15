@@ -31,8 +31,8 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testEqualsAndHashCode() {
-		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", false, labels);
-		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", true, labels);
+		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, false);
+		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -40,32 +40,32 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", false, labels);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false);
 		Assertions.assertSame(source.type(), NormalizedSourceType.LABELED_SECRET);
 	}
 
 	@Test
 	void testImmutableGetLabels() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", false, labels);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false);
 		Assertions.assertThrows(RuntimeException.class, () -> source.labels().put("c", "d"));
 	}
 
 	@Test
 	void testTarget() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", false, labels);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false);
 		Assertions.assertEquals(source.target(), "Secret");
 	}
 
 	@Test
 	void testFreeze() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", false, labels);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false);
 		source.freeze();
 		Assertions.assertThrows(IllegalArgumentException.class, source::namespace);
 	}
 
 	@Test
 	void testConstructorFields() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", false, labels);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false);
 		Assertions.assertNull(source.name());
 		Assertions.assertEquals(source.namespace(), "namespace");
 		Assertions.assertFalse(source.failFast());

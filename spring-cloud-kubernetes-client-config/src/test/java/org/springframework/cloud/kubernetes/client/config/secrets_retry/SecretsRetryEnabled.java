@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.config.secrets_retry;
 
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -105,8 +104,8 @@ class SecretsRetryEnabled {
 	void locateShouldNotRetryWhenThereIsNoFailure() {
 
 		Map<String, byte[]> data = new HashMap<>();
-		data.put("some.sensitive.prop", Base64.getEncoder().encode("theSensitiveValue".getBytes()));
-		data.put("some.sensitive.number", Base64.getEncoder().encode("1".getBytes()));
+		data.put("some.sensitive.prop", "theSensitiveValue".getBytes());
+		data.put("some.sensitive.number", "1".getBytes());
 
 		V1SecretList secretList = new V1SecretList()
 				.addItemsItem(new V1Secret().metadata(new V1ObjectMeta().name("my-secret")).data(data));
@@ -127,8 +126,8 @@ class SecretsRetryEnabled {
 	@Test
 	void locateShouldRetryAndRecover() {
 		Map<String, byte[]> data = new HashMap<>();
-		data.put("some.sensitive.prop", Base64.getEncoder().encode("theSensitiveValue".getBytes()));
-		data.put("some.sensitive.number", Base64.getEncoder().encode("1".getBytes()));
+		data.put("some.sensitive.prop", "theSensitiveValue".getBytes());
+		data.put("some.sensitive.number", "1".getBytes());
 
 		V1SecretList secretList = new V1SecretList()
 				.addItemsItem(new V1Secret().metadata(new V1ObjectMeta().name("my-secret")).data(data));

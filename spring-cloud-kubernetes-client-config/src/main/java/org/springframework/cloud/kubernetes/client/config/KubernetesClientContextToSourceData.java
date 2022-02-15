@@ -21,7 +21,8 @@ import java.util.function.Function;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
 /**
- * A more succinct way to define a Function from KubernetesClientConfigContext to SourceData.
+ * A more succinct way to define a Function from KubernetesClientConfigContext to
+ * SourceData.
  *
  * @author wind57
  */
