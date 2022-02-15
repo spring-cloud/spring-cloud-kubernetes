@@ -108,7 +108,8 @@ class KubernetesEnvironmentRepositoryTests {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
 			NormalizedSource source = new NamedSecretNormalizedSource("default", applicationName);
-			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, false, source, "Secret", "default");
+			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, false, source, "Secret",
+					"default");
 
 			propertySources.add(new KubernetesClientSecretsPropertySource(context));
 			return propertySources;

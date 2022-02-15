@@ -36,6 +36,7 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecret
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.context.annotation.Bean;
@@ -72,8 +73,16 @@ public class KubernetesConfigServerAutoConfiguration {
 		return (coreApi, applicationName, namespace, springEnv) -> {
 			List<String> namespaces = namespaceSplitter(properties.getConfigMapNamespaces(), namespace);
 			List<MapPropertySource> propertySources = new ArrayList<>();
-			namespaces.forEach(space -> propertySources.add(new KubernetesClientConfigMapPropertySource(coreApi,
-					applicationName, space, springEnv, "", true, false)));
+
+			namespaces.forEach(space -> {
+
+				NamedConfigMapNormalizedSource source = new NamedConfigMapNormalizedSource(
+					applicationName, space, false, );
+				KubernetesClientConfigContext context = new KubernetesClientConfigContext();
+
+				propertySources.add(new KubernetesClientConfigMapPropertySource(coreApi,
+					applicationName, space, springEnv, "", true, false))
+			});
 			return propertySources;
 		};
 	}
@@ -88,7 +97,8 @@ public class KubernetesConfigServerAutoConfiguration {
 
 			namespaces.forEach(space -> {
 				NormalizedSource source = new NamedSecretNormalizedSource(space, applicationName, false);
-				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, space, springEnv);
+				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, space,
+						springEnv);
 				propertySources.add(new KubernetesClientSecretsPropertySource(context));
 			});
 

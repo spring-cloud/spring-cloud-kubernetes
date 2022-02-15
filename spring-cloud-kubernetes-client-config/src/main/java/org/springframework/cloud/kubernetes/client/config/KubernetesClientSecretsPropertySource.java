@@ -41,7 +41,7 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 		STRATEGIES.put(NormalizedSourceType.LABELED_SECRET, labeledSecret());
 	}
 
-	KubernetesClientSecretsPropertySource(KubernetesClientConfigContext context) {
+	public KubernetesClientSecretsPropertySource(KubernetesClientConfigContext context) {
 		super(getSourceData(context));
 	}
 
