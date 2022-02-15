@@ -80,7 +80,7 @@ install_kind_release() {
 	fi
     wget -O "${KIND}" "${KIND_BINARY_URL}"
     chmod +x "${KIND}"
-}LabeledSecretContextToSourceDataProviderTests.
+}
 
 main() {
     # get kind
