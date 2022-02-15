@@ -47,9 +47,9 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	private CoreV1Api coreV1Api;
 
-	private KubernetesClientSecretsPropertySourceLocator propertySourceLocator;
+	private final KubernetesClientSecretsPropertySourceLocator propertySourceLocator;
 
-	private SharedInformerFactory factory;
+	private final SharedInformerFactory factory;
 
 	private KubernetesClientProperties kubernetesClientProperties;
 

@@ -43,7 +43,6 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
-import org.springframework.retry.annotation.Retryable;
 
 /**
  * Kubernetes {@link PropertySourceLocator} for secrets.
@@ -64,7 +63,6 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 	}
 
 	@Override
-	@Retryable(interceptor = "kubernetesSecretsRetryInterceptor")
 	public PropertySource<?> locate(Environment environment) {
 		if (environment instanceof ConfigurableEnvironment env) {
 
@@ -85,7 +83,6 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 	}
 
 	@Override
-	@Retryable(interceptor = "kubernetesSecretsRetryInterceptor")
 	public Collection<PropertySource<?>> locateCollection(Environment environment) {
 		return PropertySourceLocator.super.locateCollection(environment);
 	}

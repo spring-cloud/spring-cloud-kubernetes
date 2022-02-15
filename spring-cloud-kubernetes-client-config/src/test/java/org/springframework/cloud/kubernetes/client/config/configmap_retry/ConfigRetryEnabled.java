@@ -36,7 +36,7 @@ import org.mockito.MockedStatic;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.config.RetryableKubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -98,7 +98,7 @@ class ConfigRetryEnabled {
 	}
 
 	@SpyBean
-	private KubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
+	private RetryableKubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
 
 	@Test
 	void locateShouldNotRetryWhenThereIsNoFailure() {

@@ -19,16 +19,16 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.Waitable;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -69,9 +69,20 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 	}
 
+	@BeforeEach
+	void beforeEach() {
+		mockClient.secrets().inNamespace(NAMESPACE).delete();
+		while(mockClient.secrets().inNamespace(NAMESPACE).list().getItems().size() != 0) {
+			LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(100));
+		}
+	}
+
 	@AfterEach
 	void afterEach() {
 		mockClient.secrets().inNamespace(NAMESPACE).delete();
+		while(mockClient.secrets().inNamespace(NAMESPACE).list().getItems().size() != 0) {
+			LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(100));
+		}
 	}
 
 	/**
@@ -93,8 +104,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = LabeledSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secrets.test-secret.default");
-		Assertions.assertEquals(sourceData.sourceData(), Map.of("secretName", "secretValue"));
+		Assertions.assertEquals("secrets.test-secret.default", sourceData.sourceName());
+		Assertions.assertEquals(Map.of("secretName", "secretValue"), sourceData.sourceData());
 
 	}
 
@@ -177,8 +188,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = LabeledSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secrets.test-secret.default");
-		Assertions.assertEquals(sourceData.sourceData(), Map.of("secretName", "secretValue"));
+		Assertions.assertEquals("secrets.test-secret.default", sourceData.sourceName());
+		Assertions.assertEquals(Map.of("secretName", "secretValue"), sourceData.sourceData());
 	}
 
 	// needed only to allow access to the super methods

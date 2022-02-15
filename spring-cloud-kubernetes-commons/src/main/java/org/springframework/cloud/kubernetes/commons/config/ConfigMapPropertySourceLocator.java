@@ -36,7 +36,6 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
-import org.springframework.retry.annotation.Retryable;
 
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.KEY_VALUE_TO_PROPERTIES;
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.PROPERTIES_TO_MAP;
@@ -63,7 +62,6 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 			ConfigurableEnvironment environment);
 
 	@Override
-	@Retryable(interceptor = "kubernetesConfigRetryInterceptor")
 	public PropertySource<?> locate(Environment environment) {
 		if (environment instanceof ConfigurableEnvironment env) {
 
@@ -82,7 +80,6 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	}
 
 	@Override
-	@Retryable(interceptor = "kubernetesConfigRetryInterceptor")
 	public Collection<PropertySource<?>> locateCollection(Environment environment) {
 		return PropertySourceLocator.super.locateCollection(environment);
 	}
