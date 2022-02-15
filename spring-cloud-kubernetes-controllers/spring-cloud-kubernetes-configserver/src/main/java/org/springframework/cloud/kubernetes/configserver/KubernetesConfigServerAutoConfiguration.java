@@ -76,10 +76,10 @@ public class KubernetesConfigServerAutoConfiguration {
 
 			namespaces.forEach(space -> {
 
-				NamedConfigMapNormalizedSource source = new NamedConfigMapNormalizedSource(
-					applicationName, space, false, "", true);
-				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi,
-					source, space, springEnv);
+				NamedConfigMapNormalizedSource source = new NamedConfigMapNormalizedSource(applicationName, space,
+						false, "", true);
+				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, space,
+						springEnv);
 
 				propertySources.add(new KubernetesClientConfigMapPropertySource(context));
 			});
