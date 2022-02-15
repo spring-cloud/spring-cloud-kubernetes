@@ -39,7 +39,7 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 		STRATEGIES.put(NormalizedSourceType.NAMED_CONFIG_MAP, namedConfigMap());
 	}
 
-	KubernetesClientConfigMapPropertySource(KubernetesClientConfigContext context) {
+	public KubernetesClientConfigMapPropertySource(KubernetesClientConfigContext context) {
 		super(getSourceData(context));
 	}
 
