@@ -1860,7 +1860,7 @@ To see the list of all Kubernetes related configuration properties please check 
 
 == Building
 
-:jdkversion: 1.8
+:jdkversion: 17
 
 === Basic Compile and Test
 
