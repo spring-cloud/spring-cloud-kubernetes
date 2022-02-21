@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: spring-cloud-kubernetes-fabric8-istio-it
+  name: spring-cloud-kubernetes-fabric8-istio-it
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: spring-cloud-kubernetes-fabric8-istio-it
+  type: ClusterIP

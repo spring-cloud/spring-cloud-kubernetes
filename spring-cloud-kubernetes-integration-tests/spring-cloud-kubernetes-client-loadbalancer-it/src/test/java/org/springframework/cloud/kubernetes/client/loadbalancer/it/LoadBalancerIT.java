@@ -31,9 +31,9 @@ import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
@@ -73,7 +73,7 @@ public class LoadBalancerIT {
 
 	private K8SUtils k8SUtils;
 
-	@Before
+	@BeforeEach
 	public void setup() throws Exception {
 		this.client = createApiClient();
 		this.api = new CoreV1Api();
@@ -122,7 +122,7 @@ public class LoadBalancerIT {
 		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
 	}
 
-	private void testLoadBalancer() throws Exception {
+	private void testLoadBalancer() {
 		// Check to make sure the controller deployment is ready
 		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_LOADBALANCER_DEPLOYMENT_NAME, NAMESPACE);
 		RestTemplate rest = new RestTemplateBuilder().build();
@@ -130,14 +130,11 @@ public class LoadBalancerIT {
 			@Override
 			public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
 				LOG.warn("Received response status code: " + clientHttpResponse.getRawStatusCode());
-				if (clientHttpResponse.getRawStatusCode() == 503) {
-					return false;
-				}
-				return true;
+				return clientHttpResponse.getRawStatusCode() != 503;
 			}
 
 			@Override
-			public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
+			public void handleError(ClientHttpResponse clientHttpResponse) {
 
 			}
 		});
@@ -152,7 +149,7 @@ public class LoadBalancerIT {
 
 	}
 
-	@After
+	@AfterEach
 	public void after() throws Exception {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
 				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
@@ -174,14 +171,8 @@ public class LoadBalancerIT {
 		networkingApi.createNamespacedIngress(NAMESPACE, getLoadbalancerItIngress(), null, null, null);
 	}
 
-	private V1Service getLoadbalancerItService() throws Exception {
-		V1Service service = (V1Service) k8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-it-service.yaml");
-		return service;
-	}
-
 	private V1Deployment getLoadbalancerServiceItDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils
+		V1Deployment deployment = (V1Deployment) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-service-it-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
@@ -190,18 +181,12 @@ public class LoadBalancerIT {
 	}
 
 	private V1Deployment getLoadbalancerPodItDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils
+		V1Deployment deployment = (V1Deployment) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-service-it-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
-	}
-
-	private V1Ingress getLoadbalancerItIngress() throws Exception {
-		V1Ingress ingress = (V1Ingress) k8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-it-ingress.yaml");
-		return ingress;
 	}
 
 	private void deployWiremock() throws Exception {
@@ -210,19 +195,26 @@ public class LoadBalancerIT {
 		networkingApi.createNamespacedIngress(NAMESPACE, getWiremockIngress(), null, null, null);
 	}
 
+	private V1Ingress getLoadbalancerItIngress() throws Exception {
+		return (V1Ingress) K8SUtils
+				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-it-ingress.yaml");
+	}
+
+	private V1Service getLoadbalancerItService() throws Exception {
+		return (V1Service) K8SUtils
+				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-it-service.yaml");
+	}
+
 	private V1Ingress getWiremockIngress() throws Exception {
-		V1Ingress ingress = (V1Ingress) k8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
-		return ingress;
+		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
 	}
 
 	private V1Service getWiremockAppService() throws Exception {
-		V1Service service = (V1Service) k8SUtils.readYamlFromClasspath("wiremock-service.yaml");
-		return service;
+		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock-service.yaml");
 	}
 
 	private V1Deployment getWireockDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils.readYamlFromClasspath("wiremock-deployment.yaml");
-		return deployment;
+		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock-deployment.yaml");
 	}
 
 }

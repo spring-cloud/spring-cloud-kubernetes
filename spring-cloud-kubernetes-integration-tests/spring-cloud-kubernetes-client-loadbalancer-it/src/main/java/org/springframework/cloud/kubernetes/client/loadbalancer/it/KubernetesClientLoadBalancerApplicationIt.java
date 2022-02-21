@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.client.loadbalancer.it;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -38,8 +37,11 @@ import org.springframework.web.client.RestTemplate;
 @RestController
 public class KubernetesClientLoadBalancerApplicationIt {
 
-	@Autowired
-	DiscoveryClient discoveryClient;
+	private final DiscoveryClient discoveryClient;
+
+	public KubernetesClientLoadBalancerApplicationIt(DiscoveryClient discoveryClien) {
+		this.discoveryClient = discoveryClien;
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(KubernetesClientLoadBalancerApplicationIt.class, args);

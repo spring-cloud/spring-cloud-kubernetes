@@ -12,17 +12,13 @@ BIN_DIR="$(mktemp -d)"
 # kind binary will be here
 KIND="${BIN_DIR}/kind"
 
-ISTIOCTL="${BIN_DIR}/istio-1.6.2/bin/istioctl"
+ISTIO="${BIN_DIR}/istio"
 
 CURRENT_DIR="$(pwd)"
 
 MVN="${CURRENT_DIR}/../mvnw"
 
-MVN_VERSION=$($MVN -q \
-    -Dexec.executable=echo \
-    -Dexec.args='${project.version}' \
-    --non-recursive \
-    exec:exec)
+PROJECT_VERSION=$($MVN help:evaluate -Dexpression=project.version -q -DforceStdout)
 
 ALL_INTEGRATION_PROJECTS=(
 	"spring-cloud-kubernetes-core-k8s-client-it"
@@ -30,8 +26,13 @@ ALL_INTEGRATION_PROJECTS=(
 	"spring-cloud-kubernetes-configuration-watcher-it"
 	"spring-cloud-kubernetes-client-loadbalancer-it"
 	"spring-cloud-kubernetes-client-reactive-discovery-client-it"
-	"spring-cloud-kubernetes-discoverclient-it"
-	"spring-cloud-kubernetes-reactive-discoveryclient-it"
+	"spring-cloud-kubernetes-discovery-client-it"
+	"spring-cloud-kubernetes-reactive-discovery-client-it"
+	"spring-cloud-kubernetes-fabric8-client-simple-core"
+	"spring-cloud-kubernetes-fabric8-client-configmap"
+	"spring-cloud-kubernetes-fabric8-istio-it"
+	"spring-cloud-kubernetes-fabric8-client-discovery"
+	"spring-cloud-kubernetes-fabric8-client-loadbalancer"
 )
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 
@@ -44,9 +45,10 @@ DEFAULT_PULLING_IMAGES=(
 )
 PULLING_IMAGES=(${PULLING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
 
-LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}} "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${MVN_VERSION}"
-	"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${MVN_VERSION}")
+LOADING_IMAGES=(${LOADING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}} "docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${PROJECT_VERSION}"
+	"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${PROJECT_VERSION}")
 # cleanup on exit (useful for running locally)
+
 cleanup() {
     "${KIND}" delete cluster || true
     rm -rf "${BIN_DIR}"
@@ -82,6 +84,40 @@ install_kind_release() {
     chmod +x "${KIND}"
 }
 
+# util to install a released istio version into ${BIN_DIR}
+install_istio_release() {
+    ISTIO_VERSION="1.12.0"
+	ISTIO_BINARY_URL="https://github.com/istio/istio/releases/download/$ISTIO_VERSION/istio-$ISTIO_VERSION-linux-amd64.tar.gz"
+    if [[ "$OSTYPE" == "darwin"*  ]]; then
+        ISTIO_BINARY_URL="https://github.com/istio/istio/releases/download/$ISTIO_VERSION/istio-$ISTIO_VERSION-osx-arm64.tar.gz"
+	else
+        echo "Unknown OS, using linux binary"
+	fi
+	# seems like wget can't do both --output-document and --directory-prefix? At least on my Mac
+	# this is the case. To be on the safe side, download, then rename
+    wget --directory-prefix "${ISTIO}" "${ISTIO_BINARY_URL}"
+    find "${ISTIO}" -type f -name "istio-*.tar.gz" -exec mv "{}" "${ISTIO}/istio.tar.gz" \;
+    tar -xf "$BIN_DIR/istio/istio.tar.gz" -C "$BIN_DIR/istio"
+    chmod +x "${ISTIO}/istio-$ISTIO_VERSION/bin/istioctl"
+    export PATH=$PATH:"$ISTIO/istio-$ISTIO_VERSION/bin"
+
+    if ! [ -x "$(command -v istioctl)" ]; then
+      echo 'Problem installing istioctl, check the script'
+      exit 1
+    fi
+}
+
+enable_istio() {
+	kubectl create namespace istio-test
+	kubectl label namespace istio-test istio-injection=enabled
+	install_istio_release
+	# remove taint, otherwise istio will not start
+	kubectl taint node kind-control-plane node-role.kubernetes.io/master:NoSchedule-
+
+	# for Mac M1 : https://github.com/istio/istio/issues/21094#issuecomment-956117650
+	istioctl install --set profile=demo -y
+}
+
 main() {
     # get kind
     install_kind_release
@@ -94,6 +130,10 @@ main() {
 
     # set KUBECONFIG to point to the cluster
     kubectl cluster-info --context kind-kind
+
+    # istio
+    install_istio_release
+    enable_istio
 
 	#setup nginx ingress
 	# pulling necessary images for setting up the integration test environment
@@ -108,8 +148,8 @@ main() {
     kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
     sleep 5 # hold 5 sec so that the pods can be created
     kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=420s
-	
-	
+
+
 
     # This creates the service account, role, and role binding necessary for Spring Cloud k8s apps
 	kubectl apply -f ./permissions.yaml
@@ -128,7 +168,7 @@ main() {
 		echo "split tests $SPLIT_PROJECTS"
 		#This splits the projects back into an array so we can iterate over them
 		IFS=',' read -ra PROJECTS <<< "$SPLIT_PROJECTS"
-		echo "projects $PROJECTS"
+		echo "${PROJECTS[@]}"
 		run_tests "${PROJECTS[@]}"
 	fi
 
@@ -137,13 +177,17 @@ main() {
 
 run_tests() {
 	arr=("$@")
+	cd ../spring-cloud-kubernetes-test-support
+	${MVN} clean install
+	cd ../spring-cloud-kubernetes-integration-tests
 	for p in "${arr[@]}"; do
 		echo "Running test: $p"
 		cd  $p
 		${MVN} spring-boot:build-image \
-			-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${MVN_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder
-		"${KIND}" load docker-image docker.io/springcloud/$p:${MVN_VERSION}
-		${MVN} clean install -P it
+			-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${PROJECT_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder
+		"${KIND}" load docker-image docker.io/springcloud/$p:${PROJECT_VERSION}
+		# empty excludeITTests, so that integration tests will run
+		${MVN} clean install -DexcludeITTests=
 		cd ..
 	done
 }
