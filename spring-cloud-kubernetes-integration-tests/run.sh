@@ -20,6 +20,8 @@ MVN="${CURRENT_DIR}/../mvnw"
 
 PROJECT_VERSION=$($MVN help:evaluate -Dexpression=project.version -q -DforceStdout)
 
+ISTIO_VERSION="1.12.0"
+
 ALL_INTEGRATION_PROJECTS=(
 	"spring-cloud-kubernetes-core-k8s-client-it"
 	"spring-cloud-kubernetes-client-config-it"
@@ -42,6 +44,8 @@ DEFAULT_PULLING_IMAGES=(
 	"zookeeper:3.6.2"
 	"rodolpheche/wiremock:2.27.2"
 	"wurstmeister/kafka:2.13-2.6.0"
+	"istio/proxyv2:${ISTIO_VERSION}"
+	"istio/pilot:${ISTIO_VERSION}"
 )
 PULLING_IMAGES=(${PULLING_IMAGES:-${DEFAULT_PULLING_IMAGES[@]}})
 
@@ -86,7 +90,6 @@ install_kind_release() {
 
 # util to install a released istio version into ${BIN_DIR}
 install_istio_release() {
-    ISTIO_VERSION="1.12.0"
 	ISTIO_BINARY_URL="https://github.com/istio/istio/releases/download/$ISTIO_VERSION/istio-$ISTIO_VERSION-linux-amd64.tar.gz"
     if [[ "$OSTYPE" == "darwin"*  ]]; then
         ISTIO_BINARY_URL="https://github.com/istio/istio/releases/download/$ISTIO_VERSION/istio-$ISTIO_VERSION-osx-arm64.tar.gz"
@@ -131,11 +134,6 @@ main() {
     # set KUBECONFIG to point to the cluster
     kubectl cluster-info --context kind-kind
 
-    # istio
-    install_istio_release
-    enable_istio
-
-	#setup nginx ingress
 	# pulling necessary images for setting up the integration test environment
 	for i in "${PULLING_IMAGES[@]}"; do
 		echo "Pull images for prepping testing environment: $i"
@@ -145,6 +143,12 @@ main() {
 		echo "Loading images into Kind: $i"
 		"${KIND}" load docker-image $i
 	done
+
+	# istio
+	install_istio_release
+	enable_istio
+
+	#setup nginx ingress
     kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
     sleep 5 # hold 5 sec so that the pods can be created
     kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=420s
