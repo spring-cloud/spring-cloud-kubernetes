@@ -24,7 +24,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>3.0.5</version>
+		<version>3.0.6-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 
@@ -64,7 +64,7 @@
 		<!-- Dependency Versions -->
 		<spring-cloud-commons.version>3.0.6-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-config.version>3.0.7-SNAPSHOT</spring-cloud-config.version>
-		<spring-cloud-bus.version>3.0.3</spring-cloud-bus.version>
+		<spring-cloud-bus.version>3.0.4-SNAPSHOT</spring-cloud-bus.version>
 		<spring-cloud-contract.version>3.0.6-SNAPSHOT</spring-cloud-contract.version>
 
 		<!-- Maven Plugin Versions -->
