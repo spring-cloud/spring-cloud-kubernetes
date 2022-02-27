@@ -31,9 +31,9 @@ import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
@@ -73,7 +73,7 @@ public class ReactiveDiscoveryClientIT {
 
 	private K8SUtils k8SUtils;
 
-	@Before
+	@BeforeEach
 	public void setup() throws Exception {
 		this.client = createApiClient();
 		this.api = new CoreV1Api();
@@ -88,6 +88,16 @@ public class ReactiveDiscoveryClientIT {
 
 		// Check to see if endpoint is ready
 		k8SUtils.waitForEndpointReady(WIREMOCK_APP_NAME, NAMESPACE);
+
+	}
+
+	@AfterEach
+	public void after() throws Exception {
+		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
+				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
+
+		api.deleteNamespacedService(WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
+		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE, null, null, null, null, null, null);
 
 	}
 
@@ -106,6 +116,25 @@ public class ReactiveDiscoveryClientIT {
 		}
 	}
 
+	private void testHealth() {
+		RestTemplate rest = createRestTemplate();
+
+		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
+		// available and we get a 503, we just need to wait a bit
+		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(1))
+				.until(() -> rest
+						.getForEntity("http://localhost:80/reactive-discovery-it/actuator/health", String.class)
+						.getStatusCode().is2xxSuccessful());
+
+		Map<String, Object> health = rest.getForObject("http://localhost:80/reactive-discovery-it/actuator/health",
+				Map.class);
+		Map<String, Object> components = (Map<String, Object>) health.get("components");
+
+		assertThat(components.containsKey("reactiveDiscoveryClients")).isTrue();
+		Map<String, Object> discoveryComposite = (Map<String, Object>) components.get("discoveryComposite");
+		assertThat(discoveryComposite.get("status")).isEqualTo("UP");
+	}
+
 	private void cleanup() throws ApiException {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
 				"metadata.name=" + SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_DEPLOYMENT_NAME, null, null, null, null, null,
@@ -121,7 +150,7 @@ public class ReactiveDiscoveryClientIT {
 		RestTemplate rest = createRestTemplate();
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
-		await().timeout(Duration.ofSeconds(60))
+		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(1))
 				.until(() -> rest.getForEntity("http://localhost:80/reactive-discovery-it/services", String.class)
 						.getStatusCode().is2xxSuccessful());
 		String result = rest.getForObject("http://localhost:80/reactive-discovery-it/services", String.class);
@@ -136,47 +165,15 @@ public class ReactiveDiscoveryClientIT {
 			@Override
 			public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
 				LOG.warn("Received response status code: " + clientHttpResponse.getRawStatusCode());
-				if (clientHttpResponse.getRawStatusCode() == 503) {
-					return false;
-				}
-				return true;
+				return clientHttpResponse.getRawStatusCode() != 503;
 			}
 
 			@Override
-			public void handleError(ClientHttpResponse clientHttpResponse) throws IOException {
+			public void handleError(ClientHttpResponse clientHttpResponse) {
 
 			}
 		});
 		return rest;
-	}
-
-	public void testHealth() {
-		RestTemplate rest = createRestTemplate();
-
-		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
-		// available and we get a 503, we just need to wait a bit
-		await().timeout(Duration.ofSeconds(60))
-				.until(() -> rest
-						.getForEntity("http://localhost:80/reactive-discovery-it/actuator/health", String.class)
-						.getStatusCode().is2xxSuccessful());
-
-		Map<String, Object> health = rest.getForObject("http://localhost:80/reactive-discovery-it/actuator/health",
-				Map.class);
-		Map<String, Object> components = (Map) health.get("components");
-
-		assertThat(components.containsKey("reactiveDiscoveryClients")).isTrue();
-		Map<String, Object> discoveryComposite = (Map) components.get("discoveryComposite");
-		assertThat(discoveryComposite.get("status")).isEqualTo("UP");
-	}
-
-	@After
-	public void after() throws Exception {
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
-
-		api.deleteNamespacedService(WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
-		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE, null, null, null, null, null, null);
-
 	}
 
 	private void deployReactiveDiscoveryIt() throws Exception {
@@ -185,14 +182,8 @@ public class ReactiveDiscoveryClientIT {
 		networkingApi.createNamespacedIngress(NAMESPACE, getReactiveDiscoveryItIngress(), null, null, null);
 	}
 
-	private V1Service getReactiveDiscoveryService() throws Exception {
-		V1Service service = (V1Service) k8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-client-reactive-discovery-it-service.yaml");
-		return service;
-	}
-
 	private V1Deployment getReactiveDiscoveryItDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils
+		V1Deployment deployment = (V1Deployment) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-reactive-discovery-it-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
@@ -200,31 +191,32 @@ public class ReactiveDiscoveryClientIT {
 		return deployment;
 	}
 
+	private V1Service getReactiveDiscoveryService() throws Exception {
+		return (V1Service) K8SUtils
+				.readYamlFromClasspath("spring-cloud-kubernetes-client-reactive-discovery-it-service.yaml");
+	}
+
 	private V1Ingress getReactiveDiscoveryItIngress() throws Exception {
-		V1Ingress ingress = (V1Ingress) k8SUtils
+		return (V1Ingress) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-reactive-discovery-it-ingress.yaml");
-		return ingress;
 	}
 
 	private void deployWiremock() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getWireockDeployment(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getWiremockDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getWiremockAppService(), null, null, null);
 		networkingApi.createNamespacedIngress(NAMESPACE, getWiremockIngress(), null, null, null);
 	}
 
 	private V1Ingress getWiremockIngress() throws Exception {
-		V1Ingress ingress = (V1Ingress) k8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
-		return ingress;
+		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
 	}
 
 	private V1Service getWiremockAppService() throws Exception {
-		V1Service service = (V1Service) k8SUtils.readYamlFromClasspath("wiremock-service.yaml");
-		return service;
+		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock-service.yaml");
 	}
 
-	private V1Deployment getWireockDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils.readYamlFromClasspath("wiremock-deployment.yaml");
-		return deployment;
+	private V1Deployment getWiremockDeployment() throws Exception {
+		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock-deployment.yaml");
 	}
 
 }

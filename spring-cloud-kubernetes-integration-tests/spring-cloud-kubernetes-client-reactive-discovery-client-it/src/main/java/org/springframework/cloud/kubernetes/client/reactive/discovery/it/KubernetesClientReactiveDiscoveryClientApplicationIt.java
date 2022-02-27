@@ -16,9 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client.reactive.discovery.it;
 
+import java.util.stream.Collectors;
+
 import reactor.core.publisher.Mono;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
@@ -32,8 +33,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class KubernetesClientReactiveDiscoveryClientApplicationIt {
 
-	@Autowired
-	KubernetesInformerReactiveDiscoveryClient discoveryClient;
+	private final KubernetesInformerReactiveDiscoveryClient discoveryClient;
+
+	public KubernetesClientReactiveDiscoveryClientApplicationIt(
+			KubernetesInformerReactiveDiscoveryClient discoveryClient) {
+		this.discoveryClient = discoveryClient;
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(KubernetesClientReactiveDiscoveryClientApplicationIt.class, args);
@@ -41,12 +46,7 @@ public class KubernetesClientReactiveDiscoveryClientApplicationIt {
 
 	@GetMapping("/services")
 	public Mono<String> services() {
-		return discoveryClient.getServices().reduce("", (a, b) -> {
-			if (a.isEmpty()) {
-				return b;
-			}
-			return a + "," + b;
-		});
+		return discoveryClient.getServices().collect(Collectors.joining(","));
 	}
 
 }

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-cloud-kubernetes-fabric8-client-discovery-deployment
+spec:
+  selector:
+    matchLabels:
+      app: spring-cloud-kubernetes-fabric8-client-discovery
+  template:
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-fabric8-client-discovery
+    spec:
+      serviceAccountName: spring-cloud-kubernetes-serviceaccount
+      containers:
+        - name: spring-cloud-kubernetes-fabric8-client-discovery
+          image: docker.io/springcloud/spring-cloud-kubernetes-fabric8-client-discovery
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/liveness
+          ports:
+            - containerPort: 8080

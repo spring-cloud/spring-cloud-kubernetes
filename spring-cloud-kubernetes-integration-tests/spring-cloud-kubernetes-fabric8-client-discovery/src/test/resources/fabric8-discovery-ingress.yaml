@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spring-cloud-kubernetes-fabric8-client-discovery-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /fabric8-discovery(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: spring-cloud-kubernetes-fabric8-client-discovery
+                port:
+                  number: 8080
