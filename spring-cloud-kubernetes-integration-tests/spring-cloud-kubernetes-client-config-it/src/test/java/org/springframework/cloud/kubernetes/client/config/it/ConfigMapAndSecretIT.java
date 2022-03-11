@@ -99,7 +99,7 @@ class ConfigMapAndSecretIT {
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		K3S.execInContainer("ctr", "i", "import", "/spring-cloud-kubernetes-client-config-it");
+		K3S.execInContainer("crictl", "rmi", "docker.io/springcloud/spring-cloud-kubernetes-client-config-it:" + getPomVersion());
 	}
 
 	@AfterEach
@@ -230,10 +230,11 @@ class ConfigMapAndSecretIT {
 	}
 
 	private RetryBackoffSpec backoffSpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(x -> {
+		return Retry.fixedDelay(30, Duration.ofSeconds(1)).filter(x -> {
 			if (x instanceof WebClientResponseException) {
 				return ((WebClientResponseException) x).getStatusCode().value() == 503;
 			}
+			x.printStackTrace();
 			return true;
 		});
 	}
