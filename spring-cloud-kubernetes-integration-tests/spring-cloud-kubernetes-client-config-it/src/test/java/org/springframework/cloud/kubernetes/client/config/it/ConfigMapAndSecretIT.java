@@ -77,9 +77,6 @@ class ConfigMapAndSecretIT {
 	private static K8SUtils k8SUtils;
 
 	private static final K3sContainer K3S = new K3sContainer(DockerImageName.parse("rancher/k3s:v1.21.10-k3s1"))
-		.withCreateContainerCmdModifier(
-			cmd -> cmd.getHostConfig().withStorageOpt(Map.of("dm.basesize", "20G"))
-		)
 		.withFileSystemBind("/tmp/images", "/tmp/images", BindMode.READ_WRITE).withExposedPorts(80, 6443)
 		.withCommand("server") // otherwise traefik is not installed
 		.withReuse(true);
