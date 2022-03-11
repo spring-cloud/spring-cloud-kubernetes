@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -93,6 +94,14 @@ public class K8SUtils {
 		ApiClient client = Config.defaultClient();
 		client.setHttpClient(client.getHttpClient().newBuilder().readTimeout(readTimeout).build());
 		client.setDebugging(debug);
+		Configuration.setDefaultApiClient(client);
+		return client;
+	}
+
+	public static ApiClient createApiClient(String configFile) throws IOException {
+		ApiClient client = Config.fromConfig(new StringReader(configFile));
+		client.setHttpClient(client.getHttpClient().newBuilder().readTimeout(Duration.ofSeconds(15)).build());
+		client.setDebugging(false);
 		Configuration.setDefaultApiClient(client);
 		return client;
 	}
@@ -185,7 +194,7 @@ public class K8SUtils {
 
 		V1ReplicationController replicationController = controllerList.getItems().get(0);
 		Integer availableReplicas = replicationController.getStatus().getAvailableReplicas();
-		log.info("Available replicas for " + name + ": " + availableReplicas);
+		log.info("Available replicas for " + name + ": " + (availableReplicas == null ? 0 : availableReplicas));
 		return availableReplicas != null && availableReplicas >= 1;
 
 	}
@@ -218,7 +227,7 @@ public class K8SUtils {
 		}
 		V1Deployment deployment = deployments.getItems().get(0);
 		Integer availableReplicas = deployment.getStatus().getAvailableReplicas();
-		log.info("Available replicas for " + deploymentName + ": " + availableReplicas);
+		log.info("Available replicas for " + deploymentName + ": " + (availableReplicas == null ? 0 : availableReplicas));
 		return availableReplicas != null && availableReplicas >= 1;
 	}
 

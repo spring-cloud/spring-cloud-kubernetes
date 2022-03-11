@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.client.config.it;
 
 import java.time.Duration;
+import java.util.Map;
 
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -44,6 +45,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.util.retry.RetryBackoffSpec;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
@@ -62,10 +64,6 @@ class ConfigMapAndSecretIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static final String MY_PROPERTY_URL = "localhost/client-config-it/myProperty";
-
-	private static final String MY_SECRET_URL = "http://localhost:80/client-config-it/mySecret";
-
 	private static final String APP_NAME = "spring-cloud-kubernetes-client-config-it";
 
 	private static CoreV1Api api;
@@ -79,7 +77,7 @@ class ConfigMapAndSecretIT {
 	private static final K3sContainer K3S = new K3sContainer(DockerImageName.parse("rancher/k3s:v1.21.10-k3s1"))
 		.withFileSystemBind("/Users/wind57/Desktop/containerd-images/spring-cloud-kubernetes-client-config-it.tar",
 			"/tmp/images/spring-cloud-kubernetes-client-config-it.tar", BindMode.READ_WRITE)
-		.withExposedPorts(80, 6443, 8080)
+		.withExposedPorts(80, 6443)
 		.withCommand("server") // otherwise traefik is not installed
 		.withReuse(true);
 
@@ -111,48 +109,28 @@ class ConfigMapAndSecretIT {
 
 	void testConfigMapAndSecretRefresh() throws Exception {
 
-		WebClient client = WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
-				.baseUrl("localhost/fabric8-configmap/key1").build();
+		String propertyURL = "localhost:" + K3S.getMappedPort(80) + "/myProperty";
+		String secretURL = "localhost:" + K3S.getMappedPort(80) + "/mySecret";
 
-		String result = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-//				.retryWhen(Retry.fixedDelay(15, Duration.ofSeconds(1))
-//						.filter(x -> ((WebClientResponseException) x).getStatusCode().value() == 503))
+		WebClient.Builder builder = builder();
+		WebClient propertyClient = builder.baseUrl(propertyURL).build();
+
+		String property = propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(backoffSpec())
 				.block();
+		assertThat(property).isEqualTo("from-config-map");
 
-		// RestTemplate rest = new RestTemplateBuilder().build();
-		// rest.setErrorHandler(new ResponseErrorHandler() {
-		// @Override
-		// public boolean hasError(ClientHttpResponse clientHttpResponse) throws
-		// IOException {
-		// LOG.warn("Received response status code: " +
-		// clientHttpResponse.getRawStatusCode());
-		// return clientHttpResponse.getRawStatusCode() != 503;
-		// }
-		//
-		// @Override
-		// public void handleError(ClientHttpResponse clientHttpResponse) {
-		//
-		// }
-		// });
+		WebClient secretClient = builder.baseUrl(secretURL).build();
+		String secret = secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+			.retryWhen(backoffSpec())
+			.block();
+		assertThat(secret).isEqualTo("p455w0rd");
 
-		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
-		// available and we get a 503, we just need to wait a bit
-		// await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
-		// .until(() -> rest.getForEntity(MY_PROPERTY_URL,
-		// String.class).getStatusCode().is2xxSuccessful());
-		//
-		// String myProperty = rest.getForObject(MY_PROPERTY_URL, String.class);
-		assertThat(result).isEqualTo("from-config-map");
-		// String mySecret = rest.getForObject(MY_SECRET_URL, String.class);
-		// assertThat(mySecret).isEqualTo("p455w0rd");
-		//
-		// V1ConfigMap configMap = getConfigK8sClientItConfigMap();
-		// Map<String, String> data = configMap.getData();
-		// data.replace("application.yaml",
-		// data.get("application.yaml").replace("from-config-map", "from-unit-test"));
-		// configMap.data(data);
-		// api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null,
-		// null);
+		V1ConfigMap configMap = getConfigK8sClientItConfigMap();
+		Map<String, String> data = configMap.getData();
+		data.replace("application.yaml", data.get("application.yaml").replace("from-config-map", "from-unit-test"));
+		configMap.data(data);
+		api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null);
 		// await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
 		// .until(() -> rest.getForObject(MY_PROPERTY_URL,
 		// String.class).equals("from-unit-test"));
@@ -252,6 +230,20 @@ class ConfigMapAndSecretIT {
 
 	private static V1Role getConfigK8sClientItRole() throws Exception {
 		return (V1Role) K8SUtils.readYamlFromClasspath("role.yaml");
+	}
+
+	private RetryBackoffSpec backoffSpec() {
+		return Retry.fixedDelay(15, Duration.ofSeconds(1))
+			.filter(x -> {
+				if (x instanceof WebClientResponseException) {
+					return ((WebClientResponseException) x).getStatusCode().value() == 503;
+				}
+				return true;
+			});
+	}
+
+	private WebClient.Builder builder() {
+		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
 	}
 
 }
