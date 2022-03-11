@@ -78,7 +78,7 @@ class ConfigMapAndSecretIT {
 
 	private static final K3sContainer K3S = new K3sContainer(DockerImageName.parse("rancher/k3s:v1.21.10-k3s1"))
 		.withFileSystemBind("/tmp/images", "/tmp/images", BindMode.READ_WRITE).withExposedPorts(80, 6443)
-		.withCommand("server") // otherwise traefik is not installed
+		.withCommand("server") // otherwise, traefik is not installed
 		.withReuse(true);
 
 	@BeforeAll
@@ -231,10 +231,7 @@ class ConfigMapAndSecretIT {
 
 	private RetryBackoffSpec backoffSpec() {
 		return Retry.fixedDelay(30, Duration.ofSeconds(1)).filter(x -> {
-			if (x instanceof WebClientResponseException) {
-				return ((WebClientResponseException) x).getStatusCode().value() == 503;
-			}
-			x.printStackTrace();
+			System.out.println("==== failure : " + x.getMessage());
 			return true;
 		});
 	}
