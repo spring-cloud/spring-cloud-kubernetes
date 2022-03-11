@@ -13,22 +13,12 @@
 	<packaging>pom</packaging>
 
 	<name>Spring Cloud Kubernetes :: Integration Tests</name>
-	<description>Integration tests where SCK applications are run inside a Kubernetes
-		cluster
-	</description>
+	<description>Integration tests where SCK applications are run inside a Kubernetes cluster</description>
 
 	<properties>
 		<java.version>17</java.version>
-		<arquillian-cube.version>1.18.2</arquillian-cube.version>
-		<arquillian.version>1.4.0.Final</arquillian.version>
-		<okhttptests.version>3.12.12</okhttptests.version>
 		<docker-java.version>3.2.2</docker-java.version>
-
-		<!--
-          The port on localhost where the application will listen to from outside the cluster
-          Will be used to construct a NodePort
-        -->
-		<nodeport.value>32222</nodeport.value>
+		<testcontainers.version>1.16.3</testcontainers.version>
 	</properties>
 
 	<build>
@@ -121,6 +111,24 @@
 				<groupId>com.github.docker-java</groupId>
 				<artifactId>docker-java-transport-httpclient5</artifactId>
 				<version>${docker-java.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>testcontainers</artifactId>
+				<version>${testcontainers.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>junit-jupiter</artifactId>
+				<version>${testcontainers.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>k3s</artifactId>
+				<version>${testcontainers.version}</version>
 				<scope>test</scope>
 			</dependency>
 		</dependencies>

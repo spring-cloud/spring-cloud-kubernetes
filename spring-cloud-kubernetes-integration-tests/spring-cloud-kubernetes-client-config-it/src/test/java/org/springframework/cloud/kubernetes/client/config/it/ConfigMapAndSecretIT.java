@@ -16,42 +16,43 @@
 
 package org.springframework.cloud.kubernetes.client.config.it;
 
-import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
 
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
+import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1Role;
+import io.kubernetes.client.openapi.models.V1RoleBinding;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.BindMode;
+import org.testcontainers.k3s.K3sContainer;
+import org.testcontainers.utility.DockerImageName;
+import reactor.netty.http.client.HttpClient;
+import reactor.util.retry.Retry;
 
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.ResponseErrorHandler;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.getPomVersion;
 
 /**
  * @author Ryan Baxter
  */
-public class ConfigMapAndSecretIT {
-
-	private static final Log LOG = LogFactory.getLog(ConfigMapAndSecretIT.class);
+class ConfigMapAndSecretIT {
 
 	private static final String SPRING_CLOUD_CLIENT_CONFIG_IT_DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-config-it-deployment";
 
@@ -61,14 +62,11 @@ public class ConfigMapAndSecretIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static final String MYPROPERTY_URL = "http://localhost:80/client-config-it/myProperty";
+	private static final String MY_PROPERTY_URL = "localhost/client-config-it/myProperty";
 
-	private static final String MYSECRET_URL = "http://localhost:80/client-config-it/mySecret";
+	private static final String MY_SECRET_URL = "http://localhost:80/client-config-it/mySecret";
 
 	private static final String APP_NAME = "spring-cloud-kubernetes-client-config-it";
-
-	// though not obvious, we need this, even if it is "unused"
-	private static ApiClient client;
 
 	private static CoreV1Api api;
 
@@ -78,17 +76,31 @@ public class ConfigMapAndSecretIT {
 
 	private static K8SUtils k8SUtils;
 
+	private static final K3sContainer K3S = new K3sContainer(DockerImageName.parse("rancher/k3s:v1.21.10-k3s1"))
+		.withFileSystemBind("/Users/wind57/Desktop/containerd-images/spring-cloud-kubernetes-client-config-it.tar",
+			"/tmp/images/spring-cloud-kubernetes-client-config-it.tar", BindMode.READ_WRITE)
+		.withExposedPorts(80, 6443, 8080)
+		.withCommand("server") // otherwise traefik is not installed
+		.withReuse(true);
+
 	@BeforeAll
-	public static void setup() throws Exception {
-		client = createApiClient();
+	static void setup() throws Exception {
+		K3S.start();
+		K3S.execInContainer("ctr", "i", "import", "/tmp/images/spring-cloud-kubernetes-client-config-it.tar");
+		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
 		appsApi = new AppsV1Api();
 		networkingApi = new NetworkingV1Api();
 		k8SUtils = new K8SUtils(api, appsApi);
+
+		RbacAuthorizationV1Api rbacApi = new RbacAuthorizationV1Api();
+		api.createNamespacedServiceAccount(NAMESPACE, getConfigK8sClientItServiceAccount(), null, null, null);
+		rbacApi.createNamespacedRoleBinding(NAMESPACE, getConfigK8sClientItRoleBinding(), null, null, null);
+		rbacApi.createNamespacedRole(NAMESPACE, getConfigK8sClientItRole(), null, null, null);
 	}
 
 	@AfterEach
-	public void after() throws Exception {
+	void after() throws Exception {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
 				"metadata.name=" + K8S_CONFIG_CLIENT_IT_NAME, null, null, null, null, null, null, null, null, null);
 		api.deleteNamespacedService(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, NAMESPACE, null, null, null, null, null, null);
@@ -97,56 +109,71 @@ public class ConfigMapAndSecretIT {
 		api.deleteNamespacedSecret(APP_NAME, NAMESPACE, null, null, null, null, null, null);
 	}
 
-	public void testConfigMapAndSecretRefresh() throws Exception {
+	void testConfigMapAndSecretRefresh() throws Exception {
 
-		RestTemplate rest = new RestTemplateBuilder().build();
-		rest.setErrorHandler(new ResponseErrorHandler() {
-			@Override
-			public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
-				LOG.warn("Received response status code: " + clientHttpResponse.getRawStatusCode());
-				return clientHttpResponse.getRawStatusCode() != 503;
-			}
+		WebClient client = WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
+				.baseUrl("localhost/fabric8-configmap/key1").build();
 
-			@Override
-			public void handleError(ClientHttpResponse clientHttpResponse) {
+		String result = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+//				.retryWhen(Retry.fixedDelay(15, Duration.ofSeconds(1))
+//						.filter(x -> ((WebClientResponseException) x).getStatusCode().value() == 503))
+				.block();
 
-			}
-		});
+		// RestTemplate rest = new RestTemplateBuilder().build();
+		// rest.setErrorHandler(new ResponseErrorHandler() {
+		// @Override
+		// public boolean hasError(ClientHttpResponse clientHttpResponse) throws
+		// IOException {
+		// LOG.warn("Received response status code: " +
+		// clientHttpResponse.getRawStatusCode());
+		// return clientHttpResponse.getRawStatusCode() != 503;
+		// }
+		//
+		// @Override
+		// public void handleError(ClientHttpResponse clientHttpResponse) {
+		//
+		// }
+		// });
 
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
-		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
-				.until(() -> rest.getForEntity(MYPROPERTY_URL, String.class).getStatusCode().is2xxSuccessful());
-
-		String myProperty = rest.getForObject(MYPROPERTY_URL, String.class);
-		assertThat(myProperty).isEqualTo("from-config-map");
-		String mySecret = rest.getForObject(MYSECRET_URL, String.class);
-		assertThat(mySecret).isEqualTo("p455w0rd");
-
-		V1ConfigMap configMap = getConfigK8sClientItConfigMap();
-		Map<String, String> data = configMap.getData();
-		data.replace("application.yaml", data.get("application.yaml").replace("from-config-map", "from-unit-test"));
-		configMap.data(data);
-		api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null);
-		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
-				.until(() -> rest.getForObject(MYPROPERTY_URL, String.class).equals("from-unit-test"));
-		myProperty = rest.getForObject(MYPROPERTY_URL, String.class);
-		assertThat(myProperty).isEqualTo("from-unit-test");
-
-		V1Secret secret = getConfigK8sClientItCSecret();
-		Map<String, byte[]> secretData = secret.getData();
-		secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
-		secret.setData(secretData);
-		api.replaceNamespacedSecret(APP_NAME, NAMESPACE, secret, null, null, null);
-		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
-				.until(() -> rest.getForObject(MYSECRET_URL, String.class).equals("p455w1rd"));
-		mySecret = rest.getForObject(MYSECRET_URL, String.class);
-		assertThat(mySecret).isEqualTo("p455w1rd");
+		// await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
+		// .until(() -> rest.getForEntity(MY_PROPERTY_URL,
+		// String.class).getStatusCode().is2xxSuccessful());
+		//
+		// String myProperty = rest.getForObject(MY_PROPERTY_URL, String.class);
+		assertThat(result).isEqualTo("from-config-map");
+		// String mySecret = rest.getForObject(MY_SECRET_URL, String.class);
+		// assertThat(mySecret).isEqualTo("p455w0rd");
+		//
+		// V1ConfigMap configMap = getConfigK8sClientItConfigMap();
+		// Map<String, String> data = configMap.getData();
+		// data.replace("application.yaml",
+		// data.get("application.yaml").replace("from-config-map", "from-unit-test"));
+		// configMap.data(data);
+		// api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null,
+		// null);
+		// await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
+		// .until(() -> rest.getForObject(MY_PROPERTY_URL,
+		// String.class).equals("from-unit-test"));
+		// myProperty = rest.getForObject(MY_PROPERTY_URL, String.class);
+		// assertThat(myProperty).isEqualTo("from-unit-test");
+		//
+		// V1Secret secret = getConfigK8sClientItCSecret();
+		// Map<String, byte[]> secretData = secret.getData();
+		// secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
+		// secret.setData(secretData);
+		// api.replaceNamespacedSecret(APP_NAME, NAMESPACE, secret, null, null, null);
+		// await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
+		// .until(() -> rest.getForObject(MY_SECRET_URL,
+		// String.class).equals("p455w1rd"));
+		// mySecret = rest.getForObject(MY_SECRET_URL, String.class);
+		// assertThat(mySecret).isEqualTo("p455w1rd");
 
 	}
 
 	@Test
-	public void testConfigMapAndSecretWatchRefresh() throws Exception {
+	void testConfigMapAndSecretWatchRefresh() throws Exception {
 		deployConfigK8sClientIt();
 
 		// Check to make sure the controller deployment is ready
@@ -155,7 +182,7 @@ public class ConfigMapAndSecretIT {
 	}
 
 	@Test
-	public void testConfigMapAndSecretPollingRefresh() throws Exception {
+	void testConfigMapAndSecretPollingRefresh() throws Exception {
 		deployConfigK8sClientPollingIt();
 
 		// Check to make sure the controller deployment is ready
@@ -213,6 +240,18 @@ public class ConfigMapAndSecretIT {
 
 	private static V1Secret getConfigK8sClientItCSecret() throws Exception {
 		return (V1Secret) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-secret.yaml");
+	}
+
+	private static V1ServiceAccount getConfigK8sClientItServiceAccount() throws Exception {
+		return (V1ServiceAccount) K8SUtils.readYamlFromClasspath("service-account.yaml");
+	}
+
+	private static V1RoleBinding getConfigK8sClientItRoleBinding() throws Exception {
+		return (V1RoleBinding) K8SUtils.readYamlFromClasspath("role-binding.yaml");
+	}
+
+	private static V1Role getConfigK8sClientItRole() throws Exception {
+		return (V1Role) K8SUtils.readYamlFromClasspath("role.yaml");
 	}
 
 }
