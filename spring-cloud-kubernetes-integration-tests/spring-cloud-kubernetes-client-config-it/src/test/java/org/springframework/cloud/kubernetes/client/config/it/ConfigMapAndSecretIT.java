@@ -31,21 +31,23 @@ import io.kubernetes.client.openapi.models.V1RoleBinding;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceAccount;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.k3s.K3sContainer;
+import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.testcontainers.utility.DockerImageName;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import reactor.util.retry.RetryBackoffSpec;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
@@ -75,9 +77,10 @@ class ConfigMapAndSecretIT {
 	private static K8SUtils k8SUtils;
 
 	private static final K3sContainer K3S = new K3sContainer(DockerImageName.parse("rancher/k3s:v1.21.10-k3s1"))
-		.withFileSystemBind("/Users/wind57/Desktop/containerd-images/spring-cloud-kubernetes-client-config-it.tar",
-			"/tmp/images/spring-cloud-kubernetes-client-config-it.tar", BindMode.READ_WRITE)
-		.withExposedPorts(80, 6443)
+		.withCreateContainerCmdModifier(
+			cmd -> cmd.getHostConfig().withStorageOpt(Map.of("dm.basesize", "20G"))
+		)
+		.withFileSystemBind("/tmp/images", "/tmp/images", BindMode.READ_WRITE).withExposedPorts(80, 6443)
 		.withCommand("server") // otherwise traefik is not installed
 		.withReuse(true);
 
@@ -97,10 +100,15 @@ class ConfigMapAndSecretIT {
 		rbacApi.createNamespacedRole(NAMESPACE, getConfigK8sClientItRole(), null, null, null);
 	}
 
+	@AfterAll
+	static void afterAll() throws Exception {
+		K3S.execInContainer("ctr", "i", "import", "/spring-cloud-kubernetes-client-config-it");
+	}
+
 	@AfterEach
 	void after() throws Exception {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + K8S_CONFIG_CLIENT_IT_NAME, null, null, null, null, null, null, null, null, null);
+			"metadata.name=" + K8S_CONFIG_CLIENT_IT_NAME, null, null, null, null, null, null, null, null, null);
 		api.deleteNamespacedService(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, NAMESPACE, null, null, null, null, null, null);
 		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
 		api.deleteNamespacedConfigMap(APP_NAME, NAMESPACE, null, null, null, null, null, null);
@@ -116,13 +124,11 @@ class ConfigMapAndSecretIT {
 		WebClient propertyClient = builder.baseUrl(propertyURL).build();
 
 		String property = propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(backoffSpec())
-				.block();
+			.retryWhen(backoffSpec()).block();
 		assertThat(property).isEqualTo("from-config-map");
 
 		WebClient secretClient = builder.baseUrl(secretURL).build();
-		String secret = secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-			.retryWhen(backoffSpec())
+		String secret = secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(backoffSpec())
 			.block();
 		assertThat(secret).isEqualTo("p455w0rd");
 
@@ -131,23 +137,17 @@ class ConfigMapAndSecretIT {
 		data.replace("application.yaml", data.get("application.yaml").replace("from-config-map", "from-unit-test"));
 		configMap.data(data);
 		api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null);
-		// await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
-		// .until(() -> rest.getForObject(MY_PROPERTY_URL,
-		// String.class).equals("from-unit-test"));
-		// myProperty = rest.getForObject(MY_PROPERTY_URL, String.class);
-		// assertThat(myProperty).isEqualTo("from-unit-test");
-		//
-		// V1Secret secret = getConfigK8sClientItCSecret();
-		// Map<String, byte[]> secretData = secret.getData();
-		// secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
-		// secret.setData(secretData);
-		// api.replaceNamespacedSecret(APP_NAME, NAMESPACE, secret, null, null, null);
-		// await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
-		// .until(() -> rest.getForObject(MY_SECRET_URL,
-		// String.class).equals("p455w1rd"));
-		// mySecret = rest.getForObject(MY_SECRET_URL, String.class);
-		// assertThat(mySecret).isEqualTo("p455w1rd");
-
+		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
+			.until(() -> propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(backoffSpec()).block().equals("from-unit-test"));
+		V1Secret v1Secret = getConfigK8sClientItCSecret();
+		Map<String, byte[]> secretData = v1Secret.getData();
+		secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
+		v1Secret.setData(secretData);
+		api.replaceNamespacedSecret(APP_NAME, NAMESPACE, v1Secret, null, null, null);
+		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
+			.until(() -> secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(backoffSpec()).block().equals("p455w1rd"));
 	}
 
 	@Test
@@ -188,18 +188,18 @@ class ConfigMapAndSecretIT {
 
 	private static V1Deployment getConfigK8sClientItDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) K8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-deployment.yaml");
+			.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
-				+ getPomVersion();
+			+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
 
 	private static V1Deployment getConfigK8sClientItPollingDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) K8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-polling-deployment.yaml");
+			.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-polling-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
-				+ getPomVersion();
+			+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
@@ -233,13 +233,12 @@ class ConfigMapAndSecretIT {
 	}
 
 	private RetryBackoffSpec backoffSpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1))
-			.filter(x -> {
-				if (x instanceof WebClientResponseException) {
-					return ((WebClientResponseException) x).getStatusCode().value() == 503;
-				}
-				return true;
-			});
+		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(x -> {
+			if (x instanceof WebClientResponseException) {
+				return ((WebClientResponseException) x).getStatusCode().value() == 503;
+			}
+			return true;
+		});
 	}
 
 	private WebClient.Builder builder() {

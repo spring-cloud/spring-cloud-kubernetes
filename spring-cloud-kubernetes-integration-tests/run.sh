@@ -122,6 +122,8 @@ enable_istio() {
 }
 
 main() {
+	# needed for test containers testing
+	mkdir "/tmp/images"
     # get kind
     install_kind_release
 
@@ -179,6 +181,10 @@ main() {
     # teardown will happen automatically on exit
 }
 
+MOVED_TO_TEST_CONTAINERS=(
+	"spring-cloud-kubernetes-client-config-it"
+)
+
 run_tests() {
 	arr=("$@")
 	cd ../spring-cloud-kubernetes-test-support
@@ -187,12 +193,26 @@ run_tests() {
 	for p in "${arr[@]}"; do
 		echo "Running test: $p"
 		cd  $p
+
 		${MVN} spring-boot:build-image \
 			-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${PROJECT_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder
-		"${KIND}" load docker-image docker.io/springcloud/$p:${PROJECT_VERSION}
+
+		# only save images that have been refactored to be moved to test-containers
+		# this is WIP. When all of the projects move, we will no longer need kind.
+		if [[ "${MOVED_TO_TEST_CONTAINERS[*]}" =~ ${p} ]]; then
+            docker save -o  "/tmp/images/${p}.tar" "springcloud/${p}"
+		else
+			"${KIND}" load docker-image docker.io/springcloud/$p:${PROJECT_VERSION}
+		fi
 		# empty excludeITTests, so that integration tests will run
-		${MVN} clean install -DexcludeITTests=
-		cd ..
+        ${MVN} clean install -DexcludeITTests=
+
+		# clear space as these images are not small at all
+        if [[ "${MOVED_TO_TEST_CONTAINERS[*]}" =~ ${p} ]]; then
+            rm -fr "/tmp/images/${p}.tar"
+        fi
+
+        cd ..
 	done
 }
 

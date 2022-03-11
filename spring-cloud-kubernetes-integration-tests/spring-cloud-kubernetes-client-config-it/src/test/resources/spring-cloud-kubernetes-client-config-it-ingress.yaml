@@ -3,8 +3,6 @@ kind: Ingress
 metadata:
   name: it-ingress
   namespace: default
-  annotations:
-    kubernetes.io/ingress.class: traefik
 spec:
   rules:
     - http:

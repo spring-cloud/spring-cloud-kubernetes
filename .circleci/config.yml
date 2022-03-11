@@ -43,6 +43,11 @@ jobs:
             sudo update-alternatives --set java /usr/lib/jvm/temurin-17-jdk-amd64/bin/java
             sudo update-alternatives --set javac /usr/lib/jvm/temurin-17-jdk-amd64/bin/javac
             java -version
+      - run:
+          name: testcontainers reuse support
+          command: |
+            # needed for .withReuse(true) to work
+            echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
       - checkout
       - run:
           name: Run regular tests
