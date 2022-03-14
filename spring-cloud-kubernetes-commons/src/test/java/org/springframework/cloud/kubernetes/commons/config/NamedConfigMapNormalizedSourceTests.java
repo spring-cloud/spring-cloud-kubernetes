@@ -53,8 +53,8 @@ class NamedConfigMapNormalizedSourceTests {
 	void testConstructorFields() {
 		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, "prefix",
 				true);
-		Assertions.assertEquals(one.name(), "name");
-		Assertions.assertEquals(one.namespace(), "namespace");
+		Assertions.assertEquals(one.name().get(), "name");
+		Assertions.assertEquals(one.namespace().get(), "namespace");
 		Assertions.assertFalse(one.failFast());
 	}
 

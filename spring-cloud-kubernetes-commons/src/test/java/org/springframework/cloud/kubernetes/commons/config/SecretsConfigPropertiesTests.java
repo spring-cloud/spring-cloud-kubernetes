@@ -45,7 +45,7 @@ class SecretsConfigPropertiesTests {
 		properties.setSources(Collections.emptyList());
 		Assertions.assertEquals(source.size(), 1);
 		Assertions.assertTrue(source.get(0) instanceof NamedSecretNormalizedSource);
-		Assertions.assertEquals(((NamedSecretNormalizedSource) source.get(0)).name(), "application");
+		Assertions.assertEquals(source.get(0).name().get(), "application");
 	}
 
 	/**
@@ -93,14 +93,14 @@ class SecretsConfigPropertiesTests {
 		Iterator<NormalizedSource> iterator = resultAsSet.iterator();
 
 		NormalizedSource oneResult = iterator.next();
-		Assertions.assertEquals(((NamedSecretNormalizedSource) oneResult).name(), "one");
+		Assertions.assertEquals(oneResult.name().get(), "one");
 
 		NormalizedSource twoResult = iterator.next();
 		Assertions.assertEquals(((LabeledSecretNormalizedSource) twoResult).labels(),
 				Collections.singletonMap("one", "1"));
 
 		NormalizedSource threeResult = iterator.next();
-		Assertions.assertEquals(((NamedSecretNormalizedSource) threeResult).name(), "application");
+		Assertions.assertEquals(threeResult.name().get(), "application");
 
 		NormalizedSource fourResult = iterator.next();
 		Assertions.assertEquals(((LabeledSecretNormalizedSource) fourResult).labels(),

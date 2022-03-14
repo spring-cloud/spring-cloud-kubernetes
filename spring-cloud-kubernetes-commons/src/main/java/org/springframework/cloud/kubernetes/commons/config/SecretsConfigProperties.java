@@ -165,7 +165,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
 
-		public Stream<NormalizedSource> normalize(String defaultName, String defaultNamespace,
+		private Stream<NormalizedSource> normalize(String defaultName, String defaultNamespace,
 				Map<String, String> defaultLabels, boolean failFast, Environment environment) {
 
 			Stream.Builder<NormalizedSource> normalizedSources = Stream.builder();

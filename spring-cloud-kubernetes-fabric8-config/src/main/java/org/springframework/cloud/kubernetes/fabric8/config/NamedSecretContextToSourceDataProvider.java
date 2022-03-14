@@ -58,7 +58,7 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 			NamedSecretNormalizedSource source = (NamedSecretNormalizedSource) context.normalizedSource();
 
 			Map<String, Object> result = new HashMap<>();
-			String secretName = source.name();
+			String secretName = source.name().orElseThrow();
 			String namespace = context.namespace();
 
 			try {

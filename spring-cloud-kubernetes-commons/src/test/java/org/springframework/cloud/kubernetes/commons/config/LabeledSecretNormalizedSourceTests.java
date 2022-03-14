@@ -57,17 +57,10 @@ class LabeledSecretNormalizedSourceTests {
 	}
 
 	@Test
-	void testFreeze() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false);
-		source.freeze();
-		Assertions.assertThrows(IllegalArgumentException.class, source::namespace);
-	}
-
-	@Test
 	void testConstructorFields() {
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false);
-		Assertions.assertNull(source.name());
-		Assertions.assertEquals(source.namespace(), "namespace");
+		Assertions.assertTrue(source.name().isEmpty());
+		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertFalse(source.failFast());
 	}
 

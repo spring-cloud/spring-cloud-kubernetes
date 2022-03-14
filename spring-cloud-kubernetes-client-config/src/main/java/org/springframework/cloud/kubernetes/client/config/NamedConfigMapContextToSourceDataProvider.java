@@ -80,11 +80,10 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 		return context -> {
 
 			NamedConfigMapNormalizedSource source = (NamedConfigMapNormalizedSource) context.normalizedSource();
-			String sourceName = source.name();
 			// namespace has to be read from context, not from the normalized source
 			String namespace = context.namespace();
 			Environment environment = context.environment();
-			String configMapName = sourceName != null ? sourceName : appName(environment, source).get();
+			String configMapName = appName(environment, source).get();
 			Set<String> propertySourceNames = new LinkedHashSet<>();
 			propertySourceNames.add(configMapName);
 
@@ -138,12 +137,8 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 
 	}
 
-	// unlike a Secret, users have the option not to specify the config map name in
-	// properties.
-	// in such cases we will try to get it elsewhere. getApplicationName method has that
-	// logic.
 	private Supplier<String> appName(Environment environment, NormalizedSource normalizedSource) {
-		return () -> getApplicationName(environment, normalizedSource.name(), normalizedSource.target());
+		return () -> getApplicationName(environment, normalizedSource.name().orElse(null), normalizedSource.target());
 	}
 
 }

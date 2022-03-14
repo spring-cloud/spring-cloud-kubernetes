@@ -85,8 +85,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 
 			NamedConfigMapNormalizedSource source = (NamedConfigMapNormalizedSource) context.normalizedSource();
 			String namespace = context.namespace();
-			String initialConfigMapName = source.name() != null ? source.name()
-					: appName(context.environment(), source).get();
+			String initialConfigMapName = appName(context.environment(), source).get();
 			String currentConfigMapName = initialConfigMapName;
 			Set<String> propertySourceNames = new LinkedHashSet<>();
 			propertySourceNames.add(initialConfigMapName);
@@ -129,12 +128,8 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 
 	}
 
-	// unlike a Secret, users have the option not to specify
-	// the config map name in properties.
-	// in such cases we will try to get it elsewhere.
-	// getApplicationName method has that logic.
 	private Supplier<String> appName(Environment environment, NormalizedSource normalizedSource) {
-		return () -> getApplicationName(environment, normalizedSource.name(), normalizedSource.target());
+		return () -> getApplicationName(environment, normalizedSource.name().orElse(null), normalizedSource.target());
 	}
 
 }

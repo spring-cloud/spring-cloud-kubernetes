@@ -177,7 +177,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
 
-		public NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix,
+		private NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix,
 				boolean defaultIncludeProfileSpecificSources, boolean failFast) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;

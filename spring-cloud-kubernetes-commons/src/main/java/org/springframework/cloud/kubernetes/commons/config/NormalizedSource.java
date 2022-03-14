@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.Optional;
+
 /**
  * Base class for Normalized Sources. It should contain all the "normalized" properties
  * that users can specify, either explicitly or implicitly.
@@ -30,25 +32,19 @@ public sealed abstract class NormalizedSource permits NamedSecretNormalizedSourc
 
 	private final boolean failFast;
 
-	private boolean frozen;
-
 	protected NormalizedSource(String name, String namespace, boolean failFast) {
 		this.name = name;
 		this.namespace = namespace;
 		this.failFast = failFast;
 	}
 
-	// this can return null, which is perfectly fine.
-	public final String namespace() {
-		if (frozen) {
-			throw new IllegalArgumentException("namespace must be queried elsewhere");
-		}
-		return this.namespace;
+	public final Optional<String> namespace() {
+		return Optional.ofNullable(this.namespace);
 	}
 
-	// this can return null (for a secret based on labels, for example)
-	public final String name() {
-		return this.name;
+	// this can return an empty Optional (for a secret based on labels, for example)
+	public final Optional<String> name() {
+		return Optional.ofNullable(this.name);
 	}
 
 	public final boolean failFast() {
@@ -62,14 +58,6 @@ public sealed abstract class NormalizedSource permits NamedSecretNormalizedSourc
 	public abstract NormalizedSourceType type();
 
 	public abstract String target();
-
-	/**
-	 * calling this method will result in an Exceptions being thrown when calling some
-	 * getters. At the moment, this is done for the namespace only.
-	 */
-	public final void freeze() {
-		this.frozen = true;
-	}
 
 	public abstract String toString();
 

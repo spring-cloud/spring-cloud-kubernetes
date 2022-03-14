@@ -48,8 +48,8 @@ class NamedSecretNormalizedSourceTests {
 	@Test
 	void testConstructorFields() {
 		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false);
-		Assertions.assertEquals(source.name(), "name");
-		Assertions.assertEquals(source.namespace(), "namespace");
+		Assertions.assertEquals(source.name().get(), "name");
+		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertFalse(source.failFast());
 	}
 

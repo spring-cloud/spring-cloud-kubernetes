@@ -61,25 +61,25 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 
 			Map<String, Object> result = new HashMap<>();
 			String namespace = context.namespace();
+			String name = source.name().orElseThrow();
 
 			try {
 
-				LOG.info("Loading Secret with name '" + source.name() + "'in namespace '" + namespace + "'");
+				LOG.info("Loading Secret with name '" + name + "' in namespace '" + namespace + "'");
 				Optional<V1Secret> secret;
 				secret = context.client()
 						.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
-						.getItems().stream().filter(s -> source.name().equals(s.getMetadata().getName())).findFirst();
+						.getItems().stream().filter(s -> name.equals(s.getMetadata().getName())).findFirst();
 
 				secret.ifPresent(s -> result.putAll(dataFromSecret(s, namespace)));
 
 			}
 			catch (Exception e) {
-				String message = "Unable to read Secret with name '" + source.name() + "' in namespace '" + namespace
-						+ "'";
+				String message = "Unable to read Secret with name '" + name + "' in namespace '" + namespace + "'";
 				onException(source.failFast(), message, e);
 			}
 
-			String propertySourceName = sourceNameMapper.apply(source.name(), namespace);
+			String propertySourceName = sourceNameMapper.apply(name, namespace);
 			return new SourceData(propertySourceName, result);
 
 		};

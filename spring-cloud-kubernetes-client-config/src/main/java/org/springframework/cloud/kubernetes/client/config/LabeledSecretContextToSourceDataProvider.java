@@ -79,7 +79,7 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Kuberne
 
 			try {
 
-				LOG.info("Loading Secret with labels '" + labels + "'in namespace '" + namespace + "'");
+				LOG.info("Loading Secret with labels '" + labels + "' in namespace '" + namespace + "'");
 				List<V1Secret> secrets = context.client().listNamespacedSecret(namespace, null, null, null, null,
 						createLabelsSelector(labels), null, null, null, null, null).getItems();
 

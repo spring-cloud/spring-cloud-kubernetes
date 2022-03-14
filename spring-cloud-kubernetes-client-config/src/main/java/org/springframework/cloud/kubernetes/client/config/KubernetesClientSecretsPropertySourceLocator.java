@@ -24,7 +24,8 @@ import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperti
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.getApplicationNamespace;
 
 /**
  * @author Ryan Baxter
@@ -46,16 +47,8 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 	@Override
 	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment, NormalizedSource source) {
 
-		String namespace;
-		String normalizedNamespace = source.namespace();
-
-		if (StringUtils.hasText(normalizedNamespace)) {
-			namespace = normalizedNamespace;
-		}
-		else {
-			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace, source.target(),
-					kubernetesNamespaceProvider);
-		}
+		String normalizedNamespace = source.namespace().orElse(null);
+		String namespace = getApplicationNamespace(normalizedNamespace, source.target(), kubernetesNamespaceProvider);
 
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, source, namespace,
 				environment);
