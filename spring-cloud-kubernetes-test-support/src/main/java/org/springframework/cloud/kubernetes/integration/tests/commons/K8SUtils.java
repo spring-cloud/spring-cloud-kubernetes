@@ -27,6 +27,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -35,12 +36,15 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentBuilder;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
 import io.kubernetes.client.openapi.models.V1EnvVar;
+import io.kubernetes.client.openapi.models.V1LoadBalancerIngress;
+import io.kubernetes.client.openapi.models.V1LoadBalancerStatus;
 import io.kubernetes.client.openapi.models.V1ReplicationController;
 import io.kubernetes.client.openapi.models.V1ReplicationControllerList;
 import io.kubernetes.client.openapi.models.V1Service;
@@ -70,6 +74,8 @@ public class K8SUtils {
 	private final CoreV1Api api;
 
 	private final AppsV1Api appsApi;
+
+	private final NetworkingV1Api networkingApi;
 
 	public static ApiClient createApiClient() throws IOException {
 		return createApiClient(false, Duration.ofSeconds(15));
@@ -109,6 +115,7 @@ public class K8SUtils {
 	public K8SUtils(CoreV1Api api, AppsV1Api appsApi) {
 		this.api = api;
 		this.appsApi = appsApi;
+		this.networkingApi = new NetworkingV1Api();
 	}
 
 	public Object readYaml(String urlString) throws Exception {
@@ -204,6 +211,41 @@ public class K8SUtils {
 				.until(() -> isDeploymentReady(deploymentName, namespace));
 	}
 
+	public void waitForIngress(String ingressName, String namespace) {
+		await().timeout(Duration.ofSeconds(90)).pollInterval(Duration.ofSeconds(3)).until(() -> {
+			try {
+				V1LoadBalancerStatus status = networkingApi
+						.readNamespacedIngress(ingressName, namespace, null, null, null).getStatus().getLoadBalancer();
+
+				if (status == null) {
+					log.info("ingress : " + ingressName + " not ready yet (loadbalancer not yet present)");
+					return false;
+				}
+
+				List<V1LoadBalancerIngress> loadBalancerIngress = status.getIngress();
+				if (loadBalancerIngress == null) {
+					log.info("ingress : " + ingressName + " not ready yet (loadbalancer ingress not yet present)");
+					return false;
+				}
+
+				String ip = loadBalancerIngress.get(0).getIp();
+				if (ip == null) {
+					log.info("ingress : " + ingressName + " not ready yet");
+					return false;
+				}
+
+				log.info("ingress : " + ingressName + " ready with ip : " + ip);
+				return true;
+			}
+			catch (ApiException e) {
+				if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+					return false;
+				}
+				throw new RuntimeException(e);
+			}
+		});
+	}
+
 	public void waitForDeploymentToBeDeleted(String deploymentName, String namespace) {
 		await().timeout(Duration.ofSeconds(90)).until(() -> {
 			try {
@@ -227,7 +269,8 @@ public class K8SUtils {
 		}
 		V1Deployment deployment = deployments.getItems().get(0);
 		Integer availableReplicas = deployment.getStatus().getAvailableReplicas();
-		log.info("Available replicas for " + deploymentName + ": " + (availableReplicas == null ? 0 : availableReplicas));
+		log.info("Available replicas for " + deploymentName + ": "
+				+ (availableReplicas == null ? 0 : availableReplicas));
 		return availableReplicas != null && availableReplicas >= 1;
 	}
 

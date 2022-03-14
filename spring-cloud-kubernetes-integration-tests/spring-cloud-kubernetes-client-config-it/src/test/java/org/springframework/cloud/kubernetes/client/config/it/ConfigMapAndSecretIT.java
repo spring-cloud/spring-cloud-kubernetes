@@ -47,7 +47,6 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
@@ -112,41 +111,6 @@ class ConfigMapAndSecretIT {
 		api.deleteNamespacedSecret(APP_NAME, NAMESPACE, null, null, null, null, null, null);
 	}
 
-	void testConfigMapAndSecretRefresh() throws Exception {
-
-		String propertyURL = "localhost:" + K3S.getMappedPort(80) + "/myProperty";
-		String secretURL = "localhost:" + K3S.getMappedPort(80) + "/mySecret";
-
-		WebClient.Builder builder = builder();
-		WebClient propertyClient = builder.baseUrl(propertyURL).build();
-
-		String property = propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-			.retryWhen(backoffSpec()).block();
-		assertThat(property).isEqualTo("from-config-map");
-
-		WebClient secretClient = builder.baseUrl(secretURL).build();
-		String secret = secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(backoffSpec())
-			.block();
-		assertThat(secret).isEqualTo("p455w0rd");
-
-		V1ConfigMap configMap = getConfigK8sClientItConfigMap();
-		Map<String, String> data = configMap.getData();
-		data.replace("application.yaml", data.get("application.yaml").replace("from-config-map", "from-unit-test"));
-		configMap.data(data);
-		api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null);
-		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
-			.until(() -> propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(backoffSpec()).block().equals("from-unit-test"));
-		V1Secret v1Secret = getConfigK8sClientItCSecret();
-		Map<String, byte[]> secretData = v1Secret.getData();
-		secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
-		v1Secret.setData(secretData);
-		api.replaceNamespacedSecret(APP_NAME, NAMESPACE, v1Secret, null, null, null);
-		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
-			.until(() -> secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(backoffSpec()).block().equals("p455w1rd"));
-	}
-
 	@Test
 	void testConfigMapAndSecretWatchRefresh() throws Exception {
 		deployConfigK8sClientIt();
@@ -165,13 +129,47 @@ class ConfigMapAndSecretIT {
 		testConfigMapAndSecretRefresh();
 	}
 
+	void testConfigMapAndSecretRefresh() throws Exception {
+
+		String propertyURL = "localhost:" + K3S.getMappedPort(80) + "/myProperty";
+		String secretURL = "localhost:" + K3S.getMappedPort(80) + "/mySecret";
+
+		WebClient.Builder builder = builder();
+		WebClient propertyClient = builder.baseUrl(propertyURL).build();
+
+		String property = propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block();
+		assertThat(property).isEqualTo("from-config-map");
+
+		WebClient secretClient = builder.baseUrl(secretURL).build();
+		String secret = secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block();
+		assertThat(secret).isEqualTo("p455w0rd");
+
+		V1ConfigMap configMap = getConfigK8sClientItConfigMap();
+		Map<String, String> data = configMap.getData();
+		data.replace("application.yaml", data.get("application.yaml").replace("from-config-map", "from-unit-test"));
+		configMap.data(data);
+		api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null);
+		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
+			.until(() -> propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("from-unit-test"));
+		V1Secret v1Secret = getConfigK8sClientItCSecret();
+		Map<String, byte[]> secretData = v1Secret.getData();
+		secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
+		v1Secret.setData(secretData);
+		api.replaceNamespacedSecret(APP_NAME, NAMESPACE, v1Secret, null, null, null);
+		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
+			.until(() -> secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("p455w1rd"));
+	}
+
 	private static void deployConfigK8sClientIt() throws Exception {
 		k8SUtils.waitForDeploymentToBeDeleted(K8S_CONFIG_CLIENT_IT_NAME, NAMESPACE);
 		api.createNamespacedSecret(NAMESPACE, getConfigK8sClientItCSecret(), null, null, null);
 		api.createNamespacedConfigMap(NAMESPACE, getConfigK8sClientItConfigMap(), null, null, null);
 		appsApi.createNamespacedDeployment(NAMESPACE, getConfigK8sClientItDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getConfigK8sClientItService(), null, null, null);
-		networkingApi.createNamespacedIngress(NAMESPACE, getConfigK8sClientItIngress(), null, null, null);
+
+		V1Ingress ingress = getConfigK8sClientItIngress();
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
 	private static void deployConfigK8sClientPollingIt() throws Exception {
@@ -227,13 +225,6 @@ class ConfigMapAndSecretIT {
 
 	private static V1Role getConfigK8sClientItRole() throws Exception {
 		return (V1Role) K8SUtils.readYamlFromClasspath("role.yaml");
-	}
-
-	private RetryBackoffSpec backoffSpec() {
-		return Retry.fixedDelay(30, Duration.ofSeconds(1)).filter(x -> {
-			System.out.println("==== failure : " + x.getMessage());
-			return true;
-		});
 	}
 
 	private WebClient.Builder builder() {
