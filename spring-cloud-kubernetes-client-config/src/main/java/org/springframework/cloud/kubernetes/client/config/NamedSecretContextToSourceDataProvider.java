@@ -61,6 +61,8 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 
 			Map<String, Object> result = new HashMap<>();
 			String namespace = context.namespace();
+			// error should never be thrown here, since we always expect a name
+			// explicit or implicit
 			String name = source.name().orElseThrow();
 
 			try {
