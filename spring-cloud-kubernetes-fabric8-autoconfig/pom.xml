@@ -140,7 +140,6 @@
 			<artifactId>bcpkix-jdk15on</artifactId>
 		</dependency>
 
-
 	</dependencies>
 
 </project>
