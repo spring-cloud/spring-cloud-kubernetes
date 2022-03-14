@@ -1,7 +1,0 @@
-# We are using an FMP fragment to ensure that NodePort is used correctly
-spec:
-  ports:
-    - protocol: TCP
-      port: 8080
-      nodePort: ${nodeport.value}
-  type: NodePort

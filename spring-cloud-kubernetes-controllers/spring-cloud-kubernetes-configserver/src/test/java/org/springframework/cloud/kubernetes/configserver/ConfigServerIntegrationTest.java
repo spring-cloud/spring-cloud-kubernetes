@@ -43,8 +43,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Ryan Baxter
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		properties = { "spring.cloud.kubernetes.client.namespace=default", "spring.profiles.include=kubernetes",
-				"spring.cloud.kubernetes.secrets.enableApi=true", "debug=true" },
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
+				"spring.profiles.include=kubernetes", "spring.cloud.kubernetes.secrets.enableApi=true", "debug=true" },
 		classes = { KubernetesConfigServerApplication.class })
 public class ConfigServerIntegrationTest {
 
@@ -75,7 +75,7 @@ public class ConfigServerIntegrationTest {
 	}
 
 	@Test
-	public void enabled() throws Exception {
+	public void enabled() {
 		Environment env = testRestTemplate.getForObject("/test-cm/default", Environment.class);
 		assertThat(env.getPropertySources().size()).isEqualTo(2);
 		assertThat(env.getPropertySources().get(0).getName().equals("configmap.test-cm.default")).isTrue();

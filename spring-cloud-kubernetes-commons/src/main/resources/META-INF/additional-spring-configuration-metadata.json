@@ -125,12 +125,6 @@
 			"type": "java.time.Duration",
 			"description": "Logging interval",
 			"defaultValue": "20s"
-		},
-		{
-			"name": "spring.cloud.kubernetes.enabled",
-			"type": "java.lang.Boolean",
-			"description": "Whether to enable Kubernetes integration.",
-			"defaultValue": "true"
 		}
 	]
 }

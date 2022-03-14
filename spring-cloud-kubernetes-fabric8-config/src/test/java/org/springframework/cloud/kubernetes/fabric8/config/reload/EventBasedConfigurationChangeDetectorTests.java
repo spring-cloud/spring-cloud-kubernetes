@@ -64,7 +64,7 @@ public class EventBasedConfigurationChangeDetectorTests {
 		when(k8sClient.getNamespace()).thenReturn("default");
 
 		Fabric8ConfigMapPropertySource fabric8ConfigMapPropertySource = new Fabric8ConfigMapPropertySource(k8sClient,
-				"myconfigmap");
+				"myconfigmap", "default", new MockEnvironment(), "", true, false);
 		env.getPropertySources().addFirst(new BootstrapPropertySource<>(fabric8ConfigMapPropertySource));
 
 		ConfigurationUpdateStrategy configurationUpdateStrategy = mock(ConfigurationUpdateStrategy.class);

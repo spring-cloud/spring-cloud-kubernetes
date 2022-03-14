@@ -1,0 +1,10 @@
+logging:
+  level:
+    org:
+      springframework: DEBUG
+
+spring:
+  cloud:
+    istio:
+      client:
+        envoyPort: 15000

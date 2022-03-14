@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -23,7 +25,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Ryan Baxter
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnKubernetesEnabled
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @EnableConfigurationProperties(KubernetesClientProperties.class)
 public class KubernetesCommonsAutoConfiguration {
 

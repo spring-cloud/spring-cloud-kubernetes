@@ -64,11 +64,11 @@ public class K8SUtils {
 
 	private static final String KUBERNETES_VERSION_FILE = "META-INF/springcloudkubernetes-version.txt";
 
-	private Log log = LogFactory.getLog(getClass());
+	private final Log log = LogFactory.getLog(getClass());
 
-	private CoreV1Api api;
+	private final CoreV1Api api;
 
-	private AppsV1Api appsApi;
+	private final AppsV1Api appsApi;
 
 	public static ApiClient createApiClient() throws IOException {
 		return createApiClient(false, Duration.ofSeconds(15));
@@ -123,8 +123,8 @@ public class K8SUtils {
 		return yamlObj;
 	}
 
-	public Object readYamlFromClasspath(String fileName) throws Exception {
-		ClassLoader classLoader = getClass().getClassLoader();
+	public static Object readYamlFromClasspath(String fileName) throws Exception {
+		ClassLoader classLoader = K8SUtils.class.getClassLoader();
 		File file = new File(classLoader.getResource(fileName).getFile());
 		return Yaml.load(file);
 	}
@@ -156,7 +156,7 @@ public class K8SUtils {
 
 	}
 
-	public void waitForEndpointReady(String name, String namespace) throws Exception {
+	public void waitForEndpointReady(String name, String namespace) {
 		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS)
 				.until(() -> isEndpointReady(name, namespace));
 	}
@@ -192,7 +192,7 @@ public class K8SUtils {
 
 	public void waitForDeployment(String deploymentName, String namespace) {
 		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS)
-				.until(() -> isDeployentReady(deploymentName, namespace));
+				.until(() -> isDeploymentReady(deploymentName, namespace));
 	}
 
 	public void waitForDeploymentToBeDeleted(String deploymentName, String namespace) {
@@ -210,7 +210,7 @@ public class K8SUtils {
 		});
 	}
 
-	public boolean isDeployentReady(String deploymentName, String namespace) throws ApiException {
+	public boolean isDeploymentReady(String deploymentName, String namespace) throws ApiException {
 		V1DeploymentList deployments = appsApi.listNamespacedDeployment(namespace, null, null, null,
 				"metadata.name=" + deploymentName, null, null, null, null, null, null);
 		if (deployments.getItems().size() < 1) {

@@ -31,10 +31,10 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import static org.hamcrest.Matchers.containsString;
 
 @ExtendWith(MockitoExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-		// Make sure test passes without Kubernetes cluster
-		"spring.cloud.kubernetes.leader.autoStartup=false", "management.endpoints.web.exposure.include=info",
-		"management.endpoint.info.show-details=always", "management.info.kubernetes.enabled=true" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.autoStartup=false",
+				"management.endpoints.web.exposure.include=info", "management.endpoint.info.show-details=always",
+				"management.info.kubernetes.enabled=true" })
 public class Fabric8LeaderAutoConfigurationTests {
 
 	@Value("${local.server.port}")

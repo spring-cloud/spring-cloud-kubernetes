@@ -60,11 +60,6 @@ jobs:
             find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
             bash <(curl -s https://codecov.io/bash)
-      - run:
-          name: Install Snap
-          command: |
-            sudo apt update
-            sudo apt install snapd
       - kube-orb/install-kubectl
       - attach_workspace:
           at: ./
@@ -79,61 +74,6 @@ jobs:
           command: |
             cd spring-cloud-kubernetes-integration-tests
             ./run.sh
-      - run:
-          name: Launch Kubernetes with microk8s
-          command: |
-            sudo snap install microk8s --classic --channel=1.11/stable
-
-            # wait until a k8s node is ready
-            sleep 10
-            n=0
-            until [ $n -ge 10 ]
-            do
-              (/snap/bin/microk8s.kubectl get no | grep -z "Ready") && break
-              n=$[$n+1]
-              sleep 20
-            done
-
-            echo "Kubernetes cluster launched"
-
-            # Allow intra-pod communication
-            sudo iptables -P FORWARD ACCEPT
-
-            echo n |/snap/bin/microk8s.enable dns registry istio
-
-            # wait until the registry is up and running
-            sleep 10
-            n=0
-            until [ $n -ge 10 ]
-            do
-              (/snap/bin/microk8s.kubectl get pod --namespace=container-registry | grep -z "Running") && break
-              n=$[$n+1]
-              sleep 10
-            done
-
-            echo "Kubernetes Container Registry enabled"
-
-            # wait until istio is up and running
-            sleep 10
-            n=0
-            until [ $n -ge 10 ]
-            do
-              (/snap/bin/microk8s.kubectl get pod -l istio=sidecar-injector --namespace=istio-system | grep -z "Running") && break
-              n=$[$n+1]
-              sleep 10
-            done
-
-            echo "Istio enabled"
-
-            # create the namespace where the istio integration test will run
-            /snap/bin/microk8s.kubectl create -f .circleci/istio-test-namespace.yml
-      - run:
-          name: Run integration tests
-          command: |
-            /snap/bin/microk8s.kubectl config view --raw > /tmp/kubeconfig
-            export KUBECONFIG=/tmp/kubeconfig
-            cd spring-cloud-kubernetes-integration-tests
-            ../mvnw -Ddocker.host='unix:///var/snap/microk8s/current/docker.sock' -Dimage.registry='localhost:32000' clean package fabric8:build verify -Pfmp,it,spring
       - run:
           name: "Aggregate test results"
           when: always

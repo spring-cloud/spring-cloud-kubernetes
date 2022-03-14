@@ -18,11 +18,9 @@
 	</description>
 
 	<properties>
-		<java.version>1.8</java.version>
-		<fmp.version>3.5.42</fmp.version>
+		<java.version>17</java.version>
 		<arquillian-cube.version>1.18.2</arquillian-cube.version>
 		<arquillian.version>1.4.0.Final</arquillian.version>
-		<rest-assured.version>3.2.0</rest-assured.version>
 		<okhttptests.version>3.12.12</okhttptests.version>
 		<docker-java.version>3.2.2</docker-java.version>
 
@@ -54,29 +52,27 @@
 
 	<profiles>
 		<profile>
-			<id>fmp</id>
+			<id>k8s</id>
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>io.fabric8</groupId>
-						<artifactId>fabric8-maven-plugin</artifactId>
-						<version>${fmp.version}</version>
+						<groupId>org.eclipse.jkube</groupId>
+						<artifactId>kubernetes-maven-plugin</artifactId>
 						<configuration>
-							<!--
-                                FMP can work with Openshift as well, so here we explicitly force it
-                                to work with vanilla Kubernetes and Docker builds
-                            -->
-							<buildStrategy>docker</buildStrategy>
-							<mode>kubernetes</mode>
-							<pushRegistry>${image.registry}</pushRegistry>
+							<generator>
+								<includes>
+									<include>spring-boot</include>
+								</includes>
+							</generator>
 						</configuration>
 						<executions>
 							<execution>
-								<id>fabric8</id>
+								<id>jkube</id>
 								<goals>
-									<goal>resource</goal>
 									<goal>build</goal>
+									<goal>resource</goal>
 								</goals>
+								<phase>package</phase>
 							</execution>
 						</executions>
 					</plugin>
@@ -116,28 +112,6 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>org.jboss.arquillian</groupId>
-				<artifactId>arquillian-bom</artifactId>
-				<version>${arquillian.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>io.rest-assured</groupId>
-				<artifactId>rest-assured</artifactId>
-				<version>${rest-assured.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.squareup.okhttp3</groupId>
-				<artifactId>okhttp</artifactId>
-				<version>${okhttptests.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.squareup.okhttp3</groupId>
-				<artifactId>logging-interceptor</artifactId>
-				<version>${okhttptests.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>com.github.docker-java</groupId>
 				<artifactId>docker-java-core</artifactId>
 				<version>${docker-java.version}</version>
@@ -154,17 +128,18 @@
 	</dependencyManagement>
 
 	<modules>
-		<module>simple-core</module>
-		<module>simple-configmap</module>
-<!--		<module>istio</module>-->
-		<module>discovery</module>
-		<module>load-balancer</module>
-        <!-- Add this module back once we convert everything over to kind -->
-<!--		<module>spring-cloud-kubernetes-client-config-it</module>-->
-<!--		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>-->
-<!--		<module>spring-cloud-kubernetes-client-reactive-discovery-client-it</module>-->
-<!--		<module>spring-cloud-kubernetes-configuration-watcher-it</module>-->
-<!--		<module>spring-cloud-kubernetes-configuration-watcher-it</module>-->
-<!--		<module>spring-cloud-kubernetes-core-k8s-client-it</module>-->
+		<module>spring-cloud-kubernetes-fabric8-client-simple-core</module>
+		<module>spring-cloud-kubernetes-fabric8-client-configmap</module>
+		<module>spring-cloud-kubernetes-fabric8-istio-it</module>
+		<module>spring-cloud-kubernetes-fabric8-client-discovery</module>
+		<module>spring-cloud-kubernetes-fabric8-client-loadbalancer</module>
+
+		<module>spring-cloud-kubernetes-discovery-client-it</module>
+		<module>spring-cloud-kubernetes-reactive-discovery-client-it</module>
+		<module>spring-cloud-kubernetes-client-config-it</module>
+		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>
+		<module>spring-cloud-kubernetes-client-reactive-discovery-client-it</module>
+		<module>spring-cloud-kubernetes-configuration-watcher-it</module>
+		<module>spring-cloud-kubernetes-core-k8s-client-it</module>
 	</modules>
 </project>
