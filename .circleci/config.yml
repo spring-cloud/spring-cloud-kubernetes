@@ -140,7 +140,7 @@ jobs:
           destination: testartifacts
   build:
     machine:
-      image: circleci/classic:201707-01
+      image: ubuntu-2004:202201-02
     environment:
       _JAVA_OPTIONS: "-Xms2g -Xmx2g"
       _SERVICE_OCCURENCE: 5
