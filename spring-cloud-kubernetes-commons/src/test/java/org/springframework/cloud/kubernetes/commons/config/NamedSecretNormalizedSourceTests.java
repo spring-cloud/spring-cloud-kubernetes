@@ -24,10 +24,12 @@ import org.junit.jupiter.api.Test;
  */
 class NamedSecretNormalizedSourceTests {
 
+	private static final String PREFIX = "prefix";
+
 	@Test
 	void testEqualsAndHashCode() {
-		NamedSecretNormalizedSource left = new NamedSecretNormalizedSource("name", "namespace", false);
-		NamedSecretNormalizedSource right = new NamedSecretNormalizedSource("name", "namespace", true);
+		NamedSecretNormalizedSource left = new NamedSecretNormalizedSource("name", "namespace", false, PREFIX);
+		NamedSecretNormalizedSource right = new NamedSecretNormalizedSource("name", "namespace", true, PREFIX);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -35,19 +37,19 @@ class NamedSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false);
+		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, PREFIX);
 		Assertions.assertSame(source.type(), NormalizedSourceType.NAMED_SECRET);
 	}
 
 	@Test
 	void testTarget() {
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false);
+		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, PREFIX);
 		Assertions.assertEquals(source.target(), "Secret");
 	}
 
 	@Test
 	void testConstructorFields() {
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false);
+		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, PREFIX);
 		Assertions.assertEquals(source.name().get(), "name");
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertFalse(source.failFast());
