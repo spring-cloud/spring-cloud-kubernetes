@@ -21,9 +21,11 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.getApplicationNamespace;
 
 /**
  * @author Ryan Baxter
@@ -43,24 +45,14 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 	}
 
 	@Override
-	protected MapPropertySource getMapPropertySource(String name,
-			ConfigMapConfigProperties.NormalizedSource normalizedSource, String configurationTarget,
-			ConfigurableEnvironment environment) {
+	protected MapPropertySource getMapPropertySource(NormalizedSource source, ConfigurableEnvironment environment) {
 
-		String namespace;
-		String normalizedNamespace = normalizedSource.getNamespace();
+		String normalizedNamespace = source.namespace().orElse(null);
+		String namespace = getApplicationNamespace(normalizedNamespace, source.target(), kubernetesNamespaceProvider);
 
-		if (StringUtils.hasText(normalizedNamespace)) {
-			namespace = normalizedNamespace;
-		}
-		else {
-			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace, "Config Map",
-					kubernetesNamespaceProvider);
-		}
-
-		return new KubernetesClientConfigMapPropertySource(coreV1Api, name, namespace, environment,
-				normalizedSource.getPrefix(), normalizedSource.isIncludeProfileSpecificSources(),
-				this.properties.isFailFast());
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, source, namespace,
+				environment);
+		return new KubernetesClientConfigMapPropertySource(context);
 	}
 
 }

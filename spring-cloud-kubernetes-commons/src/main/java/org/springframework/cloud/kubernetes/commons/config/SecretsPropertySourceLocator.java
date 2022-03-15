@@ -64,11 +64,10 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 	@Override
 	public PropertySource<?> locate(Environment environment) {
-		if (environment instanceof ConfigurableEnvironment) {
-			ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
+		if (environment instanceof ConfigurableEnvironment env) {
 
-			List<SecretsConfigProperties.NormalizedSource> sources = this.properties.determineSources();
-			Set<SecretsConfigProperties.NormalizedSource> uniqueSources = new HashSet<>(sources);
+			List<NormalizedSource> sources = this.properties.determineSources(environment);
+			Set<NormalizedSource> uniqueSources = new HashSet<>(sources);
 			LOG.debug("Secrets normalized sources : " + sources);
 			CompositePropertySource composite = new CompositePropertySource("composite-secrets");
 			// read for secrets mount
@@ -89,14 +88,13 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 	}
 
 	private MapPropertySource getMapPropertySourceForSingleSecret(ConfigurableEnvironment environment,
-			SecretsConfigProperties.NormalizedSource normalizedSource) {
+			NormalizedSource normalizedSource) {
 
-		String configurationTarget = this.properties.getConfigurationTarget();
-		return getPropertySource(environment, normalizedSource, configurationTarget);
+		return getPropertySource(environment, normalizedSource);
 	}
 
 	protected abstract MapPropertySource getPropertySource(ConfigurableEnvironment environment,
-			SecretsConfigProperties.NormalizedSource normalizedSource, String configurationTarget);
+			NormalizedSource normalizedSource);
 
 	protected void putPathConfig(CompositePropertySource composite) {
 

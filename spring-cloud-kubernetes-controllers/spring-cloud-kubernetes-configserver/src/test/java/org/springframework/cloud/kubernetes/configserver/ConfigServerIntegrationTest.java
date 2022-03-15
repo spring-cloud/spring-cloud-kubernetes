@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.configserver;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
@@ -50,8 +49,6 @@ public class ConfigServerIntegrationTest {
 
 	@Autowired
 	private TestRestTemplate testRestTemplate;
-
-	public static WireMockServer wireMockServer;
 
 	@BeforeEach
 	public void beforeEach() {

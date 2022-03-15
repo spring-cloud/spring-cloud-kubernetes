@@ -40,8 +40,6 @@ public abstract class AbstractConfigProperties {
 
 	protected RetryProperties retry = new RetryProperties();
 
-	public abstract String getConfigurationTarget();
-
 	public boolean isEnabled() {
 		return this.enabled;
 	}

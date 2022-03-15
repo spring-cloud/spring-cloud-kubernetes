@@ -23,7 +23,8 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,9 +50,10 @@ class Fabric8ConfigMapPropertySourceTests {
 		final String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
-		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(mockClient, name, namespace, new MockEnvironment(),
-				"", false, true)).isInstanceOf(IllegalStateException.class).hasMessage(
-						"Unable to read ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
+		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, true, "default", true);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "default", new MockEnvironment());
+		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(context)).isInstanceOf(IllegalStateException.class)
+				.hasMessage("Unable to read ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
 	}
 
 	@Test
@@ -61,33 +63,27 @@ class Fabric8ConfigMapPropertySourceTests {
 		final String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
-		assertThatNoException().isThrownBy(() -> new Fabric8ConfigMapPropertySource(mockClient, name, namespace,
-				new MockEnvironment(), "", false, false));
-	}
-
-	@Test
-	void constructorWithoutClientNamespaceMustFail() {
-
-		Mockito.when(client.getNamespace()).thenReturn(null);
-		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(client, "configmap", null, new MockEnvironment(),
-				"", false, false)).isInstanceOf(NamespaceResolutionFailedException.class);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, false, "", false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		assertThatNoException().isThrownBy(() -> new Fabric8ConfigMapPropertySource(context));
 	}
 
 	@Test
 	void constructorWithClientNamespaceMustNotFail() {
 
 		Mockito.when(client.getNamespace()).thenReturn("namespace");
-		assertThat(
-				new Fabric8ConfigMapPropertySource(client, "configmap", null, new MockEnvironment(), "", false, false))
-						.isNotNull();
+		NormalizedSource source = new NamedConfigMapNormalizedSource("configmap", null, false, "", false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		assertThat(new Fabric8ConfigMapPropertySource(context)).isNotNull();
 	}
 
 	@Test
 	void constructorWithNamespaceMustNotFail() {
 
 		Mockito.when(client.getNamespace()).thenReturn(null);
-		assertThat(new Fabric8ConfigMapPropertySource(client, "configmap", "namespace", new MockEnvironment(), "",
-				false, false)).isNotNull();
+		NormalizedSource source = new NamedConfigMapNormalizedSource("configMap", null, false, "", true);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		assertThat(new Fabric8ConfigMapPropertySource(context)).isNotNull();
 	}
 
 }

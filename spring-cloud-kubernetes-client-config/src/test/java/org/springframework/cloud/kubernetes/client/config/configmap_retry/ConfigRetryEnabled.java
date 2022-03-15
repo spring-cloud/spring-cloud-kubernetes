@@ -164,7 +164,7 @@ class ConfigRetryEnabled {
 
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
 				.isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read ConfigMap with name 'application' in namespace 'default'");
+				.hasMessage("Unable to read ConfigMap(s) in namespace 'default'");
 
 		// verify retried 5 times until failure
 		verify(propertySourceLocator, times(5)).locate(any());

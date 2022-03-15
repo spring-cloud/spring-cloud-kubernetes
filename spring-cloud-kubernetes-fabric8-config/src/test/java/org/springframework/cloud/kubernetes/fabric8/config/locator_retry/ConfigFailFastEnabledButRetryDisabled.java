@@ -38,12 +38,19 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
+ * we call Fabric8ConfigMapPropertySourceLocator::locate directly, thus no need for
+ * bootstrap phase to kick in. As such two flags that might look a bit un-expected:
+ * "spring.cloud.kubernetes.config.enabled=false"
+ * "spring.cloud.kubernetes.secrets.enabled=false"
+ *
  * @author Isik Erhan
+ * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		properties = { "spring.cloud.kubernetes.client.namespace=default",
 				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
-				"spring.main.cloud-platform=KUBERNETES" },
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.enabled=false",
+				"spring.cloud.kubernetes.secrets.enabled=false" },
 		classes = Application.class)
 @EnableKubernetesMockClient
 class ConfigFailFastEnabledButRetryDisabled {
