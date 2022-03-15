@@ -10,6 +10,16 @@ rules:
   - ""
   resources:
   - pods
+  verbs:
+  - watch
+  - get
+- apiGroups:
+  - ""
+  resources:
   - configmaps
   verbs:
-  - '*'
+  - watch
+  - get
+  - update
+  # resourceNames:
+  #   - <config-map name>
