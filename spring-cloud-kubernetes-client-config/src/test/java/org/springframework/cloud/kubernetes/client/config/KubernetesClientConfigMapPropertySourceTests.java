@@ -31,7 +31,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.mock.env.MockEnvironment;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -98,8 +99,12 @@ class KubernetesClientConfigMapPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
-		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(api,
-				"bootstrap-640", "default", new MockEnvironment(), "", true, false);
+
+		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false, "", true);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
+				new MockEnvironment());
+		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(context);
+
 		verify(getRequestedFor(urlEqualTo("/api/v1/namespaces/default/configmaps")));
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
@@ -115,8 +120,12 @@ class KubernetesClientConfigMapPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(YAML_CONFIGMAP_LIST))));
-		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(api,
-				"bootstrap-641", "default", new MockEnvironment(), "", true, false);
+
+		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-641", "default", false, "", true);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
+				new MockEnvironment());
+		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(context);
+
 		verify(getRequestedFor(urlEqualTo("/api/v1/namespaces/default/configmaps")));
 		assertThat(propertySource.containsProperty("dummy.property.string2")).isTrue();
 		assertThat(propertySource.getProperty("dummy.property.string2")).isEqualTo("a");
@@ -132,8 +141,12 @@ class KubernetesClientConfigMapPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
-		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(api,
-				"bootstrap-640", "default", new MockEnvironment(), "prefix", true, false);
+
+		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false, "prefix", true);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
+				new MockEnvironment());
+		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(context);
+
 		verify(getRequestedFor(urlEqualTo("/api/v1/namespaces/default/configmaps")));
 		assertThat(propertySource.containsProperty("prefix.spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
@@ -146,49 +159,40 @@ class KubernetesClientConfigMapPropertySourceTests {
 	}
 
 	@Test
-	void deprecatedConstructorWithoutNamespaceMustFail() {
-		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySource(new CoreV1Api(), "configmap", null,
-				new MockEnvironment())).isInstanceOf(NamespaceResolutionFailedException.class);
-	}
-
-	@Test
-	void constructorWithoutNamespaceMustFail() {
-		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySource(new CoreV1Api(), "configmap", null,
-				new MockEnvironment(), "", false, false)).isInstanceOf(NamespaceResolutionFailedException.class);
-	}
-
-	@Test
-	void deprecatedConstructorWithNamespaceMustNotFail() {
-		assertThat(new KubernetesClientConfigMapPropertySource(new CoreV1Api(), "configmap", "namespace",
-				new MockEnvironment())).isNotNull();
-	}
-
-	@Test
 	void constructorWithNamespaceMustNotFail() {
-		assertThat(new KubernetesClientConfigMapPropertySource(new CoreV1Api(), "configmap", "namespace",
-				new MockEnvironment(), "", false, false)).isNotNull();
+
+		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false, "prefix", true);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(new CoreV1Api(), source, "default",
+				new MockEnvironment());
+
+		assertThat(new KubernetesClientConfigMapPropertySource(context)).isNotNull();
 	}
 
 	@Test
 	public void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
-		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySource(api, "my-config", "default",
-				new MockEnvironment(), "", false, true)).isInstanceOf(IllegalStateException.class)
-						.hasMessage("Unable to read ConfigMap with name 'my-config' in namespace 'default'");
+		NormalizedSource source = new NamedConfigMapNormalizedSource("my-config", "default", true, "prefix", true);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(new CoreV1Api(), source, "default",
+				new MockEnvironment());
+
+		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySource(context))
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessage("Unable to read ConfigMap(s) in namespace 'default'");
 		verify(getRequestedFor(urlEqualTo("/api/v1/namespaces/default/configmaps")));
 	}
 
 	@Test
 	public void constructorShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
-		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		assertThatNoException().isThrownBy((() -> new KubernetesClientConfigMapPropertySource(api, "my-config",
-				"default", new MockEnvironment(), "", false, false)));
+		NormalizedSource source = new NamedConfigMapNormalizedSource("my-config", "default", false, "prefix", true);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(new CoreV1Api(), source, "default",
+				new MockEnvironment());
+
+		assertThatNoException().isThrownBy((() -> new KubernetesClientConfigMapPropertySource(context)));
 		verify(getRequestedFor(urlEqualTo("/api/v1/namespaces/default/configmaps")));
 	}
 

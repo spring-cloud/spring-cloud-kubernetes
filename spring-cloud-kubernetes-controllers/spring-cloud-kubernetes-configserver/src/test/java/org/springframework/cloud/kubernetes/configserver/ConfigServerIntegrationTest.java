@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.configserver;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
@@ -43,15 +42,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Ryan Baxter
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		properties = { "spring.cloud.kubernetes.client.namespace=default", "spring.profiles.include=kubernetes",
-				"spring.cloud.kubernetes.secrets.enableApi=true", "debug=true" },
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
+				"spring.profiles.include=kubernetes", "spring.cloud.kubernetes.secrets.enableApi=true", "debug=true" },
 		classes = { KubernetesConfigServerApplication.class })
 public class ConfigServerIntegrationTest {
 
 	@Autowired
 	private TestRestTemplate testRestTemplate;
-
-	public static WireMockServer wireMockServer;
 
 	@BeforeEach
 	public void beforeEach() {
@@ -75,7 +72,7 @@ public class ConfigServerIntegrationTest {
 	}
 
 	@Test
-	public void enabled() throws Exception {
+	public void enabled() {
 		Environment env = testRestTemplate.getForObject("/test-cm/default", Environment.class);
 		assertThat(env.getPropertySources().size()).isEqualTo(2);
 		assertThat(env.getPropertySources().get(0).getName().equals("configmap.test-cm.default")).isTrue();

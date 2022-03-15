@@ -21,8 +21,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
@@ -43,21 +43,7 @@ public class Fabric8ConfigMapPropertySourceLocator extends ConfigMapPropertySour
 
 	private final KubernetesNamespaceProvider provider;
 
-	/**
-	 * This constructor is deprecated. Its usage might cause unexpected behavior when
-	 * looking for different properties. For example, in general, if a namespace is not
-	 * provided, we might look it up via other means: different documented environment
-	 * variables or from a kubernetes client itself. Using this constructor might not
-	 * reflect that.
-	 */
-	@Deprecated
-	public Fabric8ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties) {
-		super(properties);
-		this.client = client;
-		this.provider = null;
-	}
-
-	public Fabric8ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties,
+	Fabric8ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties,
 			KubernetesNamespaceProvider provider) {
 		super(properties);
 		this.client = client;
@@ -65,13 +51,14 @@ public class Fabric8ConfigMapPropertySourceLocator extends ConfigMapPropertySour
 	}
 
 	@Override
-	protected MapPropertySource getMapPropertySource(String applicationName, NormalizedSource normalizedSource,
-			String configurationTarget, ConfigurableEnvironment environment) {
-		String namespace = getApplicationNamespace(this.client, normalizedSource.getNamespace(), configurationTarget,
-				provider);
-		return new Fabric8ConfigMapPropertySource(this.client, applicationName, namespace, environment,
-				normalizedSource.getPrefix(), normalizedSource.isIncludeProfileSpecificSources(),
-				this.properties.isFailFast());
+	protected MapPropertySource getMapPropertySource(NormalizedSource normalizedSource,
+			ConfigurableEnvironment environment) {
+		// NormalizedSource has a namespace, but users can skip it.
+		// In such cases we try to get it elsewhere
+		String namespace = getApplicationNamespace(this.client, normalizedSource.namespace().orElse(null),
+				normalizedSource.target(), provider);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(client, normalizedSource, namespace, environment);
+		return new Fabric8ConfigMapPropertySource(context);
 	}
 
 }

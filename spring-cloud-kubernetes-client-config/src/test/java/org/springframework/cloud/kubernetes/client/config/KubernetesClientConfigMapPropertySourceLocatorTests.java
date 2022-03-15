@@ -98,10 +98,10 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
 		configMapConfigProperties.setName("bootstrap-640");
-		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
-		kubernetesClientProperties.setNamespace("default");
+		MockEnvironment mockEnvironment = new MockEnvironment();
+		mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", "default");
 		PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
-				configMapConfigProperties, kubernetesClientProperties).locate(ENV);
+				configMapConfigProperties, new KubernetesNamespaceProvider(mockEnvironment)).locate(ENV);
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
 	}
@@ -121,21 +121,20 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace("dev");
 		PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
-				configMapConfigProperties, kubernetesClientProperties).locate(ENV);
+				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment())).locate(ENV);
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
 				.isTrue();
 	}
 
 	/**
 	 * <pre>
-	 *     1. using the deprecated constructor, and
-	 *     2. not providing the namespace
+	 *     1. not providing the namespace
 	 * </pre>
 	 *
 	 * will result in an Exception
 	 */
 	@Test
-	void testLocateWithoutNamespaceDeprecatedConstructor() {
+	void testLocateWithoutNamespaceConstructor() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
@@ -144,13 +143,13 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
 		kubernetesClientProperties.setNamespace(""); // empty on purpose
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
-				kubernetesClientProperties).locate(ENV)).isInstanceOf(NamespaceResolutionFailedException.class);
+				new KubernetesNamespaceProvider(new MockEnvironment())).locate(ENV))
+						.isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 	/**
 	 * <pre>
-	 *     1. using the non-deprecated constructor, and
-	 *     2. not providing the namespace
+	 *     1. not providing the namespace
 	 * </pre>
 	 *
 	 * will result in an Exception
@@ -184,7 +183,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read ConfigMap with name 'bootstrap-640' in namespace 'default'");
+				.hasMessage("Unable to read ConfigMap(s) in namespace 'default'");
 	}
 
 	@Test

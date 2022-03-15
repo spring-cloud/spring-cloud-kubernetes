@@ -31,3 +31,38 @@ items:
       - apiGroups: ["", "extensions", "apps"]
         resources: ["configmaps", "pods", "services", "endpoints", "secrets"]
         verbs: ["get", "list", "watch"]
+
+  # needed for istio
+
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app: istio-integration-test
+      name: spring-cloud-kubernetes-istio-serviceaccount
+      namespace: istio-test
+
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      namespace: istio-test
+      name: istio-test
+    rules:
+      - apiGroups: [ "", "extensions", "apps" ]
+        resources: [ "configmaps", "pods", "services", "endpoints", "secrets" ]
+        verbs: [ "get", "list", "watch" ]
+
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-core-k8s-client-it
+      name: istio-test-rb
+    roleRef:
+      kind: Role
+      apiGroup: rbac.authorization.k8s.io
+      name: istio-test
+    subjects:
+      - kind: ServiceAccount
+        name: spring-cloud-kubernetes-istio-serviceaccount
+        namespace: istio-test

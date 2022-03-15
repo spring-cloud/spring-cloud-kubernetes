@@ -35,7 +35,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.mock.env.MockEnvironment;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -60,8 +63,6 @@ class KubernetesClientSecretsPropertySourceTests {
 			.withMetadata(new V1ObjectMetaBuilder().withName("db-secret").withResourceVersion("0")
 					.withNamespace("default").build())
 			.addToData("password", "p455w0rd".getBytes()).addToData("username", "user".getBytes()).build()).build();
-
-	private static final String LIST_API = "/api/v1/secrets";
 
 	private static final String LIST_API_WITH_LABEL = "/api/v1/namespaces/default/secrets?labelSelector=spring.cloud.kubernetes.secret%3Dtrue";
 
@@ -104,6 +105,7 @@ class KubernetesClientSecretsPropertySourceTests {
 
 	@AfterAll
 	static void after() {
+		WireMock.shutdownServer();
 		wireMockServer.stop();
 	}
 
@@ -116,8 +118,12 @@ class KubernetesClientSecretsPropertySourceTests {
 	void secretsTest() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SECRET_LIST))));
-		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(api,
-				"db-secret", "default", new HashMap<>(), false);
+
+		NormalizedSource source = new NamedSecretNormalizedSource("db-secret", "default", false);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
+				new MockEnvironment());
+
+		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(context);
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
 		assertThat(propertySource.containsProperty("username")).isTrue();
@@ -130,8 +136,12 @@ class KubernetesClientSecretsPropertySourceTests {
 		stubFor(get(LIST_API_WITH_LABEL).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
 		Map<String, String> labels = new HashMap<>();
 		labels.put("spring.cloud.kubernetes.secret", "true");
-		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(api, null,
-				"default", labels, false);
+
+		NormalizedSource source = new LabeledSecretNormalizedSource("default", labels, false);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
+				new MockEnvironment());
+
+		KubernetesClientSecretsPropertySource propertySource = new KubernetesClientSecretsPropertySource(context);
 		assertThat(propertySource.containsProperty("spring.rabbitmq.password")).isTrue();
 		assertThat(propertySource.getProperty("spring.rabbitmq.password")).isEqualTo("password");
 	}
@@ -141,9 +151,13 @@ class KubernetesClientSecretsPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySource(api, "db-secret", "default", null, true))
+		NormalizedSource source = new NamedSecretNormalizedSource("secret", "default", true);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
+				new MockEnvironment());
+
+		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySource(context))
 				.isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name 'db-secret' or labels [null] in namespace 'default'");
+				.hasMessage("Unable to read Secret with name 'secret' in namespace 'default'");
 		verify(getRequestedFor(urlEqualTo(API)));
 	}
 
@@ -152,16 +166,12 @@ class KubernetesClientSecretsPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		assertThatNoException().isThrownBy(
-				(() -> new KubernetesClientSecretsPropertySource(api, "db-secret", "default", null, false)));
-		verify(getRequestedFor(urlEqualTo(API)));
-	}
+		NormalizedSource source = new NamedSecretNormalizedSource("secret", "db-secret", false);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
+				new MockEnvironment());
 
-	@Test
-	void constructorMustFailWhenNamespaceIsNoProvided() {
-		CoreV1Api api = new CoreV1Api();
-		assertThatThrownBy((() -> new KubernetesClientSecretsPropertySource(api, "db-secret", null, null, false)))
-				.isInstanceOf(NamespaceResolutionFailedException.class);
+		assertThatNoException().isThrownBy((() -> new KubernetesClientSecretsPropertySource(context)));
+		verify(getRequestedFor(urlEqualTo(API)));
 	}
 
 }

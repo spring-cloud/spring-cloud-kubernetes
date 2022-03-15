@@ -23,10 +23,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatfo
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesConfigRetryDisabled;
+import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesSecretsRetryDisabled;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
@@ -38,7 +39,6 @@ import org.springframework.context.annotation.Import;
  * @author Ryan Baxter
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnKubernetesEnabled
 @AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 @Import({ KubernetesCommonsAutoConfiguration.class, KubernetesClientAutoConfiguration.class })
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
@@ -46,6 +46,7 @@ public class KubernetesClientBootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesConfigEnabled
+	@ConditionalOnKubernetesConfigRetryDisabled
 	public KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator(
 			ConfigMapConfigProperties properties, CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
@@ -54,6 +55,7 @@ public class KubernetesClientBootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesSecretsEnabled
+	@ConditionalOnKubernetesSecretsRetryDisabled
 	public KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties,
 			CoreV1Api coreV1Api, KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		return new KubernetesClientSecretsPropertySourceLocator(coreV1Api, kubernetesNamespaceProvider, properties);

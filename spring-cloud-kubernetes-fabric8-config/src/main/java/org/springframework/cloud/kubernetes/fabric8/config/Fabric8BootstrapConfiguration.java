@@ -25,10 +25,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesConfigRetryDisabled;
+import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesSecretsRetryDisabled;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
@@ -44,7 +45,6 @@ import org.springframework.core.env.Environment;
  * @author Ioannis Canellos
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnKubernetesEnabled
 @Import({ KubernetesCommonsAutoConfiguration.class, Fabric8AutoConfiguration.class })
 @ConditionalOnClass({ ConfigMap.class, Secret.class })
 @AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
@@ -52,12 +52,13 @@ import org.springframework.core.env.Environment;
 public class Fabric8BootstrapConfiguration {
 
 	@Bean
-	public KubernetesNamespaceProvider provider(Environment env) {
+	KubernetesNamespaceProvider provider(Environment env) {
 		return new KubernetesNamespaceProvider(env);
 	}
 
 	@Bean
 	@ConditionalOnKubernetesConfigEnabled
+	@ConditionalOnKubernetesConfigRetryDisabled
 	public Fabric8ConfigMapPropertySourceLocator configMapPropertySourceLocator(ConfigMapConfigProperties properties,
 			KubernetesClient client, KubernetesNamespaceProvider provider) {
 		return new Fabric8ConfigMapPropertySourceLocator(client, properties, provider);
@@ -65,6 +66,7 @@ public class Fabric8BootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesSecretsEnabled
+	@ConditionalOnKubernetesSecretsRetryDisabled
 	public Fabric8SecretsPropertySourceLocator secretsPropertySourceLocator(SecretsConfigProperties properties,
 			KubernetesClient client, KubernetesNamespaceProvider provider) {
 		return new Fabric8SecretsPropertySourceLocator(client, properties, provider);

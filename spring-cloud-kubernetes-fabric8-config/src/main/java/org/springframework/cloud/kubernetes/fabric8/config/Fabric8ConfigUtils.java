@@ -16,16 +16,20 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -33,34 +37,11 @@ import org.springframework.util.StringUtils;
  *
  * @author Ioannis Canellos
  */
-public final class Fabric8ConfigUtils {
+final class Fabric8ConfigUtils {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8ConfigUtils.class);
 
 	private Fabric8ConfigUtils() {
-	}
-
-	/*
-	 * this is not used, it is here for compatibility reasons only.
-	 */
-	@Deprecated
-	public static String getApplicationNamespace(KubernetesClient client, String namespace,
-			String configurationTarget) {
-		if (!StringUtils.hasLength(namespace)) {
-			LOG.debug(configurationTarget + " namespace has not been set, taking it from client (ns="
-					+ client.getNamespace() + ")");
-			namespace = client.getNamespace();
-		}
-
-		return namespace;
-	}
-
-	/*
-	 * this is not used, it is here for compatibility reasons only.
-	 */
-	@Deprecated
-	public static String getApplicationNamespace(KubernetesClient client, String namespace) {
-		return !StringUtils.hasLength(namespace) ? client.getNamespace() : namespace;
 	}
 
 	/**
@@ -89,7 +70,7 @@ public final class Fabric8ConfigUtils {
 			KubernetesNamespaceProvider provider) {
 
 		if (StringUtils.hasText(namespace)) {
-			LOG.debug(configurationTarget + " namespace from normalized source or passed directly : " + namespace);
+			LOG.debug(configurationTarget + " namespace from normalized source : " + namespace);
 			return namespace;
 		}
 
@@ -118,11 +99,25 @@ public final class Fabric8ConfigUtils {
 		ConfigMap configMap = client.configMaps().inNamespace(namespace).withName(name).get();
 
 		if (configMap == null) {
-			LOG.info("config-map with name : '" + name + "' not present in namespace : '" + namespace + "'");
+			LOG.warn("config-map with name : '" + name + "' not present in namespace : '" + namespace + "'");
 			return Collections.emptyMap();
 		}
 
 		return configMap.getData();
+	}
+
+	/**
+	 * return decoded data from a secret within a namespace.
+	 */
+	static Map<String, Object> dataFromSecret(Secret secret, String namespace) {
+		LOG.debug("reading secret with name : " + secret.getMetadata().getName() + " in namespace : " + namespace);
+		return secretData(secret.getData());
+	}
+
+	private static Map<String, Object> secretData(Map<String, String> data) {
+		Map<String, Object> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
+		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));
+		return result;
 	}
 
 }

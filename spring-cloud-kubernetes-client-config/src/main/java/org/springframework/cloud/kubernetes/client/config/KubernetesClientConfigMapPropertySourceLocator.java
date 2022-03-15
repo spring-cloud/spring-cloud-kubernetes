@@ -18,14 +18,14 @@ package org.springframework.cloud.kubernetes.client.config;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.getApplicationNamespace;
 
 /**
  * @author Ryan Baxter
@@ -35,62 +35,24 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 
 	private final CoreV1Api coreV1Api;
 
-	private final KubernetesClientProperties kubernetesClientProperties;
-
 	private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
-
-	/**
-	 * This constructor is deprecated. Its usage might cause unexpected behavior when
-	 * looking for different properties. For example, in general, if a namespace is not
-	 * provided, we might look it up via other means: different documented environment
-	 * variables or from a kubernetes client itself. Using this constructor might not
-	 * reflect that.
-	 */
-	@Deprecated
-	public KubernetesClientConfigMapPropertySourceLocator(CoreV1Api coreV1Api, ConfigMapConfigProperties properties,
-			KubernetesClientProperties kubernetesClientProperties) {
-		super(properties);
-		this.coreV1Api = coreV1Api;
-		this.kubernetesClientProperties = kubernetesClientProperties;
-		this.kubernetesNamespaceProvider = null;
-	}
 
 	public KubernetesClientConfigMapPropertySourceLocator(CoreV1Api coreV1Api, ConfigMapConfigProperties properties,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		super(properties);
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
-		this.kubernetesClientProperties = null;
 	}
 
 	@Override
-	protected MapPropertySource getMapPropertySource(String name,
-			ConfigMapConfigProperties.NormalizedSource normalizedSource, String configurationTarget,
-			ConfigurableEnvironment environment) {
+	protected MapPropertySource getMapPropertySource(NormalizedSource source, ConfigurableEnvironment environment) {
 
-		String namespace;
-		String normalizedNamespace = normalizedSource.getNamespace();
+		String normalizedNamespace = source.namespace().orElse(null);
+		String namespace = getApplicationNamespace(normalizedNamespace, source.target(), kubernetesNamespaceProvider);
 
-		if (StringUtils.hasText(normalizedNamespace)) {
-			namespace = normalizedNamespace;
-		}
-		else if (kubernetesClientProperties != null) {
-			if (StringUtils.hasText(kubernetesClientProperties.getNamespace())) {
-				namespace = kubernetesClientProperties.getNamespace();
-			}
-			else {
-				throw new NamespaceResolutionFailedException(
-						"could not resolve namespace in normalized source or KubernetesClientProperties");
-			}
-		}
-		else {
-			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace, "Config Map",
-					kubernetesNamespaceProvider);
-		}
-
-		return new KubernetesClientConfigMapPropertySource(coreV1Api, name, namespace, environment,
-				normalizedSource.getPrefix(), normalizedSource.isIncludeProfileSpecificSources(),
-				this.properties.isFailFast());
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, source, namespace,
+				environment);
+		return new KubernetesClientConfigMapPropertySource(context);
 	}
 
 }

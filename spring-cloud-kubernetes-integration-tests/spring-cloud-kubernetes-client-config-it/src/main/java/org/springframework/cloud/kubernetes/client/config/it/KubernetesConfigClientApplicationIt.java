@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.config.it;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -31,8 +30,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class KubernetesConfigClientApplicationIt {
 
-	@Autowired
-	private MyConfigurationProperties configurationProperties;
+	private final MyConfigurationProperties configurationProperties;
+
+	public KubernetesConfigClientApplicationIt(MyConfigurationProperties configurationProperties) {
+		this.configurationProperties = configurationProperties;
+	}
 
 	@GetMapping("/myProperty")
 	public String myProperty() {
@@ -50,7 +52,7 @@ public class KubernetesConfigClientApplicationIt {
 
 	@Configuration
 	@EnableConfigurationProperties(MyConfigurationProperties.class)
-	class MyConfig {
+	static class MyConfig {
 
 	}
 

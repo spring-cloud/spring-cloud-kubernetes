@@ -25,6 +25,10 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.mock.env.MockEnvironment;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -71,8 +75,10 @@ public class ConfigMapsTest {
 				.build();
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, "", false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
 		assertThat(cmps.getProperty("dummy.property.string1")).isEqualTo("a");
 		assertThat(cmps.getProperty("dummy.property.int1")).isEqualTo("1");
@@ -86,8 +92,10 @@ public class ConfigMapsTest {
 				.addToData("application.yaml", ConfigMapTestUtil.readResourceFile("application.yaml")).build();
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, "", false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
 		assertThat(cmps.getProperty("dummy.property.string2")).isEqualTo("a");
 		assertThat(cmps.getProperty("dummy.property.int2")).isEqualTo(1);
@@ -101,8 +109,10 @@ public class ConfigMapsTest {
 				.addToData("adhoc.yml", ConfigMapTestUtil.readResourceFile("adhoc.yml")).build();
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, "", false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
 		assertThat(cmps.getProperty("dummy.property.string3")).isEqualTo("a");
 		assertThat(cmps.getProperty("dummy.property.int3")).isEqualTo(1);
@@ -116,8 +126,10 @@ public class ConfigMapsTest {
 				.addToData("application.properties", "somevalue").build();
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "namespace", false, "", false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
 		// no exception is thrown for unparseable content
 	}
@@ -129,8 +141,10 @@ public class ConfigMapsTest {
 				.addToData("application.yaml", "somevalue").build();
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "namespace", false, "", false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
 		// no exception is thrown for unparseable content
 	}
@@ -143,8 +157,10 @@ public class ConfigMapsTest {
 				.addToData("adhoc.properties", ConfigMapTestUtil.readResourceFile("adhoc.properties")).build();
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, "", false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(mockClient, configMapName);
+		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
 		// application.properties should be read correctly
 		assertThat(cmps.getProperty("dummy.property.string1")).isEqualTo("a");
