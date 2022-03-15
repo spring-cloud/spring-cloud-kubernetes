@@ -16,11 +16,17 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+
+import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -69,6 +75,26 @@ public final class KubernetesClientConfigUtils {
 		}
 
 		throw new NamespaceResolutionFailedException("unresolved namespace");
+	}
+
+	/**
+	 * return decoded data from a secret within a namespace.
+	 */
+	static Map<String, Object> dataFromSecret(V1Secret secret, String namespace) {
+		LOG.debug("reading secret with name : " + secret.getMetadata().getName() + " in namespace : " + namespace);
+		Map<String, byte[]> data = secret.getData();
+
+		Map<String, Object> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
+		data.forEach((k, v) -> {
+			String decodedValue = decoded(v);
+			result.put(k, decodedValue);
+		});
+
+		return result;
+	}
+
+	private static String decoded(byte[] value) {
+		return new String(Base64.getDecoder().decode(Base64.getEncoder().encodeToString(value))).trim();
 	}
 
 }

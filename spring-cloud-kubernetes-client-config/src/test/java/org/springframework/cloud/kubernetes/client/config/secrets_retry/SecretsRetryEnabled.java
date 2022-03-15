@@ -164,7 +164,7 @@ class SecretsRetryEnabled {
 
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
 				.isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");
+				.hasMessage("Unable to read Secret with name 'my-secret' in namespace 'default'");
 
 		// verify retried 5 times until failure
 		verify(propertySourceLocator, times(5)).locate(any());

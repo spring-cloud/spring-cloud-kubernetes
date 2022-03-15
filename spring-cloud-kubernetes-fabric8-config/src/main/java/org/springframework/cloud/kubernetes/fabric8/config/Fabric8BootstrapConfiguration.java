@@ -52,7 +52,7 @@ import org.springframework.core.env.Environment;
 public class Fabric8BootstrapConfiguration {
 
 	@Bean
-	public KubernetesNamespaceProvider provider(Environment env) {
+	KubernetesNamespaceProvider provider(Environment env) {
 		return new KubernetesNamespaceProvider(env);
 	}
 

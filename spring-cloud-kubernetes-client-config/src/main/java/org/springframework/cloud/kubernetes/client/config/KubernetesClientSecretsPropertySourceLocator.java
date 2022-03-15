@@ -19,13 +19,13 @@ package org.springframework.cloud.kubernetes.client.config;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.util.StringUtils;
 
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.getApplicationNamespace;
 
 /**
  * @author Ryan Baxter
@@ -45,23 +45,15 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 	}
 
 	@Override
-	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment,
-			SecretsConfigProperties.NormalizedSource normalizedSource, String configurationTarget) {
+	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment, NormalizedSource source) {
 
-		String namespace;
-		String normalizedNamespace = normalizedSource.getNamespace();
-		String secretName = getApplicationName(environment, normalizedSource.getName(), configurationTarget);
+		String normalizedNamespace = source.namespace().orElse(null);
+		String namespace = getApplicationNamespace(normalizedNamespace, source.target(), kubernetesNamespaceProvider);
 
-		if (StringUtils.hasText(normalizedNamespace)) {
-			namespace = normalizedNamespace;
-		}
-		else {
-			namespace = KubernetesClientConfigUtils.getApplicationNamespace(normalizedNamespace, "Secret",
-					kubernetesNamespaceProvider);
-		}
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, source, namespace,
+				environment);
 
-		return new KubernetesClientSecretsPropertySource(coreV1Api, secretName, namespace, normalizedSource.getLabels(),
-				this.properties.isFailFast());
+		return new KubernetesClientSecretsPropertySource(context);
 	}
 
 }

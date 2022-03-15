@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.configserver;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import io.kubernetes.client.openapi.ApiException;
@@ -28,12 +27,17 @@ import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.openapi.models.V1SecretListBuilder;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.config.environment.Environment;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigContext;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.core.env.MapPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -96,16 +100,28 @@ class KubernetesEnvironmentRepositoryTests {
 	public static void before() {
 		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
-			propertySources.add(new KubernetesClientConfigMapPropertySource(coreApi, applicationName, "default",
-					springEnv, "", true, false));
-			propertySources.add(new KubernetesClientConfigMapPropertySource(coreApi, applicationName, "dev", springEnv,
-					"", true, false));
+
+			NormalizedSource defaultSource = new NamedConfigMapNormalizedSource(applicationName, "default", false, "",
+					true);
+			KubernetesClientConfigContext defaultContext = new KubernetesClientConfigContext(coreApi, defaultSource,
+					"default", springEnv);
+
+			NormalizedSource devSource = new NamedConfigMapNormalizedSource(applicationName, "dev", false, "", true);
+			KubernetesClientConfigContext devContext = new KubernetesClientConfigContext(coreApi, devSource, "dev",
+					springEnv);
+
+			propertySources.add(new KubernetesClientConfigMapPropertySource(defaultContext));
+			propertySources.add(new KubernetesClientConfigMapPropertySource(devContext));
 			return propertySources;
 		});
 		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
-			propertySources.add(new KubernetesClientSecretsPropertySource(coreApi, applicationName, "default",
-					new HashMap<>(), false));
+
+			NormalizedSource source = new NamedSecretNormalizedSource(applicationName, "default", false);
+			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, "default",
+					springEnv);
+
+			propertySources.add(new KubernetesClientSecretsPropertySource(context));
 			return propertySources;
 		});
 	}
@@ -206,7 +222,7 @@ class KubernetesEnvironmentRepositoryTests {
 		environment.getPropertySources().forEach(propertySource -> {
 			assertThat(propertySource.getName().equals("configmap.application.default")
 					|| propertySource.getName().equals("secrets.application.default")
-					|| propertySource.getName().equals("configmap.stores.default")
+					|| propertySource.getName().equals("configmap.stores.stores-dev.default")
 					|| propertySource.getName().equals("configmap.stores.dev")
 					|| propertySource.getName().equals("secrets.stores.default")).isTrue();
 			if (propertySource.getName().equals("configmap.application.default")) {
@@ -215,19 +231,19 @@ class KubernetesEnvironmentRepositoryTests {
 				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(true);
 				assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("a");
 			}
-			if (propertySource.getName().equals("secrets.application.default")) {
+			else if (propertySource.getName().equals("secrets.application.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(2);
 				assertThat(propertySource.getSource().get("username")).isEqualTo("user");
 				assertThat(propertySource.getSource().get("password")).isEqualTo("p455w0rd");
 			}
-			if (propertySource.getName().equals("configmap.stores.default")) {
+			else if (propertySource.getName().equals("configmap.stores.stores-dev.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(4);
 				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(2);
 				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(false);
 				assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("b");
 				assertThat(propertySource.getSource().get("dummy.property.string1")).isEqualTo("a");
 			}
-			if (propertySource.getName().equals("configmap.stores.dev")) {
+			else if (propertySource.getName().equals("configmap.stores.dev")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(3);
 				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(1);
 				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(true);
@@ -236,10 +252,13 @@ class KubernetesEnvironmentRepositoryTests {
 			// Currently KubernetesClientSecretsPropertySource does not take into account
 			// profiles, so that plays no role at the moment
 			// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/880
-			if (propertySource.getName().equals("secrets.stores.default")) {
+			else if (propertySource.getName().equals("secrets.stores.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(2);
 				assertThat(propertySource.getSource().get("username")).isEqualTo("stores");
 				assertThat(propertySource.getSource().get("password")).isEqualTo("p455w0rd");
+			}
+			else {
+				Assertions.fail("no match in property source names");
 			}
 		});
 	}
