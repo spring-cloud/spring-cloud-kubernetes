@@ -132,11 +132,11 @@ class ConfigMapAndSecretIT {
 
 	void testConfigMapAndSecretRefresh() throws Exception {
 
-		//String propertyURL = "http://127.0.0.1:" + K3S.getMappedPort(80) + "/myProperty";
-		//String secretURL = "http://127.0.0.1:" + K3S.getMappedPort(80) + "/mySecret";
+		String propertyURL = "localhost:" + K3S.getMappedPort(80) + "/myProperty";
+		String secretURL = "localhost:" + K3S.getMappedPort(80) + "/mySecret";
 
-		String propertyURL = "http://127.0.0.1/myProperty";
-		String secretURL = "http://127.0.0.1/mySecret";
+		//String propertyURL = "http://127.0.0.1/myProperty";
+		//String secretURL = "http://127.0.0.1/mySecret";
 
 		WebClient.Builder builder = builder();
 		WebClient propertyClient = builder.baseUrl(propertyURL).build();
