@@ -28,8 +28,8 @@ workflows:
 jobs:
   test:
     parallelism: 5 # parallel containers to split the tests among
-    machine:
-      image: ubuntu-2004:202201-02
+    machine: true
+      #image: ubuntu-2004:202201-02
     environment:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
       _SERVICE_OCCURENCE: 5
@@ -93,8 +93,8 @@ jobs:
           path: ~/junit/
           destination: testartifacts
   build:
-    machine:
-      image: ubuntu-2004:202201-02
+    machine: true
+      #image: ubuntu-2004:202201-02
     environment:
       _JAVA_OPTIONS: "-Xms2g -Xmx2g"
       _SERVICE_OCCURENCE: 5
