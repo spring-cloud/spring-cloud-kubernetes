@@ -75,9 +75,9 @@ class ConfigMapAndSecretIT {
 	private static K8SUtils k8SUtils;
 
 	private static final K3sContainer K3S = new K3sContainer(DockerImageName.parse("rancher/k3s:v1.21.10-k3s1"))
-		.withFileSystemBind("/tmp/images", "/tmp/images", BindMode.READ_WRITE).withExposedPorts(80, 6443)
-		.withCommand("server") // otherwise, traefik is not installed
-		.withReuse(true);
+			.withFileSystemBind("/tmp/images", "/tmp/images", BindMode.READ_WRITE).withExposedPorts(80, 6443)
+			.withCommand("server") // otherwise, traefik is not installed
+			.withReuse(true);
 
 	@BeforeAll
 	static void setup() throws Exception {
@@ -97,13 +97,14 @@ class ConfigMapAndSecretIT {
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		K3S.execInContainer("crictl", "rmi", "docker.io/springcloud/spring-cloud-kubernetes-client-config-it:" + getPomVersion());
+		K3S.execInContainer("crictl", "rmi",
+				"docker.io/springcloud/spring-cloud-kubernetes-client-config-it:" + getPomVersion());
 	}
 
 	@AfterEach
 	void after() throws Exception {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-			"metadata.name=" + K8S_CONFIG_CLIENT_IT_NAME, null, null, null, null, null, null, null, null, null);
+				"metadata.name=" + K8S_CONFIG_CLIENT_IT_NAME, null, null, null, null, null, null, null, null, null);
 		api.deleteNamespacedService(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, NAMESPACE, null, null, null, null, null, null);
 		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
 		api.deleteNamespacedConfigMap(APP_NAME, NAMESPACE, null, null, null, null, null, null);
@@ -141,7 +142,8 @@ class ConfigMapAndSecretIT {
 		try {
 			String property = propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block();
 			assertThat(property).isEqualTo("from-config-map");
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 
@@ -155,14 +157,15 @@ class ConfigMapAndSecretIT {
 		configMap.data(data);
 		api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null);
 		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
-			.until(() -> propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("from-unit-test"));
+				.until(() -> propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block()
+						.equals("from-unit-test"));
 		V1Secret v1Secret = getConfigK8sClientItCSecret();
 		Map<String, byte[]> secretData = v1Secret.getData();
 		secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
 		v1Secret.setData(secretData);
 		api.replaceNamespacedSecret(APP_NAME, NAMESPACE, v1Secret, null, null, null);
-		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
-			.until(() -> secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("p455w1rd"));
+		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2)).until(() -> secretClient
+				.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("p455w1rd"));
 	}
 
 	private static void deployConfigK8sClientIt() throws Exception {
@@ -188,18 +191,18 @@ class ConfigMapAndSecretIT {
 
 	private static V1Deployment getConfigK8sClientItDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) K8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-deployment.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
-			+ getPomVersion();
+				+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
 
 	private static V1Deployment getConfigK8sClientItPollingDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) K8SUtils
-			.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-polling-deployment.yaml");
+				.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-polling-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
-			+ getPomVersion();
+				+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
