@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.configserver;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -31,11 +30,15 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.config.server.config.ConfigServerAutoConfiguration;
 import org.springframework.cloud.config.server.environment.EnvironmentRepository;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigContext;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -70,8 +73,16 @@ public class KubernetesConfigServerAutoConfiguration {
 		return (coreApi, applicationName, namespace, springEnv) -> {
 			List<String> namespaces = namespaceSplitter(properties.getConfigMapNamespaces(), namespace);
 			List<MapPropertySource> propertySources = new ArrayList<>();
-			namespaces.forEach(space -> propertySources.add(new KubernetesClientConfigMapPropertySource(coreApi,
-					applicationName, space, springEnv, "", true, false)));
+
+			namespaces.forEach(space -> {
+
+				NamedConfigMapNormalizedSource source = new NamedConfigMapNormalizedSource(applicationName, space,
+						false, "", true);
+				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, space,
+						springEnv);
+
+				propertySources.add(new KubernetesClientConfigMapPropertySource(context));
+			});
 			return propertySources;
 		};
 	}
@@ -83,8 +94,14 @@ public class KubernetesConfigServerAutoConfiguration {
 		return (coreApi, applicationName, namespace, springEnv) -> {
 			List<String> namespaces = namespaceSplitter(properties.getSecretsNamespaces(), namespace);
 			List<MapPropertySource> propertySources = new ArrayList<>();
-			namespaces.forEach(space -> propertySources.add(new KubernetesClientSecretsPropertySource(coreApi,
-					applicationName, space, new HashMap<>(), false)));
+
+			namespaces.forEach(space -> {
+				NormalizedSource source = new NamedSecretNormalizedSource(applicationName, space, false);
+				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, space,
+						springEnv);
+				propertySources.add(new KubernetesClientSecretsPropertySource(context));
+			});
+
 			return propertySources;
 		};
 	}

@@ -85,7 +85,7 @@ class SecretsFailFastEnabledButRetryDisabled {
 		assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isFalse();
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
 				.isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name 'my-secret' or labels [{}] in namespace 'default'");
+				.hasMessage("Unable to read Secret with name 'my-secret' in namespace 'default'");
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());

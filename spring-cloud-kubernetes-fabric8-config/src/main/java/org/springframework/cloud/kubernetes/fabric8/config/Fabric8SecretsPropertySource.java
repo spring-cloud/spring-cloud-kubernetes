@@ -16,17 +16,12 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.EnumMap;
+import java.util.Optional;
 
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.springframework.cloud.kubernetes.commons.config.NormalizedSourceType;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
-
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
 /**
  * Kubernetes property source for secrets.
@@ -35,54 +30,32 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
  * @author Haytham Mohamed
  * @author Isik Erhan
  */
-public class Fabric8SecretsPropertySource extends SecretsPropertySource {
+public final class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
-	private static final Log LOG = LogFactory.getLog(Fabric8SecretsPropertySource.class);
+	private static final EnumMap<NormalizedSourceType, Fabric8ContextToSourceData> STRATEGIES = new EnumMap<>(
+			NormalizedSourceType.class);
 
-	public Fabric8SecretsPropertySource(KubernetesClient client, String name, String namespace,
-			Map<String, String> labels, boolean failFast) {
-		super(getSourceName(name, getApplicationNamespace(client, namespace, "Secret", null)), getSourceData(client,
-				name, getApplicationNamespace(client, namespace, "Secret", null), labels, failFast));
+	static {
+		STRATEGIES.put(NormalizedSourceType.NAMED_SECRET, namedSecret());
+		STRATEGIES.put(NormalizedSourceType.LABELED_SECRET, labeledSecret());
 	}
 
-	private static Map<String, Object> getSourceData(KubernetesClient client, String name, String namespace,
-			Map<String, String> labels, boolean failFast) {
-		Map<String, Object> result = new HashMap<>();
-
-		LOG.debug("Loading Secret with name '" + name + "' or with labels [" + labels + "] in namespace '" + namespace
-				+ "'");
-		try {
-
-			Secret secret = client.secrets().inNamespace(namespace).withName(name).get();
-
-			// the API is documented that it might return null
-			if (secret == null) {
-				LOG.warn("secret with name : " + name + " in namespace : " + namespace + " not found");
-			}
-			else {
-				putDataFromSecret(secret, result, namespace);
-			}
-
-			client.secrets().inNamespace(namespace).withLabels(labels).list().getItems()
-					.forEach(s -> putDataFromSecret(s, result, namespace));
-
-		}
-		catch (Exception e) {
-			if (failFast) {
-				throw new IllegalStateException("Unable to read Secret with name '" + name + "' or labels [" + labels
-						+ "] in namespace '" + namespace + "'", e);
-			}
-
-			LOG.warn("Can't read secret with name: [" + name + "] or labels [" + labels + "] in namespace: ["
-					+ namespace + "] (cause: " + e.getMessage() + "). Ignoring");
-		}
-
-		return result;
+	Fabric8SecretsPropertySource(Fabric8ConfigContext context) {
+		super(getSourceData(context));
 	}
 
-	private static void putDataFromSecret(Secret secret, Map<String, Object> result, String namespace) {
-		LOG.debug("reading secret with name : " + secret.getMetadata().getName() + " in namespace : " + namespace);
-		putAll(secret.getData(), result);
+	private static SourceData getSourceData(Fabric8ConfigContext context) {
+		NormalizedSourceType type = context.normalizedSource().type();
+		return Optional.ofNullable(STRATEGIES.get(type)).map(x -> x.apply(context))
+				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
+	}
+
+	private static Fabric8ContextToSourceData namedSecret() {
+		return NamedSecretContextToSourceDataProvider.of(SecretsPropertySource::getSourceName).get();
+	}
+
+	private static Fabric8ContextToSourceData labeledSecret() {
+		return LabeledSecretContextToSourceDataProvider.of(SecretsPropertySource::getSourceName).get();
 	}
 
 }

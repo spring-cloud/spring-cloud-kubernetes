@@ -16,16 +16,20 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -33,7 +37,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Ioannis Canellos
  */
-public final class Fabric8ConfigUtils {
+final class Fabric8ConfigUtils {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8ConfigUtils.class);
 
@@ -66,7 +70,7 @@ public final class Fabric8ConfigUtils {
 			KubernetesNamespaceProvider provider) {
 
 		if (StringUtils.hasText(namespace)) {
-			LOG.debug(configurationTarget + " namespace from normalized source or passed directly : " + namespace);
+			LOG.debug(configurationTarget + " namespace from normalized source : " + namespace);
 			return namespace;
 		}
 
@@ -100,6 +104,20 @@ public final class Fabric8ConfigUtils {
 		}
 
 		return configMap.getData();
+	}
+
+	/**
+	 * return decoded data from a secret within a namespace.
+	 */
+	static Map<String, Object> dataFromSecret(Secret secret, String namespace) {
+		LOG.debug("reading secret with name : " + secret.getMetadata().getName() + " in namespace : " + namespace);
+		return secretData(secret.getData());
+	}
+
+	private static Map<String, Object> secretData(Map<String, String> data) {
+		Map<String, Object> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
+		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));
+		return result;
 	}
 
 }
