@@ -302,4 +302,114 @@ class SecretsConfigPropertiesTests {
 		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(3)).prefix(), "");
 	}
 
+	/**
+	 * <pre>
+	 * 	spring:
+	 *	  cloud:
+	 *      kubernetes:
+	 *        secrets:
+	 *          name: secret-a
+	 *        	namespace: spring-k8s
+	 * </pre>
+	 *
+	 * a config as above will result in a NormalizedSource where
+	 * includeProfileSpecificSources will be true (this test proves that the change we
+	 * added is not a breaking change for the already existing functionality)
+	 */
+	@Test
+	void testUseIncludeProfileSpecificSourcesNoChanges() {
+		SecretsConfigProperties properties = new SecretsConfigProperties();
+		properties.setSources(Collections.emptyList());
+		properties.setName("secret-a");
+		properties.setNamespace("spring-k8s");
+
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
+		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
+
+		Assertions.assertTrue(((NamedSecretNormalizedSource) sources.get(0)).profileSpecificSources());
+	}
+
+	/**
+	 * <pre>
+	 * 	spring:
+	 *	  cloud:
+	 *      kubernetes:
+	 *        secrets:
+	 *          includeProfileSpecificSources: false
+	 *          name: secret-a
+	 *        	namespace: spring-k8s
+	 * </pre>
+	 *
+	 * a config as above will result in a NormalizedSource where
+	 * includeProfileSpecificSources will be false. Even if we did not define any sources
+	 * explicitly, one will still be created, by default. That one might "flatMap" into
+	 * multiple other, because of multiple profiles. As such this setting still matters
+	 * and must be propagated to the normalized source.
+	 */
+	@Test
+	void testUseIncludeProfileSpecificSourcesDefaultChanged() {
+		SecretsConfigProperties properties = new SecretsConfigProperties();
+		properties.setSources(Collections.emptyList());
+		properties.setName("secret-a");
+		properties.setNamespace("spring-k8s");
+		properties.setIncludeProfileSpecificSources(false);
+
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
+		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
+
+		Assertions.assertFalse(((NamedSecretNormalizedSource) sources.get(0)).profileSpecificSources());
+	}
+
+	/**
+	 * <pre>
+	 * 	spring:
+	 *	  cloud:
+	 *      kubernetes:
+	 *        secrets:
+	 *          includeProfileSpecificSources: false
+	 *          name: secret-a
+	 *        	namespace: spring-k8s
+	 *        sources:
+	 *          - name: one
+	 *            includeProfileSpecificSources: true
+	 *          - name: two
+	 *          - name: three
+	 *            includeProfileSpecificSources: false
+	 * </pre>
+	 *
+	 * <pre>
+	 * 	source "one" will have "includeProfileSpecificSources = true".
+	 * 	source "two" will have "includeProfileSpecificSources = false".
+	 * 	source "three" will have "includeProfileSpecificSources = false".
+	 * </pre>
+	 */
+	@Test
+	void testUseIncludeProfileSpecificSourcesDefaultChangedSourceOverride() {
+		SecretsConfigProperties properties = new SecretsConfigProperties();
+		properties.setSources(Collections.emptyList());
+		properties.setName("config-map-a");
+		properties.setNamespace("spring-k8s");
+		properties.setIncludeProfileSpecificSources(false);
+
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source();
+		one.setName("config-map-one");
+		one.setIncludeProfileSpecificSources(true);
+
+		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source();
+		two.setName("config-map-two");
+
+		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source();
+		three.setName("config-map-three");
+		three.setIncludeProfileSpecificSources(false);
+
+		properties.setSources(Arrays.asList(one, two, three));
+
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
+		Assertions.assertEquals(sources.size(), 3);
+
+		Assertions.assertTrue(((NamedSecretNormalizedSource) sources.get(0)).profileSpecificSources());
+		Assertions.assertFalse(((NamedSecretNormalizedSource) sources.get(1)).profileSpecificSources());
+		Assertions.assertFalse(((NamedSecretNormalizedSource) sources.get(2)).profileSpecificSources());
+	}
+
 }
