@@ -31,11 +31,14 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 
 	private final String prefix;
 
-	public LabeledSecretNormalizedSource(String namespace, Map<String, String> labels, boolean failFast,
-			String prefix) {
+	private final boolean includeProfileSpecificSources;
+
+	public LabeledSecretNormalizedSource(String namespace, Map<String, String> labels, boolean failFast, String prefix,
+			boolean includeProfileSpecificSources) {
 		super(null, namespace, failFast);
 		this.labels = Collections.unmodifiableMap(Objects.requireNonNull(labels));
 		this.prefix = Objects.requireNonNull(prefix);
+		this.includeProfileSpecificSources = includeProfileSpecificSources;
 	}
 
 	/**
@@ -47,6 +50,10 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 
 	public String prefix() {
 		return prefix;
+	}
+
+	public boolean profileSpecificSources() {
+		return includeProfileSpecificSources;
 	}
 
 	@Override

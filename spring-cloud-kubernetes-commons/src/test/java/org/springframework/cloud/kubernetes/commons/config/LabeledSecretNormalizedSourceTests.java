@@ -33,8 +33,10 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testEqualsAndHashCode() {
-		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, false, PREFIX);
-		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true, PREFIX);
+		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, false, PREFIX,
+				false);
+		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true, PREFIX,
+				false);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -42,29 +44,34 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, PREFIX);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, PREFIX,
+				false);
 		Assertions.assertSame(source.type(), NormalizedSourceType.LABELED_SECRET);
 	}
 
 	@Test
 	void testImmutableGetLabels() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, PREFIX);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, PREFIX,
+				false);
 		Assertions.assertThrows(RuntimeException.class, () -> source.labels().put("c", "d"));
 	}
 
 	@Test
 	void testTarget() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, PREFIX);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, PREFIX,
+				false);
 		Assertions.assertEquals(source.target(), "Secret");
 	}
 
 	@Test
 	void testConstructorFields() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, PREFIX);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, PREFIX,
+				false);
 		Assertions.assertTrue(source.name().isEmpty());
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertFalse(source.failFast());
 		Assertions.assertEquals("prefix", source.prefix());
+		Assertions.assertFalse(source.profileSpecificSources());
 	}
 
 }

@@ -43,13 +43,15 @@ class Fabric8SecretsPropertySourceMockTests {
 
 	private static KubernetesClient client;
 
+	private static final String PREFIX = "prefix";
+
 	@Test
 	void namedStrategyShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
 		final String name = "my-config";
 		final String namespace = "default";
 		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
 
-		NamedSecretNormalizedSource named = new NamedSecretNormalizedSource(name, namespace, true);
+		NamedSecretNormalizedSource named = new NamedSecretNormalizedSource(name, namespace, true, PREFIX);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, named, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
@@ -63,7 +65,7 @@ class Fabric8SecretsPropertySourceMockTests {
 		final Map<String, String> labels = Collections.singletonMap("a", "b");
 		final String path = String.format("/api/v1/namespaces/%s/secrets?labelSelector=", namespace) + "a%3Db";
 
-		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, true);
+		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, true, PREFIX);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
@@ -77,7 +79,7 @@ class Fabric8SecretsPropertySourceMockTests {
 		final String namespace = "default";
 		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
 
-		NamedSecretNormalizedSource named = new NamedSecretNormalizedSource(name, namespace, false);
+		NamedSecretNormalizedSource named = new NamedSecretNormalizedSource(name, namespace, false, PREFIX);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, named, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
@@ -90,7 +92,7 @@ class Fabric8SecretsPropertySourceMockTests {
 		final Map<String, String> labels = Collections.singletonMap("a", "b");
 		final String path = String.format("/api/v1/namespaces/%s/secrets?labelSelector=", namespace) + "a%3Db";
 
-		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, false);
+		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, false, PREFIX);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();

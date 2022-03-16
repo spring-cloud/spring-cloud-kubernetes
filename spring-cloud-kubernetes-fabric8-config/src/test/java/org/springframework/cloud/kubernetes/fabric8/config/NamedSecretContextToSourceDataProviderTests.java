@@ -46,6 +46,8 @@ class NamedSecretContextToSourceDataProviderTests {
 
 	private static final String NAMESPACE = "default";
 
+	private static final String PREFIX = "prefix";
+
 	private static KubernetesClient mockClient;
 
 	@BeforeAll
@@ -77,7 +79,7 @@ class NamedSecretContextToSourceDataProviderTests {
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true);
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, PREFIX);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -109,7 +111,7 @@ class NamedSecretContextToSourceDataProviderTests {
 		mockClient.secrets().inNamespace(NAMESPACE).create(blue);
 		mockClient.secrets().inNamespace(NAMESPACE).create(yellow);
 
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true);
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, PREFIX);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -133,7 +135,7 @@ class NamedSecretContextToSourceDataProviderTests {
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(pink);
 
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("blue", NAMESPACE, true);
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("blue", NAMESPACE, true, PREFIX);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -159,7 +161,7 @@ class NamedSecretContextToSourceDataProviderTests {
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 
 		// different namespace
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE + "nope", true);
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE + "nope", true, PREFIX);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 

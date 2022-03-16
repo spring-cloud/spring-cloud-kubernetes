@@ -97,16 +97,18 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 
 			List<NormalizedSource> result = new ArrayList<>(2);
 			String name = getApplicationName(environment, this.name, "Secret");
-			result.add(new NamedSecretNormalizedSource(name, this.namespace, this.isFailFast(), ""));
+			result.add(new NamedSecretNormalizedSource(name, this.namespace, this.isFailFast(), "",
+					this.includeProfileSpecificSources));
 
 			if (!labels.isEmpty()) {
-				result.add(new LabeledSecretNormalizedSource(this.namespace, this.labels, this.isFailFast(), ""));
+				result.add(new LabeledSecretNormalizedSource(this.namespace, this.labels, this.isFailFast(), "",
+						this.includeProfileSpecificSources));
 			}
 			return result;
 		}
 
 		return this.sources.stream().flatMap(s -> s.normalize(this.name, this.namespace, this.labels, this.isFailFast(),
-				useNameAsPrefix, environment)).collect(Collectors.toList());
+				useNameAsPrefix, includeProfileSpecificSources, environment)).collect(Collectors.toList());
 	}
 
 	public static class Source {
@@ -132,10 +134,16 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		private String explicitPrefix;
 
 		/**
-		 * Use config map name as prefix for properties. Can't be a primitive, we need to
-		 * know if it was explicitly set or not
+		 * Use secret name as prefix for properties. Can't be a primitive, we need to know
+		 * if it was explicitly set or not
 		 */
 		private Boolean useNameAsPrefix;
+
+		/**
+		 * Use profile name to append to a secret name. Can't be a primitive, we need to
+		 * know if it was explicitly set or not
+		 */
+		protected Boolean includeProfileSpecificSources;
 
 		public String getName() {
 			return this.name;
@@ -181,9 +189,17 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			this.explicitPrefix = explicitPrefix;
 		}
 
+		public Boolean getIncludeProfileSpecificSources() {
+			return includeProfileSpecificSources;
+		}
+
+		public void setIncludeProfileSpecificSources(Boolean includeProfileSpecificSources) {
+			this.includeProfileSpecificSources = includeProfileSpecificSources;
+		}
+
 		private Stream<NormalizedSource> normalize(String defaultName, String defaultNamespace,
 				Map<String, String> defaultLabels, boolean failFast, boolean defaultUseNameAsPrefix,
-				Environment environment) {
+				boolean defaultIncludeProfileSpecificSources, Environment environment) {
 
 			Stream.Builder<NormalizedSource> normalizedSources = Stream.builder();
 
@@ -192,15 +208,17 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			Map<String, String> normalizedLabels = labels.isEmpty() ? defaultLabels : labels;
 			String prefix = ConfigUtils.findPrefix(explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix,
 					normalizedName);
+			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
+					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
 
 			String secretName = getApplicationName(environment, normalizedName, "Secret");
 			NormalizedSource nameBasedSource = new NamedSecretNormalizedSource(secretName, normalizedNamespace,
-					failFast, prefix);
+					failFast, prefix, includeProfileSpecificSources);
 			normalizedSources.add(nameBasedSource);
 
 			if (!normalizedLabels.isEmpty()) {
 				NormalizedSource labelsBasedSource = new LabeledSecretNormalizedSource(normalizedNamespace, labels,
-						failFast, prefix);
+						failFast, prefix, includeProfileSpecificSources);
 				normalizedSources.add(labelsBasedSource);
 			}
 

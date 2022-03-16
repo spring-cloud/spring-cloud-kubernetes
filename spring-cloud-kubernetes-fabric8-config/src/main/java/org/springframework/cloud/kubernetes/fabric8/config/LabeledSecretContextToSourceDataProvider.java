@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapPrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
@@ -88,6 +89,13 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 					secrets.forEach(secret -> result.putAll(dataFromSecret(secret, namespace)));
 					sourceName = secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName)
 							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+
+					if (!"".equals(source.prefix())) {
+						ConfigMapPrefixContext prefixContext = new ConfigMapPrefixContext(result, source.prefix(),
+							namespace, propertySourceNames);
+						return withPrefix.apply(prefixContext);
+					}
+
 				}
 				else {
 					LOG.info("No Secret(s) with labels '" + labels + "' in namespace '" + namespace + "' found.");
