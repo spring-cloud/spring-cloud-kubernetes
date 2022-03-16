@@ -46,7 +46,8 @@ jobs:
             echo $CLASSNAMES
             TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
             echo $TEST_ARG
-            ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent test -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+            # -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false; in hopes of Connection Reset issue to be solved with maven
+            ./mvnw -s .settings.xml -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent test -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
             mkdir -p $HOME/artifacts/junit/
             find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
