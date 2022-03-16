@@ -63,8 +63,10 @@ public class Fabric8SecretsPropertySource extends SecretsPropertySource {
 				putDataFromSecret(secret, result, namespace);
 			}
 
-			client.secrets().inNamespace(namespace).withLabels(labels).list().getItems()
-					.forEach(s -> putDataFromSecret(s, result, namespace));
+			if (labels != null && !labels.isEmpty()) {
+				client.secrets().inNamespace(namespace).withLabels(labels).list().getItems()
+						.forEach(s -> putDataFromSecret(s, result, namespace));
+			}
 
 		}
 		catch (Exception e) {
