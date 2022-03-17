@@ -21,11 +21,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 
 /**
  * Config map configuration properties.
@@ -40,8 +40,6 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	 * Prefix for Kubernetes secrets configuration properties.
 	 */
 	public static final String PREFIX = "spring.cloud.kubernetes.config";
-
-	private static final Log LOG = LogFactory.getLog(ConfigMapConfigProperties.class);
 
 	private boolean enableApi = true;
 
@@ -81,20 +79,16 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	 * These are the actual name/namespace pairs that are used to create a
 	 * ConfigMapPropertySource.
 	 */
-	public List<NormalizedSource> determineSources() {
-		if (this.sources.isEmpty()) {
-			if (useNameAsPrefix) {
-				LOG.warn(
-						"'spring.cloud.kubernetes.config.useNameAsPrefix' is set to 'true', but 'spring.cloud.kubernetes.config.sources'"
-								+ " is empty; as such will default 'useNameAsPrefix' to 'false'");
-			}
-			return Collections.singletonList(
-					new NamedConfigMapNormalizedSource(name, namespace, failFast, "", includeProfileSpecificSources));
+	public List<NormalizedSource> determineSources(Environment environment) {
+		if (sources.isEmpty()) {
+			String configMapName = getApplicationName(environment, name, "Config Map");
+			String prefix = ConfigUtils.findPrefix("", null, useNameAsPrefix, configMapName);
+			return Collections.singletonList(new NamedConfigMapNormalizedSource(configMapName, namespace, failFast,
+					prefix, includeProfileSpecificSources));
 		}
 
-		return sources.stream()
-				.map(s -> s.normalize(name, namespace, useNameAsPrefix, includeProfileSpecificSources, failFast))
-				.collect(Collectors.toList());
+		return sources.stream().map(s -> s.normalize(name, namespace, useNameAsPrefix, includeProfileSpecificSources,
+				failFast, environment)).collect(Collectors.toList());
 	}
 
 	/**
@@ -178,14 +172,14 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		}
 
 		private NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix,
-				boolean defaultIncludeProfileSpecificSources, boolean failFast) {
+				boolean defaultIncludeProfileSpecificSources, boolean failFast, Environment environment) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
+			String name = getApplicationName(environment, normalizedName, "Config Map");
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix,
-					normalizedName);
+			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix, name);
 			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
 					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
-			return new NamedConfigMapNormalizedSource(normalizedName, normalizedNamespace, failFast, prefix,
+			return new NamedConfigMapNormalizedSource(name, normalizedNamespace, failFast, prefix,
 					includeProfileSpecificSources);
 		}
 

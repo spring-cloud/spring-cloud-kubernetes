@@ -34,11 +34,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.Environment;
 
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 
@@ -83,7 +81,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 			// namespace has to be read from context, not from the normalized source
 			String namespace = context.namespace();
 			Environment environment = context.environment();
-			String configMapName = appName(environment, source).get();
+			String configMapName = source.name().orElseThrow();
 			Set<String> propertySourceNames = new LinkedHashSet<>();
 			propertySourceNames.add(configMapName);
 
@@ -135,10 +133,6 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 			return new SourceData(sourceNameMapper.apply(propertySourceTokens, namespace), result);
 		};
 
-	}
-
-	private Supplier<String> appName(Environment environment, NormalizedSource normalizedSource) {
-		return () -> getApplicationName(environment, normalizedSource.name().orElse(null), normalizedSource.target());
 	}
 
 }

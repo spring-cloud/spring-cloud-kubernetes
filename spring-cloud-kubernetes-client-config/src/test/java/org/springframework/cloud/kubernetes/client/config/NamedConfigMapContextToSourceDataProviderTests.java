@@ -260,30 +260,6 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 	}
 
-	// this test makes sure that even if NormalizedSource has no name (which is a valid
-	// case for config maps),
-	// it will default to "application" and such a config map will be read.
-	@Test
-	void matchWithoutName() {
-		V1ConfigMapList configMapList = new V1ConfigMapList()
-				.addItemsItem(new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder().withName("application")
-						.withNamespace(NAMESPACE).withResourceVersion("1").build()).addToData("color", "red").build());
-
-		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
-		NormalizedSource source = new NamedConfigMapNormalizedSource(null, NAMESPACE, true, "some", false);
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
-
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
-		SourceData sourceData = data.apply(context);
-
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.application.default");
-		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("some.color", "red"));
-	}
-
 	/**
 	 * NamedSecretContextToSourceDataProvider gets as input a
 	 * KubernetesClientConfigContext. This context has a namespace as well as a

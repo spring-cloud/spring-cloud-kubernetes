@@ -1,0 +1,9 @@
+spring:
+  cloud:
+    kubernetes:
+      config:
+        useNameAsPrefix: true
+        sources:
+          - namespace: spring-k8s
+            useNameAsPrefix: true
+
