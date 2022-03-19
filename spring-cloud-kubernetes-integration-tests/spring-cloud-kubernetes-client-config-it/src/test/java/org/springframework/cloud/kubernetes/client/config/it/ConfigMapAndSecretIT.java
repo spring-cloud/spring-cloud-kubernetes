@@ -35,19 +35,19 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.testcontainers.utility.DockerImageName;
 import reactor.netty.http.client.HttpClient;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
@@ -140,12 +140,12 @@ class ConfigMapAndSecretIT {
 		WebClient propertyClient = builder.baseUrl(propertyURL).build();
 
 		String property = propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-			.retryWhen(retrySpec()).block();
+				.retryWhen(retrySpec()).block();
 		assertThat(property).isEqualTo("from-config-map");
 
 		WebClient secretClient = builder.baseUrl(secretURL).build();
-		String secret = secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-			.retryWhen(retrySpec()).block();
+		String secret = secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
 		assertThat(secret).isEqualTo("p455w0rd");
 
 		V1ConfigMap configMap = getConfigK8sClientItConfigMap();
@@ -238,7 +238,7 @@ class ConfigMapAndSecretIT {
 
 	private RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(15, Duration.ofSeconds(1))
-			.filter(x -> ((WebClientResponseException) x).getStatusCode().value() != 200);
+				.filter(x -> ((WebClientResponseException) x).getStatusCode().value() != 200);
 	}
 
 }
