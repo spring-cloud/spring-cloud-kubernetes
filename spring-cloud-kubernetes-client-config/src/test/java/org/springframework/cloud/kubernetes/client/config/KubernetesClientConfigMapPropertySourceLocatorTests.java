@@ -25,8 +25,8 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
@@ -55,22 +55,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class KubernetesClientConfigMapPropertySourceLocatorTests {
 
-	private static final V1ConfigMapList PROPERTIES_CONFIGMAP_LIST = new V1ConfigMapList()
-			.addItemsItem(
-					new V1ConfigMapBuilder()
-							.withMetadata(new V1ObjectMetaBuilder().withName("bootstrap-640").withNamespace("default")
-									.withResourceVersion("1").build())
-							.addToData("application.properties",
-									"spring.cloud.kubernetes.configuration.watcher.refreshDelay=0\n"
-											+ "logging.level.org.springframework.cloud.kubernetes=TRACE")
-							.build());
+	private static final V1ConfigMap V1_CONFIG_MAP = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("bootstrap-640").withNamespace("default")
+					.withResourceVersion("1").build())
+			.addToData("application.properties", "spring.cloud.kubernetes.configuration.watcher.refreshDelay=0\n"
+					+ "logging.level.org.springframework.cloud.kubernetes=TRACE")
+			.build();
 
 	private static WireMockServer wireMockServer;
 
 	private static final MockEnvironment ENV = new MockEnvironment();
 
 	@BeforeAll
-	public static void setup() {
+	static void setup() {
 		wireMockServer = new WireMockServer(options().dynamicPort());
 
 		wireMockServer.start();
@@ -82,20 +79,20 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	}
 
 	@AfterAll
-	public static void after() {
+	static void after() {
 		wireMockServer.stop();
 	}
 
 	@AfterEach
-	public void afterEach() {
+	void afterEach() {
 		WireMock.reset();
 	}
 
 	@Test
 	void locateWithoutSources() {
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+		stubFor(get("/api/v1/namespaces/default/configmaps/bootstrap-640")
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(V1_CONFIG_MAP))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
 		configMapConfigProperties.setName("bootstrap-640");
 		MockEnvironment mockEnvironment = new MockEnvironment();
@@ -109,8 +106,8 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	@Test
 	void locateWithSources() {
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+		stubFor(get("/api/v1/namespaces/default/configmaps/bootstrap-640")
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(V1_CONFIG_MAP))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
 		configMapConfigProperties.setName("fake-name");
 		ConfigMapConfigProperties.Source source = new ConfigMapConfigProperties.Source();
@@ -137,7 +134,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	void testLocateWithoutNamespaceConstructor() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(V1_CONFIG_MAP))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
 		configMapConfigProperties.setName("bootstrap-640");
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
@@ -158,7 +155,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	void testLocateWithoutNamespace() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(V1_CONFIG_MAP))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
 		configMapConfigProperties.setName("bootstrap-640");
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
@@ -169,9 +166,9 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	}
 
 	@Test
-	public void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
+	void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/configmaps")
+		stubFor(get("/api/v1/namespaces/default/configmaps/bootstrap-640")
 				.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
@@ -183,11 +180,11 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read ConfigMap(s) in namespace 'default'");
+				.hasMessage("Unable to read ConfigMap with name 'bootstrap-640' in namespace 'default'");
 	}
 
 	@Test
-	public void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
+	void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));

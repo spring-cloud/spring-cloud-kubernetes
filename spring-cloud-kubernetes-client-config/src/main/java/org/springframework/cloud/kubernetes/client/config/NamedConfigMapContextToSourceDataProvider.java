@@ -16,30 +16,26 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.AbstractMap;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
-import io.kubernetes.client.openapi.ApiException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapPrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.Environment;
 
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.getConfigMapData;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.withPrefix;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 
 /**
@@ -56,22 +52,17 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 
 	private final BiFunction<String, String, String> sourceNameMapper;
 
-	private final Function<ConfigMapPrefixContext, SourceData> withPrefix;
-
 	private NamedConfigMapContextToSourceDataProvider(
 			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor,
-			BiFunction<String, String, String> sourceNameMapper,
-			Function<ConfigMapPrefixContext, SourceData> withPrefix) {
+			BiFunction<String, String, String> sourceNameMapper) {
 		this.entriesProcessor = Objects.requireNonNull(entriesProcessor);
 		this.sourceNameMapper = Objects.requireNonNull(sourceNameMapper);
-		this.withPrefix = Objects.requireNonNull(withPrefix);
 	}
 
 	static NamedConfigMapContextToSourceDataProvider of(
 			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor,
-			BiFunction<String, String, String> sourceNameMapper,
-			Function<ConfigMapPrefixContext, SourceData> withPrefix) {
-		return new NamedConfigMapContextToSourceDataProvider(entriesProcessor, sourceNameMapper, withPrefix);
+			BiFunction<String, String, String> sourceNameMapper) {
+		return new NamedConfigMapContextToSourceDataProvider(entriesProcessor, sourceNameMapper);
 	}
 
 	@Override
@@ -80,59 +71,41 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 		return context -> {
 
 			NamedConfigMapNormalizedSource source = (NamedConfigMapNormalizedSource) context.normalizedSource();
-			// namespace has to be read from context, not from the normalized source
 			String namespace = context.namespace();
-			Environment environment = context.environment();
-			String configMapName = appName(environment, source).get();
+			String initialConfigMapName = appName(context.environment(), source).get();
+			String currentConfigMapName = initialConfigMapName;
 			Set<String> propertySourceNames = new LinkedHashSet<>();
-			propertySourceNames.add(configMapName);
+			propertySourceNames.add(initialConfigMapName);
 
 			Map<String, Object> result = new HashMap<>();
+
+			LOG.info("Loading ConfigMap with name '" + initialConfigMapName + "' in namespace '" + namespace + "'");
 			try {
-				Set<String> names = new HashSet<>();
-				names.add(configMapName);
-				if (environment != null && source.profileSpecificSources()) {
-					for (String activeProfile : environment.getActiveProfiles()) {
-						names.add(configMapName + "-" + activeProfile);
+				Map<String, String> data = getConfigMapData(context.client(), namespace, currentConfigMapName);
+				result.putAll(withPrefix(entriesProcessor.apply(data, context.environment()), source.prefix(), ""));
+
+				if (context.environment() != null && source.profileSpecificSources()) {
+					for (String activeProfile : context.environment().getActiveProfiles()) {
+						currentConfigMapName = initialConfigMapName + "-" + activeProfile;
+						Map<String, String> dataWithProfile = getConfigMapData(context.client(), namespace,
+								currentConfigMapName);
+						if (!dataWithProfile.isEmpty()) {
+							propertySourceNames.add(currentConfigMapName);
+							result.putAll(withPrefix(entriesProcessor.apply(dataWithProfile, context.environment()),
+									source.prefix(), activeProfile));
+						}
 					}
 				}
 
-				/*
-				 * 1. read all config maps in the namespace 2. filter the ones that match
-				 * user supplied name + profile specific ones 3. get an Entry that
-				 * contains the data from config map + its name 4. create a single map
-				 * that contains all the data from all config maps; also create a unified
-				 * name of the property source (combined config map names).
-				 */
-				context.client()
-						.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null, null)
-						.getItems().stream().filter(cm -> names.contains(cm.getMetadata().getName()))
-						.map(cm -> new AbstractMap.SimpleEntry<>(entriesProcessor.apply(cm.getData(), environment),
-								cm.getMetadata().getName()))
-						.collect(Collectors.toList()).forEach(entry -> {
-							LOG.info("Loaded config map with name : '" + entry.getValue() + "' in namespace : '"
-									+ namespace + "'");
-							result.putAll(entry.getKey());
-							propertySourceNames.add(entry.getValue());
-						});
-
-				if (!"".equals(source.prefix())) {
-					ConfigMapPrefixContext prefixContext = new ConfigMapPrefixContext(result, source.prefix(),
-							namespace, propertySourceNames);
-					return withPrefix.apply(prefixContext);
-				}
-
 			}
-			catch (ApiException e) {
-				// we could make the error tell exactly what config map we could not read,
-				// this would mean separate calls to kubeapi server via the client,
-				// though.
-				String message = "Unable to read ConfigMap(s) in namespace '" + namespace + "'";
+			catch (Exception e) {
+				String message = "Unable to read ConfigMap with name '" + currentConfigMapName + "' in namespace '"
+						+ namespace + "'";
 				onException(source.failFast(), message, e);
 			}
 
-			String propertySourceTokens = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
-			return new SourceData(sourceNameMapper.apply(propertySourceTokens, namespace), result);
+			String names = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
+			return new SourceData(sourceNameMapper.apply(names, namespace), result);
 		};
 
 	}

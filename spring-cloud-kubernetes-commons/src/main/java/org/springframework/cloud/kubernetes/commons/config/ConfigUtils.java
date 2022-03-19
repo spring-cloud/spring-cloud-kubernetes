@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -35,6 +38,18 @@ public final class ConfigUtils {
 	private static final Log LOG = LogFactory.getLog(ConfigUtils.class);
 
 	private ConfigUtils() {
+	}
+
+	public static Map<String, Object> withPrefix(Map<String, Object> data, String prefix, String profile) {
+
+		if (StringUtils.hasText(prefix)) {
+			String newPrefix = StringUtils.hasText(profile) ? (prefix + "-" + profile) : prefix;
+			return data.entrySet().stream()
+					.collect(Collectors.toMap(en -> newPrefix + "." + en.getKey(), Map.Entry::getValue));
+		}
+
+		return data;
+
 	}
 
 	public static String getApplicationName(Environment env, String configName, String configurationTarget) {

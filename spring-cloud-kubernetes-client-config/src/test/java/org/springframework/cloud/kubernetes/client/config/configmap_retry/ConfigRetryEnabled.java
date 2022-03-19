@@ -23,7 +23,6 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
@@ -62,7 +61,7 @@ import static org.mockito.Mockito.verify;
 		classes = App.class)
 class ConfigRetryEnabled {
 
-	private static final String API = "/api/v1/namespaces/default/configmaps";
+	private static final String API = "/api/v1/namespaces/default/configmaps/application";
 
 	private static WireMockServer wireMockServer;
 
@@ -77,12 +76,6 @@ class ConfigRetryEnabled {
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
 				.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
-		stubConfigMapAndSecretsDefaults();
-	}
-
-	private static void stubConfigMapAndSecretsDefaults() {
-		// return empty config map / secret list to not fail context creation
-		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1ConfigMapList()))));
 	}
 
 	@AfterAll
@@ -94,7 +87,6 @@ class ConfigRetryEnabled {
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
-		stubConfigMapAndSecretsDefaults();
 	}
 
 	@SpyBean
@@ -107,10 +99,9 @@ class ConfigRetryEnabled {
 		data.put("some.prop", "theValue");
 		data.put("some.number", "0");
 
-		V1ConfigMapList configMapList = new V1ConfigMapList()
-				.addItemsItem(new V1ConfigMap().metadata(new V1ObjectMeta().name("application")).data(data));
+		V1ConfigMap configMap = new V1ConfigMap().metadata(new V1ObjectMeta().name("application")).data(data);
 
-		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
+		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMap))));
 
 		PropertySource<?> propertySource = Assertions
 				.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
@@ -129,8 +120,7 @@ class ConfigRetryEnabled {
 		data.put("some.prop", "theValue");
 		data.put("some.number", "0");
 
-		V1ConfigMapList configMapList = new V1ConfigMapList()
-				.addItemsItem(new V1ConfigMap().metadata(new V1ObjectMeta().name("application")).data(data));
+		V1ConfigMap configMap = new V1ConfigMap().metadata(new V1ObjectMeta().name("application")).data(data);
 
 		// fail 3 times
 		stubFor(get(API).inScenario("Retry and Recover").whenScenarioStateIs(STARTED)
@@ -144,7 +134,7 @@ class ConfigRetryEnabled {
 
 		// then succeed
 		stubFor(get(API).inScenario("Retry and Recover").whenScenarioStateIs("Failed thrice")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMap))));
 
 		PropertySource<?> propertySource = Assertions
 				.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
@@ -164,7 +154,7 @@ class ConfigRetryEnabled {
 
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
 				.isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read ConfigMap(s) in namespace 'default'");
+				.hasMessage("Unable to read ConfigMap with name 'application' in namespace 'default'");
 
 		// verify retried 5 times until failure
 		verify(propertySourceLocator, times(5)).locate(any());

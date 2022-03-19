@@ -84,8 +84,14 @@ public class ConfigMapNameAsPrefixConfigurationStub {
 		allConfigMaps.setItems(Arrays.asList(one, two, three));
 
 		// the actual stub for CoreV1Api calls
-		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
+		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps/config-map-one")
+				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(one))));
+
+		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps/config-map-two")
+				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(two))));
+
+		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps/config-map-three")
+				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(three))));
 	}
 
 }

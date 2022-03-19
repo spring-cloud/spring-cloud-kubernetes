@@ -17,9 +17,13 @@
 package org.springframework.cloud.kubernetes.client.config;
 
 import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -75,6 +79,27 @@ public final class KubernetesClientConfigUtils {
 		}
 
 		throw new NamespaceResolutionFailedException("unresolved namespace");
+	}
+
+	/*
+	 * namespace that reaches this point is absolutely present, otherwise this would have
+	 * resulted in a NamespaceResolutionFailedException
+	 */
+	static Map<String, String> getConfigMapData(CoreV1Api client, String namespace, String name) {
+		V1ConfigMap configMap;
+		try {
+			configMap = client.readNamespacedConfigMap(name, namespace, null, null, null);
+		}
+		catch (ApiException e) {
+			if (e.getCode() == 404) {
+				LOG.warn("can't read configmap with name : '" + name + "' in namespace : '" + namespace + "'", e);
+				return Collections.emptyMap();
+			}
+
+			throw new RuntimeException(e);
+		}
+
+		return configMap.getData();
 	}
 
 	/**

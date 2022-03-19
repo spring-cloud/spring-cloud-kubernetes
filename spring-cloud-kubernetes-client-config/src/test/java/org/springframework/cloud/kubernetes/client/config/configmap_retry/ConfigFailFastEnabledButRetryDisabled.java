@@ -18,8 +18,6 @@ package org.springframework.cloud.kubernetes.client.config.configmap_retry;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import io.kubernetes.client.openapi.JSON;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -52,11 +50,11 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		properties = { "spring.cloud.kubernetes.client.namespace=default",
 				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
-				"spring.main.cloud-platform=KUBERNETES" },
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.enabled=false" },
 		classes = App.class)
 class ConfigFailFastEnabledButRetryDisabled {
 
-	private static final String API = "/api/v1/namespaces/default/configmaps";
+	private static final String API = "/api/v1/namespaces/default/configmaps/application";
 
 	private static WireMockServer wireMockServer;
 
@@ -71,12 +69,6 @@ class ConfigFailFastEnabledButRetryDisabled {
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
 				.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
-		stubConfigMapAndSecretsDefaults();
-	}
-
-	private static void stubConfigMapAndSecretsDefaults() {
-		// return empty config map / secret list to not fail context creation
-		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1ConfigMapList()))));
 	}
 
 	@AfterAll
@@ -88,7 +80,6 @@ class ConfigFailFastEnabledButRetryDisabled {
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
-		stubConfigMapAndSecretsDefaults();
 	}
 
 	@SpyBean
@@ -105,7 +96,7 @@ class ConfigFailFastEnabledButRetryDisabled {
 		assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isFalse();
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
 				.isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read ConfigMap(s) in namespace 'default'");
+				.hasMessage("Unable to read ConfigMap with name 'application' in namespace 'default'");
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());
