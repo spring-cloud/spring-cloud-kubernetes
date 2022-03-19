@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.client.config.it;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -47,7 +48,6 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
@@ -237,8 +237,7 @@ class ConfigMapAndSecretIT {
 	}
 
 	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1))
-				.filter(x -> ((WebClientResponseException) x).getStatusCode().value() != 200);
+		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }
