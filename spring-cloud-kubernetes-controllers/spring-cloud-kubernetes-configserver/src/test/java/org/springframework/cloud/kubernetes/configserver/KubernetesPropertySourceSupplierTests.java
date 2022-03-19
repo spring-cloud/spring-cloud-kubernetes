@@ -22,7 +22,6 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
@@ -48,14 +47,11 @@ class KubernetesPropertySourceSupplierTests {
 
 	private static final CoreV1Api coreApi = mock(CoreV1Api.class);
 
-	private static final V1ConfigMapList CONFIGMAP_DEFAULT_LIST = new V1ConfigMapList()
-			.addItemsItem(buildConfigMap("gateway", "tdefault"));
+	private static final V1ConfigMap CONFIGMAP_DEFAULT = buildConfigMap("gateway", "default");
 
-	private static final V1ConfigMapList CONFIGMAP_TEAM_A_LIST = new V1ConfigMapList()
-			.addItemsItem(buildConfigMap("stores", "team-a"));
+	private static final V1ConfigMap CONFIGMAP_TEAM_A = buildConfigMap("stores", "team-a");
 
-	private static final V1ConfigMapList CONFIGMAP_TEAM_B_LIST = new V1ConfigMapList()
-			.addItemsItem(buildConfigMap("orders", "team-b"));
+	private static final V1ConfigMap CONFIGMAP_TEAM_B = buildConfigMap("orders", "team-b");
 
 	private static final V1SecretList SECRET_DEFAULT_LIST = new V1SecretListBuilder()
 			.addToItems(buildSecret("gateway", "default")).build();
@@ -68,12 +64,12 @@ class KubernetesPropertySourceSupplierTests {
 
 	@BeforeAll
 	public static void before() throws ApiException {
-		when(coreApi.listNamespacedConfigMap(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
-				eq(null), eq(null), eq(null), eq(null))).thenReturn(CONFIGMAP_DEFAULT_LIST);
-		when(coreApi.listNamespacedConfigMap(eq("team-a"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
-				eq(null), eq(null), eq(null), eq(null))).thenReturn(CONFIGMAP_TEAM_A_LIST);
-		when(coreApi.listNamespacedConfigMap(eq("team-b"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
-				eq(null), eq(null), eq(null), eq(null))).thenReturn(CONFIGMAP_TEAM_B_LIST);
+		when(coreApi.readNamespacedConfigMap(eq("gateway"), eq("default"), eq(null), eq(null), eq(null)))
+				.thenReturn(CONFIGMAP_DEFAULT);
+		when(coreApi.readNamespacedConfigMap(eq("stores"), eq("team-a"), eq(null), eq(null), eq(null)))
+				.thenReturn(CONFIGMAP_TEAM_A);
+		when(coreApi.readNamespacedConfigMap(eq("orders"), eq("team-b"), eq(null), eq(null), eq(null)))
+				.thenReturn(CONFIGMAP_TEAM_B);
 
 		when(coreApi.listNamespacedSecret(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
 				eq(null), eq(null), eq(null), eq(null))).thenReturn(SECRET_DEFAULT_LIST);

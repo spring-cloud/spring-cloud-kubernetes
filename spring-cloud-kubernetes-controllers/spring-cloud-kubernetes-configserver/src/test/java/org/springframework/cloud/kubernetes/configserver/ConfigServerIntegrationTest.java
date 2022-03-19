@@ -18,8 +18,8 @@ package org.springframework.cloud.kubernetes.configserver;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.JSON;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ListMetaBuilder;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
@@ -52,9 +52,9 @@ public class ConfigServerIntegrationTest {
 
 	@BeforeEach
 	public void beforeEach() {
-		V1ConfigMapList TEST_CONFIGMAP = new V1ConfigMapList().addItemsItem(new V1ConfigMapBuilder().withMetadata(
+		V1ConfigMap TEST_CONFIGMAP = new V1ConfigMapBuilder().withMetadata(
 				new V1ObjectMetaBuilder().withName("test-cm").withNamespace("default").withResourceVersion("1").build())
-				.addToData("app.name", "test").build());
+				.addToData("app.name", "test").build();
 
 		V1SecretList TEST_SECRET = new V1SecretListBuilder()
 				.withMetadata(new V1ListMetaBuilder().withResourceVersion("1").build())
@@ -64,7 +64,7 @@ public class ConfigServerIntegrationTest {
 						.addToData("password", "p455w0rd".getBytes()).addToData("username", "user".getBytes()).build())
 				.build();
 
-		WireMock.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
+		WireMock.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps/test-cm*"))
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(TEST_CONFIGMAP))));
 
 		WireMock.stubFor(get(urlMatching("^/api/v1/namespaces/default/secrets.*"))
