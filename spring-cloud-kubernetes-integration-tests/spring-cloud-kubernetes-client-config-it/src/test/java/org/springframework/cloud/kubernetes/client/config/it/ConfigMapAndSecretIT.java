@@ -34,7 +34,6 @@ import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.k3s.K3sContainer;
@@ -120,7 +119,6 @@ class ConfigMapAndSecretIT {
 		testConfigMapAndSecretRefresh();
 	}
 
-	@Disabled
 	@Test
 	void testConfigMapAndSecretPollingRefresh() throws Exception {
 		deployConfigK8sClientPollingIt();
@@ -135,20 +133,11 @@ class ConfigMapAndSecretIT {
 		String propertyURL = "localhost:" + K3S.getMappedPort(80) + "/myProperty";
 		String secretURL = "localhost:" + K3S.getMappedPort(80) + "/mySecret";
 
-		//String propertyURL = "http://127.0.0.1/myProperty";
-		//String secretURL = "http://127.0.0.1/mySecret";
-
 		WebClient.Builder builder = builder();
 		WebClient propertyClient = builder.baseUrl(propertyURL).build();
 
-		System.out.println("==== will hit : " + propertyURL);
-		try {
-			String property = propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block();
-			assertThat(property).isEqualTo("from-config-map");
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+		String property = propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block();
+		assertThat(property).isEqualTo("from-config-map");
 
 		WebClient secretClient = builder.baseUrl(secretURL).build();
 		String secret = secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block();
