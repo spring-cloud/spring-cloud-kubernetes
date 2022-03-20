@@ -16,40 +16,49 @@
 
 package org.springframework.cloud.kubernetes.client.loadbalancer.it;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
 
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
+import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1Role;
+import io.kubernetes.client.openapi.models.V1RoleBinding;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.BindMode;
+import org.testcontainers.k3s.K3sContainer;
+import org.testcontainers.utility.DockerImageName;
+import reactor.netty.http.client.HttpClient;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.ResponseErrorHandler;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.ResolvableType;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.getPomVersion;
 
 /**
  * @author Ryan Baxter
  */
-public class LoadBalancerIT {
+class LoadBalancerIT {
 
 	private static final Log LOG = LogFactory.getLog(LoadBalancerIT.class);
 
@@ -63,8 +72,6 @@ public class LoadBalancerIT {
 
 	private static final String NAMESPACE = "default";
 
-	private ApiClient client;
-
 	private CoreV1Api api;
 
 	private AppsV1Api appsApi;
@@ -73,9 +80,17 @@ public class LoadBalancerIT {
 
 	private K8SUtils k8SUtils;
 
+	private static final K3sContainer K3S = new K3sContainer(DockerImageName.parse("rancher/k3s:v1.21.10-k3s1"))
+			.withFileSystemBind("/tmp/images", "/tmp/images", BindMode.READ_WRITE).withExposedPorts(80, 6443)
+			.withCommand("server") // otherwise, traefik is not installed
+			.withReuse(true);
+
 	@BeforeEach
-	public void setup() throws Exception {
-		this.client = createApiClient();
+	void setup() throws Exception {
+		K3S.start();
+		K3S.execInContainer("ctr", "i", "import", "/tmp/images/spring-cloud-kubernetes-client-loadbalancer-it.tar");
+		K3S.execInContainer("ctr", "i", "import", "/tmp/images/wiremock-wiremock:2.32.0.tar");
+		createApiClient(K3S.getKubeConfigYaml());
 		this.api = new CoreV1Api();
 		this.appsApi = new AppsV1Api();
 		this.networkingApi = new NetworkingV1Api();
@@ -89,28 +104,35 @@ public class LoadBalancerIT {
 		// Check to see if endpoint is ready
 		k8SUtils.waitForEndpointReady(WIREMOCK_APP_NAME, NAMESPACE);
 
+		RbacAuthorizationV1Api rbacApi = new RbacAuthorizationV1Api();
+		api.createNamespacedServiceAccount(NAMESPACE, getConfigK8sClientItServiceAccount(), null, null, null);
+		rbacApi.createNamespacedRoleBinding(NAMESPACE, getConfigK8sClientItRoleBinding(), null, null, null);
+		rbacApi.createNamespacedRole(NAMESPACE, getConfigK8sClientItRole(), null, null, null);
+
+	}
+
+	@AfterAll
+	static void afterAll() throws Exception {
+		K3S.execInContainer("crictl", "rmi",
+				"docker.io/springcloud/spring-cloud-kubernetes-client-loadbalancer-it:" + getPomVersion());
+		K3S.execInContainer("crictl", "rmi", "docker.io/wiremock/wiremock:2.32.0");
+	}
+
+	@AfterEach
+	void afterEach() throws Exception {
+		cleanup();
 	}
 
 	@Test
-	public void testLoadBalancerServiceMode() throws Exception {
-		try {
-			deployLoadbalancerServiceIt();
-			testLoadBalancer();
-		}
-		finally {
-			cleanup();
-		}
+	void testLoadBalancerServiceMode() throws Exception {
+		deployLoadbalancerServiceIt();
+		testLoadBalancer();
 	}
 
 	@Test
-	public void testLoadBalancerPodMode() throws Exception {
-		try {
-			deployLoadbalancerPodIt();
-			testLoadBalancer();
-		}
-		finally {
-			cleanup();
-		}
+	void testLoadBalancerPodMode() throws Exception {
+		deployLoadbalancerPodIt();
+		testLoadBalancer();
 	}
 
 	private void cleanup() throws ApiException {
@@ -125,32 +147,24 @@ public class LoadBalancerIT {
 	private void testLoadBalancer() {
 		// Check to make sure the controller deployment is ready
 		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_LOADBALANCER_DEPLOYMENT_NAME, NAMESPACE);
-		RestTemplate rest = new RestTemplateBuilder().build();
-		rest.setErrorHandler(new ResponseErrorHandler() {
-			@Override
-			public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
-				LOG.warn("Received response status code: " + clientHttpResponse.getRawStatusCode());
-				return clientHttpResponse.getRawStatusCode() != 503;
-			}
 
-			@Override
-			public void handleError(ClientHttpResponse clientHttpResponse) {
+		String serviceURL = "localhost:" + K3S.getMappedPort(80) + "/servicea";
+		WebClient.Builder builder = builder();
+		WebClient serviceClient = builder.baseUrl(serviceURL).build();
 
-			}
-		});
-		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
-		// available and we get a 503, we just need to wait a bit
-		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).ignoreExceptions()
-				.until(() -> rest.getForEntity("http://localhost:80/loadbalancer-it/servicea", String.class)
-						.getStatusCode().is2xxSuccessful());
-		Map<String, Object> result = rest.getForObject("http://localhost:80/loadbalancer-it/servicea", Map.class);
-		assertThat(result.containsKey("mappings")).isTrue();
-		assertThat(result.containsKey("meta")).isTrue();
+		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(Map.class, String.class, String.class);
+		@SuppressWarnings("unchecked")
+		Map<String, String> result = (Map<String, String>) serviceClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType())).retryWhen(retrySpec())
+				.block();
+
+		Assertions.assertThat(result.containsKey("mappings")).isTrue();
+		Assertions.assertThat(result.containsKey("meta")).isTrue();
 
 	}
 
 	@AfterEach
-	public void after() throws Exception {
+	void after() throws Exception {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
 				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
 
@@ -162,13 +176,19 @@ public class LoadBalancerIT {
 	private void deployLoadbalancerServiceIt() throws Exception {
 		appsApi.createNamespacedDeployment(NAMESPACE, getLoadbalancerServiceItDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getLoadbalancerItService(), null, null, null);
-		networkingApi.createNamespacedIngress(NAMESPACE, getLoadbalancerItIngress(), null, null, null);
+
+		V1Ingress ingress = getLoadbalancerItIngress();
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
 	private void deployLoadbalancerPodIt() throws Exception {
 		appsApi.createNamespacedDeployment(NAMESPACE, getLoadbalancerPodItDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getLoadbalancerItService(), null, null, null);
-		networkingApi.createNamespacedIngress(NAMESPACE, getLoadbalancerItIngress(), null, null, null);
+
+		V1Ingress ingress = getLoadbalancerItIngress();
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
 	private V1Deployment getLoadbalancerServiceItDeployment() throws Exception {
@@ -190,9 +210,12 @@ public class LoadBalancerIT {
 	}
 
 	private void deployWiremock() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getWireockDeployment(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getWiremockDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getWiremockAppService(), null, null, null);
-		networkingApi.createNamespacedIngress(NAMESPACE, getWiremockIngress(), null, null, null);
+
+		V1Ingress ingress = getWiremockIngress();
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
 	private V1Ingress getLoadbalancerItIngress() throws Exception {
@@ -213,8 +236,28 @@ public class LoadBalancerIT {
 		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock-service.yaml");
 	}
 
-	private V1Deployment getWireockDeployment() throws Exception {
+	private V1Deployment getWiremockDeployment() throws Exception {
 		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock-deployment.yaml");
+	}
+
+	private static V1ServiceAccount getConfigK8sClientItServiceAccount() throws Exception {
+		return (V1ServiceAccount) K8SUtils.readYamlFromClasspath("service-account.yaml");
+	}
+
+	private static V1RoleBinding getConfigK8sClientItRoleBinding() throws Exception {
+		return (V1RoleBinding) K8SUtils.readYamlFromClasspath("role-binding.yaml");
+	}
+
+	private static V1Role getConfigK8sClientItRole() throws Exception {
+		return (V1Role) K8SUtils.readYamlFromClasspath("role.yaml");
+	}
+
+	private WebClient.Builder builder() {
+		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
+	}
+
+	private RetryBackoffSpec retrySpec() {
+		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }
