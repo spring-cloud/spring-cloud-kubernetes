@@ -42,7 +42,7 @@ DEFAULT_PULLING_IMAGES=(
 	"jettech/kube-webhook-certgen:v1.2.2"
 	"rabbitmq:3-management"
 	"zookeeper:3.6.2"
-	"rodolpheche/wiremock:2.27.2"
+	"wiremock/wiremock:2.32.0"
 	"wurstmeister/kafka:2.13-2.6.0"
 	"istio/proxyv2:${ISTIO_VERSION}"
 	"istio/pilot:${ISTIO_VERSION}"
@@ -139,7 +139,10 @@ main() {
 	# pulling necessary images for setting up the integration test environment
 	for i in "${PULLING_IMAGES[@]}"; do
 		echo "Pull images for prepping testing environment: $i"
-		docker pull $i
+		docker pull "$i"
+		# replace / with -
+		in=$(echo "${i//\//-}")
+        docker save -o /tmp/images/"${in}.tar" "$i"
 	done
 	for i in "${LOADING_IMAGES[@]}"; do
 		echo "Loading images into Kind: $i"
@@ -183,6 +186,7 @@ main() {
 
 MOVED_TO_TEST_CONTAINERS=(
 	"spring-cloud-kubernetes-client-config-it"
+	"spring-cloud-kubernetes-client-loadbalancer-it"
 )
 
 run_tests() {
