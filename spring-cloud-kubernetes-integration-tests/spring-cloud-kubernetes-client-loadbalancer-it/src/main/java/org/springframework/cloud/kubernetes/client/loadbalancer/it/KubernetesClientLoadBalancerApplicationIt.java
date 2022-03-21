@@ -58,7 +58,7 @@ public class KubernetesClientLoadBalancerApplicationIt {
 		return WebClient.builder();
 	}
 
-	@GetMapping("/servicea")
+	@GetMapping("/loadbalancer-it/servicea")
 	@SuppressWarnings("unchecked")
 	public Map<String, Object> greeting() {
 		return (Map<String, Object>) client().clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
