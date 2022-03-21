@@ -34,7 +34,11 @@ import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -113,9 +117,9 @@ class LoadBalancerIT {
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		 K3S.execInContainer("crictl", "rmi",
-			 "docker.io/springcloud/spring-cloud-kubernetes-client-loadbalancer-it:" + getPomVersion());
-		 K3S.execInContainer("crictl", "rmi", "docker.io/wiremock/wiremock:2.32.0");
+		K3S.execInContainer("crictl", "rmi",
+				"docker.io/springcloud/spring-cloud-kubernetes-client-loadbalancer-it:" + getPomVersion());
+		K3S.execInContainer("crictl", "rmi", "docker.io/wiremock/wiremock:2.32.0");
 	}
 
 	@AfterEach
@@ -165,11 +169,11 @@ class LoadBalancerIT {
 
 	@AfterEach
 	void after() throws Exception {
-		 appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-			 "metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
+		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
+				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
 
-		 api.deleteNamespacedService(WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
-		 networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE, null, null, null, null, null, null);
+		api.deleteNamespacedService(WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
+		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE, null, null, null, null, null, null);
 	}
 
 	private void deployLoadbalancerServiceIt() throws Exception {
