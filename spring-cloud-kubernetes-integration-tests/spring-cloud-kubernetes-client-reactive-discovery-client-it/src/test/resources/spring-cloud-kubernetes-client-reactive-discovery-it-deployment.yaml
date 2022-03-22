@@ -14,15 +14,15 @@ spec:
       serviceAccountName: spring-cloud-kubernetes-serviceaccount
       containers:
         - name: spring-cloud-kubernetes-client-reactive-discovery-it
-          image: docker.io/springcloud/spring-cloud-kubernetes-client-reactive-discovery-client-it
+          image: docker.io/springcloud/spring-cloud-kubernetes-client-reactive-discoveryclient-it
           imagePullPolicy: IfNotPresent
           readinessProbe:
             httpGet:
               port: 8080
-              path: /actuator/health/readiness
+              path: /reactive-discovery-it/actuator/health/readiness
           livenessProbe:
             httpGet:
               port: 8080
-              path: /actuator/health/liveness
+              path: /reactive-discovery-it/actuator/health/liveness
           ports:
             - containerPort: 8080

@@ -1,3 +1,7 @@
+spring:
+  webflux:
+    base-path: /reactive-discovery-it
+
 management:
   endpoint:
     health:

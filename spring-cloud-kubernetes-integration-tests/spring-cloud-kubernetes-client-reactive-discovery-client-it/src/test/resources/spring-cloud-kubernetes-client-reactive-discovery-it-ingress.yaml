@@ -3,14 +3,12 @@ kind: Ingress
 metadata:
   name: it-ingress
   namespace: default
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
     - http:
         paths:
-          - path: /reactive-discovery-it(/|$)(.*)
-            pathType: Prefix
+          - path: /reactive-discovery-it
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: spring-cloud-kubernetes-client-reactive-discovery-it

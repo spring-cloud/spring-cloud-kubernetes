@@ -31,8 +31,6 @@ import io.kubernetes.client.openapi.models.V1Role;
 import io.kubernetes.client.openapi.models.V1RoleBinding;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceAccount;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -60,8 +58,6 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
  * @author Ryan Baxter
  */
 class LoadBalancerIT {
-
-	private static final Log LOG = LogFactory.getLog(LoadBalancerIT.class);
 
 	private static final String WIREMOCK_DEPLOYMENT_NAME = "servicea-wiremock-deployment";
 
