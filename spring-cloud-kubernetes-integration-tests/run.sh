@@ -188,6 +188,7 @@ MOVED_TO_TEST_CONTAINERS=(
 	"spring-cloud-kubernetes-client-config-it"
 	"spring-cloud-kubernetes-client-loadbalancer-it"
 	"spring-cloud-kubernetes-client-reactive-discovery-client-it"
+	"spring-cloud-kubernetes-configuration-watcher-it"
 )
 
 run_tests() {

@@ -1,3 +1,7 @@
+server:
+  servlet:
+    context-path: /config
+
 spring:
   application:
     name: spring-cloud-kubernetes-configuration-watcher-it
@@ -14,17 +18,21 @@ management:
       enabled: true
 ---
 spring:
-  profiles: bus-amqp
   cloud:
     bus:
       enabled: true
     stream:
       default-binder: rabbit
+  config:
+    activate:
+      on-profile:
 ---
 spring:
-  profiles: bus-kafka
   cloud:
     bus:
       enabled: true
     stream:
       default-binder: kafka
+  config:
+    activate:
+      on-profile:
