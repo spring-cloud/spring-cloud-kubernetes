@@ -208,12 +208,13 @@ public class ActuatorRefreshRabbitMQIT {
 	}
 
 	private V1Service getConfigWatcherService() throws Exception {
-		return (V1Service) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-service.yaml");
+		return (V1Service) K8SUtils
+				.readYamlFromClasspath("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
 	}
 
 	private V1ConfigMap getConfigWatcherConfigMap() throws Exception {
 		return (V1ConfigMap) K8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
+				.readYamlFromClasspath("config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
 	}
 
 	private V1Ingress getItIngress() throws Exception {

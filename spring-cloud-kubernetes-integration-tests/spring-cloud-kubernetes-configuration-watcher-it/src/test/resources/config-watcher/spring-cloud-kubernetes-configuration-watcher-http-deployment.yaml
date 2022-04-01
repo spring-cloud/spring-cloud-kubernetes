@@ -16,13 +16,13 @@ spec:
         - name: spring-cloud-kubernetes-configuration-watcher
           image: docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher
           imagePullPolicy: IfNotPresent
-          readinessProbe:
-            httpGet:
-              port: 8888
-              path: /config/actuator/health/readiness
-          livenessProbe:
-            httpGet:
-              port: 8888
-              path: /config/actuator/health/liveness
-          ports:
-            - containerPort: 8888
+#          readinessProbe:
+#            httpGet:
+#              port: 8888
+#              path: /config/actuator/health/readiness
+#          livenessProbe:
+#            httpGet:
+#              port: 8888
+#              path: /config/actuator/health/liveness
+#          ports:
+#            - containerPort: 8888
