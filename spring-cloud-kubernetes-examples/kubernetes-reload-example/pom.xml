@@ -22,7 +22,7 @@
 	<parent>
 		<artifactId>spring-cloud-kubernetes-examples</artifactId>
 		<groupId>org.springframework.cloud</groupId>
-<version>3.0.0-M2</version>
+<version>3.0.0-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
