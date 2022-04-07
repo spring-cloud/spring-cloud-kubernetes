@@ -22,7 +22,7 @@ package org.springframework.cloud.kubernetes.discovery;
 public class DiscoveryServerUrlInvalidException extends RuntimeException {
 
 	public DiscoveryServerUrlInvalidException() {
-		super("spring.cloud.kubernetes.discovery-server-url must be specified and a valid URL.");
+		super("spring.cloud.kubernetes.discovery.discovery-server-url must be specified and a valid URL.");
 	}
 
 }
