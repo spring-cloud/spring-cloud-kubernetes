@@ -37,6 +37,7 @@ import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
+import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentBuilder;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
@@ -47,7 +48,10 @@ import io.kubernetes.client.openapi.models.V1LoadBalancerIngress;
 import io.kubernetes.client.openapi.models.V1LoadBalancerStatus;
 import io.kubernetes.client.openapi.models.V1ReplicationController;
 import io.kubernetes.client.openapi.models.V1ReplicationControllerList;
+import io.kubernetes.client.openapi.models.V1Role;
+import io.kubernetes.client.openapi.models.V1RoleBinding;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.Yaml;
@@ -76,6 +80,8 @@ public class K8SUtils {
 	private final AppsV1Api appsApi;
 
 	private final NetworkingV1Api networkingApi;
+
+	private final RbacAuthorizationV1Api rbacApi;
 
 	public static ApiClient createApiClient() throws IOException {
 		return createApiClient(false, Duration.ofSeconds(15));
@@ -116,6 +122,7 @@ public class K8SUtils {
 		this.api = api;
 		this.appsApi = appsApi;
 		this.networkingApi = new NetworkingV1Api();
+		this.rbacApi = new RbacAuthorizationV1Api();
 	}
 
 	public Object readYaml(String urlString) throws Exception {
@@ -272,6 +279,24 @@ public class K8SUtils {
 		log.info("Available replicas for " + deploymentName + ": "
 				+ (availableReplicas == null ? 0 : availableReplicas));
 		return availableReplicas != null && availableReplicas >= 1;
+	}
+
+	public void setUp(String namespace) throws Exception {
+		api.createNamespacedServiceAccount(namespace, getConfigK8sClientItServiceAccount(), null, null, null);
+		rbacApi.createNamespacedRoleBinding(namespace, getConfigK8sClientItRoleBinding(), null, null, null);
+		rbacApi.createNamespacedRole(namespace, getConfigK8sClientItRole(), null, null, null);
+	}
+
+	public static V1ServiceAccount getConfigK8sClientItServiceAccount() throws Exception {
+		return (V1ServiceAccount) K8SUtils.readYamlFromClasspath("setup/service-account.yaml");
+	}
+
+	public static V1RoleBinding getConfigK8sClientItRoleBinding() throws Exception {
+		return (V1RoleBinding) K8SUtils.readYamlFromClasspath("setup/role-binding.yaml");
+	}
+
+	public static V1Role getConfigK8sClientItRole() throws Exception {
+		return (V1Role) K8SUtils.readYamlFromClasspath("setup/role.yaml");
 	}
 
 }

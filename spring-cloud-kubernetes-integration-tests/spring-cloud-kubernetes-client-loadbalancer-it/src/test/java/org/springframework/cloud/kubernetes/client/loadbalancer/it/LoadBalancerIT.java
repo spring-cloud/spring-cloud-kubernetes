@@ -86,7 +86,7 @@ class LoadBalancerIT {
 	static void beforeAll() throws Exception {
 		K3S.start();
 		K3S.execInContainer("ctr", "i", "import", "/tmp/images/spring-cloud-kubernetes-client-loadbalancer-it.tar");
-		K3S.execInContainer("ctr", "i", "import", "/tmp/images/wiremock-wiremock:2.32.0.tar");
+		//K3S.execInContainer("ctr", "i", "import", "/tmp/images/wiremock-wiremock:2.32.0.tar");
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
 		appsApi = new AppsV1Api();
@@ -228,15 +228,15 @@ class LoadBalancerIT {
 	}
 
 	private static V1Ingress getWiremockIngress() throws Exception {
-		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
+		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock/wiremock-ingress.yaml");
 	}
 
 	private static V1Service getWiremockAppService() throws Exception {
-		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock-service.yaml");
+		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock/wiremock-service.yaml");
 	}
 
 	private static V1Deployment getWiremockDeployment() throws Exception {
-		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock-deployment.yaml");
+		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock/wiremock-deployment.yaml");
 	}
 
 	private static V1ServiceAccount getConfigK8sClientItServiceAccount() throws Exception {

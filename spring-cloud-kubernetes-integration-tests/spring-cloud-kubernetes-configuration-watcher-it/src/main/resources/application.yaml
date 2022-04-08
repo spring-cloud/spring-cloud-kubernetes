@@ -27,7 +27,7 @@ spring:
       default-binder: rabbit
   config:
     activate:
-      on-profile:
+      on-profile: bus-amqp
 ---
 spring:
   cloud:
@@ -37,4 +37,4 @@ spring:
       default-binder: kafka
   config:
     activate:
-      on-profile:
+      on-profile: bus-kafka

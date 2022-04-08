@@ -24,7 +24,6 @@ ISTIO_VERSION="1.12.0"
 
 ALL_INTEGRATION_PROJECTS=(
 	"spring-cloud-kubernetes-core-k8s-client-it"
-	"spring-cloud-kubernetes-client-config-it"
 	"spring-cloud-kubernetes-configuration-watcher-it"
 	"spring-cloud-kubernetes-client-loadbalancer-it"
 	"spring-cloud-kubernetes-client-reactive-discovery-client-it"
@@ -184,13 +183,6 @@ main() {
     # teardown will happen automatically on exit
 }
 
-MOVED_TO_TEST_CONTAINERS=(
-	"spring-cloud-kubernetes-client-config-it"
-	"spring-cloud-kubernetes-client-loadbalancer-it"
-	"spring-cloud-kubernetes-client-reactive-discovery-client-it"
-	"spring-cloud-kubernetes-configuration-watcher-it"
-)
-
 run_tests() {
 	arr=("$@")
 	cd ../spring-cloud-kubernetes-test-support
@@ -202,21 +194,10 @@ run_tests() {
 
 		${MVN} spring-boot:build-image \
 			-Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${PROJECT_VERSION} -Dspring-boot.build-image.builder=paketobuildpacks/builder
+		"${KIND}" load docker-image docker.io/springcloud/$p:${PROJECT_VERSION}
 
-		# only save images that have been refactored to be moved to test-containers
-		# this is WIP. When all of the projects move, we will no longer need kind.
-		if [[ "${MOVED_TO_TEST_CONTAINERS[*]}" =~ ${p} ]]; then
-            docker save -o  "/tmp/images/${p}.tar" "springcloud/${p}"
-		else
-			"${KIND}" load docker-image docker.io/springcloud/$p:${PROJECT_VERSION}
-		fi
 		# empty excludeITTests, so that integration tests will run
         ${MVN} clean install -DexcludeITTests=
-
-		# clear space as these images are not small at all
-        if [[ "${MOVED_TO_TEST_CONTAINERS[*]}" =~ ${p} ]]; then
-            rm -fr "/tmp/images/${p}.tar"
-        fi
 
         cd ..
 	done

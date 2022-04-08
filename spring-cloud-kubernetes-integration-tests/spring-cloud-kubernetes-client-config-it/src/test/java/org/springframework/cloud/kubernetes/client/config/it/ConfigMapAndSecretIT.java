@@ -23,27 +23,22 @@ import java.util.Objects;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
-import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.openapi.models.V1Role;
-import io.kubernetes.client.openapi.models.V1RoleBinding;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.BindMode;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
-import org.testcontainers.utility.DockerImageName;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -76,31 +71,25 @@ class ConfigMapAndSecretIT {
 
 	private static K8SUtils k8SUtils;
 
-	private static final K3sContainer K3S = new K3sContainer(DockerImageName.parse("rancher/k3s:v1.21.10-k3s1"))
-			.withFileSystemBind("/tmp/images", "/tmp/images", BindMode.READ_WRITE).withExposedPorts(80, 6443)
-			.withCommand("server") // otherwise, traefik is not installed
-			.withReuse(true);
+	private static final K3sContainer K3S = Commons.container();
 
 	@BeforeAll
 	static void setup() throws Exception {
 		K3S.start();
-		K3S.execInContainer("ctr", "i", "import", "/tmp/images/spring-cloud-kubernetes-client-config-it.tar");
+		Commons.validateImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME);
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
 		appsApi = new AppsV1Api();
 		networkingApi = new NetworkingV1Api();
 		k8SUtils = new K8SUtils(api, appsApi);
+		Commons.loadImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME);
+		k8SUtils.setUp(NAMESPACE);
 
-		RbacAuthorizationV1Api rbacApi = new RbacAuthorizationV1Api();
-		api.createNamespacedServiceAccount(NAMESPACE, getConfigK8sClientItServiceAccount(), null, null, null);
-		rbacApi.createNamespacedRoleBinding(NAMESPACE, getConfigK8sClientItRoleBinding(), null, null, null);
-		rbacApi.createNamespacedRole(NAMESPACE, getConfigK8sClientItRole(), null, null, null);
 	}
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		K3S.execInContainer("crictl", "rmi",
-				"docker.io/springcloud/spring-cloud-kubernetes-client-config-it:" + getPomVersion());
+		Commons.cleanUp(K8S_CONFIG_CLIENT_IT_SERVICE_NAME);
 	}
 
 	@AfterEach
@@ -218,18 +207,6 @@ class ConfigMapAndSecretIT {
 
 	private static V1Secret getConfigK8sClientItCSecret() throws Exception {
 		return (V1Secret) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-secret.yaml");
-	}
-
-	private static V1ServiceAccount getConfigK8sClientItServiceAccount() throws Exception {
-		return (V1ServiceAccount) K8SUtils.readYamlFromClasspath("service-account.yaml");
-	}
-
-	private static V1RoleBinding getConfigK8sClientItRoleBinding() throws Exception {
-		return (V1RoleBinding) K8SUtils.readYamlFromClasspath("role-binding.yaml");
-	}
-
-	private static V1Role getConfigK8sClientItRole() throws Exception {
-		return (V1Role) K8SUtils.readYamlFromClasspath("role.yaml");
 	}
 
 	private WebClient.Builder builder() {

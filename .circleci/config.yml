@@ -75,6 +75,23 @@ jobs:
             docker load -i ./docker-images/spring-cloud-kubernetes-discoveryserver.tar
             docker load -i ./docker-images/spring-cloud-kubernetes-configserver.tar
       - run:
+          name: testcontainers integration tests
+          command: |
+            # TODO, when all tests move to testcontainers, this should be a call to mvn, to find all modules
+            INTEGRATION_PROJECTS=(
+            	"spring-cloud-kubernetes-client-config-it"
+            )
+
+            cd spring-cloud-kubernetes-integration-tests
+            for p in "${INTEGRATION_PROJECTS[@]}"; do
+              cd "${p}"
+              mvn spring-boot:build-image \
+              	  -Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${PROJECT_VERSION} \
+                  -Dspring-boot.build-image.builder=paketobuildpacks/builder
+              mvn clean verify -DexcludeITTests=
+              cd ..
+            done
+      - run:
           name: Run Kind Integration Tests
           command: |
             cd spring-cloud-kubernetes-integration-tests
