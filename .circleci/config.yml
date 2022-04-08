@@ -82,6 +82,10 @@ jobs:
             	"spring-cloud-kubernetes-client-config-it"
             )
 
+            cd spring-cloud-kubernetes-test-support
+            mvn clean install
+            cd ..
+
             cd spring-cloud-kubernetes-integration-tests
             PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
             for p in "${INTEGRATION_PROJECTS[@]}"; do
