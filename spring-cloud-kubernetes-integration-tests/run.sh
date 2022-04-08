@@ -139,9 +139,6 @@ main() {
 	for i in "${PULLING_IMAGES[@]}"; do
 		echo "Pull images for prepping testing environment: $i"
 		docker pull "$i"
-		# replace / with -
-		in=$(echo "${i//\//-}")
-        docker save -o /tmp/images/"${in}.tar" "$i"
 	done
 	for i in "${LOADING_IMAGES[@]}"; do
 		echo "Loading images into Kind: $i"
