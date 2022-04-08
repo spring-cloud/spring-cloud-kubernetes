@@ -66,6 +66,7 @@ public final class Commons {
 	static {
 		try {
 			TEMP_FOLDER = Files.createTempDirectory("").normalize().toString();
+			System.out.println("temp-folder is at : " + TEMP_FOLDER);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

@@ -83,6 +83,7 @@ jobs:
             )
 
             cd spring-cloud-kubernetes-integration-tests
+            PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
             for p in "${INTEGRATION_PROJECTS[@]}"; do
               cd "${p}"
               mvn spring-boot:build-image \
