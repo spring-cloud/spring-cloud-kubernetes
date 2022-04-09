@@ -38,7 +38,22 @@ import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
-import io.kubernetes.client.openapi.models.*;
+import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1DeploymentBuilder;
+import io.kubernetes.client.openapi.models.V1DeploymentList;
+import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1EndpointsList;
+import io.kubernetes.client.openapi.models.V1EnvVar;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1LoadBalancerIngress;
+import io.kubernetes.client.openapi.models.V1LoadBalancerStatus;
+import io.kubernetes.client.openapi.models.V1ReplicationController;
+import io.kubernetes.client.openapi.models.V1ReplicationControllerList;
+import io.kubernetes.client.openapi.models.V1Role;
+import io.kubernetes.client.openapi.models.V1RoleBinding;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceAccount;
+import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.Yaml;
 import org.apache.commons.logging.Log;
@@ -138,9 +153,6 @@ public class K8SUtils {
 
 	public static Object readYamlFromClasspath(String fileName) throws Exception {
 		ClassLoader classLoader = K8SUtils.class.getClassLoader();
-		// Files.createTempDir()
-		// new File(new FileInputStream(classLoader.getResourceAsStream(fileName)));
-		// File file = new File(classLoader.getResource(fileName)
 		String file = new BufferedReader(new InputStreamReader(classLoader.getResourceAsStream(fileName))).lines()
 				.collect(Collectors.joining("\n"));
 		return Yaml.load(file);
@@ -309,15 +321,15 @@ public class K8SUtils {
 	 */
 	public void cleanUpWiremock(String namespace) throws Exception {
 		appsApi.deleteCollectionNamespacedDeployment(namespace, null, null, null,
-			"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
+				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
 
 		api.deleteNamespacedService(WIREMOCK_APP_NAME, namespace, null, null, null, null, null, null);
 		networkingApi.deleteNamespacedIngress("wiremock-ingress", namespace, null, null, null, null, null, null);
 	}
 
 	/**
-	 * this one should be called once all tests in a suite are done, as it removes the image
-	 * from a running container.
+	 * this one should be called once all tests in a suite are done, as it removes the
+	 * image from a running container.
 	 */
 	public void removeWiremockImage() throws Exception {
 		V1Deployment wiremockDeployment = getWiremockDeployment();
