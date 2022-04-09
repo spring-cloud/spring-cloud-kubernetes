@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -30,6 +29,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
@@ -148,7 +148,11 @@ public class K8SUtils {
 
 	public static Object readYamlFromClasspath(String fileName) throws Exception {
 		ClassLoader classLoader = K8SUtils.class.getClassLoader();
-		File file = new File(classLoader.getResource(fileName).getFile());
+		// Files.createTempDir()
+		// new File(new FileInputStream(classLoader.getResourceAsStream(fileName)));
+		// File file = new File(classLoader.getResource(fileName)
+		String file = new BufferedReader(new InputStreamReader(classLoader.getResourceAsStream(fileName))).lines()
+				.collect(Collectors.joining("\n"));
 		return Yaml.load(file);
 	}
 
