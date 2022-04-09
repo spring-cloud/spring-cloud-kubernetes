@@ -25,7 +25,6 @@ ISTIO_VERSION="1.12.0"
 ALL_INTEGRATION_PROJECTS=(
 	"spring-cloud-kubernetes-core-k8s-client-it"
 	"spring-cloud-kubernetes-configuration-watcher-it"
-	"spring-cloud-kubernetes-client-loadbalancer-it"
 	"spring-cloud-kubernetes-client-reactive-discovery-client-it"
 	"spring-cloud-kubernetes-discovery-client-it"
 	"spring-cloud-kubernetes-reactive-discovery-client-it"

@@ -24,26 +24,21 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
-import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.openapi.models.V1Role;
-import io.kubernetes.client.openapi.models.V1RoleBinding;
 import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.BindMode;
 import org.testcontainers.k3s.K3sContainer;
-import org.testcontainers.utility.DockerImageName;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
@@ -59,10 +54,6 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
  */
 class LoadBalancerIT {
 
-	private static final String WIREMOCK_DEPLOYMENT_NAME = "servicea-wiremock-deployment";
-
-	private static final String WIREMOCK_APP_NAME = "servicea-wiremock";
-
 	private static final String SPRING_CLOUD_K8S_LOADBALANCER_DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-loadbalancer-it-deployment";
 
 	private static final String SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME = "spring-cloud-kubernetes-client-loadbalancer-it";
@@ -77,50 +68,36 @@ class LoadBalancerIT {
 
 	private static K8SUtils k8SUtils;
 
-	private static final K3sContainer K3S = new K3sContainer(DockerImageName.parse("rancher/k3s:v1.21.10-k3s1"))
-			.withFileSystemBind("/tmp/images", "/tmp/images", BindMode.READ_WRITE).withExposedPorts(80, 6443)
-			.withCommand("server") // otherwise, traefik is not installed
-			.withReuse(true);
+	private static final K3sContainer K3S = Commons.container();
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
-		K3S.execInContainer("ctr", "i", "import", "/tmp/images/spring-cloud-kubernetes-client-loadbalancer-it.tar");
-		//K3S.execInContainer("ctr", "i", "import", "/tmp/images/wiremock-wiremock:2.32.0.tar");
+		Commons.validateImage(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME);
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
 		appsApi = new AppsV1Api();
 		networkingApi = new NetworkingV1Api();
 		k8SUtils = new K8SUtils(api, appsApi);
-
-		RbacAuthorizationV1Api rbacApi = new RbacAuthorizationV1Api();
-		api.createNamespacedServiceAccount(NAMESPACE, getConfigK8sClientItServiceAccount(), null, null, null);
-		rbacApi.createNamespacedRoleBinding(NAMESPACE, getConfigK8sClientItRoleBinding(), null, null, null);
-		rbacApi.createNamespacedRole(NAMESPACE, getConfigK8sClientItRole(), null, null, null);
-	}
-
-	@BeforeEach
-	void setup() throws Exception {
-		deployWiremock();
-
-		// Check to make sure the wiremock deployment is ready
-		k8SUtils.waitForDeployment(WIREMOCK_DEPLOYMENT_NAME, NAMESPACE);
-
-		// Check to see if endpoint is ready
-		k8SUtils.waitForEndpointReady(WIREMOCK_APP_NAME, NAMESPACE);
-
+		Commons.loadImage(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME);
+		k8SUtils.setUp(NAMESPACE);
 	}
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		K3S.execInContainer("crictl", "rmi",
-				"docker.io/springcloud/spring-cloud-kubernetes-client-loadbalancer-it:" + getPomVersion());
-		K3S.execInContainer("crictl", "rmi", "docker.io/wiremock/wiremock:2.32.0");
+		Commons.cleanUp(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME);
+		k8SUtils.removeWiremockImage();
+	}
+
+	@BeforeEach
+	void setup() throws Exception {
+		k8SUtils.deployWiremock(NAMESPACE);
 	}
 
 	@AfterEach
 	void afterEach() throws Exception {
 		cleanup();
+		k8SUtils.cleanUpWiremock(NAMESPACE);
 	}
 
 	@Test
@@ -163,15 +140,6 @@ class LoadBalancerIT {
 
 	}
 
-	@AfterEach
-	void after() throws Exception {
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
-
-		api.deleteNamespacedService(WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
-		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE, null, null, null, null, null, null);
-	}
-
 	private void deployLoadbalancerServiceIt() throws Exception {
 		appsApi.createNamespacedDeployment(NAMESPACE, getLoadbalancerServiceItDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getLoadbalancerItService(), null, null, null);
@@ -208,15 +176,6 @@ class LoadBalancerIT {
 		return deployment;
 	}
 
-	private static void deployWiremock() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getWiremockDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getWiremockAppService(), null, null, null);
-
-		V1Ingress ingress = getWiremockIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
-		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
-	}
-
 	private V1Ingress getLoadbalancerItIngress() throws Exception {
 		return (V1Ingress) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-it-ingress.yaml");
@@ -225,30 +184,6 @@ class LoadBalancerIT {
 	private V1Service getLoadbalancerItService() throws Exception {
 		return (V1Service) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-it-service.yaml");
-	}
-
-	private static V1Ingress getWiremockIngress() throws Exception {
-		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock/wiremock-ingress.yaml");
-	}
-
-	private static V1Service getWiremockAppService() throws Exception {
-		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock/wiremock-service.yaml");
-	}
-
-	private static V1Deployment getWiremockDeployment() throws Exception {
-		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock/wiremock-deployment.yaml");
-	}
-
-	private static V1ServiceAccount getConfigK8sClientItServiceAccount() throws Exception {
-		return (V1ServiceAccount) K8SUtils.readYamlFromClasspath("service-account.yaml");
-	}
-
-	private static V1RoleBinding getConfigK8sClientItRoleBinding() throws Exception {
-		return (V1RoleBinding) K8SUtils.readYamlFromClasspath("role-binding.yaml");
-	}
-
-	private static V1Role getConfigK8sClientItRole() throws Exception {
-		return (V1Role) K8SUtils.readYamlFromClasspath("role.yaml");
 	}
 
 	private WebClient.Builder builder() {

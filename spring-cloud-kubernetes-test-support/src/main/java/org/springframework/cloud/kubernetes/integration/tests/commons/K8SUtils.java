@@ -38,21 +38,7 @@ import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
-import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1DeploymentBuilder;
-import io.kubernetes.client.openapi.models.V1DeploymentList;
-import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1EndpointsList;
-import io.kubernetes.client.openapi.models.V1EnvVar;
-import io.kubernetes.client.openapi.models.V1LoadBalancerIngress;
-import io.kubernetes.client.openapi.models.V1LoadBalancerStatus;
-import io.kubernetes.client.openapi.models.V1ReplicationController;
-import io.kubernetes.client.openapi.models.V1ReplicationControllerList;
-import io.kubernetes.client.openapi.models.V1Role;
-import io.kubernetes.client.openapi.models.V1RoleBinding;
-import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceAccount;
-import io.kubernetes.client.openapi.models.V1ServiceBuilder;
+import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.Yaml;
 import org.apache.commons.logging.Log;
@@ -72,6 +58,10 @@ import static org.junit.Assert.fail;
 public class K8SUtils {
 
 	private static final String KUBERNETES_VERSION_FILE = "META-INF/springcloudkubernetes-version.txt";
+
+	private static final String WIREMOCK_DEPLOYMENT_NAME = "servicea-wiremock-deployment";
+
+	private static final String WIREMOCK_APP_NAME = "servicea-wiremock";
 
 	private final Log log = LogFactory.getLog(getClass());
 
@@ -301,6 +291,59 @@ public class K8SUtils {
 
 	public static V1Role getConfigK8sClientItRole() throws Exception {
 		return (V1Role) K8SUtils.readYamlFromClasspath("setup/role.yaml");
+	}
+
+	public void deployWiremock(String namespace) throws Exception {
+		innerDeployWiremock(namespace);
+
+		// Check to make sure the wiremock deployment is ready
+		waitForDeployment(WIREMOCK_DEPLOYMENT_NAME, namespace);
+
+		// Check to see if endpoint is ready
+		waitForEndpointReady(WIREMOCK_APP_NAME, namespace);
+	}
+
+	/**
+	 * this removes wiremock related manifests, but keeps the image loaded in the
+	 * container. As such can be used across tests.
+	 */
+	public void cleanUpWiremock(String namespace) throws Exception {
+		appsApi.deleteCollectionNamespacedDeployment(namespace, null, null, null,
+			"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
+
+		api.deleteNamespacedService(WIREMOCK_APP_NAME, namespace, null, null, null, null, null, null);
+		networkingApi.deleteNamespacedIngress("wiremock-ingress", namespace, null, null, null, null, null, null);
+	}
+
+	/**
+	 * this one should be called once all tests in a suite are done, as it removes the image
+	 * from a running container.
+	 */
+	public void removeWiremockImage() throws Exception {
+		V1Deployment wiremockDeployment = getWiremockDeployment();
+		String wiremockImage = wiremockDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+		Commons.cleanUpDownloadedImage(wiremockImage);
+	}
+
+	private void innerDeployWiremock(String namespace) throws Exception {
+		appsApi.createNamespacedDeployment(namespace, getWiremockDeployment(), null, null, null);
+		api.createNamespacedService(namespace, getWiremockAppService(), null, null, null);
+
+		V1Ingress ingress = getWiremockIngress();
+		networkingApi.createNamespacedIngress(namespace, ingress, null, null, null);
+		waitForIngress(ingress.getMetadata().getName(), namespace);
+	}
+
+	private static V1Ingress getWiremockIngress() throws Exception {
+		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock/wiremock-ingress.yaml");
+	}
+
+	private static V1Service getWiremockAppService() throws Exception {
+		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock/wiremock-service.yaml");
+	}
+
+	private static V1Deployment getWiremockDeployment() throws Exception {
+		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock/wiremock-deployment.yaml");
 	}
 
 }

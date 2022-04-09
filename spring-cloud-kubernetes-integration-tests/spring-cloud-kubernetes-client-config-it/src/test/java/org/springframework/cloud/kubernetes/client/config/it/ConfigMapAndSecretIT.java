@@ -84,7 +84,6 @@ class ConfigMapAndSecretIT {
 		k8SUtils = new K8SUtils(api, appsApi);
 		Commons.loadImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME);
 		k8SUtils.setUp(NAMESPACE);
-
 	}
 
 	@AfterAll

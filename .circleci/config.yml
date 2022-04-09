@@ -80,6 +80,7 @@ jobs:
             # TODO, when all tests move to testcontainers, this should be a call to mvn, to find all modules
             INTEGRATION_PROJECTS=(
             	"spring-cloud-kubernetes-client-config-it"
+            	"spring-cloud-kubernetes-client-loadbalancer-it"
             )
 
             cd spring-cloud-kubernetes-test-support
