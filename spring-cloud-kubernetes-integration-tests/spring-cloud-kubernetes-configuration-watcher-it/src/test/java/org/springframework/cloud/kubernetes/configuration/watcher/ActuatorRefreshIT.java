@@ -23,24 +23,18 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
-import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.openapi.models.V1Role;
-import io.kubernetes.client.openapi.models.V1RoleBinding;
 import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.BindMode;
 import org.testcontainers.k3s.K3sContainer;
-import org.testcontainers.utility.DockerImageName;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -59,13 +53,11 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
  */
 class ActuatorRefreshIT {
 
-	private static final String CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME = "config-watcher-wiremock-deployment";
-
-	private static final String CONFIG_WATCHER_WIREMOCK_APP_NAME = "config-watcher-wiremock";
+	private static final String CONFIG_WATCHER_WIREMOCK_APP_NAME = "servicea-wiremock";
 
 	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME = "spring-cloud-kubernetes-configuration-watcher-deployment";
 
-	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher";
+	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher-it";
 
 	private static final String WIREMOCK_HOST = "localhost";
 
@@ -83,42 +75,32 @@ class ActuatorRefreshIT {
 
 	private static K8SUtils k8SUtils;
 
-	private static final K3sContainer K3S = new K3sContainer(DockerImageName.parse("rancher/k3s:v1.21.10-k3s1"))
-			.withFileSystemBind("/tmp/images", "/tmp/images", BindMode.READ_WRITE).withExposedPorts(80, 6443)
-			.withCommand("server") // otherwise, traefik is not installed
-			.withReuse(true);
+	private static final K3sContainer K3S = Commons.container();
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
-		K3S.execInContainer("ctr", "i", "import", "/tmp/images/spring-cloud-kubernetes-configuration-watcher-it.tar");
-		K3S.execInContainer("ctr", "i", "import", "/tmp/images/wiremock-wiremock:2.32.0.tar");
+		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
+		Commons.loadImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
 		appsApi = new AppsV1Api();
 		networkingApi = new NetworkingV1Api();
 		k8SUtils = new K8SUtils(api, appsApi);
-
-		RbacAuthorizationV1Api rbacApi = new RbacAuthorizationV1Api();
-		api.createNamespacedServiceAccount(NAMESPACE, getConfigK8sClientItServiceAccount(), null, null, null);
-		rbacApi.createNamespacedRoleBinding(NAMESPACE, getConfigK8sClientItRoleBinding(), null, null, null);
-		rbacApi.createNamespacedRole(NAMESPACE, getConfigK8sClientItRole(), null, null, null);
+		k8SUtils.setUp(NAMESPACE);
 	}
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		K3S.execInContainer("crictl", "rmi",
-				"docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher-it:" + getPomVersion());
-		K3S.execInContainer("crictl", "rmi", "docker.io/wiremock/wiremock:2.32.0");
+		Commons.cleanUp(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
+		k8SUtils.removeWiremockImage();
 	}
 
 	@BeforeEach
 	void setup() throws Exception {
-		deployWiremock();
+		k8SUtils.deployWiremock(NAMESPACE);
 		deployConfigWatcher();
 
-		// Check to make sure the wiremock deployment is ready
-		k8SUtils.waitForDeployment(CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME, NAMESPACE);
 		// Check to see if endpoint is ready
 		k8SUtils.waitForEndpointReady(CONFIG_WATCHER_WIREMOCK_APP_NAME, NAMESPACE);
 		// Check to make sure the controller deployment is ready
@@ -131,19 +113,15 @@ class ActuatorRefreshIT {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
 				"metadata.name=" + SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, null, null, null, null, null, null,
 				null, null, null);
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null,
-				null, null);
 		api.deleteNamespacedService(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
 				null);
 		api.deleteNamespacedService(CONFIG_WATCHER_WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
-		networkingApi.deleteNamespacedIngress("nginx-ingress", NAMESPACE, null, null, null, null, null, null);
 		api.deleteNamespacedConfigMap(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
 				null);
 		api.deleteNamespacedConfigMap(CONFIG_WATCHER_WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
 		// Check to make sure the controller deployment is deleted
 		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
-		k8SUtils.waitForDeploymentToBeDeleted(CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME, NAMESPACE);
+		k8SUtils.cleanUpWiremock(NAMESPACE);
 	}
 
 	@Test
@@ -182,12 +160,6 @@ class ActuatorRefreshIT {
 		return deployment;
 	}
 
-	private void deployWiremock() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getWiremockDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getWiremockAppService(), null, null, null);
-		networkingApi.createNamespacedIngress(NAMESPACE, getWiremockIngress(), null, null, null);
-	}
-
 	private V1Service getConfigWatcherService() throws Exception {
 		return (V1Service) K8SUtils
 				.readYamlFromClasspath("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
@@ -196,30 +168,6 @@ class ActuatorRefreshIT {
 	private V1ConfigMap getConfigWatcherConfigMap() throws Exception {
 		return (V1ConfigMap) K8SUtils
 				.readYamlFromClasspath("config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
-	}
-
-	private V1Ingress getWiremockIngress() throws Exception {
-		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock/wiremock-ingress.yaml");
-	}
-
-	private V1Service getWiremockAppService() throws Exception {
-		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock/wiremock-service.yaml");
-	}
-
-	private V1Deployment getWiremockDeployment() throws Exception {
-		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock/wiremock-deployment.yaml");
-	}
-
-	private static V1ServiceAccount getConfigK8sClientItServiceAccount() throws Exception {
-		return (V1ServiceAccount) K8SUtils.readYamlFromClasspath("service-account.yaml");
-	}
-
-	private static V1RoleBinding getConfigK8sClientItRoleBinding() throws Exception {
-		return (V1RoleBinding) K8SUtils.readYamlFromClasspath("role-binding.yaml");
-	}
-
-	private static V1Role getConfigK8sClientItRole() throws Exception {
-		return (V1Role) K8SUtils.readYamlFromClasspath("role.yaml");
 	}
 
 }

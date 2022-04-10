@@ -325,6 +325,7 @@ public class K8SUtils {
 
 		api.deleteNamespacedService(WIREMOCK_APP_NAME, namespace, null, null, null, null, null, null);
 		networkingApi.deleteNamespacedIngress("wiremock-ingress", namespace, null, null, null, null, null, null);
+		waitForDeploymentToBeDeleted(WIREMOCK_DEPLOYMENT_NAME, namespace);
 	}
 
 	/**

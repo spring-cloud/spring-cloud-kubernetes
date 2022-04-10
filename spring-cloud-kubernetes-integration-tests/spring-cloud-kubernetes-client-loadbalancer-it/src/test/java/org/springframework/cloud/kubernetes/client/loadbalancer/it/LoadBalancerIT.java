@@ -74,12 +74,12 @@ class LoadBalancerIT {
 	static void beforeAll() throws Exception {
 		K3S.start();
 		Commons.validateImage(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME);
+		Commons.loadImage(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME);
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
 		appsApi = new AppsV1Api();
 		networkingApi = new NetworkingV1Api();
 		k8SUtils = new K8SUtils(api, appsApi);
-		Commons.loadImage(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME);
 		k8SUtils.setUp(NAMESPACE);
 	}
 
