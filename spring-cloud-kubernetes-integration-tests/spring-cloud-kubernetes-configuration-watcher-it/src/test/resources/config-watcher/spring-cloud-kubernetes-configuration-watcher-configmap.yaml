@@ -6,4 +6,4 @@ data:
     logging.level.org.springframework.cloud.kubernetes=TRACE
 kind: ConfigMap
 metadata:
-  name: spring-cloud-kubernetes-configuration-watcher
+  name: spring-cloud-kubernetes-configuration-watcher-it
