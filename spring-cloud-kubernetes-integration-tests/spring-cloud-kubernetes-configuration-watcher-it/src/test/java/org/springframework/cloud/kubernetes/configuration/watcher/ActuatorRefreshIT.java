@@ -63,6 +63,12 @@ class ActuatorRefreshIT {
 
 	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher";
 
+	private static final String WIREMOCK_HOST = "localhost";
+
+	private static final String WIREMOCK_PATH = "/wiremock";
+
+	private static final int WIREMOCK_PORT = 80;
+
 	private static final String NAMESPACE = "default";
 
 	private static CoreV1Api api;
@@ -115,7 +121,8 @@ class ActuatorRefreshIT {
 
 	@Test
 	public void testActuatorRefresh() throws Exception {
-		WireMock.configureFor("servicea-wiremock", 80, "/wiremock");
+		int mappedPort = K3S.getMappedPort(80);
+		WireMock.configureFor(WIREMOCK_HOST, mappedPort, WIREMOCK_PATH);
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
 		await().timeout(Duration.ofSeconds(60)).ignoreException(VerificationException.class)
