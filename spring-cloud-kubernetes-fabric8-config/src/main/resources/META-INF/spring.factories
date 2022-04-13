@@ -3,3 +3,6 @@ org.springframework.cloud.kubernetes.fabric8.config.reload.ConfigReloadAutoConfi
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
 org.springframework.cloud.kubernetes.fabric8.config.Fabric8BootstrapConfiguration,\
 org.springframework.cloud.kubernetes.fabric8.config.Fabric8RetryBootstrapConfiguration
+# ConfigData Location Resolvers
+org.springframework.boot.context.config.ConfigDataLocationResolver=\
+org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigDataLocationResolver

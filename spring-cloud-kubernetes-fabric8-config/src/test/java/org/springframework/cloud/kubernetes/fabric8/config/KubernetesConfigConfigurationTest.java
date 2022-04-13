@@ -41,11 +41,19 @@ public class KubernetesConfigConfigurationTest extends KubernetesConfigTestBase 
 	private static KubernetesClient mockClient;
 
 	@Test
-	public void kubernetesWhenKubernetesDefaultEnabled() {
+	public void kubernetesBootstrapWhenKubernetesDefaultEnabled() {
 		setup(KubernetesClientTestConfiguration.class, "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.kubernetes.client.namespace=default");
+				"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.bootstrap.enabled=true");
 		assertThat(getContext().containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(getContext().containsBean("secretsPropertySourceLocator")).isTrue();
+	}
+
+	@Test
+	public void kubernetesConfigDataWhenKubernetesDefaultEnabled() {
+		setup(KubernetesClientTestConfiguration.class, "spring.main.cloud-platform=KUBERNETES",
+				"spring.cloud.kubernetes.client.namespace=default", "spring.config.import=kubernetes:");
+		assertThat(getContext().containsBean("configDataConfigMapPropertySourceLocator")).isTrue();
+		assertThat(getContext().containsBean("configDataSecretsPropertySourceLocator")).isTrue();
 	}
 
 	@Test
@@ -64,29 +72,57 @@ public class KubernetesConfigConfigurationTest extends KubernetesConfigTestBase 
 	}
 
 	@Test
-	public void kubernetesWhenKubernetesConfigEnabledButSecretDisabled() {
+	public void kubernetesBootstrapWhenKubernetesConfigEnabledButSecretDisabled() {
 		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.config.enabled=true",
 				"spring.cloud.kubernetes.secrets.enabled=false", "spring.cloud.kubernetes.client.namespace=default",
-				"spring.main.cloud-platform=KUBERNETES");
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true");
 		assertThat(getContext().containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(getContext().containsBean("secretsPropertySourceLocator")).isFalse();
 	}
 
 	@Test
-	public void kubernetesWhenKubernetesConfigDisabledButSecretEnabled() {
+	public void kubernetesConfigDataWhenKubernetesConfigEnabledButSecretDisabled() {
+		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.config.enabled=true",
+				"spring.cloud.kubernetes.secrets.enabled=false", "spring.cloud.kubernetes.client.namespace=default",
+				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:");
+		assertThat(getContext().containsBean("configDataConfigMapPropertySourceLocator")).isTrue();
+		assertThat(getContext().containsBean("configDataSecretsPropertySourceLocator")).isFalse();
+	}
+
+	@Test
+	public void kubernetesBootstrapWhenKubernetesConfigDisabledButSecretEnabled() {
 		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.config.enabled=false",
-				"spring.cloud.kubernetes.secrets.enabled=true", "spring.main.cloud-platform=KUBERNETES");
+				"spring.cloud.kubernetes.secrets.enabled=true", "spring.main.cloud-platform=KUBERNETES",
+				"spring.cloud.bootstrap.enabled=true");
 		assertThat(getContext().containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(getContext().containsBean("secretsPropertySourceLocator")).isTrue();
 	}
 
 	@Test
-	public void kubernetesConfigWhenKubernetesEnabledAndKubernetesConfigEnabled() {
+	public void kubernetesConfigDataWhenKubernetesConfigDisabledButSecretEnabled() {
+		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.config.enabled=false",
+				"spring.cloud.kubernetes.secrets.enabled=true", "spring.main.cloud-platform=KUBERNETES",
+				"spring.config.import=kubernetes:");
+		assertThat(getContext().containsBean("configDataConfigMapPropertySourceLocator")).isFalse();
+		assertThat(getContext().containsBean("configDataSecretsPropertySourceLocator")).isTrue();
+	}
+
+	@Test
+	public void kubernetesBootstrapConfigWhenKubernetesEnabledAndKubernetesConfigEnabled() {
 		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.config.enabled=true",
 				"spring.cloud.kubernetes.secrets.enabled=true", "spring.cloud.kubernetes.client.namespace=default",
-				"spring.main.cloud-platform=KUBERNETES");
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true");
 		assertThat(getContext().containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(getContext().containsBean("secretsPropertySourceLocator")).isTrue();
+	}
+
+	@Test
+	public void kubernetesConfigDataConfigWhenKubernetesEnabledAndKubernetesConfigEnabled() {
+		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.config.enabled=true",
+				"spring.cloud.kubernetes.secrets.enabled=true", "spring.cloud.kubernetes.client.namespace=default",
+				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:");
+		assertThat(getContext().containsBean("configDataConfigMapPropertySourceLocator")).isTrue();
+		assertThat(getContext().containsBean("configDataSecretsPropertySourceLocator")).isTrue();
 	}
 
 	@Test

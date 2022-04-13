@@ -28,8 +28,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.mock.env.MockEnvironment;
@@ -40,16 +39,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
  * @author Isik Erhan
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = { "spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES" },
-		classes = App.class)
-class ConfigFailFastDisabled {
+abstract class ConfigFailFastDisabled {
 
 	private static final String API = "/api/v1/namespaces/default/configmaps";
 
@@ -86,12 +83,12 @@ class ConfigFailFastDisabled {
 		stubConfigMapAndSecretsDefaults();
 	}
 
-	@SpyBean
+	@Autowired
 	private KubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
 
 	@Test
 	void locateShouldNotRetry() {
-
+		propertySourceLocator = spy(propertySourceLocator);
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 		Assertions.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));

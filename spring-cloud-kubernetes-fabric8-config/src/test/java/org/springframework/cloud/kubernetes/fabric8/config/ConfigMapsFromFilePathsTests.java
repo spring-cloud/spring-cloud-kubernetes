@@ -22,9 +22,7 @@ import java.nio.file.Paths;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -44,8 +42,7 @@ import static org.assertj.core.util.Lists.newArrayList;
 						+ ConfigMapsFromFilePathsTests.SECOND_FILE_NAME_FULL_PATH + ","
 						+ ConfigMapsFromFilePathsTests.FIRST_FILE_NAME_DUPLICATED_FULL_PATH,
 				"spring.main.cloud-platform=KUBERNETES" })
-@EnableKubernetesMockClient(crud = true, https = false)
-public class ConfigMapsFromFilePathsTests {
+abstract class ConfigMapsFromFilePathsTests {
 
 	protected static final String FILES_ROOT_PATH = "/tmp/scktests";
 
@@ -66,13 +63,10 @@ public class ConfigMapsFromFilePathsTests {
 	protected static final String FIRST_FILE_NAME_DUPLICATED_FULL_PATH = FILES_ROOT_PATH + "/" + FILES_SUB_PATH + "/"
 			+ FIRST_FILE_NAME;
 
-	private static KubernetesClient mockClient;
-
 	@Autowired
 	private WebTestClient webClient;
 
-	@BeforeAll
-	public static void setUpBeforeClass() throws IOException {
+	public static void setUpBeforeClass(KubernetesClient mockClient) throws IOException {
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
