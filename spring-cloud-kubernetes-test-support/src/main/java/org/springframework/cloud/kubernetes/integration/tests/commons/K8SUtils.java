@@ -305,8 +305,8 @@ public class K8SUtils {
 		return (V1Role) K8SUtils.readYamlFromClasspath("setup/role.yaml");
 	}
 
-	public void deployWiremock(String namespace) throws Exception {
-		innerDeployWiremock(namespace);
+	public void deployWiremock(String namespace, boolean rootPath) throws Exception {
+		innerDeployWiremock(namespace, rootPath);
 
 		// Check to make sure the wiremock deployment is ready
 		waitForDeployment(WIREMOCK_DEPLOYMENT_NAME, namespace);
@@ -338,17 +338,28 @@ public class K8SUtils {
 		Commons.cleanUpDownloadedImage(wiremockImage);
 	}
 
-	private void innerDeployWiremock(String namespace) throws Exception {
+	private void innerDeployWiremock(String namespace, boolean rootPath) throws Exception {
 		appsApi.createNamespacedDeployment(namespace, getWiremockDeployment(), null, null, null);
 		api.createNamespacedService(namespace, getWiremockAppService(), null, null, null);
 
-		V1Ingress ingress = getWiremockIngress();
+		V1Ingress ingress;
+		if (rootPath) {
+			ingress = getWiremockRootPathIngress();
+		}
+		else {
+			ingress = getWiremockIngress();
+		}
+
 		networkingApi.createNamespacedIngress(namespace, ingress, null, null, null);
 		waitForIngress(ingress.getMetadata().getName(), namespace);
 	}
 
 	private static V1Ingress getWiremockIngress() throws Exception {
 		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock/wiremock-ingress.yaml");
+	}
+
+	private static V1Ingress getWiremockRootPathIngress() throws Exception {
+		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock/wiremock-root-path-ingress.yaml");
 	}
 
 	private static V1Service getWiremockAppService() throws Exception {

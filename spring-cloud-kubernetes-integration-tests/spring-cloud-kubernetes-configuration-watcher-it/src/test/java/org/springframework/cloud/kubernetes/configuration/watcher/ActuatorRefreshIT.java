@@ -65,7 +65,7 @@ class ActuatorRefreshIT {
 
 	private static final String WIREMOCK_HOST = "localhost";
 
-	private static final String WIREMOCK_PATH = "/wiremock";
+	private static final String WIREMOCK_PATH = "/";
 
 	private static final int WIREMOCK_PORT = 80;
 
@@ -103,7 +103,7 @@ class ActuatorRefreshIT {
 	@BeforeEach
 	void setup() throws Exception {
 		deployConfigWatcher();
-		k8SUtils.deployWiremock(NAMESPACE);
+		k8SUtils.deployWiremock(NAMESPACE, true);
 	}
 
 	@AfterEach
@@ -121,7 +121,7 @@ class ActuatorRefreshIT {
 
 	@Test
 	public void testActuatorRefresh() throws Exception {
-		int mappedPort = K3S.getMappedPort(80);
+		int mappedPort = K3S.getMappedPort(WIREMOCK_PORT);
 		WireMock.configureFor(WIREMOCK_HOST, mappedPort, WIREMOCK_PATH);
 		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
 		// available and we get a 503, we just need to wait a bit
