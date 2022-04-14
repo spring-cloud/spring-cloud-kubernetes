@@ -39,7 +39,6 @@ import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.context.EnvironmentAware;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
@@ -52,7 +51,7 @@ import org.springframework.util.ClassUtils;
  * @author Ryan Baxter
  */
 public abstract class KubernetesConfigDataLocationResolver
-		implements ConfigDataLocationResolver<KubernetesConfigDataResource>, Ordered, EnvironmentAware {
+		implements ConfigDataLocationResolver<KubernetesConfigDataResource>, Ordered {
 
 	static final boolean RETRY_IS_PRESENT = ClassUtils.isPresent("org.springframework.retry.annotation.Retryable",
 			null);
@@ -77,10 +76,8 @@ public abstract class KubernetesConfigDataLocationResolver
 		if (!location.hasPrefix(getPrefix())) {
 			return false;
 		}
-		boolean enabled = context.getBinder().bind("spring.cloud.kubernetes.enabled", Boolean.class).orElse(true);
-
 		return (CloudPlatform.KUBERNETES.isEnforced(context.getBinder())
-				|| CloudPlatform.KUBERNETES.isDetected(new StandardEnvironment())) && enabled;
+				|| CloudPlatform.KUBERNETES.isDetected(new StandardEnvironment()));
 	}
 
 	@Override
@@ -124,7 +121,7 @@ public abstract class KubernetesConfigDataLocationResolver
 				kubernetesConfigData);
 		ConfigurableEnvironment environment = new StandardEnvironment();
 		environment.getPropertySources().addLast(propertySource);
-		environment.setActiveProfiles(profiles.getAccepted().toArray(new String[profiles.getAccepted().size()]));
+		environment.setActiveProfiles(profiles.getAccepted().toArray(new String[0]));
 		KubernetesNamespaceProvider namespaceProvider = kubernetesNamespaceProvider(environment);
 
 		registerBeans(resolverContext, location, profiles, propertyHolder, namespaceProvider);
@@ -195,14 +192,8 @@ public abstract class KubernetesConfigDataLocationResolver
 		SecretsConfigProperties secretsProperties = binder
 				.bind(SecretsConfigProperties.PREFIX, SecretsConfigProperties.class)
 				.orElseGet(SecretsConfigProperties::new);
-		PropertyHolder holder = new PropertyHolder(kubernetesClientProperties, configMapConfigProperties,
+		return new PropertyHolder(kubernetesClientProperties, configMapConfigProperties,
 				secretsProperties, applicationName);
-		return holder;
-	}
-
-	@Override
-	public void setEnvironment(Environment environment) {
-
 	}
 
 	protected record PropertyHolder(KubernetesClientProperties kubernetesClientProperties,

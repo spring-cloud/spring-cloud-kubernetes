@@ -27,6 +27,7 @@ import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.core.Ordered;
+import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 
 /**
@@ -37,24 +38,18 @@ public class KubernetesConfigDataLoader implements ConfigDataLoader<KubernetesCo
 	@Override
 	public ConfigData load(ConfigDataLoaderContext context, KubernetesConfigDataResource resource)
 			throws IOException, ConfigDataResourceNotFoundException {
-		List<PropertySource<?>> propertySources = new ArrayList<>();
+
+		List<PropertySource<?>> propertySources = new ArrayList<>(2);
 		ConfigurableBootstrapContext bootstrapContext = context.getBootstrapContext();
-		ConfigMapPropertySourceLocator configMapPropertySourceLocator = null;
-		SecretsPropertySourceLocator secretsPropertySourceLocator = null;
+		Environment env = resource.getEnvironment();
+
 		if (bootstrapContext.isRegistered(ConfigMapPropertySourceLocator.class)) {
-			configMapPropertySourceLocator = bootstrapContext.getOrElse(ConfigMapPropertySourceLocator.class, null);
+			propertySources.add(bootstrapContext.get(ConfigMapPropertySourceLocator.class).locate(env));
 		}
 		if (bootstrapContext.isRegistered(SecretsPropertySourceLocator.class)) {
-			secretsPropertySourceLocator = context.getBootstrapContext().getOrElse(SecretsPropertySourceLocator.class,
-					null);
+			propertySources.add(bootstrapContext.get(SecretsPropertySourceLocator.class).locate(env));
 		}
 
-		if (configMapPropertySourceLocator != null) {
-			propertySources.add(configMapPropertySourceLocator.locate(resource.getEnvironment()));
-		}
-		if (secretsPropertySourceLocator != null) {
-			propertySources.add(secretsPropertySourceLocator.locate(resource.getEnvironment()));
-		}
 		// boot 2.4.5+
 		return new ConfigData(propertySources, propertySource -> {
 			String propertySourceName = propertySource.getName();
