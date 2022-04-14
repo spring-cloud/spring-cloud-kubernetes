@@ -39,6 +39,7 @@ import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
@@ -46,13 +47,12 @@ import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Ryan Baxter
  */
 public abstract class KubernetesConfigDataLocationResolver
-		implements ConfigDataLocationResolver<KubernetesConfigDataResource>, Ordered {
+		implements ConfigDataLocationResolver<KubernetesConfigDataResource>, Ordered, EnvironmentAware {
 
 	static final boolean RETRY_IS_PRESENT = ClassUtils.isPresent("org.springframework.retry.annotation.Retryable",
 			null);
@@ -77,15 +77,10 @@ public abstract class KubernetesConfigDataLocationResolver
 		if (!location.hasPrefix(getPrefix())) {
 			return false;
 		}
-		// TODO Could we use KubernetesClientPodUtils.isInsideKubernetes instead?
-		CloudPlatform platformProperty = context.getBinder().bind("spring.main.cloud-platform", CloudPlatform.class)
-				.orElse(CloudPlatform.NONE);
-		String host = context.getBinder().bind("kubernetes.service.host", String.class).orElse("");
-		String port = context.getBinder().bind("kubernetes.service.port", String.class).orElse("");
 		boolean enabled = context.getBinder().bind("spring.cloud.kubernetes.enabled", Boolean.class).orElse(true);
 
-		return (platformProperty.equals(CloudPlatform.KUBERNETES)
-				|| (StringUtils.hasText(host) && StringUtils.hasText(port))) && enabled;
+		return (CloudPlatform.KUBERNETES.isEnforced(context.getBinder())
+				|| CloudPlatform.KUBERNETES.isDetected(new StandardEnvironment())) && enabled;
 	}
 
 	@Override
@@ -98,10 +93,9 @@ public abstract class KubernetesConfigDataLocationResolver
 	@Override
 	public List<KubernetesConfigDataResource> resolveProfileSpecific(ConfigDataLocationResolverContext resolverContext,
 			ConfigDataLocation location, Profiles profiles) throws ConfigDataLocationNotFoundException {
-		String uris = location.getNonPrefixedValue(getPrefix());
-		PropertyHolder propertyHolder = loadProperties(resolverContext, uris);
+		PropertyHolder propertyHolder = loadProperties(resolverContext);
 		KubernetesClientProperties properties = propertyHolder.kubernetesClientProperties;
-		ConfigMapConfigProperties configMapProperties = propertyHolder.configMapProperties;
+		ConfigMapConfigProperties configMapProperties = propertyHolder.configMapConfigProperties;
 		SecretsConfigProperties secretsProperties = propertyHolder.secretsProperties;
 
 		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
@@ -175,14 +169,12 @@ public abstract class KubernetesConfigDataLocationResolver
 		return context.getBootstrapContext().getOrElse(BindHandler.class, null);
 	}
 
-	protected PropertyHolder loadProperties(ConfigDataLocationResolverContext context, String uris) {
+	protected PropertyHolder loadProperties(ConfigDataLocationResolverContext context) {
 		Binder binder = context.getBinder();
 		BindHandler bindHandler = getBindHandler(context);
 		String applicationName = binder.bind("spring.application.name", String.class).orElse(null);
 		String namespace = binder.bind("spring.cloud.kubernetes.client.namespace", String.class)
 				.orElse(binder.bind("kubernetes.namespace", String.class).orElse(""));
-		boolean configMapEnabled = binder.bind("spring.cloud.kubernetes.config.enabled", Boolean.class).orElse(true);
-		boolean secretsEnabled = binder.bind("spring.cloud.kubernetes.secrets.enabled", Boolean.class).orElse(true);
 
 		KubernetesClientProperties kubernetesClientProperties;
 		if (context.getBootstrapContext().isRegistered(KubernetesClientProperties.class)) {
@@ -197,27 +189,25 @@ public abstract class KubernetesConfigDataLocationResolver
 		}
 		kubernetesClientProperties.setNamespace(namespace);
 
-		PropertyHolder holder = new PropertyHolder();
-		holder.kubernetesClientProperties = kubernetesClientProperties;
-		// bind retry, override later
-		holder.configMapProperties = binder.bind(ConfigMapConfigProperties.PREFIX, ConfigMapConfigProperties.class)
+		ConfigMapConfigProperties configMapConfigProperties = binder
+				.bind(ConfigMapConfigProperties.PREFIX, ConfigMapConfigProperties.class)
 				.orElseGet(ConfigMapConfigProperties::new);
-		holder.secretsProperties = binder.bind(SecretsConfigProperties.PREFIX, SecretsConfigProperties.class)
+		SecretsConfigProperties secretsProperties = binder
+				.bind(SecretsConfigProperties.PREFIX, SecretsConfigProperties.class)
 				.orElseGet(SecretsConfigProperties::new);
-		holder.applicationName = applicationName;
+		PropertyHolder holder = new PropertyHolder(kubernetesClientProperties, configMapConfigProperties,
+				secretsProperties, applicationName);
 		return holder;
 	}
 
-	protected static class PropertyHolder {
+	@Override
+	public void setEnvironment(Environment environment) {
 
-		public KubernetesClientProperties kubernetesClientProperties;
+	}
 
-		public ConfigMapConfigProperties configMapProperties;
-
-		public SecretsConfigProperties secretsProperties;
-
-		public String applicationName;
-
+	protected record PropertyHolder(KubernetesClientProperties kubernetesClientProperties,
+			ConfigMapConfigProperties configMapConfigProperties, SecretsConfigProperties secretsProperties,
+			String applicationName) {
 	}
 
 }

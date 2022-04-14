@@ -52,10 +52,8 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
 			Profiles profiles, KubernetesConfigDataLocationResolver.PropertyHolder propertyHolder,
 			KubernetesNamespaceProvider namespaceProvider) {
-		String uris = location.getNonPrefixedValue(getPrefix());
-		KubernetesClientProperties properties = propertyHolder.kubernetesClientProperties;
-		ConfigMapConfigProperties configMapProperties = propertyHolder.configMapProperties;
-		SecretsConfigProperties secretsProperties = propertyHolder.secretsProperties;
+		ConfigMapConfigProperties configMapProperties = propertyHolder.configMapConfigProperties();
+		SecretsConfigProperties secretsProperties = propertyHolder.secretsProperties();
 
 		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
 		ApiClient apiClient = kubernetesApiClient();

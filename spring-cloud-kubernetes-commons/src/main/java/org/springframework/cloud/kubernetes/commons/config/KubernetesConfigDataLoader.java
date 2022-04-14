@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigData.Option;
 import org.springframework.boot.context.config.ConfigDataLoader;
@@ -37,10 +38,16 @@ public class KubernetesConfigDataLoader implements ConfigDataLoader<KubernetesCo
 	public ConfigData load(ConfigDataLoaderContext context, KubernetesConfigDataResource resource)
 			throws IOException, ConfigDataResourceNotFoundException {
 		List<PropertySource<?>> propertySources = new ArrayList<>();
-		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context.getBootstrapContext()
-				.getOrElse(ConfigMapPropertySourceLocator.class, null);
-		SecretsPropertySourceLocator secretsPropertySourceLocator = context.getBootstrapContext()
-				.getOrElse(SecretsPropertySourceLocator.class, null);
+		ConfigurableBootstrapContext bootstrapContext = context.getBootstrapContext();
+		ConfigMapPropertySourceLocator configMapPropertySourceLocator = null;
+		SecretsPropertySourceLocator secretsPropertySourceLocator = null;
+		if (bootstrapContext.isRegistered(ConfigMapPropertySourceLocator.class)) {
+			configMapPropertySourceLocator = bootstrapContext.getOrElse(ConfigMapPropertySourceLocator.class, null);
+		}
+		if (bootstrapContext.isRegistered(SecretsPropertySourceLocator.class)) {
+			secretsPropertySourceLocator = context.getBootstrapContext().getOrElse(SecretsPropertySourceLocator.class,
+					null);
+		}
 
 		if (configMapPropertySourceLocator != null) {
 			propertySources.add(configMapPropertySourceLocator.locate(resource.getEnvironment()));

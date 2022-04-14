@@ -108,13 +108,15 @@ public class KubernetesConfigDataResource extends ConfigDataResource {
 		}
 		KubernetesConfigDataResource that = (KubernetesConfigDataResource) o;
 		return Objects.equals(this.properties, that.properties) && Objects.equals(this.optional, that.optional)
-				&& Objects.equals(this.profiles, that.profiles) && Objects.equals(this.configMapProperties, that.configMapProperties)
-			&& Objects.equals(this.secretsConfigProperties, that.secretsConfigProperties);
+				&& Objects.equals(this.profiles, that.profiles)
+				&& Objects.equals(this.configMapProperties, that.configMapProperties)
+				&& Objects.equals(this.secretsConfigProperties, that.secretsConfigProperties);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(this.properties, this.optional, this.profiles, configMapProperties, secretsConfigProperties);
+		return Objects.hash(this.properties, this.optional, this.profiles, configMapProperties,
+				secretsConfigProperties);
 	}
 
 	@Override
