@@ -23,7 +23,7 @@ import org.springframework.cloud.kubernetes.fabric8.config.Application;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-		properties = { "spring.cloud.kubernetes.enabled=false", "spring.cloud.bootstrap.enabled=true" })
+		properties = { "spring.cloud.bootstrap.enabled=true" })
 class BootstrapKubernetesDisabled extends KubernetesDisabled {
 
 }
