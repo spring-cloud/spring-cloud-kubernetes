@@ -122,7 +122,7 @@ public abstract class KubernetesConfigDataLocationResolver
 				kubernetesConfigData);
 		ConfigurableEnvironment environment = new StandardEnvironment();
 		environment.getPropertySources().addLast(propertySource);
-		environment.setActiveProfiles(profiles.getAccepted().toArray(new String[profiles.getAccepted().size()]));
+		environment.setActiveProfiles(profiles.getAccepted().toArray(new String[0]));
 		KubernetesNamespaceProvider namespaceProvider = kubernetesNamespaceProvider(environment);
 
 		registerBeans(resolverContext, location, profiles, propertyHolder, namespaceProvider);
@@ -193,9 +193,9 @@ public abstract class KubernetesConfigDataLocationResolver
 		SecretsConfigProperties secretsProperties = binder
 				.bind(SecretsConfigProperties.PREFIX, SecretsConfigProperties.class)
 				.orElseGet(SecretsConfigProperties::new);
-		PropertyHolder holder = new PropertyHolder(kubernetesClientProperties, configMapConfigProperties,
+		return new PropertyHolder(kubernetesClientProperties, configMapConfigProperties,
 				secretsProperties, applicationName);
-		return holder;
+
 	}
 
 	protected record PropertyHolder(KubernetesClientProperties kubernetesClientProperties,
