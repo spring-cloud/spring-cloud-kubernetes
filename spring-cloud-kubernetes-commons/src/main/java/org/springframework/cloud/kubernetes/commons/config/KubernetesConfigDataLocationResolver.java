@@ -76,6 +76,7 @@ public abstract class KubernetesConfigDataLocationResolver
 		if (!location.hasPrefix(getPrefix())) {
 			return false;
 		}
+
 		return (CloudPlatform.KUBERNETES.isEnforced(context.getBinder())
 				|| CloudPlatform.KUBERNETES.isDetected(new StandardEnvironment()));
 	}
@@ -194,6 +195,7 @@ public abstract class KubernetesConfigDataLocationResolver
 				.orElseGet(SecretsConfigProperties::new);
 		return new PropertyHolder(kubernetesClientProperties, configMapConfigProperties,
 				secretsProperties, applicationName);
+
 	}
 
 	protected record PropertyHolder(KubernetesClientProperties kubernetesClientProperties,
