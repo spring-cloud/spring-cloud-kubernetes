@@ -107,8 +107,10 @@ public final class Commons {
 	 */
 	public static void validateImage(String image) {
 		List<Image> images = CONTAINER.getDockerClient().listImagesCmd().exec();
-		images.stream().filter(x -> Arrays.stream(x.getRepoTags()).anyMatch(y -> y.contains(image))).findFirst()
-				.orElseThrow(() -> new IllegalArgumentException("Image : " + image + " not build locally. "
+		images.stream()
+				.filter(x -> Arrays.stream(x.getRepoTags() == null ? new String[] {} : x.getRepoTags())
+						.anyMatch(y -> y.contains(image)))
+				.findFirst().orElseThrow(() -> new IllegalArgumentException("Image : " + image + " not build locally. "
 						+ "You need to build it first, and then run the test"));
 	}
 

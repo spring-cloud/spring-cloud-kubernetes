@@ -123,20 +123,18 @@ class ActuatorRefreshIT {
 	public void testActuatorRefresh() throws Exception {
 		int mappedPort = K3S.getMappedPort(WIREMOCK_PORT);
 		WireMock.configureFor(WIREMOCK_HOST, mappedPort, WIREMOCK_PATH);
-		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
-		// available and we get a 503, we just need to wait a bit
 		await().timeout(Duration.ofSeconds(60)).ignoreException(VerificationException.class)
-			.until(() -> stubFor(post(urlEqualTo("/actuator/refresh")).willReturn(aResponse().withStatus(200)))
-				.getResponse().wasConfigured());
+				.until(() -> stubFor(post(urlEqualTo("/actuator/refresh")).willReturn(aResponse().withStatus(200)))
+						.getResponse().wasConfigured());
 
 		// Create new configmap to trigger controller to signal app to refresh
-		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName("name")
-			.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "bar").build();
+		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME)
+				.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "bar").build();
 		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
 
 		// Wait a bit before we verify
 		await().atMost(Duration.ofMillis(3400))
-			.until(() -> !findAll(postRequestedFor(urlEqualTo("/actuator/refresh"))).isEmpty());
+				.until(() -> !findAll(postRequestedFor(urlEqualTo("/actuator/refresh"))).isEmpty());
 
 		verify(postRequestedFor(urlEqualTo("/actuator/refresh")));
 	}
@@ -167,14 +165,6 @@ class ActuatorRefreshIT {
 	private V1ConfigMap getConfigWatcherConfigMap() throws Exception {
 		return (V1ConfigMap) K8SUtils
 				.readYamlFromClasspath("config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
-	}
-
-	private WebClient.Builder builder() {
-		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
-	}
-
-	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }

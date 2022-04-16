@@ -19,10 +19,10 @@ spec:
           readinessProbe:
             httpGet:
               port: 8888
-              path: /actuator/health/readiness
+              path: /config/actuator/health/readiness
           livenessProbe:
             httpGet:
               port: 8888
-              path: /actuator/health/liveness
+              path: /config/actuator/health/liveness
           ports:
             - containerPort: 8888
