@@ -56,7 +56,7 @@ public final class Commons {
 	/**
 	 * Test containers exposed ports.
 	 */
-	public static final int[] EXPOSED_PORTS = new int[] { 80, 6443, 8080, 8888 };
+	public static final int[] EXPOSED_PORTS = new int[] { 80, 6443, 8080, 8888, 9092 };
 
 	/**
 	 * Temporary folder where to load images.

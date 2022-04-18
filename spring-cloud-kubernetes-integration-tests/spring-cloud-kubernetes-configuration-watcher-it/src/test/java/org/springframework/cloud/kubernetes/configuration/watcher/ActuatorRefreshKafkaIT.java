@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import java.io.IOException;
 import java.time.Duration;
 
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
@@ -87,8 +86,13 @@ public class ActuatorRefreshKafkaIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
+
 		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
 		Commons.loadImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
+
+		Commons.validateImage(CONFIG_WATCHER_IT_IMAGE);
+		Commons.loadImage(CONFIG_WATCHER_IT_IMAGE);
+
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
 		appsApi = new AppsV1Api();
@@ -100,6 +104,7 @@ public class ActuatorRefreshKafkaIT {
 	@AfterAll
 	static void afterAll() throws Exception {
 		Commons.cleanUp(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
+		Commons.cleanUp(CONFIG_WATCHER_IT_IMAGE);
 	}
 
 	@BeforeEach
