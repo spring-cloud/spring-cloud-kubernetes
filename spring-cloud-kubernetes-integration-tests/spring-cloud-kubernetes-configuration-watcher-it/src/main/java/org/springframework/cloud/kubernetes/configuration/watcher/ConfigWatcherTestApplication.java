@@ -38,7 +38,7 @@ public class ConfigWatcherTestApplication implements ApplicationListener<Refresh
 		SpringApplication.run(ConfigWatcherTestApplication.class, args);
 	}
 
-	@GetMapping("/config")
+	@GetMapping("/it")
 	public boolean index() {
 		log.info("Current value: " + value);
 		return value;

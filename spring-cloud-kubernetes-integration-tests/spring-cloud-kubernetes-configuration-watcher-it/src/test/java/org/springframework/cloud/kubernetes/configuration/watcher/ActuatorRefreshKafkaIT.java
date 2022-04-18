@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -116,10 +117,10 @@ public class ActuatorRefreshKafkaIT {
 		deployConfigWatcher();
 
 		// Check to make sure the controller deployment is ready
-		k8SUtils.waitForDeployment(ZOOKEEPER_DEPLOYMENT, NAMESPACE);
-		k8SUtils.waitForDeployment(KAFKA_BROKER, NAMESPACE);
-		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
-		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
+		waitForDeployment(ZOOKEEPER_DEPLOYMENT, NAMESPACE);
+		waitForDeployment(KAFKA_BROKER, NAMESPACE);
+		waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
+		waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
 	}
 
 	@Test
@@ -184,6 +185,11 @@ public class ActuatorRefreshKafkaIT {
 		k8SUtils.waitForDeploymentToBeDeleted(ZOOKEEPER_DEPLOYMENT, NAMESPACE);
 		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
 		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
+	}
+
+	public void waitForDeployment(String deploymentName, String namespace) {
+		await().pollInterval(Duration.ofSeconds(3)).atMost(600, TimeUnit.SECONDS)
+			.until(() -> k8SUtils.isDeploymentReady(deploymentName, namespace));
 	}
 
 	private void deployTestApp() throws Exception {
