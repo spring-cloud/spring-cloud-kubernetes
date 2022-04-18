@@ -24,7 +24,7 @@ spec:
           readinessProbe:
             httpGet:
               port: 8888
-              path: /config/actuator/health/readiness
+              path: /actuator/health/readiness
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
@@ -33,7 +33,7 @@ spec:
           livenessProbe:
             httpGet:
               port: 8888
-              path: /config/actuator/health/liveness
+              path: /actuator/health/liveness
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
