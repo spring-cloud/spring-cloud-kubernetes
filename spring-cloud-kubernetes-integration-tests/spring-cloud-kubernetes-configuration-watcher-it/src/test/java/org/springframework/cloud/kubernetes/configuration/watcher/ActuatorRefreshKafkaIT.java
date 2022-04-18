@@ -189,7 +189,7 @@ public class ActuatorRefreshKafkaIT {
 
 	public void waitForDeployment(String deploymentName, String namespace) {
 		await().pollInterval(Duration.ofSeconds(3)).atMost(600, TimeUnit.SECONDS)
-			.until(() -> k8SUtils.isDeploymentReady(deploymentName, namespace));
+				.until(() -> k8SUtils.isDeploymentReady(deploymentName, namespace));
 	}
 
 	private void deployTestApp() throws Exception {
