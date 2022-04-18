@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import java.io.IOException;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import io.kubernetes.client.openapi.apis.AppsV1Api;
@@ -28,23 +28,23 @@ import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.k3s.K3sContainer;
 
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.ResponseErrorHandler;
-import org.springframework.web.client.RestTemplate;
+import reactor.netty.http.client.HttpClient;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.getPomVersion;
@@ -53,8 +53,6 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
  * @author Kris Iyer
  */
 public class ActuatorRefreshKafkaIT {
-
-	private final Log log = LogFactory.getLog(getClass());
 
 	private static final String CONFIG_WATCHER_IT_IMAGE = "spring-cloud-kubernetes-configuration-watcher-it";
 
@@ -117,10 +115,10 @@ public class ActuatorRefreshKafkaIT {
 		deployConfigWatcher();
 
 		// Check to make sure the controller deployment is ready
-		waitForDeployment(ZOOKEEPER_DEPLOYMENT, NAMESPACE);
-		waitForDeployment(KAFKA_BROKER, NAMESPACE);
-		waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
-		waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
+		waitForDeployment(ZOOKEEPER_DEPLOYMENT);
+		waitForDeployment(KAFKA_BROKER);
+		waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME);
+		waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME);
 	}
 
 	@Test
@@ -130,55 +128,27 @@ public class ActuatorRefreshKafkaIT {
 				.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "hello world")
 				.build();
 		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
-		RestTemplate rest = new RestTemplateBuilder().build();
-		rest.setErrorHandler(new ResponseErrorHandler() {
-			@Override
-			public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
-				log.warn("Received response status code: " + clientHttpResponse.getRawStatusCode());
-				return clientHttpResponse.getRawStatusCode() != 503;
-			}
 
-			@Override
-			public void handleError(ClientHttpResponse clientHttpResponse) {
+		WebClient.Builder builder = builder();
+		WebClient serviceClient = builder.baseUrl("http://localhost:80/it").build();
+		Boolean value = serviceClient.method(HttpMethod.GET).retrieve()
+			.bodyToMono(Boolean.class).retryWhen(retrySpec())
+			.block();
 
-			}
-		});
-
-		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
-		// available and we get a 503, we just need to wait a bit
-		await().timeout(Duration.ofSeconds(60)).until(
-				() -> rest.getForEntity("http://localhost:80/it", String.class).getStatusCode().is2xxSuccessful());
-		// Wait a bit before we verify
-		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(90)).until(() -> {
-			Boolean value = rest.getForObject("http://localhost:80/it", Boolean.class);
-			log.info("Returned " + value + " from http://localhost:80/it");
-			return value;
-		});
-
-		assertThat(rest.getForObject("http://localhost:80/it", Boolean.class)).isTrue();
+		Assertions.assertThat(value).isTrue();
 	}
 
 	@AfterEach
 	void after() throws Exception {
-		appsApi.deleteNamespacedDeployment(KAFKA_BROKER, NAMESPACE, null, null, null, null, null, null);
-		api.deleteNamespacedService(KAFKA_SERVICE, NAMESPACE, null, null, null, null, null, null);
-		appsApi.deleteNamespacedDeployment(ZOOKEEPER_DEPLOYMENT, NAMESPACE, null, null, null, null, null, null);
-		api.deleteNamespacedService(ZOOKEEPER_SERVICE, NAMESPACE, null, null, null, null, null, null);
 
-		api.deleteNamespacedService(CONFIG_WATCHER_IT_IMAGE, NAMESPACE, null, null, null, null, null, null);
-		api.deleteNamespacedService(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
-				null);
-
-		appsApi.deleteNamespacedDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE, null, null, null,
-				null, null, null);
-		appsApi.deleteNamespacedDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE, null, null,
-				null, null, null, null);
+		cleanUpKafka();
+		cleanUpZookeeper();
+		cleanUpServices();
+		cleanUpDeployments();
 
 		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
 
-		api.deleteNamespacedConfigMap(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
-				null);
-		api.deleteNamespacedConfigMap(CONFIG_WATCHER_IT_IMAGE, NAMESPACE, null, null, null, null, null, null);
+		cleanUpConfigMaps();
 
 		// Check to make sure the controller deployment is deleted
 		k8SUtils.waitForDeploymentToBeDeleted(KAFKA_BROKER, NAMESPACE);
@@ -187,15 +157,18 @@ public class ActuatorRefreshKafkaIT {
 		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
 	}
 
-	public void waitForDeployment(String deploymentName, String namespace) {
+	private void waitForDeployment(String deploymentName) {
 		await().pollInterval(Duration.ofSeconds(3)).atMost(600, TimeUnit.SECONDS)
-				.until(() -> k8SUtils.isDeploymentReady(deploymentName, namespace));
+				.until(() -> k8SUtils.isDeploymentReady(deploymentName, NAMESPACE));
 	}
 
 	private void deployTestApp() throws Exception {
 		appsApi.createNamespacedDeployment(NAMESPACE, getItDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getItAppService(), null, null, null);
-		networkingApi.createNamespacedIngress(NAMESPACE, getItIngress(), null, null, null);
+
+		V1Ingress ingress = getItIngress();
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
 	private void deployConfigWatcher() throws Exception {
@@ -212,6 +185,16 @@ public class ActuatorRefreshKafkaIT {
 	private void deployKafka() throws Exception {
 		api.createNamespacedService(NAMESPACE, getKafkaService(), null, null, null);
 		appsApi.createNamespacedDeployment(NAMESPACE, getKafkaDeployment(), null, null, null);
+	}
+
+	private void cleanUpKafka() throws Exception {
+		appsApi.deleteNamespacedDeployment(KAFKA_BROKER, NAMESPACE, null, null, null, null, null, null);
+		api.deleteNamespacedService(KAFKA_SERVICE, NAMESPACE, null, null, null, null, null, null);
+	}
+
+	private void cleanUpZookeeper() throws Exception {
+		appsApi.deleteNamespacedDeployment(ZOOKEEPER_DEPLOYMENT, NAMESPACE, null, null, null, null, null, null);
+		api.deleteNamespacedService(ZOOKEEPER_SERVICE, NAMESPACE, null, null, null, null, null, null);
 	}
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
@@ -266,6 +249,33 @@ public class ActuatorRefreshKafkaIT {
 
 	private V1Service getZookeeperService() throws Exception {
 		return (V1Service) K8SUtils.readYamlFromClasspath("zookeeper/zookeeper-service.yaml");
+	}
+
+	private void cleanUpConfigMaps()  throws Exception {
+		api.deleteNamespacedConfigMap(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
+			null);
+		api.deleteNamespacedConfigMap(CONFIG_WATCHER_IT_IMAGE, NAMESPACE, null, null, null, null, null, null);
+	}
+
+	private void cleanUpDeployments() throws Exception {
+		appsApi.deleteNamespacedDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE, null, null, null,
+			null, null, null);
+		appsApi.deleteNamespacedDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE, null, null,
+			null, null, null, null);
+	}
+
+	private void cleanUpServices() throws Exception {
+		api.deleteNamespacedService(CONFIG_WATCHER_IT_IMAGE, NAMESPACE, null, null, null, null, null, null);
+		api.deleteNamespacedService(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
+			null);
+	}
+
+	private WebClient.Builder builder() {
+		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
+	}
+
+	private RetryBackoffSpec retrySpec() {
+		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }
