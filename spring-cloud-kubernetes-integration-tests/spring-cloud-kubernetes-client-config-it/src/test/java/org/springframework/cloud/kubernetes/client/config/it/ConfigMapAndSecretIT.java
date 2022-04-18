@@ -53,6 +53,10 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
  */
 class ConfigMapAndSecretIT {
 
+	private static final String PROPERTY_URL = "localhost:80/myProperty";
+
+	private static final String SECRET_URL = "localhost:80/mySecret";
+
 	private static final String SPRING_CLOUD_CLIENT_CONFIG_IT_DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-config-it-deployment";
 
 	private static final String K8S_CONFIG_CLIENT_IT_NAME = "spring-cloud-kubernetes-client-config-it-deployment";
@@ -121,17 +125,14 @@ class ConfigMapAndSecretIT {
 
 	void testConfigMapAndSecretRefresh() throws Exception {
 
-		String propertyURL = "localhost:" + K3S.getMappedPort(80) + "/myProperty";
-		String secretURL = "localhost:" + K3S.getMappedPort(80) + "/mySecret";
-
 		WebClient.Builder builder = builder();
-		WebClient propertyClient = builder.baseUrl(propertyURL).build();
+		WebClient propertyClient = builder.baseUrl(PROPERTY_URL).build();
 
 		String property = propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 				.retryWhen(retrySpec()).block();
 		assertThat(property).isEqualTo("from-config-map");
 
-		WebClient secretClient = builder.baseUrl(secretURL).build();
+		WebClient secretClient = builder.baseUrl(SECRET_URL).build();
 		String secret = secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 		assertThat(secret).isEqualTo("p455w0rd");

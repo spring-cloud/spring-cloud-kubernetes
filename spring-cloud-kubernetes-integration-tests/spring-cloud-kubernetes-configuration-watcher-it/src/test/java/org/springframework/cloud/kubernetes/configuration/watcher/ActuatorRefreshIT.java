@@ -17,13 +17,11 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.time.Duration;
-import java.util.Objects;
 
 import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
@@ -34,14 +32,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
-import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
@@ -77,8 +70,6 @@ class ActuatorRefreshIT {
 
 	private static K8SUtils k8SUtils;
 
-	private static NetworkingV1Api networkingApi;
-
 	private static final K3sContainer K3S = Commons.container();
 
 	@BeforeAll
@@ -89,7 +80,6 @@ class ActuatorRefreshIT {
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
 		appsApi = new AppsV1Api();
-		networkingApi = new NetworkingV1Api();
 		k8SUtils = new K8SUtils(api, appsApi);
 		k8SUtils.setUp(NAMESPACE);
 	}
@@ -114,21 +104,25 @@ class ActuatorRefreshIT {
 				null, null, null);
 		api.deleteNamespacedService(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
 				null);
-		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
-		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
 		k8SUtils.cleanUpWiremock(NAMESPACE);
 	}
 
+	/*
+	 * this test loads uses two services: wiremock on port 8080 and configuration-watcher
+	 * on port 8888. we deploy configuration-watcher first and configure it via a
+	 * configmap with the same name. then, we mock the call to actuator/refresh endpoint
+	 * and deploy a new configmap: "servicea-wiremock", this in turn will trigger that
+	 * refresh that we capture and assert for.
+	 */
 	@Test
-	public void testActuatorRefresh() throws Exception {
-		int mappedPort = K3S.getMappedPort(WIREMOCK_PORT);
-		WireMock.configureFor(WIREMOCK_HOST, mappedPort, WIREMOCK_PATH);
+	void testActuatorRefresh() throws Exception {
+		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
 		await().timeout(Duration.ofSeconds(60)).ignoreException(VerificationException.class)
 				.until(() -> stubFor(post(urlEqualTo("/actuator/refresh")).willReturn(aResponse().withStatus(200)))
 						.getResponse().wasConfigured());
 
 		// Create new configmap to trigger controller to signal app to refresh
-		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME)
+		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName("servicea-wiremock")
 				.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "bar").build();
 		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
 

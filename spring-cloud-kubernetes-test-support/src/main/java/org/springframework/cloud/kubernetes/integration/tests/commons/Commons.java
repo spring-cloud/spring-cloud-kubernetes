@@ -56,7 +56,7 @@ public final class Commons {
 	/**
 	 * Test containers exposed ports.
 	 */
-	public static final Integer[] EXPOSED_PORTS = new Integer[] { 80, 6443 };
+	public static final int[] EXPOSED_PORTS = new int[] { 80, 6443, 8080, 8888 };
 
 	/**
 	 * Temporary folder where to load images.
@@ -73,8 +73,8 @@ public final class Commons {
 		}
 	}
 
-	private static final K3sContainer CONTAINER = new K3sContainer(DockerImageName.parse(Commons.RANCHER))
-			.withFileSystemBind(TEMP_FOLDER, TEMP_FOLDER).withExposedPorts(Commons.EXPOSED_PORTS)
+	private static final K3sContainer CONTAINER = new FixedPortsK3sContainer(DockerImageName.parse(Commons.RANCHER))
+			.configureFixedPorts(EXPOSED_PORTS).withFileSystemBind(TEMP_FOLDER, TEMP_FOLDER)
 			.withCommand(Commons.RANCHER_COMMAND).withReuse(true);
 
 	public static K3sContainer container() {
@@ -112,6 +112,27 @@ public final class Commons {
 						.anyMatch(y -> y.contains(image)))
 				.findFirst().orElseThrow(() -> new IllegalArgumentException("Image : " + image + " not build locally. "
 						+ "You need to build it first, and then run the test"));
+	}
+
+	/**
+	 * A K3sContainer, but with fixed port mappings. This is needed because of the nature
+	 * of some integration tests.
+	 *
+	 * @author wind57
+	 */
+	private static final class FixedPortsK3sContainer extends K3sContainer {
+
+		private FixedPortsK3sContainer(DockerImageName dockerImageName) {
+			super(dockerImageName);
+		}
+
+		private FixedPortsK3sContainer configureFixedPorts(int[] ports) {
+			for (int port : ports) {
+				super.addFixedExposedPort(port, port);
+			}
+			return this;
+		}
+
 	}
 
 }

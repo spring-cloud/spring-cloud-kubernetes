@@ -54,6 +54,8 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
  */
 class LoadBalancerIT {
 
+	private static final String SERVICE_URL = "localhost:80/loadbalancer-it/servicea";
+
 	private static final String SPRING_CLOUD_K8S_LOADBALANCER_DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-loadbalancer-it-deployment";
 
 	private static final String SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME = "spring-cloud-kubernetes-client-loadbalancer-it";
@@ -91,7 +93,7 @@ class LoadBalancerIT {
 
 	@BeforeEach
 	void setup() throws Exception {
-		k8SUtils.deployWiremock(NAMESPACE);
+		k8SUtils.deployWiremock(NAMESPACE, false);
 	}
 
 	@AfterEach
@@ -125,9 +127,8 @@ class LoadBalancerIT {
 		// Check to make sure the controller deployment is ready
 		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_LOADBALANCER_DEPLOYMENT_NAME, NAMESPACE);
 
-		String serviceURL = "localhost:" + K3S.getMappedPort(80) + "/loadbalancer-it/servicea";
 		WebClient.Builder builder = builder();
-		WebClient serviceClient = builder.baseUrl(serviceURL).build();
+		WebClient serviceClient = builder.baseUrl(SERVICE_URL).build();
 
 		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(Map.class, String.class, Object.class);
 		@SuppressWarnings("unchecked")

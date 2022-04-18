@@ -56,6 +56,10 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
  */
 class ReactiveDiscoveryClientIT {
 
+	private static final String HEALTH_URL = "localhost:80/reactive-discovery-it/actuator/health";
+
+	private static final String SERVICES_URL = "localhost:80/reactive-discovery-it/services";
+
 	private static final String SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-reactive-discoveryclient-it-deployment";
 
 	private static final String SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME = "spring-cloud-kubernetes-client-reactive-discoveryclient-it";
@@ -93,7 +97,7 @@ class ReactiveDiscoveryClientIT {
 
 	@BeforeEach
 	void setup() throws Exception {
-		k8SUtils.deployWiremock(NAMESPACE);
+		k8SUtils.deployWiremock(NAMESPACE, false);
 	}
 
 	@AfterEach
@@ -112,9 +116,8 @@ class ReactiveDiscoveryClientIT {
 	@SuppressWarnings("unchecked")
 	private void testHealth() {
 
-		String heathURL = "localhost:" + K3S.getMappedPort(80) + "/reactive-discovery-it/actuator/health";
 		WebClient.Builder builder = builder();
-		WebClient serviceClient = builder.baseUrl(heathURL).build();
+		WebClient serviceClient = builder.baseUrl(HEALTH_URL).build();
 		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(Map.class, String.class, Object.class);
 		@SuppressWarnings("unchecked")
 		Map<String, Object> health = (Map<String, Object>) serviceClient.method(HttpMethod.GET).retrieve()
@@ -142,9 +145,8 @@ class ReactiveDiscoveryClientIT {
 		// Check to make sure the controller deployment is ready
 		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_DEPLOYMENT_NAME, NAMESPACE);
 
-		String services = "localhost:" + K3S.getMappedPort(80) + "/reactive-discovery-it/services";
 		WebClient.Builder builder = builder();
-		WebClient serviceClient = builder.baseUrl(services).build();
+		WebClient serviceClient = builder.baseUrl(SERVICES_URL).build();
 		String servicesResponse = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 				.retryWhen(retrySpec()).block();
 
