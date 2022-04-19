@@ -82,6 +82,7 @@ jobs:
             	"spring-cloud-kubernetes-client-config-it"
             	"spring-cloud-kubernetes-client-loadbalancer-it"
                 "spring-cloud-kubernetes-discovery-client-it"
+                "spring-cloud-kubernetes-configuration-watcher-it"
             )
 
             cd spring-cloud-kubernetes-test-support

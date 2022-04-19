@@ -131,11 +131,16 @@ public class ActuatorRefreshKafkaIT {
 
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/it").build();
-		Boolean value = serviceClient.method(HttpMethod.GET).retrieve()
-			.bodyToMono(Boolean.class).retryWhen(retrySpec())
-			.block();
 
-		Assertions.assertThat(value).isTrue();
+		Boolean[] value = new Boolean[1];
+		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
+			value[0] = serviceClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(Boolean.class).retryWhen(retrySpec())
+				.block();
+			return value[0];
+		});
+
+		Assertions.assertThat(value[0]).isTrue();
 	}
 
 	@AfterEach
@@ -199,7 +204,7 @@ public class ActuatorRefreshKafkaIT {
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) K8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-bus-kafka-deployment.yaml");
+				.readYamlFromClasspath("app-watcher/spring-cloud-kubernetes-configuration-watcher-bus-kafka-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
