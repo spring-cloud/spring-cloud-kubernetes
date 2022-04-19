@@ -34,16 +34,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.k3s.K3sContainer;
-
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
+
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
@@ -134,9 +134,8 @@ public class ActuatorRefreshKafkaIT {
 
 		Boolean[] value = new Boolean[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
-			value[0] = serviceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(Boolean.class).retryWhen(retrySpec())
-				.block();
+			value[0] = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(Boolean.class).retryWhen(retrySpec())
+					.block();
 			return value[0];
 		});
 
@@ -203,8 +202,8 @@ public class ActuatorRefreshKafkaIT {
 	}
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) K8SUtils
-				.readYamlFromClasspath("app-watcher/spring-cloud-kubernetes-configuration-watcher-bus-kafka-deployment.yaml");
+		V1Deployment deployment = (V1Deployment) K8SUtils.readYamlFromClasspath(
+				"app-watcher/spring-cloud-kubernetes-configuration-watcher-bus-kafka-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
@@ -256,23 +255,23 @@ public class ActuatorRefreshKafkaIT {
 		return (V1Service) K8SUtils.readYamlFromClasspath("zookeeper/zookeeper-service.yaml");
 	}
 
-	private void cleanUpConfigMaps()  throws Exception {
+	private void cleanUpConfigMaps() throws Exception {
 		api.deleteNamespacedConfigMap(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
-			null);
+				null);
 		api.deleteNamespacedConfigMap(CONFIG_WATCHER_IT_IMAGE, NAMESPACE, null, null, null, null, null, null);
 	}
 
 	private void cleanUpDeployments() throws Exception {
 		appsApi.deleteNamespacedDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE, null, null, null,
-			null, null, null);
+				null, null, null);
 		appsApi.deleteNamespacedDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE, null, null,
-			null, null, null, null);
+				null, null, null, null);
 	}
 
 	private void cleanUpServices() throws Exception {
 		api.deleteNamespacedService(CONFIG_WATCHER_IT_IMAGE, NAMESPACE, null, null, null, null, null, null);
 		api.deleteNamespacedService(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
-			null);
+				null);
 	}
 
 	private WebClient.Builder builder() {

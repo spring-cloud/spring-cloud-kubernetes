@@ -35,16 +35,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.k3s.K3sContainer;
+import reactor.netty.http.client.HttpClient;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.testcontainers.k3s.K3sContainer;
-import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
@@ -127,9 +127,8 @@ class ActuatorRefreshRabbitMQIT {
 
 		Boolean[] value = new Boolean[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
-			value[0] = serviceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(Boolean.class).retryWhen(retrySpec())
-				.block();
+			value[0] = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(Boolean.class).retryWhen(retrySpec())
+					.block();
 			return value[0];
 		});
 
@@ -191,8 +190,8 @@ class ActuatorRefreshRabbitMQIT {
 	}
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) K8SUtils
-				.readYamlFromClasspath("app-watcher/spring-cloud-kubernetes-configuration-watcher-bus-amqp-deployment.yaml");
+		V1Deployment deployment = (V1Deployment) K8SUtils.readYamlFromClasspath(
+				"app-watcher/spring-cloud-kubernetes-configuration-watcher-bus-amqp-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
@@ -238,7 +237,7 @@ class ActuatorRefreshRabbitMQIT {
 
 	private void waitForDeployment(String deploymentName) {
 		await().pollInterval(Duration.ofSeconds(3)).atMost(600, TimeUnit.SECONDS)
-			.until(() -> k8SUtils.isDeploymentReady(deploymentName, NAMESPACE));
+				.until(() -> k8SUtils.isDeploymentReady(deploymentName, NAMESPACE));
 	}
 
 	private WebClient.Builder builder() {
