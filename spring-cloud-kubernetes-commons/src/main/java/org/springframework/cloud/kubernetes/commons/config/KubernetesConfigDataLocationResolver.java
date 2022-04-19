@@ -193,8 +193,8 @@ public abstract class KubernetesConfigDataLocationResolver
 		SecretsConfigProperties secretsProperties = binder
 				.bind(SecretsConfigProperties.PREFIX, SecretsConfigProperties.class)
 				.orElseGet(SecretsConfigProperties::new);
-		return new PropertyHolder(kubernetesClientProperties, configMapConfigProperties,
-				secretsProperties, applicationName);
+		return new PropertyHolder(kubernetesClientProperties, configMapConfigProperties, secretsProperties,
+				applicationName);
 
 	}
 
