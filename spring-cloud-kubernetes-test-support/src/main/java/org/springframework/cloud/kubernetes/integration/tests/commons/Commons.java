@@ -16,9 +16,8 @@
 
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
-import java.io.IOException;
+import java.io.File;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -61,17 +60,7 @@ public final class Commons {
 	/**
 	 * Temporary folder where to load images.
 	 */
-	public static final String TEMP_FOLDER;
-
-	static {
-		try {
-			TEMP_FOLDER = Files.createTempDirectory("").normalize().toString();
-			System.out.println("temp-folder is at : " + TEMP_FOLDER);
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-	}
+	public static final String TEMP_FOLDER = new File(System.getProperty("java.io.tmpdir")).getAbsolutePath();
 
 	private static final K3sContainer CONTAINER = new FixedPortsK3sContainer(DockerImageName.parse(Commons.RANCHER))
 			.configureFixedPorts(EXPOSED_PORTS).withFileSystemBind(TEMP_FOLDER, TEMP_FOLDER)

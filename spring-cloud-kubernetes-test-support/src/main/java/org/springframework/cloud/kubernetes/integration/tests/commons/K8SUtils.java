@@ -288,9 +288,21 @@ public class K8SUtils {
 	}
 
 	public void setUp(String namespace) throws Exception {
-		api.createNamespacedServiceAccount(namespace, getConfigK8sClientItServiceAccount(), null, null, null);
-		rbacApi.createNamespacedRoleBinding(namespace, getConfigK8sClientItRoleBinding(), null, null, null);
-		rbacApi.createNamespacedRole(namespace, getConfigK8sClientItRole(), null, null, null);
+
+		V1ServiceAccount serviceAccount = getConfigK8sClientItServiceAccount();
+		if (api.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), namespace, null, null, null) == null) {
+			api.createNamespacedServiceAccount(namespace, serviceAccount, null, null, null);
+		}
+
+		V1RoleBinding roleBinding = getConfigK8sClientItRoleBinding();
+		if (rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace, null) == null) {
+			rbacApi.createNamespacedRoleBinding(namespace, roleBinding , null, null, null);
+		}
+
+		V1Role role = getConfigK8sClientItRole();
+		if (rbacApi.readNamespacedRole(role.getMetadata().getName(), namespace, null) == null) {
+			rbacApi.createNamespacedRole(namespace, role, null, null, null);
+		}
 	}
 
 	public static V1ServiceAccount getConfigK8sClientItServiceAccount() throws Exception {
