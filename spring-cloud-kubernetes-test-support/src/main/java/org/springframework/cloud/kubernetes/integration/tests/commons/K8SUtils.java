@@ -290,19 +290,19 @@ public class K8SUtils {
 	public void setUp(String namespace) throws Exception {
 
 		V1ServiceAccount serviceAccount = getConfigK8sClientItServiceAccount();
-		if (api.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), namespace, null, null, null) == null) {
-			api.createNamespacedServiceAccount(namespace, serviceAccount, null, null, null);
-		}
+		CheckedSupplier<V1ServiceAccount> accountSupplier = () -> api
+				.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), namespace, null, null, null);
+		CheckedSupplier<V1ServiceAccount> accountDefaulter = () -> api.createNamespacedServiceAccount(namespace,
+				serviceAccount, null, null, null);
+		notExistsHandler(accountSupplier, accountDefaulter);
 
 		V1RoleBinding roleBinding = getConfigK8sClientItRoleBinding();
-		if (rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace, null) == null) {
-			rbacApi.createNamespacedRoleBinding(namespace, roleBinding , null, null, null);
-		}
+		notExistsHandler(() -> rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace, null),
+				() -> rbacApi.createNamespacedRoleBinding(namespace, roleBinding, null, null, null));
 
 		V1Role role = getConfigK8sClientItRole();
-		if (rbacApi.readNamespacedRole(role.getMetadata().getName(), namespace, null) == null) {
-			rbacApi.createNamespacedRole(namespace, role, null, null, null);
-		}
+		notExistsHandler(() -> rbacApi.readNamespacedRole(role.getMetadata().getName(), namespace, null),
+				() -> rbacApi.createNamespacedRole(namespace, role, null, null, null));
 	}
 
 	public static V1ServiceAccount getConfigK8sClientItServiceAccount() throws Exception {
@@ -380,6 +380,27 @@ public class K8SUtils {
 
 	private static V1Deployment getWiremockDeployment() throws Exception {
 		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock/wiremock-deployment.yaml");
+	}
+
+	private static <T> void notExistsHandler(CheckedSupplier<T> callee, CheckedSupplier<T> defaulter) throws Exception {
+		try {
+			callee.get();
+		}
+		catch (Exception exception) {
+			if (exception instanceof ApiException apiException) {
+				if (apiException.getCode() == 404) {
+					defaulter.get();
+					return;
+				}
+			}
+			throw new RuntimeException(exception);
+		}
+	}
+
+	private interface CheckedSupplier<T> {
+
+		T get() throws Exception;
+
 	}
 
 }

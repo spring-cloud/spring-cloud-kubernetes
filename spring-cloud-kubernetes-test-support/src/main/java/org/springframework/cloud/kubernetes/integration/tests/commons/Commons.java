@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.integration.tests.commons;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -75,8 +76,9 @@ public final class Commons {
 		InputStream imageStream = CONTAINER.getDockerClient().saveImageCmd("springcloud/" + image)
 				.withTag(getPomVersion()).exec();
 
-		// copy image stream to the tmp folder
-		Files.copy(imageStream, Paths.get(TEMP_FOLDER + "/" + image + ".tar"));
+		Path imagePath = Paths.get(TEMP_FOLDER + "/" + image + ".tar");
+		Files.deleteIfExists(imagePath);
+		Files.copy(imageStream, imagePath);
 		// import image with ctr. this works because TEMP_FOLDER is mounted in the
 		// container
 		CONTAINER.execInContainer("ctr", "i", "import", TEMP_FOLDER + "/" + image + ".tar");
