@@ -3,13 +3,11 @@ kind: Ingress
 metadata:
   name: discoveryserver-ingress
   namespace: default
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
     - http:
         paths:
-          - path: /discoveryserver(/|$)(.*)
+          - path: /
             pathType: Prefix
             backend:
               service:
