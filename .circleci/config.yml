@@ -75,13 +75,12 @@ jobs:
             docker load -i ./docker-images/spring-cloud-kubernetes-discoveryserver.tar
             docker load -i ./docker-images/spring-cloud-kubernetes-configserver.tar
       - run:
-          name: testcontainers integration tests
+          name: testcontainers integration tests for kubernetes-native client
           command: |
-            # TODO, when all tests move to testcontainers, this should be a call to mvn, to find all modules
             INTEGRATION_PROJECTS=(
             	"spring-cloud-kubernetes-client-config-it"
             	"spring-cloud-kubernetes-client-loadbalancer-it"
-                "spring-cloud-kubernetes-discovery-client-it"
+                "spring-cloud-kubernetes-client-reactive-discoveryclient-it"
                 "spring-cloud-kubernetes-configuration-watcher-it"
                 "spring-cloud-kubernetes-core-k8s-client-it",
                 "spring-cloud-kubernetes-discoveryclient-it"
