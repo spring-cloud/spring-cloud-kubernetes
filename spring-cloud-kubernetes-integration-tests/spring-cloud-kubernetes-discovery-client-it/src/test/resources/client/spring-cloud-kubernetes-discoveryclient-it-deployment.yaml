@@ -19,10 +19,10 @@ spec:
           readinessProbe:
             httpGet:
               port: 8080
-              path: /actuator/health/readiness
+              path: /discoveryclient-it/actuator/health/readiness
           livenessProbe:
             httpGet:
               port: 8080
-              path: /actuator/health/liveness
+              path: /discoveryclient-it/actuator/health/liveness
           ports:
             - containerPort: 8080

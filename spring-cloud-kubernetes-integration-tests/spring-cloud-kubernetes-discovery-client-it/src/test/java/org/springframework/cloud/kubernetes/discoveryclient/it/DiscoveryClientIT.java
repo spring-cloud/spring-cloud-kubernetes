@@ -108,7 +108,14 @@ class DiscoveryClientIT {
 	static void afterAll() throws Exception {
 		Commons.cleanUp(DISCOVERY_SERVER_APP_NAME);
 		Commons.cleanUp(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME);
-		k8SUtils.removeWiremockImage();
+
+		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
+				"metadata.name=" + DISCOVERY_SERVER_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null,
+				null);
+
+		api.deleteNamespacedService(DISCOVERY_SERVER_APP_NAME, NAMESPACE, null, null, null, null, null, null);
+		networkingApi.deleteNamespacedIngress("discoveryserver-ingress", NAMESPACE, null, null, null, null, null, null);
+
 	}
 
 	@AfterEach
@@ -148,7 +155,7 @@ class DiscoveryClientIT {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void testHealth() {
+	void testHealth() {
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/actuator/health").build();
 
@@ -162,17 +169,6 @@ class DiscoveryClientIT {
 
 		Map<String, Object> discoveryComposite = (Map<String, Object>) components.get("discoveryComposite");
 		assertThat(discoveryComposite.get("status")).isEqualTo("UP");
-	}
-
-	@AfterAll
-	public static void after() throws Exception {
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + DISCOVERY_SERVER_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null,
-				null);
-
-		api.deleteNamespacedService(DISCOVERY_SERVER_APP_NAME, NAMESPACE, null, null, null, null, null, null);
-		networkingApi.deleteNamespacedIngress("discoveryserver-ingress", NAMESPACE, null, null, null, null, null, null);
-
 	}
 
 	private void deployDiscoveryIt() throws Exception {

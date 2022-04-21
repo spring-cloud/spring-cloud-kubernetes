@@ -1,3 +1,7 @@
+server:
+  servlet:
+    context-path: /discoveryclient-it
+
 spring:
   cloud:
     kubernetes:
