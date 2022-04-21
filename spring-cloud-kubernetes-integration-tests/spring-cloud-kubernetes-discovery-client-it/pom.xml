@@ -11,12 +11,6 @@
 
 	<artifactId>spring-cloud-kubernetes-discoverclient-it</artifactId>
 
-	<properties>
-		<jib.version>1.8.0</jib.version>
-		<base.image>openjdk:8u222-slim</base.image>
-	</properties>
-
-
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
