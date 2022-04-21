@@ -143,7 +143,6 @@
 		<module>spring-cloud-kubernetes-fabric8-client-loadbalancer</module>
 
 		<module>spring-cloud-kubernetes-discoveryclient-it</module>
-		<module>spring-cloud-kubernetes-reactive-discoveryclient-it</module>
 		<module>spring-cloud-kubernetes-client-config-it</module>
 		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>
 		<module>spring-cloud-kubernetes-client-reactive-discovery-client-it</module>
