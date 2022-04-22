@@ -56,6 +56,8 @@ class ActuatorRefreshIT {
 
 	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher";
 
+	private String configWatcherConfigMapName;
+
 	private static final String WIREMOCK_HOST = "localhost";
 
 	private static final String WIREMOCK_PATH = "/";
@@ -104,6 +106,9 @@ class ActuatorRefreshIT {
 				null, null, null);
 		api.deleteNamespacedService(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
 				null);
+
+		api.deleteNamespacedConfigMap(configWatcherConfigMapName, NAMESPACE, null, null, null, null, null, null);
+		api.deleteNamespacedConfigMap("servicea-wiremock", NAMESPACE, null, null, null, null, null, null);
 		k8SUtils.cleanUpWiremock(NAMESPACE);
 	}
 
@@ -134,7 +139,9 @@ class ActuatorRefreshIT {
 	}
 
 	private void deployConfigWatcher() throws Exception {
-		api.createNamespacedConfigMap(NAMESPACE, getConfigWatcherConfigMap(), null, null, null);
+		V1ConfigMap configMap = getConfigWatcherConfigMap();
+		configWatcherConfigMapName = configMap.getMetadata().getName();
+		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
 		appsApi.createNamespacedDeployment(NAMESPACE, getConfigWatcherDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getConfigWatcherService(), null, null, null);
 

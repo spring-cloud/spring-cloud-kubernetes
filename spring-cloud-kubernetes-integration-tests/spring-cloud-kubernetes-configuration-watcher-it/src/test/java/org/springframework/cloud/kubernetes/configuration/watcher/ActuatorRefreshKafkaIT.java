@@ -52,7 +52,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
 /**
  * @author Kris Iyer
  */
-public class ActuatorRefreshKafkaIT {
+class ActuatorRefreshKafkaIT {
 
 	private static final String CONFIG_WATCHER_IT_IMAGE = "spring-cloud-kubernetes-configuration-watcher-it";
 
@@ -121,6 +121,25 @@ public class ActuatorRefreshKafkaIT {
 		waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME);
 	}
 
+	@AfterEach
+	void after() throws Exception {
+
+		cleanUpKafka();
+		cleanUpZookeeper();
+		cleanUpServices();
+		cleanUpDeployments();
+
+		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
+
+		cleanUpConfigMaps();
+
+		// Check to make sure the controller deployment is deleted
+		k8SUtils.waitForDeploymentToBeDeleted(KAFKA_BROKER, NAMESPACE);
+		k8SUtils.waitForDeploymentToBeDeleted(ZOOKEEPER_DEPLOYMENT, NAMESPACE);
+		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
+		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
+	}
+
 	@Test
 	void testRefresh() throws Exception {
 		// Create new configmap to trigger controller to signal app to refresh
@@ -140,25 +159,6 @@ public class ActuatorRefreshKafkaIT {
 		});
 
 		Assertions.assertThat(value[0]).isTrue();
-	}
-
-	@AfterEach
-	void after() throws Exception {
-
-		cleanUpKafka();
-		cleanUpZookeeper();
-		cleanUpServices();
-		cleanUpDeployments();
-
-		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
-
-		cleanUpConfigMaps();
-
-		// Check to make sure the controller deployment is deleted
-		k8SUtils.waitForDeploymentToBeDeleted(KAFKA_BROKER, NAMESPACE);
-		k8SUtils.waitForDeploymentToBeDeleted(ZOOKEEPER_DEPLOYMENT, NAMESPACE);
-		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
-		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
 	}
 
 	private void waitForDeployment(String deploymentName) {
