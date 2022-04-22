@@ -22,7 +22,10 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.rbac.Role;
+import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -77,6 +80,31 @@ public final class Fabric8Utils {
 		}
 
 		return endpoint.getSubsets().get(0).getAddresses().size() >= 1;
+	}
+
+	public static void setUp(KubernetesClient client, String namespace) throws Exception {
+		FileInputStream serviceAccountAsStream = inputStream("setup/service-account.yaml");
+		FileInputStream roleBindingAsStream = inputStream("setup/role-binding.yaml");
+		FileInputStream roleAsStream = inputStream("setup/role.yaml");
+
+		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).get();
+		if (client.serviceAccounts().inNamespace(namespace).withName(serviceAccountFromStream.getMetadata().getName())
+				.get() == null) {
+			client.serviceAccounts().inNamespace(namespace).create(serviceAccountFromStream);
+		}
+
+		RoleBinding roleBindingFromStream = client.rbac().roleBindings().load(roleBindingAsStream).get();
+		if (client.rbac().roleBindings().inNamespace(namespace).withName(roleBindingFromStream.getMetadata().getName())
+				.get() == null) {
+			client.rbac().roleBindings().inNamespace(namespace).create(roleBindingFromStream);
+		}
+
+		Role roleFromStream = client.rbac().roles().load(roleAsStream).get();
+		if (client.rbac().roles().inNamespace(namespace).withName(roleFromStream.getMetadata().getName())
+				.get() == null) {
+			client.rbac().roles().inNamespace(namespace).create(roleFromStream);
+		}
+
 	}
 
 }

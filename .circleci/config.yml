@@ -77,10 +77,6 @@ jobs:
       - run:
           name: testcontainers integration tests for kubernetes-native client
           command: |
-            # our integration tests use static binding of ports (see FixedPortsK3sContainer)
-            # which means that we need to stop the container once all the tests are done, otherwise
-            # ports are going to be busy for whatever comes next in circleci. That is why the last project here in this array
-            # will call "stop()" on the container, as such: order matters.
             INTEGRATION_PROJECTS=(
             	"spring-cloud-kubernetes-client-config-it"
             	"spring-cloud-kubernetes-client-loadbalancer-it"
@@ -93,6 +89,27 @@ jobs:
             cd spring-cloud-kubernetes-test-support
             mvn clean install
             cd ..
+
+            cd spring-cloud-kubernetes-integration-tests
+            PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+            for p in "${INTEGRATION_PROJECTS[@]}"; do
+              cd "${p}"
+              mvn spring-boot:build-image \
+              	  -Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${PROJECT_VERSION} \
+                  -Dspring-boot.build-image.builder=paketobuildpacks/builder
+              mvn clean verify -DexcludeITTests=
+              cd ..
+            done
+      - run:
+          name: testcontainers integration tests for fabric8 client
+          command: |
+            # our integration tests use static binding of ports (see FixedPortsK3sContainer)
+            # which means that we need to stop the container once all the tests are done, otherwise
+            # ports are going to be busy for whatever comes next in circleci. That is why the last project
+            # from all integration tests will stop the container.
+            INTEGRATION_PROJECTS=(
+            	"spring-cloud-kubernetes-fabric8-client-configmap"
+            )
 
             cd spring-cloud-kubernetes-integration-tests
             PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)

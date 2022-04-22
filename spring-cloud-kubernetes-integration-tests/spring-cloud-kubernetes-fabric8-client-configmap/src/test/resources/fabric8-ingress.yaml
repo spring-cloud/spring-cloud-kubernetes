@@ -3,13 +3,11 @@ kind: Ingress
 metadata:
   name: spring-cloud-kubernetes-fabric8-client-configmap-ingress
   namespace: default
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
     - http:
         paths:
-          - path: /fabric8-configmap(/|$)(.*)
+          - path: /
             pathType: Prefix
             backend:
               service:
