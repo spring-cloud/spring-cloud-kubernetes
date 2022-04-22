@@ -117,9 +117,8 @@ class DiscoveryClientIT {
 		networkingApi.deleteNamespacedIngress("discoveryserver-ingress", NAMESPACE, null, null, null, null, null, null);
 
 		// we assume that this is the last project in a certain suite of tests, thus stop
-		// the container here. 
+		// the container here.
 		K3S.stop();
-
 	}
 
 	@AfterEach
