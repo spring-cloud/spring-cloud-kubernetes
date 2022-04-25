@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Fabric8Utils;
@@ -41,8 +42,6 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
-import reactor.util.retry.RetryBackoffSpec;
 
 /**
  * @author wind57
@@ -96,8 +95,7 @@ class Fabric8DiscoveryIT {
 
 		@SuppressWarnings("unchecked")
 		List<String> result = (List<String>) client.method(HttpMethod.GET).retrieve().bodyToMono(List.class)
-				.retryWhen(retrySpec())
-				.block();
+				.retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(result.size(), 3);
 		Assertions.assertTrue(result.contains("kubernetes"));
