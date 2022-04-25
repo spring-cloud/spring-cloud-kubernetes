@@ -111,6 +111,7 @@ jobs:
             	"spring-cloud-kubernetes-fabric8-client-configmap"
                 "spring-cloud-kubernetes-fabric8-client-discovery"
                 "spring-cloud-kubernetes-fabric8-client-loadbalancer"
+                "spring-cloud-kubernetes-fabric8-client-simple-core"
             )
 
             cd spring-cloud-kubernetes-test-support

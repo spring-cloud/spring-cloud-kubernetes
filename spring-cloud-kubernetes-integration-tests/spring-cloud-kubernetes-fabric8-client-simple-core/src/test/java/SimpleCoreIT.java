@@ -16,6 +16,7 @@
 
 import java.io.FileInputStream;
 import java.time.Duration;
+import java.util.Objects;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -27,15 +28,17 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Fabric8Utils;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 /**
  * @author wind57
@@ -43,6 +46,8 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 class SimpleCoreIT {
 
 	private static final String NAMESPACE = "default";
+
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-simple-core";
 
 	private static KubernetesClient client;
 
@@ -52,26 +57,31 @@ class SimpleCoreIT {
 
 	private static String ingressName;
 
+	private static final K3sContainer K3S = Commons.container();
+
 	@BeforeAll
-	public static void setup() {
-		Config config = Config.autoConfigure(null);
+	static void beforeAll() throws Exception {
+		K3S.start();
+		Commons.validateImage(IMAGE_NAME);
+		Commons.loadImage(IMAGE_NAME);
+
+		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
 		client = new DefaultKubernetesClient(config);
+		Fabric8Utils.setUp(client, NAMESPACE);
+
 		deployManifests();
 	}
 
 	@AfterAll
-	public static void after() {
+	static void after() {
 		deleteManifests();
 	}
 
 	@Test
-	public void test() {
-		WebClient client = WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
-				.baseUrl("localhost/fabric8-client-simple-core/message").build();
+	void test() {
+		WebClient client = builder().baseUrl("localhost/message").build();
 
-		String result = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(Retry.fixedDelay(15, Duration.ofSeconds(1))
-						.filter(x -> ((WebClientResponseException) x).getStatusCode().value() == 503))
+		String result = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
 		// value must come from application-kubernetes.yml
@@ -134,6 +144,14 @@ class SimpleCoreIT {
 
 	private static FileInputStream getIngress() throws Exception {
 		return Fabric8Utils.inputStream("simple-core-ingress.yaml");
+	}
+
+	private WebClient.Builder builder() {
+		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
+	}
+
+	private RetryBackoffSpec retrySpec() {
+		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }

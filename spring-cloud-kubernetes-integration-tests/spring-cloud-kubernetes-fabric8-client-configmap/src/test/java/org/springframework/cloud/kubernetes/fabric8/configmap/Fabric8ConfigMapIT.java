@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Fabric8Utils;
@@ -41,7 +42,6 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.util.retry.RetryBackoffSpec;
 
 class Fabric8ConfigMapIT {
 
@@ -82,8 +82,7 @@ class Fabric8ConfigMapIT {
 	void test() {
 		WebClient client = builder().baseUrl("localhost/key1").build();
 
-		String result = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec())
+		String result = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
 		Assertions.assertEquals("value1", result);
