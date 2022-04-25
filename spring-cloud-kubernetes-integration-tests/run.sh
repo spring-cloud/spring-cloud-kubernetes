@@ -25,8 +25,6 @@ ISTIO_VERSION="1.12.0"
 ALL_INTEGRATION_PROJECTS=(
 	"spring-cloud-kubernetes-fabric8-client-simple-core"
 	"spring-cloud-kubernetes-fabric8-istio-it"
-	"spring-cloud-kubernetes-fabric8-client-discovery"
-	"spring-cloud-kubernetes-fabric8-client-loadbalancer"
 )
 INTEGRATION_PROJECTS=(${INTEGRATION_PROJECTS:-${ALL_INTEGRATION_PROJECTS[@]}})
 

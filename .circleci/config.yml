@@ -109,7 +109,13 @@ jobs:
             # from all integration tests will stop the container.
             INTEGRATION_PROJECTS=(
             	"spring-cloud-kubernetes-fabric8-client-configmap"
+                "spring-cloud-kubernetes-fabric8-client-discovery"
+                "spring-cloud-kubernetes-fabric8-client-loadbalancer"
             )
+
+            cd spring-cloud-kubernetes-test-support
+            mvn clean install
+            cd ..
 
             cd spring-cloud-kubernetes-integration-tests
             PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
