@@ -75,17 +75,11 @@ jobs:
             docker load -i ./docker-images/spring-cloud-kubernetes-discoveryserver.tar
             docker load -i ./docker-images/spring-cloud-kubernetes-configserver.tar
       - run:
-          name: testcontainers integration tests for kubernetes-native client
+          name: testcontainers integration tests
           command: |
-            INTEGRATION_PROJECTS=(
-            	"spring-cloud-kubernetes-client-config-it"
-            	"spring-cloud-kubernetes-client-loadbalancer-it"
-                "spring-cloud-kubernetes-client-reactive-discoveryclient-it"
-                "spring-cloud-kubernetes-configuration-watcher-it"
-                "spring-cloud-kubernetes-core-k8s-client-it"
-                "spring-cloud-kubernetes-discoveryclient-it"
-            )
-
+            # we need sort, because the last project calls K3S::stop
+            # we need tail to exclude root project
+            INTEGRATION_PROJECTS=$(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | tail -n +2 | sort)
             cd spring-cloud-kubernetes-test-support
             mvn clean install
             cd ..
@@ -100,39 +94,6 @@ jobs:
               mvn clean verify -DexcludeITTests=
               cd ..
             done
-      - run:
-          name: testcontainers integration tests for fabric8 client
-          command: |
-            # our integration tests use static binding of ports (see FixedPortsK3sContainer)
-            # which means that we need to stop the container once all the tests are done, otherwise
-            # ports are going to be busy for whatever comes next in circleci. That is why the last project
-            # from all integration tests will stop the container.
-            INTEGRATION_PROJECTS=(
-            	"spring-cloud-kubernetes-fabric8-client-configmap"
-                "spring-cloud-kubernetes-fabric8-client-discovery"
-                "spring-cloud-kubernetes-fabric8-client-loadbalancer"
-                "spring-cloud-kubernetes-fabric8-client-simple-core"
-            )
-
-            cd spring-cloud-kubernetes-test-support
-            mvn clean install
-            cd ..
-
-            cd spring-cloud-kubernetes-integration-tests
-            PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-            for p in "${INTEGRATION_PROJECTS[@]}"; do
-              cd "${p}"
-              mvn spring-boot:build-image \
-              	  -Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${PROJECT_VERSION} \
-                  -Dspring-boot.build-image.builder=paketobuildpacks/builder
-              mvn clean verify -DexcludeITTests=
-              cd ..
-            done
-      - run:
-          name: Run Kind Integration Tests
-          command: |
-            cd spring-cloud-kubernetes-integration-tests
-            ./run.sh
       - run:
           name: "Aggregate test results"
           when: always

@@ -43,7 +43,6 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -123,8 +122,7 @@ public class Fabric8ClientLoadbalancerIT {
 
 		@SuppressWarnings("unchecked")
 		Map<String, String> mapResult = (Map<String, String>) client.method(HttpMethod.GET).retrieve()
-				.bodyToMono(Map.class).retryWhen(retrySpec())
-				.block();
+				.bodyToMono(Map.class).retryWhen(retrySpec()).block();
 
 		assertThat(mapResult.containsKey("mappings")).isTrue();
 		assertThat(mapResult.containsKey("meta")).isTrue();
