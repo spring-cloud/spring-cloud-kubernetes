@@ -77,14 +77,14 @@ jobs:
       - run:
           name: testcontainers integration tests
           command: |
-            # we need sort, because the last project calls K3S::stop
-            # we need tail to exclude root project
-            INTEGRATION_PROJECTS=$(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | tail -n +2 | sort)
             cd spring-cloud-kubernetes-test-support
             mvn clean install
             cd ..
 
             cd spring-cloud-kubernetes-integration-tests
+            # we need tail to exclude root project
+            # we exclude istio project, because it's set-up is a bit different and a bit heavy
+            INTEGRATION_PROJECTS=$(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | tail -n +2 | grep -v 'istio')
             PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
             for p in "${INTEGRATION_PROJECTS[@]}"; do
               cd "${p}"
@@ -94,6 +94,28 @@ jobs:
               mvn clean verify -DexcludeITTests=
               cd ..
             done
+      - run:
+          name: testcontainers istio fabric8 integration tests
+          command: |
+            ISTIO_VERSION="1.13.3"
+            ISTIO_BINARY_URL="https://github.com/istio/istio/releases/download/$ISTIO_VERSION/istio-$ISTIO_VERSION-linux-amd64.tar.gz"
+            ISTIO="/tmp/istio"
+            mkdir "${ISTIO}"
+
+            wget --directory-prefix "${ISTIO}" "${ISTIO_BINARY_URL}"
+            find "${ISTIO}" -type f -name "istio-*.tar.gz" -exec mv "{}" "${ISTIO}/istio.tar.gz" \;
+            tar -xf "$ISTIO/istio.tar.gz" -C "$ISTIO"
+            rm "$ISTIO/istio.tar.gz"
+            mv $ISTIO/istio-* "$ISTIO/istio-bin"
+
+            # we do not strictly need everything that is below, but just to make sure things are correctly set-up
+            chmod +x "${ISTIO}/istio-bin/bin/istioctl"
+            export PATH=$PATH:"$ISTIO/istio-bin/bin"
+            if ! [ -x "$(command -v istioctl)" ]; then
+              echo 'Problem installing istioctl, check the script'
+              exit 1
+            fi
+
       - run:
           name: "Aggregate test results"
           when: always

@@ -67,13 +67,21 @@ public final class Commons {
 			.configureFixedPorts(EXPOSED_PORTS).withFileSystemBind(TEMP_FOLDER, TEMP_FOLDER)
 			.withCommand(Commons.RANCHER_COMMAND).withReuse(true);
 
+	private static final K3sContainer CONTAINER_NO_TRAEFFIK = new FixedPortsK3sContainer(
+			DockerImageName.parse(Commons.RANCHER)).configureFixedPorts(EXPOSED_PORTS)
+					.withFileSystemBind(TEMP_FOLDER, TEMP_FOLDER).withReuse(true);
+
 	public static K3sContainer container() {
 		return CONTAINER;
 	}
 
-	public static void loadImage(String image) throws Exception {
+	public static K3sContainer containerWithoutTraeffik() {
+		return CONTAINER_NO_TRAEFFIK;
+	}
+
+	public static void loadImage(String image, K3sContainer container) throws Exception {
 		// save image
-		InputStream imageStream = CONTAINER.getDockerClient().saveImageCmd("springcloud/" + image)
+		InputStream imageStream = container.getDockerClient().saveImageCmd("springcloud/" + image)
 				.withTag(getPomVersion()).exec();
 
 		Path imagePath = Paths.get(TEMP_FOLDER + "/" + image + ".tar");
@@ -81,12 +89,12 @@ public final class Commons {
 		Files.copy(imageStream, imagePath);
 		// import image with ctr. this works because TEMP_FOLDER is mounted in the
 		// container
-		CONTAINER.execInContainer("ctr", "i", "import", TEMP_FOLDER + "/" + image + ".tar");
+		container.execInContainer("ctr", "i", "import", TEMP_FOLDER + "/" + image + ".tar");
 	}
 
-	public static void cleanUp(String image) throws Exception {
-		CONTAINER.execInContainer("crictl", "rmi", "docker.io/springcloud/" + image + ":" + getPomVersion());
-		CONTAINER.execInContainer("rm", TEMP_FOLDER + "/" + image + ".tar");
+	public static void cleanUp(String image, K3sContainer container) throws Exception {
+		container.execInContainer("crictl", "rmi", "docker.io/springcloud/" + image + ":" + getPomVersion());
+		container.execInContainer("rm", TEMP_FOLDER + "/" + image + ".tar");
 	}
 
 	public static void cleanUpDownloadedImage(String image) throws Exception {
@@ -96,8 +104,8 @@ public final class Commons {
 	/**
 	 * validates that the provided image does exist in the local docker registry.
 	 */
-	public static void validateImage(String image) {
-		List<Image> images = CONTAINER.getDockerClient().listImagesCmd().exec();
+	public static void validateImage(String image, K3sContainer container) {
+		List<Image> images = container.getDockerClient().listImagesCmd().exec();
 		images.stream()
 				.filter(x -> Arrays.stream(x.getRepoTags() == null ? new String[] {} : x.getRepoTags())
 						.anyMatch(y -> y.contains(image)))

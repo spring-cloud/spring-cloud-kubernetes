@@ -31,6 +31,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -52,6 +53,8 @@ class Fabric8IstioIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-istio-it";
 
+	private static final String ISTIO_BIN_PATH = "/tmp/istio/istio-bin/bin/";
+
 	private static KubernetesClient client;
 
 	private static String deploymentName;
@@ -60,13 +63,23 @@ class Fabric8IstioIT {
 
 	private static String ingressName;
 
-	private static final K3sContainer K3S = Commons.container();
+	// we add istio path, that is computed in config.yaml
+	private static final K3sContainer K3S = Commons.containerWithoutTraeffik().withFileSystemBind(ISTIO_BIN_PATH,
+			ISTIO_BIN_PATH); // so that traeffik is not installed
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
+		// otherwise, ports are busy
+		Commons.container().stop();
 		K3S.start();
-		Commons.validateImage(IMAGE_NAME);
-		Commons.loadImage(IMAGE_NAME);
+		Commons.validateImage(IMAGE_NAME, K3S);
+		Commons.loadImage(IMAGE_NAME, K3S);
+
+		processExecResult(K3S.execInContainer("sh", "-c", "kubectl create namespace istio-test"));
+		processExecResult(K3S.execInContainer("sh", "-c",
+				"kubectl label namespace istio-test istio-injection=enabled"));
+		processExecResult(K3S.execInContainer("sh", "-c",
+				ISTIO_BIN_PATH + "istioctl" + " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=demo -y"));
 
 		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
 		client = new DefaultKubernetesClient(config);
@@ -77,8 +90,7 @@ class Fabric8IstioIT {
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		Commons.cleanUp(IMAGE_NAME);
-		K3S.stop();
+		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
 	@AfterAll
@@ -91,8 +103,7 @@ class Fabric8IstioIT {
 		WebClient client = builder().baseUrl("localhost/profiles").build();
 
 		@SuppressWarnings("unchecked")
-		List<String> result = client.method(HttpMethod.GET).retrieve().bodyToMono(List.class)
-				.retryWhen(retrySpec())
+		List<String> result = client.method(HttpMethod.GET).retrieve().bodyToMono(List.class).retryWhen(retrySpec())
 				.block();
 
 		// istio profile is present
@@ -163,6 +174,14 @@ class Fabric8IstioIT {
 
 	private RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+	}
+
+	private static String processExecResult(Container.ExecResult execResult) {
+		if (execResult.getExitCode() != 0) {
+			throw new RuntimeException(execResult.getStdout());
+		}
+
+		return execResult.getStdout();
 	}
 
 }
