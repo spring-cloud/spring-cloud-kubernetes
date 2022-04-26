@@ -83,7 +83,7 @@ class Fabric8IstioIT {
 
 		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
 		client = new DefaultKubernetesClient(config);
-		Fabric8Utils.setUp(client, NAMESPACE);
+		//Fabric8Utils.setUp(client, NAMESPACE);
 
 		deployManifests();
 	}
