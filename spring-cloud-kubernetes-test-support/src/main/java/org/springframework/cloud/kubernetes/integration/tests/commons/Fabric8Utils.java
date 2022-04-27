@@ -87,6 +87,19 @@ public final class Fabric8Utils {
 		FileInputStream roleBindingAsStream = inputStream("setup/role-binding.yaml");
 		FileInputStream roleAsStream = inputStream("setup/role.yaml");
 
+		innerSetup(client, namespace, serviceAccountAsStream, roleBindingAsStream, roleAsStream);
+	}
+
+	public static void setUpIstio(KubernetesClient client, String namespace) throws Exception {
+		FileInputStream serviceAccountAsStream = inputStream("istio/service-account.yaml");
+		FileInputStream roleBindingAsStream = inputStream("istio/role-binding.yaml");
+		FileInputStream roleAsStream = inputStream("istio/role.yaml");
+
+		innerSetup(client, namespace, serviceAccountAsStream, roleBindingAsStream, roleAsStream);
+	}
+
+	private static void innerSetup(KubernetesClient client, String namespace, FileInputStream serviceAccountAsStream,
+			FileInputStream roleBindingAsStream, FileInputStream roleAsStream) {
 		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).get();
 		if (client.serviceAccounts().inNamespace(namespace).withName(serviceAccountFromStream.getMetadata().getName())
 				.get() == null) {
@@ -104,7 +117,6 @@ public final class Fabric8Utils {
 				.get() == null) {
 			client.rbac().roles().inNamespace(namespace).create(roleFromStream);
 		}
-
 	}
 
 }
