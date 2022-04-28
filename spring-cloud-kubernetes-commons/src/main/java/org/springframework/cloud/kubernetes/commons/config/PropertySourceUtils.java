@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.BinaryOperator;
@@ -96,7 +97,7 @@ public final class PropertySourceUtils {
 				}
 				return ABSTAIN;
 			});
-			yamlFactory.setResources(new ByteArrayResource(s.getBytes()));
+			yamlFactory.setResources(new ByteArrayResource(s.getBytes(StandardCharsets.UTF_8)));
 			return yamlFactory.getObject();
 		};
 	}
