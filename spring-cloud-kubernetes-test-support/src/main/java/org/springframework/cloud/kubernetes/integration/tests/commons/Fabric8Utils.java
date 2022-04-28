@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
@@ -44,10 +43,8 @@ public final class Fabric8Utils {
 		throw new AssertionError("no instance provided");
 	}
 
-	public static FileInputStream inputStream(String fileName) throws Exception {
-		ClassLoader classLoader = Fabric8Utils.class.getClassLoader();
-		File file = new File(classLoader.getResource(fileName).getFile());
-		return new FileInputStream(file);
+	public static InputStream inputStream(String fileName) {
+		return Fabric8Utils.class.getClassLoader().getResourceAsStream(fileName);
 	}
 
 	public static void waitForDeployment(KubernetesClient client, String deploymentName, String namespace,
@@ -83,23 +80,23 @@ public final class Fabric8Utils {
 	}
 
 	public static void setUp(KubernetesClient client, String namespace) throws Exception {
-		FileInputStream serviceAccountAsStream = inputStream("setup/service-account.yaml");
-		FileInputStream roleBindingAsStream = inputStream("setup/role-binding.yaml");
-		FileInputStream roleAsStream = inputStream("setup/role.yaml");
+		InputStream serviceAccountAsStream = inputStream("setup/service-account.yaml");
+		InputStream roleBindingAsStream = inputStream("setup/role-binding.yaml");
+		InputStream roleAsStream = inputStream("setup/role.yaml");
 
 		innerSetup(client, namespace, serviceAccountAsStream, roleBindingAsStream, roleAsStream);
 	}
 
 	public static void setUpIstio(KubernetesClient client, String namespace) throws Exception {
-		FileInputStream serviceAccountAsStream = inputStream("istio/service-account.yaml");
-		FileInputStream roleBindingAsStream = inputStream("istio/role-binding.yaml");
-		FileInputStream roleAsStream = inputStream("istio/role.yaml");
+		InputStream serviceAccountAsStream = inputStream("istio/service-account.yaml");
+		InputStream roleBindingAsStream = inputStream("istio/role-binding.yaml");
+		InputStream roleAsStream = inputStream("istio/role.yaml");
 
 		innerSetup(client, namespace, serviceAccountAsStream, roleBindingAsStream, roleAsStream);
 	}
 
-	private static void innerSetup(KubernetesClient client, String namespace, FileInputStream serviceAccountAsStream,
-			FileInputStream roleBindingAsStream, FileInputStream roleAsStream) {
+	private static void innerSetup(KubernetesClient client, String namespace, InputStream serviceAccountAsStream,
+			InputStream roleBindingAsStream, InputStream roleAsStream) {
 		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).get();
 		if (client.serviceAccounts().inNamespace(namespace).withName(serviceAccountFromStream.getMetadata().getName())
 				.get() == null) {

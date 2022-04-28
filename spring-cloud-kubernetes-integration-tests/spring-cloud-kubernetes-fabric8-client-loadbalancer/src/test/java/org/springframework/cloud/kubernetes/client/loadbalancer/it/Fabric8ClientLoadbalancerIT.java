@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.loadbalancer.it;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
@@ -235,31 +235,31 @@ public class Fabric8ClientLoadbalancerIT {
 
 	}
 
-	private static FileInputStream getIngress() throws Exception {
+	private static InputStream getIngress() {
 		return Fabric8Utils.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-ingress.yaml");
 	}
 
-	private static FileInputStream getService() throws Exception {
+	private static InputStream getService() {
 		return Fabric8Utils.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-service.yaml");
 	}
 
-	private static FileInputStream getPodDeployment() throws Exception {
+	private static InputStream getPodDeployment() {
 		return Fabric8Utils.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-pod-deployment.yaml");
 	}
 
-	private static FileInputStream getServiceDeployment() throws Exception {
+	private static InputStream getServiceDeployment() {
 		return Fabric8Utils.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-service-deployment.yaml");
 	}
 
-	private static FileInputStream getMockIngress() throws Exception {
+	private static InputStream getMockIngress() {
 		return Fabric8Utils.inputStream("wiremock/wiremock-ingress.yaml");
 	}
 
-	private static FileInputStream getMockService() throws Exception {
+	private static InputStream getMockService() {
 		return Fabric8Utils.inputStream("wiremock/wiremock-service.yaml");
 	}
 
-	private static FileInputStream getMockDeployment() throws Exception {
+	private static InputStream getMockDeployment() {
 		return Fabric8Utils.inputStream("wiremock/wiremock-deployment.yaml");
 	}
 

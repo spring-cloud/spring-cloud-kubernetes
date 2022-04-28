@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.istio;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -156,15 +156,15 @@ class Fabric8IstioIT {
 
 	}
 
-	private static FileInputStream getService() throws Exception {
+	private static InputStream getService() {
 		return Fabric8Utils.inputStream("istio-service.yaml");
 	}
 
-	private static FileInputStream getDeployment() throws Exception {
+	private static InputStream getDeployment() {
 		return Fabric8Utils.inputStream("istio-deployment.yaml");
 	}
 
-	private static FileInputStream getIngress() throws Exception {
+	private static InputStream getIngress() {
 		return Fabric8Utils.inputStream("istio-ingress.yaml");
 	}
 

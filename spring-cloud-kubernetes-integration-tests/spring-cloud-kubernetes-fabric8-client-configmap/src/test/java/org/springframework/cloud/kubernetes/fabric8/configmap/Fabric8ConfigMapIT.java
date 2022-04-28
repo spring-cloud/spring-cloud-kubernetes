@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.configmap;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.Objects;
 
@@ -139,19 +139,19 @@ class Fabric8ConfigMapIT {
 
 	}
 
-	private static FileInputStream getService() throws Exception {
+	private static InputStream getService() {
 		return Fabric8Utils.inputStream("fabric8-service.yaml");
 	}
 
-	private static FileInputStream getDeployment() throws Exception {
+	private static InputStream getDeployment() {
 		return Fabric8Utils.inputStream("fabric8-deployment.yaml");
 	}
 
-	private static FileInputStream getIngress() throws Exception {
+	private static InputStream getIngress() {
 		return Fabric8Utils.inputStream("fabric8-ingress.yaml");
 	}
 
-	private static FileInputStream getConfigMap() throws Exception {
+	private static InputStream getConfigMap()  {
 		return Fabric8Utils.inputStream("fabric8-configmap.yaml");
 	}
 

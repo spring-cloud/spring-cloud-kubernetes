@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.Objects;
 
@@ -135,15 +135,15 @@ class SimpleCoreIT {
 
 	}
 
-	private static FileInputStream getService() throws Exception {
+	private static InputStream getService() {
 		return Fabric8Utils.inputStream("simple-core-service.yaml");
 	}
 
-	private static FileInputStream getDeployment() throws Exception {
+	private static InputStream getDeployment() {
 		return Fabric8Utils.inputStream("simple-core-deployment.yaml");
 	}
 
-	private static FileInputStream getIngress() throws Exception {
+	private static InputStream getIngress() {
 		return Fabric8Utils.inputStream("simple-core-ingress.yaml");
 	}
 

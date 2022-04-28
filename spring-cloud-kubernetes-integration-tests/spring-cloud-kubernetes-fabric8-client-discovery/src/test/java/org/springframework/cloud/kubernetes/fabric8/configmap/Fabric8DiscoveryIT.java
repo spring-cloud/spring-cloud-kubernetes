@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.configmap;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -174,23 +174,23 @@ class Fabric8DiscoveryIT {
 
 	}
 
-	private static FileInputStream getService() throws Exception {
+	private static InputStream getService() {
 		return Fabric8Utils.inputStream("fabric8-discovery-service.yaml");
 	}
 
-	private static FileInputStream getDeployment() throws Exception {
+	private static InputStream getDeployment() {
 		return Fabric8Utils.inputStream("fabric8-discovery-deployment.yaml");
 	}
 
-	private static FileInputStream getIngress() throws Exception {
+	private static InputStream getIngress() {
 		return Fabric8Utils.inputStream("fabric8-discovery-ingress.yaml");
 	}
 
-	private static FileInputStream getMockService() throws Exception {
+	private static InputStream getMockService() {
 		return Fabric8Utils.inputStream("wiremock/fabric8-discovery-wiremock-service.yaml");
 	}
 
-	private static FileInputStream getMockDeployment() throws Exception {
+	private static InputStream getMockDeployment() {
 		return Fabric8Utils.inputStream("wiremock/fabric8-discovery-wiremock-deployment.yaml");
 	}
 
