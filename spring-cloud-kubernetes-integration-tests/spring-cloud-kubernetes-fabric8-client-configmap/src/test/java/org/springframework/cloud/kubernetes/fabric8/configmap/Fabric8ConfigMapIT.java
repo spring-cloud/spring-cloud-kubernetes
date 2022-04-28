@@ -151,7 +151,7 @@ class Fabric8ConfigMapIT {
 		return Fabric8Utils.inputStream("fabric8-ingress.yaml");
 	}
 
-	private static InputStream getConfigMap()  {
+	private static InputStream getConfigMap() {
 		return Fabric8Utils.inputStream("fabric8-configmap.yaml");
 	}
 
