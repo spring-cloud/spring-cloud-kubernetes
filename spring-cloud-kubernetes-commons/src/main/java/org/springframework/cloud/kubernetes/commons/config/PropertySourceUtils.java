@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
