@@ -72,8 +72,8 @@ class ActuatorEndpointIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
-		Commons.validateImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME);
-		Commons.loadImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME);
+		Commons.validateImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
+		Commons.loadImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
 		appsApi = new AppsV1Api();
@@ -89,7 +89,7 @@ class ActuatorEndpointIT {
 
 	@AfterAll
 	static void after() throws Exception {
-		Commons.cleanUp(K8S_CONFIG_CLIENT_IT_SERVICE_NAME);
+		Commons.cleanUp(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
 				"metadata.name=" + K8S_CONFIG_CLIENT_IT_NAME, null, null, null, null, null, null, null, null, null);
 		api.deleteNamespacedService(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, NAMESPACE, null, null, null, null, null, null);

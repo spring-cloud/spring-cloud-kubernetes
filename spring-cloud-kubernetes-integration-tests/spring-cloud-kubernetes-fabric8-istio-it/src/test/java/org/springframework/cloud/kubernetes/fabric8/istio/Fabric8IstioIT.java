@@ -76,8 +76,8 @@ class Fabric8IstioIT {
 		Commons.loadImage(IMAGE_NAME, K3S);
 
 		processExecResult(K3S.execInContainer("sh", "-c", "kubectl create namespace istio-test"));
-		processExecResult(K3S.execInContainer("sh", "-c",
-				"kubectl label namespace istio-test istio-injection=enabled"));
+		processExecResult(
+				K3S.execInContainer("sh", "-c", "kubectl label namespace istio-test istio-injection=enabled"));
 		processExecResult(K3S.execInContainer("sh", "-c",
 				ISTIO_BIN_PATH + "istioctl" + " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=demo -y"));
 

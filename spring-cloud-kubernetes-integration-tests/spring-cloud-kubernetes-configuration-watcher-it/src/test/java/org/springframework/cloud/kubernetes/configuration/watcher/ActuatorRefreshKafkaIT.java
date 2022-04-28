@@ -86,11 +86,11 @@ class ActuatorRefreshKafkaIT {
 	static void beforeAll() throws Exception {
 		K3S.start();
 
-		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
-		Commons.loadImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
+		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+		Commons.loadImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 
-		Commons.validateImage(CONFIG_WATCHER_IT_IMAGE);
-		Commons.loadImage(CONFIG_WATCHER_IT_IMAGE);
+		Commons.validateImage(CONFIG_WATCHER_IT_IMAGE, K3S);
+		Commons.loadImage(CONFIG_WATCHER_IT_IMAGE, K3S);
 
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
@@ -102,8 +102,8 @@ class ActuatorRefreshKafkaIT {
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		Commons.cleanUp(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
-		Commons.cleanUp(CONFIG_WATCHER_IT_IMAGE);
+		Commons.cleanUp(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+		Commons.cleanUp(CONFIG_WATCHER_IT_IMAGE, K3S);
 	}
 
 	@BeforeEach

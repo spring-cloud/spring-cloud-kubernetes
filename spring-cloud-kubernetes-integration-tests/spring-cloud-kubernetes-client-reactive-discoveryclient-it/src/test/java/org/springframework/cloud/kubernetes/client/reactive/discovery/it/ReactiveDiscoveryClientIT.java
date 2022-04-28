@@ -79,8 +79,8 @@ class ReactiveDiscoveryClientIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
-		Commons.validateImage(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME);
-		Commons.loadImage(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME);
+		Commons.validateImage(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME, K3S);
+		Commons.loadImage(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME, K3S);
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
 		appsApi = new AppsV1Api();
@@ -91,7 +91,7 @@ class ReactiveDiscoveryClientIT {
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		Commons.cleanUp(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME);
+		Commons.cleanUp(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME, K3S);
 		k8SUtils.removeWiremockImage();
 	}
 

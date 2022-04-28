@@ -74,8 +74,8 @@ public class Fabric8ClientLoadbalancerIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
-		Commons.validateImage(IMAGE_NAME);
-		Commons.loadImage(IMAGE_NAME);
+		Commons.validateImage(IMAGE_NAME, K3S);
+		Commons.loadImage(IMAGE_NAME, K3S);
 
 		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
 		client = new DefaultKubernetesClient(config);
@@ -84,7 +84,7 @@ public class Fabric8ClientLoadbalancerIT {
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		Commons.cleanUp(IMAGE_NAME);
+		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
 	@BeforeEach

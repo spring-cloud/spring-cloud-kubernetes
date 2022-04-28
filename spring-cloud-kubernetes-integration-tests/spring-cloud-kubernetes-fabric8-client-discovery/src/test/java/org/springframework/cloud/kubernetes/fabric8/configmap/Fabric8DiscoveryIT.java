@@ -71,8 +71,8 @@ class Fabric8DiscoveryIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
-		Commons.validateImage(IMAGE_NAME);
-		Commons.loadImage(IMAGE_NAME);
+		Commons.validateImage(IMAGE_NAME, K3S);
+		Commons.loadImage(IMAGE_NAME, K3S);
 
 		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
 		client = new DefaultKubernetesClient(config);
@@ -85,7 +85,7 @@ class Fabric8DiscoveryIT {
 	@AfterAll
 	static void after() throws Exception {
 		deleteManifests();
-		Commons.cleanUp(IMAGE_NAME);
+		Commons.cleanUp(IMAGE_NAME, K3S);
 		Commons.cleanUpDownloadedImage(mockDeploymentImage);
 	}
 

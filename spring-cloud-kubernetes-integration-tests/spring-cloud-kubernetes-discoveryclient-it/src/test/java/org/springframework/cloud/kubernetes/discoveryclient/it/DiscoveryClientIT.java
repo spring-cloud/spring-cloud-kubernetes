@@ -82,11 +82,11 @@ class DiscoveryClientIT {
 	static void beforeAll() throws Exception {
 		K3S.start();
 
-		Commons.validateImage(DISCOVERY_SERVER_APP_NAME);
-		Commons.loadImage(DISCOVERY_SERVER_APP_NAME);
+		Commons.validateImage(DISCOVERY_SERVER_APP_NAME, K3S);
+		Commons.loadImage(DISCOVERY_SERVER_APP_NAME, K3S);
 
-		Commons.validateImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME);
-		Commons.loadImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME);
+		Commons.validateImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
+		Commons.loadImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
@@ -106,8 +106,8 @@ class DiscoveryClientIT {
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		Commons.cleanUp(DISCOVERY_SERVER_APP_NAME);
-		Commons.cleanUp(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME);
+		Commons.cleanUp(DISCOVERY_SERVER_APP_NAME, K3S);
+		Commons.cleanUp(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
 				"metadata.name=" + DISCOVERY_SERVER_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null,
