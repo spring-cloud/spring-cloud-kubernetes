@@ -74,26 +74,26 @@ jobs:
             docker load -i ./docker-images/spring-cloud-kubernetes-configuration-watcher.tar
             docker load -i ./docker-images/spring-cloud-kubernetes-discoveryserver.tar
             docker load -i ./docker-images/spring-cloud-kubernetes-configserver.tar
-      - run:
-          name: testcontainers integration tests
-          command: |
-            cd spring-cloud-kubernetes-test-support
-            mvn clean install
-            cd ..
-
-            cd spring-cloud-kubernetes-integration-tests
-            # we need tail to exclude root project
-            # we exclude istio project, because it's set-up is a bit different and a bit heavy
-            INTEGRATION_PROJECTS=( $(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | tail -n +2 | grep -v 'istio') )
-            PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-            for p in "${INTEGRATION_PROJECTS[@]}"; do
-              cd "${p}"
-              mvn spring-boot:build-image \
-              	  -Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${PROJECT_VERSION} \
-                  -Dspring-boot.build-image.builder=paketobuildpacks/builder
-              mvn clean verify -DexcludeITTests=
-              cd ..
-            done
+#      - run:
+#          name: testcontainers integration tests
+#          command: |
+#            cd spring-cloud-kubernetes-test-support
+#            mvn clean install
+#            cd ..
+#
+#            cd spring-cloud-kubernetes-integration-tests
+#            # we need tail to exclude root project
+#            # we exclude istio project, because it's set-up is a bit different and a bit heavy
+#            INTEGRATION_PROJECTS=( $(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | tail -n +2 | grep -v 'istio') )
+#            PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+#            for p in "${INTEGRATION_PROJECTS[@]}"; do
+#              cd "${p}"
+#              mvn spring-boot:build-image \
+#              	  -Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${PROJECT_VERSION} \
+#                  -Dspring-boot.build-image.builder=paketobuildpacks/builder
+#              mvn clean verify -DexcludeITTests=
+#              cd ..
+#            done
       - run:
           name: testcontainers istio fabric8 integration tests
           command: |
@@ -115,6 +115,15 @@ jobs:
               echo 'Problem installing istioctl, check the script'
               exit 1
             fi
+
+            ISTIO_FABRIC8=$(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep 'istio')
+            PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+            cd "${ISTIO_FABRIC8}"
+              mvn spring-boot:build-image \
+                -Dspring-boot.build-image.imageName=docker.io/springcloud/${ISTIO_FABRIC8}:${PROJECT_VERSION} \
+                -Dspring-boot.build-image.builder=paketobuildpacks/builder
+                mvn clean verify -DexcludeITTests=
+            cd ..
 
       - run:
           name: "Aggregate test results"
