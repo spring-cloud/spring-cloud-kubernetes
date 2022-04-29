@@ -78,11 +78,12 @@ class Fabric8IstioIT {
 
 		// for Mac M1 with aarch64
 		if (System.getProperty("os.arch").equals("aarch64")) {
-			processExecResult(K3S.execInContainer("sh", "-c",
-				ISTIO_BIN_PATH + "istioctl" + " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set hub=docker.io/querycapistio --set profile=demo -y"));
-		} else {
-			processExecResult(K3S.execInContainer("sh", "-c",
-				ISTIO_BIN_PATH + "istioctl" + " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=demo -y"));
+			processExecResult(K3S.execInContainer("sh", "-c", ISTIO_BIN_PATH + "istioctl"
+					+ " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set hub=docker.io/querycapistio --set profile=demo -y"));
+		}
+		else {
+			processExecResult(K3S.execInContainer("sh", "-c", ISTIO_BIN_PATH + "istioctl"
+					+ " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=demo -y"));
 		}
 
 		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
