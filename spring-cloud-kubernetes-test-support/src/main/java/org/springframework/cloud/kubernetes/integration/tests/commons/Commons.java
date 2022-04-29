@@ -56,7 +56,7 @@ public final class Commons {
 	/**
 	 * Test containers exposed ports.
 	 */
-	public static final int[] EXPOSED_PORTS = new int[] { 80, 6443, 8080, 8888, 9092, 15090, 15020, 15021 };
+	public static final int[] EXPOSED_PORTS = new int[] { 80, 6443, 8080, 8888, 9092 };
 
 	/**
 	 * Temporary folder where to load images.
@@ -67,16 +67,8 @@ public final class Commons {
 			.configureFixedPorts(EXPOSED_PORTS).withFileSystemBind(TEMP_FOLDER, TEMP_FOLDER)
 			.withCommand(Commons.RANCHER_COMMAND).withReuse(true);
 
-	private static final K3sContainer CONTAINER_NO_TRAEFFIK = new FixedPortsK3sContainer(
-			DockerImageName.parse(Commons.RANCHER)).configureFixedPorts(EXPOSED_PORTS)
-					.withFileSystemBind(TEMP_FOLDER, TEMP_FOLDER).withReuse(true);
-
 	public static K3sContainer container() {
 		return CONTAINER;
-	}
-
-	public static K3sContainer containerWithoutTraeffik() {
-		return CONTAINER_NO_TRAEFFIK;
 	}
 
 	public static void loadImage(String image, K3sContainer container) throws Exception {

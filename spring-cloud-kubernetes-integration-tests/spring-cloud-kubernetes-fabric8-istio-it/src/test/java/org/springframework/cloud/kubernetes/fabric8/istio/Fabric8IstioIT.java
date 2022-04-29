@@ -64,13 +64,10 @@ class Fabric8IstioIT {
 	private static String ingressName;
 
 	// we add istio path, that is computed in config.yaml
-	private static final K3sContainer K3S = Commons.containerWithoutTraeffik().withFileSystemBind(ISTIO_BIN_PATH,
-			ISTIO_BIN_PATH); // so that traeffik is not installed
+	private static final K3sContainer K3S = Commons.container().withFileSystemBind(ISTIO_BIN_PATH, ISTIO_BIN_PATH);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
-		// otherwise, ports are busy
-		Commons.container().stop();
 		K3S.start();
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadImage(IMAGE_NAME, K3S);
@@ -78,8 +75,15 @@ class Fabric8IstioIT {
 		processExecResult(K3S.execInContainer("sh", "-c", "kubectl create namespace istio-test"));
 		processExecResult(
 				K3S.execInContainer("sh", "-c", "kubectl label namespace istio-test istio-injection=enabled"));
-		processExecResult(K3S.execInContainer("sh", "-c",
+
+		// for Mac M1 with aarch64
+		if (System.getProperty("os.arch").equals("aarch64")) {
+			processExecResult(K3S.execInContainer("sh", "-c",
+				ISTIO_BIN_PATH + "istioctl" + " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set hub=docker.io/querycapistio --set profile=demo -y"));
+		} else {
+			processExecResult(K3S.execInContainer("sh", "-c",
 				ISTIO_BIN_PATH + "istioctl" + " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=demo -y"));
+		}
 
 		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
 		client = new DefaultKubernetesClient(config);
