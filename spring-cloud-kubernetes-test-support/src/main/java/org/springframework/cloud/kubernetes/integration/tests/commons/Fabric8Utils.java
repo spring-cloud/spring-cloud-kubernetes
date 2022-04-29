@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -93,6 +94,16 @@ public final class Fabric8Utils {
 		InputStream roleAsStream = inputStream("istio/role.yaml");
 
 		innerSetup(client, namespace, serviceAccountAsStream, roleBindingAsStream, roleAsStream);
+	}
+
+	public static void waitForIngress(KubernetesClient client, String ingressName, String namespace) {
+		await().pollInterval(Duration.ofSeconds(2)).atMost(90, TimeUnit.SECONDS).until(() -> {
+			Ingress ingress = client.network().v1().ingresses().inNamespace(namespace).withName(ingressName).get();
+			String message = ingress == null ? "ingress " + ingressName + " not yet ready"
+					: "ingress " + ingressName + " ready";
+			System.out.println(message);
+			return ingress != null;
+		});
 	}
 
 	private static void innerSetup(KubernetesClient client, String namespace, InputStream serviceAccountAsStream,

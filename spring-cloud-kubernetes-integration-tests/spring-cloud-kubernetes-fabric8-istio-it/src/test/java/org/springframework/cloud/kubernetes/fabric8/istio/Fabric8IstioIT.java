@@ -151,6 +151,7 @@ class Fabric8IstioIT {
 			ingressName = ingress.getMetadata().getName();
 			client.network().v1().ingresses().inNamespace(NAMESPACE).create(ingress);
 
+			Fabric8Utils.waitForIngress(client, ingressName, NAMESPACE);
 			Fabric8Utils.waitForDeployment(client, "spring-cloud-kubernetes-fabric8-istio-it-deployment", NAMESPACE, 2,
 					600);
 
