@@ -9,7 +9,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-kubernetes-client-reactive-discovery-client-it</artifactId>
+	<artifactId>spring-cloud-kubernetes-client-reactive-discoveryclient-it</artifactId>
 
 	<dependencies>
 		<dependency>
