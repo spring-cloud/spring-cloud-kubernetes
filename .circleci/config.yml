@@ -116,6 +116,7 @@ jobs:
               exit 1
             fi
 
+            cd spring-cloud-kubernetes-integration-tests
             ISTIO_FABRIC8=$(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep 'istio')
             PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
             cd "${ISTIO_FABRIC8}"
