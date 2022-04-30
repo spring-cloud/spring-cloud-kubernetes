@@ -125,6 +125,7 @@ class Fabric8IstioIT {
 
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 
@@ -157,6 +158,7 @@ class Fabric8IstioIT {
 
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 

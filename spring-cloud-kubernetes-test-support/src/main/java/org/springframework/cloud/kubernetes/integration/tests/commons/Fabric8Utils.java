@@ -99,31 +99,39 @@ public final class Fabric8Utils {
 	}
 
 	public static void waitForIngress(KubernetesClient client, String ingressName, String namespace) {
-		await().pollInterval(Duration.ofSeconds(2)).atMost(90, TimeUnit.SECONDS).until(() -> {
-			Ingress ingress = client.network().v1().ingresses().inNamespace(namespace).withName(ingressName).get();
 
-			if (ingress == null) {
-				System.out.println("ingress : " + ingressName + " not ready yet present");
-				return false;
-			}
+		try {
+			await().pollInterval(Duration.ofSeconds(2)).atMost(90, TimeUnit.SECONDS).until(() -> {
+				Ingress ingress = client.network().v1().ingresses().inNamespace(namespace).withName(ingressName).get();
 
-			List<LoadBalancerIngress> loadBalancerIngress = ingress.getStatus().getLoadBalancer().getIngress();
-			if (loadBalancerIngress == null) {
-				System.out.println("ingress : " + ingressName +
-					" not ready yet (loadbalancer ingress not yet present)");
-				return false;
-			}
+				if (ingress == null) {
+					System.out.println("ingress : " + ingressName + " not ready yet present");
+					return false;
+				}
 
-			String ip = loadBalancerIngress.get(0).getIp();
-			if (ip == null) {
-				System.out.println("ingress : " + ingressName + " not ready yet");
-				return false;
-			}
+				List<LoadBalancerIngress> loadBalancerIngress = ingress.getStatus().getLoadBalancer().getIngress();
+				if (loadBalancerIngress == null || loadBalancerIngress.isEmpty()) {
+					System.out.println("ingress : " + ingressName +
+						" not ready yet (loadbalancer ingress not yet present)");
+					return false;
+				}
 
-			System.out.println("ingress : " + ingressName + " ready with ip : " + ip);
-			return true;
+				String ip = loadBalancerIngress.get(0).getIp();
+				if (ip == null) {
+					System.out.println("ingress : " + ingressName + " not ready yet");
+					return false;
+				}
 
-		});
+				System.out.println("ingress : " + ingressName + " ready with ip : " + ip);
+				return true;
+
+			});
+		}
+		catch(Exception e) {
+			System.out.println("Error waiting for ingress");
+			e.printStackTrace();
+		}
+
 	}
 
 	private static void innerSetup(KubernetesClient client, String namespace, InputStream serviceAccountAsStream,
