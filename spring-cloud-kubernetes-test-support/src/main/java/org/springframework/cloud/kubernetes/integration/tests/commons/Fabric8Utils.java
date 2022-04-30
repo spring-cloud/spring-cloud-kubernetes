@@ -111,8 +111,8 @@ public final class Fabric8Utils {
 
 				List<LoadBalancerIngress> loadBalancerIngress = ingress.getStatus().getLoadBalancer().getIngress();
 				if (loadBalancerIngress == null || loadBalancerIngress.isEmpty()) {
-					System.out.println("ingress : " + ingressName +
-						" not ready yet (loadbalancer ingress not yet present)");
+					System.out.println(
+							"ingress : " + ingressName + " not ready yet (loadbalancer ingress not yet present)");
 					return false;
 				}
 
@@ -127,7 +127,7 @@ public final class Fabric8Utils {
 
 			});
 		}
-		catch(Exception e) {
+		catch (Exception e) {
 			System.out.println("Error waiting for ingress");
 			e.printStackTrace();
 		}
