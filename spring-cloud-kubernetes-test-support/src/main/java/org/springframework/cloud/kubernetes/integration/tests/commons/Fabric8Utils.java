@@ -18,9 +18,11 @@ package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
@@ -99,10 +101,28 @@ public final class Fabric8Utils {
 	public static void waitForIngress(KubernetesClient client, String ingressName, String namespace) {
 		await().pollInterval(Duration.ofSeconds(2)).atMost(90, TimeUnit.SECONDS).until(() -> {
 			Ingress ingress = client.network().v1().ingresses().inNamespace(namespace).withName(ingressName).get();
-			String message = ingress == null ? "ingress " + ingressName + " not yet ready"
-					: "ingress " + ingressName + " ready";
-			System.out.println(message);
-			return ingress != null;
+
+			if (ingress == null) {
+				System.out.println("ingress : " + ingressName + " not ready yet present");
+				return false;
+			}
+
+			List<LoadBalancerIngress> loadBalancerIngress = ingress.getStatus().getLoadBalancer().getIngress();
+			if (loadBalancerIngress == null) {
+				System.out.println("ingress : " + ingressName +
+					" not ready yet (loadbalancer ingress not yet present)");
+				return false;
+			}
+
+			String ip = loadBalancerIngress.get(0).getIp();
+			if (ip == null) {
+				System.out.println("ingress : " + ingressName + " not ready yet");
+				return false;
+			}
+
+			System.out.println("ingress : " + ingressName + " ready with ip : " + ip);
+			return true;
+
 		});
 	}
 
