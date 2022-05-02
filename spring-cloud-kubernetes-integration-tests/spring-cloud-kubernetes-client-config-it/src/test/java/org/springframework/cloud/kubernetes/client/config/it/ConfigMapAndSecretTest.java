@@ -51,7 +51,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
 /**
  * @author Ryan Baxter
  */
-class ConfigMapAndSecretIT {
+class ConfigMapAndSecretTest {
 
 	private static final String PROPERTY_URL = "localhost:80/myProperty";
 

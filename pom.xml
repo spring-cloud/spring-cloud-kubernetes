@@ -76,14 +76,11 @@
 		<groovy.version>2.4.12</groovy.version>
 		<restassured.version>3.0.2</restassured.version>
 
-		<excludeITTests>**/*IT.java</excludeITTests>
-
 		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
 		<maven-checkstyle-plugin.failsOnViolation>true
 		</maven-checkstyle-plugin.failsOnViolation>
 		<maven-checkstyle-plugin.includeTestSourceDirectory>true
 		</maven-checkstyle-plugin.includeTestSourceDirectory>
-		<excludeITTests>**/*IT.java</excludeITTests>
 	</properties>
 
 	<modules>
@@ -199,14 +196,6 @@
 				<configuration>
 					<parallel>all</parallel>
 					<reuseForks>false</reuseForks>
-					<!-- workaround for https://issues.apache.org/jira/projects/SUREFIRE/issues/SUREFIRE-1633?filter=allopenissues -->
-					<!-- we run tests with mvn -DtestsToRun=.... in the pipeline-->
-					<includes>
-						<include>${testsToRun}</include>
-					</includes>
-					<excludes>
-						<exclude>${excludeITTests}</exclude>
-					</excludes>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -359,16 +348,6 @@
 						<configuration>
 							<parallel>all</parallel>
 							<reuseForks>false</reuseForks>
-							<!-- workaround for https://issues.apache.org/jira/projects/SUREFIRE/issues/SUREFIRE-1633?filter=allopenissues -->
-							<!-- we run tests with mvn -DtestsToRun=.... in the pipeline-->
-							<includes>
-								<include>${testsToRun}</include>
-							</includes>
-							<!-- Sets the VM argument line used when unit tests are run. -->
-							<argLine>${surefireArgLine}</argLine>
-							<excludes>
-								<exclude>${excludeITTests}</exclude>
-							</excludes>
 						</configuration>
 					</plugin>
 				</plugins>

@@ -69,34 +69,6 @@
 				</plugins>
 			</build>
 		</profile>
-		<profile>
-			<id>it</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-failsafe-plugin</artifactId>
-						<configuration>
-							<systemPropertyVariables>
-								<service.host>localhost</service.host>
-								<service.port>${nodeport.value}</service.port>
-								<service.secure>false</service.secure>
-							</systemPropertyVariables>
-							<classesDirectory>${project.build.outputDirectory}
-							</classesDirectory>
-						</configuration>
-						<executions>
-							<execution>
-								<goals>
-									<goal>integration-test</goal>
-									<goal>verify</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
 	</profiles>
 
 	<dependencyManagement>

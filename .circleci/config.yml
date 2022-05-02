@@ -59,9 +59,11 @@ jobs:
           name: Run regular tests
           command: |
 
-            #######################################################################################################################
-            #######################################################################################################################
-            ##################################################### Install Istio ###################################################
+            CURRENT_DIR="$(pwd)"
+            MVN="${CURRENT_DIR}/../mvnw"
+
+            ###########################################################################################################################
+            ##################################################### Install Istio #######################################################
             ISTIO_VERSION="1.13.3"
             ISTIO_BINARY_URL="https://github.com/istio/istio/releases/download/$ISTIO_VERSION/istio-$ISTIO_VERSION-linux-amd64.tar.gz"
             ISTIO="/tmp/istio"
@@ -81,8 +83,29 @@ jobs:
               exit 1
             fi
 
+            ###########################################################################################################################
+            ################################################# Build test support dependency ###########################################
+            cd spring-cloud-kubernetes-test-support
+            ${MVN} clean install
+            cd ..
 
-            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" | grep -v 'spring-cloud-kubernetes-integration-tests' \
+            ###########################################################################################################################
+            ######################################################### Build IT images #################################################
+            cd spring-cloud-kubernetes-integration-tests
+            INTEGRATION_PROJECTS=( $(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | tail -n +2) )
+            PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+            for p in "${INTEGRATION_PROJECTS[@]}"; do
+              cd "${p}"
+              ${MVN} spring-boot:build-image \
+                -Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${PROJECT_VERSION} \
+                -Dspring-boot.build-image.builder=paketobuildpacks/builder
+              cd ..
+             done
+            cd ..
+
+            ###########################################################################################################################
+            ##################################################### Split and run tests #################################################
+            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
                                | xargs grep -l '@Test' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//' \
@@ -90,7 +113,9 @@ jobs:
             echo $CLASSNAMES
             TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
             echo $TEST_ARG
-            ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent test -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+            ${MVN} -s .settings.xml  -DfailIfNoTests=false -e clean org.jacoco:jacoco-maven-plugin:prepare-agent test \
+                   -U -P it sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
+                   -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
             mkdir -p $HOME/artifacts/junit/
             find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
@@ -98,26 +123,6 @@ jobs:
       - kube-orb/install-kubectl
       - attach_workspace:
           at: ./
-#      - run:
-#          name: testcontainers integration tests
-#          command: |
-#            cd spring-cloud-kubernetes-test-support
-#            mvn clean install
-#            cd ..
-#
-#            cd spring-cloud-kubernetes-integration-tests
-#            # we need tail to exclude root project
-#            # we exclude istio project, because it's set-up is a bit different and a bit heavy
-#            INTEGRATION_PROJECTS=( $(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | tail -n +2 | grep -v 'istio') )
-#            PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-#            for p in "${INTEGRATION_PROJECTS[@]}"; do
-#              cd "${p}"
-#              mvn spring-boot:build-image \
-#              	  -Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${PROJECT_VERSION} \
-#                  -Dspring-boot.build-image.builder=paketobuildpacks/builder
-#              mvn clean verify -DexcludeITTests=
-#              cd ..
-#            done
       - run:
           name: "Aggregate test results"
           when: always
