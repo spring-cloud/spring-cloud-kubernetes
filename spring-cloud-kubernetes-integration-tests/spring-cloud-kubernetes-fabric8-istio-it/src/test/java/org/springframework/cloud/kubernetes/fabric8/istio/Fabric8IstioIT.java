@@ -153,12 +153,6 @@ class Fabric8IstioIT {
 			client.network().v1().ingresses().inNamespace(NAMESPACE).create(ingress);
 
 			Fabric8Utils.waitForIngress(client, ingressName, NAMESPACE);
-
-			//TODO remove me
-			String s = processExecResult(K3S.execInContainer("sh", "-c", "kubectl describe ingress it-ingress -n istio-test"));
-			System.out.println("!!!! " + s);
-			//TODO
-
 			Fabric8Utils.waitForDeployment(client, "spring-cloud-kubernetes-fabric8-istio-it-deployment", NAMESPACE, 2,
 					600);
 

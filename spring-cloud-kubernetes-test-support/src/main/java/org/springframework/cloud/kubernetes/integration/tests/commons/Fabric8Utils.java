@@ -101,7 +101,7 @@ public final class Fabric8Utils {
 	public static void waitForIngress(KubernetesClient client, String ingressName, String namespace) {
 
 		try {
-			await().pollInterval(Duration.ofSeconds(2)).atMost(90, TimeUnit.SECONDS).until(() -> {
+			await().pollInterval(Duration.ofSeconds(2)).atMost(180, TimeUnit.SECONDS).until(() -> {
 				Ingress ingress = client.network().v1().ingresses().inNamespace(namespace).withName(ingressName).get();
 
 				if (ingress == null) {
