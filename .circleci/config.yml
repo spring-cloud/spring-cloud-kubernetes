@@ -63,9 +63,6 @@ jobs:
           name: Run regular tests
           command: |
 
-            CURRENT_DIR="$(pwd)"
-            MVN="${CURRENT_DIR}/../mvnw"
-
             ###########################################################################################################################
             ##################################################### Install Istio #######################################################
             ISTIO_VERSION="1.13.3"
@@ -90,7 +87,7 @@ jobs:
             ###########################################################################################################################
             ################################################# Build test support dependency ###########################################
             cd spring-cloud-kubernetes-test-support
-            ${MVN} clean install
+            ./mvnw clean install
             cd ..
 
             ###########################################################################################################################
@@ -103,7 +100,7 @@ jobs:
             echo $CLASSNAMES
             TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
             echo $TEST_ARG
-            ${MVN} -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent test \
+            ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent test \
                    -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
                    -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
             mkdir -p $HOME/artifacts/junit/
