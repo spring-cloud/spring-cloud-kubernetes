@@ -82,11 +82,13 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>2.6.7</version>
+				<configuration>
+					<imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
+					<imageBuilder>paketobuildpacks/builder</imageBuilder>
+				</configuration>
 				<executions>
 					<execution>
-						<id>build-image</id>
-						<phase>process-test-classes</phase>
+						<phase>verify</phase>
 						<goals>
 							<goal>build-image</goal>
 						</goals>
@@ -134,6 +136,14 @@
 				<env.IMAGE>springcloud/${project.artifactId}:${project.version}</env.IMAGE>
 			</properties>
 		</profile>
+
+		<profile>
+			<id>it</id>
+			<build>
+
+			</build>
+		</profile>
+
 	</profiles>
 
 </project>
