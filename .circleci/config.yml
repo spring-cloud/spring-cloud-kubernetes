@@ -52,9 +52,11 @@ jobs:
       - run:
           name: Load Controller Images From Workspace
           command: |
-            docker load -i ./docker-images/spring-cloud-kubernetes-configuration-watcher.tar
-            docker load -i ./docker-images/spring-cloud-kubernetes-discoveryserver.tar
-            docker load -i ./docker-images/spring-cloud-kubernetes-configserver.tar
+            VIEW=$(ls -l docker-images)
+            echo "${VIEW}"
+            docker load -i docker-images/spring-cloud-kubernetes-configuration-watcher.tar
+            docker load -i docker-images/spring-cloud-kubernetes-discoveryserver.tar
+            docker load -i docker-images/spring-cloud-kubernetes-configserver.tar
       - run:
           name: Run regular tests
           command: |
