@@ -88,13 +88,26 @@
 				</configuration>
 				<executions>
 					<execution>
-						<phase>verify</phase>
+						<phase>package</phase>
 						<goals>
 							<goal>build-image</goal>
 						</goals>
 					</execution>
 				</executions>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 
 	</build>
@@ -135,13 +148,6 @@
 			<properties>
 				<env.IMAGE>springcloud/${project.artifactId}:${project.version}</env.IMAGE>
 			</properties>
-		</profile>
-
-		<profile>
-			<id>it</id>
-			<build>
-
-			</build>
 		</profile>
 
 	</profiles>

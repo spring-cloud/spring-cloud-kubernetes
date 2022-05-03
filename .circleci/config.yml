@@ -90,20 +90,6 @@ jobs:
             cd ..
 
             ###########################################################################################################################
-            ######################################################### Build IT images #################################################
-            cd spring-cloud-kubernetes-integration-tests
-            INTEGRATION_PROJECTS=( $(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | tail -n +2) )
-            PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-            for p in "${INTEGRATION_PROJECTS[@]}"; do
-              cd "${p}"
-              ${MVN} spring-boot:build-image \
-                -Dspring-boot.build-image.imageName=docker.io/springcloud/$p:${PROJECT_VERSION} \
-                -Dspring-boot.build-image.builder=paketobuildpacks/builder
-              cd ..
-             done
-            cd ..
-
-            ###########################################################################################################################
             ##################################################### Split and run tests #################################################
             CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
                                | xargs grep -l '@Test' \
