@@ -196,6 +196,9 @@
 				<configuration>
 					<parallel>all</parallel>
 					<reuseForks>false</reuseForks>
+					<includes>
+						<include>${testsToRun}</include>
+					</includes>
 				</configuration>
 			</plugin>
 			<plugin>
