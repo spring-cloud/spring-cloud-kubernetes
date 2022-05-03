@@ -81,22 +81,22 @@
 		<plugins>
 			<!-- build image in the 'package' phase, and ignore plain tests -->
 			<!-- via maven-surefire-plugin::skipTests -->
-<!--			<plugin>-->
-<!--				<groupId>org.springframework.boot</groupId>-->
-<!--				<artifactId>spring-boot-maven-plugin</artifactId>-->
-<!--				<configuration>-->
-<!--					<imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>-->
-<!--					<imageBuilder>paketobuildpacks/builder</imageBuilder>-->
-<!--				</configuration>-->
-<!--				<executions>-->
-<!--					<execution>-->
-<!--						<phase>package</phase>-->
-<!--						<goals>-->
-<!--							<goal>build-image</goal>-->
-<!--						</goals>-->
-<!--					</execution>-->
-<!--				</executions>-->
-<!--			</plugin>-->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
+					<imageBuilder>paketobuildpacks/builder</imageBuilder>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>build-image</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 
 			<!-- ignore plain tests (in the 'test' phase), so that we could build the image first, see above -->
 			<plugin>
@@ -116,14 +116,11 @@
 						<goals>
 							<goal>integration-test</goal>
 						</goals>
-<!--						<configuration>-->
-<!--							<includes>-->
-<!--								<include>${testsToRun}</include>-->
-<!--							</includes>-->
-<!--							<excludes>-->
-<!--								<exclude>**/**IT.java</exclude>-->
-<!--							</excludes>-->
-<!--						</configuration>-->
+						<configuration>
+							<includes>
+								<include>${testsToRun}</include>
+							</includes>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

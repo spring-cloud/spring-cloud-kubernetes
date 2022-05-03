@@ -113,7 +113,7 @@
 
 		<plugins>
 			<!-- build image in the 'package' phase, and ignore plain tests -->
-			<!-- via maven-surefire-plugin::skiTests -->
+			<!-- via maven-surefire-plugin::skipTests -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
@@ -151,6 +151,11 @@
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<includes>
+						<include>${testsToRun}</include>
+					</includes>
+				</configuration>
 			</plugin>
 		</plugins>
 
