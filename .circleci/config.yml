@@ -167,7 +167,7 @@ jobs:
             echo "${VIEW}"
       - persist_to_workspace:
           root: ./
-          paths: docker-images
+          paths: /tmp/docker-images
       - save_cache:
           paths:
             - ~/.m2
