@@ -52,11 +52,11 @@ jobs:
       - run:
           name: Load Controller Images From Workspace
           command: |
-            VIEW=$(ls -l docker-images)
+            VIEW=$(ls -l /tmp/docker-images)
             echo "${VIEW}"
-            docker load -i docker-images/spring-cloud-kubernetes-configuration-watcher.tar
-            docker load -i docker-images/spring-cloud-kubernetes-discoveryserver.tar
-            docker load -i docker-images/spring-cloud-kubernetes-configserver.tar
+            docker load -i /tmp/docker-images/spring-cloud-kubernetes-configuration-watcher.tar
+            docker load -i /tmp/docker-images/spring-cloud-kubernetes-discoveryserver.tar
+            docker load -i /tmp/docker-images/spring-cloud-kubernetes-configserver.tar
       - run:
           name: Run regular tests
           command: |
@@ -159,10 +159,10 @@ jobs:
           command: |
             TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
             echo $TAG
-            mkdir docker-images
-            docker save -o docker-images/spring-cloud-kubernetes-configuration-watcher.tar docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${TAG}
-            docker save -o docker-images/spring-cloud-kubernetes-discoveryserver.tar docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${TAG}
-            docker save -o docker-images/spring-cloud-kubernetes-configserver.tar docker.io/springcloud/spring-cloud-kubernetes-configserver:${TAG}
+            mkdir /tmp/docker-images
+            docker save -o /tmp/docker-images/spring-cloud-kubernetes-configuration-watcher.tar docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${TAG}
+            docker save -o /tmp/docker-images/spring-cloud-kubernetes-discoveryserver.tar docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${TAG}
+            docker save -o /tmp/docker-images/spring-cloud-kubernetes-configserver.tar docker.io/springcloud/spring-cloud-kubernetes-configserver:${TAG}
             VIEW=$(ls -l docker-images)
             echo "${VIEW}"
       - persist_to_workspace:
