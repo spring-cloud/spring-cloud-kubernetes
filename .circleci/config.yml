@@ -49,6 +49,8 @@ jobs:
             # needed for .withReuse(true) to work
             echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
       - checkout
+      - attach_workspace:
+          at: /tmp/docker
       - run:
           name: Load Controller Images From Workspace
           command: |
@@ -109,8 +111,6 @@ jobs:
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
             bash <(curl -s https://codecov.io/bash)
       - kube-orb/install-kubectl
-      - attach_workspace:
-          at: ./
       - run:
           name: "Aggregate test results"
           when: always
