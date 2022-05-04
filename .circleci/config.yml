@@ -22,6 +22,7 @@ workflows:
   build-then-test:
     jobs:
       - build
+      - fabric8_istio
       - test:
           requires:
             - build
@@ -64,41 +65,10 @@ jobs:
           command: |
 
             ###########################################################################################################################
-            ##################################################### Install Istio #######################################################
-            ISTIO_VERSION="1.13.3"
-            ISTIO_BINARY_URL="https://github.com/istio/istio/releases/download/$ISTIO_VERSION/istio-$ISTIO_VERSION-linux-amd64.tar.gz"
-            ISTIO="/tmp/istio"
-            mkdir "${ISTIO}"
-
-            wget --directory-prefix "${ISTIO}" "${ISTIO_BINARY_URL}"
-            find "${ISTIO}" -type f -name "istio-*.tar.gz" -exec mv "{}" "${ISTIO}/istio.tar.gz" \;
-            tar -xf "$ISTIO/istio.tar.gz" -C "$ISTIO"
-            rm "$ISTIO/istio.tar.gz"
-            mv $ISTIO/istio-* "$ISTIO/istio-bin"
-
-            # we do not strictly need everything that is below, but just to make sure things are correctly set-up
-            chmod +x "${ISTIO}/istio-bin/bin/istioctl"
-            export PATH=$PATH:"$ISTIO/istio-bin/bin"
-            if ! [ -x "$(command -v istioctl)" ]; then
-              echo 'Problem installing istioctl, check the script'
-              exit 1
-            fi
-
-            ###########################################################################################################################
             ################################################# Build test support dependency ###########################################
             cd spring-cloud-kubernetes-test-support
             .././mvnw clean install
             cd ..
-
-            ###########################################################################################################################
-            #################################################### Run fabric8 istio test ##############################################
-
-            # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
-            # otherwise (since we use static ports) there might be two instances starting at the same time, and ports might conflict
-
-            cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
-            ../.././mvnw clean install
-            cd ../..
 
             ###########################################################################################################################
             ##################################################### Split and run tests #################################################
@@ -180,6 +150,63 @@ jobs:
           paths:
             - ~/.m2
           key: spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+  fabri8_istio:
+    machine:
+      image: ubuntu-2004:202201-02
+    steps:
+      - run:
+          name: Install OpenJDK 17
+          command: |
+            wget -qO - https://adoptium.jfrog.io/adoptium/api/gpg/key/public | sudo apt-key add -
+            sudo add-apt-repository --yes https://adoptium.jfrog.io/adoptium/deb/
+            sudo apt-get update && sudo apt-get install temurin-17-jdk
+            sudo update-alternatives --set java /usr/lib/jvm/temurin-17-jdk-amd64/bin/java
+            sudo update-alternatives --set javac /usr/lib/jvm/temurin-17-jdk-amd64/bin/javac
+            java -version
+      - checkout
+      - restore_cache:
+          keys:
+            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - spring-cloud-kubernetes-{{ .Branch }}
+            - spring-cloud-kubernetes
+      - run:
+          name: Run fabric8 istio test
+          command: |
+
+            # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
+            # otherwise (since we use static ports) there might be two instances starting at the same time, and ports might conflict
+            # this also deals with a slightly more involved istio set-up that is needed for this test
+
+            ###########################################################################################################################
+            ##################################################### Install Istio #######################################################
+            ISTIO_VERSION="1.13.3"
+            ISTIO_BINARY_URL="https://github.com/istio/istio/releases/download/$ISTIO_VERSION/istio-$ISTIO_VERSION-linux-amd64.tar.gz"
+            ISTIO="/tmp/istio"
+            mkdir "${ISTIO}"
+
+            wget --directory-prefix "${ISTIO}" "${ISTIO_BINARY_URL}"
+            find "${ISTIO}" -type f -name "istio-*.tar.gz" -exec mv "{}" "${ISTIO}/istio.tar.gz" \;
+            tar -xf "$ISTIO/istio.tar.gz" -C "$ISTIO"
+            rm "$ISTIO/istio.tar.gz"
+            mv $ISTIO/istio-* "$ISTIO/istio-bin"
+
+            # we do not strictly need everything that is below, but just to make sure things are correctly set-up
+            chmod +x "${ISTIO}/istio-bin/bin/istioctl"
+            export PATH=$PATH:"$ISTIO/istio-bin/bin"
+            if ! [ -x "$(command -v istioctl)" ]; then
+              echo 'Problem installing istioctl, check the script'
+              exit 1
+            fi
+
+            ###########################################################################################################################
+            ######################################## Build test support dependency and Run test #######################################
+            cd spring-cloud-kubernetes-test-support
+            .././mvnw clean install
+            cd ..
+
+            cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
+            ../.././mvnw clean install
+            cd ../..
 notify:
   webhooks:
     - url: https://webhooks.gitter.im/e/22e6bb4eb945dd61ba54
