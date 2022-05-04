@@ -91,8 +91,18 @@ jobs:
             cd ..
 
             ###########################################################################################################################
+            #################################################### Run fabric8 istio test ##############################################
+
+            # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
+            # otherwise (since we use static ports) there might be two instances starting at the same time, and ports might conflict
+
+            cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
+            ../.././mvnw clean install
+            cd ../..
+
+            ###########################################################################################################################
             ##################################################### Split and run tests #################################################
-            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
+            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" | grep -v '*Fabric8IstioIT*' \
                                | xargs grep -l '@Test' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//' \
