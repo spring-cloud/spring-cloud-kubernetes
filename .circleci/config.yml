@@ -138,11 +138,11 @@ jobs:
             sudo update-alternatives --set javac /usr/lib/jvm/temurin-17-jdk-amd64/bin/javac
             java -version
       - checkout
-      - restore_cache:
-          keys:
-            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - spring-cloud-kubernetes-{{ .Branch }}
-            - spring-cloud-kubernetes
+#      - restore_cache:
+#          keys:
+#            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+#            - spring-cloud-kubernetes-{{ .Branch }}
+#            - spring-cloud-kubernetes
       - run:
           name: dependencies
           command: |
