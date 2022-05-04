@@ -150,7 +150,7 @@ jobs:
           paths:
             - ~/.m2
           key: spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-  fabri8_istio:
+  fabric8_istio:
     machine:
       image: ubuntu-2004:202201-02
     steps:
