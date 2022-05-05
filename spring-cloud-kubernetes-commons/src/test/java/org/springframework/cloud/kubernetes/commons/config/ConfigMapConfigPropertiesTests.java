@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author wind57
  */
-public class ConfigMapConfigPropertiesTests {
+class ConfigMapConfigPropertiesTests {
 
 	/**
 	 * <pre>
@@ -41,7 +41,7 @@ public class ConfigMapConfigPropertiesTests {
 	 * a config as above will result in a NormalizedSource where prefix is empty
 	 */
 	@Test
-	public void testUseNameAsPrefixUnsetEmptySources() {
+	void testUseNameAsPrefixUnsetEmptySources() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
 		properties.setSources(Collections.emptyList());
 		properties.setName("config-map-a");
@@ -69,7 +69,7 @@ public class ConfigMapConfigPropertiesTests {
 	 * "useNameAsPrefix: true", because sources are empty
 	 */
 	@Test
-	public void testUseNameAsPrefixSetEmptySources() {
+	void testUseNameAsPrefixSetEmptySources() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
 		properties.setSources(Collections.emptyList());
 		properties.setUseNameAsPrefix(true);
@@ -100,7 +100,7 @@ public class ConfigMapConfigPropertiesTests {
 	 * the config map name
 	 */
 	@Test
-	public void testUseNameAsPrefixUnsetNonEmptySources() {
+	void testUseNameAsPrefixUnsetNonEmptySources() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
 		properties.setUseNameAsPrefix(true);
 		properties.setNamespace("spring-k8s");
@@ -137,7 +137,7 @@ public class ConfigMapConfigPropertiesTests {
 	 * 'spring.cloud.kubernetes.config.useNameAsPrefix' will be taken.
 	 */
 	@Test
-	public void testUseNameAsPrefixSetNonEmptySources() {
+	void testUseNameAsPrefixSetNonEmptySources() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
 		properties.setUseNameAsPrefix(true);
 		properties.setNamespace("spring-k8s");
@@ -185,7 +185,7 @@ public class ConfigMapConfigPropertiesTests {
 	 *
 	 */
 	@Test
-	public void testMultipleCases() {
+	void testMultipleCases() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
 		properties.setUseNameAsPrefix(false);
 		properties.setNamespace("spring-k8s");
@@ -233,7 +233,7 @@ public class ConfigMapConfigPropertiesTests {
 	 * added is not a breaking change for the already existing functionality)
 	 */
 	@Test
-	public void testUseIncludeProfileSpecificSourcesNoChanges() {
+	void testUseIncludeProfileSpecificSourcesNoChanges() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
 		properties.setSources(Collections.emptyList());
 		properties.setName("config-map-a");
@@ -263,7 +263,7 @@ public class ConfigMapConfigPropertiesTests {
 	 * and must be propagated to the normalized source.
 	 */
 	@Test
-	public void testUseIncludeProfileSpecificSourcesDefaultChanged() {
+	void testUseIncludeProfileSpecificSourcesDefaultChanged() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
 		properties.setSources(Collections.emptyList());
 		properties.setName("config-map-a");
@@ -300,7 +300,7 @@ public class ConfigMapConfigPropertiesTests {
 	 * </pre>
 	 */
 	@Test
-	public void testUseIncludeProfileSpecificSourcesDefaultChangedSourceOverride() {
+	void testUseIncludeProfileSpecificSourcesDefaultChangedSourceOverride() {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
 		properties.setSources(Collections.emptyList());
 		properties.setName("config-map-a");

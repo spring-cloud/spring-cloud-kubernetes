@@ -30,7 +30,7 @@ public abstract class AbstractConfigProperties {
 
 	protected String namespace;
 
-	// use config map name to prefix properties
+	// use config map or secret name to prefix properties
 	protected boolean useNameAsPrefix;
 
 	// use profile name to append config map name

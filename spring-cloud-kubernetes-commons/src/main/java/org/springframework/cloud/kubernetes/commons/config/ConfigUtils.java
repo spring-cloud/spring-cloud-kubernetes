@@ -49,21 +49,21 @@ public final class ConfigUtils {
 
 	/**
 	 * @param explicitPrefix value of
-	 * 'spring.cloud.kubernetes.config.sources.explicitPrefix'
+	 * 'spring.cloud.kubernetes.config|secrets.sources.explicitPrefix'
 	 * @param useNameAsPrefix value of
-	 * 'spring.cloud.kubernetes.config.sources.useNameAsPrefix'
+	 * 'spring.cloud.kubernetes.config|secrets.sources.useNameAsPrefix'
 	 * @param defaultUseNameAsPrefix value of
-	 * 'spring.cloud.kubernetes.config.defaultUseNameAsPrefix'
+	 * 'spring.cloud.kubernetes.config|secrets.defaultUseNameAsPrefix'
 	 * @param normalizedName either the name of
-	 * 'spring.cloud.kubernetes.config.sources.name' or
-	 * 'spring.cloud.kubernetes.config.name'
+	 * 'spring.cloud.kubernetes.config|secrets.sources.name' or
+	 * 'spring.cloud.kubernetes.config|secrets.name'
 	 * @return prefix to use in normalized sources, never null
 	 */
 	public static String findPrefix(String explicitPrefix, Boolean useNameAsPrefix, boolean defaultUseNameAsPrefix,
 			String normalizedName) {
 		// if explicitPrefix is set, it takes priority over useNameAsPrefix
-		// (either the one from 'spring.cloud.kubernetes.config' or
-		// 'spring.cloud.kubernetes.config.sources')
+		// (either the one from 'spring.cloud.kubernetes.config|secrets' or
+		// 'spring.cloud.kubernetes.config|secrets.sources')
 		if (StringUtils.hasText(explicitPrefix)) {
 			return explicitPrefix;
 		}
