@@ -17,8 +17,10 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -26,7 +28,9 @@ import io.fabric8.kubernetes.api.model.Secret;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.PrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
@@ -56,6 +60,8 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 		return context -> {
 
 			NamedSecretNormalizedSource source = (NamedSecretNormalizedSource) context.normalizedSource();
+			Set<String> propertySourceNames = new LinkedHashSet<>();
+			propertySourceNames.add(source.name().orElseThrow());
 
 			Map<String, Object> result = new HashMap<>();
 			// error should never be thrown here, since we always expect a name
@@ -73,6 +79,12 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 				}
 				else {
 					result = dataFromSecret(secret, namespace);
+
+					if (!"".equals(source.prefix())) {
+						PrefixContext prefixContext = new PrefixContext(result, source.prefix(), namespace,
+								propertySourceNames);
+						return ConfigUtils.withPrefix(prefixContext);
+					}
 				}
 
 			}

@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapPrefixContext;
+import org.springframework.cloud.kubernetes.commons.config.PrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -331,7 +331,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 			return processAllEntries(map, environment);
 		}
 
-		private static SourceData prefix(ConfigMapPrefixContext context) {
+		private static SourceData prefix(PrefixContext context) {
 			return withPrefix(context);
 		}
 

@@ -110,7 +110,7 @@ class ConfigUtilsTests {
 
 	@Test
 	void testWithPrefix() {
-		ConfigMapPrefixContext context = new ConfigMapPrefixContext(Map.of("a", "b", "c", "d"), "prefix", "namespace",
+		PrefixContext context = new PrefixContext(Map.of("a", "b", "c", "d"), "prefix", "namespace",
 				Set.of("name1", "name2"));
 
 		SourceData result = ConfigUtils.withPrefix(context);

@@ -23,6 +23,8 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.mock.env.MockEnvironment;
+
 /**
  * @author wind57
  */
@@ -47,7 +49,7 @@ class ConfigMapConfigPropertiesTests {
 		properties.setName("config-map-a");
 		properties.setNamespace("spring-k8s");
 
-		List<NormalizedSource> sources = properties.determineSources();
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
 		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(0)).prefix(), "",
@@ -76,7 +78,7 @@ class ConfigMapConfigPropertiesTests {
 		properties.setName("config-map-a");
 		properties.setNamespace("spring-k8s");
 
-		List<NormalizedSource> sources = properties.determineSources();
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
 		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(0)).prefix(), "",
@@ -109,7 +111,7 @@ class ConfigMapConfigPropertiesTests {
 		one.setName("config-map-one");
 		properties.setSources(Collections.singletonList(one));
 
-		List<NormalizedSource> sources = properties.determineSources();
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "a single NormalizedSource is expected");
 
 		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(0)).prefix(), "config-map-one");
@@ -155,7 +157,7 @@ class ConfigMapConfigPropertiesTests {
 
 		properties.setSources(Arrays.asList(one, two, three));
 
-		List<NormalizedSource> sources = properties.determineSources();
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 3, "3 NormalizedSources are expected");
 
 		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(0)).prefix(), "");
@@ -209,7 +211,7 @@ class ConfigMapConfigPropertiesTests {
 
 		properties.setSources(Arrays.asList(one, two, three, four));
 
-		List<NormalizedSource> sources = properties.determineSources();
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 4, "4 NormalizedSources are expected");
 
 		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(0)).prefix(), "one");
@@ -239,7 +241,7 @@ class ConfigMapConfigPropertiesTests {
 		properties.setName("config-map-a");
 		properties.setNamespace("spring-k8s");
 
-		List<NormalizedSource> sources = properties.determineSources();
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
 		Assertions.assertTrue(((NamedConfigMapNormalizedSource) sources.get(0)).profileSpecificSources());
@@ -270,7 +272,7 @@ class ConfigMapConfigPropertiesTests {
 		properties.setNamespace("spring-k8s");
 		properties.setIncludeProfileSpecificSources(false);
 
-		List<NormalizedSource> sources = properties.determineSources();
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
 		Assertions.assertFalse(((NamedConfigMapNormalizedSource) sources.get(0)).profileSpecificSources());
@@ -320,7 +322,7 @@ class ConfigMapConfigPropertiesTests {
 
 		properties.setSources(Arrays.asList(one, two, three));
 
-		List<NormalizedSource> sources = properties.determineSources();
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 3);
 
 		Assertions.assertTrue(((NamedConfigMapNormalizedSource) sources.get(0)).profileSpecificSources());

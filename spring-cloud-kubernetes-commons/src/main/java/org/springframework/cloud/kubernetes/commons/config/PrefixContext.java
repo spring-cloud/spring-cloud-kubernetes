@@ -20,10 +20,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A holder for data needed to compute prefix based properties, in case of a config map.
+ * A holder for data needed to compute prefix based properties, in case of a secret or
+ * config map.
  *
  * @author wind57
  */
-public final record ConfigMapPrefixContext(Map<String, Object> data, String prefix, String namespace,
+public final record PrefixContext(Map<String, Object> data, String prefix, String namespace,
 		Set<String> propertySourceNames) {
 }

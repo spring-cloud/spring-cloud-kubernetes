@@ -222,9 +222,9 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 	}
 
-	// this test makes sure that even if NormalizedSource has no name (which is a valid
-	// case for config maps),
-	// it will default to "application" and such a config map will be read.
+	// when reading config maps and creating normalized sources, we will always be
+	// providing a name
+	// for the config map; even if one is not provided explicitly.
 	@Test
 	void matchWithoutName() {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("application").endMetadata()
@@ -232,7 +232,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource(null, NAMESPACE, true, "", false);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("application", NAMESPACE, true, "",
+				false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 

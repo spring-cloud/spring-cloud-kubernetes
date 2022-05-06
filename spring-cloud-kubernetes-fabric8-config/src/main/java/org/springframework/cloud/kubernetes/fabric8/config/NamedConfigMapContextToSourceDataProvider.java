@@ -27,14 +27,12 @@ import java.util.function.Supplier;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapPrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.PrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.Environment;
 
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getConfigMapData;
@@ -75,7 +73,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 
 			NamedConfigMapNormalizedSource source = (NamedConfigMapNormalizedSource) context.normalizedSource();
 			String namespace = context.namespace();
-			String initialConfigMapName = appName(context.environment(), source).get();
+			String initialConfigMapName = source.name().orElseThrow();
 			String currentConfigMapName = initialConfigMapName;
 			Set<String> propertySourceNames = new LinkedHashSet<>();
 			propertySourceNames.add(initialConfigMapName);
@@ -100,8 +98,8 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 				}
 
 				if (!"".equals(source.prefix())) {
-					ConfigMapPrefixContext prefixContext = new ConfigMapPrefixContext(result, source.prefix(),
-							namespace, propertySourceNames);
+					PrefixContext prefixContext = new PrefixContext(result, source.prefix(), namespace,
+							propertySourceNames);
 					return ConfigUtils.withPrefix(prefixContext);
 				}
 
@@ -116,10 +114,6 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 			return new SourceData(ConfigUtils.sourceName(names, namespace), result);
 		};
 
-	}
-
-	private Supplier<String> appName(Environment environment, NormalizedSource normalizedSource) {
-		return () -> getApplicationName(environment, normalizedSource.name().orElse(null), normalizedSource.target());
 	}
 
 }

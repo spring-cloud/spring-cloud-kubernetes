@@ -119,7 +119,7 @@ public final class ConfigUtils {
 	 * "configmap.my-configmap.my-configmap-2.namespace" and the "data" from the context
 	 * is appended with prefix. So if incoming is "a=b", the result will be : "prefix.a=b"
 	 */
-	public static SourceData withPrefix(ConfigMapPrefixContext context) {
+	public static SourceData withPrefix(PrefixContext context) {
 		Map<String, Object> withPrefix = CollectionUtils.newHashMap(context.data().size());
 		context.data().forEach((key, value) -> withPrefix.put(context.prefix() + "." + key, value));
 
