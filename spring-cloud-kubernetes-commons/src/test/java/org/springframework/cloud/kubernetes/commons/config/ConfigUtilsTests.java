@@ -16,40 +16,43 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.Map;
+import java.util.Set;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author wind57
  */
-public class ConfigUtilsTests {
+class ConfigUtilsTests {
 
 	@Test
-	public void testExplicitPrefixSet() {
+	void testExplicitPrefixSet() {
 		String result = ConfigUtils.findPrefix("explicitPrefix", null, false, "irrelevant");
 		Assertions.assertEquals(result, "explicitPrefix");
 	}
 
 	@Test
-	public void testUseNameAsPrefixTrue() {
+	void testUseNameAsPrefixTrue() {
 		String result = ConfigUtils.findPrefix("", Boolean.TRUE, false, "name-to-use");
 		Assertions.assertEquals(result, "name-to-use");
 	}
 
 	@Test
-	public void testUseNameAsPrefixFalse() {
+	void testUseNameAsPrefixFalse() {
 		String result = ConfigUtils.findPrefix("", Boolean.FALSE, false, "name-not-to-use");
 		Assertions.assertEquals(result, "");
 	}
 
 	@Test
-	public void testDefaultUseNameAsPrefixTrue() {
+	void testDefaultUseNameAsPrefixTrue() {
 		String result = ConfigUtils.findPrefix("", null, true, "name-to-use");
 		Assertions.assertEquals(result, "name-to-use");
 	}
 
 	@Test
-	public void testNoMatch() {
+	void testNoMatch() {
 		String result = ConfigUtils.findPrefix("", null, false, "name-not-to-use");
 		Assertions.assertEquals(result, "");
 	}
@@ -66,7 +69,7 @@ public class ConfigUtilsTests {
 	 * above will generate "true" for a normalized source
 	 */
 	@Test
-	public void testUseIncludeProfileSpecificSourcesOnlyDefaultSet() {
+	void testUseIncludeProfileSpecificSourcesOnlyDefaultSet() {
 		Assertions.assertTrue(ConfigUtils.includeProfileSpecificSources(true, null));
 	}
 
@@ -82,7 +85,7 @@ public class ConfigUtilsTests {
 	 * above will generate "false" for a normalized source
 	 */
 	@Test
-	public void testUseIncludeProfileSpecificSourcesOnlyDefaultNotSet() {
+	void testUseIncludeProfileSpecificSourcesOnlyDefaultNotSet() {
 		Assertions.assertFalse(ConfigUtils.includeProfileSpecificSources(false, null));
 	}
 
@@ -101,8 +104,25 @@ public class ConfigUtilsTests {
 	 * above will generate "false" for a normalized source
 	 */
 	@Test
-	public void testUseIncludeProfileSpecificSourcesSourcesOverridesDefault() {
+	void testUseIncludeProfileSpecificSourcesSourcesOverridesDefault() {
 		Assertions.assertFalse(ConfigUtils.includeProfileSpecificSources(true, false));
+	}
+
+	@Test
+	void testWithPrefix() {
+		ConfigMapPrefixContext context = new ConfigMapPrefixContext(Map.of("a", "b", "c", "d"), "prefix", "namespace",
+				Set.of("name1", "name2"));
+
+		SourceData result = ConfigUtils.withPrefix(context);
+
+		Assertions.assertEquals(result.sourceName().length(), 31);
+		Assertions.assertTrue(result.sourceName().contains("name2"));
+		Assertions.assertTrue(result.sourceName().contains("name1"));
+		Assertions.assertTrue(result.sourceName().contains("configmap"));
+		Assertions.assertTrue(result.sourceName().contains("namespace"));
+
+		Assertions.assertEquals(result.sourceData().get("prefix.a"), "b");
+		Assertions.assertEquals(result.sourceData().get("prefix.c"), "d");
 	}
 
 }

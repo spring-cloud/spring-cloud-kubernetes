@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapPrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -82,8 +81,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
+		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.blue.default");
@@ -106,8 +104,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
+		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
@@ -138,8 +135,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
-		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
+		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-profile.default");
@@ -175,8 +171,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
-		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
+		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-profile.default");
@@ -216,8 +211,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
-		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
+		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-taste.red-with-shape.default");
@@ -242,8 +236,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
+		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.application.default");
@@ -270,8 +263,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
+		Fabric8ContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
@@ -285,16 +277,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 			super(SourceData.emptyRecord("dummy-name"));
 		}
 
-		private static String sourceName(String name, String namespace) {
-			return getSourceName(name, namespace);
-		}
-
 		private static Map<String, Object> processEntries(Map<String, String> map, Environment environment) {
 			return processAllEntries(map, environment);
-		}
-
-		private static SourceData prefix(ConfigMapPrefixContext context) {
-			return withPrefix(context);
 		}
 
 	}
