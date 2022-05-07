@@ -142,7 +142,7 @@ class SecretsConfigPropertiesTests {
 	 * 	spring:
 	 *	  cloud:
 	 *      kubernetes:
-	 *        config:
+	 *        secrets:
 	 *          useNameAsPrefix: true
 	 *          name: secret-a
 	 *        	namespace: spring-k8s
