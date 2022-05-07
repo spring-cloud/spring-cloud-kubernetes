@@ -26,7 +26,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.config.Constants.FALLBACK_APPLICATION_NAME;
-import static org.springframework.cloud.kubernetes.commons.config.Constants.PREFIX;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRING_APPLICATION_NAME;
 
@@ -119,16 +118,16 @@ public final class ConfigUtils {
 	 * "configmap.my-configmap.my-configmap-2.namespace" and the "data" from the context
 	 * is appended with prefix. So if incoming is "a=b", the result will be : "prefix.a=b"
 	 */
-	public static SourceData withPrefix(PrefixContext context) {
+	public static SourceData withPrefix(String target, PrefixContext context) {
 		Map<String, Object> withPrefix = CollectionUtils.newHashMap(context.data().size());
 		context.data().forEach((key, value) -> withPrefix.put(context.prefix() + "." + key, value));
 
 		String propertySourceTokens = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, context.propertySourceNames());
-		return new SourceData(sourceName(propertySourceTokens, context.namespace()), withPrefix);
+		return new SourceData(sourceName(target, propertySourceTokens, context.namespace()), withPrefix);
 	}
 
-	public static String sourceName(String applicationName, String namespace) {
-		return PREFIX + PROPERTY_SOURCE_NAME_SEPARATOR + applicationName + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
+	public static String sourceName(String target, String applicationName, String namespace) {
+		return target + PROPERTY_SOURCE_NAME_SEPARATOR + applicationName + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
 	}
 
 }

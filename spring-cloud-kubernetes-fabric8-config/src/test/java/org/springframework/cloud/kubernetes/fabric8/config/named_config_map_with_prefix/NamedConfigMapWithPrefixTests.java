@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config;
+package org.springframework.cloud.kubernetes.fabric8.config.named_config_map_with_prefix;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +31,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.config.with_prefix.WithPrefixApp;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -39,12 +38,12 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * @author wind57
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = WithPrefixApp.class,
-		properties = { "spring.cloud.bootstrap.name=config-map-name-as-prefix",
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedConfigMapWithPrefixApp.class,
+		properties = { "spring.cloud.bootstrap.name=named-config-map-with-prefix",
 				"spring.main.cloud-platform=KUBERNETES" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
-class ConfigMapWithPrefixTests {
+class NamedConfigMapWithPrefixTests {
 
 	private static KubernetesClient mockClient;
 
@@ -52,7 +51,7 @@ class ConfigMapWithPrefixTests {
 	private WebTestClient webClient;
 
 	@BeforeAll
-	public static void setUpBeforeClass() {
+	static void setUpBeforeClass() {
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
@@ -91,9 +90,9 @@ class ConfigMapWithPrefixTests {
 	 * </pre>
 	 */
 	@Test
-	public void testOne() {
-		this.webClient.get().uri("/prefix/one").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("one"));
+	void testOne() {
+		this.webClient.get().uri("/named-config-map/prefix/one").exchange().expectStatus().isOk()
+				.expectBody(String.class).value(Matchers.equalTo("one"));
 	}
 
 	/**
@@ -106,9 +105,9 @@ class ConfigMapWithPrefixTests {
 	 * </pre>
 	 */
 	@Test
-	public void testTwo() {
-		this.webClient.get().uri("/prefix/two").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("two"));
+	void testTwo() {
+		this.webClient.get().uri("/named-config-map/prefix/two").exchange().expectStatus().isOk()
+				.expectBody(String.class).value(Matchers.equalTo("two"));
 	}
 
 	/**
@@ -121,9 +120,9 @@ class ConfigMapWithPrefixTests {
 	 * </pre>
 	 */
 	@Test
-	public void testThree() {
-		this.webClient.get().uri("/prefix/three").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("three"));
+	void testThree() {
+		this.webClient.get().uri("/named-config-map/prefix/three").exchange().expectStatus().isOk()
+				.expectBody(String.class).value(Matchers.equalTo("three"));
 	}
 
 }

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.with_prefix.properties;
+package org.springframework.cloud.kubernetes.fabric8.config.named_secret_with_prefix.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("two")
-public class Two {
+@ConfigurationProperties(prefix = "secret-three")
+public class Three {
 
 	private String property;
 

@@ -43,7 +43,7 @@ public final class NamedSecretNormalizedSource extends NormalizedSource {
 
 	@Override
 	public String target() {
-		return "Secret";
+		return "secret";
 	}
 
 	@Override

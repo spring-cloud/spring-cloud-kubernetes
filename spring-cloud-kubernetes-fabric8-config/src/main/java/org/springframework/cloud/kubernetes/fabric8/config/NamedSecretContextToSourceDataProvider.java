@@ -19,9 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 import io.fabric8.kubernetes.api.model.Secret;
@@ -45,14 +43,7 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 
 	private static final Log LOG = LogFactory.getLog(LabeledSecretContextToSourceDataProvider.class);
 
-	private final BiFunction<String, String, String> sourceNameMapper;
-
-	private NamedSecretContextToSourceDataProvider(BiFunction<String, String, String> sourceNameFunction) {
-		this.sourceNameMapper = Objects.requireNonNull(sourceNameFunction);
-	}
-
-	static NamedSecretContextToSourceDataProvider of(BiFunction<String, String, String> sourceNameFunction) {
-		return new NamedSecretContextToSourceDataProvider(sourceNameFunction);
+	NamedSecretContextToSourceDataProvider() {
 	}
 
 	@Override
@@ -83,7 +74,7 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 					if (!"".equals(source.prefix())) {
 						PrefixContext prefixContext = new PrefixContext(result, source.prefix(), namespace,
 								propertySourceNames);
-						return ConfigUtils.withPrefix(prefixContext);
+						return ConfigUtils.withPrefix(source.target(), prefixContext);
 					}
 				}
 
@@ -94,7 +85,7 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 				onException(source.failFast(), message, e);
 			}
 
-			String sourceName = sourceNameMapper.apply(secretName, namespace);
+			String sourceName = ConfigUtils.sourceName(source.target(), secretName, namespace);
 			return new SourceData(sourceName, result);
 		};
 	}

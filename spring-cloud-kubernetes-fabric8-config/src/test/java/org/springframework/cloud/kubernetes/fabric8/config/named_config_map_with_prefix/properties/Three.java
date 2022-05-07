@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.with_prefix.properties;
+package org.springframework.cloud.kubernetes.fabric8.config.named_config_map_with_prefix.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("one")
-public class One {
+@ConfigurationProperties(prefix = "config-map-three")
+public class Three {
 
 	private String property;
 

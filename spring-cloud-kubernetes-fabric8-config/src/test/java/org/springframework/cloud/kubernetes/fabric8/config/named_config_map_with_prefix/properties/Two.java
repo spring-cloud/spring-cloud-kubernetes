@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.config;
+package org.springframework.cloud.kubernetes.fabric8.config.named_config_map_with_prefix.properties;
 
-import org.springframework.core.env.MapPropertySource;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-/**
- * Kubernetes property source for secrets.
- *
- * @author l burgazzoli
- * @author Haytham Mohamed
- */
-public class SecretsPropertySource extends MapPropertySource {
+@ConfigurationProperties("two")
+public class Two {
 
-	public SecretsPropertySource(SourceData sourceData) {
-		super(sourceData.sourceName(), sourceData.sourceData());
+	private String property;
+
+	public String getProperty() {
+		return property;
 	}
 
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + " {name='" + this.name + "'}";
+	public void setProperty(String property) {
+		this.property = property;
 	}
 
 }

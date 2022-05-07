@@ -42,7 +42,7 @@ class NamedSecretNormalizedSourceTests {
 	@Test
 	void testTarget() {
 		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, "");
-		Assertions.assertEquals(source.target(), "Secret");
+		Assertions.assertEquals(source.target(), "secret");
 	}
 
 	@Test

@@ -113,7 +113,7 @@ class ConfigUtilsTests {
 		PrefixContext context = new PrefixContext(Map.of("a", "b", "c", "d"), "prefix", "namespace",
 				Set.of("name1", "name2"));
 
-		SourceData result = ConfigUtils.withPrefix(context);
+		SourceData result = ConfigUtils.withPrefix("configmap", context);
 
 		Assertions.assertEquals(result.sourceName().length(), 31);
 		Assertions.assertTrue(result.sourceName().contains("name2"));

@@ -100,7 +100,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 				if (!"".equals(source.prefix())) {
 					PrefixContext prefixContext = new PrefixContext(result, source.prefix(), namespace,
 							propertySourceNames);
-					return ConfigUtils.withPrefix(prefixContext);
+					return ConfigUtils.withPrefix(source.target(), prefixContext);
 				}
 
 			}
@@ -111,7 +111,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 			}
 
 			String names = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
-			return new SourceData(ConfigUtils.sourceName(names, namespace), result);
+			return new SourceData(ConfigUtils.sourceName(source.target(), names, namespace), result);
 		};
 
 	}
