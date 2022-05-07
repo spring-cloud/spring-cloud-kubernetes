@@ -226,7 +226,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	// providing a name
 	// for the config map; even if one is not provided explicitly.
 	@Test
-	void matchWithoutName() {
+	void matchWithName() {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("application").endMetadata()
 				.addToData("color", "red").build();
 

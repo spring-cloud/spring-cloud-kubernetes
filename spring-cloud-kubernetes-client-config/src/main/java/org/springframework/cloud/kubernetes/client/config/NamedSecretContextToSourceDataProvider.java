@@ -17,17 +17,19 @@
 package org.springframework.cloud.kubernetes.client.config;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiFunction;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.PrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.dataFromSecret;
@@ -43,14 +45,7 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 
 	private static final Log LOG = LogFactory.getLog(NamedSecretContextToSourceDataProvider.class);
 
-	private final BiFunction<String, String, String> sourceNameMapper;
-
-	private NamedSecretContextToSourceDataProvider(BiFunction<String, String, String> sourceNameFunction) {
-		this.sourceNameMapper = Objects.requireNonNull(sourceNameFunction);
-	}
-
-	static NamedSecretContextToSourceDataProvider of(BiFunction<String, String, String> sourceNameFunction) {
-		return new NamedSecretContextToSourceDataProvider(sourceNameFunction);
+	NamedSecretContextToSourceDataProvider() {
 	}
 
 	@Override
@@ -58,6 +53,8 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 		return context -> {
 
 			NamedSecretNormalizedSource source = (NamedSecretNormalizedSource) context.normalizedSource();
+			Set<String> propertySourceNames = new LinkedHashSet<>();
+			propertySourceNames.add(source.name().orElseThrow());
 
 			Map<String, Object> result = new HashMap<>();
 			String namespace = context.namespace();
@@ -75,13 +72,19 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 
 				secret.ifPresent(s -> result.putAll(dataFromSecret(s, namespace)));
 
+				if (!"".equals(source.prefix()) && !result.isEmpty()) {
+					PrefixContext prefixContext = new PrefixContext(result, source.prefix(), namespace,
+							propertySourceNames);
+					return ConfigUtils.withPrefix(source.target(), prefixContext);
+				}
+
 			}
 			catch (Exception e) {
 				String message = "Unable to read Secret with name '" + name + "' in namespace '" + namespace + "'";
 				onException(source.failFast(), message, e);
 			}
 
-			String propertySourceName = sourceNameMapper.apply(name, namespace);
+			String propertySourceName = ConfigUtils.sourceName(source.target(), name, namespace);
 			return new SourceData(propertySourceName, result);
 
 		};
