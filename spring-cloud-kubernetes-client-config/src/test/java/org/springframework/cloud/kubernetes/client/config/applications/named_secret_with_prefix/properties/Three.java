@@ -18,7 +18,7 @@ package org.springframework.cloud.kubernetes.client.config.applications.named_se
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "config-map-three")
+@ConfigurationProperties(prefix = "secret-three")
 public class Three {
 
 	private String property;

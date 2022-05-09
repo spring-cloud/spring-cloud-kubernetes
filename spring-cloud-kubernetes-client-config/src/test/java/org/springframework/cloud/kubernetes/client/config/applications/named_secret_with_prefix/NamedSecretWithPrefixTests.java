@@ -21,23 +21,20 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
- * The stub data for this test is in : NamedConfigMapWithPrefixConfigurationStub
+ * The stub data for this test is in :
+ * {@link org.springframework.cloud.kubernetes.client.config.boostrap.stubs.NamedSecretWithPrefixConfigurationStub}
  *
  * @author wind57
  */
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedSecretWithPrefixApp.class,
 		properties = { "spring.cloud.bootstrap.name=named-secret-with-prefix", "named.secret.with.prefix.stub=true",
 				"spring.main.cloud-platform=KUBERNETES" })
-@AutoConfigureWebTestClient
 class NamedSecretWithPrefixTests {
 
 	@Autowired
