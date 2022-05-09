@@ -44,8 +44,8 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
  */
 @Order(0)
 @Configuration
-@ConditionalOnProperty("config.map.name.as.prefix.stub")
-public class ConfigMapNameAsPrefixConfigurationStub {
+@ConditionalOnProperty("named.config.map.with.prefix.stub")
+public class NamedConfigMapWithPrefixConfigurationStub {
 
 	@Bean
 	public WireMockServer wireMock() {

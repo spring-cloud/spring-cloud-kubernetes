@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix;
+package org.springframework.cloud.kubernetes.client.config.applications.named_secret_with_prefix;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix.properties.One;
-import org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix.properties.Three;
-import org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix.properties.Two;
+import org.springframework.cloud.kubernetes.client.config.applications.named_secret_with_prefix.properties.One;
+import org.springframework.cloud.kubernetes.client.config.applications.named_secret_with_prefix.properties.Three;
+import org.springframework.cloud.kubernetes.client.config.applications.named_secret_with_prefix.properties.Two;
 
 @SpringBootApplication
 @EnableConfigurationProperties({ One.class, Two.class, Three.class })
-public class WithPrefixApp {
+public class NamedSecretWithPrefixApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(WithPrefixApp.class, args);
+		SpringApplication.run(NamedSecretWithPrefixApp.class, args);
 	}
 
 }

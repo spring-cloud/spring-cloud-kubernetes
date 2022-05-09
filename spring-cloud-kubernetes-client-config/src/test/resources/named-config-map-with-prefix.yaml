@@ -1,6 +1,6 @@
 spring:
   application:
-    name: with-prefix
+    name: named-config-map-with-prefix
   cloud:
     kubernetes:
       config:
