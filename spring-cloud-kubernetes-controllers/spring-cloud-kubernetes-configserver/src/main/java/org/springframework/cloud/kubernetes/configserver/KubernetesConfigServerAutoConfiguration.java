@@ -96,7 +96,7 @@ public class KubernetesConfigServerAutoConfiguration {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
 			namespaces.forEach(space -> {
-				NormalizedSource source = new NamedSecretNormalizedSource(applicationName, space, false);
+				NormalizedSource source = new NamedSecretNormalizedSource(applicationName, space, false, "");
 				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, space,
 						springEnv);
 				propertySources.add(new KubernetesClientSecretsPropertySource(context));
