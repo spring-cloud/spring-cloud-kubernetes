@@ -95,6 +95,11 @@ jobs:
       _SERVICE_OCCURENCE: 5
     steps:
       - run:
+          name: what architecture
+          command: |
+            test=$(uname -a)
+            echo ${test}
+      - run:
           name: Install OpenJDK 17
           command: |
             wget -qO - https://adoptium.jfrog.io/adoptium/api/gpg/key/public | sudo apt-key add -
