@@ -118,6 +118,10 @@ jobs:
           command: |
             ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} -DskipTests
       - run:
+          name: test-docker-run
+          command: |
+            docker run --rm -it -p 8888:8888  springcloud/spring-cloud-kubernetes-configuration-watcher:3.0.0-SNAPSHOT
+      - run:
           name: save docker images
           command: |
             TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
