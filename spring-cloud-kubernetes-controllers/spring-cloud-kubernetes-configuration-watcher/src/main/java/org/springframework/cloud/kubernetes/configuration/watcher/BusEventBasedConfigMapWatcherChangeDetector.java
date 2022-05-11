@@ -39,7 +39,7 @@ public class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatche
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	private BusProperties busProperties;
+	private final BusProperties busProperties;
 
 	public BusEventBasedConfigMapWatcherChangeDetector(AbstractEnvironment environment,
 			ConfigReloadProperties properties, KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
@@ -55,7 +55,8 @@ public class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatche
 	@Override
 	protected Mono<Void> triggerRefresh(ConfigMap configMap) {
 		this.applicationEventPublisher.publishEvent(
-				new RefreshRemoteApplicationEvent(configMap, busProperties.getId(), configMap.getMetadata().getName()));
+				new RefreshRemoteApplicationEvent(configMap, busProperties.getId(),
+					() -> configMap.getMetadata().getName()));
 		return Mono.empty();
 	}
 
