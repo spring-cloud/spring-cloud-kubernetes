@@ -54,9 +54,8 @@ public class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatche
 
 	@Override
 	protected Mono<Void> triggerRefresh(ConfigMap configMap) {
-		this.applicationEventPublisher.publishEvent(
-				new RefreshRemoteApplicationEvent(configMap, busProperties.getId(),
-					() -> configMap.getMetadata().getName()));
+		this.applicationEventPublisher.publishEvent(new RefreshRemoteApplicationEvent(configMap, busProperties.getId(),
+				() -> configMap.getMetadata().getName()));
 		return Mono.empty();
 	}
 

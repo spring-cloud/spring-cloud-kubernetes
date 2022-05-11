@@ -62,19 +62,17 @@ public class BusEventBasedConfigMapWatcherChangeDetectorTests {
 
 	private BusEventBasedConfigMapWatcherChangeDetector changeDetector;
 
-	private ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties;
-
 	private BusProperties busProperties;
 
 	@Before
 	public void setup() {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
-		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
+		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		busProperties = new BusProperties();
 		changeDetector = new BusEventBasedConfigMapWatcherChangeDetector(mockEnvironment, configReloadProperties,
 				client, updateStrategy, fabric8ConfigMapPropertySourceLocator, busProperties,
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
+			configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
 		changeDetector.setApplicationEventPublisher(applicationEventPublisher);
 	}
 
@@ -90,7 +88,7 @@ public class BusEventBasedConfigMapWatcherChangeDetectorTests {
 		verify(applicationEventPublisher).publishEvent(argumentCaptor.capture());
 		assertThat(argumentCaptor.getValue().getSource()).isEqualTo(configMap);
 		assertThat(argumentCaptor.getValue().getOriginService()).isEqualTo(busProperties.getId());
-		assertThat(argumentCaptor.getValue().getDestinationService()).isEqualTo("foo:**");
+		assertThat(argumentCaptor.getValue().getDestinationService()).isEqualTo("foo");
 	}
 
 }
