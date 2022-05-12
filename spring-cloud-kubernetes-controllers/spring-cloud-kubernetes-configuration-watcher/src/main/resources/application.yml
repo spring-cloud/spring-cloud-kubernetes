@@ -43,3 +43,7 @@ spring:
   config:
     activate:
       on-profile: bus-kafka
+  autoconfigure:
+    exclude:
+     - org.springframework.cloud.bus.BusStreamAutoConfiguration
+     - org.springframework.cloud.bus.BusAutoConfiguration

@@ -72,7 +72,7 @@ public class BusEventBasedConfigMapWatcherChangeDetectorTests {
 		busProperties = new BusProperties();
 		changeDetector = new BusEventBasedConfigMapWatcherChangeDetector(mockEnvironment, configReloadProperties,
 				client, updateStrategy, fabric8ConfigMapPropertySourceLocator, busProperties,
-			configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
+				configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
 		changeDetector.setApplicationEventPublisher(applicationEventPublisher);
 	}
 
