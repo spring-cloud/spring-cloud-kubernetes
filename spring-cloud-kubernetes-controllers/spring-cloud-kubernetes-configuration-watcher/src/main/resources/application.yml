@@ -13,27 +13,33 @@ management:
   health:
     rabbit:
       enabled: false
-    probes:
-      enabled: true
+  endpoint:
+    health:
+      probes:
+        enabled: true
 server:
   port: 8888
 ---
 spring:
-  profiles: bus-amqp
   cloud:
     bus:
       enabled: true
     stream:
       default-binder: rabbit
+  config:
+    activate:
+      on-profile: bus-amqp
 management:
   health:
     rabbit:
       enabled: true
 ---
 spring:
-  profiles: bus-kafka
   cloud:
     bus:
       enabled: true
     stream:
       default-binder: kafka
+  config:
+    activate:
+      on-profile: bus-kafka
