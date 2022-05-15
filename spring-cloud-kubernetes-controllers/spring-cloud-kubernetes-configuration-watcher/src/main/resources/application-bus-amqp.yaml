@@ -8,11 +8,13 @@ spring:
         monitoring-secrets: true
         strategy: shutdown
     bus:
-      enabled: false
+      enabled: true
+    stream:
+      default-binder: rabbit
 management:
   health:
     rabbit:
-      enabled: false
+      enabled: true
   endpoint:
     health:
       probes:
