@@ -8,11 +8,10 @@ spring:
         monitoring-secrets: true
         strategy: shutdown
     bus:
-      enabled: false
+      enabled: true
+    stream:
+      default-binder: kafka
 management:
-  health:
-    rabbit:
-      enabled: false
   endpoint:
     health:
       probes:
