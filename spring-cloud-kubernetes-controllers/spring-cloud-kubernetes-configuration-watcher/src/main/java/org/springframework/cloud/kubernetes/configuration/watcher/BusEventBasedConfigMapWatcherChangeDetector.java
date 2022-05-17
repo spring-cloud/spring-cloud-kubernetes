@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.bus.BusProperties;
+import org.springframework.cloud.bus.event.PathDestinationFactory;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
@@ -55,7 +56,7 @@ public class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatche
 	@Override
 	protected Mono<Void> triggerRefresh(ConfigMap configMap) {
 		this.applicationEventPublisher.publishEvent(new RefreshRemoteApplicationEvent(configMap, busProperties.getId(),
-				() -> configMap.getMetadata().getName()));
+				new PathDestinationFactory().getDestination(configMap.getMetadata().getName())));
 		return Mono.empty();
 	}
 

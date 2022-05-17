@@ -88,7 +88,7 @@ public class BusEventBasedConfigMapWatcherChangeDetectorTests {
 		verify(applicationEventPublisher).publishEvent(argumentCaptor.capture());
 		assertThat(argumentCaptor.getValue().getSource()).isEqualTo(configMap);
 		assertThat(argumentCaptor.getValue().getOriginService()).isEqualTo(busProperties.getId());
-		assertThat(argumentCaptor.getValue().getDestinationService()).isEqualTo("foo");
+		assertThat(argumentCaptor.getValue().getDestinationService()).isEqualTo("foo:**");
 	}
 
 }
