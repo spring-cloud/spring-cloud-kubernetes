@@ -122,7 +122,7 @@ public class ActuatorRefreshRabbitMQIT {
 				() -> rest.getForEntity("http://localhost:80/it", String.class).getStatusCode().is2xxSuccessful());
 
 		// Wait a bit before we verify
-		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(90)).until(() -> {
+		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(120)).until(() -> {
 			Boolean value = rest.getForObject("http://localhost:80/it", Boolean.class);
 			log.info("Returned " + value + " from http://localhost:80/it");
 			return value;
