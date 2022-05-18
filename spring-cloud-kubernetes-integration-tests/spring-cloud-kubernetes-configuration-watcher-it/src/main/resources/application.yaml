@@ -9,22 +9,27 @@ spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
 management:
-  health:
-    probes:
-      enabled: true
+  endpoint:
+    health:
+      probes:
+        enabled: true
 ---
 spring:
-  profiles: bus-amqp
   cloud:
     bus:
       enabled: true
     stream:
       default-binder: rabbit
+  config:
+    activate:
+      on-profile: bus-amqp
 ---
 spring:
-  profiles: bus-kafka
   cloud:
     bus:
       enabled: true
     stream:
       default-binder: kafka
+  config:
+    activate:
+      on-profile: bus-kafka

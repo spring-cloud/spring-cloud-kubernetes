@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.bus.BusProperties;
+import org.springframework.cloud.bus.event.PathDestinationFactory;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
@@ -39,7 +40,7 @@ public class BusEventBasedSecretsWatcherChangeDetector extends SecretsWatcherCha
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	private BusProperties busProperties;
+	private final BusProperties busProperties;
 
 	public BusEventBasedSecretsWatcherChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
@@ -54,8 +55,8 @@ public class BusEventBasedSecretsWatcherChangeDetector extends SecretsWatcherCha
 
 	@Override
 	protected Mono<Void> triggerRefresh(Secret secret) {
-		this.applicationEventPublisher.publishEvent(
-				new RefreshRemoteApplicationEvent(secret, busProperties.getId(), secret.getMetadata().getName()));
+		this.applicationEventPublisher.publishEvent(new RefreshRemoteApplicationEvent(secret, busProperties.getId(),
+				new PathDestinationFactory().getDestination(secret.getMetadata().getName())));
 		return Mono.empty();
 	}
 
