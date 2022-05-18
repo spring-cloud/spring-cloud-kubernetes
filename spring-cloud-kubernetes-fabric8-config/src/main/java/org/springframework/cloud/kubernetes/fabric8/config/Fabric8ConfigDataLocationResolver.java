@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.apache.commons.logging.Log;
 
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistry.InstanceSupplier;
@@ -26,6 +25,7 @@ import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.Profiles;
+import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableConfigMapPropertySourceLocator;
@@ -43,8 +43,8 @@ import org.springframework.core.env.Environment;
  */
 public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocationResolver {
 
-	public Fabric8ConfigDataLocationResolver(Log log) {
-		super(log);
+	public Fabric8ConfigDataLocationResolver(DeferredLogFactory factory) {
+		super(factory);
 	}
 
 	@Override

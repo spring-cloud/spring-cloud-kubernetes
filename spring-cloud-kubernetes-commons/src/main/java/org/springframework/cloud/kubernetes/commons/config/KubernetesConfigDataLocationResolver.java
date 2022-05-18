@@ -37,6 +37,7 @@ import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.BindHandler;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.core.Ordered;
@@ -63,8 +64,8 @@ public abstract class KubernetesConfigDataLocationResolver
 
 	private final Log log;
 
-	public KubernetesConfigDataLocationResolver(Log log) {
-		this.log = log;
+	public KubernetesConfigDataLocationResolver(DeferredLogFactory factory) {
+		this.log = factory.getLog(KubernetesConfigDataLocationResolver.class);
 	}
 
 	protected String getPrefix() {

@@ -18,13 +18,13 @@ package org.springframework.cloud.kubernetes.client.config;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import org.apache.commons.logging.Log;
 
 import org.springframework.boot.BootstrapRegistry.InstanceSupplier;
 import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.Profiles;
+import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
@@ -44,8 +44,8 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
  */
 public class KubernetesClientConfigDataLocationResolver extends KubernetesConfigDataLocationResolver {
 
-	public KubernetesClientConfigDataLocationResolver(Log log) {
-		super(log);
+	public KubernetesClientConfigDataLocationResolver(DeferredLogFactory factory) {
+		super(factory);
 	}
 
 	@Override
