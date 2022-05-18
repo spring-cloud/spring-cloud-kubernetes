@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.AfterEach;
 
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
@@ -32,14 +35,18 @@ public class KubernetesConfigTestBase {
 
 	private ConfigurableApplicationContext context;
 
+	protected String[] commonProperties = new String[0];
+
 	protected ConfigurableApplicationContext getContext() {
 		return context;
 	}
 
 	protected void setup(Class<?> mockClientConfiguration, String... env) {
+		String[] properties = Stream.concat(Arrays.stream(commonProperties), Arrays.stream(env))
+				.toArray(size -> new String[size]);
 		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class, mockClientConfiguration,
 				BootstrapConfiguration.class, ConfigReloadAutoConfiguration.class, RefreshAutoConfiguration.class)
-						.web(org.springframework.boot.WebApplicationType.NONE).properties(env).run();
+						.web(org.springframework.boot.WebApplicationType.NONE).properties(properties).run();
 	}
 
 	@AfterEach

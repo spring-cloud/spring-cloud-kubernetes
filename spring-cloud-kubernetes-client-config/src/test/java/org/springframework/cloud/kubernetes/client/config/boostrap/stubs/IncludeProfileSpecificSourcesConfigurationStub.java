@@ -45,7 +45,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 @Order(0)
 @Configuration
 @ConditionalOnProperty("include.profile.specific.sources")
-class IncludeProfileSpecificSourcesConfigurationStub {
+public class IncludeProfileSpecificSourcesConfigurationStub {
 
 	@Bean
 	public WireMockServer wireMock() {
@@ -64,7 +64,7 @@ class IncludeProfileSpecificSourcesConfigurationStub {
 		return apiClient;
 	}
 
-	private void stubData() {
+	public static void stubData() {
 		V1ConfigMap one = new V1ConfigMapBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("config-map-one-dev").withNamespace("spring-k8s")
 						.withResourceVersion("1").build())

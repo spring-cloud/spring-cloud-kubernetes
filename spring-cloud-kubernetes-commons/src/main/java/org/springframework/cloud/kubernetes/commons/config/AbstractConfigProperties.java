@@ -121,6 +121,8 @@ public abstract class AbstractConfigProperties {
 		 */
 		private int maxAttempts = 6;
 
+		private boolean enabled = true;
+
 		public long getInitialInterval() {
 			return this.initialInterval;
 		}
@@ -151,6 +153,14 @@ public abstract class AbstractConfigProperties {
 
 		public void setMaxAttempts(int maxAttempts) {
 			this.maxAttempts = maxAttempts;
+		}
+
+		public boolean isEnabled() {
+			return enabled;
+		}
+
+		public void setEnabled(boolean enabled) {
+			this.enabled = enabled;
 		}
 
 	}

@@ -29,7 +29,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.cloud.config.environment.Environment;
 
@@ -41,11 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Ryan Baxter
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
-				"spring.profiles.include=kubernetes", "spring.cloud.kubernetes.secrets.enableApi=true", "debug=true" },
-		classes = { KubernetesConfigServerApplication.class })
-public class ConfigServerIntegrationTest {
+abstract class ConfigServerIntegrationTest {
 
 	@Autowired
 	private TestRestTemplate testRestTemplate;
