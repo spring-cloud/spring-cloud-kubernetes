@@ -1,0 +1,10 @@
+spring:
+  cloud:
+    bus:
+      enabled: true
+    stream:
+      default-binder: rabbit
+management:
+  health:
+    rabbit:
+      enabled: true

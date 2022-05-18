@@ -1,0 +1,6 @@
+spring:
+  cloud:
+    bus:
+      enabled: true
+    stream:
+      default-binder: kafka

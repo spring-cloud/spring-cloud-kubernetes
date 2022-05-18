@@ -62,15 +62,13 @@ public class BusEventBasedConfigMapWatcherChangeDetectorTests {
 
 	private BusEventBasedConfigMapWatcherChangeDetector changeDetector;
 
-	private ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties;
-
 	private BusProperties busProperties;
 
 	@Before
 	public void setup() {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
-		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
+		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		busProperties = new BusProperties();
 		changeDetector = new BusEventBasedConfigMapWatcherChangeDetector(mockEnvironment, configReloadProperties,
 				client, updateStrategy, fabric8ConfigMapPropertySourceLocator, busProperties,
