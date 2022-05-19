@@ -24,7 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedConfigMapWithPrefixApp.class,
 		properties = { "spring.cloud.bootstrap.name=named-configmap-with-prefix",
 				"named.config.map.with.prefix.stub=true", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.bootstrap.enabled=true" })
-class NamedConfigMapWithPrefixBootstrapTests extends NamedConfigMapWithPrefix {
+				"spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.client.namespace=default" })
+class NamedConfigMapWithPrefixBootstrapTests extends NamedConfigMapWithPrefixTests {
 
 }

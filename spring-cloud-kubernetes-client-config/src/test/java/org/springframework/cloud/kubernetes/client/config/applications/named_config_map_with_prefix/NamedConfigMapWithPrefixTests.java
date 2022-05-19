@@ -30,7 +30,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  *
  * @author wind57
  */
-abstract class NamedConfigMapWithPrefix {
+abstract class NamedConfigMapWithPrefixTests {
 
 	@Autowired
 	private WebTestClient webClient;
@@ -41,7 +41,7 @@ abstract class NamedConfigMapWithPrefix {
 	}
 
 	@AfterAll
-	public static void afterAll() {
+	static void afterAll() {
 		WireMock.shutdownServer();
 	}
 
