@@ -22,6 +22,7 @@ import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.mockito.MockedStatic;
+
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 
@@ -33,10 +34,10 @@ import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.
  * @author Ryan Baxter
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedSecretWithPrefixApp.class,
-		properties = { "spring.cloud.application.name=named-secret-with-prefix",
-				"named.secret.with.prefix.stub=true", "spring.main.cloud-platform=KUBERNETES",
+		properties = { "spring.cloud.application.name=named-secret-with-prefix", "named.secret.with.prefix.stub=true",
+				"spring.main.cloud-platform=KUBERNETES",
 				"spring.config.import=kubernetes:,classpath:./named-secret-with-prefix.yaml" })
-class NamedSecretWithPrefixConfigDataTests extends NamedSecretWithPrefix {
+class NamedSecretWithPrefixConfigDataTests extends NamedSecretWithPrefixTests {
 
 	private static MockedStatic<KubernetesClientUtils> clientUtilsMock;
 

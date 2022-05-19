@@ -31,7 +31,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  *
  * @author wind57
  */
-class NamedSecretWithPrefix {
+abstract class NamedSecretWithPrefixTests {
 
 	@Autowired
 	private WebTestClient webClient;

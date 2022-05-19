@@ -22,9 +22,8 @@ import org.springframework.boot.test.context.SpringBootTest;
  * @author Ryan Baxter
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedSecretWithPrefixApp.class,
-		properties = { "spring.cloud.bootstrap.name=named-secret-with-prefix",
-				"named.secret.with.prefix.stub=true", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.bootstrap.enabled=true" })
-class NamedSecretWithPrefixBootstrapTests extends NamedSecretWithPrefix {
+		properties = { "spring.cloud.bootstrap.name=named-secret-with-prefix", "named.secret.with.prefix.stub=true",
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true" })
+class NamedSecretWithPrefixBootstrapTests extends NamedSecretWithPrefixTests {
 
 }
