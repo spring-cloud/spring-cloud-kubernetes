@@ -24,32 +24,24 @@ import java.util.Map;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SecretsWithLabelsApp.class,
-		properties = { "spring.cloud.bootstrap.name=secret-with-labels-config",
-				"spring.main.cloud-platform=KUBERNETES" })
-@EnableKubernetesMockClient(crud = true, https = false)
-class SecretsWithLabelsTests {
+abstract class SecretsWithLabelsTests {
 
 	private static KubernetesClient mockClient;
 
 	@Autowired
 	private WebTestClient webClient;
 
-	@BeforeAll
-	static void setUpBeforeClass() {
-
+	static void setUpBeforeClass(KubernetesClient mockClient) {
+		SecretsWithLabelsTests.mockClient = mockClient;
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");

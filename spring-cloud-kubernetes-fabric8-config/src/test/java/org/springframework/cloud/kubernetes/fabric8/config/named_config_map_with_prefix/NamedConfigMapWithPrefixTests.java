@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,37 +22,25 @@ import java.util.Map;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
  * @author wind57
+ * @author Ryan Baxter
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedConfigMapWithPrefixApp.class,
-		properties = { "spring.cloud.bootstrap.name=named-config-map-with-prefix",
-				"spring.main.cloud-platform=KUBERNETES" })
-@AutoConfigureWebTestClient
-@EnableKubernetesMockClient(crud = true, https = false)
-class NamedConfigMapWithPrefixTests {
+abstract class NamedConfigMapWithPrefixTests {
 
 	private static KubernetesClient mockClient;
 
 	@Autowired
 	private WebTestClient webClient;
 
-	@BeforeAll
-	static void setUpBeforeClass() {
-
+	static void setUpBeforeClass(KubernetesClient mockClient) {
+		NamedConfigMapWithPrefixTests.mockClient = mockClient;
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -75,9 +63,9 @@ class NamedConfigMapWithPrefixTests {
 
 	}
 
-	private static void createConfigmap(String name, Map<String, String> data) {
+	static void createConfigmap(String name, Map<String, String> data) {
 		mockClient.configMaps().inNamespace("spring-k8s")
-				.create(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build());
+			.create(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build());
 	}
 
 	/**
@@ -91,8 +79,8 @@ class NamedConfigMapWithPrefixTests {
 	 */
 	@Test
 	void testOne() {
-		this.webClient.get().uri("/named-config-map/prefix/one").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("one"));
+		this.webClient.get().uri("/named-config-map/prefix/one").exchange().expectStatus().isOk().expectBody(String.class)
+			.value(Matchers.equalTo("one"));
 	}
 
 	/**
@@ -106,8 +94,8 @@ class NamedConfigMapWithPrefixTests {
 	 */
 	@Test
 	void testTwo() {
-		this.webClient.get().uri("/named-config-map/prefix/two").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("two"));
+		this.webClient.get().uri("/named-config-map/prefix/two").exchange().expectStatus().isOk().expectBody(String.class)
+			.value(Matchers.equalTo("two"));
 	}
 
 	/**
@@ -121,8 +109,8 @@ class NamedConfigMapWithPrefixTests {
 	 */
 	@Test
 	void testThree() {
-		this.webClient.get().uri("/named-config-map/prefix/three").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("three"));
+		this.webClient.get().uri("/named-config-map/prefix/three").exchange().expectStatus().isOk().expectBody(String.class)
+			.value(Matchers.equalTo("three"));
 	}
 
 }

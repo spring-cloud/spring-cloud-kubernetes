@@ -64,7 +64,7 @@ public class NamedConfigMapWithPrefixConfigurationStub {
 		return apiClient;
 	}
 
-	private void stubData() {
+	public static void stubData() {
 		V1ConfigMap one = new V1ConfigMapBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("config-map-one").withNamespace("spring-k8s")
 						.withResourceVersion("1").build())

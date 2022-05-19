@@ -46,9 +46,9 @@ public class KubernetesBootstrapConfiguration {
 	@Configuration(proxyBeanMethods = false)
 	@EnableRetry(proxyTargetClass = true)
 	@Import(AopAutoConfiguration.class)
-	static class RetryConfiguration {
+	public static class RetryConfiguration {
 
-		private static RetryOperationsInterceptor retryOperationsInterceptor(
+		public static RetryOperationsInterceptor retryOperationsInterceptor(
 				AbstractConfigProperties.RetryProperties retryProperties) {
 			return RetryInterceptorBuilder.stateless().backOffOptions(retryProperties.getInitialInterval(),
 					retryProperties.getMultiplier(), retryProperties.getMaxInterval())

@@ -3,3 +3,7 @@ org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration,
 org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadAutoConfiguration
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
 org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration
+
+# ConfigData Loaders
+org.springframework.boot.context.config.ConfigDataLoader=\
+org.springframework.cloud.kubernetes.commons.config.KubernetesConfigDataLoader

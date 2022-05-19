@@ -18,30 +18,23 @@ package org.springframework.cloud.kubernetes.fabric8.config.locator_retry;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.cloud.kubernetes.fabric8.config.Application;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
  * @author Isik Erhan
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = { "spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES" },
-		classes = Application.class)
-@EnableKubernetesMockClient
-class ConfigFailFastDisabled {
+abstract class ConfigFailFastDisabled {
 
 	private static final String API = "/api/v1/namespaces/default/configmaps/application";
 
@@ -49,8 +42,12 @@ class ConfigFailFastDisabled {
 
 	private static KubernetesClient mockClient;
 
-	@BeforeAll
-	static void setup() {
+	@Autowired
+	private Fabric8ConfigMapPropertySourceLocator propertySourceLocator;
+
+	static void setup(KubernetesClient mockClient, KubernetesMockServer mockServer) {
+		ConfigFailFastDisabled.mockClient = mockClient;
+		ConfigFailFastDisabled.mockServer = mockServer;
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -59,17 +56,15 @@ class ConfigFailFastDisabled {
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 	}
 
-	@SpyBean
-	private Fabric8ConfigMapPropertySourceLocator propertySourceLocator;
-
 	@Test
 	void locateShouldNotRetry() {
+		Fabric8ConfigMapPropertySourceLocator psl = spy(propertySourceLocator);
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
-		Assertions.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
+		Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
 
 		// verify that propertySourceLocator.locate is called only once
-		verify(propertySourceLocator, times(1)).locate(any());
+		verify(psl, times(1)).locate(any());
 	}
 
 }

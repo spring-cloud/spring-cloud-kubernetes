@@ -19,16 +19,11 @@ package org.springframework.cloud.kubernetes.fabric8.config.retry;
 import io.fabric8.kubernetes.api.model.SecretListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.cloud.kubernetes.fabric8.config.Application;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.context.ApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -41,14 +36,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Isik Erhan
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = { "spring.cloud.kubernetes.client.namespace=default",
-				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false",
-				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
-				"spring.main.cloud-platform=KUBERNETES" },
-		classes = Application.class)
-@EnableKubernetesMockClient
-class SecretsFailFastEnabledButRetryDisabled {
+abstract class SecretsFailFastEnabledButRetryDisabled {
 
 	private static final String API = "/api/v1/namespaces/default/secrets/my-secret";
 
@@ -58,8 +46,13 @@ class SecretsFailFastEnabledButRetryDisabled {
 
 	private static KubernetesClient mockClient;
 
-	@BeforeAll
-	static void setup() {
+	protected SecretsPropertySourceLocator psl;
+
+	protected SecretsPropertySourceLocator verifiablePsl;
+
+	static void setup(KubernetesClient mockClient, KubernetesMockServer mockServer) {
+		SecretsFailFastEnabledButRetryDisabled.mockClient = mockClient;
+		SecretsFailFastEnabledButRetryDisabled.mockServer = mockServer;
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -71,9 +64,6 @@ class SecretsFailFastEnabledButRetryDisabled {
 		mockServer.expect().withPath(LIST_API).andReturn(200, new SecretListBuilder().build()).always();
 	}
 
-	@SpyBean
-	private Fabric8SecretsPropertySourceLocator propertySourceLocator;
-
 	@Autowired
 	private ApplicationContext context;
 
@@ -83,12 +73,11 @@ class SecretsFailFastEnabledButRetryDisabled {
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
 		assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isFalse();
-		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
-				.isInstanceOf(IllegalStateException.class)
+		assertThatThrownBy(() -> psl.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
 				.hasMessage("Unable to read Secret with name 'my-secret' in namespace 'default'");
 
 		// verify that propertySourceLocator.locate is called only once
-		verify(propertySourceLocator, times(1)).locate(any());
+		verify(verifiablePsl, times(1)).locate(any());
 	}
 
 }

@@ -5,18 +5,27 @@ an `application-profile.properties` or `application-profile.yaml` file that cont
 application or Spring Boot starters. You can override these properties by specifying system properties or environment
 variables.
 
+To enable this functionality you need to set `spring.config.import=kubernetes:` in your application's configuration properties.
+Currently you can not specify a ConfigMap or Secret to load using `spring.config.import`, by default Spring Cloud Kubernetes
+will load a ConfigMap and/or Secret based on the `spring.application.name` property.  If `spring.application.name` is not set it will
+load a ConfigMap and/or Secret with the name `application`.
+
+If you would like to load Kubernetes `PropertySource`s during the bootstrap phase like it worked prior to the 3.0.x release
+you can either add `spring-cloud-starter-bootstrap` to your application's classpath or set `spring.cloud.bootstrap.enabled=true`
+as an environment variable.
+
 [[configmap-propertysource]]
 === Using a `ConfigMap` `PropertySource`
 
 Kubernetes provides a resource named https://kubernetes.io/docs/user-guide/configmap/[`ConfigMap`] to externalize the
 parameters to pass to your application in the form of key-value pairs or embedded `application.properties` or `application.yaml` files.
 The link:https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-fabric8-config[Spring Cloud Kubernetes Config] project makes Kubernetes `ConfigMap` instances available
-during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on
+during application startup and triggers hot reloading of beans or Spring context when changes are detected on
 observed `ConfigMap` instances.
 
 The default behavior is to create a `Fabric8ConfigMapPropertySource` based on a Kubernetes `ConfigMap` that has a `metadata.name` value of either the name of
 your Spring application (as defined by its `spring.application.name` property) or a custom name defined within the
-`bootstrap.properties` file under the following key: `spring.cloud.kubernetes.config.name`.
+`application.properties` file under the following key: `spring.cloud.kubernetes.config.name`.
 
 However, more advanced configuration is possible where you can use multiple `ConfigMap` instances.
 The `spring.cloud.kubernetes.config.sources` list makes this possible.
@@ -239,8 +248,8 @@ data:
 ====
 
 
-To tell Spring Boot which `profile` should be enabled at bootstrap, you can pass `SPRING_PROFILES_ACTIVE` environment variable.
- To do so, you can launch your Spring Boot application with an environment variable that you can define it in the PodSpec at the container specification.
+To tell Spring Boot which `profile` should be enabled see the https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.profiles[Spring Boot documentation].
+One option for activating a specific profile when deploying to Kubernetes is to launch your Spring Boot application with an environment variable that you can define in the PodSpec at the container specification.
  Deployment resource file, as follows:
 
 ====
