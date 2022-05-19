@@ -1,4 +1,3 @@
-package org.springframework.cloud.kubernetes.fabric8.config.named_config_map_with_prefix;
 /*
  * Copyright 2013-2021 the original author or authors.
  *
@@ -15,6 +14,7 @@ package org.springframework.cloud.kubernetes.fabric8.config.named_config_map_wit
  * limitations under the License.
  */
 
+package org.springframework.cloud.kubernetes.fabric8.config.named_config_map_with_prefix;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -27,8 +27,8 @@ import org.springframework.boot.test.context.SpringBootTest;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedConfigMapWithPrefixApp.class,
-	properties = { "spring.cloud.bootstrap.name=named-config-map-with-prefix", "spring.main.cloud-platform=KUBERNETES",
-		"spring.cloud.bootstrap.enabled=true" })
+		properties = { "spring.cloud.bootstrap.name=named-config-map-with-prefix",
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
 class BootstrapConfigMapWithPrefixTests extends NamedConfigMapWithPrefixTests {

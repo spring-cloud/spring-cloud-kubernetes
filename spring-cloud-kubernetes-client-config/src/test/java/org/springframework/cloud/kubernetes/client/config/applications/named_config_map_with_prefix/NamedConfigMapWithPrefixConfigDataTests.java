@@ -14,41 +14,35 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config;
+package org.springframework.cloud.kubernetes.client.config.applications.named_config_map_with_prefix;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
-import org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix.WithPrefixApp;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.Mockito.mockStatic;
-import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.ConfigMapNameAsPrefixConfigurationStub.stubData;
+import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.NamedConfigMapWithPrefixConfigurationStub.stubData;
 
 /**
  * @author Ryan Baxter
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = WithPrefixApp.class,
-		properties = { "spring.cloud.application.name=config-map-name-as-prefix", "config.map.name.as.prefix.stub=true",
-				"spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:,classpath:./config-map-name-as-prefix.yaml" })
-@AutoConfigureWebTestClient
-public class KubernetesClientConfigMapConfigDataNameAsPrefixTests extends KubernetesClientConfigMapNameAsPrefixTests {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedConfigMapWithPrefixApp.class,
+		properties = { "spring.cloud.application.name=named-configmap-with-prefix",
+				"named.config.map.with.prefix.stub=true", "spring.main.cloud-platform=KUBERNETES",
+				"spring.config.import=kubernetes:,classpath:./named-config-map-with-prefix.yaml" })
+class NamedConfigMapWithPrefixConfigDataTests extends NamedConfigMapWithPrefix {
 
 	private static MockedStatic<KubernetesClientUtils> clientUtilsMock;
 
 	@BeforeAll
-	public static void wireMock() {
+	static void wireMock() {
 		WireMockServer server = new WireMockServer(options().dynamicPort());
 		server.start();
 		WireMock.configureFor("localhost", server.port());

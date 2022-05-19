@@ -27,8 +27,8 @@ import org.springframework.boot.test.context.SpringBootTest;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedConfigMapWithPrefixApp.class,
-	properties = { "spring.application.name=config-map-name-as-prefix", "spring.main.cloud-platform=KUBERNETES",
-		"spring.config.import=kubernetes:,classpath:./named-config-map-with-prefix.yaml" })
+		properties = { "spring.application.name=config-map-name-as-prefix", "spring.main.cloud-platform=KUBERNETES",
+				"spring.config.import=kubernetes:,classpath:./named-config-map-with-prefix.yaml" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
 class ConfigDataConfigMapWithPrefixTests extends NamedConfigMapWithPrefixTests {

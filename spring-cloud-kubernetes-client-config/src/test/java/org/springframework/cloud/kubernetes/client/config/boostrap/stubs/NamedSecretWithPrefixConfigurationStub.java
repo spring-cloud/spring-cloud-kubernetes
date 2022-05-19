@@ -64,7 +64,7 @@ public class NamedSecretWithPrefixConfigurationStub {
 		return apiClient;
 	}
 
-	private void stubData() {
+	public static void stubData() {
 		V1Secret one = new V1SecretBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("secret-one").withNamespace("spring-k8s")
 						.withResourceVersion("1").build())
