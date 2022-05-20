@@ -22,9 +22,7 @@ import java.util.Map;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -43,17 +41,15 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 		properties = { "spring.cloud.bootstrap.name=config-map-name-as-prefix",
 				"spring.main.cloud-platform=KUBERNETES" })
 @AutoConfigureWebTestClient
-@EnableKubernetesMockClient(crud = true, https = false)
-class ConfigMapWithPrefixTests {
+abstract class ConfigMapWithPrefixTests {
 
 	private static KubernetesClient mockClient;
 
 	@Autowired
 	private WebTestClient webClient;
 
-	@BeforeAll
-	public static void setUpBeforeClass() {
-
+	public static void setUpBeforeClass(KubernetesClient mockClient) {
+		ConfigMapWithPrefixTests.mockClient = mockClient;
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");

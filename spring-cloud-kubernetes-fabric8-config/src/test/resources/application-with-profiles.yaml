@@ -3,16 +3,22 @@ bean:
   farewell: "Goodbye ConfigMap default, %s!"
 ---
 spring:
-  profiles: development
+  config:
+    activate:
+      on-profile: development
 bean:
   greeting: "Hello ConfigMap dev, %s!"
 ---
 spring:
-  profiles: production
+  config:
+    activate:
+      on-profile: production
 bean:
   greeting: "Hello ConfigMap prod, %s!"
 ---
 spring:
-  profiles: production & us-east
+  config:
+    activate:
+      on-profile: production & us-east
 bean:
   greeting: "Hello ConfigMap production and us-east, %s!"

@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -72,6 +73,11 @@ public class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase 
 		ConfigMap configMap2 = new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
 				.addToData(data).build();
 		mockClient.configMaps().inNamespace("spring").create(configMap2);
+	}
+
+	@BeforeEach
+	public void beforeEach() {
+		commonProperties = new String[] { "spring.cloud.bootstrap.enabled=true" };
 	}
 
 	@Test

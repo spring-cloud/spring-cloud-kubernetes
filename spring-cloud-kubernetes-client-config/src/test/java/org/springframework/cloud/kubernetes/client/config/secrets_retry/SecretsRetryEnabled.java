@@ -27,38 +27,40 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
-import org.springframework.cloud.kubernetes.client.config.RetryableKubernetesClientSecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author Isik Erhan
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
-		"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true",
-		"spring.cloud.kubernetes.secrets.retry.max-attempts=5", "spring.cloud.kubernetes.secrets.name=my-secret",
-		"spring.cloud.kubernetes.secrets.enable-api=true", "spring.main.cloud-platform=KUBERNETES" },
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+		properties = { "spring.cloud.kubernetes.client.namespace=default",
+				"spring.cloud.kubernetes.secrets.fail-fast=true",
+				"spring.cloud.kubernetes.secrets.retry.max-attempts=5",
+				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
+				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:" },
 		classes = Application.class)
 class SecretsRetryEnabled {
 
@@ -91,18 +93,18 @@ class SecretsRetryEnabled {
 		clientUtilsMock.close();
 	}
 
-	@AfterEach
+	@Autowired
+	private SecretsPropertySourceLocator psl;
+
+	@BeforeEach
 	void afterEach() {
 		WireMock.reset();
 		stubConfigMapAndSecretsDefaults();
 	}
 
-	@SpyBean
-	private RetryableKubernetesClientSecretsPropertySourceLocator propertySourceLocator;
-
 	@Test
 	void locateShouldNotRetryWhenThereIsNoFailure() {
-
+		SecretsPropertySourceLocator propertySourceLocator = spy(psl);
 		Map<String, byte[]> data = new HashMap<>();
 		data.put("some.sensitive.prop", "theSensitiveValue".getBytes());
 		data.put("some.sensitive.number", "1".getBytes());
@@ -116,7 +118,7 @@ class SecretsRetryEnabled {
 				.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
 
 		// verify locate is called only once
-		verify(propertySourceLocator, times(1)).locate(any());
+		WireMock.verify(1, getRequestedFor(urlEqualTo(API)));
 
 		// validate the contents of the property source
 		assertThat(propertySource.getProperty("some.sensitive.prop")).isEqualTo("theSensitiveValue");
@@ -125,6 +127,7 @@ class SecretsRetryEnabled {
 
 	@Test
 	void locateShouldRetryAndRecover() {
+		SecretsPropertySourceLocator propertySourceLocator = spy(psl);
 		Map<String, byte[]> data = new HashMap<>();
 		data.put("some.sensitive.prop", "theSensitiveValue".getBytes());
 		data.put("some.sensitive.number", "1".getBytes());
@@ -150,7 +153,7 @@ class SecretsRetryEnabled {
 				.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
 
 		// verify retried 4 times
-		verify(propertySourceLocator, times(4)).locate(any());
+		WireMock.verify(4, getRequestedFor(urlEqualTo(API)));
 
 		// validate the contents of the property source
 		assertThat(propertySource.getProperty("some.sensitive.prop")).isEqualTo("theSensitiveValue");
@@ -159,6 +162,7 @@ class SecretsRetryEnabled {
 
 	@Test
 	void locateShouldRetryAndFail() {
+		SecretsPropertySourceLocator propertySourceLocator = spy(psl);
 		// fail all the 5 requests
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
@@ -167,7 +171,7 @@ class SecretsRetryEnabled {
 				.hasMessage("Unable to read Secret with name 'my-secret' in namespace 'default'");
 
 		// verify retried 5 times until failure
-		verify(propertySourceLocator, times(5)).locate(any());
+		WireMock.verify(5, getRequestedFor(urlEqualTo(API)));
 	}
 
 }

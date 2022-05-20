@@ -18,35 +18,24 @@ package org.springframework.cloud.kubernetes.fabric8.config.locator_retry;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.cloud.kubernetes.fabric8.config.Application;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.context.ApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
  * @author Isik Erhan
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = { "spring.cloud.kubernetes.client.namespace=default",
-				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
-				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.main.cloud-platform=KUBERNETES" },
-		classes = Application.class)
-@EnableKubernetesMockClient
-class ConfigRetryDisabledButSecretsRetryEnabled {
+abstract class ConfigRetryDisabledButSecretsRetryEnabled {
 
 	private static final String API = "/api/v1/namespaces/default/configmaps/application";
 
@@ -54,8 +43,12 @@ class ConfigRetryDisabledButSecretsRetryEnabled {
 
 	private static KubernetesClient mockClient;
 
-	@BeforeAll
-	static void setup() {
+	@Autowired
+	private Fabric8ConfigMapPropertySourceLocator propertySourceLocator;
+
+	static void setup(KubernetesClient mockClient, KubernetesMockServer mockServer) {
+		ConfigRetryDisabledButSecretsRetryEnabled.mockClient = mockClient;
+		ConfigRetryDisabledButSecretsRetryEnabled.mockServer = mockServer;
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -64,15 +57,12 @@ class ConfigRetryDisabledButSecretsRetryEnabled {
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 	}
 
-	@SpyBean
-	private Fabric8ConfigMapPropertySourceLocator propertySourceLocator;
-
 	@Autowired
 	private ApplicationContext context;
 
 	@Test
 	void locateShouldFailWithoutRetrying() {
-
+		Fabric8ConfigMapPropertySourceLocator psl = spy(propertySourceLocator);
 		/*
 		 * Enabling secrets retry causes Spring Retry to be enabled and a
 		 * RetryOperationsInterceptor bean with NeverRetryPolicy for config maps to be
@@ -82,13 +72,14 @@ class ConfigRetryDisabledButSecretsRetryEnabled {
 
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
-		assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isTrue();
-		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
-				.isInstanceOf(IllegalStateException.class)
+		assertRetryBean(context);
+		assertThatThrownBy(() -> psl.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
 				.hasMessage("Unable to read ConfigMap with name 'application' in namespace 'default'");
 
 		// verify that propertySourceLocator.locate is called only once
-		verify(propertySourceLocator, times(1)).locate(any());
+		verify(psl, times(1)).locate(any());
 	}
+
+	protected abstract void assertRetryBean(ApplicationContext context);
 
 }

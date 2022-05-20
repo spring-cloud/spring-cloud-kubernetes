@@ -28,8 +28,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.context.ApplicationContext;
@@ -43,18 +41,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
  * @author Isik Erhan
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = { "spring.cloud.kubernetes.client.namespace=default",
-				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
-				"spring.main.cloud-platform=KUBERNETES" },
-		classes = App.class)
-class ConfigFailFastEnabledButRetryDisabled {
+abstract class ConfigFailFastEnabledButRetryDisabled {
 
 	private static final String API = "/api/v1/namespaces/default/configmaps";
 
@@ -91,7 +85,7 @@ class ConfigFailFastEnabledButRetryDisabled {
 		stubConfigMapAndSecretsDefaults();
 	}
 
-	@SpyBean
+	@Autowired
 	private KubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
 
 	@Autowired
@@ -99,7 +93,7 @@ class ConfigFailFastEnabledButRetryDisabled {
 
 	@Test
 	void locateShouldFailWithoutRetrying() {
-
+		propertySourceLocator = spy(propertySourceLocator);
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 		assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isFalse();

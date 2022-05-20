@@ -28,8 +28,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.mock.env.MockEnvironment;
@@ -40,6 +40,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -49,7 +50,7 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		properties = { "spring.cloud.kubernetes.client.namespace=default",
 				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
-				"spring.main.cloud-platform=KUBERNETES" },
+				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:" },
 		classes = Application.class)
 class SecretsFailFastDisabled {
 
@@ -88,12 +89,12 @@ class SecretsFailFastDisabled {
 		stubConfigMapAndSecretsDefaults();
 	}
 
-	@SpyBean
-	private KubernetesClientSecretsPropertySourceLocator propertySourceLocator;
+	@Autowired
+	private KubernetesClientSecretsPropertySourceLocator psl;
 
 	@Test
 	void locateShouldNotRetry() {
-
+		KubernetesClientSecretsPropertySourceLocator propertySourceLocator = spy(psl);
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 		Assertions.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));

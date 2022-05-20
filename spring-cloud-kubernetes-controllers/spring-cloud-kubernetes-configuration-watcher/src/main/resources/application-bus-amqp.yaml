@@ -1,12 +1,5 @@
 spring:
-  application:
-    name: spring-cloud-kubernetes-configuration-watcher
   cloud:
-    kubernetes:
-      reload:
-        enabled: true
-        monitoring-secrets: true
-        strategy: shutdown
     bus:
       enabled: true
     stream:
@@ -15,9 +8,4 @@ management:
   health:
     rabbit:
       enabled: true
-  endpoint:
-    health:
-      probes:
-        enabled: true
-server:
-  port: 8888
+

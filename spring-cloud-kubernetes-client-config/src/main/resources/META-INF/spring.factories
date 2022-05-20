@@ -3,3 +3,6 @@ org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientConfig
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
 org.springframework.cloud.kubernetes.client.config.KubernetesClientBootstrapConfiguration,\
 org.springframework.cloud.kubernetes.client.config.KubernetesClientRetryBootstrapConfiguration
+# ConfigData Location Resolvers
+org.springframework.boot.context.config.ConfigDataLocationResolver=\
+org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigDataLocationResolver

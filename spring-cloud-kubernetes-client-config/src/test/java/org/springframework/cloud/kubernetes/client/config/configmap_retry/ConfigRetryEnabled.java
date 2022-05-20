@@ -33,34 +33,28 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
-import org.springframework.cloud.kubernetes.client.config.RetryableKubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author Isik Erhan
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = { "spring.cloud.kubernetes.client.namespace=default",
-				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.max-attempts=5",
-				"spring.main.cloud-platform=KUBERNETES" },
-		classes = App.class)
-class ConfigRetryEnabled {
+abstract class ConfigRetryEnabled {
 
 	private static final String API = "/api/v1/namespaces/default/configmaps";
 
@@ -97,12 +91,12 @@ class ConfigRetryEnabled {
 		stubConfigMapAndSecretsDefaults();
 	}
 
-	@SpyBean
-	private RetryableKubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
+	@Autowired
+	private ConfigMapPropertySourceLocator retryablePl;
 
 	@Test
 	void locateShouldNotRetryWhenThereIsNoFailure() {
-
+		ConfigMapPropertySourceLocator propertySourceLocator = spy(retryablePl);
 		Map<String, String> data = new HashMap<>();
 		data.put("some.prop", "theValue");
 		data.put("some.number", "0");
@@ -116,7 +110,7 @@ class ConfigRetryEnabled {
 				.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
 
 		// verify locate is called only once
-		verify(propertySourceLocator, times(1)).locate(any());
+		WireMock.verify(1, getRequestedFor(urlEqualTo(API)));
 
 		// validate the contents of the property source
 		assertThat(propertySource.getProperty("some.prop")).isEqualTo("theValue");
@@ -125,6 +119,7 @@ class ConfigRetryEnabled {
 
 	@Test
 	void locateShouldRetryAndRecover() {
+		ConfigMapPropertySourceLocator propertySourceLocator = spy(retryablePl);
 		Map<String, String> data = new HashMap<>();
 		data.put("some.prop", "theValue");
 		data.put("some.number", "0");
@@ -149,8 +144,8 @@ class ConfigRetryEnabled {
 		PropertySource<?> propertySource = Assertions
 				.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
 
-		// verify retried 4 times
-		verify(propertySourceLocator, times(4)).locate(any());
+		// verify the request was retried 4 times, 5 total request
+		WireMock.verify(5, getRequestedFor(urlEqualTo(API)));
 
 		// validate the contents of the property source
 		assertThat(propertySource.getProperty("some.prop")).isEqualTo("theValue");
@@ -159,6 +154,7 @@ class ConfigRetryEnabled {
 
 	@Test
 	void locateShouldRetryAndFail() {
+		ConfigMapPropertySourceLocator propertySourceLocator = spy(retryablePl);
 		// fail all the 5 requests
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
@@ -166,8 +162,8 @@ class ConfigRetryEnabled {
 				.isInstanceOf(IllegalStateException.class)
 				.hasMessage("Unable to read ConfigMap(s) in namespace 'default'");
 
-		// verify retried 5 times until failure
-		verify(propertySourceLocator, times(5)).locate(any());
+		// verify the request was retried 5 times
+		WireMock.verify(5, getRequestedFor(urlEqualTo(API)));
 	}
 
 }

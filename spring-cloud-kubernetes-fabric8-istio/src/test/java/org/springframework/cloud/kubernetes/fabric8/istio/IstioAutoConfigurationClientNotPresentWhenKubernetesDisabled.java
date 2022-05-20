@@ -28,8 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
-		properties = { "spring.cloud.kubernetes.enabled=false" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
 class IstioAutoConfigurationClientNotPresentWhenKubernetesDisabled {
 
 	@Autowired

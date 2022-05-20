@@ -21,13 +21,8 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.client.config.applications.config_map_name_as_prefix.WithPrefixApp;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
@@ -35,12 +30,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  *
  * @author wind57
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = WithPrefixApp.class,
-		properties = { "spring.cloud.bootstrap.name=config-map-name-as-prefix", "config.map.name.as.prefix.stub=true",
-				"spring.main.cloud-platform=KUBERNETES" })
-@AutoConfigureWebTestClient
-public class KubernetesClientConfigMapNameAsPrefixTests {
+abstract class KubernetesClientConfigMapNameAsPrefixTests {
 
 	@Autowired
 	private WebTestClient webClient;

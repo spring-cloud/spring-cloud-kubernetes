@@ -24,6 +24,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
@@ -48,6 +49,7 @@ import org.springframework.context.annotation.Import;
 @AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnKubernetesConfigOrSecretsRetryEnabled
+@ConditionalOnProperty(value = "spring.cloud.bootstrap.enabled", havingValue = "true")
 public class Fabric8RetryBootstrapConfiguration {
 
 	@Bean

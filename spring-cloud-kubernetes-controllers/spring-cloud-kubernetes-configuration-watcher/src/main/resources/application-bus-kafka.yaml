@@ -1,20 +1,6 @@
 spring:
-  application:
-    name: spring-cloud-kubernetes-configuration-watcher
   cloud:
-    kubernetes:
-      reload:
-        enabled: true
-        monitoring-secrets: true
-        strategy: shutdown
     bus:
       enabled: true
     stream:
       default-binder: kafka
-management:
-  endpoint:
-    health:
-      probes:
-        enabled: true
-server:
-  port: 8888

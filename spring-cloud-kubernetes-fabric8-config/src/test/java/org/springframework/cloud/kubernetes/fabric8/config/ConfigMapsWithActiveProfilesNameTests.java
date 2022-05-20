@@ -21,37 +21,19 @@ import java.util.HashMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.config.example.App;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.kubernetes.fabric8.config.ConfigMapTestUtil.readResourceFile;
 
 /**
  * @author Ali Shahbour
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT, classes = App.class,
-		properties = { "spring.application.name=configmap-with-active-profile-name-example",
-				"spring.cloud.kubernetes.reload.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
-@ActiveProfiles("development")
-@AutoConfigureWebTestClient
-@EnableKubernetesMockClient(crud = true, https = false)
-public class ConfigMapsWithActiveProfilesNameTests {
+abstract class ConfigMapsWithActiveProfilesNameTests {
 
 	private static final String APPLICATION_NAME = "configmap-with-active-profile-name-example";
-
-	private static KubernetesClient mockClient;
 
 	@Autowired(required = false)
 	Config config;
@@ -59,9 +41,7 @@ public class ConfigMapsWithActiveProfilesNameTests {
 	@Autowired
 	private WebTestClient webClient;
 
-	@BeforeAll
-	public static void setUpBeforeClass() {
-
+	public static void setUpBeforeClass(KubernetesClient mockClient) {
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");

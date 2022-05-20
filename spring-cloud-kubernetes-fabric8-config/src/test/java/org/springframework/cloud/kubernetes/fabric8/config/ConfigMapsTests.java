@@ -22,16 +22,9 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.config.example.App;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,13 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Charles Moulliard
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
-		properties = { "spring.application.name=configmap-example", "spring.cloud.kubernetes.reload.enabled=false",
-				"spring.main.cloud-platform=KUBERNETES" })
-@AutoConfigureWebTestClient
-@EnableKubernetesMockClient(crud = true, https = false)
-public class ConfigMapsTests {
+abstract class ConfigMapsTests {
 
 	private static final String APPLICATION_NAME = "configmap-example";
 
@@ -57,9 +44,8 @@ public class ConfigMapsTests {
 	@Autowired
 	private WebTestClient webClient;
 
-	@BeforeAll
-	public static void setUpBeforeClass() {
-
+	public static void setUpBeforeClass(KubernetesClient mockClient) {
+		ConfigMapsTests.mockClient = mockClient;
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
