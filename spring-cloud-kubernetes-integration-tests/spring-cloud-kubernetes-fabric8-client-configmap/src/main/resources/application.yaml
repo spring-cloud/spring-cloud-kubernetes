@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: my-configmap
+  config:
+    import: "kubernetes:"
+g
