@@ -3,4 +3,3 @@ spring:
     name: my-configmap
   config:
     import: "kubernetes:"
-g
