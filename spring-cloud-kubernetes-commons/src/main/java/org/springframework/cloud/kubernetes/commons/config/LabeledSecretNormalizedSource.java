@@ -29,9 +29,13 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 
 	private final Map<String, String> labels;
 
-	public LabeledSecretNormalizedSource(String namespace, Map<String, String> labels, boolean failFast) {
+	private final String prefix;
+
+	public LabeledSecretNormalizedSource(String namespace, Map<String, String> labels, boolean failFast,
+			String prefix) {
 		super(null, namespace, failFast);
 		this.labels = Collections.unmodifiableMap(Objects.requireNonNull(labels));
+		this.prefix = prefix;
 	}
 
 	/**
@@ -39,6 +43,10 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 	 */
 	public Map<String, String> labels() {
 		return labels;
+	}
+
+	public String prefix() {
+		return prefix;
 	}
 
 	@Override
