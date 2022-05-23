@@ -27,13 +27,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.util.CollectionUtils;
 
 import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_PROPERTIES;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_YAML;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_YML;
-import static org.springframework.cloud.kubernetes.commons.config.Constants.PREFIX;
-import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.KEY_VALUE_TO_PROPERTIES;
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.PROPERTIES_TO_MAP;
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.throwingMerger;
@@ -52,10 +49,6 @@ public abstract class ConfigMapPropertySource extends MapPropertySource {
 
 	public ConfigMapPropertySource(SourceData sourceData) {
 		super(sourceData.sourceName(), sourceData.sourceData());
-	}
-
-	protected static String getSourceName(String applicationName, String namespace) {
-		return PREFIX + PROPERTY_SOURCE_NAME_SEPARATOR + applicationName + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
 	}
 
 	protected static Map<String, Object> processAllEntries(Map<String, String> input, Environment environment) {
@@ -78,19 +71,6 @@ public abstract class ConfigMapPropertySource extends MapPropertySource {
 		}
 
 		return defaultProcessAllEntries(input, environment);
-	}
-
-	/*
-	 * this method will return a SourceData that has a name in the form :
-	 * "configmap.my-configmap.my-configmap-2.namespace" and the "data" from the context
-	 * is appended with prefix. So if incoming is "a=b", the result will be : "prefix.a=b"
-	 */
-	protected static SourceData withPrefix(ConfigMapPrefixContext context) {
-		Map<String, Object> withPrefix = CollectionUtils.newHashMap(context.data().size());
-		context.data().forEach((key, value) -> withPrefix.put(context.prefix() + "." + key, value));
-
-		String propertySourceTokens = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, context.propertySourceNames());
-		return new SourceData(getSourceName(propertySourceTokens, context.namespace()), withPrefix);
 	}
 
 	private static Map<String, Object> defaultProcessAllEntries(Map<String, String> input, Environment environment) {

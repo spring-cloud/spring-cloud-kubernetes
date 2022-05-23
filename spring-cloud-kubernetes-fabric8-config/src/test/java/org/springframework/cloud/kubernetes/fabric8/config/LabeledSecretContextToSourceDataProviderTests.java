@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -96,10 +95,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = LabeledSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("secrets.test-secret.default", sourceData.sourceName());
+		Assertions.assertEquals("secret.test-secret.default", sourceData.sourceName());
 		Assertions.assertEquals(Map.of("secretName", "secretValue"), sourceData.sourceData());
 
 	}
@@ -129,10 +128,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = LabeledSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secrets.red-secret.red-secret-again.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.red-secret.red-secret-again.default");
 		Assertions.assertEquals(sourceData.sourceData().size(), 2);
 		Assertions.assertEquals(sourceData.sourceData().get("colorOne"), "really-red");
 		Assertions.assertEquals(sourceData.sourceData().get("colorTwo"), "really-red-again");
@@ -154,10 +153,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = LabeledSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secrets.color.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color.default");
 		Assertions.assertEquals(sourceData.sourceData(), Collections.emptyMap());
 	}
 
@@ -180,24 +179,11 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = LabeledSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("secrets.test-secret.default", sourceData.sourceName());
+		Assertions.assertEquals("secret.test-secret.default", sourceData.sourceName());
 		Assertions.assertEquals(Map.of("secretName", "secretValue"), sourceData.sourceData());
-	}
-
-	// needed only to allow access to the super methods
-	private final static class Dummy extends SecretsPropertySource {
-
-		private Dummy() {
-			super(SourceData.emptyRecord("dummy-name"));
-		}
-
-		private static String sourceName(String name, String namespace) {
-			return getSourceName(name, namespace);
-		}
-
 	}
 
 }

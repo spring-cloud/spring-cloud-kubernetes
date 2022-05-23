@@ -32,7 +32,6 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -77,14 +76,14 @@ class NamedSecretContextToSourceDataProviderTests {
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true);
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, "");
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secrets.red.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.red.default");
 		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
 
 	}
@@ -109,14 +108,14 @@ class NamedSecretContextToSourceDataProviderTests {
 		mockClient.secrets().inNamespace(NAMESPACE).create(blue);
 		mockClient.secrets().inNamespace(NAMESPACE).create(yellow);
 
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true);
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, "");
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secrets.red.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.red.default");
 		Assertions.assertEquals(sourceData.sourceData().size(), 1);
 		Assertions.assertEquals(sourceData.sourceData().get("color"), "really-red");
 
@@ -133,14 +132,14 @@ class NamedSecretContextToSourceDataProviderTests {
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(pink);
 
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("blue", NAMESPACE, true);
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("blue", NAMESPACE, true, "");
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secrets.blue.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.blue.default");
 		Assertions.assertEquals(sourceData.sourceData(), Collections.emptyMap());
 	}
 
@@ -159,28 +158,15 @@ class NamedSecretContextToSourceDataProviderTests {
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 
 		// different namespace
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE + "nope", true);
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE + "nope", true, "");
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider.of(Dummy::sourceName).get();
+		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secrets.red.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.red.default");
 		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
-	}
-
-	// needed only to allow access to the super methods
-	private static final class Dummy extends SecretsPropertySource {
-
-		private Dummy() {
-			super(SourceData.emptyRecord("dummy-name"));
-		}
-
-		private static String sourceName(String name, String namespace) {
-			return getSourceName(name, namespace);
-		}
-
 	}
 
 }

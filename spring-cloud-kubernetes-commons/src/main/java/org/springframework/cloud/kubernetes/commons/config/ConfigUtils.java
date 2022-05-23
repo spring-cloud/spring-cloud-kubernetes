@@ -16,13 +16,17 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.env.Environment;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.config.Constants.FALLBACK_APPLICATION_NAME;
+import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRING_APPLICATION_NAME;
 
 /**
@@ -49,21 +53,21 @@ public final class ConfigUtils {
 
 	/**
 	 * @param explicitPrefix value of
-	 * 'spring.cloud.kubernetes.config.sources.explicitPrefix'
+	 * 'spring.cloud.kubernetes.config|secrets.sources.explicitPrefix'
 	 * @param useNameAsPrefix value of
-	 * 'spring.cloud.kubernetes.config.sources.useNameAsPrefix'
+	 * 'spring.cloud.kubernetes.config|secrets.sources.useNameAsPrefix'
 	 * @param defaultUseNameAsPrefix value of
-	 * 'spring.cloud.kubernetes.config.defaultUseNameAsPrefix'
+	 * 'spring.cloud.kubernetes.config|secrets.defaultUseNameAsPrefix'
 	 * @param normalizedName either the name of
-	 * 'spring.cloud.kubernetes.config.sources.name' or
-	 * 'spring.cloud.kubernetes.config.name'
+	 * 'spring.cloud.kubernetes.config|secrets.sources.name' or
+	 * 'spring.cloud.kubernetes.config|secrets.name'
 	 * @return prefix to use in normalized sources, never null
 	 */
 	public static String findPrefix(String explicitPrefix, Boolean useNameAsPrefix, boolean defaultUseNameAsPrefix,
 			String normalizedName) {
 		// if explicitPrefix is set, it takes priority over useNameAsPrefix
-		// (either the one from 'spring.cloud.kubernetes.config' or
-		// 'spring.cloud.kubernetes.config.sources')
+		// (either the one from 'spring.cloud.kubernetes.config|secrets' or
+		// 'spring.cloud.kubernetes.config|secrets.sources')
 		if (StringUtils.hasText(explicitPrefix)) {
 			return explicitPrefix;
 		}
@@ -107,6 +111,23 @@ public final class ConfigUtils {
 			throw new IllegalStateException(message, e);
 		}
 		LOG.warn(message + ". Ignoring.", e);
+	}
+
+	/*
+	 * this method will return a SourceData that has a name in the form :
+	 * "configmap.my-configmap.my-configmap-2.namespace" and the "data" from the context
+	 * is appended with prefix. So if incoming is "a=b", the result will be : "prefix.a=b"
+	 */
+	public static SourceData withPrefix(String target, PrefixContext context) {
+		Map<String, Object> withPrefix = CollectionUtils.newHashMap(context.data().size());
+		context.data().forEach((key, value) -> withPrefix.put(context.prefix() + "." + key, value));
+
+		String propertySourceTokens = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, context.propertySourceNames());
+		return new SourceData(sourceName(target, propertySourceTokens, context.namespace()), withPrefix);
+	}
+
+	public static String sourceName(String target, String applicationName, String namespace) {
+		return target + PROPERTY_SOURCE_NAME_SEPARATOR + applicationName + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
 	}
 
 }

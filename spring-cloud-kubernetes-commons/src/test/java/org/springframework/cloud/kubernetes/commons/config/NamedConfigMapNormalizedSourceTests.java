@@ -46,7 +46,7 @@ class NamedConfigMapNormalizedSourceTests {
 	void testTarget() {
 		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, "prefix",
 				true);
-		Assertions.assertEquals(one.target(), "Config Map");
+		Assertions.assertEquals(one.target(), "configmap");
 	}
 
 	@Test

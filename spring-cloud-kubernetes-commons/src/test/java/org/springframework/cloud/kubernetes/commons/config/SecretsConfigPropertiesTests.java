@@ -109,7 +109,196 @@ class SecretsConfigPropertiesTests {
 		NormalizedSource fiveResult = iterator.next();
 		Assertions.assertEquals(((LabeledSecretNormalizedSource) fiveResult).labels(),
 				Collections.singletonMap("three", "3"));
+	}
 
+	/**
+	 * <pre>
+	 * 	spring:
+	 *	  cloud:
+	 *      kubernetes:
+	 *        secrets:
+	 *          name: secret-a
+	 *        	namespace: spring-k8s
+	 * </pre>
+	 *
+	 * a config as above will result in a NormalizedSource where prefix is empty
+	 */
+	@Test
+	void testUseNameAsPrefixUnsetEmptySources() {
+		SecretsConfigProperties properties = new SecretsConfigProperties();
+		properties.setSources(Collections.emptyList());
+		properties.setName("secret-a");
+		properties.setNamespace("spring-k8s");
+
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
+		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
+
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(0)).prefix(), "",
+				"empty sources must generate a List with a single NormalizedSource, where prefix is empty");
+	}
+
+	/**
+	 * <pre>
+	 * 	spring:
+	 *	  cloud:
+	 *      kubernetes:
+	 *        secrets:
+	 *          useNameAsPrefix: true
+	 *          name: secret-a
+	 *        	namespace: spring-k8s
+	 * </pre>
+	 *
+	 * a config as above will result in a NormalizedSource where prefix is empty, even if
+	 * "useNameAsPrefix: true", because sources are empty
+	 */
+	@Test
+	void testUseNameAsPrefixSetEmptySources() {
+		SecretsConfigProperties properties = new SecretsConfigProperties();
+		properties.setSources(Collections.emptyList());
+		properties.setUseNameAsPrefix(true);
+		properties.setName("secret-a");
+		properties.setNamespace("spring-k8s");
+
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
+		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
+
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(0)).prefix(), "",
+				"empty sources must generate a List with a single NormalizedSource, where prefix is empty,"
+						+ "no matter of 'spring.cloud.kubernetes.secret.useNameAsPrefix' value");
+	}
+
+	/**
+	 * <pre>
+	 * spring:
+	 *	cloud:
+	 *    kubernetes:
+	 *      secrets:
+	 *        useNameAsPrefix: true
+	 *        namespace: spring-k8s
+	 *        sources:
+	 *          - name: secret-one
+	 * </pre>
+	 *
+	 * a config as above will result in a NormalizedSource where prefix will be equal to
+	 * the secret name
+	 */
+	@Test
+	void testUseNameAsPrefixUnsetNonEmptySources() {
+		SecretsConfigProperties properties = new SecretsConfigProperties();
+		properties.setUseNameAsPrefix(true);
+		properties.setNamespace("spring-k8s");
+
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source();
+		one.setName("secret-one");
+		properties.setSources(Collections.singletonList(one));
+
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
+		Assertions.assertEquals(sources.size(), 1, "a single NormalizedSource is expected");
+
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(0)).prefix(), "secret-one");
+	}
+
+	/**
+	 * <pre>
+	 * spring:
+	 *	cloud:
+	 *    kubernetes:
+	 *      secrets:
+	 *        useNameAsPrefix: true
+	 *        namespace: spring-k8s
+	 *        sources:
+	 *          - name: secret-one
+	 *            useNameAsPrefix: false
+	 *          - name: secret-two
+	 *            useNameAsPrefix: true
+	 *          - name: secret-three
+	 * </pre>
+	 *
+	 * this test proves that 'spring.cloud.kubernetes.secrets.sources[].useNameAsPrefix'
+	 * will override 'spring.cloud.kubernetes.secrets.useNameAsPrefix'. For the last entry
+	 * in sources, since there is no explicit 'useNameAsPrefix', the one from
+	 * 'spring.cloud.kubernetes.secrets.useNameAsPrefix' will be taken.
+	 */
+	@Test
+	void testUseNameAsPrefixSetNonEmptySources() {
+		SecretsConfigProperties properties = new SecretsConfigProperties();
+		properties.setUseNameAsPrefix(true);
+		properties.setNamespace("spring-k8s");
+
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source();
+		one.setName("secret-one");
+		one.setUseNameAsPrefix(false);
+
+		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source();
+		two.setName("secret-two");
+		two.setUseNameAsPrefix(true);
+
+		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source();
+		three.setName("secret-three");
+
+		properties.setSources(Arrays.asList(one, two, three));
+
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
+		Assertions.assertEquals(sources.size(), 3, "3 NormalizedSources are expected");
+
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(0)).prefix(), "");
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(1)).prefix(), "secret-two");
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(2)).prefix(), "secret-three");
+	}
+
+	/**
+	 * <pre>
+	 * spring:
+	 *	cloud:
+	 *    kubernetes:
+	 *      secrets:
+	 *        useNameAsPrefix: false
+	 *        namespace: spring-k8s
+	 *        sources:
+	 *          - name: secret-one
+	 *            useNameAsPrefix: false
+	 *            explicitPrefix: one
+	 *          - name: secret-two
+	 *            useNameAsPrefix: true
+	 *            explicitPrefix: two
+	 *          - name: secret-three
+	 *            explicitPrefix: three
+	 *          - name: secret-four
+	 * </pre>
+	 *
+	 */
+	@Test
+	void testMultipleCases() {
+		SecretsConfigProperties properties = new SecretsConfigProperties();
+		properties.setUseNameAsPrefix(false);
+		properties.setNamespace("spring-k8s");
+
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source();
+		one.setNamespace("secret-one");
+		one.setUseNameAsPrefix(false);
+		one.setExplicitPrefix("one");
+
+		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source();
+		two.setNamespace("secret-two");
+		two.setUseNameAsPrefix(true);
+		two.setExplicitPrefix("two");
+
+		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source();
+		three.setNamespace("secret-three");
+		three.setExplicitPrefix("three");
+
+		SecretsConfigProperties.Source four = new SecretsConfigProperties.Source();
+		four.setNamespace("secret-four");
+
+		properties.setSources(Arrays.asList(one, two, three, four));
+
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
+		Assertions.assertEquals(sources.size(), 4, "4 NormalizedSources are expected");
+
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(0)).prefix(), "one");
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(1)).prefix(), "two");
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(2)).prefix(), "three");
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(3)).prefix(), "");
 	}
 
 }

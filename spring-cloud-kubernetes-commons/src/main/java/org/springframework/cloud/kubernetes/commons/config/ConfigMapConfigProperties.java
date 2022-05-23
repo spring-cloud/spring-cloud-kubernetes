@@ -25,7 +25,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 
 /**
  * Config map configuration properties.
@@ -81,13 +84,14 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	 * These are the actual name/namespace pairs that are used to create a
 	 * ConfigMapPropertySource.
 	 */
-	public List<NormalizedSource> determineSources() {
+	public List<NormalizedSource> determineSources(Environment environment) {
 		if (this.sources.isEmpty()) {
 			if (useNameAsPrefix) {
 				LOG.warn(
 						"'spring.cloud.kubernetes.config.useNameAsPrefix' is set to 'true', but 'spring.cloud.kubernetes.config.sources'"
 								+ " is empty; as such will default 'useNameAsPrefix' to 'false'");
 			}
+			String name = getApplicationName(environment, this.name, "Config Map");
 			return Collections.singletonList(
 					new NamedConfigMapNormalizedSource(name, namespace, failFast, "", includeProfileSpecificSources));
 		}
