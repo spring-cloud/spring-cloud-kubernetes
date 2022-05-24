@@ -17,8 +17,10 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -29,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.PrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
@@ -64,6 +67,7 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 		return context -> {
 
 			LabeledSecretNormalizedSource source = ((LabeledSecretNormalizedSource) context.normalizedSource());
+			Set<String> propertySourceNames = new LinkedHashSet<>();
 			Map<String, String> labels = source.labels();
 
 			Map<String, Object> result = new HashMap<>();
@@ -77,9 +81,25 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 						.getItems();
 
 				if (!secrets.isEmpty()) {
-					secrets.forEach(secret -> result.putAll(dataFromSecret(secret, namespace)));
-					sourceName = secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName)
-							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+
+					for (Secret secret : secrets) {
+						// we support prefix per source, not per secret. This means that in theory
+						// we can still have clashes here, that we simply override.
+						// If there are more than one secret found per labels, and they have the same key on a
+						// property, but different values; one value will override the other, without any
+						// particular order.
+						result.putAll(dataFromSecret(secret, namespace));
+					}
+
+					propertySourceNames.add(secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName)
+							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR)));
+
+					if (!"".equals(source.prefix())) {
+						PrefixContext prefixContext = new PrefixContext(result, source.prefix(), namespace,
+							propertySourceNames);
+						return ConfigUtils.withPrefix(source.target(), prefixContext);
+					}
+
 				}
 				else {
 					LOG.info("No Secret(s) with labels '" + labels + "' in namespace '" + namespace + "' found.");
@@ -91,7 +111,7 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 				onException(source.failFast(), message, e);
 			}
 
-			String propertySourceName = ConfigUtils.sourceName(source.target(), sourceName, namespace);
+				String propertySourceName = ConfigUtils.sourceName(source.target(), sourceName, namespace);
 			return new SourceData(propertySourceName, result);
 		};
 	}
