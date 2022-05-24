@@ -20,7 +20,10 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+<<<<<<< HEAD
 import java.util.Set;
+=======
+>>>>>>> main
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -111,7 +114,7 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 				onException(source.failFast(), message, e);
 			}
 
-				String propertySourceName = ConfigUtils.sourceName(source.target(), sourceName, namespace);
+			String propertySourceName = ConfigUtils.sourceName(source.target(), sourceName, namespace);
 			return new SourceData(propertySourceName, result);
 		};
 	}
