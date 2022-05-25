@@ -35,6 +35,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
@@ -90,7 +91,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
-		NormalizedSource source = new NamedConfigMapNormalizedSource(BLUE_CONFIG_MAP_NAME, NAMESPACE, true, "", false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(BLUE_CONFIG_MAP_NAME, NAMESPACE, true,
+				ConfigUtils.Prefix.UNSET, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -119,7 +121,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
-		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true, "", false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true,
+				ConfigUtils.Prefix.UNSET, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -154,7 +157,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
-		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true, "", true);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true,
+				ConfigUtils.Prefix.UNSET, true);
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("with-profile");
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
@@ -194,7 +198,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
-		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true, "some",
+		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("some", false, false, null);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true, prefix,
 				true);
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("with-profile");
@@ -241,7 +246,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
-		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true, "some",
+		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("some", false, false, null);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true, prefix,
 				true);
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("with-taste", "with-shape");
@@ -271,7 +277,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
-		NormalizedSource source = new NamedConfigMapNormalizedSource("application", NAMESPACE, true, "some", false);
+		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("some", false, false, null);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("application", NAMESPACE, true, prefix, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -302,8 +309,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
-		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE + "nope", true, "",
-				false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE + "nope", true,
+				ConfigUtils.Prefix.UNSET, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 

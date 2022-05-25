@@ -17,8 +17,10 @@
 package org.springframework.cloud.kubernetes.client.config;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -29,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.PrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.dataFromSecret;
@@ -66,9 +69,10 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Kuberne
 
 			Map<String, Object> result = new HashMap<>();
 			LabeledSecretNormalizedSource source = (LabeledSecretNormalizedSource) context.normalizedSource();
+			Set<String> propertySourceNames = new LinkedHashSet<>();
 			Map<String, String> labels = source.labels();
 			String namespace = context.namespace();
-			String sourceName = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, labels.keySet());
+			String sourceNameFromLabels = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, labels.keySet());
 
 			try {
 
@@ -77,10 +81,43 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Kuberne
 						createLabelsSelector(labels), null, null, null, null, null).getItems();
 
 				if (!secrets.isEmpty()) {
-					sourceName = secrets.stream().map(V1Secret::getMetadata).map(V1ObjectMeta::getName)
-							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 
-					secrets.forEach(s -> result.putAll(dataFromSecret(s, namespace)));
+					for (V1Secret secret : secrets) {
+						// we support prefix per source, not per secret. This means that
+						// in theory
+						// we can still have clashes here, that we simply override.
+						// If there are more than one secret found per labels, and they
+						// have the same key on a
+						// property, but different values; one value will override the
+						// other, without any
+						// particular order.
+						result.putAll(dataFromSecret(secret, namespace));
+					}
+
+					String secretNames = secrets.stream().map(V1Secret::getMetadata).map(V1ObjectMeta::getName)
+							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+					propertySourceNames.add(secretNames);
+
+					if (source.prefix() != ConfigUtils.Prefix.UNSET) {
+
+						String prefix;
+						if (source.prefix() == ConfigUtils.Prefix.KNOWN) {
+							prefix = source.prefix().prefixProvider().get();
+						}
+						else {
+							// prefix is going to be all the secret names we found based
+							// on the labels
+							// concatenated with PROPERTY_SOURCE_NAME_SEPARATOR
+							prefix = secretNames;
+						}
+
+						PrefixContext prefixContext = new PrefixContext(result, prefix, namespace, propertySourceNames);
+						return ConfigUtils.withPrefix(source.target(), prefixContext);
+					}
+
+					String names = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
+					return new SourceData(ConfigUtils.sourceName(source.target(), names, namespace), result);
+
 				}
 
 			}
@@ -89,8 +126,12 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Kuberne
 				onException(source.failFast(), message, e);
 			}
 
-			String propertySourceName = ConfigUtils.sourceName(source.target(), sourceName, namespace);
-			return new SourceData(propertySourceName, result);
+			// if we could not find a secret with provided labels, we will compute a
+			// response with an empty Map
+			// and name that will use all the label names (not their values)
+			String propertySourceNameFromLabels = ConfigUtils.sourceName(source.target(), sourceNameFromLabels,
+					namespace);
+			return new SourceData(propertySourceNameFromLabels, result);
 		};
 	}
 

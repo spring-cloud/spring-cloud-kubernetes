@@ -104,9 +104,10 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 							propertySourceNames.add(entry.getValue());
 						});
 
-				if (!"".equals(source.prefix())) {
-					PrefixContext prefixContext = new PrefixContext(result, source.prefix(), namespace,
-							propertySourceNames);
+				if (source.prefix() != ConfigUtils.Prefix.UNSET) {
+					// since we are in a named source, calling get on the supplier is safe
+					String prefix = source.prefix().prefixProvider().get();
+					PrefixContext prefixContext = new PrefixContext(result, prefix, namespace, propertySourceNames);
 					return ConfigUtils.withPrefix(source.target(), prefixContext);
 				}
 

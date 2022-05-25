@@ -31,6 +31,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.mock.env.MockEnvironment;
@@ -100,7 +101,8 @@ class KubernetesClientConfigMapPropertySourceTests {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 
-		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false, "", true);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false,
+				ConfigUtils.Prefix.UNSET, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
 				new MockEnvironment());
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(context);
@@ -121,7 +123,8 @@ class KubernetesClientConfigMapPropertySourceTests {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(YAML_CONFIGMAP_LIST))));
 
-		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-641", "default", false, "", true);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-641", "default", false,
+				ConfigUtils.Prefix.UNSET, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
 				new MockEnvironment());
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(context);
@@ -142,7 +145,8 @@ class KubernetesClientConfigMapPropertySourceTests {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 
-		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false, "prefix", true);
+		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, null);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false, prefix, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
 				new MockEnvironment());
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(context);
@@ -161,7 +165,8 @@ class KubernetesClientConfigMapPropertySourceTests {
 	@Test
 	void constructorWithNamespaceMustNotFail() {
 
-		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false, "prefix", true);
+		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, null);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false, prefix, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(new CoreV1Api(), source, "default",
 				new MockEnvironment());
 
@@ -173,7 +178,8 @@ class KubernetesClientConfigMapPropertySourceTests {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		NormalizedSource source = new NamedConfigMapNormalizedSource("my-config", "default", true, "prefix", true);
+		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, null);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("my-config", "default", true, prefix, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(new CoreV1Api(), source, "default",
 				new MockEnvironment());
 
@@ -188,7 +194,8 @@ class KubernetesClientConfigMapPropertySourceTests {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		NormalizedSource source = new NamedConfigMapNormalizedSource("my-config", "default", false, "prefix", true);
+		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, null);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("my-config", "default", false, prefix, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(new CoreV1Api(), source, "default",
 				new MockEnvironment());
 

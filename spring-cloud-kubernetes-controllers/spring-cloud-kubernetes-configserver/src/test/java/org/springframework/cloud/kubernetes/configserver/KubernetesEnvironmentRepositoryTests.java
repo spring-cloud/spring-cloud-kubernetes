@@ -35,6 +35,7 @@ import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigContext;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -101,12 +102,13 @@ class KubernetesEnvironmentRepositoryTests {
 		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
-			NormalizedSource defaultSource = new NamedConfigMapNormalizedSource(applicationName, "default", false, "",
-					true);
+			NormalizedSource defaultSource = new NamedConfigMapNormalizedSource(applicationName, "default", false,
+					ConfigUtils.Prefix.UNSET, true);
 			KubernetesClientConfigContext defaultContext = new KubernetesClientConfigContext(coreApi, defaultSource,
 					"default", springEnv);
 
-			NormalizedSource devSource = new NamedConfigMapNormalizedSource(applicationName, "dev", false, "", true);
+			NormalizedSource devSource = new NamedConfigMapNormalizedSource(applicationName, "dev", false,
+					ConfigUtils.Prefix.UNSET, true);
 			KubernetesClientConfigContext devContext = new KubernetesClientConfigContext(coreApi, devSource, "dev",
 					springEnv);
 
@@ -117,7 +119,8 @@ class KubernetesEnvironmentRepositoryTests {
 		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
-			NormalizedSource source = new NamedSecretNormalizedSource(applicationName, "default", false, "");
+			NormalizedSource source = new NamedSecretNormalizedSource(applicationName, "default", false,
+					ConfigUtils.Prefix.UNSET);
 			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, "default",
 					springEnv);
 
