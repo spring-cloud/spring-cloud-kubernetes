@@ -25,7 +25,7 @@ import org.springframework.cloud.kubernetes.fabric8.config.labeled_secret_with_p
 import org.springframework.cloud.kubernetes.fabric8.config.labeled_secret_with_prefix.properties.Two;
 
 @SpringBootApplication
-@EnableConfigurationProperties({ One.class, Two.class, Three.class, Four.class})
+@EnableConfigurationProperties({ One.class, Two.class, Three.class, Four.class })
 public class LabeledSecretWithPrefixApp {
 
 	public static void main(String[] args) {

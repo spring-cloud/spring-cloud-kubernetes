@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.labeled_secret_with_prefix.controller;
 
+import org.springframework.cloud.kubernetes.fabric8.config.labeled_secret_with_prefix.properties.Four;
 import org.springframework.cloud.kubernetes.fabric8.config.labeled_secret_with_prefix.properties.One;
 import org.springframework.cloud.kubernetes.fabric8.config.labeled_secret_with_prefix.properties.Three;
 import org.springframework.cloud.kubernetes.fabric8.config.labeled_secret_with_prefix.properties.Two;
@@ -31,10 +32,13 @@ public class LabeledSecretWithPrefixController {
 
 	private final Three three;
 
-	public LabeledSecretWithPrefixController(One one, Two two, Three three) {
+	private final Four four;
+
+	public LabeledSecretWithPrefixController(One one, Two two, Three three, Four four) {
 		this.one = one;
 		this.two = two;
 		this.three = three;
+		this.four = four;
 	}
 
 	@GetMapping("/labeled-secret/prefix/one")
@@ -50,6 +54,11 @@ public class LabeledSecretWithPrefixController {
 	@GetMapping("/labeled-secret/prefix/three")
 	public String three() {
 		return three.getProperty();
+	}
+
+	@GetMapping("/labeled-secret/prefix/four")
+	public String four() {
+		return four.getProperty();
 	}
 
 }

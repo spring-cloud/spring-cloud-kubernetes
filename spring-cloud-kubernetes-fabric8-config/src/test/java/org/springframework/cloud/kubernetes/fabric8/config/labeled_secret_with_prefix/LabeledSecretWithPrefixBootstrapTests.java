@@ -19,14 +19,15 @@ package org.springframework.cloud.kubernetes.fabric8.config.labeled_secret_with_
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
+
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = LabeledSecretWithPrefixApp.class,
-		properties = { "spring.cloud.bootstrap.name=labeled-secret-with-prefix", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.bootstrap.enabled=true" })
+		properties = { "spring.cloud.bootstrap.name=labeled-secret-with-prefix",
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true" })
 @EnableKubernetesMockClient(crud = true, https = false)
 class LabeledSecretWithPrefixBootstrapTests extends LabeledSecretWithPrefixTests {
 

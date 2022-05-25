@@ -16,18 +16,19 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.labeled_secret_with_prefix;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Map;
+
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.reactive.server.WebTestClient;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * @author wind57
@@ -63,14 +64,14 @@ abstract class LabeledSecretWithPrefixTests {
 		createSecret("secret-three", three, Collections.singletonMap("letter", "c"));
 
 		Map<String, String> four = Collections.singletonMap("property",
-			Base64.getEncoder().encodeToString("four".getBytes(StandardCharsets.UTF_8)));
-		createSecret("secret-four", three, Collections.singletonMap("letter", "d"));
+				Base64.getEncoder().encodeToString("four".getBytes(StandardCharsets.UTF_8)));
+		createSecret("secret-four", four, Collections.singletonMap("letter", "d"));
 
 	}
 
 	private static void createSecret(String name, Map<String, String> data, Map<String, String> labels) {
-		mockClient.secrets().inNamespace("spring-k8s")
-				.create(new SecretBuilder().withNewMetadata().withName(name).withLabels(labels).endMetadata().addToData(data).build());
+		mockClient.secrets().inNamespace("spring-k8s").create(new SecretBuilder().withNewMetadata().withName(name)
+				.withLabels(labels).endMetadata().addToData(data).build());
 	}
 
 	/**
@@ -116,15 +117,15 @@ abstract class LabeledSecretWithPrefixTests {
 	 */
 	@Test
 	void testThree() {
-		this.webClient.get().uri("/labeled-secret/prefix/three").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("three"));
+		this.webClient.get().uri("/labeled-secret/prefix/three").exchange().expectStatus().isOk()
+				.expectBody(String.class).value(Matchers.equalTo("three"));
 	}
 
 	/**
 	 * <pre>
 	 *   'spring.cloud.kubernetes.secrets.useNameAsPrefix=true'
 	 *   'spring.cloud.kubernetes.secrets.sources[3].labels=letter:d'
-	 * 	 ("property", "three")
+	 * 	 ("property", "four")
 	 *
 	 *   We find the secret by labels, and use it's name as the prefix.
 	 *
@@ -133,8 +134,8 @@ abstract class LabeledSecretWithPrefixTests {
 	 */
 	@Test
 	void testFour() {
-		this.webClient.get().uri("/labeled-secret/prefix/four").exchange().expectStatus().isOk().expectBody(String.class)
-			.value(Matchers.equalTo("four"));
+		this.webClient.get().uri("/labeled-secret/prefix/four").exchange().expectStatus().isOk()
+				.expectBody(String.class).value(Matchers.equalTo("four"));
 	}
 
 }
