@@ -72,7 +72,7 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 
 			Map<String, Object> result = new HashMap<>();
 			String namespace = context.namespace();
-			String sourceName = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, labels.keySet());
+			String sourceNameFromLabels = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, labels.keySet());
 
 			try {
 
@@ -100,6 +100,9 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 						return ConfigUtils.withPrefix(source.target(), prefixContext);
 					}
 
+					String names = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
+					return new SourceData(ConfigUtils.sourceName(source.target(), names, namespace), result);
+
 				}
 				else {
 					LOG.info("No Secret(s) with labels '" + labels + "' in namespace '" + namespace + "' found.");
@@ -111,8 +114,10 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 				onException(source.failFast(), message, e);
 			}
 
-			String propertySourceName = ConfigUtils.sourceName(source.target(), sourceName, namespace);
-			return new SourceData(propertySourceName, result);
+			// if we could not find a secret with provided labels, we will compute a response with an empty Map
+			// and name that will use all the label names (not their values)
+			String propertySourceNameFromLabels = ConfigUtils.sourceName(source.target(), sourceNameFromLabels, namespace);
+			return new SourceData(propertySourceNameFromLabels, result);
 		};
 	}
 

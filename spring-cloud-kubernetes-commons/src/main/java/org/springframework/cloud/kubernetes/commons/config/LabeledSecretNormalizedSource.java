@@ -29,13 +29,13 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 
 	private final Map<String, String> labels;
 
-	private final String prefix;
+	private final ConfigUtils.Prefix prefix;
 
 	public LabeledSecretNormalizedSource(String namespace, Map<String, String> labels, boolean failFast,
-			String prefix) {
+			ConfigUtils.Prefix prefix) {
 		super(null, namespace, failFast);
 		this.labels = Collections.unmodifiableMap(Objects.requireNonNull(labels));
-		this.prefix = prefix;
+		this.prefix = Objects.requireNonNull(prefix);
 	}
 
 	/**
@@ -45,7 +45,7 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 		return labels;
 	}
 
-	public String prefix() {
+	public ConfigUtils.Prefix prefix() {
 		return prefix;
 	}
 

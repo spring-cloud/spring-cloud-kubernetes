@@ -134,8 +134,7 @@ class SecretsConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
-		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(0)).prefix(), "",
-				"empty sources must generate a List with a single NormalizedSource, where prefix is empty");
+		Assertions.assertSame(((NamedSecretNormalizedSource) sources.get(0)).prefix(), ConfigUtils.Prefix.UNSET);
 	}
 
 	/**
@@ -163,8 +162,8 @@ class SecretsConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
-		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(0)).prefix(), "",
-				"empty sources must generate a List with a single NormalizedSource, where prefix is empty,"
+		Assertions.assertSame(((NamedSecretNormalizedSource) sources.get(0)).prefix(), ConfigUtils.Prefix.UNSET,
+				"empty sources must generate a List with a single NormalizedSource, where prefix is unset,"
 						+ "no matter of 'spring.cloud.kubernetes.secret.useNameAsPrefix' value");
 	}
 
@@ -196,7 +195,8 @@ class SecretsConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "a single NormalizedSource is expected");
 
-		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(0)).prefix(), "secret-one");
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(0)).prefix().prefixProvider().get(),
+				"secret-one");
 	}
 
 	/**
@@ -242,9 +242,11 @@ class SecretsConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 3, "3 NormalizedSources are expected");
 
-		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(0)).prefix(), "");
-		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(1)).prefix(), "secret-two");
-		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(2)).prefix(), "secret-three");
+		Assertions.assertSame(((NamedSecretNormalizedSource) sources.get(0)).prefix(), ConfigUtils.Prefix.UNSET);
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(1)).prefix().prefixProvider().get(),
+				"secret-two");
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(2)).prefix().prefixProvider().get(),
+				"secret-three");
 	}
 
 	/**
@@ -296,10 +298,11 @@ class SecretsConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 4, "4 NormalizedSources are expected");
 
-		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(0)).prefix(), "one");
-		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(1)).prefix(), "two");
-		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(2)).prefix(), "three");
-		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(3)).prefix(), "");
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(0)).prefix().prefixProvider().get(), "one");
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(1)).prefix().prefixProvider().get(), "two");
+		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(2)).prefix().prefixProvider().get(),
+				"three");
+		Assertions.assertSame(((NamedSecretNormalizedSource) sources.get(3)).prefix(), ConfigUtils.Prefix.UNSET);
 	}
 
 	/**
@@ -357,15 +360,19 @@ class SecretsConfigPropertiesTests {
 		properties.setSources(Arrays.asList(one, two, three, four));
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
-		// we get 8 property sources, since "named" once with "application" are duplicated.
-		// that's OK since later in the code we get a LinkedHashSet out of them all, so they become
-		// 5 only.
+		// we get 8 property sources, since "named" ones with "application" are
+		// duplicated.
+		// that's OK, since later in the code we get a LinkedHashSet out of them all,
+		// so they become 5 only.
 		Assertions.assertEquals(sources.size(), 8, "4 NormalizedSources are expected");
 
-		Assertions.assertEquals(((LabeledSecretNormalizedSource) sources.get(1)).prefix(), "one");
-		Assertions.assertEquals(((LabeledSecretNormalizedSource) sources.get(3)).prefix(), "two");
-		Assertions.assertEquals(((LabeledSecretNormalizedSource) sources.get(5)).prefix(), "three");
-		Assertions.assertEquals(((LabeledSecretNormalizedSource) sources.get(7)).prefix(), "");
+		Assertions.assertEquals(((LabeledSecretNormalizedSource) sources.get(1)).prefix().prefixProvider().get(),
+				"one");
+		Assertions.assertEquals(((LabeledSecretNormalizedSource) sources.get(3)).prefix().prefixProvider().get(),
+				"two");
+		Assertions.assertEquals(((LabeledSecretNormalizedSource) sources.get(5)).prefix().prefixProvider().get(),
+				"three");
+		Assertions.assertSame(((LabeledSecretNormalizedSource) sources.get(7)).prefix(), ConfigUtils.Prefix.UNSET);
 
 		Set<NormalizedSource> set = new LinkedHashSet<>(sources);
 		Assertions.assertEquals(5, set.size());

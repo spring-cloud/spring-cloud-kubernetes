@@ -96,10 +96,11 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		if (this.sources.isEmpty()) {
 			List<NormalizedSource> result = new ArrayList<>(2);
 			String name = getApplicationName(environment, this.name, "Secret");
-			result.add(new NamedSecretNormalizedSource(name, this.namespace, this.failFast, ""));
+			result.add(new NamedSecretNormalizedSource(name, this.namespace, this.failFast, ConfigUtils.Prefix.UNSET));
 
 			if (!labels.isEmpty()) {
-				result.add(new LabeledSecretNormalizedSource(this.namespace, this.labels, this.failFast, ""));
+				result.add(new LabeledSecretNormalizedSource(this.namespace, this.labels, this.failFast,
+						ConfigUtils.Prefix.UNSET));
 			}
 			return result;
 		}
@@ -195,8 +196,8 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 
 			String secretName = getApplicationName(environment, normalizedName, "Secret");
 
-			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, this.useNameAsPrefix, defaultUseNameAsPrefix,
-					normalizedName);
+			ConfigUtils.Prefix prefix = ConfigUtils.findPrefix(this.explicitPrefix, this.useNameAsPrefix,
+					defaultUseNameAsPrefix, normalizedName);
 
 			NormalizedSource namedBasedSource = new NamedSecretNormalizedSource(secretName, normalizedNamespace,
 					failFast, prefix);

@@ -29,23 +29,29 @@ class LabeledSecretNormalizedSourceTests {
 
 	private final Map<String, String> labels = Collections.singletonMap("a", "b");
 
+	private static final ConfigUtils.Prefix UNSET = ConfigUtils.Prefix.UNSET;
+
 	@Test
 	void testEqualsAndHashCode() {
-		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, false, "");
-		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true, "");
+		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, false, UNSET);
+		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true, UNSET);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
 	}
 
 	/*
-	 * left and right instance have a different prefix, but the hashCode is the same;
-	 * as it is not taken into consideration when computing hashCode
+	 * left and right instance have a different prefix, but the hashCode is the same; as
+	 * it is not taken into consideration when computing hashCode
 	 */
 	@Test
 	void testEqualsAndHashCodePrefixDoesNotMatter() {
-		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, true, "left");
-		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true, "right");
+
+		ConfigUtils.Prefix knownLeft = ConfigUtils.findPrefix("left", false, false, "some");
+		ConfigUtils.Prefix knownRight = ConfigUtils.findPrefix("right", false, false, "some");
+
+		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, true, knownLeft);
+		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true, knownRight);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -53,29 +59,30 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, "");
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, UNSET);
 		Assertions.assertSame(source.type(), NormalizedSourceType.LABELED_SECRET);
 	}
 
 	@Test
 	void testImmutableGetLabels() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, "");
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, UNSET);
 		Assertions.assertThrows(RuntimeException.class, () -> source.labels().put("c", "d"));
 	}
 
 	@Test
 	void testTarget() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, "");
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, UNSET);
 		Assertions.assertEquals(source.target(), "secret");
 	}
 
 	@Test
 	void testConstructorFields() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, "prefix");
+		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, "some");
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, prefix);
 		Assertions.assertTrue(source.name().isEmpty());
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertFalse(source.failFast());
-		Assertions.assertEquals(source.prefix(), "prefix");
+		Assertions.assertSame(source.prefix(), prefix);
 	}
 
 }

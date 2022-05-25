@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -91,7 +92,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 
-		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, LABELS, true);
+		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, LABELS, true, "");
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -104,7 +105,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	}
 
 	/**
-	 * we have three secret deployed. two of them have labels that match (color=red), one
+	 * we have three secrets deployed. two of them have labels that match (color=red), one
 	 * does not (color=blue).
 	 */
 	@Test
@@ -124,7 +125,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		mockClient.secrets().inNamespace(NAMESPACE).create(redTwo);
 		mockClient.secrets().inNamespace(NAMESPACE).create(blue);
 
-		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, RED_LABEL, true);
+		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, RED_LABEL, true, "");
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -149,7 +150,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(pink);
 
-		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, BLUE_LABEL, true);
+		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, BLUE_LABEL, true, "");
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -175,7 +176,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 
 		// different namespace
-		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE + "nope", LABELS, true);
+		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE + "nope", LABELS, true, "");
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -184,6 +185,32 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		Assertions.assertEquals("secret.test-secret.default", sourceData.sourceName());
 		Assertions.assertEquals(Map.of("secretName", "secretValue"), sourceData.sourceData());
+	}
+
+	/**
+	 * one secret with name : "blue-secret" and labels "color=blue" is deployed.
+	 * we search it with the same labels, find it, and assert that name of the SourceData
+	 * (it must use its name, not its labels) and values in the SourceData must be prefixed
+	 * (since we have provided an explicit prefix).
+	 */
+	@Test
+	void testWithPrefix() {
+		Secret secret = new SecretBuilder().withNewMetadata().withName("blue-secret").withLabels(
+				Collections.singletonMap("color", "blue")).endMetadata()
+			.addToData("what-color", Base64.getEncoder().encodeToString("blue-color".getBytes())).build();
+
+		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
+
+		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
+			Collections.singletonMap("color", "blue"), true, "me");
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
+			new MockEnvironment());
+
+		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals("secret.blue-secret.default", sourceData.sourceName());
+		Assertions.assertEquals(Map.of("me.what-color", "blue-color"), sourceData.sourceData());
 	}
 
 }
