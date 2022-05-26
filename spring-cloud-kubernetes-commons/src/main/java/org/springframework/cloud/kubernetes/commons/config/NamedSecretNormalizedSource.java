@@ -27,14 +27,24 @@ public final class NamedSecretNormalizedSource extends NormalizedSource {
 
 	private final ConfigUtils.Prefix prefix;
 
-	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix) {
+	private final boolean includeProfileSpecificSources;
+
+	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix,
+			boolean includeProfileSpecificSources) {
 		super(name, namespace, failFast);
 		this.prefix = Objects.requireNonNull(prefix);
+		this.includeProfileSpecificSources = includeProfileSpecificSources;
 	}
 
-	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast) {
+	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast,
+			boolean includeProfileSpecificSources) {
 		super(name, namespace, failFast);
 		this.prefix = ConfigUtils.Prefix.DEFAULT;
+		this.includeProfileSpecificSources = includeProfileSpecificSources;
+	}
+
+	public boolean profileSpecificSources() {
+		return includeProfileSpecificSources;
 	}
 
 	public ConfigUtils.Prefix prefix() {

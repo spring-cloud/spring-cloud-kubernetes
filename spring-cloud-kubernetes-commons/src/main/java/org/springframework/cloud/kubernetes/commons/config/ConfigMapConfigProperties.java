@@ -117,6 +117,11 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		private String namespace;
 
 		/**
+		 * An explicit prefix to be used for properties.
+		 */
+		private String explicitPrefix;
+
+		/**
 		 * Use config map name as prefix for properties. Can't be a primitive, we need to
 		 * know if it was explicitly set or not
 		 */
@@ -127,11 +132,6 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		 * to know if it was explicitly set or not
 		 */
 		protected Boolean includeProfileSpecificSources;
-
-		/**
-		 * An explicit prefix to be used for properties.
-		 */
-		private String explicitPrefix;
 
 		public Source() {
 
