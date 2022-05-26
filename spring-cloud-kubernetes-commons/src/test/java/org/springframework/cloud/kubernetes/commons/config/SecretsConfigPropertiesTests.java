@@ -134,7 +134,7 @@ class SecretsConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
-		Assertions.assertSame(((NamedSecretNormalizedSource) sources.get(0)).prefix(), ConfigUtils.Prefix.UNSET);
+		Assertions.assertSame(((NamedSecretNormalizedSource) sources.get(0)).prefix(), ConfigUtils.Prefix.DEFAULT);
 	}
 
 	/**
@@ -162,7 +162,7 @@ class SecretsConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
-		Assertions.assertSame(((NamedSecretNormalizedSource) sources.get(0)).prefix(), ConfigUtils.Prefix.UNSET,
+		Assertions.assertSame(((NamedSecretNormalizedSource) sources.get(0)).prefix(), ConfigUtils.Prefix.DEFAULT,
 				"empty sources must generate a List with a single NormalizedSource, where prefix is unset,"
 						+ "no matter of 'spring.cloud.kubernetes.secret.useNameAsPrefix' value");
 	}
@@ -242,7 +242,7 @@ class SecretsConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 3, "3 NormalizedSources are expected");
 
-		Assertions.assertSame(((NamedSecretNormalizedSource) sources.get(0)).prefix(), ConfigUtils.Prefix.UNSET);
+		Assertions.assertSame(((NamedSecretNormalizedSource) sources.get(0)).prefix(), ConfigUtils.Prefix.DEFAULT);
 		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(1)).prefix().prefixProvider().get(),
 				"secret-two");
 		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(2)).prefix().prefixProvider().get(),
@@ -302,7 +302,7 @@ class SecretsConfigPropertiesTests {
 		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(1)).prefix().prefixProvider().get(), "two");
 		Assertions.assertEquals(((NamedSecretNormalizedSource) sources.get(2)).prefix().prefixProvider().get(),
 				"three");
-		Assertions.assertSame(((NamedSecretNormalizedSource) sources.get(3)).prefix(), ConfigUtils.Prefix.UNSET);
+		Assertions.assertSame(((NamedSecretNormalizedSource) sources.get(3)).prefix(), ConfigUtils.Prefix.DEFAULT);
 	}
 
 	/**
@@ -372,7 +372,7 @@ class SecretsConfigPropertiesTests {
 				"two");
 		Assertions.assertEquals(((LabeledSecretNormalizedSource) sources.get(5)).prefix().prefixProvider().get(),
 				"three");
-		Assertions.assertSame(((LabeledSecretNormalizedSource) sources.get(7)).prefix(), ConfigUtils.Prefix.UNSET);
+		Assertions.assertSame(((LabeledSecretNormalizedSource) sources.get(7)).prefix(), ConfigUtils.Prefix.DEFAULT);
 
 		Set<NormalizedSource> set = new LinkedHashSet<>(sources);
 		Assertions.assertEquals(5, set.size());

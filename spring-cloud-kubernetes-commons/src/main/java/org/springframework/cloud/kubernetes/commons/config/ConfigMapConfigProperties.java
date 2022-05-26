@@ -92,8 +92,8 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 								+ " is empty; as such will default 'useNameAsPrefix' to 'false'");
 			}
 			String name = getApplicationName(environment, this.name, "Config Map");
-			return Collections.singletonList(new NamedConfigMapNormalizedSource(name, namespace, failFast,
-					ConfigUtils.Prefix.UNSET, includeProfileSpecificSources));
+			return Collections.singletonList(
+					new NamedConfigMapNormalizedSource(name, namespace, failFast, includeProfileSpecificSources));
 		}
 
 		return sources.stream()

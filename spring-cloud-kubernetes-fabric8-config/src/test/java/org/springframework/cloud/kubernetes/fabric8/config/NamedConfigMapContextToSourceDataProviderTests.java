@@ -49,8 +49,6 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 	private static KubernetesClient mockClient;
 
-	private static final ConfigUtils.Prefix UNSET = ConfigUtils.Prefix.UNSET;
-
 	private static final ConfigUtils.Prefix PREFIX = ConfigUtils.findPrefix("some", false, false, "irrelevant");
 
 	@BeforeAll
@@ -82,7 +80,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("blue", NAMESPACE, true, UNSET, false);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("blue", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -105,7 +103,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, UNSET, false);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -136,7 +134,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		// add one more profile and specify that we want profile based config maps
 		MockEnvironment env = new MockEnvironment();
 		env.setActiveProfiles("with-profile");
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, UNSET, true);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, true);
 
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
@@ -237,8 +235,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("application", NAMESPACE, true, UNSET,
-				false);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("application", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -264,8 +261,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
 		// different namespace
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE + "nope", true, UNSET,
-				false);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE + "nope", true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 

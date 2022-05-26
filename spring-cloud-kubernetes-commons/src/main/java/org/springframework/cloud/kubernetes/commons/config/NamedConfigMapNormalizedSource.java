@@ -36,6 +36,13 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 		this.includeProfileSpecificSources = includeProfileSpecificSources;
 	}
 
+	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast,
+			boolean includeProfileSpecificSources) {
+		super(name, namespace, failFast);
+		this.prefix = ConfigUtils.Prefix.DEFAULT;
+		this.includeProfileSpecificSources = includeProfileSpecificSources;
+	}
+
 	public ConfigUtils.Prefix prefix() {
 		return prefix;
 	}

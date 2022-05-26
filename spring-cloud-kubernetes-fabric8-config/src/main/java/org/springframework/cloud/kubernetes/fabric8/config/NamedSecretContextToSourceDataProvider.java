@@ -71,7 +71,7 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 				else {
 					result = dataFromSecret(secret, namespace);
 
-					if (source.prefix() != ConfigUtils.Prefix.UNSET) {
+					if (source.prefix() != ConfigUtils.Prefix.DEFAULT) {
 						// since we are in a named source, calling get on the supplier is
 						// safe
 						String prefix = source.prefix().prefixProvider().get();

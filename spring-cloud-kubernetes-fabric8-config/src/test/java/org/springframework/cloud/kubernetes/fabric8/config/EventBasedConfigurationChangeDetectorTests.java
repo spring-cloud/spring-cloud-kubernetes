@@ -28,7 +28,6 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
-import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
@@ -45,8 +44,6 @@ import static org.mockito.Mockito.when;
  * @author Ryan Baxter
  */
 public class EventBasedConfigurationChangeDetectorTests {
-
-	private static final ConfigUtils.Prefix UNSET = ConfigUtils.Prefix.UNSET;
 
 	@SuppressWarnings("unchecked")
 	@Test
@@ -67,7 +64,7 @@ public class EventBasedConfigurationChangeDetectorTests {
 		when(mixedOperation.inNamespace("default")).thenReturn(mixedOperation);
 		when(k8sClient.getNamespace()).thenReturn("default");
 
-		NormalizedSource source = new NamedConfigMapNormalizedSource("myconfigmap", "default", true, UNSET, false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("myconfigmap", "default", true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(k8sClient, source, "default", new MockEnvironment());
 		Fabric8ConfigMapPropertySource fabric8ConfigMapPropertySource = new Fabric8ConfigMapPropertySource(context);
 		env.getPropertySources().addFirst(new BootstrapPropertySource<>(fabric8ConfigMapPropertySource));

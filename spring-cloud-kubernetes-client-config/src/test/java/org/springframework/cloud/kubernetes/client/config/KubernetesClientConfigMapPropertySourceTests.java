@@ -101,8 +101,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 
-		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false,
-				ConfigUtils.Prefix.UNSET, true);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
 				new MockEnvironment());
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(context);
@@ -123,8 +122,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(YAML_CONFIGMAP_LIST))));
 
-		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-641", "default", false,
-				ConfigUtils.Prefix.UNSET, true);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-641", "default", false, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
 				new MockEnvironment());
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(context);

@@ -72,7 +72,7 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 
 				secret.ifPresent(s -> result.putAll(dataFromSecret(s, namespace)));
 
-				if (source.prefix() != ConfigUtils.Prefix.UNSET && !result.isEmpty()) {
+				if (source.prefix() != ConfigUtils.Prefix.DEFAULT && !result.isEmpty()) {
 					// since we are in a named source, calling get on the supplier is safe
 					String prefix = source.prefix().prefixProvider().get();
 					PrefixContext prefixContext = new PrefixContext(result, prefix, namespace, propertySourceNames);

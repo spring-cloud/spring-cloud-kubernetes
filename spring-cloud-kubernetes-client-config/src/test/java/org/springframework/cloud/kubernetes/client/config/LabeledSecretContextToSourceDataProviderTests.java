@@ -98,7 +98,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		// blue does not match red
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE,
-				Collections.singletonMap("color", "blue"), false, ConfigUtils.Prefix.UNSET);
+				Collections.singletonMap("color", "blue"), false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -126,7 +126,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		stubFor(get("/api/v1/namespaces/default/secrets?labelSelector=label2%3Dvalue2%2Clabel1%3Dvalue1")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SECRETS_LIST))));
 
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, LABELS, false, ConfigUtils.Prefix.UNSET);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, LABELS, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -159,8 +159,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		stubFor(get("/api/v1/namespaces/default/secrets?labelSelector=color%3Dred")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, RED_LABEL, false,
-				ConfigUtils.Prefix.UNSET);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, RED_LABEL, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -185,8 +184,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		stubFor(get("/api/v1/namespaces/default/secrets?labelSelector=label2%3Dvalue2%2Clabel1%3Dvalue1")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SECRETS_LIST))));
 
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE + "nope", LABELS, false,
-				ConfigUtils.Prefix.UNSET);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE + "nope", LABELS, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -257,8 +255,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		stubFor(get("/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SECRETS_LIST))));
 
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false,
-				ConfigUtils.Prefix.DELAYED);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 

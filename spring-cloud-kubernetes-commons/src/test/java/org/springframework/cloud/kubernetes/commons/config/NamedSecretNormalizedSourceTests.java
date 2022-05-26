@@ -26,12 +26,10 @@ class NamedSecretNormalizedSourceTests {
 
 	private static final ConfigUtils.Prefix PREFIX = ConfigUtils.findPrefix("prefix", false, false, "prefix");
 
-	private static final ConfigUtils.Prefix UNSET = ConfigUtils.Prefix.UNSET;
-
 	@Test
 	void testEqualsAndHashCode() {
-		NamedSecretNormalizedSource left = new NamedSecretNormalizedSource("name", "namespace", false, UNSET);
-		NamedSecretNormalizedSource right = new NamedSecretNormalizedSource("name", "namespace", true, UNSET);
+		NamedSecretNormalizedSource left = new NamedSecretNormalizedSource("name", "namespace", false);
+		NamedSecretNormalizedSource right = new NamedSecretNormalizedSource("name", "namespace", true);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -39,13 +37,13 @@ class NamedSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, UNSET);
+		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false);
 		Assertions.assertSame(source.type(), NormalizedSourceType.NAMED_SECRET);
 	}
 
 	@Test
 	void testTarget() {
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, UNSET);
+		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false);
 		Assertions.assertEquals(source.target(), "secret");
 	}
 

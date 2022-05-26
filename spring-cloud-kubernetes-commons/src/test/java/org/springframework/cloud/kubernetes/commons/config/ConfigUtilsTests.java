@@ -44,7 +44,7 @@ class ConfigUtilsTests {
 	@Test
 	void testUseNameAsPrefixFalse() {
 		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", Boolean.FALSE, false, "name-not-to-use");
-		Assertions.assertSame(result, ConfigUtils.Prefix.UNSET);
+		Assertions.assertSame(result, ConfigUtils.Prefix.DEFAULT);
 	}
 
 	@Test
@@ -57,18 +57,16 @@ class ConfigUtilsTests {
 	@Test
 	void testNoMatch() {
 		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", null, false, "name-not-to-use");
-		Assertions.assertSame(result, ConfigUtils.Prefix.UNSET);
+		Assertions.assertSame(result, ConfigUtils.Prefix.DEFAULT);
 	}
 
 	@Test
-	void testUnsetException() {
+	void testUnsetEmpty() {
 		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", null, false, "name-not-to-use");
-		Assertions.assertSame(result, ConfigUtils.Prefix.UNSET);
+		Assertions.assertSame(result, ConfigUtils.Prefix.DEFAULT);
 
-		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class,
-				() -> result.prefixProvider().get());
-
-		Assertions.assertEquals("prefix is unset, nothing to provide", ex.getMessage());
+		String expected = Assertions.assertDoesNotThrow(() -> result.prefixProvider().get());
+		Assertions.assertEquals("", expected);
 	}
 
 	@Test

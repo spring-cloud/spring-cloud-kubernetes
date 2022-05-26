@@ -38,6 +38,12 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 		this.prefix = Objects.requireNonNull(prefix);
 	}
 
+	public LabeledSecretNormalizedSource(String namespace, Map<String, String> labels, boolean failFast) {
+		super(null, namespace, failFast);
+		this.labels = Collections.unmodifiableMap(Objects.requireNonNull(labels));
+		this.prefix = ConfigUtils.Prefix.DEFAULT;
+	}
+
 	/**
 	 * will return an immutable Map.
 	 */

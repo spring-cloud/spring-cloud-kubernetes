@@ -94,11 +94,11 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 						result.putAll(dataFromSecret(secret, namespace));
 					}
 
-					String secretNames = secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName)
-						.sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+					String secretNames = secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName).sorted()
+							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 					propertySourceNames.add(secretNames);
 
-					if (source.prefix() != ConfigUtils.Prefix.UNSET) {
+					if (source.prefix() != ConfigUtils.Prefix.DEFAULT) {
 
 						String prefix;
 						if (source.prefix() == ConfigUtils.Prefix.KNOWN) {

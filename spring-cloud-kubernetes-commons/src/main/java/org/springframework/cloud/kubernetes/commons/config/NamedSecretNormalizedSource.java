@@ -32,6 +32,11 @@ public final class NamedSecretNormalizedSource extends NormalizedSource {
 		this.prefix = Objects.requireNonNull(prefix);
 	}
 
+	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast) {
+		super(name, namespace, failFast);
+		this.prefix = ConfigUtils.Prefix.DEFAULT;
+	}
+
 	public ConfigUtils.Prefix prefix() {
 		return prefix;
 	}

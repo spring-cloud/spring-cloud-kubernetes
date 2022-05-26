@@ -88,7 +88,7 @@ public final class ConfigUtils {
 				Prefix.computeKnown(() -> normalizedName);
 				return Prefix.KNOWN;
 			}
-			return Prefix.UNSET;
+			return Prefix.DEFAULT;
 		}
 
 		if (defaultUseNameAsPrefix) {
@@ -104,7 +104,7 @@ public final class ConfigUtils {
 			return Prefix.KNOWN;
 		}
 
-		return Prefix.UNSET;
+		return Prefix.DEFAULT;
 	}
 
 	/**
@@ -154,9 +154,7 @@ public final class ConfigUtils {
 		/**
 		 * prefix has not been provided.
 		 */
-		public static final Prefix UNSET = new Prefix(() -> {
-			throw new IllegalArgumentException("prefix is unset, nothing to provide");
-		});
+		public static final Prefix DEFAULT = new Prefix(() -> "");
 
 		/**
 		 * prefix has been enabled, but the actual value will be known later; the value

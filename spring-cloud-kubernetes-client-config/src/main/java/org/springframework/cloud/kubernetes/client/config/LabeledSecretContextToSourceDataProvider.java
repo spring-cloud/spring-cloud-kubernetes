@@ -93,11 +93,11 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Kuberne
 						result.putAll(dataFromSecret(secret, namespace));
 					}
 
-					String secretNames = secrets.stream().map(V1Secret::getMetadata).map(V1ObjectMeta::getName)
-						.sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+					String secretNames = secrets.stream().map(V1Secret::getMetadata).map(V1ObjectMeta::getName).sorted()
+							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 					propertySourceNames.add(secretNames);
 
-					if (source.prefix() != ConfigUtils.Prefix.UNSET) {
+					if (source.prefix() != ConfigUtils.Prefix.DEFAULT) {
 
 						String prefix;
 						if (source.prefix() == ConfigUtils.Prefix.KNOWN) {
