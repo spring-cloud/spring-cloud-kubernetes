@@ -18,8 +18,6 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import org.springframework.core.env.MapPropertySource;
 
-import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
-
 /**
  * Kubernetes property source for secrets.
  *
@@ -30,10 +28,6 @@ public class SecretsPropertySource extends MapPropertySource {
 
 	public SecretsPropertySource(SourceData sourceData) {
 		super(sourceData.sourceName(), sourceData.sourceData());
-	}
-
-	protected static String getSourceName(String name, String namespace) {
-		return "secrets" + PROPERTY_SOURCE_NAME_SEPARATOR + name + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
 	}
 
 	@Override

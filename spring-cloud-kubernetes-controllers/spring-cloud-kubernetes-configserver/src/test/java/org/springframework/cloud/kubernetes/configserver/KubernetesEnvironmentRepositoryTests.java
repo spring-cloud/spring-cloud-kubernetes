@@ -117,7 +117,7 @@ class KubernetesEnvironmentRepositoryTests {
 		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
-			NormalizedSource source = new NamedSecretNormalizedSource(applicationName, "default", false);
+			NormalizedSource source = new NamedSecretNormalizedSource(applicationName, "default", false, "");
 			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, "default",
 					springEnv);
 
@@ -141,7 +141,7 @@ class KubernetesEnvironmentRepositoryTests {
 		assertThat(environment.getPropertySources().size()).isEqualTo(2);
 		environment.getPropertySources().forEach(propertySource -> {
 			assertThat(propertySource.getName().equals("configmap.application.default")
-					|| propertySource.getName().equals("secrets.application.default")).isTrue();
+					|| propertySource.getName().equals("secret.application.default")).isTrue();
 			if (propertySource.getName().equals("configmap.application.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(3);
 				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(1);
@@ -171,17 +171,17 @@ class KubernetesEnvironmentRepositoryTests {
 		assertThat(environment.getPropertySources().size()).isEqualTo(5);
 		environment.getPropertySources().forEach(propertySource -> {
 			assertThat(propertySource.getName().equals("configmap.application.default")
-					|| propertySource.getName().equals("secrets.application.default")
+					|| propertySource.getName().equals("secret.application.default")
 					|| propertySource.getName().equals("configmap.stores.default")
 					|| propertySource.getName().equals("configmap.stores.dev")
-					|| propertySource.getName().equals("secrets.stores.default")).isTrue();
+					|| propertySource.getName().equals("secret.stores.default")).isTrue();
 			if (propertySource.getName().equals("configmap.application.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(3);
 				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(1);
 				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(true);
 				assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("a");
 			}
-			if (propertySource.getName().equals("secrets.application.default")) {
+			if (propertySource.getName().equals("secret.application.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(2);
 				assertThat(propertySource.getSource().get("username")).isEqualTo("user");
 				assertThat(propertySource.getSource().get("password")).isEqualTo("p455w0rd");
@@ -198,7 +198,7 @@ class KubernetesEnvironmentRepositoryTests {
 				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(true);
 				assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("dev");
 			}
-			if (propertySource.getName().equals("secrets.stores.default")) {
+			if (propertySource.getName().equals("secret.stores.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(2);
 				assertThat(propertySource.getSource().get("username")).isEqualTo("stores");
 				assertThat(propertySource.getSource().get("password")).isEqualTo("p455w0rd");
@@ -221,17 +221,17 @@ class KubernetesEnvironmentRepositoryTests {
 		assertThat(environment.getPropertySources().size()).isEqualTo(5);
 		environment.getPropertySources().forEach(propertySource -> {
 			assertThat(propertySource.getName().equals("configmap.application.default")
-					|| propertySource.getName().equals("secrets.application.default")
+					|| propertySource.getName().equals("secret.application.default")
 					|| propertySource.getName().equals("configmap.stores.stores-dev.default")
 					|| propertySource.getName().equals("configmap.stores.dev")
-					|| propertySource.getName().equals("secrets.stores.default")).isTrue();
+					|| propertySource.getName().equals("secret.stores.default")).isTrue();
 			if (propertySource.getName().equals("configmap.application.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(3);
 				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(1);
 				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(true);
 				assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("a");
 			}
-			else if (propertySource.getName().equals("secrets.application.default")) {
+			else if (propertySource.getName().equals("secret.application.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(2);
 				assertThat(propertySource.getSource().get("username")).isEqualTo("user");
 				assertThat(propertySource.getSource().get("password")).isEqualTo("p455w0rd");
@@ -252,7 +252,7 @@ class KubernetesEnvironmentRepositoryTests {
 			// Currently KubernetesClientSecretsPropertySource does not take into account
 			// profiles, so that plays no role at the moment
 			// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/880
-			else if (propertySource.getName().equals("secrets.stores.default")) {
+			else if (propertySource.getName().equals("secret.stores.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(2);
 				assertThat(propertySource.getSource().get("username")).isEqualTo("stores");
 				assertThat(propertySource.getSource().get("password")).isEqualTo("p455w0rd");

@@ -22,19 +22,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapPrefixContext;
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.PrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.Environment;
 
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getConfigMapData;
@@ -51,24 +49,14 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 
 	private final BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor;
 
-	private final BiFunction<String, String, String> sourceNameMapper;
-
-	private final Function<ConfigMapPrefixContext, SourceData> withPrefix;
-
 	private NamedConfigMapContextToSourceDataProvider(
-			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor,
-			BiFunction<String, String, String> sourceNameMapper,
-			Function<ConfigMapPrefixContext, SourceData> withPrefix) {
+			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
 		this.entriesProcessor = Objects.requireNonNull(entriesProcessor);
-		this.sourceNameMapper = Objects.requireNonNull(sourceNameMapper);
-		this.withPrefix = Objects.requireNonNull(withPrefix);
 	}
 
 	static NamedConfigMapContextToSourceDataProvider of(
-			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor,
-			BiFunction<String, String, String> sourceNameMapper,
-			Function<ConfigMapPrefixContext, SourceData> withPrefix) {
-		return new NamedConfigMapContextToSourceDataProvider(entriesProcessor, sourceNameMapper, withPrefix);
+			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
+		return new NamedConfigMapContextToSourceDataProvider(entriesProcessor);
 	}
 
 	/*
@@ -85,7 +73,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 
 			NamedConfigMapNormalizedSource source = (NamedConfigMapNormalizedSource) context.normalizedSource();
 			String namespace = context.namespace();
-			String initialConfigMapName = appName(context.environment(), source).get();
+			String initialConfigMapName = source.name().orElseThrow();
 			String currentConfigMapName = initialConfigMapName;
 			Set<String> propertySourceNames = new LinkedHashSet<>();
 			propertySourceNames.add(initialConfigMapName);
@@ -110,9 +98,9 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 				}
 
 				if (!"".equals(source.prefix())) {
-					ConfigMapPrefixContext prefixContext = new ConfigMapPrefixContext(result, source.prefix(),
-							namespace, propertySourceNames);
-					return withPrefix.apply(prefixContext);
+					PrefixContext prefixContext = new PrefixContext(result, source.prefix(), namespace,
+							propertySourceNames);
+					return ConfigUtils.withPrefix(source.target(), prefixContext);
 				}
 
 			}
@@ -123,13 +111,9 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 			}
 
 			String names = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
-			return new SourceData(sourceNameMapper.apply(names, namespace), result);
+			return new SourceData(ConfigUtils.sourceName(source.target(), names, namespace), result);
 		};
 
-	}
-
-	private Supplier<String> appName(Environment environment, NormalizedSource normalizedSource) {
-		return () -> getApplicationName(environment, normalizedSource.name().orElse(null), normalizedSource.target());
 	}
 
 }

@@ -57,8 +57,7 @@ public final class Fabric8ConfigMapPropertySource extends ConfigMapPropertySourc
 	// we need to pass various functions because the code we are interested in
 	// is protected in ConfigMapPropertySource, and must stay that way.
 	private static Fabric8ContextToSourceData namedConfigMap() {
-		return NamedConfigMapContextToSourceDataProvider.of(ConfigMapPropertySource::processAllEntries,
-				ConfigMapPropertySource::getSourceName, ConfigMapPropertySource::withPrefix).get();
+		return NamedConfigMapContextToSourceDataProvider.of(ConfigMapPropertySource::processAllEntries).get();
 	}
 
 }

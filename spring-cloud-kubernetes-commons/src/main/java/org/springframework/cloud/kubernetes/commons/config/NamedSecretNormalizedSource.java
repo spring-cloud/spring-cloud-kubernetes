@@ -25,8 +25,15 @@ import java.util.Objects;
  */
 public final class NamedSecretNormalizedSource extends NormalizedSource {
 
-	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast) {
+	private final String prefix;
+
+	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast, String prefix) {
 		super(name, namespace, failFast);
+		this.prefix = prefix;
+	}
+
+	public String prefix() {
+		return prefix;
 	}
 
 	@Override
@@ -36,7 +43,7 @@ public final class NamedSecretNormalizedSource extends NormalizedSource {
 
 	@Override
 	public String target() {
-		return "Secret";
+		return "secret";
 	}
 
 	@Override

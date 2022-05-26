@@ -38,7 +38,6 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -101,11 +100,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
-		KubernetesClientContextToSourceData data = LabeledSecretContextToSourceDataProvider
-				.of(LabeledSecretContextToSourceDataProviderTests.Dummy::sourceName).get();
+		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secrets.color.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color.default");
 		Assertions.assertEquals(sourceData.sourceData(), Collections.emptyMap());
 
 	}
@@ -130,11 +128,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
-		KubernetesClientContextToSourceData data = LabeledSecretContextToSourceDataProvider
-				.of(LabeledSecretContextToSourceDataProviderTests.Dummy::sourceName).get();
+		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secrets.test-secret.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.test-secret.default");
 		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
 
 	}
@@ -164,11 +161,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
-		KubernetesClientContextToSourceData data = LabeledSecretContextToSourceDataProvider
-				.of(LabeledSecretContextToSourceDataProviderTests.Dummy::sourceName).get();
+		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secrets.color-one.color-two.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color-one.color-two.default");
 		Assertions.assertEquals(sourceData.sourceData().size(), 2);
 		Assertions.assertEquals(sourceData.sourceData().get("colorOne"), "really-red-one");
 		Assertions.assertEquals(sourceData.sourceData().get("colorTwo"), "really-red-two");
@@ -190,25 +186,11 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
-		KubernetesClientContextToSourceData data = LabeledSecretContextToSourceDataProvider
-				.of(LabeledSecretContextToSourceDataProviderTests.Dummy::sourceName).get();
+		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secrets.test-secret.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.test-secret.default");
 		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
-	}
-
-	// needed only to allow access to the super methods
-	private static final class Dummy extends SecretsPropertySource {
-
-		private Dummy() {
-			super(SourceData.emptyRecord("dummy-name"));
-		}
-
-		private static String sourceName(String name, String namespace) {
-			return getSourceName(name, namespace);
-		}
-
 	}
 
 }

@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: named-config-map-with-prefix
+  cloud:
+    kubernetes:
+      config:
+        useNameAsPrefix: true
+        namespace: spring-k8s
+        sources:
+          - name: config-map-one
+            useNameAsPrefix: false
+          - name: config-map-two
+            explicitPrefix: two
+          - name: config-map-three

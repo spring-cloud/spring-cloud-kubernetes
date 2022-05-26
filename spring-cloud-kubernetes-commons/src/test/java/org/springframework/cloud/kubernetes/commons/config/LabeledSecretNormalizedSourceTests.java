@@ -53,7 +53,7 @@ class LabeledSecretNormalizedSourceTests {
 	@Test
 	void testTarget() {
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false);
-		Assertions.assertEquals(source.target(), "Secret");
+		Assertions.assertEquals(source.target(), "secret");
 	}
 
 	@Test

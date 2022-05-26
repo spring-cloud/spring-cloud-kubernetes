@@ -51,11 +51,11 @@ public final class Fabric8SecretsPropertySource extends SecretsPropertySource {
 	}
 
 	private static Fabric8ContextToSourceData namedSecret() {
-		return NamedSecretContextToSourceDataProvider.of(SecretsPropertySource::getSourceName).get();
+		return new NamedSecretContextToSourceDataProvider().get();
 	}
 
 	private static Fabric8ContextToSourceData labeledSecret() {
-		return LabeledSecretContextToSourceDataProvider.of(SecretsPropertySource::getSourceName).get();
+		return new LabeledSecretContextToSourceDataProvider().get();
 	}
 
 }

@@ -34,7 +34,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapPrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -95,8 +94,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
+		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries)
+				.get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.blue.default");
@@ -124,8 +123,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
+		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries)
+				.get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
@@ -160,8 +159,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		environment.setActiveProfiles("with-profile");
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
 
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
+		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries)
+				.get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-profile.default");
@@ -201,8 +200,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		environment.setActiveProfiles("with-profile");
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
 
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
+		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries)
+				.get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-profile.default");
@@ -248,8 +247,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		environment.setActiveProfiles("with-taste", "with-shape");
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
 
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
+		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries)
+				.get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-taste.red-with-shape.default");
@@ -260,11 +259,11 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 	}
 
-	// this test makes sure that even if NormalizedSource has no name (which is a valid
-	// case for config maps),
-	// it will default to "application" and such a config map will be read.
+	// when reading config maps and creating normalized sources, we will always be
+	// providing a name
+	// for the config map; even if one is not provided explicitly.
 	@Test
-	void matchWithoutName() {
+	void matchWithName() {
 		V1ConfigMapList configMapList = new V1ConfigMapList()
 				.addItemsItem(new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder().withName("application")
 						.withNamespace(NAMESPACE).withResourceVersion("1").build()).addToData("color", "red").build());
@@ -272,12 +271,12 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
-		NormalizedSource source = new NamedConfigMapNormalizedSource(null, NAMESPACE, true, "some", false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("application", NAMESPACE, true, "some", false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
+		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries)
+				.get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.application.default");
@@ -308,8 +307,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider
-				.of(Dummy::processEntries, Dummy::sourceName, Dummy::prefix).get();
+		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries)
+				.get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
@@ -323,16 +322,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 			super(SourceData.emptyRecord("dummy-name"));
 		}
 
-		private static String sourceName(String name, String namespace) {
-			return getSourceName(name, namespace);
-		}
-
 		private static Map<String, Object> processEntries(Map<String, String> map, Environment environment) {
 			return processAllEntries(map, environment);
-		}
-
-		private static SourceData prefix(ConfigMapPrefixContext context) {
-			return withPrefix(context);
 		}
 
 	}

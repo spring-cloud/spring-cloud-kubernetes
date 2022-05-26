@@ -29,7 +29,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.util.ClientBuilder;
-import org.junit.ClassRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,8 +67,7 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 
 	private ConfigurableApplicationContext context;
 
-	@ClassRule
-	public static WireMockServer wireMockServer = new WireMockServer(options().dynamicPort());
+	public static WireMockServer wireMockServer;
 
 	protected void setup(String... env) {
 		List<String> envList = (env != null) ? new ArrayList<>(Arrays.asList(env)) : new ArrayList<>();
@@ -86,13 +84,14 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	}
 
 	@BeforeAll
-	public static void startWireMockServer() {
+	static void startWireMockServer() {
+		wireMockServer = new WireMockServer(options().dynamicPort());
 		wireMockServer.start();
 		WireMock.configureFor(wireMockServer.port());
 	}
 
 	@AfterEach
-	public void afterEach() {
+	void afterEach() {
 		if (this.context != null) {
 			this.context.close();
 			this.context = null;
@@ -100,7 +99,7 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	}
 
 	@BeforeEach
-	public void beforeEach() {
+	void beforeEach() {
 		V1ConfigMapList TEST_CONFIGMAP = new V1ConfigMapList().addItemsItem(new V1ConfigMapBuilder().withMetadata(
 				new V1ObjectMetaBuilder().withName("test-cm").withNamespace("default").withResourceVersion("1").build())
 				.addToData("app.name", "test").build());
@@ -112,7 +111,7 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	// 1. watchers
 
 	@Test
-	public void kubernetesWatchersWhenKubernetesDisabled() throws Exception {
+	void kubernetesWatchersWhenKubernetesDisabled() throws Exception {
 		setup();
 		assertThat(context.containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(context.containsBean("secretsPropertySourceLocator")).isFalse();
@@ -123,7 +122,7 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	}
 
 	@Test
-	public void kubernetesWatchersWhenConfigDisabled() throws Exception {
+	void kubernetesWatchersWhenConfigDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.config.enabled=false");
 		assertThat(context.containsBean("configMapPropertyChangePollingWatcher")).isFalse();
 		assertThat(context.containsBean("secretsPropertyChangePollingWatcher")).isFalse();
@@ -132,7 +131,7 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	}
 
 	@Test
-	public void kubernetesWatchersWhenReloadDisabled() throws Exception {
+	void kubernetesWatchersWhenReloadDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.reload.enabled=false");
 		assertThat(context.containsBean("configMapPropertyChangePollingWatcher")).isFalse();
 		assertThat(context.containsBean("secretsPropertyChangePollingWatcher")).isFalse();
@@ -141,7 +140,7 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	}
 
 	@Test
-	public void kubernetesReloadEnabledButSecretAndConfigDisabled() throws Exception {
+	void kubernetesReloadEnabledButSecretAndConfigDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.reload.enabled=true", "spring.cloud.kubernetes.config.enabled=false",
 				"spring.cloud.kubernetes.secrets.enabled=false");
 		assertThat(context.containsBean("configMapPropertyChangePollingWatcher")).isFalse();
@@ -151,7 +150,7 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	}
 
 	@Test
-	public void kubernetesReloadEnabledWithPolling() throws Exception {
+	void kubernetesReloadEnabledWithPolling() throws Exception {
 		setup("spring.cloud.kubernetes.reload.enabled=true", "spring.cloud.kubernetes.reload.mode=polling",
 				"spring.main.cloud-platform=KUBERNETES");
 		assertThat(context.containsBean("configMapPropertySourceLocator")).isTrue();
@@ -163,7 +162,7 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	}
 
 	@Test
-	public void kubernetesReloadEnabledWithEvent() throws Exception {
+	void kubernetesReloadEnabledWithEvent() throws Exception {
 		setup("spring.cloud.kubernetes.reload.enabled=true", "spring.cloud.kubernetes.reload.mode=event",
 				"spring.main.cloud-platform=KUBERNETES");
 		assertThat(context.containsBean("configMapPropertyChangePollingWatcher")).isFalse();
@@ -175,21 +174,21 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	// 2. config and secrets property source locators
 
 	@Test
-	public void kubernetesConfigAndSecretEnabledByDefault() throws Exception {
+	void kubernetesConfigAndSecretEnabledByDefault() throws Exception {
 		setup("spring.main.cloud-platform=KUBERNETES");
 		assertThat(context.containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(context.containsBean("secretsPropertySourceLocator")).isTrue();
 	}
 
 	@Test
-	public void kubernetesConfigEnabledButSecretDisabled() throws Exception {
+	void kubernetesConfigEnabledButSecretDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.secrets.enabled=false", "spring.main.cloud-platform=KUBERNETES");
 		assertThat(context.containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(context.containsBean("secretsPropertySourceLocator")).isFalse();
 	}
 
 	@Test
-	public void kubernetesSecretsEnabledButConfigDisabled() throws Exception {
+	void kubernetesSecretsEnabledButConfigDisabled() throws Exception {
 		setup("spring.cloud.kubernetes.config.enabled=false", "spring.main.cloud-platform=KUBERNETES");
 		assertThat(context.containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(context.containsBean("secretsPropertySourceLocator")).isTrue();

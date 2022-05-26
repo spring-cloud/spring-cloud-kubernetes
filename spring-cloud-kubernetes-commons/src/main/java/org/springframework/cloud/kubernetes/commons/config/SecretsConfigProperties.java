@@ -94,10 +94,9 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 	 */
 	public List<NormalizedSource> determineSources(Environment environment) {
 		if (this.sources.isEmpty()) {
-
 			List<NormalizedSource> result = new ArrayList<>(2);
 			String name = getApplicationName(environment, this.name, "Secret");
-			result.add(new NamedSecretNormalizedSource(name, this.namespace, this.isFailFast()));
+			result.add(new NamedSecretNormalizedSource(name, this.namespace, this.isFailFast(), ""));
 
 			if (!labels.isEmpty()) {
 				result.add(new LabeledSecretNormalizedSource(this.namespace, this.labels, this.isFailFast()));
@@ -105,9 +104,8 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			return result;
 		}
 
-		return this.sources.stream()
-				.flatMap(s -> s.normalize(this.name, this.namespace, this.labels, this.isFailFast(), environment))
-				.collect(Collectors.toList());
+		return this.sources.stream().flatMap(s -> s.normalize(this.name, this.namespace, this.labels, this.failFast,
+				this.useNameAsPrefix, environment)).collect(Collectors.toList());
 	}
 
 	public static class Source {
@@ -127,14 +125,18 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		 */
 		private Map<String, String> labels = Collections.emptyMap();
 
-		public Source() {
-		}
+		/**
+		 * An explicit prefix to be used for properties.
+		 */
+		private String explicitPrefix;
 
-		@Deprecated
-		public Source(String name, String namespace, Map<String, String> labels) {
-			this.name = name;
-			this.namespace = namespace;
-			this.labels = labels;
+		/**
+		 * Use secret name as prefix for properties. Can't be a primitive, we need to know
+		 * if it was explicitly set or not
+		 */
+		private Boolean useNameAsPrefix;
+
+		public Source() {
 		}
 
 		public String getName() {
@@ -161,12 +163,29 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			return this.labels;
 		}
 
+		public String getExplicitPrefix() {
+			return explicitPrefix;
+		}
+
+		public void setExplicitPrefix(String explicitPrefix) {
+			this.explicitPrefix = explicitPrefix;
+		}
+
+		public Boolean getUseNameAsPrefix() {
+			return useNameAsPrefix;
+		}
+
+		public void setUseNameAsPrefix(Boolean useNameAsPrefix) {
+			this.useNameAsPrefix = useNameAsPrefix;
+		}
+
 		public boolean isEmpty() {
 			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
 
 		private Stream<NormalizedSource> normalize(String defaultName, String defaultNamespace,
-				Map<String, String> defaultLabels, boolean failFast, Environment environment) {
+				Map<String, String> defaultLabels, boolean failFast, boolean defaultUseNameAsPrefix,
+				Environment environment) {
 
 			Stream.Builder<NormalizedSource> normalizedSources = Stream.builder();
 
@@ -175,8 +194,12 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			Map<String, String> normalizedLabels = this.labels.isEmpty() ? defaultLabels : this.labels;
 
 			String secretName = getApplicationName(environment, normalizedName, "Secret");
+
+			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, this.useNameAsPrefix, defaultUseNameAsPrefix,
+					normalizedName);
+
 			NormalizedSource nameBasedSource = new NamedSecretNormalizedSource(secretName, normalizedNamespace,
-					failFast);
+					failFast, prefix);
 			normalizedSources.add(nameBasedSource);
 
 			if (!normalizedLabels.isEmpty()) {

@@ -23,7 +23,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
@@ -35,6 +34,7 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProper
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
+import org.springframework.cloud.util.ConditionalOnBootstrapEnabled;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -50,7 +50,7 @@ import org.springframework.core.env.Environment;
 @ConditionalOnClass({ ConfigMap.class, Secret.class })
 @AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-@ConditionalOnProperty(value = "spring.cloud.bootstrap.enabled", havingValue = "true")
+@ConditionalOnBootstrapEnabled
 public class Fabric8BootstrapConfiguration {
 
 	@Bean
