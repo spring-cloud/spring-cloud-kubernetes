@@ -261,10 +261,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 		String secondKey = keys.next();
 
 		if (firstKey.contains("first")) {
-			Assertions.assertEquals(firstKey, "blue-secret.another-blue-secret.first");
+			Assertions.assertEquals(firstKey, "another-blue-secret.blue-secret.first");
 		}
 
-		Assertions.assertEquals(secondKey, "blue-secret.another-blue-secret.second");
+		Assertions.assertEquals(secondKey, "another-blue-secret.blue-secret.second");
 		Assertions.assertEquals(properties.get(firstKey), "blue");
 		Assertions.assertEquals(properties.get(secondKey), "blue");
 	}

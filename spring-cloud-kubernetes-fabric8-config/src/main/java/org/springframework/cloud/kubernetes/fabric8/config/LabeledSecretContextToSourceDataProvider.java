@@ -95,7 +95,7 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 					}
 
 					String secretNames = secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName)
-							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+						.sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 					propertySourceNames.add(secretNames);
 
 					if (source.prefix() != ConfigUtils.Prefix.UNSET) {

@@ -89,13 +89,12 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Kuberne
 						// If there are more than one secret found per labels, and they
 						// have the same key on a
 						// property, but different values; one value will override the
-						// other, without any
-						// particular order.
+						// other, without any particular order.
 						result.putAll(dataFromSecret(secret, namespace));
 					}
 
 					String secretNames = secrets.stream().map(V1Secret::getMetadata).map(V1ObjectMeta::getName)
-							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+						.sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 					propertySourceNames.add(secretNames);
 
 					if (source.prefix() != ConfigUtils.Prefix.UNSET) {
