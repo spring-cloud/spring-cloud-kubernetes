@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.applications.named_secret_with_prefix;
+package org.springframework.cloud.kubernetes.client.config.applications.labeled_secret_with_prefix;
 
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
- * @author Ryan Baxter
+ * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedSecretWithPrefixApp.class,
-		properties = { "spring.cloud.bootstrap.name=named-secret-with-prefix", "named.secret.with.prefix.stub=true",
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = LabeledSecretWithPrefixApp.class,
+		properties = { "spring.cloud.bootstrap.name=labeled-secret-with-prefix", "labeled.secret.with.prefix.stub=true",
 				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true",
 				"spring.cloud.kubernetes.client.namespace=spring-k8s" })
-class NamedSecretWithPrefixBootstrapTests extends NamedSecretWithPrefixTests {
+class LabeledSecretWithPrefixBootstrapTests extends LabeledSecretWithPrefixTests {
 
 }

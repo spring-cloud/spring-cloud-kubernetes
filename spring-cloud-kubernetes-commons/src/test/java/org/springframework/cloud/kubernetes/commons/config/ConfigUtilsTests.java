@@ -29,32 +29,55 @@ class ConfigUtilsTests {
 
 	@Test
 	void testExplicitPrefixSet() {
-		String result = ConfigUtils.findPrefix("explicitPrefix", null, false, "irrelevant");
-		Assertions.assertEquals(result, "explicitPrefix");
+		ConfigUtils.Prefix result = ConfigUtils.findPrefix("explicitPrefix", null, false, "irrelevant");
+		Assertions.assertSame(result, ConfigUtils.Prefix.KNOWN);
+		Assertions.assertEquals(result.prefixProvider().get(), "explicitPrefix");
 	}
 
 	@Test
 	void testUseNameAsPrefixTrue() {
-		String result = ConfigUtils.findPrefix("", Boolean.TRUE, false, "name-to-use");
-		Assertions.assertEquals(result, "name-to-use");
+		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", Boolean.TRUE, false, "name-to-use");
+		Assertions.assertSame(result, ConfigUtils.Prefix.KNOWN);
+		Assertions.assertEquals(result.prefixProvider().get(), "name-to-use");
 	}
 
 	@Test
 	void testUseNameAsPrefixFalse() {
-		String result = ConfigUtils.findPrefix("", Boolean.FALSE, false, "name-not-to-use");
-		Assertions.assertEquals(result, "");
+		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", Boolean.FALSE, false, "name-not-to-use");
+		Assertions.assertSame(result, ConfigUtils.Prefix.DEFAULT);
 	}
 
 	@Test
 	void testDefaultUseNameAsPrefixTrue() {
-		String result = ConfigUtils.findPrefix("", null, true, "name-to-use");
-		Assertions.assertEquals(result, "name-to-use");
+		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", null, true, "name-to-use");
+		Assertions.assertSame(result, ConfigUtils.Prefix.KNOWN);
+		Assertions.assertEquals(result.prefixProvider().get(), "name-to-use");
 	}
 
 	@Test
 	void testNoMatch() {
-		String result = ConfigUtils.findPrefix("", null, false, "name-not-to-use");
-		Assertions.assertEquals(result, "");
+		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", null, false, "name-not-to-use");
+		Assertions.assertSame(result, ConfigUtils.Prefix.DEFAULT);
+	}
+
+	@Test
+	void testUnsetEmpty() {
+		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", null, false, "name-not-to-use");
+		Assertions.assertSame(result, ConfigUtils.Prefix.DEFAULT);
+
+		String expected = Assertions.assertDoesNotThrow(() -> result.prefixProvider().get());
+		Assertions.assertEquals("", expected);
+	}
+
+	@Test
+	void testDelayed() {
+		ConfigUtils.Prefix result = ConfigUtils.findPrefix(null, true, false, null);
+		Assertions.assertSame(result, ConfigUtils.Prefix.DELAYED);
+
+		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class,
+				() -> result.prefixProvider().get());
+
+		Assertions.assertEquals("prefix is delayed, needs to be taken elsewhere", ex.getMessage());
 	}
 
 	/**

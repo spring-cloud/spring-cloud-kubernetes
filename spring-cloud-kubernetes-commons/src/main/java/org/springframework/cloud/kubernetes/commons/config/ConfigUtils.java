@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -61,31 +62,49 @@ public final class ConfigUtils {
 	 * @param normalizedName either the name of
 	 * 'spring.cloud.kubernetes.config|secrets.sources.name' or
 	 * 'spring.cloud.kubernetes.config|secrets.name'
-	 * @return prefix to use in normalized sources, never null
+	 * @return prefix to use in normalized sources
 	 */
-	public static String findPrefix(String explicitPrefix, Boolean useNameAsPrefix, boolean defaultUseNameAsPrefix,
+	public static Prefix findPrefix(String explicitPrefix, Boolean useNameAsPrefix, boolean defaultUseNameAsPrefix,
 			String normalizedName) {
 		// if explicitPrefix is set, it takes priority over useNameAsPrefix
 		// (either the one from 'spring.cloud.kubernetes.config|secrets' or
 		// 'spring.cloud.kubernetes.config|secrets.sources')
 		if (StringUtils.hasText(explicitPrefix)) {
-			return explicitPrefix;
+			Prefix.computeKnown(() -> explicitPrefix);
+			return Prefix.KNOWN;
 		}
 
 		// useNameAsPrefix is a java.lang.Boolean and if it's != null, users have
 		// specified it explicitly
 		if (useNameAsPrefix != null) {
 			if (useNameAsPrefix) {
-				return normalizedName;
+				// this is the case when the source is searched by labels,
+				// but prefix support is enabled.
+				// in such cases, the name is not known yet.
+				if (normalizedName == null) {
+					return Prefix.DELAYED;
+				}
+
+				Prefix.computeKnown(() -> normalizedName);
+				return Prefix.KNOWN;
 			}
-			return "";
+			return Prefix.DEFAULT;
 		}
 
 		if (defaultUseNameAsPrefix) {
-			return normalizedName;
+
+			// this is the case when the source is searched by labels,
+			// but prefix support is enabled.ConfigUtilsTests
+			// in such cases, the name is not known yet.
+			if (normalizedName == null) {
+				return Prefix.DELAYED;
+			}
+
+			Prefix.computeKnown(() -> normalizedName);
+			return Prefix.KNOWN;
 		}
 
-		return "";
+		return Prefix.DEFAULT;
 	}
 
 	/**
@@ -128,6 +147,43 @@ public final class ConfigUtils {
 
 	public static String sourceName(String target, String applicationName, String namespace) {
 		return target + PROPERTY_SOURCE_NAME_SEPARATOR + applicationName + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
+	}
+
+	public static final class Prefix {
+
+		/**
+		 * prefix has not been provided.
+		 */
+		public static final Prefix DEFAULT = new Prefix(() -> "");
+
+		/**
+		 * prefix has been enabled, but the actual value will be known later; the value
+		 * for the prefix will be the name of the source. (this is the case for a
+		 * prefix-enabled labeled source for example)
+		 */
+		public static final Prefix DELAYED = new Prefix(() -> {
+			throw new IllegalArgumentException("prefix is delayed, needs to be taken elsewhere");
+		});
+
+		/**
+		 * prefix is known at the callsite.
+		 */
+		public static Prefix KNOWN;
+
+		public Supplier<String> prefixProvider() {
+			return prefixProvider;
+		}
+
+		private final Supplier<String> prefixProvider;
+
+		private Prefix(Supplier<String> prefixProvider) {
+			this.prefixProvider = prefixProvider;
+		}
+
+		private static void computeKnown(Supplier<String> supplier) {
+			KNOWN = new Prefix(supplier);
+		}
+
 	}
 
 }

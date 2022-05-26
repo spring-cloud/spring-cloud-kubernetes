@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.applications.named_secret_with_prefix;
+package org.springframework.cloud.kubernetes.client.config.applications.labeled_secret_with_prefix;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -28,17 +28,17 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.Mockito.mockStatic;
-import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.NamedSecretWithPrefixConfigurationStub.stubData;
+import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.LabeledSecretWithPrefixConfigurationStub.stubData;
 
 /**
- * @author Ryan Baxter
+ * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedSecretWithPrefixApp.class,
-		properties = { "spring.cloud.application.name=named-secret-with-prefix", "named.secret.with.prefix.stub=true",
-				"spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:,classpath:./named-secret-with-prefix.yaml",
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = LabeledSecretWithPrefixApp.class,
+		properties = { "spring.cloud.application.name=labeled-secret-with-prefix",
+				"labeled.secret.with.prefix.stub=true", "spring.main.cloud-platform=KUBERNETES",
+				"spring.config.import=kubernetes:,classpath:./labeled-secret-with-prefix.yaml",
 				"spring.cloud.kubernetes.client.namespace=spring-k8s" })
-class NamedSecretWithPrefixConfigDataTests extends NamedSecretWithPrefixTests {
+class LabeledSecretWithPrefixConfigDataTests extends LabeledSecretWithPrefixTests {
 
 	private static MockedStatic<KubernetesClientUtils> clientUtilsMock;
 
