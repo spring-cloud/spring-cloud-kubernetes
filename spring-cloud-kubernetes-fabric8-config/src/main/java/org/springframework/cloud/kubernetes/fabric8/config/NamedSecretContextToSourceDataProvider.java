@@ -28,7 +28,7 @@ import org.springframework.cloud.kubernetes.commons.config.PrefixContext;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.configMapDataByName;
+import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.secretDataByName;
 
 /**
@@ -64,7 +64,7 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 				if (context.environment() != null && source.profileSpecificSources()) {
 					for (String activeProfile : context.environment().getActiveProfiles()) {
 						currentSecretName = initialSecretName + "-" + activeProfile;
-						Map<String, String> dataWithProfile = configMapDataByName(context.client(), namespace,
+						Map<String, Object> dataWithProfile = secretDataByName(context.client(), namespace,
 								currentSecretName);
 						if (!dataWithProfile.isEmpty()) {
 							propertySourceNames.add(currentSecretName);
@@ -88,8 +88,8 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 				onException(source.failFast(), message, e);
 			}
 
-			String sourceName = ConfigUtils.sourceName(source.target(), initialSecretName, namespace);
-			return new SourceData(sourceName, result);
+			String names = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
+			return new SourceData(ConfigUtils.sourceName(source.target(), names, namespace), result);
 		};
 	}
 
