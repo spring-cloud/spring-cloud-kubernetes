@@ -18,16 +18,9 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Secret;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
@@ -36,7 +29,7 @@ import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.dataFromSecret;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.secretDataByLabels;
 
 /**
  * Provides an implementation of {@link Fabric8ContextToSourceData} for a labeled secret.
@@ -44,8 +37,6 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
  * @author wind57
  */
 final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8ContextToSourceData> {
-
-	private static final Log LOG = LogFactory.getLog(LabeledSecretContextToSourceDataProvider.class);
 
 	LabeledSecretContextToSourceDataProvider() {
 	}
@@ -76,28 +67,13 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 
 			try {
 
-				LOG.info("Loading Secret(s) with labels '" + labels + "' in namespace '" + namespace + "'");
-				List<Secret> secrets = context.client().secrets().inNamespace(namespace).withLabels(labels).list()
-						.getItems();
+				Map.Entry<String, Map<String, Object>> entry = secretDataByLabels(context.client(), namespace, labels);
+				if (!entry.getValue().isEmpty()) {
 
-				if (!secrets.isEmpty()) {
+					propertySourceNames.add(entry.getKey());
+					result.putAll(entry.getValue());
 
-					for (Secret secret : secrets) {
-						// we support prefix per source, not per secret. This means that
-						// in theory
-						// we can still have clashes here, that we simply override.
-						// If there are more than one secret found per labels, and they
-						// have the same key on a
-						// property, but different values; one value will override the
-						// other, without any
-						// particular order.
-						result.putAll(dataFromSecret(secret, namespace));
-					}
-
-					String secretNames = secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName).sorted()
-							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-					propertySourceNames.add(secretNames);
-
+					// we found the source, it has prefix configured
 					if (source.prefix() != ConfigUtils.Prefix.DEFAULT) {
 
 						String prefix;
@@ -105,22 +81,16 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 							prefix = source.prefix().prefixProvider().get();
 						}
 						else {
-							// prefix is going to be all the secret names we found based
-							// on the labels
-							// concatenated with PROPERTY_SOURCE_NAME_SEPARATOR
-							prefix = secretNames;
+							prefix = entry.getKey();
 						}
 
 						PrefixContext prefixContext = new PrefixContext(result, prefix, namespace, propertySourceNames);
 						return ConfigUtils.withPrefix(source.target(), prefixContext);
 					}
 
+					// we found the source, it has no prefix configured
 					String names = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
 					return new SourceData(ConfigUtils.sourceName(source.target(), names, namespace), result);
-
-				}
-				else {
-					LOG.info("No Secret(s) with labels '" + labels + "' in namespace '" + namespace + "' found.");
 				}
 
 			}
@@ -129,7 +99,7 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 				onException(source.failFast(), message, e);
 			}
 
-			// if we could not find a secret with provided labels, we will compute a
+			// if we could not find the source with provided labels. Will compute a
 			// response with an empty Map
 			// and name that will use all the label names (not their values)
 			String propertySourceNameFromLabels = ConfigUtils.sourceName(source.target(), sourceNameFromLabels,

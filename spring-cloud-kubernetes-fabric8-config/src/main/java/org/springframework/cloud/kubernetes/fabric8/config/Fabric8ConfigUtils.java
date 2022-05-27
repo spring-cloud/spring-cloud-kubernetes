@@ -19,9 +19,12 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
@@ -31,6 +34,8 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 
 /**
  * Utility class that works with configuration properties.
@@ -93,9 +98,10 @@ final class Fabric8ConfigUtils {
 
 	/*
 	 * namespace that reaches this point is absolutely present, otherwise this would have
-	 * resulted in a NamespaceResolutionFailedException
+	 * resulted in a NamespaceResolutionFailedException.
 	 */
-	static Map<String, String> getConfigMapData(KubernetesClient client, String namespace, String name) {
+	static Map<String, String> configMapDataByName(KubernetesClient client, String namespace, String name) {
+		LOG.debug("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
 		ConfigMap configMap = client.configMaps().inNamespace(namespace).withName(name).get();
 
 		if (configMap == null) {
@@ -106,15 +112,47 @@ final class Fabric8ConfigUtils {
 		return configMap.getData();
 	}
 
-	/**
-	 * return decoded data from a secret within a namespace.
-	 */
-	static Map<String, Object> dataFromSecret(Secret secret, String namespace) {
-		LOG.debug("reading secret with name : " + secret.getMetadata().getName() + " in namespace : " + namespace);
-		return secretData(secret.getData());
+	static Map<String, Object> secretDataByName(KubernetesClient client, String namespace, String name) {
+		LOG.debug("Loading Secret with name '" + name + "' in namespace '" + namespace + "'");
+		Secret secret = client.secrets().inNamespace(namespace).withName(name).get();
+
+		if (secret == null) {
+			LOG.warn("secret with name : '" + name + "' not present in namespace : '" + namespace + "'");
+			return Collections.emptyMap();
+		}
+
+		return decodeData(secret.getData());
 	}
 
-	private static Map<String, Object> secretData(Map<String, String> data) {
+	static Map.Entry<String, Map<String, Object>> secretDataByLabels(KubernetesClient client, String namespace,
+			Map<String, String> labels) {
+		LOG.debug("Loading Secret with labels '" + labels + "' in namespace '" + namespace + "'");
+		List<Secret> secrets = client.secrets().inNamespace(namespace).withLabels(labels).list().getItems();
+
+		if (secrets == null || secrets.isEmpty()) {
+			LOG.warn("secret(s) with labels : '" + labels + "' not present in namespace : '" + namespace + "'");
+			return Map.entry("", Collections.emptyMap());
+		}
+
+		Map<String, Object> result = new HashMap<>();
+		for (Secret secret : secrets) {
+			// we support prefix per source, not per secret. This means that
+			// in theory
+			// we can still have clashes here, that we simply override.
+			// If there are more than one secret found per labels, and they
+			// have the same key on a
+			// property, but different values; one value will override the
+			// other, without any
+			// particular order.
+			result.putAll(decodeData(secret.getData()));
+		}
+
+		String secretNames = secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName).sorted()
+				.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+		return Map.entry(secretNames, result);
+	}
+
+	private static Map<String, Object> decodeData(Map<String, String> data) {
 		Map<String, Object> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
 		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));
 		return result;

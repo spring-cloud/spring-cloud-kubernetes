@@ -49,7 +49,7 @@ class Fabric8SecretsPropertySourceMockTests {
 		final String namespace = "default";
 		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
 
-		NamedSecretNormalizedSource named = new NamedSecretNormalizedSource(name, namespace, true);
+		NamedSecretNormalizedSource named = new NamedSecretNormalizedSource(name, namespace, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, named, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
@@ -77,7 +77,7 @@ class Fabric8SecretsPropertySourceMockTests {
 		final String namespace = "default";
 		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
 
-		NamedSecretNormalizedSource named = new NamedSecretNormalizedSource(name, namespace, false);
+		NamedSecretNormalizedSource named = new NamedSecretNormalizedSource(name, namespace, false, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, named, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
