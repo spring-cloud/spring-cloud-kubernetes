@@ -86,11 +86,11 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 				}
 
 				/*
-				 * 1. read all config maps in the namespace 2. filter the ones that match
-				 * user supplied name + profile specific ones 3. get an Entry that
+				 * <pre> 1. read all config maps in the namespace 2. filter the ones that
+				 * match user supplied name + profile specific ones 3. get an Entry that
 				 * contains the data from config map + its name 4. create a single map
 				 * that contains all the data from all config maps; also create a unified
-				 * name of the property source (combined config map names).
+				 * name of the property source (combined config map names). </pre>
 				 */
 				context.client()
 						.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null, null)

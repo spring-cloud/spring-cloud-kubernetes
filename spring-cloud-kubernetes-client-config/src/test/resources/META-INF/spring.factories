@@ -3,4 +3,5 @@ org.springframework.cloud.kubernetes.client.config.boostrap.stubs.IncludeProfile
 org.springframework.cloud.kubernetes.client.config.boostrap.stubs.NamedConfigMapWithPrefixConfigurationStub, \
 org.springframework.cloud.kubernetes.client.config.boostrap.stubs.LabeledSecretWithPrefixConfigurationStub, \
 org.springframework.cloud.kubernetes.client.config.boostrap.stubs.NamedSecretWithPrefixConfigurationStub, \
+  org.springframework.cloud.kubernetes.client.config.boostrap.stubs.NamedSecretWithProfileConfigurationStub, \
 org.springframework.cloud.kubernetes.client.config.EnableRetryBootstrapConfiguration

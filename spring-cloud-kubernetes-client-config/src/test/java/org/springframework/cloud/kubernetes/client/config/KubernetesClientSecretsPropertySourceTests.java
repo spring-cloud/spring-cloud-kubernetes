@@ -119,7 +119,7 @@ class KubernetesClientSecretsPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SECRET_LIST))));
 
-		NormalizedSource source = new NamedSecretNormalizedSource("db-secret", "default", false);
+		NormalizedSource source = new NamedSecretNormalizedSource("db-secret", "default", false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
 				new MockEnvironment());
 
@@ -151,7 +151,7 @@ class KubernetesClientSecretsPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		NormalizedSource source = new NamedSecretNormalizedSource("secret", "default", true);
+		NormalizedSource source = new NamedSecretNormalizedSource("secret", "default", true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
 				new MockEnvironment());
 
@@ -166,7 +166,7 @@ class KubernetesClientSecretsPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		NormalizedSource source = new NamedSecretNormalizedSource("secret", "db-secret", false);
+		NormalizedSource source = new NamedSecretNormalizedSource("secret", "db-secret", false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
 				new MockEnvironment());
 

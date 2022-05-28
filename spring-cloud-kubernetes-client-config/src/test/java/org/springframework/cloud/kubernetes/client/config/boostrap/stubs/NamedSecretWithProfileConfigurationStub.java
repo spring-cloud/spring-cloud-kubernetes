@@ -44,8 +44,8 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
  */
 @Order(0)
 @Configuration
-@ConditionalOnProperty("named.secret.with.prefix.stub")
-public class NamedSecretWithPrefixConfigurationStub {
+@ConditionalOnProperty("named.secret.with.profile.stub")
+public class NamedSecretWithProfileConfigurationStub {
 
 	@Bean
 	public WireMockServer wireMock() {
@@ -69,18 +69,33 @@ public class NamedSecretWithPrefixConfigurationStub {
 						.withResourceVersion("1").build())
 				.addToData(Collections.singletonMap("one.property", "one".getBytes())).build();
 
+		V1Secret oneWithProfile = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("secret-one-k8s").withNamespace("spring-k8s")
+						.withResourceVersion("1").build())
+				.addToData(Collections.singletonMap("one.property", "one-from-k8s".getBytes())).build();
+
 		V1Secret two = new V1SecretBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("secret-two").withNamespace("spring-k8s")
 						.withResourceVersion("1").build())
 				.addToData(Collections.singletonMap("property", "two".getBytes())).build();
+
+		V1Secret twoWithProfile = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("secret-two-k8s").withNamespace("spring-k8s")
+						.withResourceVersion("1").build())
+				.addToData(Collections.singletonMap("property", "two-from-k8s".getBytes())).build();
 
 		V1Secret three = new V1SecretBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("secret-three").withNamespace("spring-k8s")
 						.withResourceVersion("1").build())
 				.addToData(Collections.singletonMap("property", "three".getBytes())).build();
 
+		V1Secret threeFromProfile = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("secret-three-k8s").withNamespace("spring-k8s")
+						.withResourceVersion("1").build())
+				.addToData(Collections.singletonMap("property", "three-from-k8s".getBytes())).build();
+
 		V1SecretList allSecrets = new V1SecretList();
-		allSecrets.setItems(Arrays.asList(one, two, three));
+		allSecrets.setItems(Arrays.asList(one, oneWithProfile, two, twoWithProfile, three, threeFromProfile));
 
 		// the actual stub for CoreV1Api calls
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/secrets")

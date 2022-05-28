@@ -117,7 +117,7 @@ class KubernetesEnvironmentRepositoryTests {
 		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
-			NormalizedSource source = new NamedSecretNormalizedSource(applicationName, "default", false);
+			NormalizedSource source = new NamedSecretNormalizedSource(applicationName, "default", false, false);
 			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, "default",
 					springEnv);
 

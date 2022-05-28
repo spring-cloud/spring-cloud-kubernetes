@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
@@ -45,6 +46,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 class NamedSecretContextToSourceDataProviderTests {
+
+	private static final ConfigUtils.Prefix PREFIX = ConfigUtils.findPrefix("some", false, false, "irrelevant");
 
 	private static final String NAMESPACE = "default";
 
@@ -84,7 +87,7 @@ class NamedSecretContextToSourceDataProviderTests {
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
 		// blue does not match red
-		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false);
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -125,7 +128,7 @@ class NamedSecretContextToSourceDataProviderTests {
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
 		// blue does not match red
-		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false);
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -156,7 +159,7 @@ class NamedSecretContextToSourceDataProviderTests {
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
 		// blue does not match red
-		NormalizedSource source = new NamedSecretNormalizedSource("blue", NAMESPACE, false);
+		NormalizedSource source = new NamedSecretNormalizedSource("blue", NAMESPACE, false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -182,7 +185,7 @@ class NamedSecretContextToSourceDataProviderTests {
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
 		// blue does not match red
-		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE + "nope", false);
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE + "nope", false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -191,6 +194,131 @@ class NamedSecretContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.red.default");
 		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
+	}
+
+	/**
+	 * we have two secrets deployed. one matches the query name. the other matches the
+	 * active profile + name, thus is taken also.
+	 */
+	@Test
+	void matchIncludeSingleProfile() {
+
+		V1SecretList secretList = new V1SecretList()
+				.addItemsItem(
+						new V1SecretBuilder()
+								.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red")
+										.withResourceVersion("1").build())
+								.addToData("color", "really-red".getBytes()).build())
+				.addItemsItem(
+						new V1SecretBuilder()
+								.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE)
+										.withName("red-with-profile").withResourceVersion("1").build())
+								.addToData("taste", "mango".getBytes()).build());
+
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get("/api/v1/namespaces/default/secrets")
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
+
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false, true);
+		MockEnvironment environment = new MockEnvironment();
+		environment.addActiveProfile("with-profile");
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+
+		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-profile.default");
+		Assertions.assertEquals(sourceData.sourceData().size(), 2);
+		Assertions.assertEquals(sourceData.sourceData().get("color"), "really-red");
+		Assertions.assertEquals(sourceData.sourceData().get("taste"), "mango");
+
+	}
+
+	/**
+	 * we have two secrets deployed. one matches the query name. the other matches the
+	 * active profile + name, thus is taken also. This takes into consideration the
+	 * prefix, that we explicitly specify. Notice that prefix works for profile based
+	 * secrets as well.
+	 */
+	@Test
+	void matchIncludeSingleProfileWithPrefix() {
+
+		V1SecretList secretList = new V1SecretList()
+				.addItemsItem(
+						new V1SecretBuilder()
+								.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red")
+										.withResourceVersion("1").build())
+								.addToData("color", "really-red".getBytes()).build())
+				.addItemsItem(
+						new V1SecretBuilder()
+								.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE)
+										.withName("red-with-taste").withResourceVersion("1").build())
+								.addToData("taste", "mango".getBytes()).build());
+
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get("/api/v1/namespaces/default/secrets")
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
+
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, true, PREFIX, true);
+		MockEnvironment environment = new MockEnvironment();
+		environment.addActiveProfile("with-taste");
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+
+		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-taste.default");
+		Assertions.assertEquals(sourceData.sourceData().size(), 2);
+		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
+		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
+
+	}
+
+	/**
+	 * we have three secrets deployed. one matches the query name. the other two match the
+	 * active profile + name, thus are taken also. This takes into consideration the
+	 * prefix, that we explicitly specify. Notice that prefix works for profile based
+	 * config maps as well.
+	 */
+	@Test
+	void matchIncludeTwoProfilesWithPrefix() {
+
+		V1SecretList secretList = new V1SecretList()
+				.addItemsItem(
+						new V1SecretBuilder()
+								.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red")
+										.withResourceVersion("1").build())
+								.addToData("color", "really-red".getBytes()).build())
+				.addItemsItem(
+						new V1SecretBuilder()
+								.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE)
+										.withName("red-with-taste").withResourceVersion("1").build())
+								.addToData("taste", "mango".getBytes()).build())
+				.addItemsItem(
+						new V1SecretBuilder()
+								.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE)
+										.withName("red-with-shape").withResourceVersion("1").build())
+								.addToData("shape", "round".getBytes()).build());
+
+		CoreV1Api api = new CoreV1Api();
+		stubFor(get("/api/v1/namespaces/default/secrets")
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
+
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, true, PREFIX, true);
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("with-taste", "with-shape");
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+
+		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-taste.red-with-shape.default");
+
+		Assertions.assertEquals(sourceData.sourceData().size(), 3);
+		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
+		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
+		Assertions.assertEquals(sourceData.sourceData().get("some.shape"), "round");
+
 	}
 
 }
