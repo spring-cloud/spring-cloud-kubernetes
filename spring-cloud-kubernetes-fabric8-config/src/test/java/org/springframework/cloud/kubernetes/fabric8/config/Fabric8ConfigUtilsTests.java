@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.Base64;
 import java.util.Map;
+import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
@@ -30,6 +31,8 @@ import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.cloud.kubernetes.commons.config.SourceDataEntriesProcessor;
+import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -90,9 +93,10 @@ class Fabric8ConfigUtilsTests {
 	void testSecretDataByLabelsSecretNotFound() {
 		client.secrets().inNamespace("spring-k8s").create(
 				new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build()).build());
-		Map.Entry<String, Map<String, Object>> result = Fabric8ConfigUtils.secretDataByLabels(client, "spring-k8s",
-				Map.of("color", "red"));
-		Assertions.assertEquals("", result.getKey());
+		Map.Entry<Set<String>, Map<String, Object>> result = Fabric8ConfigUtils.secretsDataByLabels(client,
+				"spring-k8s", Map.of("color", "red"), new MockEnvironment(),
+				SourceDataEntriesProcessor::processAllEntries);
+		Assertions.assertEquals(Set.of(), result.getKey());
 		Assertions.assertTrue(result.getValue().isEmpty());
 	}
 
@@ -104,10 +108,28 @@ class Fabric8ConfigUtilsTests {
 				.withMetadata(new ObjectMetaBuilder().withName("my-secret").withLabels(Map.of("color", "pink")).build())
 				.addToData(Map.of("property", Base64.getEncoder().encodeToString("value".getBytes()))).build());
 
-		Map.Entry<String, Map<String, Object>> result = Fabric8ConfigUtils.secretDataByLabels(client, "spring-k8s",
-				Map.of("color", "pink"));
-		Assertions.assertEquals("my-secret", result.getKey());
+		Map.Entry<Set<String>, Map<String, Object>> result = Fabric8ConfigUtils.secretsDataByLabels(client,
+				"spring-k8s", Map.of("color", "pink"), new MockEnvironment(),
+				SourceDataEntriesProcessor::processAllEntries);
+		Assertions.assertEquals(Set.of("my-secret"), result.getKey());
 		Assertions.assertEquals(Map.of("property", "value"), result.getValue());
+	}
+
+	// secret "my-secret" is deployed with label {color:pink}; we search for it by same
+	// label and find it. This secret contains a single .yaml property, as such
+	// it gets some special treatment.
+	@Test
+	void testSecretDataByLabelsSecretFoundWithPropertyFile() {
+		client.secrets().inNamespace("spring-k8s").create(new SecretBuilder()
+				.withMetadata(new ObjectMetaBuilder().withName("my-secret").withLabels(Map.of("color", "pink")).build())
+				.addToData(Map.of("application.yaml", Base64.getEncoder().encodeToString("key1: value1".getBytes())))
+				.build());
+
+		Map.Entry<Set<String>, Map<String, Object>> result = Fabric8ConfigUtils.secretsDataByLabels(client,
+				"spring-k8s", Map.of("color", "pink"), new MockEnvironment(),
+				SourceDataEntriesProcessor::processAllEntries);
+		Assertions.assertEquals(Set.of("my-secret"), result.getKey());
+		Assertions.assertEquals(Map.of("key1", "value1"), result.getValue());
 	}
 
 	// secrets "my-secret" and "my-secret-2" are deployed with label {color:pink};
@@ -123,9 +145,9 @@ class Fabric8ConfigUtilsTests {
 						new ObjectMetaBuilder().withName("my-secret-2").withLabels(Map.of("color", "pink")).build())
 				.addToData(Map.of("property-2", Base64.getEncoder().encodeToString("value-2".getBytes()))).build());
 
-		Map.Entry<String, Map<String, Object>> result = Fabric8ConfigUtils.secretDataByLabels(client, "spring-k8s",
-				Map.of("color", "pink"));
-		Assertions.assertEquals(21, result.getKey().length());
+		Map.Entry<Set<String>, Map<String, Object>> result = Fabric8ConfigUtils.secretsDataByLabels(client,
+				"spring-k8s", Map.of("color", "pink"), new MockEnvironment(),
+				SourceDataEntriesProcessor::processAllEntries);
 		Assertions.assertTrue(result.getKey().contains("my-secret"));
 		Assertions.assertTrue(result.getKey().contains("my-secret-2"));
 
@@ -139,8 +161,9 @@ class Fabric8ConfigUtilsTests {
 	void testSecretDataByNameSecretNotFound() {
 		client.secrets().inNamespace("spring-k8s").create(
 				new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build()).build());
-		Map<String, Object> result = Fabric8ConfigUtils.secretDataByName(client, "spring-k8s", "nope");
-		Assertions.assertEquals(0, result.size());
+		Map.Entry<Set<String>, Map<String, Object>> result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s",
+				Set.of("nope"), new MockEnvironment(), SourceDataEntriesProcessor::processAllEntries);
+		Assertions.assertEquals(0, result.getKey().size());
 	}
 
 	// secret "my-secret" is deployed; we search for it by name and find it.
@@ -150,9 +173,10 @@ class Fabric8ConfigUtilsTests {
 				.create(new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build())
 						.addToData(Map.of("property", Base64.getEncoder().encodeToString("value".getBytes()))).build());
 
-		Map<String, Object> result = Fabric8ConfigUtils.secretDataByName(client, "spring-k8s", "my-secret");
-		Assertions.assertEquals(1, result.size());
-		Assertions.assertEquals("value", result.get("property"));
+		Map.Entry<Set<String>, Map<String, Object>> result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s",
+				Set.of("my-secret"), new MockEnvironment(), SourceDataEntriesProcessor::processAllEntries);
+		Assertions.assertEquals(1, result.getKey().size());
+		Assertions.assertEquals("value", result.getValue().get("property"));
 	}
 
 }

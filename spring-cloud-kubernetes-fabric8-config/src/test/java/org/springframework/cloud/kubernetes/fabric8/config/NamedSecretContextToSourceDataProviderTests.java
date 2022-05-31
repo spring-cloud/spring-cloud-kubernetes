@@ -34,6 +34,7 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
+import org.springframework.cloud.kubernetes.commons.config.SourceDataEntriesProcessor;
 import org.springframework.mock.env.MockEnvironment;
 
 /**
@@ -83,7 +84,8 @@ class NamedSecretContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider
+				.of(SourceDataEntriesProcessor::processAllEntries).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.red.default");
@@ -115,7 +117,8 @@ class NamedSecretContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider
+				.of(SourceDataEntriesProcessor::processAllEntries).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.red.default");
@@ -139,7 +142,8 @@ class NamedSecretContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider
+				.of(SourceDataEntriesProcessor::processAllEntries).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.blue.default");
@@ -165,7 +169,8 @@ class NamedSecretContextToSourceDataProviderTests {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
-		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider
+				.of(SourceDataEntriesProcessor::processAllEntries).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.red.default");
@@ -194,7 +199,8 @@ class NamedSecretContextToSourceDataProviderTests {
 		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
-		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider
+				.of(SourceDataEntriesProcessor::processAllEntries).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-profile.default");
@@ -230,7 +236,8 @@ class NamedSecretContextToSourceDataProviderTests {
 		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, PREFIX, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
-		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider
+				.of(SourceDataEntriesProcessor::processAllEntries).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-profile.default");
@@ -270,7 +277,8 @@ class NamedSecretContextToSourceDataProviderTests {
 
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
-		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		Fabric8ContextToSourceData data = NamedSecretContextToSourceDataProvider
+				.of(SourceDataEntriesProcessor::processAllEntries).get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-taste.red-with-shape.default");

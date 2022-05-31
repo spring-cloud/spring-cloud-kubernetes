@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.SourceDataEntriesProcessor;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -320,7 +320,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	}
 
 	// needed only to allow access to the super methods
-	private static final class Dummy extends ConfigMapPropertySource {
+	private static final class Dummy extends SourceDataEntriesProcessor {
 
 		private Dummy() {
 			super(SourceData.emptyRecord("dummy-name"));

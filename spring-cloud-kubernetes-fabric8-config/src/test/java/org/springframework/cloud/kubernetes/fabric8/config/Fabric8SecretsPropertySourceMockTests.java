@@ -54,7 +54,8 @@ class Fabric8SecretsPropertySourceMockTests {
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 		assertThatThrownBy(() -> new Fabric8SecretsPropertySource(context)).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name '" + name + "' in namespace '" + namespace + "'");
+				.hasMessageContaining("Failure executing: GET at: https://localhost:")
+				.hasMessageContaining("api/v1/namespaces/default/secrets. Message: Not Found.");
 	}
 
 	@Test
@@ -63,12 +64,12 @@ class Fabric8SecretsPropertySourceMockTests {
 		final Map<String, String> labels = Collections.singletonMap("a", "b");
 		final String path = String.format("/api/v1/namespaces/%s/secrets?labelSelector=", namespace) + "a%3Db";
 
-		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, true);
+		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 		assertThatThrownBy(() -> new Fabric8SecretsPropertySource(context)).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'");
+				.hasMessageContaining("api/v1/namespaces/default/secrets?labelSelector=a%3Db. Message: Internal Server Error.");
 	}
 
 	@Test
@@ -90,7 +91,7 @@ class Fabric8SecretsPropertySourceMockTests {
 		final Map<String, String> labels = Collections.singletonMap("a", "b");
 		final String path = String.format("/api/v1/namespaces/%s/secrets?labelSelector=", namespace) + "a%3Db";
 
-		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, false);
+		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, false, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();

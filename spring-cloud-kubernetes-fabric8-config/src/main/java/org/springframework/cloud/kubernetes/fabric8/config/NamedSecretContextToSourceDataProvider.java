@@ -16,20 +16,15 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.PrefixContext;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
-
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
-import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.secretDataByName;
+import org.springframework.cloud.kubernetes.commons.config.NamedSourceData;
+import org.springframework.core.env.Environment;
 
 /**
  * Provides an implementation of {@link Fabric8ContextToSourceData} for a named secret.
@@ -38,7 +33,16 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
  */
 final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8ContextToSourceData> {
 
-	NamedSecretContextToSourceDataProvider() {
+	private final BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor;
+
+	NamedSecretContextToSourceDataProvider(
+			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
+		this.entriesProcessor = Objects.requireNonNull(entriesProcessor);
+	}
+
+	static NamedSecretContextToSourceDataProvider of(
+			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
+		return new NamedSecretContextToSourceDataProvider(entriesProcessor);
 	}
 
 	@Override
@@ -46,50 +50,15 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 		return context -> {
 
 			NamedSecretNormalizedSource source = (NamedSecretNormalizedSource) context.normalizedSource();
-			Set<String> propertySourceNames = new LinkedHashSet<>();
-			propertySourceNames.add(source.name().orElseThrow());
 
-			Map<String, Object> result = new HashMap<>();
-			// error should never be thrown here, since we always expect a name
-			// explicit or implicit
-			String initialSecretName = source.name().orElseThrow();
-			String currentSecretName;
-			String namespace = context.namespace();
-
-			try {
-
-				Map<String, Object> data = secretDataByName(context.client(), namespace, initialSecretName);
-				result.putAll(data);
-
-				if (context.environment() != null && source.profileSpecificSources()) {
-					for (String activeProfile : context.environment().getActiveProfiles()) {
-						currentSecretName = initialSecretName + "-" + activeProfile;
-						Map<String, Object> dataWithProfile = secretDataByName(context.client(), namespace,
-								currentSecretName);
-						if (!dataWithProfile.isEmpty()) {
-							propertySourceNames.add(currentSecretName);
-							result.putAll(dataWithProfile);
-						}
-					}
+			return new NamedSourceData() {
+				@Override
+				public Map.Entry<Set<String>, Map<String, Object>> dataSupplier(Set<String> sourceNames) {
+					return Fabric8ConfigUtils.secretsDataByName(context.client(), context.namespace(), sourceNames,
+							context.environment(), entriesProcessor);
 				}
-
-				if (source.prefix() != ConfigUtils.Prefix.DEFAULT) {
-					// since we are in a named source, calling get on the supplier is
-					// safe
-					String prefix = source.prefix().prefixProvider().get();
-					PrefixContext prefixContext = new PrefixContext(result, prefix, namespace, propertySourceNames);
-					return ConfigUtils.withPrefix(source.target(), prefixContext);
-				}
-
-			}
-			catch (Exception e) {
-				String message = "Unable to read Secret with name '" + initialSecretName + "' in namespace '"
-						+ namespace + "'";
-				onException(source.failFast(), message, e);
-			}
-
-			String names = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
-			return new SourceData(ConfigUtils.sourceName(source.target(), names, namespace), result);
+			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
+					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
 		};
 	}
 

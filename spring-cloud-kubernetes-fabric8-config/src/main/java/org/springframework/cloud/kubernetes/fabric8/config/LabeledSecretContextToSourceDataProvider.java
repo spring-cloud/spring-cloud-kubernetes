@@ -16,20 +16,15 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.PrefixContext;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
-
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
-import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.secretDataByLabels;
+import org.springframework.cloud.kubernetes.commons.config.LabeledSourceData;
+import org.springframework.core.env.Environment;
 
 /**
  * Provides an implementation of {@link Fabric8ContextToSourceData} for a labeled secret.
@@ -38,7 +33,16 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
  */
 final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8ContextToSourceData> {
 
-	LabeledSecretContextToSourceDataProvider() {
+	private final BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor;
+
+	private LabeledSecretContextToSourceDataProvider(
+			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
+		this.entriesProcessor = Objects.requireNonNull(entriesProcessor);
+	}
+
+	static LabeledSecretContextToSourceDataProvider of(
+			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
+		return new LabeledSecretContextToSourceDataProvider(entriesProcessor);
 	}
 
 	/*
@@ -57,55 +61,24 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 
 		return context -> {
 
-			LabeledSecretNormalizedSource source = ((LabeledSecretNormalizedSource) context.normalizedSource());
-			Set<String> propertySourceNames = new LinkedHashSet<>();
-			Map<String, String> labels = source.labels();
+			LabeledSecretNormalizedSource source = (LabeledSecretNormalizedSource) context.normalizedSource();
 
-			Map<String, Object> result = new HashMap<>();
-			String namespace = context.namespace();
-			String sourceNameFromLabels = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, labels.keySet());
-
-			try {
-
-				Map.Entry<String, Map<String, Object>> entry = secretDataByLabels(context.client(), namespace, labels);
-				if (!entry.getValue().isEmpty()) {
-
-					propertySourceNames.add(entry.getKey());
-					result.putAll(entry.getValue());
-
-					// we found the source, it has prefix configured
-					if (source.prefix() != ConfigUtils.Prefix.DEFAULT) {
-
-						String prefix;
-						if (source.prefix() == ConfigUtils.Prefix.KNOWN) {
-							prefix = source.prefix().prefixProvider().get();
-						}
-						else {
-							prefix = entry.getKey();
-						}
-
-						PrefixContext prefixContext = new PrefixContext(result, prefix, namespace, propertySourceNames);
-						return ConfigUtils.withPrefix(source.target(), prefixContext);
-					}
-
-					// we found the source, it has no prefix configured
-					String names = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
-					return new SourceData(ConfigUtils.sourceName(source.target(), names, namespace), result);
+			return new LabeledSourceData() {
+				@Override
+				public Map.Entry<Set<String>, Map<String, Object>> dataSupplier(Map<String, String> labels) {
+					return Fabric8ConfigUtils.secretsDataByLabels(context.client(), context.namespace(), labels,
+							context.environment(), entriesProcessor);
 				}
 
-			}
-			catch (Exception e) {
-				String message = "Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'";
-				onException(source.failFast(), message, e);
-			}
-
-			// if we could not find the source with provided labels. Will compute a
-			// response with an empty Map
-			// and name that will use all the label names (not their values)
-			String propertySourceNameFromLabels = ConfigUtils.sourceName(source.target(), sourceNameFromLabels,
-					namespace);
-			return new SourceData(propertySourceNameFromLabels, result);
+				@Override
+				public Map.Entry<Set<String>, Map<String, Object>> dataSupplier(Set<String> sourceNames) {
+					return Fabric8ConfigUtils.secretsDataByName(context.client(), context.namespace(), sourceNames,
+							context.environment(), entriesProcessor);
+				}
+			}.compute(source.labels(), source.prefix(), source.target(), source.profileSpecificSources(),
+					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
 		};
+
 	}
 
 }

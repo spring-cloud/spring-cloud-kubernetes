@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
@@ -41,7 +42,7 @@ import static org.mockito.Mockito.verify;
  */
 abstract class ConfigRetryEnabled {
 
-	private static final String API = "/api/v1/namespaces/default/configmaps/application";
+	private static final String API = "/api/v1/namespaces/default/configmaps";
 
 	private static KubernetesMockServer mockServer;
 
@@ -70,8 +71,9 @@ abstract class ConfigRetryEnabled {
 
 		// return config map without failing
 		mockServer.expect().withPath(API).andReturn(200,
-				new ConfigMapBuilder().withNewMetadata().withName("application").endMetadata().addToData(data).build())
-				.once();
+				new ConfigMapListBuilder()
+					.withItems(new ConfigMapBuilder().withNewMetadata().withName("application").endMetadata().addToData(data).build())
+					.build()).once();
 
 		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
 
@@ -92,8 +94,9 @@ abstract class ConfigRetryEnabled {
 		// fail 3 times then succeed at the 4th call
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").times(3);
 		mockServer.expect().withPath(API).andReturn(200,
-				new ConfigMapBuilder().withNewMetadata().withName("application").endMetadata().addToData(data).build())
-				.once();
+			new ConfigMapListBuilder()
+				.withItems(new ConfigMapBuilder().withNewMetadata().withName("application").endMetadata().addToData(data).build())
+				.build()).once();
 
 		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
 

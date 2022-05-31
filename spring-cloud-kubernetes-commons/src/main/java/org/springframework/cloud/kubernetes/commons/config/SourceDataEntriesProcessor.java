@@ -37,21 +37,22 @@ import static org.springframework.cloud.kubernetes.commons.config.PropertySource
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.yamlParserGenerator;
 
 /**
- * A {@link MapPropertySource} that uses Kubernetes config maps.
+ * Processor that extracts data from an input, where input can be a single yaml/properties
+ * file.
  *
  * @author Ioannis Canellos
  * @author Ali Shahbour
  * @author Michael Moudatsos
  */
-public abstract class ConfigMapPropertySource extends MapPropertySource {
+public class SourceDataEntriesProcessor extends MapPropertySource {
 
-	private static final Log LOG = LogFactory.getLog(ConfigMapPropertySource.class);
+	private static final Log LOG = LogFactory.getLog(SourceDataEntriesProcessor.class);
 
-	public ConfigMapPropertySource(SourceData sourceData) {
+	public SourceDataEntriesProcessor(SourceData sourceData) {
 		super(sourceData.sourceName(), sourceData.sourceData());
 	}
 
-	protected static Map<String, Object> processAllEntries(Map<String, String> input, Environment environment) {
+	public static Map<String, Object> processAllEntries(Map<String, String> input, Environment environment) {
 
 		Set<Map.Entry<String, String>> entrySet = input.entrySet();
 		if (entrySet.size() == 1) {

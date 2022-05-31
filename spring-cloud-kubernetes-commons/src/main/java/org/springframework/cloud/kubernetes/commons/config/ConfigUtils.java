@@ -16,8 +16,10 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -125,11 +127,11 @@ public final class ConfigUtils {
 	/**
 	 * action to take when an Exception happens when dealing with a source.
 	 */
-	public static void onException(boolean failFast, String message, Exception e) {
+	public static void onException(boolean failFast, Exception e) {
 		if (failFast) {
-			throw new IllegalStateException(message, e);
+			throw new IllegalStateException(e.getMessage(), e);
 		}
-		LOG.warn(message + ". Ignoring.", e);
+		LOG.warn(e.getMessage() + ". Ignoring.", e);
 	}
 
 	/*
@@ -141,7 +143,8 @@ public final class ConfigUtils {
 		Map<String, Object> withPrefix = CollectionUtils.newHashMap(context.data().size());
 		context.data().forEach((key, value) -> withPrefix.put(context.prefix() + "." + key, value));
 
-		String propertySourceTokens = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, context.propertySourceNames());
+		String propertySourceTokens = String.join(PROPERTY_SOURCE_NAME_SEPARATOR,
+				context.propertySourceNames().stream().sorted().collect(Collectors.toCollection(LinkedHashSet::new)));
 		return new SourceData(sourceName(target, propertySourceTokens, context.namespace()), withPrefix);
 	}
 

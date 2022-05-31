@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.client.config;
 import java.util.EnumMap;
 import java.util.Optional;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.SourceDataEntriesProcessor;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSourceType;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 
@@ -27,7 +27,7 @@ import org.springframework.cloud.kubernetes.commons.config.SourceData;
  * @author Ryan Baxter
  * @author Isik Erhan
  */
-public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySource {
+public class KubernetesClientConfigMapPropertySource extends SourceDataEntriesProcessor {
 
 	private static final EnumMap<NormalizedSourceType, KubernetesClientContextToSourceData> STRATEGIES = new EnumMap<>(
 			NormalizedSourceType.class);
@@ -52,7 +52,7 @@ public class KubernetesClientConfigMapPropertySource extends ConfigMapPropertySo
 	// we need to pass various functions because the code we are interested in
 	// is protected in ConfigMapPropertySource, and must stay that way.
 	private static KubernetesClientContextToSourceData namedConfigMap() {
-		return NamedConfigMapContextToSourceDataProvider.of(ConfigMapPropertySource::processAllEntries).get();
+		return NamedConfigMapContextToSourceDataProvider.of(SourceDataEntriesProcessor::processAllEntries).get();
 	}
 
 }

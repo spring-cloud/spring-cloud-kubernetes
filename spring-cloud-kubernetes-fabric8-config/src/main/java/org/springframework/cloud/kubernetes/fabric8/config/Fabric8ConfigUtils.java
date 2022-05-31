@@ -19,23 +19,25 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 
 /**
  * Utility class that works with configuration properties.
@@ -45,6 +47,8 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.PROP
 final class Fabric8ConfigUtils {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8ConfigUtils.class);
+
+	private static final Map.Entry<Set<String>, Map<String, Object>> EMPTY = Map.entry(Set.of(), Map.of());
 
 	private Fabric8ConfigUtils() {
 	}
@@ -96,64 +100,91 @@ final class Fabric8ConfigUtils {
 
 	}
 
-	/*
-	 * namespace that reaches this point is absolutely present, otherwise this would have
-	 * resulted in a NamespaceResolutionFailedException.
+	static Map.Entry<Set<String>, Map<String, Object>> secretsDataByName(KubernetesClient client, String namespace,
+			Set<String> sourceNames, Environment environment,
+			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
+		LOG.debug("Reading all secrets in namespace '" + namespace + "'");
+		SecretList secretList = client.secrets().inNamespace(namespace).list();
+		if (secretList == null || secretList.getItems() == null || secretList.getItems().isEmpty()) {
+			LOG.debug("No secrets in namespace '" + namespace + "'");
+			return EMPTY;
+		}
+
+		Set<String> secretNames = new HashSet<>();
+		Map<String, Object> result = new HashMap<>();
+
+		secretList.getItems().stream().filter(secret -> sourceNames.contains(secret.getMetadata().getName()))
+				.collect(Collectors.toList()).forEach(foundSecret -> {
+					String foundSecretName = foundSecret.getMetadata().getName();
+					LOG.debug("Loaded secret with name : '" + foundSecretName + " in namespace: '" + namespace + "'");
+					secretNames.add(foundSecretName);
+
+					Map<String, String> decoded = decodeData(foundSecret.getData());
+					result.putAll(entriesProcessor.apply(decoded, environment));
+				});
+
+		return Map.entry(secretNames, result);
+
+	}
+
+	/**
+	 * returns the secret names and the values they hold.
 	 */
-	static Map<String, String> configMapDataByName(KubernetesClient client, String namespace, String name) {
-		LOG.debug("Loading ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
-		ConfigMap configMap = client.configMaps().inNamespace(namespace).withName(name).get();
-
-		if (configMap == null) {
-			LOG.warn("config-map with name : '" + name + "' not present in namespace : '" + namespace + "'");
-			return Collections.emptyMap();
-		}
-
-		return configMap.getData();
-	}
-
-	static Map<String, Object> secretDataByName(KubernetesClient client, String namespace, String name) {
-		LOG.debug("Loading Secret with name '" + name + "' in namespace '" + namespace + "'");
-		Secret secret = client.secrets().inNamespace(namespace).withName(name).get();
-
-		if (secret == null) {
-			LOG.warn("secret with name : '" + name + "' not present in namespace : '" + namespace + "'");
-			return Collections.emptyMap();
-		}
-
-		return decodeData(secret.getData());
-	}
-
-	static Map.Entry<String, Map<String, Object>> secretDataByLabels(KubernetesClient client, String namespace,
-			Map<String, String> labels) {
+	static Map.Entry<Set<String>, Map<String, Object>> secretsDataByLabels(KubernetesClient client, String namespace,
+			Map<String, String> labels, Environment environment,
+			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
 		LOG.debug("Loading Secret with labels '" + labels + "' in namespace '" + namespace + "'");
 		List<Secret> secrets = client.secrets().inNamespace(namespace).withLabels(labels).list().getItems();
 
 		if (secrets == null || secrets.isEmpty()) {
 			LOG.warn("secret(s) with labels : '" + labels + "' not present in namespace : '" + namespace + "'");
-			return Map.entry("", Collections.emptyMap());
+			return Map.entry(Set.of(), Collections.emptyMap());
 		}
 
+		Set<String> secretNames = new HashSet<>();
 		Map<String, Object> result = new HashMap<>();
-		for (Secret secret : secrets) {
-			// we support prefix per source, not per secret. This means that
-			// in theory
-			// we can still have clashes here, that we simply override.
-			// If there are more than one secret found per labels, and they
-			// have the same key on a
-			// property, but different values; one value will override the
-			// other, without any
-			// particular order.
-			result.putAll(decodeData(secret.getData()));
-		}
 
-		String secretNames = secrets.stream().map(Secret::getMetadata).map(ObjectMeta::getName).sorted()
-				.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+		secrets.forEach(foundSecret -> {
+			String foundSecretName = foundSecret.getMetadata().getName();
+			LOG.debug("Loaded secret with name : '" + foundSecretName + " in namespace: '" + namespace + "'");
+			secretNames.add(foundSecretName);
+
+			Map<String, String> decoded = decodeData(foundSecret.getData());
+			result.putAll(entriesProcessor.apply(decoded, environment));
+		});
+
 		return Map.entry(secretNames, result);
 	}
 
-	private static Map<String, Object> decodeData(Map<String, String> data) {
-		Map<String, Object> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
+	static Map.Entry<Set<String>, Map<String, Object>> configMapsDataByName(KubernetesClient client, String namespace,
+			Set<String> sourceNames, Environment environment,
+			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
+		LOG.debug("Reading all configmaps in namespace '" + namespace + "'");
+		ConfigMapList configMapList = client.configMaps().inNamespace(namespace).list();
+		if (configMapList == null || configMapList.getItems() == null || configMapList.getItems().isEmpty()) {
+			LOG.debug("No secrets in namespace '" + namespace + "'");
+			return EMPTY;
+		}
+
+		Set<String> configMapNames = new HashSet<>();
+		Map<String, Object> result = new HashMap<>();
+
+		configMapList.getItems().stream().filter(configMap -> sourceNames.contains(configMap.getMetadata().getName()))
+				.collect(Collectors.toList()).forEach(foundConfigMap -> {
+					String foundConfigMapName = foundConfigMap.getMetadata().getName();
+					LOG.debug("Loaded configmap with name : '" + foundConfigMapName + " in namespace: '" + namespace
+							+ "'");
+					configMapNames.add(foundConfigMapName);
+
+					result.putAll(entriesProcessor.apply(foundConfigMap.getData(), environment));
+				});
+
+		return Map.entry(configMapNames, result);
+
+	}
+
+	private static Map<String, String> decodeData(Map<String, String> data) {
+		Map<String, String> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
 		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));
 		return result;
 	}
