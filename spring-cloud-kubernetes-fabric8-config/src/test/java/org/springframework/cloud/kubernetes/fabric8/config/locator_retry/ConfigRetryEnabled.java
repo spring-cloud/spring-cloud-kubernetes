@@ -61,6 +61,9 @@ abstract class ConfigRetryEnabled {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
+
+		// needed so that initial call, before our test method kicks in, succeeds
+		mockServer.expect().withPath(API).andReturn(200, new ConfigMapListBuilder().build()).once();
 	}
 
 	@Test
@@ -114,7 +117,7 @@ abstract class ConfigRetryEnabled {
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").times(5);
 
 		assertThatThrownBy(() -> psl.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read ConfigMap with name 'application' in namespace 'default'");
+				.hasMessageContaining("api/v1/namespaces/default/configmaps. Message: Internal Server Error");
 
 		// verify retried 5 times until failure
 		verify(verifiablePsl, times(5)).locate(any());

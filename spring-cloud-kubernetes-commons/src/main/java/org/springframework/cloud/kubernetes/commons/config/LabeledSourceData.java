@@ -16,12 +16,10 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
@@ -38,23 +36,11 @@ public abstract class LabeledSourceData {
 			boolean profileSources, boolean failFast, String namespace, String[] activeProfiles) {
 
 		try {
-			Map.Entry<Set<String>, Map<String, Object>> dataFromLabels = dataSupplier(labels);
-			Set<String> profileSourceNames = new HashSet<>();
+			Set<String> profiles = Set.of();
 			if (profileSources) {
-				for (String sourceByLabel : dataFromLabels.getKey()) {
-					for (String activeProfile : activeProfiles) {
-						profileSourceNames.add(sourceByLabel + "-" + activeProfile);
-					}
-				}
+				profiles = Arrays.stream(activeProfiles).collect(Collectors.toSet());
 			}
-
-			Map.Entry<Set<String>, Map<String, Object>> dataFromProfiles = dataSupplier(profileSourceNames);
-			Set<String> propertySourceNames = Stream
-					.concat(dataFromLabels.getKey().stream(), dataFromProfiles.getKey().stream())
-					.collect(Collectors.toSet());
-			Map<String, Object> data = new HashMap<>();
-			data.putAll(dataFromLabels.getValue());
-			data.putAll(dataFromProfiles.getValue());
+			Map.Entry<Set<String>, Map<String, Object>> data = dataSupplier(labels, profiles);
 
 			if (prefix != ConfigUtils.Prefix.DEFAULT) {
 
@@ -63,11 +49,11 @@ public abstract class LabeledSourceData {
 					prefixToUse = prefix.prefixProvider().get();
 				}
 				else {
-					prefixToUse = Stream.concat(dataFromLabels.getKey().stream(), dataFromProfiles.getKey().stream())
-							.sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+					prefixToUse = data.getKey().stream().sorted()
+							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 				}
 
-				PrefixContext prefixContext = new PrefixContext(data, prefixToUse, namespace, propertySourceNames);
+				PrefixContext prefixContext = new PrefixContext(data.getValue(), prefixToUse, namespace, data.getKey());
 				return ConfigUtils.withPrefix(target, prefixContext);
 			}
 		}
@@ -83,16 +69,11 @@ public abstract class LabeledSourceData {
 	 * Implementation specific (fabric8 or k8s-native) way to get the data from then given
 	 * source names.
 	 * @param labels the ones that have been configured
+	 * @param profiles profiles to taken into account when gathering source data. Can be
+	 * empty.
 	 * @return an Entry that holds the names of the source that were found and their data
 	 */
-	public abstract Map.Entry<Set<String>, Map<String, Object>> dataSupplier(Map<String, String> labels);
-
-	/**
-	 * Implementation specific (fabric8 or k8s-native) way to get the data from then given
-	 * source names.
-	 * @param sourceNames the ones that have been computed based on active profiles
-	 * @return an Entry that holds the names of the source that were found and their data
-	 */
-	public abstract Map.Entry<Set<String>, Map<String, Object>> dataSupplier(Set<String> sourceNames);
+	public abstract Map.Entry<Set<String>, Map<String, Object>> dataSupplier(Map<String, String> labels,
+			Set<String> profiles);
 
 }
