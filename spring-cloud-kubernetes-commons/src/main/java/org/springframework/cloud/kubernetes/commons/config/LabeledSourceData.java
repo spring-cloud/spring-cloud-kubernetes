@@ -35,12 +35,14 @@ public abstract class LabeledSourceData {
 	public final SourceData compute(Map<String, String> labels, ConfigUtils.Prefix prefix, String target,
 			boolean profileSources, boolean failFast, String namespace, String[] activeProfiles) {
 
+		Map.Entry<Set<String>, Map<String, Object>> data = Map.entry(Set.of(), Map.of());
+
 		try {
 			Set<String> profiles = Set.of();
 			if (profileSources) {
 				profiles = Arrays.stream(activeProfiles).collect(Collectors.toSet());
 			}
-			Map.Entry<Set<String>, Map<String, Object>> data = dataSupplier(labels, profiles);
+			data = dataSupplier(labels, profiles);
 
 			if (prefix != ConfigUtils.Prefix.DEFAULT) {
 
@@ -61,8 +63,18 @@ public abstract class LabeledSourceData {
 			onException(failFast, e);
 		}
 
-		String names = labels.keySet().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-		return SourceData.emptyRecord(ConfigUtils.sourceName(target, names, namespace));
+		// need this check because when there is no data, the name of the property source
+		// is using provided labels,
+		// unlike when the data is present: when we use secret names
+		if (data.getKey().isEmpty()) {
+			String names = labels.keySet().stream().sorted()
+					.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+			return SourceData.emptyRecord(ConfigUtils.sourceName(target, names, namespace));
+		}
+
+		String names = data.getKey().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+		return new SourceData(ConfigUtils.sourceName(target, names, namespace), data.getValue());
+
 	}
 
 	/**

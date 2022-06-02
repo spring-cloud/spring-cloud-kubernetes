@@ -22,8 +22,11 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
+import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +39,6 @@ import org.springframework.cloud.kubernetes.fabric8.config.reload.EventBasedConf
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,23 +47,26 @@ import static org.mockito.Mockito.when;
  */
 class EventBasedConfigurationChangeDetectorTests {
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "raw" })
 	@Test
 	void verifyConfigChangesAccountsForBootstrapPropertySources() {
 		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
 		MockEnvironment env = new MockEnvironment();
 		KubernetesClient k8sClient = mock(KubernetesClient.class);
 		ConfigMap configMap = new ConfigMap();
+		configMap.setMetadata(new ObjectMetaBuilder().withName("myconfigmap").build());
 		Map<String, String> data = new HashMap<>();
 		data.put("foo", "bar");
 		configMap.setData(data);
 		MixedOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mixedOperation = mock(MixedOperation.class);
 		when(k8sClient.configMaps()).thenReturn(mixedOperation);
+		NonNamespaceOperation nonNamespaceOperation = mock(NonNamespaceOperation.class);
+		when(mixedOperation.inNamespace("default")).thenReturn(nonNamespaceOperation);
+		when(nonNamespaceOperation.list()).thenReturn(new ConfigMapListBuilder().addToItems(configMap).build());
+
 		Resource<ConfigMap> resource = mock(Resource.class);
 
 		when(resource.get()).thenReturn(configMap);
-		when(mixedOperation.withName(eq("myconfigmap"))).thenReturn(resource);
-		when(mixedOperation.inNamespace("default")).thenReturn(mixedOperation);
 		when(k8sClient.getNamespace()).thenReturn("default");
 
 		NormalizedSource source = new NamedConfigMapNormalizedSource("myconfigmap", "default", true, false);

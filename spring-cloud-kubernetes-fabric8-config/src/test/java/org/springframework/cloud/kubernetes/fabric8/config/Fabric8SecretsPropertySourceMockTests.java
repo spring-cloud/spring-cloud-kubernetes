@@ -62,14 +62,14 @@ class Fabric8SecretsPropertySourceMockTests {
 	void labeledStrategyShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
 		final String namespace = "default";
 		final Map<String, String> labels = Collections.singletonMap("a", "b");
-		final String path = String.format("/api/v1/namespaces/%s/secrets?labelSelector=", namespace) + "a%3Db";
+		final String path = String.format("/api/v1/namespaces/%s/secrets", namespace);
 
 		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 		assertThatThrownBy(() -> new Fabric8SecretsPropertySource(context)).isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("api/v1/namespaces/default/secrets?labelSelector=a%3Db. Message: Internal Server Error.");
+				.hasMessageContaining("api/v1/namespaces/default/secrets. Message: Internal Server Error.");
 	}
 
 	@Test

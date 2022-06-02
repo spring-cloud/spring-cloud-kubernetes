@@ -73,10 +73,10 @@ abstract class ConfigRetryEnabled {
 		data.put("some.number", "0");
 
 		// return config map without failing
-		mockServer.expect().withPath(API).andReturn(200,
-				new ConfigMapListBuilder()
-					.withItems(new ConfigMapBuilder().withNewMetadata().withName("application").endMetadata().addToData(data).build())
-					.build()).once();
+		mockServer
+				.expect().withPath(API).andReturn(200, new ConfigMapListBuilder().withItems(new ConfigMapBuilder()
+						.withNewMetadata().withName("application").endMetadata().addToData(data).build()).build())
+				.once();
 
 		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
 
@@ -96,10 +96,10 @@ abstract class ConfigRetryEnabled {
 
 		// fail 3 times then succeed at the 4th call
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").times(3);
-		mockServer.expect().withPath(API).andReturn(200,
-			new ConfigMapListBuilder()
-				.withItems(new ConfigMapBuilder().withNewMetadata().withName("application").endMetadata().addToData(data).build())
-				.build()).once();
+		mockServer
+				.expect().withPath(API).andReturn(200, new ConfigMapListBuilder().withItems(new ConfigMapBuilder()
+						.withNewMetadata().withName("application").endMetadata().addToData(data).build()).build())
+				.once();
 
 		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
 

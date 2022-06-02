@@ -56,7 +56,7 @@ class BootstrapSecretsRetryDisabledButConfigRetryEnabled extends SecretsRetryDis
 	private Fabric8SecretsPropertySourceLocator propertySourceLocator;
 
 	@BeforeEach
-	public void beforeEach() {
+	void beforeEach() {
 		psl = propertySourceLocator;
 		verifiablePsl = propertySourceLocator;
 	}

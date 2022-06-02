@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.retry;
 
+import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
 import io.fabric8.kubernetes.api.model.SecretListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -37,9 +38,9 @@ import static org.mockito.Mockito.verify;
  */
 abstract class SecretsRetryDisabledButConfigRetryEnabled {
 
-	private static final String API = "/api/v1/namespaces/default/secrets/my-secret";
+	private static final String SECRET_API = "/api/v1/namespaces/default/secrets";
 
-	private static final String LIST_API = "/api/v1/namespaces/default/secrets";
+	private static final String CONFIG_MAP_API = "/api/v1/namespaces/default/configmaps";
 
 	private static KubernetesMockServer mockServer;
 
@@ -60,7 +61,8 @@ abstract class SecretsRetryDisabledButConfigRetryEnabled {
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		// return empty secret list to not fail context creation
-		mockServer.expect().withPath(LIST_API).andReturn(200, new SecretListBuilder().build()).always();
+		mockServer.expect().withPath(SECRET_API).andReturn(200, new SecretListBuilder().build()).always();
+		mockServer.expect().withPath(CONFIG_MAP_API).andReturn(200, new ConfigMapListBuilder().build()).always();
 	}
 
 	@Autowired
@@ -74,12 +76,12 @@ abstract class SecretsRetryDisabledButConfigRetryEnabled {
 		 * defined. SecretsPropertySourceLocator should not retry even Spring Retry is
 		 * enabled.
 		 */
-
-		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
+		mockServer.clearExpectations();
+		mockServer.expect().withPath(SECRET_API).andReturn(500, "Internal Server Error").once();
 
 		assertRetryBean(context);
 		assertThatThrownBy(() -> psl.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name 'my-secret' in namespace 'default'");
+				.hasMessageContaining("v1/namespaces/default/secrets. Message: Internal Server Error");
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(verifiablePsl, times(1)).locate(any());

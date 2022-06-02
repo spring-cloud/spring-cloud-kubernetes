@@ -159,11 +159,10 @@ final class Fabric8ConfigUtils {
 
 		// find secrets by provided labels
 		List<Secret> secretsByLabels = secrets.stream().filter(secret -> {
-				Map<String, String> secretLabels = secret.getMetadata().getLabels();
-			 	Map<String, String> secretsToSearchAgainst = secretLabels == null ? Map.of() : secretLabels;
-				return secretsToSearchAgainst.entrySet().containsAll((labels.entrySet()));
-			})
-			.collect(Collectors.toList());
+			Map<String, String> secretLabels = secret.getMetadata().getLabels();
+			Map<String, String> secretsToSearchAgainst = secretLabels == null ? Map.of() : secretLabels;
+			return secretsToSearchAgainst.entrySet().containsAll((labels.entrySet()));
+		}).collect(Collectors.toList());
 
 		// compute profile based secrets (based on the ones we found by labels)
 		List<String> secretNamesByLabelsWithProfile = new ArrayList<>();
@@ -179,9 +178,9 @@ final class Fabric8ConfigUtils {
 		// once we know secrets by labels (and thus their names), we can find out
 		// profiles based secrets from the above. This would mean all secrets
 		// we are interested in.
-		List<Secret> secretsByLabelsAndProfiles = secrets.stream().filter(
-			secret -> secretNamesByLabelsWithProfile.contains(secret.getMetadata().getName()))
-			.collect(Collectors.toCollection(ArrayList::new));
+		List<Secret> secretsByLabelsAndProfiles = secrets.stream()
+				.filter(secret -> secretNamesByLabelsWithProfile.contains(secret.getMetadata().getName()))
+				.collect(Collectors.toCollection(ArrayList::new));
 		secretsByLabelsAndProfiles.addAll(secretsByLabels);
 
 		Set<String> secretNames = new HashSet<>();

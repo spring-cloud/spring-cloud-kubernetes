@@ -220,7 +220,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 				.of(SourceDataEntriesProcessor::processAllEntries).get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-taste.red-with-shape.default");
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-shape.red-with-taste.default");
 		Assertions.assertEquals(sourceData.sourceData().size(), 3);
 		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
 		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");

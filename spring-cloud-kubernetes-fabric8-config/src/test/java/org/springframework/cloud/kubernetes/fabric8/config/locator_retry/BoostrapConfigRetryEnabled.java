@@ -33,8 +33,7 @@ import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPrope
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		properties = { "spring.cloud.kubernetes.client.namespace=default",
 				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.max-attempts=5",
-				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true"
-		},
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true" },
 		classes = Application.class)
 @EnableKubernetesMockClient
 class BoostrapConfigRetryEnabled extends ConfigRetryEnabled {
