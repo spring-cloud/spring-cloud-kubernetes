@@ -39,6 +39,7 @@ public final class Fabric8ConfigMapPropertySource extends SourceDataEntriesProce
 
 	static {
 		STRATEGIES.put(NormalizedSourceType.NAMED_CONFIG_MAP, namedConfigMap());
+		STRATEGIES.put(NormalizedSourceType.LABELED_CONFIG_MAP, labeledConfigMap());
 	}
 
 	Fabric8ConfigMapPropertySource(Fabric8ConfigContext context) {
@@ -52,7 +53,11 @@ public final class Fabric8ConfigMapPropertySource extends SourceDataEntriesProce
 	}
 
 	private static Fabric8ContextToSourceData namedConfigMap() {
-		return NamedConfigMapContextToSourceDataProvider.of(SourceDataEntriesProcessor::processAllEntries).get();
+		return new NamedConfigMapContextToSourceDataProvider().get();
+	}
+
+	private static Fabric8ContextToSourceData labeledConfigMap() {
+		return new LabeledSecretContextToSourceDataProvider().get();
 	}
 
 }

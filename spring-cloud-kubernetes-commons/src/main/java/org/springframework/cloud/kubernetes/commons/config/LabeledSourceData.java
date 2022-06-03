@@ -35,7 +35,7 @@ public abstract class LabeledSourceData {
 	public final SourceData compute(Map<String, String> labels, ConfigUtils.Prefix prefix, String target,
 			boolean profileSources, boolean failFast, String namespace, String[] activeProfiles) {
 
-		Map.Entry<Set<String>, Map<String, Object>> data = Map.entry(Set.of(), Map.of());
+		MultipleSourcesContainer data = MultipleSourcesContainer.empty();
 
 		try {
 			Set<String> profiles = Set.of();
@@ -48,7 +48,7 @@ public abstract class LabeledSourceData {
 			// source
 			// is using provided labels,
 			// unlike when the data is present: when we use secret names
-			if (data.getKey().isEmpty()) {
+			if (data.names().isEmpty()) {
 				String names = labels.keySet().stream().sorted()
 						.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 				return SourceData.emptyRecord(ConfigUtils.sourceName(target, names, namespace));
@@ -61,11 +61,11 @@ public abstract class LabeledSourceData {
 					prefixToUse = prefix.prefixProvider().get();
 				}
 				else {
-					prefixToUse = data.getKey().stream().sorted()
+					prefixToUse = data.names().stream().sorted()
 							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 				}
 
-				PrefixContext prefixContext = new PrefixContext(data.getValue(), prefixToUse, namespace, data.getKey());
+				PrefixContext prefixContext = new PrefixContext(data.data(), prefixToUse, namespace, data.names());
 				return ConfigUtils.withPrefix(target, prefixContext);
 			}
 		}
@@ -73,8 +73,8 @@ public abstract class LabeledSourceData {
 			onException(failFast, e);
 		}
 
-		String names = data.getKey().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-		return new SourceData(ConfigUtils.sourceName(target, names, namespace), data.getValue());
+		String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+		return new SourceData(ConfigUtils.sourceName(target, names, namespace), data.data());
 
 	}
 
@@ -86,7 +86,6 @@ public abstract class LabeledSourceData {
 	 * empty.
 	 * @return an Entry that holds the names of the source that were found and their data
 	 */
-	public abstract Map.Entry<Set<String>, Map<String, Object>> dataSupplier(Map<String, String> labels,
-			Set<String> profiles);
+	public abstract MultipleSourcesContainer dataSupplier(Map<String, String> labels, Set<String> profiles);
 
 }

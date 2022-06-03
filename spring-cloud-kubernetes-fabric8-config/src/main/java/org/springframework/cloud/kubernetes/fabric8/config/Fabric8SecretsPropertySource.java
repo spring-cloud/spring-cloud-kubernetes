@@ -22,7 +22,6 @@ import java.util.Optional;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSourceType;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
-import org.springframework.cloud.kubernetes.commons.config.SourceDataEntriesProcessor;
 
 /**
  * Kubernetes property source for secrets.
@@ -52,11 +51,11 @@ public final class Fabric8SecretsPropertySource extends SecretsPropertySource {
 	}
 
 	private static Fabric8ContextToSourceData namedSecret() {
-		return NamedSecretContextToSourceDataProvider.of(SourceDataEntriesProcessor::processAllEntries).get();
+		return new NamedSecretContextToSourceDataProvider().get();
 	}
 
 	private static Fabric8ContextToSourceData labeledSecret() {
-		return LabeledSecretContextToSourceDataProvider.of(SourceDataEntriesProcessor::processAllEntries).get();
+		return new LabeledSecretContextToSourceDataProvider().get();
 	}
 
 }

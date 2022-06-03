@@ -16,15 +16,12 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSourceData;
-import org.springframework.core.env.Environment;
 
 /**
  * Provides an implementation of {@link Fabric8ContextToSourceData} for a named config
@@ -34,16 +31,7 @@ import org.springframework.core.env.Environment;
  */
 final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric8ContextToSourceData> {
 
-	private final BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor;
-
-	private NamedConfigMapContextToSourceDataProvider(
-			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
-		this.entriesProcessor = Objects.requireNonNull(entriesProcessor);
-	}
-
-	static NamedConfigMapContextToSourceDataProvider of(
-			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
-		return new NamedConfigMapContextToSourceDataProvider(entriesProcessor);
+	NamedConfigMapContextToSourceDataProvider() {
 	}
 
 	/*
@@ -62,9 +50,9 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 
 			return new NamedSourceData() {
 				@Override
-				public Map.Entry<Set<String>, Map<String, Object>> dataSupplier(Set<String> sourceNames) {
+				public MultipleSourcesContainer dataSupplier(Set<String> sourceNames) {
 					return Fabric8ConfigUtils.configMapsDataByName(context.client(), context.namespace(), sourceNames,
-							context.environment(), entriesProcessor);
+							context.environment());
 				}
 			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
 					source.failFast(), context.namespace(), context.environment().getActiveProfiles());

@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,7 +37,7 @@ public abstract class NamedSourceData {
 		Set<String> sourceNames = new HashSet<>();
 		sourceNames.add(initialSourceName);
 
-		Map.Entry<Set<String>, Map<String, Object>> data = Map.entry(Set.of(), Map.of());
+		MultipleSourcesContainer data = MultipleSourcesContainer.empty();
 		String currentSourceName;
 
 		try {
@@ -54,7 +53,7 @@ public abstract class NamedSourceData {
 			if (prefix != ConfigUtils.Prefix.DEFAULT) {
 				// since we are in a named source, calling get on the supplier is safe
 				String prefixToUse = prefix.prefixProvider().get();
-				PrefixContext prefixContext = new PrefixContext(data.getValue(), prefixToUse, namespace, data.getKey());
+				PrefixContext prefixContext = new PrefixContext(data.data(), prefixToUse, namespace, data.names());
 				return ConfigUtils.withPrefix(target, prefixContext);
 			}
 
@@ -64,7 +63,7 @@ public abstract class NamedSourceData {
 		}
 
 		String names = sourceNames.stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-		return new SourceData(ConfigUtils.sourceName(target, names, namespace), data.getValue());
+		return new SourceData(ConfigUtils.sourceName(target, names, namespace), data.data());
 	}
 
 	/**
@@ -73,6 +72,6 @@ public abstract class NamedSourceData {
 	 * @param sourceNames the ones that have been configured
 	 * @return an Entry that holds the names of the source that were found and their data
 	 */
-	public abstract Map.Entry<Set<String>, Map<String, Object>> dataSupplier(Set<String> sourceNames);
+	public abstract MultipleSourcesContainer dataSupplier(Set<String> sourceNames);
 
 }

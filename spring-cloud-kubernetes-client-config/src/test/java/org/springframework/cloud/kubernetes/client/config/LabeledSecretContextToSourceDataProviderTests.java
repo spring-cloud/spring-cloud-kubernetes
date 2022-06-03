@@ -98,7 +98,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		// blue does not match red
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE,
-				Collections.singletonMap("color", "blue"), false);
+				Collections.singletonMap("color", "blue"), false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 

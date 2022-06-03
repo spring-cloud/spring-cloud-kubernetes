@@ -16,27 +16,23 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.ConfigMapList;
+import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
+import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.core.env.Environment;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -47,8 +43,6 @@ import org.springframework.util.StringUtils;
 final class Fabric8ConfigUtils {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8ConfigUtils.class);
-
-	private static final Map.Entry<Set<String>, Map<String, Object>> EMPTY = Map.entry(Set.of(), Map.of());
 
 	private Fabric8ConfigUtils() {
 	}
@@ -103,42 +97,6 @@ final class Fabric8ConfigUtils {
 	/**
 	 * <pre>
 	 *     1. read all secrets in the provided namespace
-	 *     2. from the above, filter the ones that we care about
-	 *     3. see if any of the secrets has a single yaml/properties file
-	 *     4. gather all the names of the secrets + decoded data they hold
-	 * </pre>
-	 */
-	static Map.Entry<Set<String>, Map<String, Object>> secretsDataByName(KubernetesClient client, String namespace,
-			Set<String> sourceNames, Environment environment,
-			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
-		LOG.debug("Reading all secrets in namespace '" + namespace + "'");
-		SecretList secretList = client.secrets().inNamespace(namespace).list();
-		if (secretList == null || secretList.getItems() == null || secretList.getItems().isEmpty()) {
-			LOG.debug("No secrets in namespace '" + namespace + "'");
-			return EMPTY;
-		}
-
-		Set<String> secretNames = new HashSet<>();
-		Map<String, Object> result = new HashMap<>();
-
-		secretList.getItems().stream().filter(secret -> sourceNames.contains(secret.getMetadata().getName()))
-				.collect(Collectors.toList()).forEach(foundSecret -> {
-					String foundSecretName = foundSecret.getMetadata().getName();
-					LOG.debug("Loaded secret with name : '" + foundSecretName + " in namespace: '" + namespace + "'");
-					secretNames.add(foundSecretName);
-
-					Map<String, String> rawData = foundSecret.getData();
-					Map<String, String> decoded = decodeData(rawData == null ? Map.of() : rawData);
-					result.putAll(entriesProcessor.apply(decoded, environment));
-				});
-
-		return Map.entry(secretNames, result);
-
-	}
-
-	/**
-	 * <pre>
-	 *     1. read all secrets in the provided namespace
 	 *     2. from the above, filter the ones that we care about (filter by labels)
 	 *     3. with secret names from (2), find out if there are any profile based secrets (if profiles is not empty)
 	 *     4. concat (2) and (3) and these are the secrets we are interested in
@@ -146,98 +104,102 @@ final class Fabric8ConfigUtils {
 	 *     6. gather all the names of the secrets (from 4) + data they hold
 	 * </pre>
 	 */
-	static Map.Entry<Set<String>, Map<String, Object>> secretsDataByLabels(KubernetesClient client, String namespace,
-			Map<String, String> labels, Environment environment, Set<String> profiles,
-			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
-		LOG.debug("Loading all secrets in namespace '" + namespace + "'");
-		List<Secret> secrets = client.secrets().inNamespace(namespace).list().getItems();
-
-		if (secrets == null || secrets.isEmpty()) {
-			LOG.warn("secret(s) with labels : '" + labels + "' not present in namespace : '" + namespace + "'");
-			return Map.entry(Set.of(), Map.of());
+	static MultipleSourcesContainer secretsDataByLabels(KubernetesClient client, String namespace,
+			Map<String, String> labels, Environment environment, Set<String> profiles) {
+		List<Secret> secrets = secretsSearch(client, namespace);
+		if (ConfigUtils.noSources(secrets, namespace)) {
+			return MultipleSourcesContainer.empty();
 		}
 
-		// find secrets by provided labels
-		List<Secret> secretsByLabels = secrets.stream().filter(secret -> {
-			Map<String, String> secretLabels = secret.getMetadata().getLabels();
-			Map<String, String> secretsToSearchAgainst = secretLabels == null ? Map.of() : secretLabels;
-			return secretsToSearchAgainst.entrySet().containsAll((labels.entrySet()));
-		}).collect(Collectors.toList());
+		List<StrippedSourceContainer> containers = strippedSecrets(secrets);
+		return ConfigUtils.processLabeledData(containers, environment, labels, namespace, profiles, true);
 
-		// compute profile based secrets (based on the ones we found by labels)
-		List<String> secretNamesByLabelsWithProfile = new ArrayList<>();
-		if (profiles != null && !profiles.isEmpty()) {
-			for (Secret secretByLabels : secretsByLabels) {
-				for (String profile : profiles) {
-					String name = secretByLabels.getMetadata().getName() + "-" + profile;
-					secretNamesByLabelsWithProfile.add(name);
-				}
-			}
-		}
-
-		// once we know secrets by labels (and thus their names), we can find out
-		// profiles based secrets from the above. This would mean all secrets
-		// we are interested in.
-		List<Secret> secretsByLabelsAndProfiles = secrets.stream()
-				.filter(secret -> secretNamesByLabelsWithProfile.contains(secret.getMetadata().getName()))
-				.collect(Collectors.toCollection(ArrayList::new));
-		secretsByLabelsAndProfiles.addAll(secretsByLabels);
-
-		Set<String> secretNames = new HashSet<>();
-		Map<String, Object> result = new HashMap<>();
-
-		secretsByLabelsAndProfiles.forEach(foundSecret -> {
-			String foundSecretName = foundSecret.getMetadata().getName();
-			LOG.debug("Loaded secret with name : '" + foundSecretName + " in namespace: '" + namespace + "'");
-			secretNames.add(foundSecretName);
-
-			Map<String, String> decoded = decodeData(foundSecret.getData());
-			result.putAll(entriesProcessor.apply(decoded, environment));
-		});
-
-		return Map.entry(secretNames, result);
 	}
 
 	/**
 	 * <pre>
 	 *     1. read all config maps in the provided namespace
-	 *     2. from the above, filter the ones that we care about
+	 *     2. from the above, filter the ones that we care about (filter by labels)
+	 *     3. with config maps names from (2), find out if there are any profile based ones (if profiles is not empty)
+	 *     4. concat (2) and (3) and these are the config maps we are interested in
+	 *     5. see if any from (4) has a single yaml/properties file
+	 *     6. gather all the names of the config maps (from 4) + data they hold
+	 * </pre>
+	 */
+	static MultipleSourcesContainer configMapsDataByLabels(KubernetesClient client, String namespace,
+			Map<String, String> labels, Environment environment, Set<String> profiles) {
+
+		List<ConfigMap> secrets = configMapsSearch(client, namespace);
+		if (ConfigUtils.noSources(secrets, namespace)) {
+			return MultipleSourcesContainer.empty();
+		}
+
+		List<StrippedSourceContainer> containers = strippedConfigMaps(secrets);
+		return ConfigUtils.processLabeledData(containers, environment, labels, namespace, profiles, true);
+	}
+
+	/**
+	 * <pre>
+	 *     1. read all secrets in the provided namespace
+	 *     2. from the above, filter the ones that we care about (by name)
+	 *     3. see if any of the secrets has a single yaml/properties file
+	 *     4. gather all the names of the secrets + decoded data they hold
+	 * </pre>
+	 */
+	static MultipleSourcesContainer secretsDataByName(KubernetesClient client, String namespace,
+			Set<String> sourceNames, Environment environment) {
+		List<Secret> secrets = secretsSearch(client, namespace);
+		if (ConfigUtils.noSources(secrets, namespace)) {
+			return MultipleSourcesContainer.empty();
+		}
+
+		List<StrippedSourceContainer> nameAndData = strippedSecrets(secrets);
+		return ConfigUtils.processNamedData(nameAndData, environment, sourceNames, namespace, true);
+
+	}
+
+	/**
+	 * <pre>
+	 *     1. read all config maps in the provided namespace
+	 *     2. from the above, filter the ones that we care about (by name)
 	 *     3. see if any of the config maps has a single yaml/properties file
 	 *     4. gather all the names of the config maps + data they hold
 	 * </pre>
 	 */
-	static Map.Entry<Set<String>, Map<String, Object>> configMapsDataByName(KubernetesClient client, String namespace,
-			Set<String> sourceNames, Environment environment,
-			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
-		LOG.debug("Reading all configmaps in namespace '" + namespace + "'");
-		ConfigMapList configMapList = client.configMaps().inNamespace(namespace).list();
-		if (configMapList == null || configMapList.getItems() == null || configMapList.getItems().isEmpty()) {
-			LOG.debug("No secrets in namespace '" + namespace + "'");
-			return EMPTY;
+	static MultipleSourcesContainer configMapsDataByName(KubernetesClient client, String namespace,
+			Set<String> sourceNames, Environment environment) {
+		List<ConfigMap> configMaps = configMapsSearch(client, namespace);
+		if (ConfigUtils.noSources(configMaps, namespace)) {
+			return MultipleSourcesContainer.empty();
 		}
 
-		Set<String> configMapNames = new HashSet<>();
-		Map<String, Object> data = new HashMap<>();
-
-		configMapList.getItems().stream().filter(configMap -> sourceNames.contains(configMap.getMetadata().getName()))
-				.collect(Collectors.toList()).forEach(foundConfigMap -> {
-					String foundConfigMapName = foundConfigMap.getMetadata().getName();
-					LOG.debug("Loaded configmap with name : '" + foundConfigMapName + " in namespace: '" + namespace
-							+ "'");
-					configMapNames.add(foundConfigMapName);
-					// see if data is a single yaml/properties file
-					Map<String, String> rawData = foundConfigMap.getData();
-					data.putAll(entriesProcessor.apply(rawData == null ? Map.of() : rawData, environment));
-				});
-
-		return Map.entry(configMapNames, data);
+		List<StrippedSourceContainer> nameAndData = strippedConfigMaps(configMaps);
+		return ConfigUtils.processNamedData(nameAndData, environment, sourceNames, namespace, false);
 
 	}
 
-	private static Map<String, String> decodeData(Map<String, String> data) {
-		Map<String, String> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
-		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));
-		return result;
+	// **************************************** non-exposed methods
+	// ******************************************
+
+	private static List<Secret> secretsSearch(KubernetesClient client, String namespace) {
+		LOG.debug("Loading all secrets in namespace '" + namespace + "'");
+		return client.secrets().inNamespace(namespace).list().getItems();
+	}
+
+	private static List<ConfigMap> configMapsSearch(KubernetesClient client, String namespace) {
+		LOG.debug("Loading all config maps in namespace '" + namespace + "'");
+		return client.configMaps().inNamespace(namespace).list().getItems();
+	}
+
+	private static List<StrippedSourceContainer> strippedSecrets(List<Secret> secrets) {
+		return secrets.stream().map(secret -> new StrippedSourceContainer(secret.getMetadata().getLabels(),
+				secret.getMetadata().getName(), secret.getData())).collect(Collectors.toList());
+	}
+
+	private static List<StrippedSourceContainer> strippedConfigMaps(List<ConfigMap> configMaps) {
+		return configMaps.stream().map(
+				configMap -> new StrippedSourceContainer(null, configMap.getMetadata().getName(), configMap.getData()))
+				.collect(Collectors.toList());
 	}
 
 }

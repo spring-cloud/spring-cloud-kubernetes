@@ -17,45 +17,53 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.LabeledConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.LabeledSourceData;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
+import org.springframework.core.env.Environment;
 
 /**
- * Provides an implementation of {@link Fabric8ContextToSourceData} for a labeled secret.
+ * Provides an implementation of {@link Fabric8ContextToSourceData} for a labeled config
+ * map.
  *
  * @author wind57
  */
-final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8ContextToSourceData> {
+final class LabeledConfigMapContextToSourceDataProvider implements Supplier<Fabric8ContextToSourceData> {
 
-	LabeledSecretContextToSourceDataProvider() {
+	private final BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor;
+
+	private LabeledConfigMapContextToSourceDataProvider(
+			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
+		this.entriesProcessor = Objects.requireNonNull(entriesProcessor);
 	}
 
 	/*
-	 * Computes a ContextSourceData (think content) for secret(s) based on some labels.
-	 * There could be many secrets that are read based on incoming labels, for which we
+	 * Computes a ContextSourceData (think content) for configmap(s) based on some labels.
+	 * There could be many sources that are read based on incoming labels, for which we
 	 * will be computing a single Map<String, Object> in the end.
 	 *
-	 * If there is no secret found for the provided labels, we will return an "empty"
+	 * If there is no config maps found for the provided labels, we will return an "empty"
 	 * SourceData. Its name is going to be the concatenated labels mapped to an empty Map.
 	 *
-	 * If we find secret(s) for the provided labels, its name is going to be the
-	 * concatenated secret names mapped to the data they hold as a Map.
+	 * If we find config maps(s) for the provided labels, its name is going to be the
+	 * concatenated names mapped to the data they hold as a Map.
 	 */
 	@Override
 	public Fabric8ContextToSourceData get() {
 
 		return context -> {
 
-			LabeledSecretNormalizedSource source = (LabeledSecretNormalizedSource) context.normalizedSource();
+			LabeledConfigMapNormalizedSource source = (LabeledConfigMapNormalizedSource) context.normalizedSource();
 
 			return new LabeledSourceData() {
 				@Override
 				public MultipleSourcesContainer dataSupplier(Map<String, String> labels, Set<String> profiles) {
-					return Fabric8ConfigUtils.secretsDataByLabels(context.client(), context.namespace(), labels,
+					return Fabric8ConfigUtils.configMapsDataByLabels(context.client(), context.namespace(), labels,
 							context.environment(), profiles);
 				}
 

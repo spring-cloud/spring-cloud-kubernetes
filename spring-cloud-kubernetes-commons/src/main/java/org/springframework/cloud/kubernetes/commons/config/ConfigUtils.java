@@ -16,8 +16,14 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -150,6 +156,104 @@ public final class ConfigUtils {
 
 	public static String sourceName(String target, String applicationName, String namespace) {
 		return target + PROPERTY_SOURCE_NAME_SEPARATOR + applicationName + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
+	}
+
+	/**
+	 * transforms raw data from one or multiple sources into an entry of source names and
+	 * flattened data that they all hold (potentially overriding entries without any
+	 * defined order).
+	 */
+	public static MultipleSourcesContainer processNamedData(List<StrippedSourceContainer> nameAndData,
+			Environment environment, Set<String> sourceNames, String namespace, boolean decode) {
+
+		Set<String> foundSourceNames = new HashSet<>();
+		Map<String, Object> data = new HashMap<>();
+
+		nameAndData.stream().filter(source -> sourceNames.contains(source.name())).collect(Collectors.toList())
+				.forEach(foundSource -> {
+					String sourceName = foundSource.name();
+					LOG.debug("Loaded source with name : '" + sourceName + " in namespace: '" + namespace + "'");
+					foundSourceNames.add(sourceName);
+					// see if data is a single yaml/properties file and if it needs
+					// decoding
+					Map<String, String> rawData = foundSource.data();
+					if (decode) {
+						rawData = decodeData(rawData);
+					}
+					data.putAll(SourceDataEntriesProcessor.processAllEntries(rawData == null ? Map.of() : rawData,
+							environment));
+				});
+
+		return new MultipleSourcesContainer(foundSourceNames, data);
+	}
+
+	/**
+	 * transforms raw data from one or multiple sources into an entry of source names and
+	 * flattened data that they all hold (potentially overriding entries without any
+	 * defined order). This method first searches by labels, find the sources, then uses
+	 * these names to find any profile based sources.
+	 */
+
+	public static MultipleSourcesContainer processLabeledData(List<StrippedSourceContainer> containers,
+			Environment environment, Map<String, String> labels, String namespace, Set<String> profiles,
+			boolean decode) {
+
+		// find sources by provided labels
+		List<StrippedSourceContainer> sourcesByLabels = containers.stream().filter(one -> {
+			Map<String, String> sourceLabels = one.labels();
+			Map<String, String> labelsToSearchAgainst = sourceLabels == null ? Map.of() : sourceLabels;
+			return labelsToSearchAgainst.entrySet().containsAll((labels.entrySet()));
+		}).collect(Collectors.toList());
+
+		// compute profile based sources (based on the ones we found by labels)
+		List<String> sourceNamesByLabelsWithProfile = new ArrayList<>();
+		if (profiles != null && !profiles.isEmpty()) {
+			for (StrippedSourceContainer one : sourcesByLabels) {
+				for (String profile : profiles) {
+					String name = one.name() + "-" + profile;
+					sourceNamesByLabelsWithProfile.add(name);
+				}
+			}
+		}
+
+		// once we know sources by labels (and thus their names), we can find out
+		// profiles based sources from the above. This would get all sources
+		// we are interested in.
+		List<StrippedSourceContainer> sourcesToTake = containers.stream()
+				.filter(one -> sourceNamesByLabelsWithProfile.contains(one.name()))
+				.collect(Collectors.toCollection(ArrayList::new));
+		sourcesToTake.addAll(sourcesByLabels);
+
+		Set<String> secretNames = new HashSet<>();
+		Map<String, Object> result = new HashMap<>();
+
+		sourcesToTake.forEach(source -> {
+			String foundSourceName = source.name();
+			LOG.debug("Loaded source with name : '" + foundSourceName + " in namespace: '" + namespace + "'");
+			secretNames.add(foundSourceName);
+
+			Map<String, String> rawData = source.data();
+			if (decode) {
+				rawData = decodeData(rawData);
+			}
+			result.putAll(SourceDataEntriesProcessor.processAllEntries(rawData, environment));
+		});
+
+		return new MultipleSourcesContainer(secretNames, result);
+	}
+
+	public static boolean noSources(List<?> sources, String namespace) {
+		if (sources == null || sources.isEmpty()) {
+			LOG.debug("No sources in namespace '" + namespace + "'");
+			return true;
+		}
+		return false;
+	}
+
+	private static Map<String, String> decodeData(Map<String, String> data) {
+		Map<String, String> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
+		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));
+		return result;
 	}
 
 	public static final class Prefix {
