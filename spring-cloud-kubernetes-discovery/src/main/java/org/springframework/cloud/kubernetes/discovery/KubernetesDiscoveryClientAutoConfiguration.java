@@ -55,6 +55,7 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingClass("org.springframework.web.reactive.function.client.WebClient")
+		@ConditionalOnMissingBean(RestTemplate.class)
 		public RestTemplate restTemplate() {
 			return new RestTemplateBuilder().build();
 		}
