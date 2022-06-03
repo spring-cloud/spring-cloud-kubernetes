@@ -44,12 +44,13 @@ public abstract class LabeledSourceData {
 			}
 			data = dataSupplier(labels, profiles);
 
-			// need this check because when there is no data, the name of the property source
+			// need this check because when there is no data, the name of the property
+			// source
 			// is using provided labels,
 			// unlike when the data is present: when we use secret names
 			if (data.getKey().isEmpty()) {
 				String names = labels.keySet().stream().sorted()
-					.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+						.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 				return SourceData.emptyRecord(ConfigUtils.sourceName(target, names, namespace));
 			}
 

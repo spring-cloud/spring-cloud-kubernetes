@@ -85,12 +85,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 	}
 
 	/**
-	 * @return A list of Source to use. If the user has not specified any Source
-	 * properties, then a single Source is constructed based on the supplied name and
-	 * namespace.
-	 *
-	 * These are the actual name/namespace pairs that are used to create a
-	 * SecretsPropertySource
+	 * @return A list of Secret source(s) to use.
 	 */
 	public List<NormalizedSource> determineSources(Environment environment) {
 		if (this.sources.isEmpty()) {

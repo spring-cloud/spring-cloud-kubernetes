@@ -18,7 +18,10 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -334,6 +337,91 @@ class ConfigMapConfigPropertiesTests {
 		Assertions.assertTrue(((NamedConfigMapNormalizedSource) sources.get(0)).profileSpecificSources());
 		Assertions.assertFalse(((NamedConfigMapNormalizedSource) sources.get(1)).profileSpecificSources());
 		Assertions.assertFalse(((NamedConfigMapNormalizedSource) sources.get(2)).profileSpecificSources());
+	}
+
+	/**
+	 * <pre>
+	 * spring:
+	 *	cloud:
+	 *    kubernetes:
+	 *      config:
+	 *        useNameAsPrefix: false
+	 *        namespace: spring-k8s
+	 *        includeProfileSpecificSources: false
+	 *        sources:
+	 *          - labels:
+	 *              - name: first-label
+	 *                value: configmap-one
+	 *            useNameAsPrefix: false
+	 *            explicitPrefix: one
+	 *          - labels:
+	 *          	- name: second-label
+	 * 	          	  value: configmap-two
+	 * 	          includeProfileSpecificSources: true
+	 *            useNameAsPrefix: true
+	 *            explicitPrefix: two
+	 *          - labels:
+	 *          	- name: third-label
+	 * 	          	  value: configmap-three
+	 *            explicitPrefix: three
+	 *          - labels:
+	 * 	         	- name: fourth-label
+	 * 	           	  value: configmap-four
+	 * </pre>
+	 *
+	 */
+	@Test
+	void testLabelsMultipleCases() {
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
+		properties.setUseNameAsPrefix(false);
+		properties.setNamespace("spring-k8s");
+		properties.setIncludeProfileSpecificSources(false);
+
+		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source();
+		one.setLabels(Map.of("first-label", "configmap-one"));
+		one.setUseNameAsPrefix(false);
+		one.setExplicitPrefix("one");
+
+		ConfigMapConfigProperties.Source two = new ConfigMapConfigProperties.Source();
+		two.setLabels(Map.of("second-label", "configmap-two"));
+		two.setUseNameAsPrefix(true);
+		two.setExplicitPrefix("two");
+		two.setIncludeProfileSpecificSources(true);
+
+		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source();
+		three.setLabels(Map.of("third-label", "configmap-three"));
+		three.setExplicitPrefix("three");
+
+		ConfigMapConfigProperties.Source four = new ConfigMapConfigProperties.Source();
+		four.setLabels(Map.of("fourth-label", "configmap-four"));
+
+		properties.setSources(Arrays.asList(one, two, three, four));
+
+		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
+		// we get 8 property sources, since "named" ones with "application" are
+		// duplicated.
+		// that's OK, since later in the code we get a LinkedHashSet out of them all,
+		// so they become 5 only.
+		Assertions.assertEquals(sources.size(), 8, "4 NormalizedSources are expected");
+
+		LabeledConfigMapNormalizedSource labeled1 = (LabeledConfigMapNormalizedSource) sources.get(1);
+		Assertions.assertEquals(labeled1.prefix().prefixProvider().get(), "one");
+		Assertions.assertFalse(labeled1.profileSpecificSources());
+
+		LabeledConfigMapNormalizedSource labeled3 = (LabeledConfigMapNormalizedSource) sources.get(3);
+		Assertions.assertEquals(labeled3.prefix().prefixProvider().get(), "two");
+		Assertions.assertTrue(labeled3.profileSpecificSources());
+
+		LabeledConfigMapNormalizedSource labeled5 = (LabeledConfigMapNormalizedSource) sources.get(5);
+		Assertions.assertEquals(labeled5.prefix().prefixProvider().get(), "three");
+		Assertions.assertFalse(labeled5.profileSpecificSources());
+
+		LabeledConfigMapNormalizedSource labeled7 = (LabeledConfigMapNormalizedSource) sources.get(7);
+		Assertions.assertSame(labeled7.prefix(), ConfigUtils.Prefix.DEFAULT);
+		Assertions.assertFalse(labeled7.profileSpecificSources());
+
+		Set<NormalizedSource> set = new LinkedHashSet<>(sources);
+		Assertions.assertEquals(5, set.size());
 	}
 
 }
