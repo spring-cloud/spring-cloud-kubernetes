@@ -14,21 +14,41 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.include_profile_specific_sources.properties;
+package org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_profile.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("three")
-public class Three {
+@ConfigurationProperties("green-configmap.green-configmap-k8s.green-configmap-prod")
+public class Green {
 
-	private String property;
+	private String two;
 
-	public String getProperty() {
-		return property;
+	private String six;
+
+	private String seven;
+
+	public String getTwo() {
+		return two;
 	}
 
-	public void setProperty(String property) {
-		this.property = property;
+	public void setTwo(String two) {
+		this.two = two;
+	}
+
+	public String getSix() {
+		return six;
+	}
+
+	public void setSix(String six) {
+		this.six = six;
+	}
+
+	public String getSeven() {
+		return seven;
+	}
+
+	public void setSeven(String seven) {
+		this.seven = seven;
 	}
 
 }

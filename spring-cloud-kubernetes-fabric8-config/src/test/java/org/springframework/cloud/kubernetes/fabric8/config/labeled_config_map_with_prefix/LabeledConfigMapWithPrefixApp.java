@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.include_profile_specific_sources;
+package org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_prefix;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.kubernetes.fabric8.config.include_profile_specific_sources.properties.One;
-import org.springframework.cloud.kubernetes.fabric8.config.include_profile_specific_sources.properties.Three;
-import org.springframework.cloud.kubernetes.fabric8.config.include_profile_specific_sources.properties.Two;
+import org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_prefix.properties.Four;
+import org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_prefix.properties.One;
+import org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_prefix.properties.Three;
+import org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_prefix.properties.Two;
 
 @SpringBootApplication
-@EnableConfigurationProperties({ One.class, Two.class, Three.class })
-public class IncludeProfileSpecificSourcesApp {
+@EnableConfigurationProperties({ One.class, Two.class, Three.class, Four.class })
+public class LabeledConfigMapWithPrefixApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(IncludeProfileSpecificSourcesApp.class, args);
+		SpringApplication.run(LabeledConfigMapWithPrefixApp.class, args);
 	}
 
 }

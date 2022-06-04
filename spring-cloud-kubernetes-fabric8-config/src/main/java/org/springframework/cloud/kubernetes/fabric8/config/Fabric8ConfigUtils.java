@@ -129,13 +129,13 @@ final class Fabric8ConfigUtils {
 	static MultipleSourcesContainer configMapsDataByLabels(KubernetesClient client, String namespace,
 			Map<String, String> labels, Environment environment, Set<String> profiles) {
 
-		List<ConfigMap> secrets = configMapsSearch(client, namespace);
-		if (ConfigUtils.noSources(secrets, namespace)) {
+		List<ConfigMap> configMaps = configMapsSearch(client, namespace);
+		if (ConfigUtils.noSources(configMaps, namespace)) {
 			return MultipleSourcesContainer.empty();
 		}
 
-		List<StrippedSourceContainer> containers = strippedConfigMaps(secrets);
-		return ConfigUtils.processLabeledData(containers, environment, labels, namespace, profiles, true);
+		List<StrippedSourceContainer> containers = strippedConfigMaps(configMaps);
+		return ConfigUtils.processLabeledData(containers, environment, labels, namespace, profiles, false);
 	}
 
 	/**
@@ -197,9 +197,8 @@ final class Fabric8ConfigUtils {
 	}
 
 	private static List<StrippedSourceContainer> strippedConfigMaps(List<ConfigMap> configMaps) {
-		return configMaps.stream().map(
-				configMap -> new StrippedSourceContainer(null, configMap.getMetadata().getName(), configMap.getData()))
-				.collect(Collectors.toList());
+		return configMaps.stream().map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
+				configMap.getMetadata().getName(), configMap.getData())).collect(Collectors.toList());
 	}
 
 }

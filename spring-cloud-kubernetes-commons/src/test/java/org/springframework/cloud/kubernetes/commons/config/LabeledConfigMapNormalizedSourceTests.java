@@ -50,7 +50,7 @@ class LabeledConfigMapNormalizedSourceTests {
 	void testTarget() {
 		LabeledConfigMapNormalizedSource source = new LabeledConfigMapNormalizedSource("name", Map.of("key", "value"),
 				false, false);
-		Assertions.assertEquals(source.target(), "config map");
+		Assertions.assertEquals(source.target(), "configmap");
 	}
 
 	@Test

@@ -14,36 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config;
+package org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_prefix;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.config.include_profile_specific_sources.IncludeProfileSpecificSourcesApp;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * @author wind57
  */
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = IncludeProfileSpecificSourcesApp.class,
-		properties = { "spring.cloud.bootstrap.name=include-profile-specific-sources",
+		classes = LabeledConfigMapWithPrefixApp.class,
+		properties = { "spring.cloud.bootstrap.name=labeled-configmap-with-prefix",
 				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true" })
-@AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
-@ActiveProfiles("dev")
-class BootstrapConfigMapWithIncludeProfileSpecificSourcesTests extends ConfigMapWithIncludeProfileSpecificSourcesTests {
+class LabeledConfigMapWithPrefixBootstrapTests extends LabeledConfigMapWithPrefixTests {
 
 	private static KubernetesClient mockClient;
 
 	@BeforeAll
-	public static void setUpBeforeClass() {
+	static void setUpBeforeClass() {
 		setUpBeforeClass(mockClient);
 	}
 

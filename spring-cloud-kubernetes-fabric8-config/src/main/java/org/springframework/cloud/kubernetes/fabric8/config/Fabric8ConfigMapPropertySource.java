@@ -57,7 +57,7 @@ public final class Fabric8ConfigMapPropertySource extends SourceDataEntriesProce
 	}
 
 	private static Fabric8ContextToSourceData labeledConfigMap() {
-		return new LabeledSecretContextToSourceDataProvider().get();
+		return new LabeledConfigMapContextToSourceDataProvider().get();
 	}
 
 }

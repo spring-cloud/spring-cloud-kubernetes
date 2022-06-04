@@ -71,7 +71,7 @@ public final class LabeledConfigMapNormalizedSource extends NormalizedSource {
 
 	@Override
 	public String target() {
-		return "config map";
+		return "configmap";
 	}
 
 	@Override

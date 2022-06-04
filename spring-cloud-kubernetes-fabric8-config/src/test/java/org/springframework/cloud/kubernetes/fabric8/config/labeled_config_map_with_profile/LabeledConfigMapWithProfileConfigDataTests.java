@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.labeled_secret_with_prefix;
+package org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_profile;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = LabeledSecretWithPrefixApp.class,
-		properties = { "spring.application.name=labeled-secret-with-prefix", "spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:,classpath:./labeled-secret-with-prefix.yaml" })
+@ActiveProfiles({ "k8s", "prod" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		classes = LabeledConfigMapWithProfileApp.class,
+		properties = { "spring.application.name=labeled-configmap-with-profile",
+				"spring.main.cloud-platform=KUBERNETES",
+				"spring.config.import=kubernetes:,classpath:./labeled-configmap-with-profile.yaml" })
 @EnableKubernetesMockClient(crud = true, https = false)
-class LabeledSecretWithPrefixConfigDataTests extends LabeledSecretWithPrefixTests {
+class LabeledConfigMapWithProfileConfigDataTests extends LabeledConfigMapWithProfileTests {
 
 	private static KubernetesClient mockClient;
 

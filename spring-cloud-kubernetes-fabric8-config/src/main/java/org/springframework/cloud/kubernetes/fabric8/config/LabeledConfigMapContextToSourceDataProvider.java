@@ -17,15 +17,12 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 import org.springframework.cloud.kubernetes.commons.config.LabeledConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.LabeledSourceData;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
-import org.springframework.core.env.Environment;
 
 /**
  * Provides an implementation of {@link Fabric8ContextToSourceData} for a labeled config
@@ -35,11 +32,7 @@ import org.springframework.core.env.Environment;
  */
 final class LabeledConfigMapContextToSourceDataProvider implements Supplier<Fabric8ContextToSourceData> {
 
-	private final BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor;
-
-	private LabeledConfigMapContextToSourceDataProvider(
-			BiFunction<Map<String, String>, Environment, Map<String, Object>> entriesProcessor) {
-		this.entriesProcessor = Objects.requireNonNull(entriesProcessor);
+	LabeledConfigMapContextToSourceDataProvider() {
 	}
 
 	/*

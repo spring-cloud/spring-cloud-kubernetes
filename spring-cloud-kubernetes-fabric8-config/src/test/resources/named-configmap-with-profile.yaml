@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: named-configmap-with-profile
+  cloud:
+    kubernetes:
+      config:
+        enableApi: true
+        useNameAsPrefix: true
+        namespace: spring-k8s
+        includeProfileSpecificSources: true
+        sources:
+          - name: configmap-one
+            useNameAsPrefix: false
+          - name: configmap-two
+            explicitPrefix: two
+            includeProfileSpecificSources: false
+          - name: configmap-three

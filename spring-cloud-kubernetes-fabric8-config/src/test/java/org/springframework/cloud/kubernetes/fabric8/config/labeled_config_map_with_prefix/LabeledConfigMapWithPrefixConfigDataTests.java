@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,38 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config;
+package org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_prefix;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.config.include_profile_specific_sources.IncludeProfileSpecificSourcesApp;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * @author wind57
  */
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = IncludeProfileSpecificSourcesApp.class,
-		properties = { "spring.application.name=include-profile-specific-sources",
-				"spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:,classpath:./include-profile-specific-sources.yaml" })
-@AutoConfigureWebTestClient
+		classes = LabeledConfigMapWithPrefixApp.class,
+		properties = { "spring.application.name=labeled-configmap-with-prefix", "spring.main.cloud-platform=KUBERNETES",
+				"spring.config.import=kubernetes:,classpath:./labeled-configmap-with-prefix.yaml" })
 @EnableKubernetesMockClient(crud = true, https = false)
-@ActiveProfiles("dev")
-class ConfigDataConfigMapWithIncludeProfileSpecificSourcesTests
-		extends ConfigMapWithIncludeProfileSpecificSourcesTests {
+class LabeledConfigMapWithPrefixConfigDataTests extends LabeledConfigMapWithPrefixTests {
 
 	private static KubernetesClient mockClient;
 
 	@BeforeAll
-	public static void setUpBeforeClass() {
+	static void setUpBeforeClass() {
 		setUpBeforeClass(mockClient);
 	}
 
