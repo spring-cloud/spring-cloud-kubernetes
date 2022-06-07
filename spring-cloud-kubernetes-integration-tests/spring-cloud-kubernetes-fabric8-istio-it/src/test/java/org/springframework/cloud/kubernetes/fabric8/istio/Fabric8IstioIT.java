@@ -186,7 +186,7 @@ class Fabric8IstioIT {
 
 	private static String processExecResult(Container.ExecResult execResult) {
 		if (execResult.getExitCode() != 0) {
-			throw new RuntimeException(execResult.getStdout());
+			throw new RuntimeException("stdout=" + execResult.getStdout() + "\n" + "stderr=" + execResult.getStderr());
 		}
 
 		return execResult.getStdout();
