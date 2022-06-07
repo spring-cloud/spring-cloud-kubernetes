@@ -52,7 +52,7 @@ class ConfigMapConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
-		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(0)).prefix(), "",
+		Assertions.assertSame(((NamedConfigMapNormalizedSource) sources.get(0)).prefix(), ConfigUtils.Prefix.DEFAULT,
 				"empty sources must generate a List with a single NormalizedSource, where prefix is empty");
 	}
 
@@ -81,7 +81,7 @@ class ConfigMapConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
-		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(0)).prefix(), "",
+		Assertions.assertSame(((NamedConfigMapNormalizedSource) sources.get(0)).prefix(), ConfigUtils.Prefix.DEFAULT,
 				"empty sources must generate a List with a single NormalizedSource, where prefix is empty,"
 						+ "no matter of 'spring.cloud.kubernetes.config.useNameAsPrefix' value");
 	}
@@ -114,7 +114,8 @@ class ConfigMapConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "a single NormalizedSource is expected");
 
-		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(0)).prefix(), "config-map-one");
+		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(0)).prefix().prefixProvider().get(),
+				"config-map-one");
 	}
 
 	/**
@@ -160,9 +161,11 @@ class ConfigMapConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 3, "3 NormalizedSources are expected");
 
-		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(0)).prefix(), "");
-		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(1)).prefix(), "config-map-two");
-		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(2)).prefix(), "config-map-three");
+		Assertions.assertSame(((NamedConfigMapNormalizedSource) sources.get(0)).prefix(), ConfigUtils.Prefix.DEFAULT);
+		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(1)).prefix().prefixProvider().get(),
+				"config-map-two");
+		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(2)).prefix().prefixProvider().get(),
+				"config-map-three");
 	}
 
 	/**
@@ -214,10 +217,13 @@ class ConfigMapConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 4, "4 NormalizedSources are expected");
 
-		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(0)).prefix(), "one");
-		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(1)).prefix(), "two");
-		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(2)).prefix(), "three");
-		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(3)).prefix(), "");
+		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(0)).prefix().prefixProvider().get(),
+				"one");
+		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(1)).prefix().prefixProvider().get(),
+				"two");
+		Assertions.assertEquals(((NamedConfigMapNormalizedSource) sources.get(2)).prefix().prefixProvider().get(),
+				"three");
+		Assertions.assertSame(((NamedConfigMapNormalizedSource) sources.get(3)).prefix(), ConfigUtils.Prefix.DEFAULT);
 	}
 
 	/**

@@ -25,14 +25,19 @@ import java.util.Objects;
  */
 public final class NamedSecretNormalizedSource extends NormalizedSource {
 
-	private final String prefix;
+	private final ConfigUtils.Prefix prefix;
 
-	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast, String prefix) {
+	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix) {
 		super(name, namespace, failFast);
-		this.prefix = prefix;
+		this.prefix = Objects.requireNonNull(prefix);
 	}
 
-	public String prefix() {
+	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast) {
+		super(name, namespace, failFast);
+		this.prefix = ConfigUtils.Prefix.DEFAULT;
+	}
+
+	public ConfigUtils.Prefix prefix() {
 		return prefix;
 	}
 

@@ -25,6 +25,7 @@ import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -44,6 +45,8 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 	private KubernetesClient mockClient;
 
 	private final DefaultKubernetesClient client = Mockito.mock(DefaultKubernetesClient.class);
+
+	private static final ConfigUtils.Prefix PREFIX = ConfigUtils.findPrefix("prefix", false, false, "irrelevant");
 
 	@Test
 	void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
@@ -95,7 +98,7 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 		Mockito.when(client.getNamespace()).thenReturn(null);
 		Fabric8ConfigMapPropertySourceLocator source = new Fabric8ConfigMapPropertySourceLocator(client,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("name", null, false, "prefix", false);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("name", null, false, PREFIX, false);
 		assertThatThrownBy(() -> source.getMapPropertySource(normalizedSource, new MockEnvironment()))
 				.isInstanceOf(NamespaceResolutionFailedException.class);
 	}

@@ -84,7 +84,7 @@ class NamedSecretContextToSourceDataProviderTests {
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
 		// blue does not match red
-		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false, "");
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -125,7 +125,7 @@ class NamedSecretContextToSourceDataProviderTests {
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
 		// blue does not match red
-		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false, "");
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -156,7 +156,7 @@ class NamedSecretContextToSourceDataProviderTests {
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
 		// blue does not match red
-		NormalizedSource source = new NamedSecretNormalizedSource("blue", NAMESPACE, false, "");
+		NormalizedSource source = new NamedSecretNormalizedSource("blue", NAMESPACE, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -182,7 +182,7 @@ class NamedSecretContextToSourceDataProviderTests {
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
 		// blue does not match red
-		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE + "nope", false, "");
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE + "nope", false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 

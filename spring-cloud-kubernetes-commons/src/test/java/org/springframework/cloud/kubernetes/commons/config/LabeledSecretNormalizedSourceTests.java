@@ -38,6 +38,23 @@ class LabeledSecretNormalizedSourceTests {
 		Assertions.assertEquals(left, right);
 	}
 
+	/*
+	 * left and right instance have a different prefix, but the hashCode is the same; as
+	 * it is not taken into consideration when computing hashCode
+	 */
+	@Test
+	void testEqualsAndHashCodePrefixDoesNotMatter() {
+
+		ConfigUtils.Prefix knownLeft = ConfigUtils.findPrefix("left", false, false, "some");
+		ConfigUtils.Prefix knownRight = ConfigUtils.findPrefix("right", false, false, "some");
+
+		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, true, knownLeft);
+		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true, knownRight);
+
+		Assertions.assertEquals(left.hashCode(), right.hashCode());
+		Assertions.assertEquals(left, right);
+	}
+
 	@Test
 	void testType() {
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false);
@@ -58,10 +75,12 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testConstructorFields() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false);
+		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, "some");
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, prefix);
 		Assertions.assertTrue(source.name().isEmpty());
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertFalse(source.failFast());
+		Assertions.assertSame(source.prefix(), prefix);
 	}
 
 }

@@ -93,7 +93,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			}
 			String name = getApplicationName(environment, this.name, "Config Map");
 			return Collections.singletonList(
-					new NamedConfigMapNormalizedSource(name, namespace, failFast, "", includeProfileSpecificSources));
+					new NamedConfigMapNormalizedSource(name, namespace, failFast, includeProfileSpecificSources));
 		}
 
 		return sources.stream()
@@ -185,8 +185,8 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 				boolean defaultIncludeProfileSpecificSources, boolean failFast) {
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-			String prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix,
-					normalizedName);
+			ConfigUtils.Prefix prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix,
+					defaultUseNameAsPrefix, normalizedName);
 			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
 					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
 			return new NamedConfigMapNormalizedSource(normalizedName, normalizedNamespace, failFast, prefix,

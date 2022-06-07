@@ -36,7 +36,8 @@ import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedSecretWithPrefixApp.class,
 		properties = { "spring.cloud.application.name=named-secret-with-prefix", "named.secret.with.prefix.stub=true",
 				"spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:,classpath:./named-secret-with-prefix.yaml" })
+				"spring.config.import=kubernetes:,classpath:./named-secret-with-prefix.yaml",
+				"spring.cloud.kubernetes.client.namespace=spring-k8s" })
 class NamedSecretWithPrefixConfigDataTests extends NamedSecretWithPrefixTests {
 
 	private static MockedStatic<KubernetesClientUtils> clientUtilsMock;
