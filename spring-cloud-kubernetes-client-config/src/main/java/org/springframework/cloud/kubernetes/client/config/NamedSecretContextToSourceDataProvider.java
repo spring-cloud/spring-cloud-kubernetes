@@ -16,27 +16,12 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
-import io.kubernetes.client.openapi.models.V1Secret;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
+import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.PrefixContext;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
-
-import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.dataFromSecret;
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
-import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
+import org.springframework.cloud.kubernetes.commons.config.NamedSourceData;
 
 /**
  * Provides an implementation of {@link KubernetesClientContextToSourceData} for a named
@@ -46,8 +31,6 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.PROP
  */
 final class NamedSecretContextToSourceDataProvider implements Supplier<KubernetesClientContextToSourceData> {
 
-	private static final Log LOG = LogFactory.getLog(NamedSecretContextToSourceDataProvider.class);
-
 	NamedSecretContextToSourceDataProvider() {
 	}
 
@@ -56,51 +39,15 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 		return context -> {
 
 			NamedSecretNormalizedSource source = (NamedSecretNormalizedSource) context.normalizedSource();
-			Set<String> propertySourceNames = new LinkedHashSet<>();
-			propertySourceNames.add(source.name().orElseThrow());
 
-			Map<String, Object> result = new HashMap<>();
-			String namespace = context.namespace();
-			// error should never be thrown here, since we always expect a name
-			// explicit or implicit
-			String secretName = source.name().orElseThrow();
-
-			try {
-
-				Set<String> names = new HashSet<>();
-				names.add(secretName);
-				if (context.environment() != null && source.profileSpecificSources()) {
-					for (String activeProfile : context.environment().getActiveProfiles()) {
-						names.add(secretName + "-" + activeProfile);
-					}
+			return new NamedSourceData() {
+				@Override
+				public MultipleSourcesContainer dataSupplier(Set<String> sourceNames) {
+					return KubernetesClientConfigUtils.secretsDataByName(context.client(), context.namespace(),
+							sourceNames, context.environment());
 				}
-
-				LOG.info("Loading Secret with name '" + secretName + "' in namespace '" + namespace + "'");
-				Optional<V1Secret> secret;
-				context.client()
-						.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
-						.getItems().stream().filter(s -> names.contains(s.getMetadata().getName()))
-						.collect(Collectors.toList()).forEach(x -> {
-							result.putAll(dataFromSecret(x, namespace));
-							propertySourceNames.add(x.getMetadata().getName());
-						});
-
-				if (source.prefix() != ConfigUtils.Prefix.DEFAULT && !result.isEmpty()) {
-					// since we are in a named source, calling get on the supplier is safe
-					String prefix = source.prefix().prefixProvider().get();
-					PrefixContext prefixContext = new PrefixContext(result, prefix, namespace, propertySourceNames);
-					return ConfigUtils.withPrefix(source.target(), prefixContext);
-				}
-
-			}
-			catch (Exception e) {
-				String message = "Unable to read Secret with name '" + secretName + "' in namespace '" + namespace
-						+ "'";
-				onException(source.failFast(), message, e);
-			}
-
-			String propertySourceTokens = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
-			return new SourceData(ConfigUtils.sourceName(source.target(), propertySourceTokens, namespace), result);
+			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
+					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
 		};
 	}
 

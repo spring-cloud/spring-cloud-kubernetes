@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources;
+package org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.properties.One;
-import org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.properties.Three;
-import org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.properties.Two;
+import org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties.Blue;
+import org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties.Green;
 
+/**
+ * @author wind57
+ */
 @SpringBootApplication
-@EnableConfigurationProperties({ One.class, Two.class, Three.class })
-public class IncludeProfileSpecificSourcesApp {
+@EnableConfigurationProperties({ Blue.class, Green.class })
+public class LabeledConfigMapWithProfileApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(IncludeProfileSpecificSourcesApp.class, args);
+		SpringApplication.run(LabeledConfigMapWithProfileApp.class, args);
 	}
 
 }

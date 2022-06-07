@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.controller;
+package org.springframework.cloud.kubernetes.client.config.applications.named_config_map_with_profile.controller;
 
-import org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.properties.One;
-import org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.properties.Three;
-import org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.properties.Two;
+import org.springframework.cloud.kubernetes.client.config.applications.named_config_map_with_profile.properties.One;
+import org.springframework.cloud.kubernetes.client.config.applications.named_config_map_with_profile.properties.Three;
+import org.springframework.cloud.kubernetes.client.config.applications.named_config_map_with_profile.properties.Two;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class IncludeProfileSpecificSourcesController {
+public class NamedConfigMapWithProfileController {
 
 	private final One one;
 
@@ -31,23 +31,23 @@ public class IncludeProfileSpecificSourcesController {
 
 	private final Three three;
 
-	public IncludeProfileSpecificSourcesController(One one, Two two, Three three) {
+	public NamedConfigMapWithProfileController(One one, Two two, Three three) {
 		this.one = one;
 		this.two = two;
 		this.three = three;
 	}
 
-	@GetMapping("/profile-specific/one")
+	@GetMapping("/named-configmap/profile/one")
 	public String one() {
 		return one.getProperty();
 	}
 
-	@GetMapping("/profile-specific/two")
+	@GetMapping("/named-configmap/profile/two")
 	public String two() {
 		return two.getProperty();
 	}
 
-	@GetMapping("/profile-specific/three")
+	@GetMapping("/named-configmap/profile/three")
 	public String three() {
 		return three.getProperty();
 	}

@@ -50,24 +50,23 @@ import static org.mockito.Mockito.when;
  */
 class KubernetesEnvironmentRepositoryTests {
 
-	private static List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers = new ArrayList<>();
+	private static final List<KubernetesPropertySourceSupplier> KUBERNETES_PROPERTY_SOURCE_SUPPLIER = new ArrayList<>();
+
+	private static final String VALUE = "dummy:\n  property:\n    string2: \"a\"\n    int2: 1\n    bool2: true\n";
+
+	private static final String DEFAULT_NAMESPACE = "default";
 
 	private static final V1ConfigMapList CONFIGMAP_DEFAULT_LIST = new V1ConfigMapList()
 			.addItemsItem(new V1ConfigMapBuilder()
-					.withMetadata(new V1ObjectMetaBuilder().withName("application").withNamespace("default")
-							.withResourceVersion("1").build())
-					.addToData("application.yaml",
-							"dummy:\n  property:\n    string2: \"a\"\n    int2: 1\n    bool2: true\n")
-					.build())
+					.withMetadata(
+							new V1ObjectMetaBuilder().withName("application").withNamespace(DEFAULT_NAMESPACE).build())
+					.addToData("application.yaml", VALUE).build())
 			.addItemsItem(new V1ConfigMapBuilder()
-					.withMetadata(new V1ObjectMetaBuilder().withName("stores").withNamespace("default")
-							.withResourceVersion("1").build())
-					.addToData("application.yaml",
-							"dummy:\n  property:\n    string2: \"a\"\n    int2: 1\n    bool2: true\n")
-					.build())
+					.withMetadata(new V1ObjectMetaBuilder().withName("stores").withNamespace(DEFAULT_NAMESPACE).build())
+					.addToData("application.yaml", VALUE).build())
 			.addItemsItem(new V1ConfigMapBuilder()
-					.withMetadata(new V1ObjectMetaBuilder().withName("stores-dev").withNamespace("default")
-							.withResourceVersion("1").build())
+					.withMetadata(
+							new V1ObjectMetaBuilder().withName("stores-dev").withNamespace(DEFAULT_NAMESPACE).build())
 					.addToData("application.yaml",
 							"dummy:\n  property:\n    string1: \"a\"\n    string2: \"b\"\n    int2: 2\n    bool2: false\n")
 					.build());
@@ -88,17 +87,18 @@ class KubernetesEnvironmentRepositoryTests {
 			.addToItems(new V1SecretBuilder()
 					.withMetadata(new V1ObjectMetaBuilder().withName("stores").withResourceVersion("0")
 							.withNamespace("default").build())
-					.addToData("password", "p455w0rd".getBytes()).addToData("username", "stores".getBytes()).build())
+					.addToData("password", "password-from-stores".getBytes()).addToData("username", "stores".getBytes())
+					.build())
 			.addToItems(new V1SecretBuilder()
 					.withMetadata(new V1ObjectMetaBuilder().withName("stores-dev").withResourceVersion("0")
 							.withNamespace("default").build())
-					.addToData("password", "p455w0rd".getBytes()).addToData("username", "stores-dev".getBytes())
-					.build())
+					.addToData("password", "password-from-stores-dev".getBytes())
+					.addToData("username", "stores-dev".getBytes()).build())
 			.build();
 
 	@BeforeAll
 	public static void before() {
-		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {
+		KUBERNETES_PROPERTY_SOURCE_SUPPLIER.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
 			NormalizedSource defaultSource = new NamedConfigMapNormalizedSource(applicationName, "default", false,
@@ -114,10 +114,10 @@ class KubernetesEnvironmentRepositoryTests {
 			propertySources.add(new KubernetesClientConfigMapPropertySource(devContext));
 			return propertySources;
 		});
-		kubernetesPropertySourceSuppliers.add((coreApi, applicationName, namespace, springEnv) -> {
+		KUBERNETES_PROPERTY_SOURCE_SUPPLIER.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
-			NormalizedSource source = new NamedSecretNormalizedSource(applicationName, "default", false, false);
+			NormalizedSource source = new NamedSecretNormalizedSource(applicationName, "default", false, true);
 			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, "default",
 					springEnv);
 
@@ -136,7 +136,7 @@ class KubernetesEnvironmentRepositoryTests {
 		when(coreApi.listNamespacedConfigMap(eq("dev"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
 				eq(null), eq(null), eq(null), eq(null))).thenReturn(CONFIGMAP_DEV_LIST);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				kubernetesPropertySourceSuppliers, "default");
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
 		Environment environment = environmentRepository.findOne("application", "", "");
 		assertThat(environment.getPropertySources().size()).isEqualTo(2);
 		environment.getPropertySources().forEach(propertySource -> {
@@ -166,7 +166,7 @@ class KubernetesEnvironmentRepositoryTests {
 		when(coreApi.listNamespacedSecret(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
 				eq(null), eq(null), eq(null), eq(null))).thenReturn(SECRET_LIST);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				kubernetesPropertySourceSuppliers, "default");
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
 		Environment environment = environmentRepository.findOne("stores", "", "");
 		assertThat(environment.getPropertySources().size()).isEqualTo(5);
 		environment.getPropertySources().forEach(propertySource -> {
@@ -201,7 +201,7 @@ class KubernetesEnvironmentRepositoryTests {
 			if (propertySource.getName().equals("secret.stores.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(2);
 				assertThat(propertySource.getSource().get("username")).isEqualTo("stores");
-				assertThat(propertySource.getSource().get("password")).isEqualTo("p455w0rd");
+				assertThat(propertySource.getSource().get("password")).isEqualTo("password-from-stores");
 			}
 		});
 	}
@@ -216,7 +216,7 @@ class KubernetesEnvironmentRepositoryTests {
 		when(coreApi.listNamespacedConfigMap(eq("dev"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
 				eq(null), eq(null), eq(null), eq(null))).thenReturn(CONFIGMAP_DEV_LIST);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				kubernetesPropertySourceSuppliers, "default");
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
 		Environment environment = environmentRepository.findOne("stores", "dev", "");
 		assertThat(environment.getPropertySources().size()).isEqualTo(5);
 		environment.getPropertySources().forEach(propertySource -> {
@@ -224,7 +224,7 @@ class KubernetesEnvironmentRepositoryTests {
 					|| propertySource.getName().equals("secret.application.default")
 					|| propertySource.getName().equals("configmap.stores.stores-dev.default")
 					|| propertySource.getName().equals("configmap.stores.dev")
-					|| propertySource.getName().equals("secret.stores.default")).isTrue();
+					|| propertySource.getName().equals("secret.stores.stores-dev.default")).isTrue();
 			if (propertySource.getName().equals("configmap.application.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(3);
 				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(1);
@@ -249,13 +249,10 @@ class KubernetesEnvironmentRepositoryTests {
 				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(true);
 				assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("dev");
 			}
-			// Currently KubernetesClientSecretsPropertySource does not take into account
-			// profiles, so that plays no role at the moment
-			// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/880
-			else if (propertySource.getName().equals("secret.stores.default")) {
+			else if (propertySource.getName().equals("secret.stores.stores-dev.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(2);
-				assertThat(propertySource.getSource().get("username")).isEqualTo("stores");
-				assertThat(propertySource.getSource().get("password")).isEqualTo("p455w0rd");
+				assertThat(propertySource.getSource().get("username")).isEqualTo("stores-dev");
+				assertThat(propertySource.getSource().get("password")).isEqualTo("password-from-stores-dev");
 			}
 			else {
 				Assertions.fail("no match in property source names");

@@ -84,7 +84,8 @@ public abstract class LabeledSourceData {
 	 * @param labels the ones that have been configured
 	 * @param profiles profiles to taken into account when gathering source data. Can be
 	 * empty.
-	 * @return an Entry that holds the names of the source that were found and their data
+	 * @return a container that holds the names of the source that were found and their
+	 * data
 	 */
 	public abstract MultipleSourcesContainer dataSupplier(Map<String, String> labels, Set<String> profiles);
 

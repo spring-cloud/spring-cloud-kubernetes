@@ -422,4 +422,28 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 	}
 
+	/**
+	 * yaml/properties gets special treatment
+	 */
+	@Test
+	void testYaml() {
+		Secret colorSecret = new SecretBuilder().withNewMetadata().withName("color-secret")
+				.withLabels(Collections.singletonMap("color", "blue")).endMetadata()
+				.addToData("test.yaml", Base64.getEncoder().encodeToString("color: blue".getBytes())).build();
+
+		mockClient.secrets().inNamespace(NAMESPACE).create(colorSecret);
+
+		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
+				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DEFAULT, true);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
+				new MockEnvironment());
+
+		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceData().size(), 1);
+		Assertions.assertEquals(sourceData.sourceData().get("color"), "blue");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.default");
+	}
+
 }

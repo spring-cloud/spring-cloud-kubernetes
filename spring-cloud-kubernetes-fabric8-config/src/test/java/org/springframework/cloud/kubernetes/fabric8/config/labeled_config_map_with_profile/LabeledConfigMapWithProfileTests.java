@@ -38,16 +38,16 @@ abstract class LabeledConfigMapWithProfileTests {
 	@Autowired
 	private WebTestClient webClient;
 
-	/*
-	 * <pre> - configmap with name "color-configmap", with labels: "{color: blue}" and
-	 * "explicitPrefix: blue" - configmap with name "green-configmap", with labels:
-	 * "{color: green}" and "explicitPrefix: blue-again" - configmap with name
-	 * "red-configmap", with labels "{color: not-red}" and "useNameAsPrefix: true" -
-	 * configmap with name "yellow-configmap" with labels "{color: not-yellow}" and
-	 * useNameAsPrefix: true - configmap with name "color-configmap-k8s", with labels :
-	 * "{color: not-blue}" - configmap with name "green-configmap-k8s", with labels :
-	 * "{color: green-k8s}" - configmap with name "green-configmap-prod", with labels :
-	 * "{color: green-prod}" </pre>
+	/**
+	 * <pre>
+	 *     - configmap with name "color-configmap", with labels: "{color: blue}" and "explicitPrefix: blue"
+	 *     - configmap with name "green-configmap", with labels: "{color: green}" and "explicitPrefix: blue-again"
+	 *     - configmap with name "red-configmap", with labels "{color: not-red}" and "useNameAsPrefix: true"
+	 *     - configmap with name "yellow-configmap" with labels "{color: not-yellow}" and useNameAsPrefix: true
+	 *     - configmap with name "color-configmap-k8s", with labels : "{color: not-blue}"
+	 *     - configmap with name "green-configmap-k8s", with labels : "{color: green-k8s}"
+	 *     - configmap with name "green-configmap-prod", with labels : "{color: green-prod}"
+	 * </pre>
 	 */
 	static void setUpBeforeClass(KubernetesClient mockClient) {
 		LabeledConfigMapWithProfileTests.mockClient = mockClient;

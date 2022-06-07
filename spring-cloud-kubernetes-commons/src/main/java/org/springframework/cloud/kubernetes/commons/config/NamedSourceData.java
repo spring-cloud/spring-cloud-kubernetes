@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,6 +51,10 @@ public abstract class NamedSourceData {
 
 			data = dataSupplier(sourceNames);
 
+			if (data.names().isEmpty()) {
+				return new SourceData(ConfigUtils.sourceName(target, initialSourceName, namespace), Map.of());
+			}
+
 			if (prefix != ConfigUtils.Prefix.DEFAULT) {
 				// since we are in a named source, calling get on the supplier is safe
 				String prefixToUse = prefix.prefixProvider().get();
@@ -62,7 +67,7 @@ public abstract class NamedSourceData {
 			onException(failFast, e);
 		}
 
-		String names = sourceNames.stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+		String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 		return new SourceData(ConfigUtils.sourceName(target, names, namespace), data.data());
 	}
 

@@ -23,7 +23,10 @@ The link:https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spr
 during application startup and triggers hot reloading of beans or Spring context when changes are detected on
 observed `ConfigMap` instances.
 
-The default behavior is to create a `Fabric8ConfigMapPropertySource` based on a Kubernetes `ConfigMap` that has a `metadata.name` value of either the name of
+Everything that follows is explained mainly referring to examples using ConfigMaps, but the same stands for
+Secrets, i.e.: every feature is supported for both.
+
+The default behavior is to create a `Fabric8ConfigMapPropertySource` (or a `KubernetesClientConfigMapPropertySource`) based on a Kubernetes `ConfigMap` that has a `metadata.name` value of either the name of
 your Spring application (as defined by its `spring.application.name` property) or a custom name defined within the
 `application.properties` file under the following key: `spring.cloud.kubernetes.config.name`.
 
@@ -134,6 +137,31 @@ data:
         max:16
 ----
 ====
+
+You can also define the search to happen based on labels, for example:
+
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: labeled-configmap-with-prefix
+  cloud:
+    kubernetes:
+      config:
+        enableApi: true
+        useNameAsPrefix: true
+        namespace: spring-k8s
+        sources:
+          - labels:
+              letter: a
+----
+====
+
+This will search for every configmap in namespace `spring-k8s` that has labels `{letter : a}`. The important
+thing to notice here is that unlike reading a configmap by name, this can result in _multiple_ config maps read.
+As usual, the same feature is supported for secrets.
 
 You can also configure Spring Boot applications differently depending on active profiles that are merged together
 when the `ConfigMap` is read. You can provide different property values for different profiles by using an

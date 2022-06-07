@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.kubernetes.client.config.boostrap.stubs;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -38,14 +38,14 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 
 /**
  * A test bootstrap that takes care to initialize ApiClient _before_ our main bootstrap
- * context; with some stub data already.
+ * context; with some stub data already present.
  *
  * @author wind57
  */
 @Order(0)
 @Configuration
-@ConditionalOnProperty("include.profile.specific.sources")
-public class IncludeProfileSpecificSourcesConfigurationStub {
+@ConditionalOnProperty("labeled.config.map.with.prefix.stub")
+public class LabeledConfigMapWithPrefixConfigurationStub {
 
 	@Bean
 	public WireMockServer wireMock() {
@@ -65,37 +65,36 @@ public class IncludeProfileSpecificSourcesConfigurationStub {
 	}
 
 	public static void stubData() {
+
 		V1ConfigMap one = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("config-map-one-dev").withNamespace("spring-k8s")
-						.withResourceVersion("1").build())
+				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-one").withNamespace("spring-k8s")
+						.withLabels(Map.of("letter", "a")).build())
 				.addToData(Collections.singletonMap("one.property", "one")).build();
 
 		V1ConfigMap two = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("config-map-two").withNamespace("spring-k8s")
-						.withResourceVersion("1").build())
-				.addToData(Collections.singletonMap("two.property", "two")).build();
-
-		V1ConfigMap twoDev = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("config-map-two-dev").withNamespace("spring-k8s")
-						.withResourceVersion("1").build())
-				.addToData(Collections.singletonMap("two.property", "twoDev")).build();
+				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-two").withNamespace("spring-k8s")
+						.withLabels(Map.of("letter", "b")).build())
+				.addToData(Collections.singletonMap("property", "two")).build();
 
 		V1ConfigMap three = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("config-map-three").withNamespace("spring-k8s")
-						.withResourceVersion("1").build())
-				.addToData(Collections.singletonMap("three.property", "three")).build();
+				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-three").withNamespace("spring-k8s")
+						.withLabels(Map.of("letter", "c")).build())
+				.addToData(Collections.singletonMap("property", "three")).build();
 
-		V1ConfigMap threeDev = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("config-map-three-dev").withNamespace("spring-k8s")
-						.withResourceVersion("1").build())
-				.addToData(Collections.singletonMap("three.property", "threeDev")).build();
-
-		V1ConfigMapList allConfigMaps = new V1ConfigMapList();
-		allConfigMaps.setItems(Arrays.asList(one, two, twoDev, three, threeDev));
+		V1ConfigMap four = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-four").withNamespace("spring-k8s")
+						.withLabels(Map.of("letter", "d")).build())
+				.addToData(Collections.singletonMap("property", "four")).build();
 
 		// the actual stub for CoreV1Api calls
+		V1ConfigMapList configMapList = new V1ConfigMapList();
+		configMapList.addItemsItem(one);
+		configMapList.addItemsItem(two);
+		configMapList.addItemsItem(three);
+		configMapList.addItemsItem(four);
+
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
+				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
 	}
 
 }

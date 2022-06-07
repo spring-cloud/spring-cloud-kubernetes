@@ -14,45 +14,37 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config;
+package org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_prefix;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
-import org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.IncludeProfileSpecificSourcesApp;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.Mockito.mockStatic;
-import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.IncludeProfileSpecificSourcesConfigurationStub.stubData;
+import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.LabeledConfigMapWithPrefixConfigurationStub.stubData;
 
 /**
- * @author Ryan Baxter
+ * @author wind57
  */
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = IncludeProfileSpecificSourcesApp.class,
-		properties = { "spring.application.name=include-profile-specific-sources",
-				"include.profile.specific.sources=true", "spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:,classpath:./include-profile-specific-sources.yaml" })
-@AutoConfigureWebTestClient
-@ActiveProfiles("dev")
-public class KubernetesClientConfigMapConfigDataIncludeProfileSpecificSourcesTests
-		extends KubernetesClientConfigMapIncludeProfileSpecificSourcesTests {
+		classes = LabeledConfigMapWithPrefixApp.class,
+		properties = { "spring.cloud.application.name=labeled-configmap-with-prefix",
+				"labeled.config.map.with.prefix.stub=true", "spring.main.cloud-platform=KUBERNETES",
+				"spring.config.import=kubernetes:,classpath:./labeled-configmap-with-prefix.yaml",
+				"spring.cloud.kubernetes.client.namespace=spring-k8s" })
+class LabeledConfigMapWithPrefixConfigDataTests extends LabeledConfigMapWithPrefixTests {
 
 	private static MockedStatic<KubernetesClientUtils> clientUtilsMock;
 
 	@BeforeAll
-	public static void wireMock() {
+	static void wireMock() {
 		WireMockServer server = new WireMockServer(options().dynamicPort());
 		server.start();
 		WireMock.configureFor("localhost", server.port());

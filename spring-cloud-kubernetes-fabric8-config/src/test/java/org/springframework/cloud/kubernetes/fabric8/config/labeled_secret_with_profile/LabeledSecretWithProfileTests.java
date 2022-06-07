@@ -40,6 +40,16 @@ abstract class LabeledSecretWithProfileTests {
 	@Autowired
 	private WebTestClient webClient;
 
+	/*
+	 * <pre> - secret with name "color-secret", with labels: "{color: blue}" and
+	 * "explicitPrefix: blue" - secret with name "green-secret", with labels:
+	 * "{color: green}" and "explicitPrefix: blue-again" - secret with name "red-secret",
+	 * with labels "{color: not-red}" and "useNameAsPrefix: true" - secret with name
+	 * "yellow-secret" with labels "{color: not-yellow}" and useNameAsPrefix: true -
+	 * secret with name "color-secret-k8s", with labels : "{color: not-blue}" - secret
+	 * with name "green-secret-k8s", with labels : "{color: green-k8s}" - secret with name
+	 * "green-secret-prod", with labels : "{color: green-prod}" </pre>
+	 */
 	static void setUpBeforeClass(KubernetesClient mockClient) {
 		LabeledSecretWithProfileTests.mockClient = mockClient;
 		// Configure the kubernetes master url to point to the mock server
@@ -49,18 +59,6 @@ abstract class LabeledSecretWithProfileTests {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
-
-		/*
-		 * <pre> - secret with name "color-secret", with labels: "{color: blue}" and
-		 * "explicitPrefix: blue" - secret with name "green-secret", with labels:
-		 * "{color: green}" and "explicitPrefix: blue-again" - secret with name
-		 * "red-secret", with labels "{color: not-red}" and "useNameAsPrefix: true" -
-		 * secret with name "yellow-secret" with labels "{color: not-yellow}" and
-		 * useNameAsPrefix: true - secret with name "color-secret-k8s", with labels :
-		 * "{color: not-blue}" - secret with name "green-secret-k8s", with labels :
-		 * "{color: green-k8s}" - secret with name "green-secret-prod", with labels :
-		 * "{color: green-prod}" </pre>
-		 */
 
 		// is found by labels
 		Map<String, String> colorSecret = Collections.singletonMap("one",

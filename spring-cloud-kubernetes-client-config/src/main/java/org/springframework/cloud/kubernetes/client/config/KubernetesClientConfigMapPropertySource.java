@@ -19,9 +19,9 @@ package org.springframework.cloud.kubernetes.client.config;
 import java.util.EnumMap;
 import java.util.Optional;
 
-import org.springframework.cloud.kubernetes.commons.config.SourceDataEntriesProcessor;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSourceType;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
+import org.springframework.cloud.kubernetes.commons.config.SourceDataEntriesProcessor;
 
 /**
  * @author Ryan Baxter
@@ -32,11 +32,9 @@ public class KubernetesClientConfigMapPropertySource extends SourceDataEntriesPr
 	private static final EnumMap<NormalizedSourceType, KubernetesClientContextToSourceData> STRATEGIES = new EnumMap<>(
 			NormalizedSourceType.class);
 
-	// there is a single strategy here at the moment (unlike secrets),
-	// but this can change.
-	// to be on par with secrets implementation, I am keeping it the same
 	static {
 		STRATEGIES.put(NormalizedSourceType.NAMED_CONFIG_MAP, namedConfigMap());
+		STRATEGIES.put(NormalizedSourceType.LABELED_CONFIG_MAP, labeledConfigMap());
 	}
 
 	public KubernetesClientConfigMapPropertySource(KubernetesClientConfigContext context) {
@@ -49,10 +47,12 @@ public class KubernetesClientConfigMapPropertySource extends SourceDataEntriesPr
 				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
 	}
 
-	// we need to pass various functions because the code we are interested in
-	// is protected in ConfigMapPropertySource, and must stay that way.
 	private static KubernetesClientContextToSourceData namedConfigMap() {
-		return NamedConfigMapContextToSourceDataProvider.of(SourceDataEntriesProcessor::processAllEntries).get();
+		return new NamedConfigMapContextToSourceDataProvider().get();
+	}
+
+	private static KubernetesClientContextToSourceData labeledConfigMap() {
+		return new LabeledConfigMapContextToSourceDataProvider().get();
 	}
 
 }

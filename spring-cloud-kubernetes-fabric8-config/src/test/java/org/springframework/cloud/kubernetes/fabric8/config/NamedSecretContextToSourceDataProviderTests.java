@@ -105,7 +105,7 @@ class NamedSecretContextToSourceDataProviderTests {
 				.addToData("color", Base64.getEncoder().encodeToString("really-blue".getBytes())).build();
 
 		Secret yellow = new SecretBuilder().withNewMetadata().withName("yellow").endMetadata()
-				.addToData("color", Base64.getEncoder().encodeToString("really-yeallow".getBytes())).build();
+				.addToData("color", Base64.getEncoder().encodeToString("really-yellow".getBytes())).build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(red);
 		mockClient.secrets().inNamespace(NAMESPACE).create(blue);
@@ -280,6 +280,30 @@ class NamedSecretContextToSourceDataProviderTests {
 		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
 		Assertions.assertEquals(sourceData.sourceData().get("some.shape"), "round");
 
+	}
+
+	/**
+	 * <pre>
+	 *     - proves that single yaml file gets special treatment
+	 * </pre>
+	 */
+	@Test
+	void testSingleYaml() {
+		Secret secret = new SecretBuilder().withNewMetadata().withName("single-yaml").endMetadata()
+				.addToData("single.yaml", Base64.getEncoder().encodeToString("key: value".getBytes())).build();
+
+		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
+
+		// different namespace
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("single-yaml", NAMESPACE, true, false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
+				new MockEnvironment());
+
+		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secret.single-yaml.default");
+		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("key", "value"));
 	}
 
 }

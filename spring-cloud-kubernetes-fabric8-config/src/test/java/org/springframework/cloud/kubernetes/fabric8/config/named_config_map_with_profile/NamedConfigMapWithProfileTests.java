@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.named_config_map_with_profile;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
 
@@ -50,8 +48,7 @@ abstract class NamedConfigMapWithProfileTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		Map<String, String> one = Collections.singletonMap("one.property",
-				Base64.getEncoder().encodeToString("one".getBytes(StandardCharsets.UTF_8)));
+		Map<String, String> one = Collections.singletonMap("one.property", "one");
 		Map<String, String> oneFromKubernetesProfile = Collections.singletonMap("one.property", "one-from-k8s");
 
 		createConfigmap("configmap-one", one);

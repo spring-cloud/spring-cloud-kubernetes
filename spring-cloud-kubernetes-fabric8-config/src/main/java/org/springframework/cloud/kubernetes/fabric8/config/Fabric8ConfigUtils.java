@@ -111,8 +111,8 @@ final class Fabric8ConfigUtils {
 			return MultipleSourcesContainer.empty();
 		}
 
-		List<StrippedSourceContainer> containers = strippedSecrets(secrets);
-		return ConfigUtils.processLabeledData(containers, environment, labels, namespace, profiles, true);
+		List<StrippedSourceContainer> strippedSources = strippedSecrets(secrets);
+		return ConfigUtils.processLabeledData(strippedSources, environment, labels, namespace, profiles, true);
 
 	}
 
@@ -134,8 +134,8 @@ final class Fabric8ConfigUtils {
 			return MultipleSourcesContainer.empty();
 		}
 
-		List<StrippedSourceContainer> containers = strippedConfigMaps(configMaps);
-		return ConfigUtils.processLabeledData(containers, environment, labels, namespace, profiles, false);
+		List<StrippedSourceContainer> strippedSources = strippedConfigMaps(configMaps);
+		return ConfigUtils.processLabeledData(strippedSources, environment, labels, namespace, profiles, false);
 	}
 
 	/**
@@ -153,8 +153,8 @@ final class Fabric8ConfigUtils {
 			return MultipleSourcesContainer.empty();
 		}
 
-		List<StrippedSourceContainer> nameAndData = strippedSecrets(secrets);
-		return ConfigUtils.processNamedData(nameAndData, environment, sourceNames, namespace, true);
+		List<StrippedSourceContainer> strippedSources = strippedSecrets(secrets);
+		return ConfigUtils.processNamedData(strippedSources, environment, sourceNames, namespace, true);
 
 	}
 
@@ -173,13 +173,12 @@ final class Fabric8ConfigUtils {
 			return MultipleSourcesContainer.empty();
 		}
 
-		List<StrippedSourceContainer> nameAndData = strippedConfigMaps(configMaps);
-		return ConfigUtils.processNamedData(nameAndData, environment, sourceNames, namespace, false);
+		List<StrippedSourceContainer> strippedSources = strippedConfigMaps(configMaps);
+		return ConfigUtils.processNamedData(strippedSources, environment, sourceNames, namespace, false);
 
 	}
 
-	// **************************************** non-exposed methods
-	// ******************************************
+	// ******** non-exposed methods *******
 
 	private static List<Secret> secretsSearch(KubernetesClient client, String namespace) {
 		LOG.debug("Loading all secrets in namespace '" + namespace + "'");

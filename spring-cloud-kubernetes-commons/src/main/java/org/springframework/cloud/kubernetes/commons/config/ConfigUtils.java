@@ -163,16 +163,16 @@ public final class ConfigUtils {
 	 * flattened data that they all hold (potentially overriding entries without any
 	 * defined order).
 	 */
-	public static MultipleSourcesContainer processNamedData(List<StrippedSourceContainer> nameAndData,
+	public static MultipleSourcesContainer processNamedData(List<StrippedSourceContainer> strippedSources,
 			Environment environment, Set<String> sourceNames, String namespace, boolean decode) {
 
 		Set<String> foundSourceNames = new HashSet<>();
 		Map<String, Object> data = new HashMap<>();
 
-		nameAndData.stream().filter(source -> sourceNames.contains(source.name())).collect(Collectors.toList())
+		strippedSources.stream().filter(source -> sourceNames.contains(source.name())).collect(Collectors.toList())
 				.forEach(foundSource -> {
 					String sourceName = foundSource.name();
-					LOG.debug("Loaded source with name : '" + sourceName + " in namespace: '" + namespace + "'");
+					LOG.debug("Found source with name : '" + sourceName + " in namespace: '" + namespace + "'");
 					foundSourceNames.add(sourceName);
 					// see if data is a single yaml/properties file and if it needs
 					// decoding
@@ -224,13 +224,13 @@ public final class ConfigUtils {
 				.collect(Collectors.toCollection(ArrayList::new));
 		sourcesToTake.addAll(sourcesByLabels);
 
-		Set<String> secretNames = new HashSet<>();
+		Set<String> sourceNames = new HashSet<>();
 		Map<String, Object> result = new HashMap<>();
 
 		sourcesToTake.forEach(source -> {
 			String foundSourceName = source.name();
 			LOG.debug("Loaded source with name : '" + foundSourceName + " in namespace: '" + namespace + "'");
-			secretNames.add(foundSourceName);
+			sourceNames.add(foundSourceName);
 
 			Map<String, String> rawData = source.data();
 			if (decode) {
@@ -239,7 +239,7 @@ public final class ConfigUtils {
 			result.putAll(SourceDataEntriesProcessor.processAllEntries(rawData, environment));
 		});
 
-		return new MultipleSourcesContainer(secretNames, result);
+		return new MultipleSourcesContainer(sourceNames, result);
 	}
 
 	public static boolean noSources(List<?> sources, String namespace) {

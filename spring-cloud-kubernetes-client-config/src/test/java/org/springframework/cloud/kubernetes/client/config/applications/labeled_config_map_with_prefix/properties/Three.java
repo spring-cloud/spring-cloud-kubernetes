@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.applications.include_profile_specific_sources.properties;
+package org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_prefix.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("one")
-public class One {
+@ConfigurationProperties(prefix = "configmap-three")
+public class Three {
 
 	private String property;
 

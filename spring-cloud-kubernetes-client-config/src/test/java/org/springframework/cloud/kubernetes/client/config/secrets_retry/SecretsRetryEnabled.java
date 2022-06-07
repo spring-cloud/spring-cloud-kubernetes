@@ -167,8 +167,7 @@ class SecretsRetryEnabled {
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name 'my-secret' in namespace 'default'");
+				.isInstanceOf(IllegalStateException.class).hasMessage("Internal Server Error");
 
 		// verify retried 5 times until failure
 		WireMock.verify(5, getRequestedFor(urlEqualTo(API)));

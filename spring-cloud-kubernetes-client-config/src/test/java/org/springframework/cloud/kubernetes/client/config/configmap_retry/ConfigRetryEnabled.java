@@ -159,8 +159,7 @@ abstract class ConfigRetryEnabled {
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read ConfigMap(s) in namespace 'default'");
+				.isInstanceOf(IllegalStateException.class).hasMessage("Internal Server Error");
 
 		// verify the request was retried 5 times
 		WireMock.verify(5, getRequestedFor(urlEqualTo(API)));
