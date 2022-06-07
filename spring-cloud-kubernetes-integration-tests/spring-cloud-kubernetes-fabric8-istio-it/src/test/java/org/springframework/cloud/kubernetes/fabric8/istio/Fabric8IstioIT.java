@@ -53,7 +53,7 @@ class Fabric8IstioIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-istio-it";
 
-	private static final String ISTIO_BIN_PATH = "/tmp/istio/istio-bin/bin/";
+	private static final String ISTIO_BIN_PATH = "../../istio-cli/istio-1.13.3/bin/";
 
 	private static KubernetesClient client;
 
@@ -78,11 +78,11 @@ class Fabric8IstioIT {
 
 		// for Mac M1 with aarch64
 		if (System.getProperty("os.arch").equals("aarch64")) {
-			processExecResult(K3S.execInContainer("sh", "-c", ISTIO_BIN_PATH + "../../istio-cli/istio-1.13.3/bin/istioctl"
+			processExecResult(K3S.execInContainer("sh", "-c", ISTIO_BIN_PATH + "istioctl"
 					+ " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set hub=docker.io/querycapistio --set profile=minimal -y"));
 		}
 		else {
-			processExecResult(K3S.execInContainer("sh", "-c", ISTIO_BIN_PATH + "../../istio-cli/istio-1.13.3/bin/istioctl"
+			processExecResult(K3S.execInContainer("sh", "-c", ISTIO_BIN_PATH + "istioctl"
 					+ " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=minimal -y"));
 		}
 
