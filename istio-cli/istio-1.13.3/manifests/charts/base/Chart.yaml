@@ -1,0 +1,14 @@
+apiVersion: v1
+name: base
+# This version is never actually shipped. istio/release-builder will replace it at build-time
+# with the appropriate version
+version: 1.13.3
+appVersion: 1.13.3
+tillerVersion: ">=2.7.2"
+description: Helm chart for deploying Istio cluster resources and CRDs
+keywords:
+  - istio
+sources:
+  - http://github.com/istio/istio
+engine: gotpl
+icon: https://istio.io/latest/favicons/android-192x192.png

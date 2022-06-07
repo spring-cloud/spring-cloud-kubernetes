@@ -1,0 +1,39 @@
+hub: docker.io/istio
+tag: 1.13.3
+
+# ImagePullSecrets for operator ServiceAccount, list of secrets in the same namespace
+# used to pull operator image. Must be set for any cluster configured with private docker registry.
+imagePullSecrets: []
+
+# Used to replace istioNamespace to support operator watch multiple namespaces.
+watchedNamespaces: istio-system
+waitForResourcesTimeout: 300s
+
+# Used for helm2 to add the CRDs to templates.
+enableCRDTemplates: false
+
+# revision for the operator resources
+revision: ""
+
+# Operator resource defaults
+operator:
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+# Node labels for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}
+
+# Additional labels and annotations to apply on the pod level for monitoring and logging configuration.
+podLabels: {}
+podAnnotations: {}
