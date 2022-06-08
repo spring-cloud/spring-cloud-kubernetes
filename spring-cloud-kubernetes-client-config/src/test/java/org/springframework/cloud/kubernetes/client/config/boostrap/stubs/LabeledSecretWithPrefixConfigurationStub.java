@@ -86,25 +86,14 @@ public class LabeledSecretWithPrefixConfigurationStub {
 				.addToData(Collections.singletonMap("property", "four".getBytes())).build();
 
 		// the actual stub for CoreV1Api calls
-		V1SecretList oneSecrets = new V1SecretList();
-		oneSecrets.addItemsItem(one);
-		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/secrets?labelSelector=letter%3Da")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(oneSecrets))));
+		V1SecretList secrets = new V1SecretList();
+		secrets.addItemsItem(one);
+		secrets.addItemsItem(two);
+		secrets.addItemsItem(three);
+		secrets.addItemsItem(four);
 
-		V1SecretList twoSecrets = new V1SecretList();
-		twoSecrets.addItemsItem(two);
-		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/secrets?labelSelector=letter%3Db")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(twoSecrets))));
-
-		V1SecretList threeSecrets = new V1SecretList();
-		threeSecrets.addItemsItem(three);
-		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/secrets?labelSelector=letter%3Dc")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(threeSecrets))));
-
-		V1SecretList fourSecrets = new V1SecretList();
-		fourSecrets.addItemsItem(four);
-		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/secrets?labelSelector=letter%3Dd")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(fourSecrets))));
+		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/secrets")
+				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(secrets))));
 	}
 
 }

@@ -50,13 +50,13 @@ class Fabric8ConfigMapPropertySourceTests {
 	void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
 		final String name = "my-config";
 		final String namespace = "default";
-		final String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
+		final String path = String.format("/api/v1/namespaces/%s/configmaps", namespace);
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, true, DEFAULT, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "default", new MockEnvironment());
 		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(context)).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
+				.hasMessageContaining("v1/namespaces/default/configmaps. Message: Internal Server Error.");
 	}
 
 	@Test

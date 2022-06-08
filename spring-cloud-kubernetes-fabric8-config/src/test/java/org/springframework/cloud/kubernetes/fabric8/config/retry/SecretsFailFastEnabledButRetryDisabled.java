@@ -38,8 +38,6 @@ import static org.mockito.Mockito.verify;
  */
 abstract class SecretsFailFastEnabledButRetryDisabled {
 
-	private static final String API = "/api/v1/namespaces/default/secrets/my-secret";
-
 	private static final String LIST_API = "/api/v1/namespaces/default/secrets";
 
 	private static KubernetesMockServer mockServer;
@@ -69,12 +67,13 @@ abstract class SecretsFailFastEnabledButRetryDisabled {
 
 	@Test
 	void locateShouldFailWithoutRetrying() {
-
-		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
+		// clear so that previous mock is disabled
+		mockServer.clearExpectations();
+		mockServer.expect().withPath(LIST_API).andReturn(500, "Internal Server Error").once();
 
 		assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isFalse();
 		assertThatThrownBy(() -> psl.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name 'my-secret' in namespace 'default'");
+				.hasMessageContaining("api/v1/namespaces/default/secrets. Message: Internal Server Error");
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(verifiablePsl, times(1)).locate(any());

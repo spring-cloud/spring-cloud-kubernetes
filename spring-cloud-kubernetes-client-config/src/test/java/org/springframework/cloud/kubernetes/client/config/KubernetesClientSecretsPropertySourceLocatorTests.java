@@ -174,7 +174,7 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties);
 
 		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name 'db-secret' in namespace 'default'");
+				.hasMessage("Internal Server Error");
 	}
 
 	@Test

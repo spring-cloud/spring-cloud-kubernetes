@@ -138,11 +138,22 @@ class ConfigUtilsTests {
 
 		SourceData result = ConfigUtils.withPrefix("configmap", context);
 
-		Assertions.assertEquals(result.sourceName().length(), 31);
-		Assertions.assertTrue(result.sourceName().contains("name2"));
-		Assertions.assertTrue(result.sourceName().contains("name1"));
-		Assertions.assertTrue(result.sourceName().contains("configmap"));
-		Assertions.assertTrue(result.sourceName().contains("namespace"));
+		Assertions.assertEquals(result.sourceName(), "configmap.name1.name2.namespace");
+
+		Assertions.assertEquals(result.sourceData().get("prefix.a"), "b");
+		Assertions.assertEquals(result.sourceData().get("prefix.c"), "d");
+	}
+
+	/*
+	 * source names should be reproducible all the time, this test asserts this.
+	 */
+	@Test
+	void testWithPrefixSortedName() {
+		PrefixContext context = new PrefixContext(Map.of("a", "b", "c", "d"), "prefix", "namespace",
+				Set.of("namec", "namea", "nameb"));
+
+		SourceData result = ConfigUtils.withPrefix("configmap", context);
+		Assertions.assertEquals(result.sourceName(), "configmap.namea.nameb.namec.namespace");
 
 		Assertions.assertEquals(result.sourceData().get("prefix.a"), "b");
 		Assertions.assertEquals(result.sourceData().get("prefix.c"), "d");

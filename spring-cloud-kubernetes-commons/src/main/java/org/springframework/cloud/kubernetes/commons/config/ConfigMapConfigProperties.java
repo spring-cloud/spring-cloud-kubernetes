@@ -16,13 +16,13 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.env.Environment;
@@ -40,17 +40,17 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.ge
 public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 	/**
-	 * Prefix for Kubernetes secrets configuration properties.
+	 * Prefix for Kubernetes config maps configuration properties.
 	 */
 	public static final String PREFIX = "spring.cloud.kubernetes.config";
-
-	private static final Log LOG = LogFactory.getLog(ConfigMapConfigProperties.class);
 
 	private boolean enableApi = true;
 
 	private List<String> paths = Collections.emptyList();
 
 	private List<Source> sources = Collections.emptyList();
+
+	private Map<String, String> labels = Collections.emptyMap();
 
 	public boolean isEnableApi() {
 		return this.enableApi;
@@ -76,28 +76,34 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		this.sources = sources;
 	}
 
+	public Map<String, String> getLabels() {
+		return labels;
+	}
+
+	public void setLabels(Map<String, String> labels) {
+		this.labels = labels;
+	}
+
 	/**
-	 * @return A list of Source to use. If the user has not specified any Source
-	 * properties, then a single Source is constructed based on the supplied name and
-	 * namespace.
-	 *
-	 * These are the actual name/namespace pairs that are used to create a
-	 * ConfigMapPropertySource.
+	 * @return A list of config map source(s) to use.
 	 */
 	public List<NormalizedSource> determineSources(Environment environment) {
 		if (this.sources.isEmpty()) {
-			if (useNameAsPrefix) {
-				LOG.warn(
-						"'spring.cloud.kubernetes.config.useNameAsPrefix' is set to 'true', but 'spring.cloud.kubernetes.config.sources'"
-								+ " is empty; as such will default 'useNameAsPrefix' to 'false'");
+			List<NormalizedSource> result = new ArrayList<>(2);
+			String name = getApplicationName(environment, this.name, "ConfigMap");
+			result.add(new NamedConfigMapNormalizedSource(name, this.namespace, this.failFast,
+					this.includeProfileSpecificSources));
+
+			if (!labels.isEmpty()) {
+				result.add(new LabeledConfigMapNormalizedSource(this.namespace, this.labels, this.failFast,
+						ConfigUtils.Prefix.DEFAULT, false));
 			}
-			String name = getApplicationName(environment, this.name, "Config Map");
-			return Collections.singletonList(
-					new NamedConfigMapNormalizedSource(name, namespace, failFast, includeProfileSpecificSources));
+			return result;
 		}
 
-		return sources.stream()
-				.map(s -> s.normalize(name, namespace, useNameAsPrefix, includeProfileSpecificSources, failFast))
+		return this.sources
+				.stream().flatMap(s -> s.normalize(this.name, this.namespace, this.labels,
+						this.includeProfileSpecificSources, this.failFast, this.useNameAsPrefix, environment))
 				.collect(Collectors.toList());
 	}
 
@@ -117,6 +123,16 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		private String namespace;
 
 		/**
+		 * labels of the config map to look for against.
+		 */
+		private Map<String, String> labels = Collections.emptyMap();
+
+		/**
+		 * An explicit prefix to be used for properties.
+		 */
+		private String explicitPrefix;
+
+		/**
 		 * Use config map name as prefix for properties. Can't be a primitive, we need to
 		 * know if it was explicitly set or not
 		 */
@@ -127,11 +143,6 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		 * to know if it was explicitly set or not
 		 */
 		protected Boolean includeProfileSpecificSources;
-
-		/**
-		 * An explicit prefix to be used for properties.
-		 */
-		private String explicitPrefix;
 
 		public Source() {
 
@@ -157,6 +168,10 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			return useNameAsPrefix;
 		}
 
+		public Boolean getUseNameAsPrefix() {
+			return useNameAsPrefix;
+		}
+
 		public void setUseNameAsPrefix(Boolean useNameAsPrefix) {
 			this.useNameAsPrefix = useNameAsPrefix;
 		}
@@ -177,20 +192,47 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			this.includeProfileSpecificSources = includeProfileSpecificSources;
 		}
 
+		public Map<String, String> getLabels() {
+			return labels;
+		}
+
+		public void setLabels(Map<String, String> labels) {
+			this.labels = labels;
+		}
+
 		public boolean isEmpty() {
 			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
 
-		private NormalizedSource normalize(String defaultName, String defaultNamespace, boolean defaultUseNameAsPrefix,
-				boolean defaultIncludeProfileSpecificSources, boolean failFast) {
+		private Stream<NormalizedSource> normalize(String defaultName, String defaultNamespace,
+				Map<String, String> defaultLabels, boolean defaultIncludeProfileSpecificSources, boolean failFast,
+				boolean defaultUseNameAsPrefix, Environment environment) {
+
+			Stream.Builder<NormalizedSource> normalizedSources = Stream.builder();
+
 			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
 			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-			ConfigUtils.Prefix prefix = ConfigUtils.findPrefix(this.explicitPrefix, useNameAsPrefix,
+			Map<String, String> normalizedLabels = this.labels.isEmpty() ? defaultLabels : this.labels;
+
+			String configMapName = getApplicationName(environment, normalizedName, "Config Map");
+
+			ConfigUtils.Prefix prefix = ConfigUtils.findPrefix(this.explicitPrefix, this.useNameAsPrefix,
 					defaultUseNameAsPrefix, normalizedName);
+
 			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
 					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
-			return new NamedConfigMapNormalizedSource(normalizedName, normalizedNamespace, failFast, prefix,
-					includeProfileSpecificSources);
+			NormalizedSource namedBasedSource = new NamedConfigMapNormalizedSource(configMapName, normalizedNamespace,
+					failFast, prefix, includeProfileSpecificSources);
+			normalizedSources.add(namedBasedSource);
+
+			if (!normalizedLabels.isEmpty()) {
+				NormalizedSource labeledBasedSource = new LabeledConfigMapNormalizedSource(normalizedNamespace, labels,
+						failFast, prefix, includeProfileSpecificSources);
+				normalizedSources.add(labeledBasedSource);
+			}
+
+			return normalizedSources.build();
+
 		}
 
 		@Override
