@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.istio;
 
+import java.io.File;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
@@ -53,7 +54,9 @@ class Fabric8IstioIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-istio-it";
 
-	private static final String ISTIO_BIN_PATH = "spring-cloud-kubernetes/istio-cli/";
+	private static final String LOCAL_ISTIO_BIN_PATH = "../../istio-cli/istio-1.13.3/bin";
+
+	private static final String CONTAINER_ISTIO_BIN_PATH = "/tmp/istio/istio-bin/bin/";
 
 	private static KubernetesClient client;
 
@@ -63,10 +66,13 @@ class Fabric8IstioIT {
 
 	private static String ingressName;
 
-	private static final K3sContainer K3S = Commons.container().withFileSystemBind(ISTIO_BIN_PATH, ISTIO_BIN_PATH);
+	private static K3sContainer K3S;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
+		// Path passed to K3S container must be absolute
+		String absolutePath = new File(LOCAL_ISTIO_BIN_PATH).getAbsolutePath();
+		K3S = Commons.container().withFileSystemBind(absolutePath, CONTAINER_ISTIO_BIN_PATH);
 		K3S.start();
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadImage(IMAGE_NAME, K3S);
@@ -77,11 +83,11 @@ class Fabric8IstioIT {
 
 		// for Mac M1 with aarch64
 		if (System.getProperty("os.arch").equals("aarch64")) {
-			processExecResult(K3S.execInContainer("sh", "-c", ISTIO_BIN_PATH + "istio-1.13.3/bin/istioctl"
+			processExecResult(K3S.execInContainer("sh", "-c", CONTAINER_ISTIO_BIN_PATH + "istioctl"
 					+ " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set hub=docker.io/querycapistio --set profile=minimal -y"));
 		}
 		else {
-			processExecResult(K3S.execInContainer("sh", "-c", ISTIO_BIN_PATH + "istio-cli/istio-1.13.3/bin/istioctl"
+			processExecResult(K3S.execInContainer("sh", "-c", CONTAINER_ISTIO_BIN_PATH + "istioctl"
 					+ " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=minimal -y"));
 		}
 
