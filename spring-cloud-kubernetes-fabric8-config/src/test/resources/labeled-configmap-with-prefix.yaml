@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: labeled-configmap-with-prefix
+  cloud:
+    kubernetes:
+      config:
+        enableApi: true
+        useNameAsPrefix: true
+        namespace: spring-k8s
+        sources:
+          - labels:
+              letter: a
+            useNameAsPrefix: false
+          - labels:
+              letter: b
+            explicitPrefix: two
+          - labels:
+              letter: c
+          - labels:
+              letter: d
+            useNameAsPrefix: true

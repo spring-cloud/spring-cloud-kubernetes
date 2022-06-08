@@ -36,7 +36,7 @@ import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedConfigMapWithPrefixApp.class,
 		properties = { "spring.cloud.application.name=named-configmap-with-prefix",
 				"named.config.map.with.prefix.stub=true", "spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:,classpath:./named-config-map-with-prefix.yaml" })
+				"spring.config.import=kubernetes:,classpath:./named-configmap-with-prefix.yaml" })
 class NamedConfigMapWithPrefixConfigDataTests extends NamedConfigMapWithPrefixTests {
 
 	private static MockedStatic<KubernetesClientUtils> clientUtilsMock;

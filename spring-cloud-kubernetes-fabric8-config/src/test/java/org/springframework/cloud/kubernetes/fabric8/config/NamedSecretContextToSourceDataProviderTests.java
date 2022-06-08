@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
@@ -46,6 +47,8 @@ class NamedSecretContextToSourceDataProviderTests {
 	private static final String NAMESPACE = "default";
 
 	private static KubernetesClient mockClient;
+
+	private static final ConfigUtils.Prefix PREFIX = ConfigUtils.findPrefix("some", false, false, "irrelevant");
 
 	@BeforeAll
 	static void beforeAll() {
@@ -76,7 +79,7 @@ class NamedSecretContextToSourceDataProviderTests {
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true);
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -102,13 +105,13 @@ class NamedSecretContextToSourceDataProviderTests {
 				.addToData("color", Base64.getEncoder().encodeToString("really-blue".getBytes())).build();
 
 		Secret yellow = new SecretBuilder().withNewMetadata().withName("yellow").endMetadata()
-				.addToData("color", Base64.getEncoder().encodeToString("really-yeallow".getBytes())).build();
+				.addToData("color", Base64.getEncoder().encodeToString("really-yellow".getBytes())).build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(red);
 		mockClient.secrets().inNamespace(NAMESPACE).create(blue);
 		mockClient.secrets().inNamespace(NAMESPACE).create(yellow);
 
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true);
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -132,7 +135,7 @@ class NamedSecretContextToSourceDataProviderTests {
 
 		mockClient.secrets().inNamespace(NAMESPACE).create(pink);
 
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("blue", NAMESPACE, true);
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("blue", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -158,7 +161,7 @@ class NamedSecretContextToSourceDataProviderTests {
 		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
 
 		// different namespace
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE + "nope", true);
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE + "nope", true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -167,6 +170,140 @@ class NamedSecretContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.red.default");
 		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
+	}
+
+	/**
+	 * we have two secrets deployed. one matches the query name. the other matches the
+	 * active profile + name, thus is taken also.
+	 */
+	@Test
+	void matchIncludeSingleProfile() {
+
+		Secret red = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
+				.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
+
+		Secret redWithProfile = new SecretBuilder().withNewMetadata().withName("red-with-profile").endMetadata()
+				.addToData("taste", Base64.getEncoder().encodeToString("mango".getBytes())).build();
+
+		mockClient.secrets().inNamespace(NAMESPACE).create(red);
+		mockClient.secrets().inNamespace(NAMESPACE).create(redWithProfile);
+
+		// add one more profile and specify that we want profile based config maps
+		MockEnvironment env = new MockEnvironment();
+		env.setActiveProfiles("with-profile");
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, true);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
+
+		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-profile.default");
+		Assertions.assertEquals(sourceData.sourceData().size(), 2);
+		Assertions.assertEquals(sourceData.sourceData().get("color"), "really-red");
+		Assertions.assertEquals(sourceData.sourceData().get("taste"), "mango");
+
+	}
+
+	/**
+	 * we have two secrets deployed. one matches the query name. the other matches the
+	 * active profile + name, thus is taken also. This takes into consideration the
+	 * prefix, that we explicitly specify. Notice that prefix works for profile based
+	 * secrets as well.
+	 */
+	@Test
+	void matchIncludeSingleProfileWithPrefix() {
+
+		Secret red = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
+				.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
+
+		Secret redWithProfile = new SecretBuilder().withNewMetadata().withName("red-with-profile").endMetadata()
+				.addToData("taste", Base64.getEncoder().encodeToString("mango".getBytes())).build();
+
+		mockClient.secrets().inNamespace(NAMESPACE).create(red);
+		mockClient.secrets().inNamespace(NAMESPACE).create(redWithProfile);
+
+		// add one more profile and specify that we want profile based config maps
+		// also append prefix
+		MockEnvironment env = new MockEnvironment();
+		env.setActiveProfiles("with-profile");
+
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, PREFIX, true);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
+
+		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-profile.default");
+		Assertions.assertEquals(sourceData.sourceData().size(), 2);
+		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
+		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
+
+	}
+
+	/**
+	 * we have three secrets deployed. one matches the query name. the other two match the
+	 * active profile + name, thus are taken also. This takes into consideration the
+	 * prefix, that we explicitly specify. Notice that prefix works for profile based
+	 * config maps as well.
+	 */
+	@Test
+	void matchIncludeTwoProfilesWithPrefix() {
+
+		Secret red = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
+				.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
+
+		Secret redWithTaste = new SecretBuilder().withNewMetadata().withName("red-with-taste").endMetadata()
+				.addToData("taste", Base64.getEncoder().encodeToString("mango".getBytes())).build();
+
+		Secret redWithShape = new SecretBuilder().withNewMetadata().withName("red-with-shape").endMetadata()
+				.addToData("shape", Base64.getEncoder().encodeToString("round".getBytes())).build();
+
+		mockClient.secrets().inNamespace(NAMESPACE).create(red);
+		mockClient.secrets().inNamespace(NAMESPACE).create(redWithTaste);
+		mockClient.secrets().inNamespace(NAMESPACE).create(redWithShape);
+
+		// add one more profile and specify that we want profile based config maps
+		// also append prefix
+		MockEnvironment env = new MockEnvironment();
+		env.setActiveProfiles("with-taste", "with-shape");
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, PREFIX, true);
+
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
+
+		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-shape.red-with-taste.default");
+
+		Assertions.assertEquals(sourceData.sourceData().size(), 3);
+		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
+		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
+		Assertions.assertEquals(sourceData.sourceData().get("some.shape"), "round");
+
+	}
+
+	/**
+	 * <pre>
+	 *     - proves that single yaml file gets special treatment
+	 * </pre>
+	 */
+	@Test
+	void testSingleYaml() {
+		Secret secret = new SecretBuilder().withNewMetadata().withName("single-yaml").endMetadata()
+				.addToData("single.yaml", Base64.getEncoder().encodeToString("key: value".getBytes())).build();
+
+		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
+
+		// different namespace
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("single-yaml", NAMESPACE, true, false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
+				new MockEnvironment());
+
+		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secret.single-yaml.default");
+		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("key", "value"));
 	}
 
 }

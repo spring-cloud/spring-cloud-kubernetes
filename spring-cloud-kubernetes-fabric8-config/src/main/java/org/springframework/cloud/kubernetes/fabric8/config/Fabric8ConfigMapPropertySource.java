@@ -19,9 +19,9 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.EnumMap;
 import java.util.Optional;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSourceType;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
+import org.springframework.cloud.kubernetes.commons.config.SourceDataEntriesProcessor;
 import org.springframework.core.env.MapPropertySource;
 
 /**
@@ -32,16 +32,14 @@ import org.springframework.core.env.MapPropertySource;
  * @author Michael Moudatsos
  * @author Isik Erhan
  */
-public final class Fabric8ConfigMapPropertySource extends ConfigMapPropertySource {
+public final class Fabric8ConfigMapPropertySource extends SourceDataEntriesProcessor {
 
 	private static final EnumMap<NormalizedSourceType, Fabric8ContextToSourceData> STRATEGIES = new EnumMap<>(
 			NormalizedSourceType.class);
 
-	// there is a single strategy here at the moment (unlike secrets),
-	// but this can change.
-	// to be on par with secrets implementation, I am keeping it the same
 	static {
 		STRATEGIES.put(NormalizedSourceType.NAMED_CONFIG_MAP, namedConfigMap());
+		STRATEGIES.put(NormalizedSourceType.LABELED_CONFIG_MAP, labeledConfigMap());
 	}
 
 	Fabric8ConfigMapPropertySource(Fabric8ConfigContext context) {
@@ -54,10 +52,12 @@ public final class Fabric8ConfigMapPropertySource extends ConfigMapPropertySourc
 				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
 	}
 
-	// we need to pass various functions because the code we are interested in
-	// is protected in ConfigMapPropertySource, and must stay that way.
 	private static Fabric8ContextToSourceData namedConfigMap() {
-		return NamedConfigMapContextToSourceDataProvider.of(ConfigMapPropertySource::processAllEntries).get();
+		return new NamedConfigMapContextToSourceDataProvider().get();
+	}
+
+	private static Fabric8ContextToSourceData labeledConfigMap() {
+		return new LabeledConfigMapContextToSourceDataProvider().get();
 	}
 
 }

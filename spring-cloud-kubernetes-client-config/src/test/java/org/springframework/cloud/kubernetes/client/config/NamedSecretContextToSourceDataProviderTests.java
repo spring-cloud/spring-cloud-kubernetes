@@ -26,14 +26,17 @@ import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
+import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1SecretList;
+import io.kubernetes.client.openapi.models.V1SecretListBuilder;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
@@ -46,7 +49,11 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 
 class NamedSecretContextToSourceDataProviderTests {
 
+	private static final ConfigUtils.Prefix PREFIX = ConfigUtils.findPrefix("some", false, false, "irrelevant");
+
 	private static final String NAMESPACE = "default";
+
+	private static final Map<String, byte[]> COLOR_REALLY_RED = Map.of("color", "really-red".getBytes());
 
 	@BeforeAll
 	static void setup() {
@@ -66,25 +73,20 @@ class NamedSecretContextToSourceDataProviderTests {
 	}
 
 	/**
-	 *
-	 * /** we have a single secret deployed. it matched the name in our queries
+	 * we have a single secret deployed. it matched the name in our queries
 	 */
 	@Test
 	void singleSecretMatchAgainstLabels() {
 
-		V1SecretList secretList = new V1SecretList()
-				.addItemsItem(
-						new V1SecretBuilder()
-								.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red")
-										.withResourceVersion("1").build())
-								.addToData("color", "really-red".getBytes()).build());
-
+		V1Secret red = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
+				.addToData(COLOR_REALLY_RED).build();
+		V1SecretList secretList = new V1SecretList().addItemsItem(red);
+		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/secrets")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
 		// blue does not match red
-		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false);
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -103,29 +105,25 @@ class NamedSecretContextToSourceDataProviderTests {
 	@Test
 	void twoSecretMatchAgainstLabels() {
 
-		V1SecretList secretList = new V1SecretList()
-				.addItemsItem(
-						new V1SecretBuilder()
-								.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red")
-										.withResourceVersion("1").build())
-								.addToData("color", "really-red".getBytes()).build())
-				.addItemsItem(
-						new V1SecretBuilder()
-								.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("blue")
-										.withResourceVersion("1").build())
-								.addToData("color", "really-red".getBytes()).build())
-				.addItemsItem(
-						new V1SecretBuilder()
-								.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("pink")
-										.withResourceVersion("1").build())
-								.addToData("color", "really-red".getBytes()).build());
+		V1Secret red = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
+				.addToData(COLOR_REALLY_RED).build();
 
+		V1Secret blue = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("blue").build())
+				.addToData(COLOR_REALLY_RED).build();
+
+		V1Secret pink = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("pink").build())
+				.addToData(COLOR_REALLY_RED).build();
+
+		V1SecretList secretList = new V1SecretListBuilder().addToItems(red).addToItems(blue).addToItems(pink).build();
+
+		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/secrets")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
-		// blue does not match red
-		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false);
+		// blue does not match red, nor pink
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -144,19 +142,16 @@ class NamedSecretContextToSourceDataProviderTests {
 	@Test
 	void testSecretNoMatch() {
 
-		V1SecretList secretList = new V1SecretList()
-				.addItemsItem(
-						new V1SecretBuilder()
-								.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red")
-										.withResourceVersion("1").build())
-								.addToData("color", "really-red".getBytes()).build());
+		V1Secret secret = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
+				.addToData(COLOR_REALLY_RED).build();
 
+		V1SecretList secretList = new V1SecretList().addItemsItem(secret);
+		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/secrets")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
 		// blue does not match red
-		NormalizedSource source = new NamedSecretNormalizedSource("blue", NAMESPACE, false);
+		NormalizedSource source = new NamedSecretNormalizedSource("blue", NAMESPACE, false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -167,22 +162,26 @@ class NamedSecretContextToSourceDataProviderTests {
 		Assertions.assertEquals(sourceData.sourceData(), Collections.emptyMap());
 	}
 
+	/**
+	 * <pre>
+	 *     - LabeledSecretContextToSourceDataProvider gets as input a KubernetesClientConfigContext.
+	 *     - This context has a namespace as well as a NormalizedSource, that has a namespace too.
+	 *     - This test makes sure that we use the proper one.
+	 * </pre>
+	 */
 	@Test
 	void namespaceMatch() {
 
-		V1SecretList secretList = new V1SecretList()
-				.addItemsItem(
-						new V1SecretBuilder()
-								.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red")
-										.withResourceVersion("1").build())
-								.addToData("color", "really-red".getBytes()).build());
+		V1Secret secret = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
+				.addToData(COLOR_REALLY_RED).build();
 
+		V1SecretList secretList = new V1SecretList().addItemsItem(secret);
+		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/secrets")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
-		// blue does not match red
-		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE + "nope", false);
+		String wrongNamespace = NAMESPACE + "nope";
+		NormalizedSource source = new NamedSecretNormalizedSource("red", wrongNamespace, false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -191,6 +190,152 @@ class NamedSecretContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.red.default");
 		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
+	}
+
+	/**
+	 * we have two secrets deployed. one matches the query name. the other matches the
+	 * active profile + name, thus is taken also.
+	 */
+	@Test
+	void matchIncludeSingleProfile() {
+
+		V1Secret red = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
+				.addToData(COLOR_REALLY_RED).build();
+
+		V1Secret mango = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-profile").build())
+				.addToData("taste", "mango".getBytes()).build();
+
+		V1SecretList secretList = new V1SecretList().addItemsItem(red).addItemsItem(mango);
+
+		stubCall(secretList);
+		CoreV1Api api = new CoreV1Api();
+
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false, true);
+		MockEnvironment environment = new MockEnvironment();
+		environment.addActiveProfile("with-profile");
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+
+		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-profile.default");
+		Assertions.assertEquals(sourceData.sourceData().size(), 2);
+		Assertions.assertEquals(sourceData.sourceData().get("color"), "really-red");
+		Assertions.assertEquals(sourceData.sourceData().get("taste"), "mango");
+
+	}
+
+	/**
+	 * we have two secrets deployed. one matches the query name. the other matches the
+	 * active profile + name, thus is taken also. This takes into consideration the
+	 * prefix, that we explicitly specify. Notice that prefix works for profile based
+	 * secrets as well.
+	 */
+	@Test
+	void matchIncludeSingleProfileWithPrefix() {
+
+		V1Secret red = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
+				.addToData(COLOR_REALLY_RED).build();
+
+		V1Secret mango = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-taste").build())
+				.addToData("taste", "mango".getBytes()).build();
+
+		V1SecretList secretList = new V1SecretList().addItemsItem(red).addItemsItem(mango);
+
+		stubCall(secretList);
+		CoreV1Api api = new CoreV1Api();
+
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, true, PREFIX, true);
+		MockEnvironment environment = new MockEnvironment();
+		environment.addActiveProfile("with-taste");
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+
+		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-taste.default");
+		Assertions.assertEquals(sourceData.sourceData().size(), 2);
+		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
+		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
+
+	}
+
+	/**
+	 * we have three secrets deployed. one matches the query name. the other two match the
+	 * active profile + name, thus are taken also. This takes into consideration the
+	 * prefix, that we explicitly specify. Notice that prefix works for profile based
+	 * config maps as well.
+	 */
+	@Test
+	void matchIncludeTwoProfilesWithPrefix() {
+
+		V1Secret red = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
+				.addToData(COLOR_REALLY_RED).build();
+
+		V1Secret mango = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-taste").build())
+				.addToData("taste", "mango".getBytes()).build();
+
+		V1Secret shape = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-shape").build())
+				.addToData("shape", "round".getBytes()).build();
+
+		V1SecretList secretList = new V1SecretList().addItemsItem(red).addItemsItem(mango).addItemsItem(shape);
+
+		stubCall(secretList);
+		CoreV1Api api = new CoreV1Api();
+
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, true, PREFIX, true);
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("with-taste", "with-shape");
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+
+		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-shape.red-with-taste.default");
+
+		Assertions.assertEquals(sourceData.sourceData().size(), 3);
+		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
+		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
+		Assertions.assertEquals(sourceData.sourceData().get("some.shape"), "round");
+
+	}
+
+	/**
+	 * <pre>
+	 *     - proves that single yaml file gets special treatment
+	 * </pre>
+	 */
+	@Test
+	void testSingleYaml() {
+		V1Secret singleYaml = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("single-yaml").withNamespace(NAMESPACE).build())
+				.addToData("single.yaml", "key: value".getBytes()).build();
+		V1SecretList secretList = new V1SecretList().addItemsItem(singleYaml);
+
+		stubCall(secretList);
+		CoreV1Api api = new CoreV1Api();
+
+		NormalizedSource source = new NamedSecretNormalizedSource("single-yaml", NAMESPACE, true, false);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
+				new MockEnvironment());
+
+		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secret.single-yaml.default");
+		Assertions.assertEquals(sourceData.sourceData(), Map.of("key", "value"));
+	}
+
+	private void stubCall(V1SecretList list) {
+		stubFor(get("/api/v1/namespaces/default/secrets")
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 	}
 
 }

@@ -26,7 +26,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = LabeledSecretWithPrefixApp.class,
-		properties = { "spring.application.name=named-secret-with-prefix", "spring.main.cloud-platform=KUBERNETES",
+		properties = { "spring.application.name=labeled-secret-with-prefix", "spring.main.cloud-platform=KUBERNETES",
 				"spring.config.import=kubernetes:,classpath:./labeled-secret-with-prefix.yaml" })
 @EnableKubernetesMockClient(crud = true, https = false)
 class LabeledSecretWithPrefixConfigDataTests extends LabeledSecretWithPrefixTests {

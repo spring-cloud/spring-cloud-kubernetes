@@ -32,17 +32,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author Isik Erhan
  */
 @EnableKubernetesMockClient
-public class Fabric8SecretsPropertySourceLocatorTests {
+class Fabric8SecretsPropertySourceLocatorTests {
 
 	KubernetesMockServer mockServer;
 
 	KubernetesClient mockClient;
 
 	@Test
-	public void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
+	void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
 		final String name = "my-config";
 		final String namespace = "default";
-		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
+		final String path = String.format("/api/v1/namespaces/%s/secrets", namespace);
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 
@@ -56,11 +56,11 @@ public class Fabric8SecretsPropertySourceLocatorTests {
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name '" + name + "' in namespace '" + namespace + "'");
+				.hasMessageContaining("v1/namespaces/default/secrets. Message: Internal Server Error.");
 	}
 
 	@Test
-	public void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
+	void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
 		final String name = "my-config";
 		final String namespace = "default";
 		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);

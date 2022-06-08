@@ -34,7 +34,8 @@ import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropert
 		properties = { "spring.cloud.kubernetes.client.namespace=default",
 				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false",
 				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
-				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true" },
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true",
+				"spring.cloud.kubernetes.config.enabled=false" },
 		classes = Application.class)
 @EnableKubernetesMockClient
 class BootstrapSecretsFailFastEnabledButRetryDisabled extends SecretsFailFastEnabledButRetryDisabled {
@@ -52,7 +53,7 @@ class BootstrapSecretsFailFastEnabledButRetryDisabled extends SecretsFailFastEna
 	private Fabric8SecretsPropertySourceLocator propertySourceLocator;
 
 	@BeforeEach
-	public void beforeEach() {
+	void beforeEach() {
 		psl = propertySourceLocator;
 		verifiablePsl = propertySourceLocator;
 	}

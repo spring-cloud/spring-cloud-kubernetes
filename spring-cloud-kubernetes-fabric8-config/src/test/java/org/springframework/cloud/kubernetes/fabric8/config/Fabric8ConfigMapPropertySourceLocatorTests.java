@@ -52,7 +52,7 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 	void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
 		String name = "my-config";
 		String namespace = "default";
-		String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
+		String path = String.format("/api/v1/namespaces/%s/configmaps", namespace);
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 
@@ -65,7 +65,7 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read ConfigMap with name '" + name + "' in namespace '" + namespace + "'");
+				.hasMessageContaining("api/v1/namespaces/default/configmaps. Message: Internal Server Error.");
 	}
 
 	@Test

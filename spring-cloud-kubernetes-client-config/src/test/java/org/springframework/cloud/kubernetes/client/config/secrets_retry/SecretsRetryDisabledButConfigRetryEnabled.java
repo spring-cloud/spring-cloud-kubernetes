@@ -118,8 +118,7 @@ class SecretsRetryDisabledButConfigRetryEnabled {
 		// TODO not in bootstrap
 		// assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isTrue();
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name 'my-secret' in namespace 'default'");
+				.isInstanceOf(IllegalStateException.class).hasMessage("Internal Server Error");
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());

@@ -31,7 +31,7 @@ import org.springframework.retry.support.RetryTemplate;
  */
 public class ConfigDataRetryableConfigMapPropertySourceLocator extends ConfigMapPropertySourceLocator {
 
-	private RetryTemplate retryTemplate;
+	private final RetryTemplate retryTemplate;
 
 	private ConfigMapPropertySourceLocator configMapPropertySourceLocator;
 

@@ -19,14 +19,11 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.fabric8.config.example.App;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true" })
 @TestPropertySource("classpath:/application-secrets.properties")

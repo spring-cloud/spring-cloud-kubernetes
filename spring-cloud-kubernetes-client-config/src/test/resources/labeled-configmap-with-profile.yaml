@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: labeled-configmap-with-profile
+  cloud:
+    kubernetes:
+      config:
+        enableApi: true
+        useNameAsPrefix: true
+        namespace: spring-k8s
+        includeProfileSpecificSources: true
+        sources:
+          - labels:
+              color: blue
+            explicitPrefix: blue
+            includeProfileSpecificSources: false
+          - labels:
+              color: green
+          - labels:
+              color: red
+          - labels:
+              color: yellow
+            useNameAsPrefix: true

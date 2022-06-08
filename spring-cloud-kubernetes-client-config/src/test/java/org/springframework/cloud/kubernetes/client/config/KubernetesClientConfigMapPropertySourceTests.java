@@ -182,8 +182,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 				new MockEnvironment());
 
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySource(context))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read ConfigMap(s) in namespace 'default'");
+				.isInstanceOf(IllegalStateException.class).hasMessage("Internal Server Error");
 		verify(getRequestedFor(urlEqualTo("/api/v1/namespaces/default/configmaps")));
 	}
 

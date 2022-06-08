@@ -313,6 +313,7 @@ class SecretsConfigPropertiesTests {
 	 *      secrets:
 	 *        useNameAsPrefix: false
 	 *        namespace: spring-k8s
+	 *        includeProfileSpecificSources: false
 	 *        sources:
 	 *          - labels:
 	 *              - name: first-label
@@ -322,6 +323,7 @@ class SecretsConfigPropertiesTests {
 	 *          - labels:
 	 *          	- name: second-label
 	 * 	          	  value: secret-two
+	 * 	          includeProfileSpecificSources: true
 	 *            useNameAsPrefix: true
 	 *            explicitPrefix: two
 	 *          - labels:
@@ -339,6 +341,7 @@ class SecretsConfigPropertiesTests {
 		SecretsConfigProperties properties = new SecretsConfigProperties();
 		properties.setUseNameAsPrefix(false);
 		properties.setNamespace("spring-k8s");
+		properties.setIncludeProfileSpecificSources(false);
 
 		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source();
 		one.setLabels(Map.of("first-label", "secret-one"));
@@ -349,6 +352,7 @@ class SecretsConfigPropertiesTests {
 		two.setLabels(Map.of("second-label", "secret-two"));
 		two.setUseNameAsPrefix(true);
 		two.setExplicitPrefix("two");
+		two.setIncludeProfileSpecificSources(true);
 
 		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source();
 		three.setLabels(Map.of("third-label", "secret-three"));
@@ -366,13 +370,21 @@ class SecretsConfigPropertiesTests {
 		// so they become 5 only.
 		Assertions.assertEquals(sources.size(), 8, "4 NormalizedSources are expected");
 
-		Assertions.assertEquals(((LabeledSecretNormalizedSource) sources.get(1)).prefix().prefixProvider().get(),
-				"one");
-		Assertions.assertEquals(((LabeledSecretNormalizedSource) sources.get(3)).prefix().prefixProvider().get(),
-				"two");
-		Assertions.assertEquals(((LabeledSecretNormalizedSource) sources.get(5)).prefix().prefixProvider().get(),
-				"three");
-		Assertions.assertSame(((LabeledSecretNormalizedSource) sources.get(7)).prefix(), ConfigUtils.Prefix.DEFAULT);
+		LabeledSecretNormalizedSource labeled1 = (LabeledSecretNormalizedSource) sources.get(1);
+		Assertions.assertEquals(labeled1.prefix().prefixProvider().get(), "one");
+		Assertions.assertFalse(labeled1.profileSpecificSources());
+
+		LabeledSecretNormalizedSource labeled3 = (LabeledSecretNormalizedSource) sources.get(3);
+		Assertions.assertEquals(labeled3.prefix().prefixProvider().get(), "two");
+		Assertions.assertTrue(labeled3.profileSpecificSources());
+
+		LabeledSecretNormalizedSource labeled5 = (LabeledSecretNormalizedSource) sources.get(5);
+		Assertions.assertEquals(labeled5.prefix().prefixProvider().get(), "three");
+		Assertions.assertFalse(labeled5.profileSpecificSources());
+
+		LabeledSecretNormalizedSource labeled7 = (LabeledSecretNormalizedSource) sources.get(7);
+		Assertions.assertSame(labeled7.prefix(), ConfigUtils.Prefix.DEFAULT);
+		Assertions.assertFalse(labeled7.profileSpecificSources());
 
 		Set<NormalizedSource> set = new LinkedHashSet<>(sources);
 		Assertions.assertEquals(5, set.size());

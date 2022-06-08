@@ -16,27 +16,13 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Secret;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.PrefixContext;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
-
-import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.dataFromSecret;
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
-import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
+import org.springframework.cloud.kubernetes.commons.config.LabeledSourceData;
+import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 
 /**
  * Provides an implementation of {@link KubernetesClientContextToSourceData} for a labeled
@@ -45,8 +31,6 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.PROP
  * @author wind57
  */
 final class LabeledSecretContextToSourceDataProvider implements Supplier<KubernetesClientContextToSourceData> {
-
-	private static final Log LOG = LogFactory.getLog(LabeledSecretContextToSourceDataProvider.class);
 
 	LabeledSecretContextToSourceDataProvider() {
 
@@ -67,75 +51,18 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Kuberne
 	public KubernetesClientContextToSourceData get() {
 		return context -> {
 
-			Map<String, Object> result = new HashMap<>();
 			LabeledSecretNormalizedSource source = (LabeledSecretNormalizedSource) context.normalizedSource();
-			Set<String> propertySourceNames = new LinkedHashSet<>();
-			Map<String, String> labels = source.labels();
-			String namespace = context.namespace();
-			String sourceNameFromLabels = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, labels.keySet());
 
-			try {
-
-				LOG.info("Loading Secret with labels '" + labels + "' in namespace '" + namespace + "'");
-				List<V1Secret> secrets = context.client().listNamespacedSecret(namespace, null, null, null, null,
-						createLabelsSelector(labels), null, null, null, null, null).getItems();
-
-				if (!secrets.isEmpty()) {
-
-					for (V1Secret secret : secrets) {
-						// we support prefix per source, not per secret. This means that
-						// in theory
-						// we can still have clashes here, that we simply override.
-						// If there are more than one secret found per labels, and they
-						// have the same key on a
-						// property, but different values; one value will override the
-						// other, without any particular order.
-						result.putAll(dataFromSecret(secret, namespace));
-					}
-
-					String secretNames = secrets.stream().map(V1Secret::getMetadata).map(V1ObjectMeta::getName).sorted()
-							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-					propertySourceNames.add(secretNames);
-
-					if (source.prefix() != ConfigUtils.Prefix.DEFAULT) {
-
-						String prefix;
-						if (source.prefix() == ConfigUtils.Prefix.KNOWN) {
-							prefix = source.prefix().prefixProvider().get();
-						}
-						else {
-							// prefix is going to be all the secret names we found based
-							// on the labels
-							// concatenated with PROPERTY_SOURCE_NAME_SEPARATOR
-							prefix = secretNames;
-						}
-
-						PrefixContext prefixContext = new PrefixContext(result, prefix, namespace, propertySourceNames);
-						return ConfigUtils.withPrefix(source.target(), prefixContext);
-					}
-
-					String names = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, propertySourceNames);
-					return new SourceData(ConfigUtils.sourceName(source.target(), names, namespace), result);
-
+			return new LabeledSourceData() {
+				@Override
+				public MultipleSourcesContainer dataSupplier(Map<String, String> labels, Set<String> profiles) {
+					return KubernetesClientConfigUtils.secretsDataByLabels(context.client(), context.namespace(),
+							labels, context.environment(), profiles);
 				}
 
-			}
-			catch (Exception e) {
-				String message = "Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'";
-				onException(source.failFast(), message, e);
-			}
-
-			// if we could not find a secret with provided labels, we will compute a
-			// response with an empty Map
-			// and name that will use all the label names (not their values)
-			String propertySourceNameFromLabels = ConfigUtils.sourceName(source.target(), sourceNameFromLabels,
-					namespace);
-			return new SourceData(propertySourceNameFromLabels, result);
+			}.compute(source.labels(), source.prefix(), source.target(), source.profileSpecificSources(),
+					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
 		};
-	}
-
-	private static String createLabelsSelector(Map<String, String> labels) {
-		return labels.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(","));
 	}
 
 }

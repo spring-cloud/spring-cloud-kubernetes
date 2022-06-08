@@ -43,7 +43,7 @@ import static org.mockito.Mockito.verify;
  */
 abstract class SecretsRetryEnabled {
 
-	private static final String API = "/api/v1/namespaces/default/secrets/my-secret";
+	private static final String API = "/api/v1/namespaces/default/secrets";
 
 	private static final String LIST_API = "/api/v1/namespaces/default/secrets";
 
@@ -63,7 +63,7 @@ abstract class SecretsRetryEnabled {
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		// return empty secret list to not fail context creation
-		mockServer.expect().withPath(LIST_API).andReturn(200, new SecretListBuilder().build()).always();
+		mockServer.expect().withPath(LIST_API).andReturn(200, new SecretListBuilder().build()).once();
 	}
 
 	@Test
@@ -73,9 +73,9 @@ abstract class SecretsRetryEnabled {
 		data.put("some.sensitive.number", Base64.getEncoder().encodeToString("1".getBytes()));
 
 		// return secret without failing
-		mockServer.expect().withPath(API).andReturn(200,
+		mockServer.expect().withPath(API).andReturn(200, new SecretListBuilder().withItems(
 				new SecretBuilder().withNewMetadata().withName("my-secret").endMetadata().addToData(data).build())
-				.once();
+				.build()).once();
 
 		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
 
@@ -95,9 +95,10 @@ abstract class SecretsRetryEnabled {
 
 		// fail 3 times then succeed at the 4th call
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").times(3);
-		mockServer.expect().withPath(API).andReturn(200,
+
+		mockServer.expect().withPath(API).andReturn(200, new SecretListBuilder().withItems(
 				new SecretBuilder().withNewMetadata().withName("my-secret").endMetadata().addToData(data).build())
-				.once();
+				.build()).once();
 
 		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
 
@@ -115,7 +116,7 @@ abstract class SecretsRetryEnabled {
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").times(5);
 
 		assertThatThrownBy(() -> psl.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name 'my-secret' in namespace 'default'");
+				.hasMessageContaining("api/v1/namespaces/default/secrets. Message: Internal Server Error.");
 
 		// verify retried 5 times until failure
 		verify(verifiablePsl, times(5)).locate(any());

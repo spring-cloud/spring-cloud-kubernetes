@@ -59,7 +59,6 @@ public class NamedSecretWithPrefixConfigurationStub {
 	public ApiClient apiClient(WireMockServer wireMockServer) {
 		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		io.kubernetes.client.openapi.Configuration.setDefaultApiClient(apiClient);
-		apiClient.setDebugging(true);
 		stubData();
 		return apiClient;
 	}

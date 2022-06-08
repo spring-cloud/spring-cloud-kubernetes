@@ -25,6 +25,7 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
@@ -34,12 +35,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
-import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -56,7 +55,13 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 	private static final String RED_CONFIG_MAP_NAME = "red";
 
+	private static final String RED_WITH_PROFILE_CONFIG_MAP_NAME = RED_CONFIG_MAP_NAME + "-with-profile";
+
 	private static final String BLUE_CONFIG_MAP_NAME = "blue";
+
+	private static final Map<String, String> COLOR_REALLY_RED = Map.of("color", "really-red");
+
+	private static final Map<String, String> TASTE_MANGO = Map.of("taste", "mango");
 
 	@BeforeAll
 	static void setup() {
@@ -76,92 +81,90 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	}
 
 	/**
-	 * we have a single config map deployed. it does not match our query.
+	 * <pre>
+	 *     one configmap deployed with name "red"
+	 *     we search by name, but for the "blue" one, as such not find it
+	 * </pre>
 	 */
 	@Test
 	void noMatch() {
+		V1ConfigMap redConfigMap = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+				.addToData(COLOR_REALLY_RED).build();
 
-		V1ConfigMapList configMapList = new V1ConfigMapList()
-				.addItemsItem(
-						new V1ConfigMapBuilder()
-								.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME)
-										.withNamespace(NAMESPACE).withResourceVersion("1").build())
-								.addToData("color", "really-red").build());
-
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(redConfigMap);
+		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
+
 		NormalizedSource source = new NamedConfigMapNormalizedSource(BLUE_CONFIG_MAP_NAME, NAMESPACE, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries)
-				.get();
+		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.blue.default");
-		Assertions.assertEquals(sourceData.sourceData(), Collections.emptyMap());
+		Assertions.assertEquals(sourceData.sourceData(), Map.of());
 
 	}
 
 	/**
-	 * we have a single config map deployed. it matches our query.
+	 * <pre>
+	 *     one configmap deployed with name "red"
+	 *     we search by name, for the "red" one, as such we find it
+	 * </pre>
 	 */
 	@Test
 	void match() {
 
-		V1ConfigMapList configMapList = new V1ConfigMapList()
-				.addItemsItem(
-						new V1ConfigMapBuilder()
-								.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME)
-										.withNamespace(NAMESPACE).withResourceVersion("1").build())
-								.addToData("color", "really-red").build());
+		V1ConfigMap configMap = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+				.addToData(COLOR_REALLY_RED).build();
 
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(configMap);
+		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
+
 		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries)
-				.get();
+		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
-		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("color", "really-red"));
+		Assertions.assertEquals(sourceData.sourceData(), COLOR_REALLY_RED);
 
 	}
 
 	/**
-	 * we have two config maps deployed. one matches the query name. the other matches the
-	 * active profile + name, thus is taken also.
+	 * <pre>
+	 *     - two configmaps deployed : "red" and "red-with-profile".
+	 *     - "red" is matched directly, "red-with-profile" is matched because we have an active profile
+	 *       "active-profile"
+	 * </pre>
 	 */
 	@Test
 	void matchIncludeSingleProfile() {
 
-		V1ConfigMapList configMapList = new V1ConfigMapList()
-				.addItemsItem(
-						new V1ConfigMapBuilder()
-								.withMetadata(
-										new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE)
-												.withResourceVersion("1").build())
-								.addToData("color", "really-red").build())
-				.addItemsItem(new V1ConfigMapBuilder()
-						.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME + "-with-profile")
-								.withNamespace(NAMESPACE).withResourceVersion("1").build())
-						.addToData("taste", "mango").build());
+		V1ConfigMap red = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+				.addToData(COLOR_REALLY_RED).build();
 
+		V1ConfigMap redWithProfile = new V1ConfigMapBuilder().withMetadata(
+				new V1ObjectMetaBuilder().withName(RED_WITH_PROFILE_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+				.addToData(TASTE_MANGO).build();
+
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(red).addItemsItem(redWithProfile);
+		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
+
 		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true, true);
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("with-profile");
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
 
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries)
-				.get();
+		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-profile.default");
@@ -172,29 +175,29 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	}
 
 	/**
-	 * we have two config maps deployed. one matches the query name. the other matches the
-	 * active profile + name, thus is taken also. This takes into consideration the
-	 * prefix, that we explicitly specify. Notice that prefix works for profile based
-	 * config maps as well.
+	 * <pre>
+	 *     - two configmaps deployed : "red" and "red-with-profile".
+	 *     - "red" is matched directly, "red-with-profile" is matched because we have an active profile
+	 *       "active-profile"
+	 *     -  This takes into consideration the prefix, that we explicitly specify.
+	 *        Notice that prefix works for profile based config maps as well.
+	 * </pre>
 	 */
 	@Test
 	void matchIncludeSingleProfileWithPrefix() {
 
-		V1ConfigMapList configMapList = new V1ConfigMapList()
-				.addItemsItem(
-						new V1ConfigMapBuilder()
-								.withMetadata(
-										new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE)
-												.withResourceVersion("1").build())
-								.addToData("color", "really-red").build())
-				.addItemsItem(new V1ConfigMapBuilder()
-						.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME + "-with-profile")
-								.withNamespace(NAMESPACE).withResourceVersion("1").build())
-						.addToData("taste", "mango").build());
+		V1ConfigMap red = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+				.addToData(COLOR_REALLY_RED).build();
 
+		V1ConfigMap redWithTaste = new V1ConfigMapBuilder().withMetadata(
+				new V1ObjectMetaBuilder().withName(RED_WITH_PROFILE_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+				.addToData(TASTE_MANGO).build();
+
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(red).addItemsItem(redWithTaste);
+		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
+
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("some", false, false, null);
 		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true, prefix,
 				true);
@@ -202,8 +205,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		environment.setActiveProfiles("with-profile");
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
 
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries)
-				.get();
+		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-profile.default");
@@ -214,35 +216,35 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	}
 
 	/**
-	 * we have three config maps deployed. one matches the query name. the other two match
-	 * the active profile + name, thus are taken also. This takes into consideration the
-	 * prefix, that we explicitly specify. Notice that prefix works for profile based
-	 * config maps as well.
+	 * <pre>
+	 *     - three configmaps deployed : "red", "red-with-taste" and "red-with-shape"
+	 *     - "red" is matched directly, the other two are matched because of active profiles
+	 *     -  This takes into consideration the prefix, that we explicitly specify.
+	 *        Notice that prefix works for profile based config maps as well.
+	 * </pre>
 	 */
 	@Test
 	void matchIncludeTwoProfilesWithPrefix() {
 
-		V1ConfigMapList configMapList = new V1ConfigMapList()
-				.addItemsItem(
-						new V1ConfigMapBuilder()
-								.withMetadata(
-										new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE)
-												.withResourceVersion("1").build())
-								.addToData("color", "really-red").build())
-				.addItemsItem(
-						new V1ConfigMapBuilder()
-								.withMetadata(
-										new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME + "-with-taste")
-												.withNamespace(NAMESPACE).withResourceVersion("1").build())
-								.addToData("taste", "mango").build())
-				.addItemsItem(new V1ConfigMapBuilder()
-						.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME + "-with-shape")
-								.withNamespace(NAMESPACE).withResourceVersion("1").build())
-						.addToData("shape", "round").build());
+		V1ConfigMap red = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+				.addToData(COLOR_REALLY_RED).build();
 
+		V1ConfigMap redWithTaste = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME + "-with-taste")
+						.withNamespace(NAMESPACE).withResourceVersion("1").build())
+				.addToData(TASTE_MANGO).build();
+
+		V1ConfigMap redWithShape = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder()
+				.withName(RED_CONFIG_MAP_NAME + "-with-shape").withNamespace(NAMESPACE).build())
+				.addToData("shape", "round").build();
+
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(red).addItemsItem(redWithTaste)
+				.addItemsItem(redWithShape);
+
+		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
+
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("some", false, false, null);
 		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true, prefix,
 				true);
@@ -250,11 +252,10 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		environment.setActiveProfiles("with-taste", "with-shape");
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
 
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries)
-				.get();
+		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-taste.red-with-shape.default");
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-shape.red-with-taste.default");
 		Assertions.assertEquals(sourceData.sourceData().size(), 3);
 		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
 		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
@@ -262,25 +263,29 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 	}
 
-	// when reading config maps and creating normalized sources, we will always be
-	// providing a name
-	// for the config map; even if one is not provided explicitly.
+	/**
+	 * <pre>
+	 * 		proves that an implicit configmap is going to be generated and read, even if
+	 * 	    we did not provide one
+	 * </pre>
+	 */
 	@Test
 	void matchWithName() {
-		V1ConfigMapList configMapList = new V1ConfigMapList()
-				.addItemsItem(new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder().withName("application")
-						.withNamespace(NAMESPACE).withResourceVersion("1").build()).addToData("color", "red").build());
 
+		V1ConfigMap red = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("application").withNamespace(NAMESPACE).build())
+				.addToData("color", "red").build();
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(red);
+
+		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
+
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("some", false, false, null);
 		NormalizedSource source = new NamedConfigMapNormalizedSource("application", NAMESPACE, true, prefix, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries)
-				.get();
+		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.application.default");
@@ -288,48 +293,95 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	}
 
 	/**
-	 * NamedSecretContextToSourceDataProvider gets as input a
-	 * KubernetesClientConfigContext. This context has a namespace as well as a
-	 * NormalizedSource, that has a namespace too. It is easy to get confused in code on
-	 * which namespace to use. This test makes sure that we use the proper one.
+	 * <pre>
+	 *     - NamedSecretContextToSourceDataProvider gets as input a KubernetesClientConfigContext.
+	 *     - This context has a namespace as well as a NormalizedSource, that has a namespace too.
+	 *     - This test makes sure that we use the proper one.
+	 * </pre>
 	 */
 	@Test
 	void namespaceMatch() {
 
-		V1ConfigMapList configMapList = new V1ConfigMapList()
-				.addItemsItem(
-						new V1ConfigMapBuilder()
-								.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME)
-										.withNamespace(NAMESPACE).withResourceVersion("1").build())
-								.addToData("color", "really-red").build());
+		V1ConfigMap configMap = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+				.addToData(COLOR_REALLY_RED).build();
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(configMap);
 
+		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
-		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
-		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE + "nope", true,
-				false);
+
+		String wrongNamespace = NAMESPACE + "nope";
+		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, wrongNamespace, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
-		KubernetesClientContextToSourceData data = NamedConfigMapContextToSourceDataProvider.of(Dummy::processEntries)
-				.get();
+		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
-		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("color", "really-red"));
+		Assertions.assertEquals(sourceData.sourceData(), COLOR_REALLY_RED);
 	}
 
-	// needed only to allow access to the super methods
-	private static final class Dummy extends ConfigMapPropertySource {
+	/**
+	 * <pre>
+	 *     - proves that single yaml file gets special treatment
+	 * </pre>
+	 */
+	@Test
+	void testSingleYaml() {
+		V1ConfigMap singleYaml = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+				.addToData("single.yaml", "key: value").build();
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(singleYaml);
 
-		private Dummy() {
-			super(SourceData.emptyRecord("dummy-name"));
-		}
+		stubCall(configMapList);
+		CoreV1Api api = new CoreV1Api();
 
-		private static Map<String, Object> processEntries(Map<String, String> map, Environment environment) {
-			return processAllEntries(map, environment);
-		}
+		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true, false);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
+				new MockEnvironment());
 
+		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
+		Assertions.assertEquals(sourceData.sourceData(), Map.of("key", "value"));
+	}
+
+	/**
+	 * <pre>
+	 *     - one configmap is deployed with name "one"
+	 *     - profile is enabled with name "k8s"
+	 *
+	 *     we assert that the name of the source is "one" and does not contain "one-dev"
+	 * </pre>
+	 */
+	@Test
+	void testCorrectNameWithProfile() {
+		V1ConfigMap one = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("one").withNamespace(NAMESPACE).build())
+				.addToData("key", "value").build();
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one);
+
+		stubCall(configMapList);
+		CoreV1Api api = new CoreV1Api();
+
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("k8s");
+
+		NormalizedSource source = new NamedConfigMapNormalizedSource("one", NAMESPACE, true, true);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+
+		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.one.default");
+		Assertions.assertEquals(sourceData.sourceData(), Map.of("key", "value"));
+	}
+
+	private void stubCall(V1ConfigMapList list) {
+		stubFor(get("/api/v1/namespaces/default/configmaps")
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 	}
 
 }
