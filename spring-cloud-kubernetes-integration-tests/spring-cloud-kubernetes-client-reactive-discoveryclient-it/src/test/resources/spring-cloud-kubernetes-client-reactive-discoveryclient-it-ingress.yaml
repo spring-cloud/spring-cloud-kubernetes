@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: it-ingress
+  namespace: default
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /reactive-discovery-it
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: spring-cloud-kubernetes-client-reactive-discoveryclient-it
+                port:
+                  number: 8080

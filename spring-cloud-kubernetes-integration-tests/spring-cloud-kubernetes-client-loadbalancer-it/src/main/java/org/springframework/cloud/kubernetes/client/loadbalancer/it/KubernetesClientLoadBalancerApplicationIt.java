@@ -19,15 +19,18 @@ package org.springframework.cloud.kubernetes.client.loadbalancer.it;
 import java.util.List;
 import java.util.Map;
 
+import reactor.netty.http.client.HttpClient;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * @author Ryan Baxter
@@ -36,6 +39,8 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootApplication
 @RestController
 public class KubernetesClientLoadBalancerApplicationIt {
+
+	private static final String URL = "http://servicea-wiremock/__admin/mappings";
 
 	private final DiscoveryClient discoveryClient;
 
@@ -49,13 +54,15 @@ public class KubernetesClientLoadBalancerApplicationIt {
 
 	@Bean
 	@LoadBalanced
-	RestTemplate restTemplate() {
-		return new RestTemplateBuilder().build();
+	WebClient.Builder client() {
+		return WebClient.builder();
 	}
 
-	@GetMapping("/servicea")
+	@GetMapping("/loadbalancer-it/servicea")
+	@SuppressWarnings("unchecked")
 	public Map<String, Object> greeting() {
-		return restTemplate().getForObject("http://servicea-wiremock/__admin/mappings", Map.class);
+		return (Map<String, Object>) client().clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
+				.baseUrl(URL).build().method(HttpMethod.GET).retrieve().bodyToMono(Map.class).block();
 	}
 
 	@GetMapping("/services")

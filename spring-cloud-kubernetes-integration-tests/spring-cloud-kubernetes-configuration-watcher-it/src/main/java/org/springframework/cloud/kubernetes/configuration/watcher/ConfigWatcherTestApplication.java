@@ -38,15 +38,15 @@ public class ConfigWatcherTestApplication implements ApplicationListener<Refresh
 		SpringApplication.run(ConfigWatcherTestApplication.class, args);
 	}
 
-	@GetMapping("/")
+	@GetMapping("/it")
 	public boolean index() {
-		log.warn("Current value: " + value);
+		log.info("Current value: " + value);
 		return value;
 	}
 
 	@Override
 	public void onApplicationEvent(RefreshRemoteApplicationEvent refreshRemoteApplicationEvent) {
-		log.warn("Received remote refresh event");
+		log.info("Received remote refresh event");
 		this.value = true;
 	}
 

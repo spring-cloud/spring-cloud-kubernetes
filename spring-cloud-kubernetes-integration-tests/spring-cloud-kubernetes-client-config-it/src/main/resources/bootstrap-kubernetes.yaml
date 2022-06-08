@@ -1,7 +1,6 @@
 spring:
   cloud:
     kubernetes:
-      enabled: true
       secrets:
         enable-api: true
       reload:

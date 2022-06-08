@@ -1,0 +1,12 @@
+spring:
+  webflux:
+    base-path: /reactive-discovery-it
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*"

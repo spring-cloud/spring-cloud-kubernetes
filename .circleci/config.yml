@@ -22,9 +22,12 @@ workflows:
   build-then-test:
     jobs:
       - build
-      - test:
+      - fabric8_istio:
           requires:
             - build
+      - test:
+          requires:
+            - fabric8_istio
 jobs:
   test:
     parallelism: 5 # parallel containers to split the tests among
@@ -34,11 +37,35 @@ jobs:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
       _SERVICE_OCCURENCE: 5
     steps:
+      - run:
+          name: testcontainers reuse support
+          command: |
+            # needed for .withReuse(true) to work
+            echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
       - checkout
+      - attach_workspace:
+          at: /tmp/docker
+      - run:
+          name: Load Controller Images From Workspace
+          command: |
+            VIEW=$(ls -l /tmp/docker/images)
+            echo "${VIEW}"
+            docker load -i /tmp/docker/images/spring-cloud-kubernetes-configuration-watcher.tar
+            docker load -i /tmp/docker/images/spring-cloud-kubernetes-discoveryserver.tar
+            docker load -i /tmp/docker/images/spring-cloud-kubernetes-configserver.tar
       - run:
           name: Run regular tests
           command: |
-            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" | grep -v 'spring-cloud-kubernetes-integration-tests' \
+
+            ###########################################################################################################################
+            ################################################# Build test support dependency ###########################################
+            cd spring-cloud-kubernetes-test-support
+            .././mvnw clean install
+            cd ..
+
+            ###########################################################################################################################
+            ##################################################### Split and run tests #################################################
+            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" | grep -v 'Fabric8IstioIT' \
                                | xargs grep -l '@Test' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//' \
@@ -46,25 +73,14 @@ jobs:
             echo $CLASSNAMES
             TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
             echo $TEST_ARG
-            ./mvnw -s .settings.xml -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent test -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+            ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install \
+                   -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
+                   -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
             mkdir -p $HOME/artifacts/junit/
             find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
             bash <(curl -s https://codecov.io/bash)
       - kube-orb/install-kubectl
-      - attach_workspace:
-          at: ./
-      - run:
-          name: Load Controller Images From Workspace
-          command: |
-            docker load -i ./docker-images/spring-cloud-kubernetes-configuration-watcher.tar
-            docker load -i ./docker-images/spring-cloud-kubernetes-discoveryserver.tar
-            docker load -i ./docker-images/spring-cloud-kubernetes-configserver.tar
-      - run:
-          name: Run Kind Integration Tests
-          command: |
-            cd spring-cloud-kubernetes-integration-tests
-            ./run.sh
       - run:
           name: "Aggregate test results"
           when: always
@@ -104,17 +120,56 @@ jobs:
           command: |
             TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
             echo $TAG
-            mkdir docker-images
-            docker save -o docker-images/spring-cloud-kubernetes-configuration-watcher.tar docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${TAG}
-            docker save -o docker-images/spring-cloud-kubernetes-discoveryserver.tar docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${TAG}
-            docker save -o docker-images/spring-cloud-kubernetes-configserver.tar docker.io/springcloud/spring-cloud-kubernetes-configserver:${TAG}
+            mkdir -p /tmp/docker/images/
+            docker save -o /tmp/docker/images/spring-cloud-kubernetes-configuration-watcher.tar docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${TAG}
+            docker save -o /tmp/docker/images/spring-cloud-kubernetes-discoveryserver.tar docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${TAG}
+            docker save -o /tmp/docker/images/spring-cloud-kubernetes-configserver.tar docker.io/springcloud/spring-cloud-kubernetes-configserver:${TAG}
+            VIEW=$(ls -l /tmp/docker/images)
+            echo "${VIEW}"
       - persist_to_workspace:
-          root: ./
-          paths: docker-images
+          root: /tmp/docker/
+          paths:
+            - images
       - save_cache:
           paths:
             - ~/.m2
           key: spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+  fabric8_istio:
+    machine:
+      image: ubuntu-2004:202201-02
+    steps:
+      - run:
+          name: Install OpenJDK 17
+          command: |
+            wget -qO - https://adoptium.jfrog.io/adoptium/api/gpg/key/public | sudo apt-key add -
+            sudo add-apt-repository --yes https://adoptium.jfrog.io/adoptium/deb/
+            sudo apt-get update && sudo apt-get install temurin-17-jdk
+            sudo update-alternatives --set java /usr/lib/jvm/temurin-17-jdk-amd64/bin/java
+            sudo update-alternatives --set javac /usr/lib/jvm/temurin-17-jdk-amd64/bin/javac
+            java -version
+      - checkout
+      - restore_cache:
+          keys:
+            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - spring-cloud-kubernetes-{{ .Branch }}
+            - spring-cloud-kubernetes
+      - run:
+          name: Run fabric8 istio test
+          command: |
+
+            # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
+            # otherwise (since we use static ports) there might be two instances starting at the same time, and ports might conflict
+            # this also deals with a slightly more involved istio set-up that is needed for this test
+
+            ###########################################################################################################################
+            ######################################## Build test support dependency and Run test #######################################
+            cd spring-cloud-kubernetes-test-support
+            .././mvnw clean install
+            cd ..
+
+            cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
+            ../.././mvnw clean install
+            cd ../..
 notify:
   webhooks:
     - url: https://webhooks.gitter.im/e/22e6bb4eb945dd61ba54
