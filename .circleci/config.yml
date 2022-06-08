@@ -53,33 +53,33 @@ jobs:
             docker load -i /tmp/docker/images/spring-cloud-kubernetes-configuration-watcher.tar
             docker load -i /tmp/docker/images/spring-cloud-kubernetes-discoveryserver.tar
             docker load -i /tmp/docker/images/spring-cloud-kubernetes-configserver.tar
-#      - run:
-#          name: Run regular tests
-#          command: |
-#
-#            ###########################################################################################################################
-#            ################################################# Build test support dependency ###########################################
-#            cd spring-cloud-kubernetes-test-support
-#            .././mvnw clean install
-#            cd ..
-#
-#            ###########################################################################################################################
-#            ##################################################### Split and run tests #################################################
-#            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" | grep -v 'Fabric8IstioIT' \
-#                               | xargs grep -l '@Test' \
-#                               | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
-#                               | sed 's/.\{5\}$//' \
-#                               | circleci tests split --split-by=timings)
-#            echo $CLASSNAMES
-#            TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
-#            echo $TEST_ARG
-#            ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install \
-#                   -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
-#                   -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-#            mkdir -p $HOME/artifacts/junit/
-#            find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
-#            find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
-#            bash <(curl -s https://codecov.io/bash)
+      - run:
+          name: Run regular tests
+          command: |
+
+            ###########################################################################################################################
+            ################################################# Build test support dependency ###########################################
+            cd spring-cloud-kubernetes-test-support
+            .././mvnw clean install
+            cd ..
+
+            ###########################################################################################################################
+            ##################################################### Split and run tests #################################################
+            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" | grep -v 'Fabric8IstioIT' \
+                               | xargs grep -l '@Test' \
+                               | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
+                               | sed 's/.\{5\}$//' \
+                               | circleci tests split --split-by=timings)
+            echo $CLASSNAMES
+            TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
+            echo $TEST_ARG
+            ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install \
+                   -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
+                   -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+            mkdir -p $HOME/artifacts/junit/
+            find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
+            find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
+            bash <(curl -s https://codecov.io/bash)
       - kube-orb/install-kubectl
       - run:
           name: "Aggregate test results"
