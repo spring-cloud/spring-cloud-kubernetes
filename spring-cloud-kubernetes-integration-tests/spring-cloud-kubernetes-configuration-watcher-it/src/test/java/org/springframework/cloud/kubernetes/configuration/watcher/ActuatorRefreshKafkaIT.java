@@ -70,9 +70,7 @@ class ActuatorRefreshKafkaIT {
 
 	private static final String ZOOKEEPER_SERVICE = "zookeeper";
 
-	private static final String ZOOKEEPER_DEPLOYMENT = "zookeeper";
-
-	private static final String KAFKA_IMAGE = "wurstmeister/kafka";
+	private static final String ZOOKEEPER_DEPLOYMENT_NAME = "zookeeper";
 
 	private static CoreV1Api api;
 
@@ -84,6 +82,27 @@ class ActuatorRefreshKafkaIT {
 
 	private static final K3sContainer K3S = Commons.container();
 
+	private static final V1Deployment ZOOKEEPER_DEPLOYMENT;
+
+	private static final V1Deployment KAFKA_DEPLOYMENT;
+
+	private static final String ZOOKEEPER_IMAGE;
+
+	private static final String KAFKA_IMAGE;
+
+	static {
+		try {
+			ZOOKEEPER_DEPLOYMENT = getZookeeperDeployment();
+			KAFKA_DEPLOYMENT = getKafkaDeployment();
+
+			ZOOKEEPER_IMAGE = K8SUtils.getImageFromDeployment(ZOOKEEPER_DEPLOYMENT);
+			KAFKA_IMAGE = K8SUtils.getImageFromDeployment(KAFKA_DEPLOYMENT);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
@@ -93,6 +112,9 @@ class ActuatorRefreshKafkaIT {
 
 		Commons.validateImage(CONFIG_WATCHER_IT_IMAGE, K3S);
 		Commons.loadSpringCloudKubernetesImage(CONFIG_WATCHER_IT_IMAGE, K3S);
+
+		Commons.validateImage(ZOOKEEPER_IMAGE, K3S);
+		Commons.validateImage(KAFKA_IMAGE, K3S);
 
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
@@ -117,7 +139,7 @@ class ActuatorRefreshKafkaIT {
 		deployConfigWatcher();
 
 		// Check to make sure the controller deployment is ready
-		waitForDeployment(ZOOKEEPER_DEPLOYMENT);
+		waitForDeployment(ZOOKEEPER_DEPLOYMENT_NAME);
 		waitForDeployment(KAFKA_BROKER);
 		waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME);
 		waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME);
@@ -137,7 +159,7 @@ class ActuatorRefreshKafkaIT {
 
 		// Check to make sure the controller deployment is deleted
 		k8SUtils.waitForDeploymentToBeDeleted(KAFKA_BROKER, NAMESPACE);
-		k8SUtils.waitForDeploymentToBeDeleted(ZOOKEEPER_DEPLOYMENT, NAMESPACE);
+		k8SUtils.waitForDeploymentToBeDeleted(ZOOKEEPER_DEPLOYMENT_NAME, NAMESPACE);
 		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
 		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
 	}
@@ -185,20 +207,16 @@ class ActuatorRefreshKafkaIT {
 
 	private void deployZookeeper() throws Exception {
 		api.createNamespacedService(NAMESPACE, getZookeeperService(), null, null, null);
-		V1Deployment deployment = getZookeeperDeployment();
-		String[] image = K8SUtils.getImageFromDeployment(deployment).split(":");
-		Commons.pullImage(image[0], image[1], K3S);
+		String[] image = ZOOKEEPER_IMAGE.split(":", 2);
 		Commons.loadImage(image[0], image[1], "zookeeper", K3S);
-		appsApi.createNamespacedDeployment(NAMESPACE, deployment, null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, ZOOKEEPER_DEPLOYMENT, null, null, null);
 	}
 
 	private void deployKafka() throws Exception {
 		api.createNamespacedService(NAMESPACE, getKafkaService(), null, null, null);
-		V1Deployment deployment = getKafkaDeployment();
-		String[] image = K8SUtils.getImageFromDeployment(deployment).split(":");
-		Commons.pullImage(image[0], image[1], K3S);
+		String[] image = KAFKA_IMAGE.split(":", 2);
 		Commons.loadImage(image[0], image[1], "kafka", K3S);
-		appsApi.createNamespacedDeployment(NAMESPACE, getKafkaDeployment(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, KAFKA_DEPLOYMENT, null, null, null);
 	}
 
 	private void cleanUpKafka() throws Exception {
@@ -207,7 +225,7 @@ class ActuatorRefreshKafkaIT {
 	}
 
 	private void cleanUpZookeeper() throws Exception {
-		appsApi.deleteNamespacedDeployment(ZOOKEEPER_DEPLOYMENT, NAMESPACE, null, null, null, null, null, null);
+		appsApi.deleteNamespacedDeployment(ZOOKEEPER_DEPLOYMENT_NAME, NAMESPACE, null, null, null, null, null, null);
 		api.deleteNamespacedService(ZOOKEEPER_SERVICE, NAMESPACE, null, null, null, null, null, null);
 	}
 
@@ -247,7 +265,7 @@ class ActuatorRefreshKafkaIT {
 				.readYamlFromClasspath("app/spring-cloud-kubernetes-configuration-watcher-it-ingress.yaml");
 	}
 
-	private V1Deployment getKafkaDeployment() throws Exception {
+	private static V1Deployment getKafkaDeployment() throws Exception {
 		return (V1Deployment) K8SUtils.readYamlFromClasspath("kafka/kafka-deployment.yaml");
 	}
 
@@ -255,7 +273,7 @@ class ActuatorRefreshKafkaIT {
 		return (V1Service) K8SUtils.readYamlFromClasspath("kafka/kafka-service.yaml");
 	}
 
-	private V1Deployment getZookeeperDeployment() throws Exception {
+	private static V1Deployment getZookeeperDeployment() throws Exception {
 		return (V1Deployment) K8SUtils.readYamlFromClasspath("zookeeper/zookeeper-deployment.yaml");
 	}
 

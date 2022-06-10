@@ -83,9 +83,9 @@ class Fabric8IstioIT {
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
-		Commons.pullImage(ISTIO_PROXY, ISTIO_VERSION, K3S);
+		Commons.validateImage(ISTIO_PROXY + ":" + ISTIO_VERSION, K3S);
 		Commons.loadImage(ISTIO_PROXY, ISTIO_VERSION, "istioproxy", K3S);
-		Commons.pullImage(ISTIO_PILOT, ISTIO_VERSION, K3S);
+		Commons.validateImage(ISTIO_PILOT + ":" + ISTIO_VERSION, K3S);
 		Commons.loadImage(ISTIO_PILOT, ISTIO_VERSION, "istiopilot", K3S);
 
 		processExecResult(K3S.execInContainer("sh", "-c", "kubectl create namespace istio-test"));

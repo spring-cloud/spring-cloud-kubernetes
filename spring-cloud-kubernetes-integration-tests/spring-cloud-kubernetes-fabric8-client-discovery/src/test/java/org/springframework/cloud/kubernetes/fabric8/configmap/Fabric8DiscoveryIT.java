@@ -64,9 +64,11 @@ class Fabric8DiscoveryIT {
 
 	private static String mockDeploymentName;
 
-	private static String mockDeploymentImage;
-
 	private static final K3sContainer K3S = Commons.container();
+
+	private static Deployment wiremockDeployment;
+
+	private static String wiremockImageName;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -76,6 +78,13 @@ class Fabric8DiscoveryIT {
 
 		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
 		client = new DefaultKubernetesClient(config);
+		wiremockDeployment = client.apps().deployments().load(getMockDeployment()).get();
+		wiremockImageName = wiremockDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+		Commons.validateImage(wiremockImageName, K3S);
+
+		String[] both = wiremockImageName.split(":", 2);
+		Commons.loadImage(both[0], both[1], "wiremock", K3S);
+
 		Fabric8Utils.setUp(client, NAMESPACE);
 
 		deployManifests();
@@ -86,7 +95,7 @@ class Fabric8DiscoveryIT {
 	static void after() throws Exception {
 		deleteManifests();
 		Commons.cleanUp(IMAGE_NAME, K3S);
-		Commons.cleanUpDownloadedImage(mockDeploymentImage);
+		Commons.cleanUpDownloadedImage(wiremockImageName);
 	}
 
 	@Test
@@ -155,12 +164,8 @@ class Fabric8DiscoveryIT {
 	private static void deployMockManifests() {
 
 		try {
-
-			Deployment deployment = client.apps().deployments().load(getMockDeployment()).get();
-			client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
-			mockDeploymentName = deployment.getMetadata().getName();
-			mockDeploymentImage = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
-
+			client.apps().deployments().inNamespace(NAMESPACE).create(wiremockDeployment);
+			mockDeploymentName = wiremockDeployment.getMetadata().getName();
 			Service service = client.services().load(getMockService()).get();
 			mockServiceName = service.getMetadata().getName();
 			client.services().inNamespace(NAMESPACE).create(service);

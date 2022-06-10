@@ -108,10 +108,6 @@ public final class Commons {
 						+ "You need to build it first or issue a docker pull, and then run the test"));
 	}
 
-	public static void pullImage(String image, String tag, K3sContainer container) throws InterruptedException {
-		container.getDockerClient().pullImageCmd(image).withTag(tag).start().awaitCompletion();
-	}
-
 	/**
 	 * A K3sContainer, but with fixed port mappings. This is needed because of the nature
 	 * of some integration tests.

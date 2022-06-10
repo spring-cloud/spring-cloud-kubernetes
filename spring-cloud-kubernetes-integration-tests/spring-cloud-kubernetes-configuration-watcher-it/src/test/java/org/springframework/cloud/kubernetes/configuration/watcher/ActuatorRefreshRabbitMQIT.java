@@ -77,6 +77,21 @@ class ActuatorRefreshRabbitMQIT {
 
 	private static final K3sContainer K3S = Commons.container();
 
+	private static final V1ReplicationController RABBITMQ_CONTROLLER;
+
+	private static final String RABBITMQ_IMAGE_NAME;
+
+	static {
+		try {
+			RABBITMQ_CONTROLLER = getRabbitMQReplicationController();
+			RABBITMQ_IMAGE_NAME = RABBITMQ_CONTROLLER.getSpec().getTemplate().getSpec().getContainers().get(0)
+					.getImage();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
@@ -86,6 +101,8 @@ class ActuatorRefreshRabbitMQIT {
 
 		Commons.validateImage(CONFIG_WATCHER_IT_IMAGE, K3S);
 		Commons.loadSpringCloudKubernetesImage(CONFIG_WATCHER_IT_IMAGE, K3S);
+
+		Commons.validateImage(RABBITMQ_IMAGE_NAME, K3S);
 
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
@@ -186,11 +203,9 @@ class ActuatorRefreshRabbitMQIT {
 
 	private void deployRabbitMQ() throws Exception {
 		api.createNamespacedService(NAMESPACE, getRabbitMQService(), null, null, null);
-		String[] image = getRabbitMQReplicationController().getSpec().getTemplate().getSpec().getContainers().get(0)
-				.getImage().split(":");
-		Commons.pullImage(image[0], image[1], K3S);
+		String[] image = RABBITMQ_IMAGE_NAME.split(":", 2);
 		Commons.loadImage(image[0], image[1], "rabbitmq", K3S);
-		api.createNamespacedReplicationController(NAMESPACE, getRabbitMQReplicationController(), null, null, null);
+		api.createNamespacedReplicationController(NAMESPACE, RABBITMQ_CONTROLLER, null, null, null);
 	}
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
@@ -229,7 +244,7 @@ class ActuatorRefreshRabbitMQIT {
 				.readYamlFromClasspath("app/spring-cloud-kubernetes-configuration-watcher-it-ingress.yaml");
 	}
 
-	private V1ReplicationController getRabbitMQReplicationController() throws Exception {
+	private static V1ReplicationController getRabbitMQReplicationController() throws Exception {
 		return (V1ReplicationController) K8SUtils.readYamlFromClasspath("rabbitmq/rabbitmq-controller.yaml");
 	}
 

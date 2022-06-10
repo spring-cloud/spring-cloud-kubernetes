@@ -15,7 +15,7 @@ spec:
       containers:
         - name: spring-cloud-kubernetes-discoveryserver
           image: docker.io/springcloud/spring-cloud-kubernetes-discoveryserver
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
           readinessProbe:
             httpGet:
               port: 8761

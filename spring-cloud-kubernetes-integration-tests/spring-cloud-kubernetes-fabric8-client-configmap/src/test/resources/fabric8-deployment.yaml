@@ -15,7 +15,7 @@ spec:
       containers:
         - name: spring-cloud-kubernetes-fabric8-client-configmap
           image: docker.io/springcloud/spring-cloud-kubernetes-fabric8-client-configmap
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
           readinessProbe:
             httpGet:
               port: 8080
