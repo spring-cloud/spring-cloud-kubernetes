@@ -60,10 +60,6 @@ jobs:
             docker pull zookeeper:3.6.2
             docker pull rabbitmq:3-management
             docker pull wurstmeister/kafka:2.13-2.6.0
-
-            # same version of istioctl exists in istio-ctl folder, chnaging one assumes changing the other
-            docker pull istio/proxyv2:1.13.3
-            docker pull istio/pilot:1.13.3
       - run:
           name: Run regular tests
           command: |

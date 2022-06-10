@@ -28,6 +28,14 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      - name: pull docker images
+        run: |
+          docker pull istio/proxyv2:1.13.3
+          docker pull istio/pilot:1.13.3
+          docker pull wiremock/wiremock:2.32.0
+          docker pull zookeeper:3.6.2
+          docker pull rabbitmq:3-management
+          docker pull wurstmeister/kafka:2.13-2.6.0
       - name: Build with Maven
         run: ./mvnw -s .settings.xml clean org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dmaven.wagon.http.pool=false -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
       - name: Publish Test Report
