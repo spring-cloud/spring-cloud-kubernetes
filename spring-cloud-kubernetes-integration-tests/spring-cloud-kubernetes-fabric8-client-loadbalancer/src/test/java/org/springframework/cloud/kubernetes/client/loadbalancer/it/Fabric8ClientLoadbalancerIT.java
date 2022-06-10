@@ -225,7 +225,6 @@ public class Fabric8ClientLoadbalancerIT {
 
 			client.apps().deployments().inNamespace(NAMESPACE).create(wiremockDeployment);
 			mockDeploymentName = wiremockDeployment.getMetadata().getName();
-
 			Service service = client.services().load(getMockService()).get();
 			mockServiceName = service.getMetadata().getName();
 			client.services().inNamespace(NAMESPACE).create(service);
