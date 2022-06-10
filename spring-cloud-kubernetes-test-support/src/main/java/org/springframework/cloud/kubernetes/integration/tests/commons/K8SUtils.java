@@ -364,7 +364,7 @@ public class K8SUtils {
 
 	private void innerDeployWiremock(String namespace, boolean rootPath, K3sContainer container) throws Exception {
 		V1Deployment deployment = getWiremockDeployment();
-		String[] image = getImageFromDeployment(deployment).split(":");
+		String[] image = getImageFromDeployment(deployment).split(":", 2);
 		Commons.pullImage(image[0], image[1], container);
 		Commons.loadImage(image[0], image[1], "wiremock", container);
 		appsApi.createNamespacedDeployment(namespace, getWiremockDeployment(), null, null, null);
@@ -394,7 +394,7 @@ public class K8SUtils {
 		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock/wiremock-service.yaml");
 	}
 
-	private static V1Deployment getWiremockDeployment() throws Exception {
+	public static V1Deployment getWiremockDeployment() throws Exception {
 		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock/wiremock-deployment.yaml");
 	}
 

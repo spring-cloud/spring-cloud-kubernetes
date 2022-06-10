@@ -72,10 +72,23 @@ class LoadBalancerIT {
 
 	private static final K3sContainer K3S = Commons.container();
 
+	private static final String WIREMOCK_IMAGE;
+
+	static {
+		try {
+			WIREMOCK_IMAGE = K8SUtils.getImageFromDeployment(K8SUtils.getWiremockDeployment());
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
 		Commons.validateImage(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME, K3S);
+		Commons.validateImage(WIREMOCK_IMAGE, K3S);
+
 		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME, K3S);
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();

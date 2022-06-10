@@ -54,6 +54,13 @@ jobs:
             docker load -i /tmp/docker/images/spring-cloud-kubernetes-discoveryserver.tar
             docker load -i /tmp/docker/images/spring-cloud-kubernetes-configserver.tar
       - run:
+          name: docker pull images
+          command: |
+            docker pull wiremock/wiremock:2.32.0
+            docker pull zookeeper:3.6.2
+            docker pull rabbitmq:3-management
+            docker pull wurstmeister/kafka:2.13-2.6.0
+      - run:
           name: Run regular tests
           command: |
 
@@ -138,15 +145,6 @@ jobs:
     machine:
       image: ubuntu-2004:202201-02
     steps:
-      - run:
-          name: Install OpenJDK 17
-          command: |
-            wget -qO - https://adoptium.jfrog.io/adoptium/api/gpg/key/public | sudo apt-key add -
-            sudo add-apt-repository --yes https://adoptium.jfrog.io/adoptium/deb/
-            sudo apt-get update && sudo apt-get install temurin-17-jdk
-            sudo update-alternatives --set java /usr/lib/jvm/temurin-17-jdk-amd64/bin/java
-            sudo update-alternatives --set javac /usr/lib/jvm/temurin-17-jdk-amd64/bin/javac
-            java -version
       - checkout
       - restore_cache:
           keys:
@@ -159,7 +157,6 @@ jobs:
 
             # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
             # otherwise (since we use static ports) there might be two instances starting at the same time, and ports might conflict
-            # this also deals with a slightly more involved istio set-up that is needed for this test
 
             ###########################################################################################################################
             ######################################## Build test support dependency and Run test #######################################

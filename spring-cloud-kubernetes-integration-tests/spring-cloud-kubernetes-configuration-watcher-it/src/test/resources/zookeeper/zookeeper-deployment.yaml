@@ -20,6 +20,7 @@ spec:
       containers:
       - name: zookeeper
         image: zookeeper:3.6.2
+        imagePullPolicy: Never
         ports:
         - containerPort: 2181
         env:

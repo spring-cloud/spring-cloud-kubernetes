@@ -18,7 +18,7 @@ spec:
             - name: SPRING_CLOUD_KUBERNETES_LOADBALANCER_MODE
               value: POD
           image: docker.io/springcloud/spring-cloud-kubernetes-client-loadbalancer-it
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
           readinessProbe:
             httpGet:
               port: 8080

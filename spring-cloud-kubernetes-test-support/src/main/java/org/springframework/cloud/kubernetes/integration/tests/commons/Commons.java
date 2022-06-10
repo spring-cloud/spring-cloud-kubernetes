@@ -48,7 +48,7 @@ public final class Commons {
 	public static final String RANCHER = "rancher/k3s:v1.21.10-k3s1";
 
 	/**
-	 * Command to use when starting rancher. Without "server" option, traefik si not
+	 * Command to use when starting rancher. Without "server" option, traefik is not
 	 * installed
 	 */
 	public static final String RANCHER_COMMAND = "server";
@@ -105,7 +105,7 @@ public final class Commons {
 				.filter(x -> Arrays.stream(x.getRepoTags() == null ? new String[] {} : x.getRepoTags())
 						.anyMatch(y -> y.contains(image)))
 				.findFirst().orElseThrow(() -> new IllegalArgumentException("Image : " + image + " not build locally. "
-						+ "You need to build it first, and then run the test"));
+						+ "You need to build it first or issue a docker pull, and then run the test"));
 	}
 
 	public static void pullImage(String image, String tag, K3sContainer container) throws InterruptedException {

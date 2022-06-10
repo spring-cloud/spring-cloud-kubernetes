@@ -15,7 +15,7 @@ spec:
       containers:
         - name: spring-cloud-kubernetes-configuration-watcher
           image: docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
           readinessProbe:
             httpGet:
               port: 8888

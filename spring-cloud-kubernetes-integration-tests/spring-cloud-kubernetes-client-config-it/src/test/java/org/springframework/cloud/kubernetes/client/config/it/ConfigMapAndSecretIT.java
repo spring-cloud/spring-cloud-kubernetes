@@ -65,8 +65,6 @@ class ConfigMapAndSecretIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static final String APP_NAME = "spring-cloud-kubernetes-client-config-it";
-
 	private static CoreV1Api api;
 
 	private static AppsV1Api appsApi;
@@ -101,8 +99,8 @@ class ConfigMapAndSecretIT {
 				"metadata.name=" + K8S_CONFIG_CLIENT_IT_NAME, null, null, null, null, null, null, null, null, null);
 		api.deleteNamespacedService(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, NAMESPACE, null, null, null, null, null, null);
 		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
-		api.deleteNamespacedConfigMap(APP_NAME, NAMESPACE, null, null, null, null, null, null);
-		api.deleteNamespacedSecret(APP_NAME, NAMESPACE, null, null, null, null, null, null);
+		api.deleteNamespacedConfigMap(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, NAMESPACE, null, null, null, null, null, null);
+		api.deleteNamespacedSecret(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, NAMESPACE, null, null, null, null, null, null);
 	}
 
 	@Test
@@ -141,7 +139,7 @@ class ConfigMapAndSecretIT {
 		Map<String, String> data = configMap.getData();
 		data.replace("application.yaml", data.get("application.yaml").replace("from-config-map", "from-unit-test"));
 		configMap.data(data);
-		api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null);
+		api.replaceNamespacedConfigMap(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, NAMESPACE, configMap, null, null, null);
 		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
 				.until(() -> propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block()
 						.equals("from-unit-test"));
@@ -149,7 +147,7 @@ class ConfigMapAndSecretIT {
 		Map<String, byte[]> secretData = v1Secret.getData();
 		secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
 		v1Secret.setData(secretData);
-		api.replaceNamespacedSecret(APP_NAME, NAMESPACE, v1Secret, null, null, null);
+		api.replaceNamespacedSecret(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, NAMESPACE, v1Secret, null, null, null);
 		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2)).until(() -> secretClient
 				.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("p455w1rd"));
 	}

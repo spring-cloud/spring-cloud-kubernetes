@@ -14,7 +14,7 @@ spec:
       containers:
         - name: servicea-wiremock
           image: wiremock/wiremock:2.32.0
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
           readinessProbe:
             httpGet:
               port: 8080
