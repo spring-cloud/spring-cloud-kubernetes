@@ -147,7 +147,7 @@ jobs:
           key: spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
   fabric8_istio:
     machine:
-      image: ubuntu-2004:202201-02
+      image: ubuntu-2204:2022.04.1
     steps:
       - checkout
       - restore_cache:
