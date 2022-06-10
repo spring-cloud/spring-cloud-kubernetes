@@ -156,6 +156,12 @@ jobs:
             - spring-cloud-kubernetes-{{ .Branch }}
             - spring-cloud-kubernetes
       - run:
+          name: docker pull istio images
+          command: |
+            # same version of istioctl exists in istio-ctl folder, chnaging one assumes changing the other
+            docker pull istio/proxyv2:1.13.3
+            docker pull istio/pilot:1.13.3
+      - run:
           name: Run fabric8 istio test
           command: |
 
