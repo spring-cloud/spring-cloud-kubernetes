@@ -157,6 +157,9 @@ class Fabric8DiscoveryIT {
 		try {
 
 			Deployment deployment = client.apps().deployments().load(getMockDeployment()).get();
+			String[] image = K8SUtils.getImageFromDeployment(deployment).split(":");
+			Commons.pullImage(image[0], image[1], K3S);
+			Commons.loadImage(image[0], image[1], "wiremock", K3S);
 			client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
 			mockDeploymentName = deployment.getMetadata().getName();
 			mockDeploymentImage = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();

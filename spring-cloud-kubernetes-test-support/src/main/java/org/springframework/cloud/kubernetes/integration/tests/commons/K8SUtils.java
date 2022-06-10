@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
@@ -352,13 +353,24 @@ public class K8SUtils {
 	}
 
 	/**
-	 * Gets the image from the deployment yaml. Assumes there is only one container
+	 * Gets the image from a Kubernetes Client deployment yaml. Assumes there is only one container
 	 * defined in the deployment.
 	 * @param deployment deployment yaml
 	 * @return An array where the first item is the mage name and the second item is the
 	 * tag
 	 */
 	public static String getImageFromDeployment(V1Deployment deployment) {
+		return deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+	}
+
+	/**
+	 * Gets the image from a Fabric8 deployment yaml. Assumes there is only one container
+	 * defined in the deployment.
+	 * @param deployment deployment yaml
+	 * @return An array where the first item is the mage name and the second item is the
+	 * tag
+	 */
+	public static String getImageFromDeployment(Deployment deployment) {
 		return deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 	}
 
