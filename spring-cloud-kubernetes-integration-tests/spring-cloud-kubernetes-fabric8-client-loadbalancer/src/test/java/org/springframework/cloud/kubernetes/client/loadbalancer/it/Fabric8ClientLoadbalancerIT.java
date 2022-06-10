@@ -75,7 +75,7 @@ public class Fabric8ClientLoadbalancerIT {
 	static void beforeAll() throws Exception {
 		K3S.start();
 		Commons.validateImage(IMAGE_NAME, K3S);
-		Commons.loadImage(IMAGE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
 		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
 		client = new DefaultKubernetesClient(config);

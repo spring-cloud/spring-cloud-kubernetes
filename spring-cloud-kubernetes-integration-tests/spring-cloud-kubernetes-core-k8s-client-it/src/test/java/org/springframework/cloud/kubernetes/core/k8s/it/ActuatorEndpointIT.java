@@ -73,7 +73,7 @@ class ActuatorEndpointIT {
 	static void beforeAll() throws Exception {
 		K3S.start();
 		Commons.validateImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
-		Commons.loadImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
 		appsApi = new AppsV1Api();

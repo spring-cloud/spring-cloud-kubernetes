@@ -54,7 +54,13 @@ class Fabric8IstioIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-istio-it";
 
-	private static final String LOCAL_ISTIO_BIN_PATH = "../../istio-cli/istio-1.13.3/bin";
+	private static final String ISTIO_PROXY = "istio/proxyv2";
+
+	private static final String ISTIO_PILOT = "istio/pilot";
+
+	private static final String ISTIO_VERSION = "1.13.3";
+
+	private static final String LOCAL_ISTIO_BIN_PATH = "../../istio-cli/istio-" + ISTIO_VERSION + "/bin";
 
 	private static final String CONTAINER_ISTIO_BIN_PATH = "/tmp/istio/istio-bin/bin/";
 
@@ -75,7 +81,12 @@ class Fabric8IstioIT {
 		K3S = Commons.container().withFileSystemBind(absolutePath, CONTAINER_ISTIO_BIN_PATH);
 		K3S.start();
 		Commons.validateImage(IMAGE_NAME, K3S);
-		Commons.loadImage(IMAGE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+
+		Commons.pullImage(ISTIO_PROXY, ISTIO_VERSION, K3S);
+		Commons.loadImage(ISTIO_PROXY, ISTIO_VERSION, "istioproxy", K3S);
+		Commons.pullImage(ISTIO_PILOT, ISTIO_VERSION, K3S);
+		Commons.loadImage(ISTIO_PILOT, ISTIO_VERSION, "istiopilot", K3S);
 
 		processExecResult(K3S.execInContainer("sh", "-c", "kubectl create namespace istio-test"));
 		processExecResult(

@@ -71,17 +71,20 @@ public final class Commons {
 		return CONTAINER;
 	}
 
-	public static void loadImage(String image, K3sContainer container) throws Exception {
-		// save image
-		InputStream imageStream = container.getDockerClient().saveImageCmd("springcloud/" + image)
-				.withTag(getPomVersion()).exec();
+	public static void loadSpringCloudKubernetesImage(String project, K3sContainer container) throws Exception {
+		loadImage("springcloud/" + project, getPomVersion(), project, container);
+	}
 
-		Path imagePath = Paths.get(TEMP_FOLDER + "/" + image + ".tar");
+	public static void loadImage(String image, String tag, String tarName, K3sContainer container) throws Exception {
+		// save image
+		InputStream imageStream = container.getDockerClient().saveImageCmd(image).withTag(tag).exec();
+
+		Path imagePath = Paths.get(TEMP_FOLDER + "/" + tarName + ".tar");
 		Files.deleteIfExists(imagePath);
 		Files.copy(imageStream, imagePath);
 		// import image with ctr. this works because TEMP_FOLDER is mounted in the
 		// container
-		container.execInContainer("ctr", "i", "import", TEMP_FOLDER + "/" + image + ".tar");
+		container.execInContainer("ctr", "i", "import", TEMP_FOLDER + "/" + tarName + ".tar");
 	}
 
 	public static void cleanUp(String image, K3sContainer container) throws Exception {
@@ -103,6 +106,10 @@ public final class Commons {
 						.anyMatch(y -> y.contains(image)))
 				.findFirst().orElseThrow(() -> new IllegalArgumentException("Image : " + image + " not build locally. "
 						+ "You need to build it first, and then run the test"));
+	}
+
+	public static void pullImage(String image, String tag, K3sContainer container) throws InterruptedException {
+		container.getDockerClient().pullImageCmd(image).withTag(tag).start().awaitCompletion();
 	}
 
 	/**

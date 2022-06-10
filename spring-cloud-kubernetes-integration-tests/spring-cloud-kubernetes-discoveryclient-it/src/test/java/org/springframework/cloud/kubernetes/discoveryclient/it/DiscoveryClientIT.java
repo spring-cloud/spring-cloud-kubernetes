@@ -83,10 +83,10 @@ class DiscoveryClientIT {
 		K3S.start();
 
 		Commons.validateImage(DISCOVERY_SERVER_APP_NAME, K3S);
-		Commons.loadImage(DISCOVERY_SERVER_APP_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(DISCOVERY_SERVER_APP_NAME, K3S);
 
 		Commons.validateImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
-		Commons.loadImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();

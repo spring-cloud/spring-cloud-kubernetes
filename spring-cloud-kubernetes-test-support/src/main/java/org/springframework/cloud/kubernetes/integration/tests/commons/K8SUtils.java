@@ -58,6 +58,7 @@ import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.Yaml;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.ReflectionUtils;
@@ -317,8 +318,8 @@ public class K8SUtils {
 		return (V1Role) K8SUtils.readYamlFromClasspath("setup/role.yaml");
 	}
 
-	public void deployWiremock(String namespace, boolean rootPath) throws Exception {
-		innerDeployWiremock(namespace, rootPath);
+	public void deployWiremock(String namespace, boolean rootPath, K3sContainer container) throws Exception {
+		innerDeployWiremock(namespace, rootPath, container);
 
 		// Check to make sure the wiremock deployment is ready
 		waitForDeployment(WIREMOCK_DEPLOYMENT_NAME, namespace);
@@ -346,11 +347,26 @@ public class K8SUtils {
 	 */
 	public void removeWiremockImage() throws Exception {
 		V1Deployment wiremockDeployment = getWiremockDeployment();
-		String wiremockImage = wiremockDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+		String wiremockImage = getImageFromDeployment(wiremockDeployment);
 		Commons.cleanUpDownloadedImage(wiremockImage);
 	}
 
-	private void innerDeployWiremock(String namespace, boolean rootPath) throws Exception {
+	/**
+	 * Gets the image from the deployment yaml. Assumes there is only one container
+	 * defined in the deployment.
+	 * @param deployment deployment yaml
+	 * @return An array where the first item is the mage name and the second item is the
+	 * tag
+	 */
+	public static String getImageFromDeployment(V1Deployment deployment) {
+		return deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+	}
+
+	private void innerDeployWiremock(String namespace, boolean rootPath, K3sContainer container) throws Exception {
+		V1Deployment deployment = getWiremockDeployment();
+		String[] image = getImageFromDeployment(deployment).split(":");
+		Commons.pullImage(image[0], image[1], container);
+		Commons.loadImage(image[0], image[1], "wiremock", container);
 		appsApi.createNamespacedDeployment(namespace, getWiremockDeployment(), null, null, null);
 		api.createNamespacedService(namespace, getWiremockAppService(), null, null, null);
 

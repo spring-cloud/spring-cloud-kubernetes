@@ -82,10 +82,10 @@ class ActuatorRefreshRabbitMQIT {
 		K3S.start();
 
 		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
-		Commons.loadImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 
 		Commons.validateImage(CONFIG_WATCHER_IT_IMAGE, K3S);
-		Commons.loadImage(CONFIG_WATCHER_IT_IMAGE, K3S);
+		Commons.loadSpringCloudKubernetesImage(CONFIG_WATCHER_IT_IMAGE, K3S);
 
 		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
@@ -186,14 +186,17 @@ class ActuatorRefreshRabbitMQIT {
 
 	private void deployRabbitMQ() throws Exception {
 		api.createNamespacedService(NAMESPACE, getRabbitMQService(), null, null, null);
+		String[] image = getRabbitMQReplicationController().getSpec().getTemplate().getSpec().getContainers().get(0)
+				.getImage().split(":");
+		Commons.pullImage(image[0], image[1], K3S);
+		Commons.loadImage(image[0], image[1], "rabbitmq", K3S);
 		api.createNamespacedReplicationController(NAMESPACE, getRabbitMQReplicationController(), null, null, null);
 	}
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) K8SUtils.readYamlFromClasspath(
 				"app-watcher/spring-cloud-kubernetes-configuration-watcher-bus-amqp-deployment.yaml");
-		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
-				+ getPomVersion();
+		String image = K8SUtils.getImageFromDeployment(deployment) + ":" + getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
@@ -201,8 +204,7 @@ class ActuatorRefreshRabbitMQIT {
 	private V1Deployment getItDeployment() throws Exception {
 		String urlString = "app-watcher/spring-cloud-kubernetes-configuration-watcher-it-bus-amqp-deployment.yaml";
 		V1Deployment deployment = (V1Deployment) K8SUtils.readYamlFromClasspath(urlString);
-		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
-				+ getPomVersion();
+		String image = K8SUtils.getImageFromDeployment(deployment) + ":" + getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
