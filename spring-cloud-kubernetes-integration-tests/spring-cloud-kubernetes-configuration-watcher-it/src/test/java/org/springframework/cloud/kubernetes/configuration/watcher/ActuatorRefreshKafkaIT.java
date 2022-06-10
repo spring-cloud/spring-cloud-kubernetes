@@ -72,8 +72,6 @@ class ActuatorRefreshKafkaIT {
 
 	private static final String ZOOKEEPER_DEPLOYMENT = "zookeeper";
 
-	private static final String KAFKA_IMAGE = "wurstmeister/kafka";
-
 	private static CoreV1Api api;
 
 	private static AppsV1Api appsApi;
