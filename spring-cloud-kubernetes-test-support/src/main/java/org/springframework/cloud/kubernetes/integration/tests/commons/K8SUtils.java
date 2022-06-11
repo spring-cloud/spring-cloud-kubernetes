@@ -376,7 +376,7 @@ public class K8SUtils {
 
 	private void innerDeployWiremock(String namespace, boolean rootPath, K3sContainer container) throws Exception {
 		V1Deployment deployment = getWiremockDeployment();
-		String[] image = getImageFromDeployment(deployment).split(":");
+		String[] image = getImageFromDeployment(deployment).split(":", 2);
 		Commons.pullImage(image[0], image[1], container);
 		Commons.loadImage(image[0], image[1], "wiremock", container);
 		appsApi.createNamespacedDeployment(namespace, getWiremockDeployment(), null, null, null);

@@ -136,17 +136,8 @@ jobs:
           key: spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
   fabric8_istio:
     machine:
-      image: ubuntu-2004:202201-02
+      image: ubuntu-2204:2022.04.1
     steps:
-      - run:
-          name: Install OpenJDK 17
-          command: |
-            wget -qO - https://adoptium.jfrog.io/adoptium/api/gpg/key/public | sudo apt-key add -
-            sudo add-apt-repository --yes https://adoptium.jfrog.io/adoptium/deb/
-            sudo apt-get update && sudo apt-get install temurin-17-jdk
-            sudo update-alternatives --set java /usr/lib/jvm/temurin-17-jdk-amd64/bin/java
-            sudo update-alternatives --set javac /usr/lib/jvm/temurin-17-jdk-amd64/bin/javac
-            java -version
       - checkout
       - restore_cache:
           keys:
@@ -159,7 +150,6 @@ jobs:
 
             # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
             # otherwise (since we use static ports) there might be two instances starting at the same time, and ports might conflict
-            # this also deals with a slightly more involved istio set-up that is needed for this test
 
             ###########################################################################################################################
             ######################################## Build test support dependency and Run test #######################################

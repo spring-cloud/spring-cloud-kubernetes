@@ -48,7 +48,7 @@ public final class Commons {
 	public static final String RANCHER = "rancher/k3s:v1.21.10-k3s1";
 
 	/**
-	 * Command to use when starting rancher. Without "server" option, traefik si not
+	 * Command to use when starting rancher. Without "server" option, traefik is not
 	 * installed
 	 */
 	public static final String RANCHER_COMMAND = "server";
