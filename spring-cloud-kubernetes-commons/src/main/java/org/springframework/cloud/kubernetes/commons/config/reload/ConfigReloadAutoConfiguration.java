@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config.reload;
 
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.util.Assert;
 
 /**
  * @author Ryan Baxter
@@ -79,7 +79,7 @@ public class ConfigReloadAutoConfiguration {
 				ContextRefresher refresher) {
 			switch (properties.getStrategy()) {
 			case RESTART_CONTEXT:
-				Assert.notNull(restarter, "Restart endpoint is not enabled");
+				Objects.requireNonNull(restarter, "Restart endpoint is not enabled");
 				return new ConfigurationUpdateStrategy(properties.getStrategy().name(), () -> {
 					wait(properties);
 					restarter.restart();

@@ -58,8 +58,8 @@ public abstract class ConfigurationChangeDetector {
 	}
 
 	public void reloadProperties() {
-		log.info("Reloading using strategy: " + this.strategy.getName());
-		this.strategy.reload();
+		log.info("Reloading using strategy: " + this.strategy.name());
+		this.strategy.reloadProcedure().run();
 	}
 
 	public boolean changed(List<? extends MapPropertySource> left, List<? extends MapPropertySource> right) {

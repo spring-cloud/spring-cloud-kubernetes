@@ -24,28 +24,16 @@ import java.util.Objects;
  *
  * @author Nicola Ferraro
  */
-public class ConfigurationUpdateStrategy {
-
-	private final String name;
-
-	private final Runnable reloadProcedure;
+public final record ConfigurationUpdateStrategy(String name, Runnable reloadProcedure) {
 
 	public ConfigurationUpdateStrategy(String name, Runnable reloadProcedure) {
 		this.name = Objects.requireNonNull(name, "name cannot be null");
 		this.reloadProcedure = Objects.requireNonNull(reloadProcedure, "reloadProcedure cannot be null");
 	}
 
-	public String getName() {
-		return this.name;
-	}
-
-	public void reload() {
-		this.reloadProcedure.run();
-	}
-
 	@Override
 	public String toString() {
-		return "ConfigurationUpdateStrategy{name='" + this.name + "'}";
+		return this.getClass().getSimpleName() + "{name='" + this.name + "'}";
 	}
 
 }
