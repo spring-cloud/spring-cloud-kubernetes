@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,7 +34,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ConfigurationChangeDetectorTest {
 
-	private final ConfigurationChangeDetectorStub stub = new ConfigurationChangeDetectorStub(null, null, null);
+	private final ConfigurationChangeDetectorStub stub = new ConfigurationChangeDetectorStub(
+		new MockEnvironment(), new ConfigReloadProperties(), new ConfigurationUpdateStrategy("some", () -> {}));
 
 	@Test
 	void testChangedTwoNulls() {
