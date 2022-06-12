@@ -86,24 +86,6 @@ public abstract class ConfigurationChangeDetector {
 	}
 
 	/**
-	 * Finds one registered property source of the given type, logging a warning if
-	 * multiple property sources of that type are available.
-	 * @param <S> property source type
-	 * @param sourceClass class for which property sources will be searched for
-	 * @return matched property source
-	 */
-	protected <S extends PropertySource<?>> S findPropertySource(Class<S> sourceClass) {
-		List<S> sources = findPropertySources(sourceClass);
-		if (sources.size() == 0) {
-			return null;
-		}
-		if (sources.size() > 1) {
-			log.warn("Found more than one property source of type " + sourceClass);
-		}
-		return sources.get(0);
-	}
-
-	/**
 	 * @param <S> property source type
 	 * @param sourceClass class for which property sources will be found
 	 * @return finds all registered property sources of the given type
@@ -112,14 +94,12 @@ public abstract class ConfigurationChangeDetector {
 		List<S> managedSources = new LinkedList<>();
 
 		LinkedList<PropertySource<?>> sources = toLinkedList(this.environment.getPropertySources());
-		log.debug("findPropertySources");
-		log.debug(String.format("environment: %s", this.environment));
-		log.debug(String.format("environment sources: %s", sources));
+		log.debug("environment: %s" + environment);
+		log.debug("environment sources " + sources);
 
 		while (!sources.isEmpty()) {
 			PropertySource<?> source = sources.pop();
-			if (source instanceof CompositePropertySource) {
-				CompositePropertySource comp = (CompositePropertySource) source;
+			if (source instanceof CompositePropertySource comp) {
 				sources.addAll(comp.getPropertySources());
 			}
 			else if (sourceClass.isInstance(source)) {
@@ -169,9 +149,8 @@ public abstract class ConfigurationChangeDetector {
 			log.debug("Found property source that cannot be handled: " + propertySource.getClass());
 		}
 
-		log.debug("locateMapPropertySources");
-		log.debug(String.format("environment: %s", environment));
-		log.debug(String.format("sources: %s", result));
+		log.debug("environment:" +  environment);
+		log.debug("sources " + result);
 
 		return result;
 	}
