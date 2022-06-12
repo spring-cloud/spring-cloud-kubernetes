@@ -34,8 +34,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ConfigurationChangeDetectorTest {
 
-	private final ConfigurationChangeDetectorStub stub = new ConfigurationChangeDetectorStub(
-		new MockEnvironment(), new ConfigReloadProperties(), new ConfigurationUpdateStrategy("some", () -> {}));
+	private final ConfigurationChangeDetectorStub stub = new ConfigurationChangeDetectorStub(new MockEnvironment(),
+			new ConfigReloadProperties(), new ConfigurationUpdateStrategy("some", () -> {
+
+			}));
 
 	@Test
 	void testChangedTwoNulls() {
