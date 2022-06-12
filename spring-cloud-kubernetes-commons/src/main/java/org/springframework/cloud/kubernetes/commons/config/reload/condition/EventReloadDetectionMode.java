@@ -29,7 +29,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * @author Kris Iyer
  *
  */
-public class EventReloadDetectionMode implements Condition {
+public final class EventReloadDetectionMode implements Condition {
 
 	@Override
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
