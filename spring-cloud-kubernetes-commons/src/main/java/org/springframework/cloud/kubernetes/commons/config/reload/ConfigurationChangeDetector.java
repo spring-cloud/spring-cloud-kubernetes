@@ -67,10 +67,10 @@ public abstract class ConfigurationChangeDetector {
 					+ "the ones loaded from the Kubernetes - No reload will take place");
 
 			if (log.isDebugEnabled()) {
-				log.debug("left size : " + left.size());
+				log.debug("left size: " + left.size());
 				left.forEach(item -> log.debug(item));
 
-				log.debug("right size : " + right.size());
+				log.debug("right size: " + right.size());
 				right.forEach(item -> log.debug(item));
 			}
 			return false;
@@ -143,8 +143,8 @@ public abstract class ConfigurationChangeDetector {
 			log.debug("Found property source that cannot be handled: " + propertySource.getClass());
 		}
 
-		log.debug("environment:" + environment);
-		log.debug("sources " + result);
+		log.debug("environment: " + environment);
+		log.debug("sources: " + result);
 
 		return result;
 	}
