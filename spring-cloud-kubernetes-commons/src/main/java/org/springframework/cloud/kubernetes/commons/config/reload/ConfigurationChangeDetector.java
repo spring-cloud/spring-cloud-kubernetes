@@ -52,44 +52,26 @@ public abstract class ConfigurationChangeDetector {
 
 	public ConfigurationChangeDetector(ConfigurableEnvironment environment, ConfigReloadProperties properties,
 			ConfigurationUpdateStrategy strategy) {
-		this.environment = environment;
-		this.properties = properties;
-		this.strategy = strategy;
+		this.environment = Objects.requireNonNull(environment);
+		this.properties = Objects.requireNonNull(properties);
+		this.strategy = Objects.requireNonNull(strategy);
 	}
 
 	public void reloadProperties() {
-		this.log.info("Reloading using strategy: " + this.strategy.getName());
+		log.info("Reloading using strategy: " + this.strategy.getName());
 		this.strategy.reload();
-	}
-
-	/**
-	 * Determines if two property sources are different.
-	 * @param left left map property sources
-	 * @param right right map property sources
-	 * @return {@code true} if source has changed
-	 */
-	public boolean changed(MapPropertySource left, MapPropertySource right) {
-		if (left == right) {
-			return false;
-		}
-		if (left == null || right == null) {
-			return true;
-		}
-		Map<String, Object> leftMap = left.getSource();
-		Map<String, Object> rightMap = right.getSource();
-		return !Objects.equals(leftMap, rightMap);
 	}
 
 	public boolean changed(List<? extends MapPropertySource> left, List<? extends MapPropertySource> right) {
 		if (left.size() != right.size()) {
-			this.log.warn("The current number of ConfigMap PropertySources does not match "
+			log.warn("The current number of ConfigMap PropertySources does not match "
 					+ "the ones loaded from the Kubernetes - No reload will take place");
 
 			if (log.isDebugEnabled()) {
-				this.log.debug(String.format("source 1: %d", left.size()));
+				log.debug("left size : " + left.size());
 				left.forEach(item -> log.debug(item));
 
-				this.log.debug(String.format("source 2: %d", right.size()));
+				log.debug("right size : " + right.size());
 				right.forEach(item -> log.debug(item));
 			}
 			return false;
@@ -116,7 +98,7 @@ public abstract class ConfigurationChangeDetector {
 			return null;
 		}
 		if (sources.size() > 1) {
-			this.log.warn("Found more than one property source of type " + sourceClass);
+			log.warn("Found more than one property source of type " + sourceClass);
 		}
 		return sources.get(0);
 	}
@@ -130,9 +112,9 @@ public abstract class ConfigurationChangeDetector {
 		List<S> managedSources = new LinkedList<>();
 
 		LinkedList<PropertySource<?>> sources = toLinkedList(this.environment.getPropertySources());
-		this.log.debug("findPropertySources");
-		this.log.debug(String.format("environment: %s", this.environment));
-		this.log.debug(String.format("environment sources: %s", sources));
+		log.debug("findPropertySources");
+		log.debug(String.format("environment: %s", this.environment));
+		log.debug(String.format("environment sources: %s", sources));
 
 		while (!sources.isEmpty()) {
 			PropertySource<?> source = sources.pop();
@@ -184,14 +166,32 @@ public abstract class ConfigurationChangeDetector {
 					.collect(Collectors.toList()));
 		}
 		else {
-			this.log.debug("Found property source that cannot be handled: " + propertySource.getClass());
+			log.debug("Found property source that cannot be handled: " + propertySource.getClass());
 		}
 
-		this.log.debug("locateMapPropertySources");
-		this.log.debug(String.format("environment: %s", environment));
-		this.log.debug(String.format("sources: %s", result));
+		log.debug("locateMapPropertySources");
+		log.debug(String.format("environment: %s", environment));
+		log.debug(String.format("sources: %s", result));
 
 		return result;
+	}
+
+	/**
+	 * Determines if two property sources are different.
+	 * @param left left map property sources
+	 * @param right right map property sources
+	 * @return {@code true} if source has changed
+	 */
+	boolean changed(MapPropertySource left, MapPropertySource right) {
+		if (left == right) {
+			return false;
+		}
+		if (left == null || right == null) {
+			return true;
+		}
+		Map<String, Object> leftMap = left.getSource();
+		Map<String, Object> rightMap = right.getSource();
+		return !Objects.equals(leftMap, rightMap);
 	}
 
 }

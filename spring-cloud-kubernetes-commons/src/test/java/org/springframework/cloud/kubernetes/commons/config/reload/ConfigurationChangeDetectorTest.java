@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.reload;
+package org.springframework.cloud.kubernetes.commons.config.reload;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,9 +23,6 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
@@ -34,32 +31,32 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author wind57
  */
-public class ConfigurationChangeDetectorTest {
+class ConfigurationChangeDetectorTest {
 
 	private final ConfigurationChangeDetectorStub stub = new ConfigurationChangeDetectorStub(null, null, null);
 
 	@Test
-	public void testChangedTwoNulls() {
+	void testChangedTwoNulls() {
 		boolean changed = stub.changed(null, (MapPropertySource) null);
 		assertThat(changed).isFalse();
 	}
 
 	@Test
-	public void testChangedLeftNullRightNonNull() {
+	void testChangedLeftNullRightNonNull() {
 		MapPropertySource right = new MapPropertySource("rightNonNull", Collections.emptyMap());
 		boolean changed = stub.changed(null, right);
 		assertThat(changed).isTrue();
 	}
 
 	@Test
-	public void testChangedLeftNonNullRightNull() {
+	void testChangedLeftNonNullRightNull() {
 		MapPropertySource left = new MapPropertySource("leftNonNull", Collections.emptyMap());
 		boolean changed = stub.changed(left, null);
 		assertThat(changed).isTrue();
 	}
 
 	@Test
-	public void testChangedEqualMaps() {
+	void testChangedEqualMaps() {
 		Object value = new Object();
 		Map<String, Object> leftMap = new HashMap<>();
 		leftMap.put("key", value);
@@ -72,7 +69,7 @@ public class ConfigurationChangeDetectorTest {
 	}
 
 	@Test
-	public void testChangedNonEqualMaps() {
+	void testChangedNonEqualMaps() {
 		Object value = new Object();
 		Map<String, Object> leftMap = new HashMap<>();
 		leftMap.put("key", value);
@@ -86,7 +83,7 @@ public class ConfigurationChangeDetectorTest {
 	}
 
 	@Test
-	public void testChangedListsDifferentSizes() {
+	void testChangedListsDifferentSizes() {
 		List<MapPropertySource> left = Collections.singletonList(new MapPropertySource("one", Collections.emptyMap()));
 		List<MapPropertySource> right = Collections.emptyList();
 		boolean changed = stub.changed(left, right);
@@ -94,7 +91,7 @@ public class ConfigurationChangeDetectorTest {
 	}
 
 	@Test
-	public void testChangedListSameSizesButNotEqual() {
+	void testChangedListSameSizesButNotEqual() {
 		Object value = new Object();
 		Map<String, Object> leftMap = new HashMap<>();
 		leftMap.put("key", value);
@@ -107,7 +104,7 @@ public class ConfigurationChangeDetectorTest {
 	}
 
 	@Test
-	public void testChangedListSameSizesEqual() {
+	void testChangedListSameSizesEqual() {
 		Object value = new Object();
 		Map<String, Object> leftMap = new HashMap<>();
 		leftMap.put("key", value);
