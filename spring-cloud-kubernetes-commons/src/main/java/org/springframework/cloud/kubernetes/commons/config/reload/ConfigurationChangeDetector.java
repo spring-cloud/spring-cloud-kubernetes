@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.commons.config.reload;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -68,10 +67,10 @@ public abstract class ConfigurationChangeDetector {
 					+ "the ones loaded from the Kubernetes - No reload will take place");
 
 			if (log.isDebugEnabled()) {
-				log.debug("left size : " + left.size());
+				log.debug("left size: " + left.size());
 				left.forEach(item -> log.debug(item));
 
-				log.debug("right size : " + right.size());
+				log.debug("right size: " + right.size());
 				right.forEach(item -> log.debug(item));
 			}
 			return false;
@@ -86,40 +85,21 @@ public abstract class ConfigurationChangeDetector {
 	}
 
 	/**
-	 * Finds one registered property source of the given type, logging a warning if
-	 * multiple property sources of that type are available.
-	 * @param <S> property source type
-	 * @param sourceClass class for which property sources will be searched for
-	 * @return matched property source
-	 */
-	protected <S extends PropertySource<?>> S findPropertySource(Class<S> sourceClass) {
-		List<S> sources = findPropertySources(sourceClass);
-		if (sources.size() == 0) {
-			return null;
-		}
-		if (sources.size() > 1) {
-			log.warn("Found more than one property source of type " + sourceClass);
-		}
-		return sources.get(0);
-	}
-
-	/**
 	 * @param <S> property source type
 	 * @param sourceClass class for which property sources will be found
 	 * @return finds all registered property sources of the given type
 	 */
 	public <S extends PropertySource<?>> List<S> findPropertySources(Class<S> sourceClass) {
-		List<S> managedSources = new LinkedList<>();
+		List<S> managedSources = new ArrayList<>();
 
-		LinkedList<PropertySource<?>> sources = toLinkedList(this.environment.getPropertySources());
-		log.debug("findPropertySources");
-		log.debug(String.format("environment: %s", this.environment));
-		log.debug(String.format("environment sources: %s", sources));
+		List<PropertySource<?>> sources = environment.getPropertySources().stream()
+				.collect(Collectors.toCollection(ArrayList::new));
+		log.debug("environment: " + environment);
+		log.debug("environment sources: " + sources);
 
 		while (!sources.isEmpty()) {
-			PropertySource<?> source = sources.pop();
-			if (source instanceof CompositePropertySource) {
-				CompositePropertySource comp = (CompositePropertySource) source;
+			PropertySource<?> source = sources.remove(0);
+			if (source instanceof CompositePropertySource comp) {
 				sources.addAll(comp.getPropertySources());
 			}
 			else if (sourceClass.isInstance(source)) {
@@ -134,14 +114,6 @@ public abstract class ConfigurationChangeDetector {
 		}
 
 		return managedSources;
-	}
-
-	private <E> LinkedList<E> toLinkedList(Iterable<E> it) {
-		LinkedList<E> list = new LinkedList<>();
-		for (E e : it) {
-			list.add(e);
-		}
-		return list;
 	}
 
 	/**
@@ -160,18 +132,19 @@ public abstract class ConfigurationChangeDetector {
 		if (propertySource instanceof MapPropertySource) {
 			result.add((MapPropertySource) propertySource);
 		}
-		else if (propertySource instanceof CompositePropertySource) {
-			result.addAll(((CompositePropertySource) propertySource).getPropertySources().stream()
-					.filter(p -> p instanceof MapPropertySource).map(p -> (MapPropertySource) p)
-					.collect(Collectors.toList()));
+		else if (propertySource instanceof CompositePropertySource source) {
+
+			List<MapPropertySource> list = source.getPropertySources().stream()
+					.filter(p -> p instanceof MapPropertySource).map(x -> (MapPropertySource) x)
+					.collect(Collectors.toList());
+			result.addAll(list);
 		}
 		else {
 			log.debug("Found property source that cannot be handled: " + propertySource.getClass());
 		}
 
-		log.debug("locateMapPropertySources");
-		log.debug(String.format("environment: %s", environment));
-		log.debug(String.format("sources: %s", result));
+		log.debug("environment: " + environment);
+		log.debug("sources: " + result);
 
 		return result;
 	}
