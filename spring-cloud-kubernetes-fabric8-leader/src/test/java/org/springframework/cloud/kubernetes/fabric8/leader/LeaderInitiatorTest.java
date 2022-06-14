@@ -83,7 +83,9 @@ public class LeaderInitiatorTest {
 		assertThat(this.leaderInitiator.isRunning()).isTrue();
 		verify(this.mockFabric8LeaderRecordWatcher).start();
 		verify(this.mockFabric8PodReadinessWatcher).start();
-		Thread.sleep(10);
+
+		// TODO this tests needs to be reviewed not to use sleep
+		Thread.sleep(1000);
 		verify(this.mockFabric8LeadershipController, atLeastOnce()).update();
 	}
 
