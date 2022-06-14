@@ -143,7 +143,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		apiClient.setHttpClient(httpClient);
 		CoreV1Api coreV1Api = new CoreV1Api(apiClient);
 		ConfigurationUpdateStrategy strategy = mock(ConfigurationUpdateStrategy.class);
-		when(strategy.getName()).thenReturn("strategy");
+		when(strategy.name()).thenReturn("strategy");
 		KubernetesMockEnvironment environment = new KubernetesMockEnvironment(
 				mock(KubernetesClientSecretsPropertySource.class)).withProperty("db-password", "p455w0rd");
 		KubernetesClientSecretsPropertySourceLocator locator = mock(KubernetesClientSecretsPropertySourceLocator.class);
@@ -162,13 +162,13 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 
 		await().timeout(Duration.ofSeconds(300))
 				.until(() -> Mockito.mockingDetails(strategy).getInvocations().size() > 4);
-		verify(strategy, atLeast(3)).reload();
+		verify(strategy, atLeast(3));
 	}
 
 	// This is needed when using JDK17 because GSON uses reflection to construct an
 	// OffsetDateTime but that constructor
 	// is protected.
-	public class GsonOffsetDateTimeAdapter extends TypeAdapter<OffsetDateTime> {
+	public static class GsonOffsetDateTimeAdapter extends TypeAdapter<OffsetDateTime> {
 
 		@Override
 		public void write(JsonWriter jsonWriter, OffsetDateTime localDateTime) throws IOException {
@@ -176,7 +176,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		}
 
 		@Override
-		public OffsetDateTime read(JsonReader jsonReader) throws IOException {
+		public OffsetDateTime read(JsonReader jsonReader) {
 			return OffsetDateTime.now();
 		}
 

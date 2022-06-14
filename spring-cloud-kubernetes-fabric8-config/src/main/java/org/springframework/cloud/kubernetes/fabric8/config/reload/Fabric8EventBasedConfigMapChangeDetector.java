@@ -46,7 +46,7 @@ import org.springframework.core.env.AbstractEnvironment;
  * @author Haytham Mohamed
  * @author Kris Iyer
  */
-public class EventBasedConfigMapChangeDetector extends ConfigurationChangeDetector {
+public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChangeDetector {
 
 	private final Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator;
 
@@ -54,7 +54,7 @@ public class EventBasedConfigMapChangeDetector extends ConfigurationChangeDetect
 
 	private KubernetesClient kubernetesClient;
 
-	public EventBasedConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
+	public Fabric8EventBasedConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator) {
 		super(environment, properties, strategy);

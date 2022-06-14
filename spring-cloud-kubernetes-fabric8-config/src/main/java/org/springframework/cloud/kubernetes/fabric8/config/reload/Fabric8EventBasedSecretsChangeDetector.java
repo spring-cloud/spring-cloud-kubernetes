@@ -46,7 +46,7 @@ import org.springframework.core.env.AbstractEnvironment;
  * @author Haytham Mohamed
  * @author Kris Iyer
  */
-public class EventBasedSecretsChangeDetector extends ConfigurationChangeDetector {
+public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeDetector {
 
 	private Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator;
 
@@ -54,7 +54,7 @@ public class EventBasedSecretsChangeDetector extends ConfigurationChangeDetector
 
 	private KubernetesClient kubernetesClient;
 
-	public EventBasedSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
+	public Fabric8EventBasedSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator) {
 		super(environment, properties, strategy);

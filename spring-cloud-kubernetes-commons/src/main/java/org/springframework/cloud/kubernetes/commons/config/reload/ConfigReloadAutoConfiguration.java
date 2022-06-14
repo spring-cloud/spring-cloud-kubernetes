@@ -45,66 +45,51 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @ConditionalOnKubernetesAndConfigEnabled
 @ConditionalOnClass(EndpointAutoConfiguration.class)
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-		RefreshAutoConfiguration.class })
+		RefreshAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
+@ConditionalOnProperty("spring.cloud.kubernetes.reload.enabled")
 public class ConfigReloadAutoConfiguration {
 
-	/**
-	 * Configuration reload must be enabled explicitly.
-	 */
-	@ConditionalOnProperty("spring.cloud.kubernetes.reload.enabled")
-	@ConditionalOnClass({ RestartEndpoint.class, ContextRefresher.class })
-	protected static class ConfigReloadAutoConfigurationBeans {
+	@Bean("springCloudKubernetesTaskScheduler")
+	@ConditionalOnMissingBean
+	public TaskSchedulerWrapper<TaskScheduler> taskScheduler() {
+		ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
 
-		@Bean("springCloudKubernetesTaskScheduler")
-		@ConditionalOnMissingBean
-		public TaskSchedulerWrapper<TaskScheduler> taskScheduler() {
-			ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+		threadPoolTaskScheduler.setThreadNamePrefix("spring-cloud-kubernetes-ThreadPoolTaskScheduler-");
+		threadPoolTaskScheduler.setDaemon(true);
 
-			threadPoolTaskScheduler.setThreadNamePrefix("spring-cloud-kubernetes-ThreadPoolTaskScheduler-");
-			threadPoolTaskScheduler.setDaemon(true);
+		return new TaskSchedulerWrapper<>(threadPoolTaskScheduler);
+	}
 
-			return new TaskSchedulerWrapper<>(threadPoolTaskScheduler);
+	@Bean
+	@ConditionalOnMissingBean
+	public ConfigurationUpdateStrategy configurationUpdateStrategy(ConfigReloadProperties properties,
+			ConfigurableApplicationContext ctx, @Autowired(required = false) RestartEndpoint restarter,
+			ContextRefresher refresher) {
+		switch (properties.getStrategy()) {
+		case RESTART_CONTEXT:
+			Objects.requireNonNull(restarter, "Restart endpoint is not enabled");
+			return new ConfigurationUpdateStrategy(properties.getStrategy().name(), () -> {
+				wait(properties);
+				restarter.restart();
+			});
+		case REFRESH:
+			return new ConfigurationUpdateStrategy(properties.getStrategy().name(), refresher::refresh);
+		case SHUTDOWN:
+			return new ConfigurationUpdateStrategy(properties.getStrategy().name(), () -> {
+				wait(properties);
+				ctx.close();
+			});
 		}
+		throw new IllegalStateException("Unsupported configuration update strategy: " + properties.getStrategy());
+	}
 
-		/**
-		 * @param properties config reload properties
-		 * @param ctx application context
-		 * @param restarter restart endpoint
-		 * @param refresher context refresher
-		 * @return provides the action to execute when the configuration changes.
-		 */
-		@Bean
-		@ConditionalOnMissingBean
-		public ConfigurationUpdateStrategy configurationUpdateStrategy(ConfigReloadProperties properties,
-				ConfigurableApplicationContext ctx, @Autowired(required = false) RestartEndpoint restarter,
-				ContextRefresher refresher) {
-			switch (properties.getStrategy()) {
-			case RESTART_CONTEXT:
-				Objects.requireNonNull(restarter, "Restart endpoint is not enabled");
-				return new ConfigurationUpdateStrategy(properties.getStrategy().name(), () -> {
-					wait(properties);
-					restarter.restart();
-				});
-			case REFRESH:
-				return new ConfigurationUpdateStrategy(properties.getStrategy().name(), refresher::refresh);
-			case SHUTDOWN:
-				return new ConfigurationUpdateStrategy(properties.getStrategy().name(), () -> {
-					wait(properties);
-					ctx.close();
-				});
-			}
-			throw new IllegalStateException("Unsupported configuration update strategy: " + properties.getStrategy());
+	private static void wait(ConfigReloadProperties properties) {
+		final long waitMillis = ThreadLocalRandom.current().nextLong(properties.getMaxWaitForRestart().toMillis());
+		try {
+			Thread.sleep(waitMillis);
 		}
-
-		private static void wait(ConfigReloadProperties properties) {
-			final long waitMillis = ThreadLocalRandom.current().nextLong(properties.getMaxWaitForRestart().toMillis());
-			try {
-				Thread.sleep(waitMillis);
-			}
-			catch (InterruptedException ignored) {
-			}
+		catch (InterruptedException ignored) {
 		}
-
 	}
 
 }
