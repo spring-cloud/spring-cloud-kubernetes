@@ -43,14 +43,14 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 
 	private final PropertySourceLocator propertySourceLocator;
 
-	private Class propertySourceClass;
+	private final Class<? extends MapPropertySource> propertySourceClass;
 
-	private TaskScheduler taskExecutor;
+	private final TaskScheduler taskExecutor;
 
-	private Duration period = Duration.ofMillis(1500);
+	private final Duration period;
 
 	public PollingSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
-			ConfigurationUpdateStrategy strategy, Class propertySourceClass,
+			ConfigurationUpdateStrategy strategy, Class<? extends MapPropertySource> propertySourceClass,
 			PropertySourceLocator propertySourceLocator, TaskScheduler taskExecutor) {
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
@@ -61,7 +61,7 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 
 	@PostConstruct
 	public void init() {
-		this.log.info("Kubernetes polling secrets change detector activated");
+		log.info("Kubernetes polling secrets change detector activated");
 		PeriodicTrigger trigger = new PeriodicTrigger(period.toMillis());
 		trigger.setInitialDelay(period.toMillis());
 		taskExecutor.schedule(this::executeCycle, trigger);
@@ -71,19 +71,17 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 
 		boolean changedSecrets = false;
 		if (this.properties.isMonitoringSecrets()) {
-			if (log.isDebugEnabled()) {
-				log.debug("Polling for changes in secrets");
-			}
+			log.debug("Polling for changes in secrets");
 			List<MapPropertySource> currentSecretSources = locateMapPropertySources(this.propertySourceLocator,
 					this.environment);
 			if (currentSecretSources != null && !currentSecretSources.isEmpty()) {
-				List<MapPropertySource> propertySources = findPropertySources(this.propertySourceClass);
+				List<? extends MapPropertySource> propertySources = findPropertySources(this.propertySourceClass);
 				changedSecrets = changed(currentSecretSources, propertySources);
 			}
 		}
 
 		if (changedSecrets) {
-			this.log.info("Detected change in secrets");
+			log.info("Detected change in secrets");
 			reloadProperties();
 		}
 	}

@@ -35,6 +35,7 @@ import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernet
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
@@ -56,13 +57,13 @@ public class ConfigReloadAutoConfiguration {
 
 		@Bean("springCloudKubernetesTaskScheduler")
 		@ConditionalOnMissingBean
-		public TaskSchedulerWrapper taskScheduler() {
+		public TaskSchedulerWrapper<TaskScheduler> taskScheduler() {
 			ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
 
 			threadPoolTaskScheduler.setThreadNamePrefix("spring-cloud-kubernetes-ThreadPoolTaskScheduler-");
 			threadPoolTaskScheduler.setDaemon(true);
 
-			return new TaskSchedulerWrapper(threadPoolTaskScheduler);
+			return new TaskSchedulerWrapper<>(threadPoolTaskScheduler);
 		}
 
 		/**

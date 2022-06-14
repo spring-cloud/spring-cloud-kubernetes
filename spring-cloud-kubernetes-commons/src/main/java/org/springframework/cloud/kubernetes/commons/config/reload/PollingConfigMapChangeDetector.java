@@ -41,16 +41,16 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 
 	protected Log log = LogFactory.getLog(getClass());
 
-	private PropertySourceLocator propertySourceLocator;
+	private final PropertySourceLocator propertySourceLocator;
 
-	private Class propertySourceClass;
+	private final Class<? extends MapPropertySource> propertySourceClass;
 
-	private TaskScheduler taskExecutor;
+	private final TaskScheduler taskExecutor;
 
-	private Duration period = Duration.ofMillis(1500);
+	private final Duration period;
 
 	public PollingConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
-			ConfigurationUpdateStrategy strategy, Class propertySourceClass,
+			ConfigurationUpdateStrategy strategy, Class<? extends MapPropertySource> propertySourceClass,
 			PropertySourceLocator propertySourceLocator, TaskScheduler taskExecutor) {
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
@@ -61,19 +61,17 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 
 	@PostConstruct
 	public void init() {
-		this.log.info("Kubernetes polling configMap change detector activated");
+		log.info("Kubernetes polling configMap change detector activated");
 		PeriodicTrigger trigger = new PeriodicTrigger(period.toMillis());
 		trigger.setInitialDelay(period.toMillis());
 		taskExecutor.schedule(this::executeCycle, trigger);
 	}
 
-	public void executeCycle() {
+	private void executeCycle() {
 
 		boolean changedConfigMap = false;
-		if (this.properties.isMonitoringConfigMaps()) {
-			if (log.isDebugEnabled()) {
-				log.debug("Polling for changes in config maps");
-			}
+		if (properties.isMonitoringConfigMaps()) {
+			log.debug("Polling for changes in config maps");
 			List<? extends MapPropertySource> currentConfigMapSources = findPropertySources(propertySourceClass);
 
 			if (!currentConfigMapSources.isEmpty()) {
@@ -83,7 +81,7 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 		}
 
 		if (changedConfigMap) {
-			this.log.info("Detected change in config maps");
+			log.info("Detected change in config maps");
 			reloadProperties();
 		}
 	}
