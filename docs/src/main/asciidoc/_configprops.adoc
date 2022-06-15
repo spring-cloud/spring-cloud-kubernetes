@@ -51,6 +51,7 @@
 |spring.cloud.kubernetes.config.enabled | `true` | Enable the ConfigMap property source locator.
 |spring.cloud.kubernetes.config.fail-fast | `false` | 
 |spring.cloud.kubernetes.config.include-profile-specific-sources | `true` | 
+|spring.cloud.kubernetes.config.labels |  | 
 |spring.cloud.kubernetes.config.name |  | 
 |spring.cloud.kubernetes.config.namespace |  | 
 |spring.cloud.kubernetes.config.paths |  | 
