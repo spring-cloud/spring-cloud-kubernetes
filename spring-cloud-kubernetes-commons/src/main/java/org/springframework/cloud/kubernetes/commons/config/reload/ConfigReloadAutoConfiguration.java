@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.cloud.commons.util.TaskSchedulerWrapper;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.cloud.context.restart.RestartEndpoint;
 import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesAndConfigEnabled;
+import org.springframework.cloud.kubernetes.commons.config.reload.condition.ConditionalOnKubernetesReloadEnabled;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,10 +44,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesAndConfigEnabled
+@ConditionalOnKubernetesReloadEnabled
 @ConditionalOnClass(EndpointAutoConfiguration.class)
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
 		RefreshAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
-@ConditionalOnProperty("spring.cloud.kubernetes.reload.enabled")
 public class ConfigReloadAutoConfiguration {
 
 	@Bean("springCloudKubernetesTaskScheduler")

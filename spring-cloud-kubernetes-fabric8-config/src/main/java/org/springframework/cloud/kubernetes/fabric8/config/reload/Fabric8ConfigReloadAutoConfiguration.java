@@ -37,6 +37,7 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationC
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingSecretsChangeDetector;
+import org.springframework.cloud.kubernetes.commons.config.reload.condition.ConditionalOnKubernetesReloadEnabled;
 import org.springframework.cloud.kubernetes.commons.config.reload.condition.EventReloadDetectionMode;
 import org.springframework.cloud.kubernetes.commons.config.reload.condition.PollingReloadDetectionMode;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySource;
@@ -57,12 +58,12 @@ import org.springframework.scheduling.TaskScheduler;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesAndConfigEnabled
+@ConditionalOnKubernetesReloadEnabled
 @ConditionalOnClass(EndpointAutoConfiguration.class)
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
 		RefreshAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class,
 		ConfigReloadAutoConfiguration.class })
 @EnableConfigurationProperties(ConfigReloadProperties.class)
-@ConditionalOnProperty("spring.cloud.kubernetes.reload.enabled")
 public class Fabric8ConfigReloadAutoConfiguration {
 
 	/**

@@ -46,15 +46,15 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 	private static final Log LOG = LogFactory.getLog(KubernetesClientEventBasedConfigMapChangeDetector.class);
 
-	private CoreV1Api coreV1Api = null;
+	private final CoreV1Api coreV1Api;
 
 	private final KubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
 
 	private final SharedInformerFactory factory;
 
-	private KubernetesClientProperties kubernetesClientProperties;
+	private final String namespace;
 
-	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
+	private final boolean monitorConfigMaps;
 
 	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
@@ -71,26 +71,22 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		// certificate authorities for the cluster. This results in SSL errors.
 		// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
 		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
-		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
-	}
-
-	private String getNamespace() {
-		return kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
-				: kubernetesClientProperties.getNamespace();
+		this.namespace = kubernetesNamespaceProvider.getNamespace();
+		this.monitorConfigMaps = properties.isMonitoringConfigMaps();
 	}
 
 	@PostConstruct
 	public void watch() {
-		if (coreV1Api != null && this.properties.isMonitoringConfigMaps()) {
+		if (coreV1Api != null && monitorConfigMaps) {
 			SharedIndexInformer<V1ConfigMap> configMapInformer = factory.sharedIndexInformerFor(
-					(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(getNamespace(), null, null,
+					(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null, null,
 							null, null, null, null, params.resourceVersion, null, params.timeoutSeconds, params.watch,
 							null),
 					V1ConfigMap.class, V1ConfigMapList.class);
-			configMapInformer.addEventHandler(new ResourceEventHandler<V1ConfigMap>() {
+			configMapInformer.addEventHandler(new ResourceEventHandler<>() {
 				@Override
 				public void onAdd(V1ConfigMap obj) {
-					LOG.info("CongifMap " + obj.getMetadata().getName() + " was added.");
+					LOG.info("ConfigMap " + obj.getMetadata().getName() + " was added.");
 					onEvent(obj);
 				}
 
@@ -116,7 +112,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 	}
 
 	private void onEvent(V1ConfigMap configMap) {
-		this.log.debug(String.format("onEvent configMap: %s", configMap.toString()));
+		LOG.debug("onEvent configMap: " + configMap.toString());
 		boolean changed = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
 				findPropertySources(KubernetesClientConfigMapPropertySource.class));
 		if (changed) {

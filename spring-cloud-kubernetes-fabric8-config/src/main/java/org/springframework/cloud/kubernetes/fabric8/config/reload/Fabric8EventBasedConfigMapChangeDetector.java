@@ -52,7 +52,9 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 	private final Map<String, Watch> watches;
 
-	private KubernetesClient kubernetesClient;
+	private final KubernetesClient kubernetesClient;
+
+	private final boolean monitoringConfigMaps;
 
 	public Fabric8EventBasedConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
@@ -61,6 +63,7 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8ConfigMapPropertySourceLocator = fabric8ConfigMapPropertySourceLocator;
 		this.watches = new HashMap<>();
+		monitoringConfigMaps = properties.isMonitoringConfigMaps();
 	}
 
 	@PreDestroy
@@ -74,15 +77,13 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 	public void watch() {
 		boolean activated = false;
 
-		if (this.properties.isMonitoringConfigMaps()) {
+		if (monitoringConfigMaps) {
 			try {
 				String name = "config-maps-watch-event";
-				this.watches.put(name, this.kubernetesClient.configMaps().watch(new Watcher<ConfigMap>() {
+				watches.put(name, this.kubernetesClient.configMaps().watch(new Watcher<>() {
 					@Override
 					public void eventReceived(Watcher.Action action, ConfigMap configMap) {
-						if (log.isDebugEnabled()) {
-							log.debug(name + " received event for ConfigMap " + configMap.getMetadata().getName());
-						}
+						log.debug(name + " received event for ConfigMap " + configMap.getMetadata().getName());
 						onEvent(configMap);
 					}
 
@@ -97,43 +98,40 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 					}
 				}));
 				activated = true;
-				this.log.info("Added new Kubernetes watch: " + name);
+				log.info("Added new Kubernetes watch: " + name);
 			}
 			catch (Exception e) {
-				this.log.error(
-						"Error while establishing a connection to watch config maps: configuration may remain stale",
-						e);
+				log.error(
+					"Error while establishing a connection to watch config maps: configuration may remain stale",
+					e);
 			}
 		}
 
 		if (activated) {
-			this.log.info("Kubernetes event-based configMap change detector activated");
+			log.info("Kubernetes event-based configMap change detector activated");
 		}
 	}
 
 	@PreDestroy
 	public void unwatch() {
-		if (this.watches != null) {
-			for (Map.Entry<String, Watch> entry : this.watches.entrySet()) {
-				try {
-					this.log.debug("Closing the watch " + entry.getKey());
-					entry.getValue().close();
-
-				}
-				catch (Exception e) {
-					this.log.error("Error while closing the watch connection", e);
-				}
+		for (Map.Entry<String, Watch> entry : this.watches.entrySet()) {
+			try {
+				log.debug("Closing the watch " + entry.getKey());
+				entry.getValue().close();
+			}
+			catch (Exception e) {
+				log.error("Error while closing the watch connection", e);
 			}
 		}
 	}
 
 	protected void onEvent(ConfigMap configMap) {
-		this.log.debug(String.format("onEvent configMap: %s", configMap.toString()));
+		log.debug("onEvent configMap: " +  configMap.toString());
 		boolean changed = changed(
 				locateMapPropertySources(this.fabric8ConfigMapPropertySourceLocator, this.environment),
 				findPropertySources(Fabric8ConfigMapPropertySource.class));
 		if (changed) {
-			this.log.info("Detected change in config maps");
+			log.info("Detected change in config maps");
 			reloadProperties();
 		}
 	}

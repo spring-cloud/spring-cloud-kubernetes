@@ -48,11 +48,13 @@ import org.springframework.core.env.AbstractEnvironment;
  */
 public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeDetector {
 
-	private Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator;
+	private final Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator;
 
-	private Map<String, Watch> watches;
+	private final Map<String, Watch> watches;
 
-	private KubernetesClient kubernetesClient;
+	private final KubernetesClient kubernetesClient;
+
+	private final boolean monitorSecrets;
 
 	public Fabric8EventBasedSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
@@ -61,35 +63,33 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8SecretsPropertySourceLocator = fabric8SecretsPropertySourceLocator;
 		this.watches = new HashMap<>();
+		this.monitorSecrets = properties.isMonitoringSecrets();
 	}
 
 	@PreDestroy
 	public void shutdown() {
 		// Ensure the kubernetes client is cleaned up from spare threads when shutting
 		// down
-		this.kubernetesClient.close();
+		kubernetesClient.close();
 	}
 
 	@PostConstruct
 	public void watch() {
 		boolean activated = false;
 
-		if (this.properties.isMonitoringSecrets()) {
+		if (monitorSecrets) {
 			try {
-				activated = false;
 				String name = "secrets-watch-event";
-				this.watches.put(name, this.kubernetesClient.secrets().watch(new Watcher<Secret>() {
+				watches.put(name, this.kubernetesClient.secrets().watch(new Watcher<>() {
 					@Override
 					public void eventReceived(Action action, Secret secret) {
-						if (log.isDebugEnabled()) {
-							log.debug(name + " received event for Secret " + secret.getMetadata().getName());
-						}
+						log.debug(name + " received event for Secret " + secret.getMetadata().getName());
 						onEvent(secret);
 					}
 
 					@Override
 					public void onClose(WatcherException exception) {
-						log.warn("Secrects watch closed", exception);
+						log.warn("Secrets watch closed", exception);
 						Optional.ofNullable(exception).map(e -> {
 							log.debug("Exception received during watch", e);
 							return exception.asClientException();
@@ -98,41 +98,38 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 					}
 				}));
 				activated = true;
-				this.log.info("Added new Kubernetes watch: " + name);
+				log.info("Added new Kubernetes watch: " + name);
 			}
 			catch (Exception e) {
-				this.log.error("Error while establishing a connection to watch secrets: configuration may remain stale",
+				log.error("Error while establishing a connection to watch secrets: configuration may remain stale",
 						e);
 			}
 		}
 
 		if (activated) {
-			this.log.info("Kubernetes event-based secrets change detector activated");
+			log.info("Kubernetes event-based secrets change detector activated");
 		}
 	}
 
 	@PreDestroy
 	public void unwatch() {
-		if (this.watches != null) {
-			for (Map.Entry<String, Watch> entry : this.watches.entrySet()) {
-				try {
-					this.log.debug("Closing the watch " + entry.getKey());
-					entry.getValue().close();
-
-				}
-				catch (Exception e) {
-					this.log.error("Error while closing the watch connection", e);
-				}
+		for (Map.Entry<String, Watch> entry : watches.entrySet()) {
+			try {
+				log.debug("Closing the watch " + entry.getKey());
+				entry.getValue().close();
+			}
+			catch (Exception e) {
+				log.error("Error while closing the watch connection", e);
 			}
 		}
 	}
 
 	protected void onEvent(Secret secret) {
-		this.log.debug(String.format("onEvent configMap: %s", secret.toString()));
-		boolean changed = changed(locateMapPropertySources(this.fabric8SecretsPropertySourceLocator, this.environment),
+		log.debug("onEvent secrets: " + secret.toString());
+		boolean changed = changed(locateMapPropertySources(fabric8SecretsPropertySourceLocator, environment),
 				findPropertySources(Fabric8SecretsPropertySource.class));
 		if (changed) {
-			this.log.info("Detected change in secrets");
+			log.info("Detected change in secrets");
 			reloadProperties();
 		}
 	}

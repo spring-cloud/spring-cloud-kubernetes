@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons.config.reload;
 
-import java.time.Duration;
 import java.util.List;
 
 import jakarta.annotation.PostConstruct;
@@ -47,7 +46,9 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 
 	private final TaskScheduler taskExecutor;
 
-	private final Duration period;
+	private final long period;
+
+	private final boolean monitorConfigMaps;
 
 	public PollingConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			ConfigurationUpdateStrategy strategy, Class<? extends MapPropertySource> propertySourceClass,
@@ -56,21 +57,22 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 		this.propertySourceLocator = propertySourceLocator;
 		this.propertySourceClass = propertySourceClass;
 		this.taskExecutor = taskExecutor;
-		this.period = properties.getPeriod();
+		this.period = properties.getPeriod().toMillis();
+		this.monitorConfigMaps = properties.isMonitoringConfigMaps();
 	}
 
 	@PostConstruct
 	public void init() {
 		log.info("Kubernetes polling configMap change detector activated");
-		PeriodicTrigger trigger = new PeriodicTrigger(period.toMillis());
-		trigger.setInitialDelay(period.toMillis());
+		PeriodicTrigger trigger = new PeriodicTrigger(period);
+		trigger.setInitialDelay(period);
 		taskExecutor.schedule(this::executeCycle, trigger);
 	}
 
 	private void executeCycle() {
 
 		boolean changedConfigMap = false;
-		if (properties.isMonitoringConfigMaps()) {
+		if (monitorConfigMaps) {
 			log.debug("Polling for changes in config maps");
 			List<? extends MapPropertySource> currentConfigMapSources = findPropertySources(propertySourceClass);
 
