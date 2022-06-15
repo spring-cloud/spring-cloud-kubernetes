@@ -353,8 +353,8 @@ public class K8SUtils {
 	}
 
 	/**
-	 * Gets the image from a Kubernetes Client deployment yaml. Assumes there is only one
-	 * container defined in the deployment.
+	 * Gets the image from a Kubernetes Client deployment yaml. Assumes there is only one container
+	 * defined in the deployment.
 	 * @param deployment deployment yaml
 	 * @return An array where the first item is the mage name and the second item is the
 	 * tag
