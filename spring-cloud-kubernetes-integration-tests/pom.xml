@@ -114,5 +114,6 @@
 		<module>spring-cloud-kubernetes-client-reactive-discoveryclient-it</module>
 		<module>spring-cloud-kubernetes-configuration-watcher-it</module>
 		<module>spring-cloud-kubernetes-core-k8s-client-it</module>
+		<module>spring-cloud-kubernetes-fabric8-client-configmap-polling-reload</module>
 	</modules>
 </project>
