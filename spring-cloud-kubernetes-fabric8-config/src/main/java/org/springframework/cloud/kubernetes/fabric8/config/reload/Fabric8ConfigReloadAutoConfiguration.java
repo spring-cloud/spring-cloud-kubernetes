@@ -46,6 +46,7 @@ import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropert
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.TaskScheduler;
 
@@ -59,10 +60,10 @@ import org.springframework.scheduling.TaskScheduler;
 @ConditionalOnKubernetesAndConfigEnabled
 @ConditionalOnClass(EndpointAutoConfiguration.class)
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-		RefreshAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class,
-		ConfigReloadAutoConfiguration.class })
+		RefreshAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @EnableConfigurationProperties(ConfigReloadProperties.class)
 @ConditionalOnProperty("spring.cloud.kubernetes.reload.enabled")
+@Import(ConfigReloadAutoConfiguration.class)
 public class Fabric8ConfigReloadAutoConfiguration {
 
 	/**

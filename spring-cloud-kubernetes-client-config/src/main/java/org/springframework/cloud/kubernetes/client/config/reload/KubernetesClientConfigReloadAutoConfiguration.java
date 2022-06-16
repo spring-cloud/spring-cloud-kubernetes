@@ -47,6 +47,7 @@ import org.springframework.cloud.kubernetes.commons.config.reload.condition.Poll
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.AbstractEnvironment;
 
 /**
@@ -56,7 +57,8 @@ import org.springframework.core.env.AbstractEnvironment;
 @ConditionalOnKubernetesAndConfigEnabled
 @ConditionalOnClass(EndpointAutoConfiguration.class)
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-		RefreshAutoConfiguration.class, ConfigReloadAutoConfiguration.class })
+		RefreshAutoConfiguration.class })
+@Import(ConfigReloadAutoConfiguration.class)
 @EnableConfigurationProperties(ConfigReloadProperties.class)
 public class KubernetesClientConfigReloadAutoConfiguration {
 
