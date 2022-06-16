@@ -30,7 +30,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
- * A change detector that periodically retrieves secrets and fire a reload when something
+ * A change detector that periodically retrieves secrets and fires a reload when something
  * changes.
  *
  * @author Nicola Ferraro

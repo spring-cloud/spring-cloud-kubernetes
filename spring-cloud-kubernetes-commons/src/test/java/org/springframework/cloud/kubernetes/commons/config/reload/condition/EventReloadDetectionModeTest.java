@@ -31,7 +31,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * @author wind57
  */
 @ExtendWith(MockitoExtension.class)
-public class EventReloadDetectionModeTest {
+class EventReloadDetectionModeTest {
 
 	private static final String RELOAD_PROPERTY = "spring.cloud.kubernetes.reload.mode";
 
@@ -50,7 +50,7 @@ public class EventReloadDetectionModeTest {
 	// returns a "null".
 	// I am leaving it here just to make sure nothing breaks in branching
 	@Test
-	public void testNull() {
+	void testNull() {
 		Mockito.when(context.getEnvironment()).thenReturn(environment);
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
 		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn(null);
@@ -60,7 +60,7 @@ public class EventReloadDetectionModeTest {
 
 	// lack of this property being set, means a match.
 	@Test
-	public void testDoesNotContain() {
+	void testDoesNotContain() {
 		Mockito.when(context.getEnvironment()).thenReturn(environment);
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(false);
 		boolean matches = underTest.matches(context, metadata);
@@ -68,7 +68,7 @@ public class EventReloadDetectionModeTest {
 	}
 
 	@Test
-	public void testMatchesCase() {
+	void testMatchesCase() {
 		Mockito.when(context.getEnvironment()).thenReturn(environment);
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
 		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn("EVENT");
@@ -77,7 +77,7 @@ public class EventReloadDetectionModeTest {
 	}
 
 	@Test
-	public void testMatchesIgnoreCase() {
+	void testMatchesIgnoreCase() {
 		Mockito.when(context.getEnvironment()).thenReturn(environment);
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
 		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn("eVeNt");
@@ -86,7 +86,7 @@ public class EventReloadDetectionModeTest {
 	}
 
 	@Test
-	public void testNoMatch() {
+	void testNoMatch() {
 		Mockito.when(context.getEnvironment()).thenReturn(environment);
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
 		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn("not-eVeNt");
