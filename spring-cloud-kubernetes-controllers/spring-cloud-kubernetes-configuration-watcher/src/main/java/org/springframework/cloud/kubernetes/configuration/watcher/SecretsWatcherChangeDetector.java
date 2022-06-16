@@ -41,7 +41,7 @@ public abstract class SecretsWatcherChangeDetector extends Fabric8EventBasedSecr
 
 	protected Log log = LogFactory.getLog(getClass());
 
-	private ScheduledExecutorService executorService;
+	private final ScheduledExecutorService executorService;
 
 	protected ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap.polling.reload;
+package org.springframework.cloud.kubernetes.fabric8.secrets.event.reload;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 /**
  * @author wind57
  */
-@ConfigurationProperties("from.properties")
-public class ConfigMapProperties {
 
-	private String key;
+@SpringBootApplication
+@EnableConfigurationProperties(SecretsProperties.class)
+public class SecretsApp {
 
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key1) {
-		this.key = key1;
+	public static void main(String[] args) {
+		SpringApplication.run(SecretsApp.class, args);
 	}
 
 }

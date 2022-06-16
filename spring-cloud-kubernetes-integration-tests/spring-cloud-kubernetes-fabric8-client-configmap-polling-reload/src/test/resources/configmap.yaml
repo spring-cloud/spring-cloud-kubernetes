@@ -5,4 +5,4 @@ metadata:
   namespace: default
 data:
   application.properties: |
-      from.yaml.key=initial
+      from.properties.key=initial

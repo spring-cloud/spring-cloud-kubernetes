@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap.polling.reload;
+package org.springframework.cloud.kubernetes.fabric8.secrets.event.reload;
 
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
@@ -52,9 +53,9 @@ import static org.awaitility.Awaitility.await;
 /**
  * @author wind57
  */
-class ConfigMapPollingReloadIT {
+class SecretsEventsReloadIT {
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-configmap-polling-reload";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-secrets-event-reload";
 
 	private static final String NAMESPACE = "default";
 
@@ -66,7 +67,7 @@ class ConfigMapPollingReloadIT {
 
 	private static String ingressName;
 
-	private static String configMapName;
+	private static String secretName;
 
 	private static final K3sContainer K3S = Commons.container();
 
@@ -94,19 +95,21 @@ class ConfigMapPollingReloadIT {
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
-		// we first read the initial value from the configmap
+		// we first read the initial value from the secret
 		Assertions.assertEquals("initial", result);
 
-		// then deploy a new version of configmap
+		// then deploy a new version of the secret
 		// since we poll and have reload in place, the new property must be visible
-		ConfigMap map = new ConfigMapBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("poll-reload").build())
-				.withData(Map.of("application.properties", "from.properties.key=after-change")).build();
+		Secret secret = new SecretBuilder()
+				.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
+				.withData(Map.of("application.properties",
+						Base64.getEncoder().encodeToString("from.properties.key=after-change".getBytes())))
+				.build();
 
 		// the weird cast comes from :
 		// https://github.com/fabric8io/kubernetes-client/issues/2445
-		((HasMetadataOperation) client.configMaps().inNamespace("default").withName("poll-reload"))
-				.createOrReplace(map);
+		((HasMetadataOperation) client.secrets().inNamespace("default").withName("event-reload"))
+				.createOrReplace(secret);
 
 		await().timeout(Duration.ofSeconds(30)).until(() -> webClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("after-change"));
@@ -117,7 +120,7 @@ class ConfigMapPollingReloadIT {
 
 		try {
 
-			client.configMaps().inNamespace(NAMESPACE).withName(configMapName).delete();
+			client.secrets().inNamespace(NAMESPACE).withName(secretName).delete();
 			client.apps().deployments().inNamespace(NAMESPACE).withName(deploymentName).delete();
 			client.services().inNamespace(NAMESPACE).withName(serviceName).delete();
 			client.network().v1().ingresses().inNamespace(NAMESPACE).withName(ingressName).delete();
@@ -133,9 +136,9 @@ class ConfigMapPollingReloadIT {
 
 		try {
 
-			ConfigMap configMap = client.configMaps().load(getConfigMap()).get();
-			configMapName = configMap.getMetadata().getName();
-			client.configMaps().create(configMap);
+			Secret configMap = client.secrets().load(getSecret()).get();
+			secretName = configMap.getMetadata().getName();
+			client.secrets().create(configMap);
 
 			Deployment deployment = client.apps().deployments().load(getDeployment()).get();
 
@@ -155,7 +158,7 @@ class ConfigMapPollingReloadIT {
 			client.network().v1().ingresses().inNamespace(NAMESPACE).create(ingress);
 
 			Fabric8Utils.waitForDeployment(client,
-					"spring-cloud-kubernetes-fabric8-client-configmap-deployment-polling-reload", NAMESPACE, 2, 600);
+					"spring-cloud-kubernetes-fabric8-client-secrets-deployment-event-reload", NAMESPACE, 2, 600);
 
 		}
 		catch (Exception e) {
@@ -176,8 +179,8 @@ class ConfigMapPollingReloadIT {
 		return Fabric8Utils.inputStream("ingress.yaml");
 	}
 
-	private static InputStream getConfigMap() {
-		return Fabric8Utils.inputStream("configmap.yaml");
+	private static InputStream getSecret() {
+		return Fabric8Utils.inputStream("secret.yaml");
 	}
 
 	private WebClient.Builder builder() {

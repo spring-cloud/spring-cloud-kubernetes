@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,10 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.reload;
 
-import java.net.HttpURLConnection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.WatcherException;
+import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -50,11 +42,11 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 	private final Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator;
 
-	private final Map<String, Watch> watches;
-
 	private final KubernetesClient kubernetesClient;
 
 	private final boolean monitorSecrets;
+
+	private SharedIndexInformer<Secret> informer;
 
 	public Fabric8EventBasedSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
@@ -62,65 +54,40 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 		super(environment, properties, strategy);
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8SecretsPropertySourceLocator = fabric8SecretsPropertySourceLocator;
-		this.watches = new HashMap<>();
 		this.monitorSecrets = properties.isMonitoringSecrets();
 	}
 
 	@PreDestroy
-	public void shutdown() {
+	private void shutdown() {
+		if (informer != null) {
+			log.debug("closing secrets informer");
+			informer.close();
+		}
 		// Ensure the kubernetes client is cleaned up from spare threads when shutting
 		// down
 		kubernetesClient.close();
 	}
 
 	@PostConstruct
-	public void watch() {
-		boolean activated = false;
-
+	private void inform() {
 		if (monitorSecrets) {
-			try {
-				String name = "secrets-watch-event";
-				watches.put(name, this.kubernetesClient.secrets().watch(new Watcher<>() {
-					@Override
-					public void eventReceived(Action action, Secret secret) {
-						log.debug(name + " received event for Secret " + secret.getMetadata().getName());
-						onEvent(secret);
-					}
+			informer = kubernetesClient.secrets().inform();
+			informer.addEventHandler(new ResourceEventHandler<>() {
+				@Override
+				public void onAdd(Secret secret) {
+					onEvent(secret);
+				}
 
-					@Override
-					public void onClose(WatcherException exception) {
-						log.warn("Secrets watch closed", exception);
-						Optional.ofNullable(exception).map(e -> {
-							log.debug("Exception received during watch", e);
-							return exception.asClientException();
-						}).map(KubernetesClientException::getStatus).map(Status::getCode)
-								.filter(c -> c.equals(HttpURLConnection.HTTP_GONE)).ifPresent(c -> watch());
-					}
-				}));
-				activated = true;
-				log.info("Added new Kubernetes watch: " + name);
-			}
-			catch (Exception e) {
-				log.error("Error while establishing a connection to watch secrets: configuration may remain stale",
-						e);
-			}
-		}
+				@Override
+				public void onUpdate(Secret oldSecret, Secret newSecret) {
+					onEvent(newSecret);
+				}
 
-		if (activated) {
-			log.info("Kubernetes event-based secrets change detector activated");
-		}
-	}
-
-	@PreDestroy
-	public void unwatch() {
-		for (Map.Entry<String, Watch> entry : watches.entrySet()) {
-			try {
-				log.debug("Closing the watch " + entry.getKey());
-				entry.getValue().close();
-			}
-			catch (Exception e) {
-				log.error("Error while closing the watch connection", e);
-			}
+				@Override
+				public void onDelete(Secret secret, boolean deletedFinalStateUnknown) {
+					onEvent(secret);
+				}
+			});
 		}
 	}
 

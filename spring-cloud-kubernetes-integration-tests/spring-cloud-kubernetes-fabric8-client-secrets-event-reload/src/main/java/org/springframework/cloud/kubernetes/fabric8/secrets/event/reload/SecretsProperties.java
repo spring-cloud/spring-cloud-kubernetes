@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap.polling.reload;
+package org.springframework.cloud.kubernetes.fabric8.secrets.event.reload;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -22,7 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author wind57
  */
 @ConfigurationProperties("from.properties")
-public class ConfigMapProperties {
+public class SecretsProperties {
 
 	private String key;
 

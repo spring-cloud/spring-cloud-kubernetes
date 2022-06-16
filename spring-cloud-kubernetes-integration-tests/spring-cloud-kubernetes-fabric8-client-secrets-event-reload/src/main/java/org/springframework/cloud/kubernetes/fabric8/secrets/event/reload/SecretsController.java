@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap.polling.reload;
+package org.springframework.cloud.kubernetes.fabric8.secrets.event.reload;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author wind57
  */
-@ConfigurationProperties("from.properties")
-public class ConfigMapProperties {
+@RestController
+public class SecretsController {
 
-	private String key;
+	private final SecretsProperties properties;
 
-	public String getKey() {
-		return key;
+	public SecretsController(SecretsProperties properties) {
+		this.properties = properties;
 	}
 
-	public void setKey(String key1) {
-		this.key = key1;
+	@GetMapping("/key")
+	public String key() {
+		return properties.getKey();
 	}
 
 }
