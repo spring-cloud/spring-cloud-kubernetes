@@ -46,7 +46,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
@@ -63,9 +62,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -142,8 +139,13 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		OkHttpClient httpClient = apiClient.getHttpClient().newBuilder().readTimeout(0, TimeUnit.SECONDS).build();
 		apiClient.setHttpClient(httpClient);
 		CoreV1Api coreV1Api = new CoreV1Api(apiClient);
-		ConfigurationUpdateStrategy strategy = mock(ConfigurationUpdateStrategy.class);
-		when(strategy.name()).thenReturn("strategy");
+
+		int[] howMany = new int[1];
+		Runnable run = () -> {
+			++howMany[0];
+		};
+		ConfigurationUpdateStrategy strategy = new ConfigurationUpdateStrategy("strategy", run);
+
 		KubernetesMockEnvironment environment = new KubernetesMockEnvironment(
 				mock(KubernetesClientSecretsPropertySource.class)).withProperty("db-password", "p455w0rd");
 		KubernetesClientSecretsPropertySourceLocator locator = mock(KubernetesClientSecretsPropertySourceLocator.class);
@@ -160,9 +162,8 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		controllerThread.setDaemon(true);
 		controllerThread.start();
 
-		await().timeout(Duration.ofSeconds(300))
-				.until(() -> Mockito.mockingDetails(strategy).getInvocations().size() > 4);
-		verify(strategy, atLeast(3));
+		await().timeout(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(2)).until(() -> howMany[0] >= 4);
+
 	}
 
 	// This is needed when using JDK17 because GSON uses reflection to construct an

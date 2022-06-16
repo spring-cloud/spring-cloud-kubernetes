@@ -30,7 +30,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
@@ -79,9 +78,8 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 	public void watch() {
 		if (coreV1Api != null && monitorConfigMaps) {
 			SharedIndexInformer<V1ConfigMap> configMapInformer = factory.sharedIndexInformerFor(
-					(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null, null,
-							null, null, null, null, params.resourceVersion, null, params.timeoutSeconds, params.watch,
-							null),
+					(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null, null, null,
+							null, null, null, params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
 					V1ConfigMap.class, V1ConfigMapList.class);
 			configMapInformer.addEventHandler(new ResourceEventHandler<>() {
 				@Override

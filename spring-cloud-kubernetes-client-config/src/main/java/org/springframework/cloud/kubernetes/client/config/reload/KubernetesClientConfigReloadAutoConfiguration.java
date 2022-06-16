@@ -80,8 +80,8 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 			AbstractEnvironment environment, TaskSchedulerWrapper<TaskScheduler> taskScheduler) {
 
 		return new PollingConfigMapChangeDetector(environment, properties, strategy,
-			KubernetesClientConfigMapPropertySource.class, configMapPropertySourceLocator,
-			taskScheduler.getTaskScheduler());
+				KubernetesClientConfigMapPropertySource.class, configMapPropertySourceLocator,
+				taskScheduler.getTaskScheduler());
 	}
 
 	/**
@@ -96,12 +96,12 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 	@Conditional(PollingReloadDetectionMode.class)
 	public ConfigurationChangeDetector secretsPropertyChangePollingWatcher(ConfigReloadProperties properties,
 			ConfigurationUpdateStrategy strategy,
-			KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
-			AbstractEnvironment environment, TaskSchedulerWrapper<TaskScheduler> taskScheduler) {
+			KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator, AbstractEnvironment environment,
+			TaskSchedulerWrapper<TaskScheduler> taskScheduler) {
 
 		return new PollingSecretsChangeDetector(environment, properties, strategy,
-			KubernetesClientSecretsPropertySource.class, secretsPropertySourceLocator,
-			taskScheduler.getTaskScheduler());
+				KubernetesClientSecretsPropertySource.class, secretsPropertySourceLocator,
+				taskScheduler.getTaskScheduler());
 	}
 
 	/**
@@ -121,9 +121,8 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 
 		return new KubernetesClientEventBasedConfigMapChangeDetector(coreV1Api, environment, properties, strategy,
-			configMapPropertySourceLocator, kubernetesNamespaceProvider);
+				configMapPropertySourceLocator, kubernetesNamespaceProvider);
 	}
-
 
 	/**
 	 * Event Based secrets ConfigurationChangeDetector.
@@ -137,12 +136,11 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 	@Conditional(EventReloadDetectionMode.class)
 	public ConfigurationChangeDetector secretsPropertyChangeEventWatcher(ConfigReloadProperties properties,
 			ConfigurationUpdateStrategy strategy,
-			KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
-			AbstractEnvironment environment, CoreV1Api coreV1Api,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+			KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator, AbstractEnvironment environment,
+			CoreV1Api coreV1Api, KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 
 		return new KubernetesClientEventBasedSecretsChangeDetector(coreV1Api, environment, properties, strategy,
-			secretsPropertySourceLocator, kubernetesNamespaceProvider);
+				secretsPropertySourceLocator, kubernetesNamespaceProvider);
 	}
 
 }
