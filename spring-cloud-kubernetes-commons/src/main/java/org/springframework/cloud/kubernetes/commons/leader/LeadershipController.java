@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Ryan Baxter
@@ -84,7 +85,7 @@ public abstract class LeadershipController {
 
 		String leaderKey = getLeaderKey();
 		String leaderId = data.get(leaderKey);
-		if (leaderId == null) {
+		if (!StringUtils.hasText(leaderId)) {
 			return null;
 		}
 
