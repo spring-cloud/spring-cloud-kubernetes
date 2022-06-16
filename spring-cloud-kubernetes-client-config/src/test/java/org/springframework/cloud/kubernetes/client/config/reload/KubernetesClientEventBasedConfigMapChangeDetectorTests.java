@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -47,7 +47,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
@@ -64,9 +63,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -110,7 +107,7 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		V1ConfigMap applicationConfig = new V1ConfigMap().kind("ConfigMap")
 				.metadata(new V1ObjectMeta().namespace("default").name("bar1")).data(data);
 		V1ConfigMapList configMapList = new V1ConfigMapList().metadata(new V1ListMeta().resourceVersion("0"))
-				.items(Arrays.asList(applicationConfig));
+				.items(List.of(applicationConfig));
 		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
 				.whenScenarioStateIs(STARTED).withQueryParam("watch", equalTo("false"))
 				.willReturn(aResponse().withStatus(200).withBody(gson.toJson(configMapList))).willSetStateTo("update"));
@@ -147,8 +144,13 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		OkHttpClient httpClient = apiClient.getHttpClient().newBuilder().readTimeout(0, TimeUnit.SECONDS).build();
 		apiClient.setHttpClient(httpClient);
 		CoreV1Api coreV1Api = new CoreV1Api(apiClient);
-		ConfigurationUpdateStrategy strategy = mock(ConfigurationUpdateStrategy.class);
-		when(strategy.name()).thenReturn("strategy");
+
+		int[] howMany = new int[1];
+		Runnable run = () -> {
+			++howMany[0];
+		};
+		ConfigurationUpdateStrategy strategy = new ConfigurationUpdateStrategy("strategy", run);
+
 		KubernetesMockEnvironment environment = new KubernetesMockEnvironment(
 				mock(KubernetesClientConfigMapPropertySource.class)).withProperty("debug", "true");
 		KubernetesClientConfigMapPropertySourceLocator locator = mock(
@@ -162,15 +164,14 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		Thread controllerThread = new Thread(changeDetector::watch);
 		controllerThread.setDaemon(true);
 		controllerThread.start();
-		await().timeout(Duration.ofSeconds(5))
-				.until(() -> Mockito.mockingDetails(strategy).getInvocations().size() > 4);
-		verify(strategy, atLeast(3));
+
+		await().timeout(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(2)).until(() -> howMany[0] >= 4);
 	}
 
 	// This is needed when using JDK17 because GSON uses reflection to construct an
 	// OffsetDateTime but that constructor
 	// is protected.
-	public static class GsonOffsetDateTimeAdapter extends TypeAdapter<OffsetDateTime> {
+	public final static class GsonOffsetDateTimeAdapter extends TypeAdapter<OffsetDateTime> {
 
 		@Override
 		public void write(JsonWriter jsonWriter, OffsetDateTime localDateTime) throws IOException {
