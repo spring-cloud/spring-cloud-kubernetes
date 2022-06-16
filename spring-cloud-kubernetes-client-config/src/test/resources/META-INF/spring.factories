@@ -1,10 +1,11 @@
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
 org.springframework.cloud.kubernetes.client.config.boostrap.stubs.NamedConfigMapWithProfileConfigurationStub, \
 org.springframework.cloud.kubernetes.client.config.boostrap.stubs.NamedConfigMapWithPrefixConfigurationStub, \
-  org.springframework.cloud.kubernetes.client.config.boostrap.stubs.NamedSecretWithPrefixConfigurationStub, \
+org.springframework.cloud.kubernetes.client.config.boostrap.stubs.NamedSecretWithPrefixConfigurationStub, \
 org.springframework.cloud.kubernetes.client.config.boostrap.stubs.NamedSecretWithProfileConfigurationStub, \
 org.springframework.cloud.kubernetes.client.config.boostrap.stubs.LabeledSecretWithPrefixConfigurationStub, \
 org.springframework.cloud.kubernetes.client.config.boostrap.stubs.LabeledSecretWithProfileConfigurationStub, \
 org.springframework.cloud.kubernetes.client.config.boostrap.stubs.LabeledConfigMapWithPrefixConfigurationStub, \
 org.springframework.cloud.kubernetes.client.config.boostrap.stubs.LabeledConfigMapWithProfileConfigurationStub, \
+org.springframework.cloud.kubernetes.client.config.boostrap.stubs.SingleSourceMultipleFilesConfigurationStub, \
 org.springframework.cloud.kubernetes.client.config.EnableRetryBootstrapConfiguration

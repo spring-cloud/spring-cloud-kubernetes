@@ -16,11 +16,13 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,9 +30,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 
-import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_PROPERTIES;
-import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_YAML;
-import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_YML;
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.KEY_VALUE_TO_PROPERTIES;
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.PROPERTIES_TO_MAP;
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.throwingMerger;
@@ -76,21 +75,45 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 
 	private static Map<String, Object> defaultProcessAllEntries(Map<String, String> input, Environment environment) {
 
-		return input.entrySet().stream().map(e -> extractProperties(e.getKey(), e.getValue(), environment))
+		// we pass empty Strings on purpose, the logic here is either the value of
+		// "spring.application.name"
+		// or literal "application".
+		String applicationName = ConfigUtils.getApplicationName(environment, "", "");
+		String[] activeProfiles = environment.getActiveProfiles();
+
+		Set<String> fileNames = Stream
+				.concat(Stream.of(applicationName),
+						Arrays.stream(activeProfiles).map(profile -> applicationName + "-" + profile))
+				.collect(Collectors.toSet());
+
+		return input.entrySet().stream().map(e -> extractProperties(e.getKey(), e.getValue(), fileNames, environment))
 				.flatMap(m -> m.entrySet().stream())
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, throwingMerger(), HashMap::new));
 	}
 
-	private static Map<String, Object> extractProperties(String resourceName, String content, Environment environment) {
+	private static Map<String, Object> extractProperties(String resourceName, String content, Set<String> fileNames,
+			Environment environment) {
 
-		if (resourceName.equals(APPLICATION_YAML) || resourceName.equals(APPLICATION_YML)) {
-			return yamlParserGenerator(environment).andThen(PROPERTIES_TO_MAP).apply(content);
-		}
-		else if (resourceName.equals(APPLICATION_PROPERTIES)) {
-			return KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(content);
+		if (resourceName.endsWith(".yml") || resourceName.endsWith(".yaml") || resourceName.endsWith(".properties")) {
+
+			if (fileNames.contains(resourceName.split("\\.", 2)[0])) {
+				if (resourceName.endsWith(".properties")) {
+					LOG.debug("entry : " + resourceName + " will be treated as a single properties file");
+					return KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(content);
+				}
+				else {
+					LOG.debug("entry : " + resourceName + " will be treated as a single yml/yaml file");
+					return yamlParserGenerator(environment).andThen(PROPERTIES_TO_MAP).apply(content);
+				}
+			}
+			else {
+				LOG.warn("entry : " + resourceName + " will be skipped");
+				return Collections.emptyMap();
+			}
 		}
 
 		return Collections.singletonMap(resourceName, content);
+
 	}
 
 }
