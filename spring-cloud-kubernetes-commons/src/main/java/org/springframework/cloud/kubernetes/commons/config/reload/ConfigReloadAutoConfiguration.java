@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config.reload;
 
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +35,8 @@ import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernet
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.util.Assert;
 
 /**
  * @author Ryan Baxter
@@ -56,13 +57,13 @@ public class ConfigReloadAutoConfiguration {
 
 		@Bean("springCloudKubernetesTaskScheduler")
 		@ConditionalOnMissingBean
-		public TaskSchedulerWrapper taskScheduler() {
+		public TaskSchedulerWrapper<TaskScheduler> taskScheduler() {
 			ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
 
 			threadPoolTaskScheduler.setThreadNamePrefix("spring-cloud-kubernetes-ThreadPoolTaskScheduler-");
 			threadPoolTaskScheduler.setDaemon(true);
 
-			return new TaskSchedulerWrapper(threadPoolTaskScheduler);
+			return new TaskSchedulerWrapper<>(threadPoolTaskScheduler);
 		}
 
 		/**
@@ -79,7 +80,7 @@ public class ConfigReloadAutoConfiguration {
 				ContextRefresher refresher) {
 			switch (properties.getStrategy()) {
 			case RESTART_CONTEXT:
-				Assert.notNull(restarter, "Restart endpoint is not enabled");
+				Objects.requireNonNull(restarter, "Restart endpoint is not enabled");
 				return new ConfigurationUpdateStrategy(properties.getStrategy().name(), () -> {
 					wait(properties);
 					restarter.restart();
