@@ -65,8 +65,38 @@ of the application is resolved.
 Any matching `ConfigMap` that is found is processed as follows:
 
 * Apply individual configuration properties.
-* Apply as `yaml` the content of any property named `application.yaml`.
-* Apply as a properties file the content of any property named `application.properties`.
+* Apply as `yaml` (or `properties`) the content of any property that is named by the value of `spring.application.name`
+  (if it's not present, by `application.yaml/properties`)
+* Apply as a properties file the content of the above name + each active profile.
+
+An example should make a lot more sense. Let's suppose that `spring.application.name=my-app` and that
+we have a single active profile called `k8s`. For a configuration as below:
+
+
+====
+[source]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: my-app
+data:
+  my-app.yaml: |-
+    ...
+  my-app-k8s.yaml: |-
+    ..
+  my-app-dev.yaml: |-
+   ..
+  someProp: someValue
+----
+====
+
+These is what we will end-up loading:
+
+ - `my-app.yaml` treated as a file
+ - `my-app-k8s.yaml` treated as a file
+ - `my-app-dev.yaml` _ignored_, since `dev` is _not_ an active profile
+ - `someProp: someValue` plain property
 
 The single exception to the aforementioned flow is when the `ConfigMap` contains a *single* key that indicates
 the file is a YAML or properties file. In that case, the name of the key does NOT have to be `application.yaml` or

@@ -245,18 +245,30 @@ an `application-profile.properties` or `application-profile.yaml` file that cont
 application or Spring Boot starters. You can override these properties by specifying system properties or environment
 variables.
 
+To enable this functionality you need to set `spring.config.import=kubernetes:` in your application's configuration properties.
+Currently you can not specify a ConfigMap or Secret to load using `spring.config.import`, by default Spring Cloud Kubernetes
+will load a ConfigMap and/or Secret based on the `spring.application.name` property.  If `spring.application.name` is not set it will
+load a ConfigMap and/or Secret with the name `application`.
+
+If you would like to load Kubernetes `PropertySource`s during the bootstrap phase like it worked prior to the 3.0.x release
+you can either add `spring-cloud-starter-bootstrap` to your application's classpath or set `spring.cloud.bootstrap.enabled=true`
+as an environment variable.
+
 [[configmap-propertysource]]
 === Using a `ConfigMap` `PropertySource`
 
 Kubernetes provides a resource named https://kubernetes.io/docs/user-guide/configmap/[`ConfigMap`] to externalize the
 parameters to pass to your application in the form of key-value pairs or embedded `application.properties` or `application.yaml` files.
 The link:https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-fabric8-config[Spring Cloud Kubernetes Config] project makes Kubernetes `ConfigMap` instances available
-during application bootstrapping and triggers hot reloading of beans or Spring context when changes are detected on
+during application startup and triggers hot reloading of beans or Spring context when changes are detected on
 observed `ConfigMap` instances.
 
-The default behavior is to create a `Fabric8ConfigMapPropertySource` based on a Kubernetes `ConfigMap` that has a `metadata.name` value of either the name of
+Everything that follows is explained mainly referring to examples using ConfigMaps, but the same stands for
+Secrets, i.e.: every feature is supported for both.
+
+The default behavior is to create a `Fabric8ConfigMapPropertySource` (or a `KubernetesClientConfigMapPropertySource`) based on a Kubernetes `ConfigMap` that has a `metadata.name` value of either the name of
 your Spring application (as defined by its `spring.application.name` property) or a custom name defined within the
-`bootstrap.properties` file under the following key: `spring.cloud.kubernetes.config.name`.
+`application.properties` file under the following key: `spring.cloud.kubernetes.config.name`.
 
 However, more advanced configuration is possible where you can use multiple `ConfigMap` instances.
 The `spring.cloud.kubernetes.config.sources` list makes this possible.
@@ -293,8 +305,38 @@ of the application is resolved.
 Any matching `ConfigMap` that is found is processed as follows:
 
 * Apply individual configuration properties.
-* Apply as `yaml` the content of any property named `application.yaml`.
-* Apply as a properties file the content of any property named `application.properties`.
+* Apply as `yaml` (or `properties`) the content of any property that is named by the value of `spring.application.name`
+  (if it's not present, by `application.yaml/properties`)
+* Apply as a properties file the content of the above name + each active profile.
+
+An example should make a lot more sense. Let's suppose that `spring.application.name=my-app` and that
+we have a single active profile called `k8s`. For a configuration as below:
+
+
+====
+[source]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: my-app
+data:
+  my-app.yaml: |-
+    ...
+  my-app-k8s.yaml: |-
+    ..
+  my-app-dev.yaml: |-
+   ..
+  someProp: someValue
+----
+====
+
+These is what we will end-up loading:
+
+ - `my-app.yaml` treated as a file
+ - `my-app-k8s.yaml` treated as a file
+ - `my-app-dev.yaml` _ignored_, since `dev` is _not_ an active profile
+ - `someProp: someValue` plain property
 
 The single exception to the aforementioned flow is when the `ConfigMap` contains a *single* key that indicates
 the file is a YAML or properties file. In that case, the name of the key does NOT have to be `application.yaml` or
@@ -365,6 +407,31 @@ data:
         max:16
 ----
 ====
+
+You can also define the search to happen based on labels, for example:
+
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: labeled-configmap-with-prefix
+  cloud:
+    kubernetes:
+      config:
+        enableApi: true
+        useNameAsPrefix: true
+        namespace: spring-k8s
+        sources:
+          - labels:
+              letter: a
+----
+====
+
+This will search for every configmap in namespace `spring-k8s` that has labels `{letter : a}`. The important
+thing to notice here is that unlike reading a configmap by name, this can result in _multiple_ config maps read.
+As usual, the same feature is supported for secrets.
 
 You can also configure Spring Boot applications differently depending on active profiles that are merged together
 when the `ConfigMap` is read. You can provide different property values for different profiles by using an
@@ -479,8 +546,8 @@ data:
 ====
 
 
-To tell Spring Boot which `profile` should be enabled at bootstrap, you can pass `SPRING_PROFILES_ACTIVE` environment variable.
- To do so, you can launch your Spring Boot application with an environment variable that you can define it in the PodSpec at the container specification.
+To tell Spring Boot which `profile` should be enabled see the https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.profiles[Spring Boot documentation].
+One option for activating a specific profile when deploying to Kubernetes is to launch your Spring Boot application with an environment variable that you can define in the PodSpec at the container specification.
  Deployment resource file, as follows:
 
 ====
@@ -639,6 +706,71 @@ will result in three properties being generated:
  - `two.greetings.message` equal to `Say Hello from two`.
 
  - `config-map-three.greetings.message` equal to `Say Hello from three`.
+
+The same way you configure a prefix for configmaps, you can do it for secrets also; both for secrets that are based on name
+and the ones based on labels. For example:
+
+====
+[source.yaml]
+----
+spring:
+  application:
+    name: prefix-based-secrets
+  cloud:
+    kubernetes:
+      secrets:
+        enableApi: true
+        useNameAsPrefix: true
+        namespace: spring-k8s
+        sources:
+          - labels:
+              letter: a
+            useNameAsPrefix: false
+          - labels:
+              letter: b
+            explicitPrefix: two
+          - labels:
+              letter: c
+          - labels:
+              letter: d
+            useNameAsPrefix: true
+          - name: my-secret
+----
+====
+
+The same processing rules apply when generating property source as for config maps. The only difference is that
+potentially, looking up secrets by labels can mean that we find more than one source. In such a case, prefix (if specified via `useNameAsPrefix`)
+will be the names of all secrets found for those particular labels.
+
+One more thing to bear in mind is that we support `prefix` per _source_, not per secret. The easiest way to explain this is via an example:
+
+====
+[source.yaml]
+----
+spring:
+  application:
+    name: prefix-based-secrets
+  cloud:
+    kubernetes:
+      secrets:
+        enableApi: true
+        useNameAsPrefix: true
+        namespace: spring-k8s
+        sources:
+          - labels:
+              color: blue
+            useNameAsPrefix: true
+----
+====
+
+Suppose that a query matching such a label will provide two secrets as a result: `secret-a` and `secret-b`.
+Both of these secrets have the same property name: `color=sea-blue` and `color=ocean-blue`. It is undefined which
+`color` will end-up as part of property sources, but the prefix for it will be `secret-a.secret-b`
+(concatenated sorted naturally, names of the secrets).
+
+If you need more fine-grained results, adding more labels to identify the secret uniquely would be an option.
+
+
 
 By default, besides reading the config map that is specified in the `sources` configuration, Spring will also try to read
 all properties from "profile aware" sources. The easiest way to explain this is via an example. Let's suppose your application
@@ -1102,10 +1234,11 @@ that setting via `spring.main.cloud-platform`.
 
 For example, if you need to test some features, but do not want to deploy to a cluster, it is enough to set the:
 `spring.main.cloud-platform=KUBERNETES`. This will make `spring-cloud-kubernetes` act as-if it is deployed in a real cluster.
-Be aware that when `spring-cloud-kubernetes-config` is on the classpath, `spring.main.cloud-platform` should be set in `bootstrap.{properties|yml}`
-(or the profile specific one),  otherwise it should be in `application.{properties|yml}` (or the profile specific one).
-Also note that these properties: `spring.cloud.kubernetes.config.enabled` and `spring.cloud.kubernetes.secrets.enabled`
-only take effect when set in `bootstrap.{properties|yml}`.
+
+NOTE:  If you have `spring-cloud-bootstrap-starter` on your classpath or are setting `spring.cloud.bootstrap.enabled=true` then
+you will have to set `spring.main.cloud-platform` should be set in `bootstrap.{properties|yml}`
+(or the profile specific one).  Also note that these properties: `spring.cloud.kubernetes.config.enabled` and `spring.cloud.kubernetes.secrets.enabled`
+will only take effect when set in `bootstrap.{properties|yml}` when you have `spring-cloud-bootstrap-starter` on your classpath or are setting `spring.cloud.bootstrap.enabled=true`.
 
 === Breaking Changes In 3.0.x
 

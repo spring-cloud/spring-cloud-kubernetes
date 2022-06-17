@@ -152,8 +152,7 @@ class ActuatorRefreshIT {
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) K8SUtils.readYamlFromClasspath(
 				"config-watcher/spring-cloud-kubernetes-configuration-watcher-http-deployment.yaml");
-		String image = K8SUtils.getImageFromDeployment(deployment) + ":"
-			+ getPomVersion();
+		String image = K8SUtils.getImageFromDeployment(deployment) + ":" + getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
