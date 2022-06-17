@@ -19,12 +19,12 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
@@ -42,14 +42,16 @@ import static org.mockito.Mockito.verify;
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-@RunWith(MockitoJUnitRunner.class)
-public class BusEventBasedSecretsWatcherChangeDetectorTests {
+@ExtendWith(MockitoExtension.class)
+class BusEventBasedSecretsWatcherChangeDetectorTests {
+
+	private static final ConfigurationUpdateStrategy UPDATE_STRATEGY = new ConfigurationUpdateStrategy("strategy",
+			() -> {
+
+			});
 
 	@Mock
 	private KubernetesClient client;
-
-	@Mock
-	private ConfigurationUpdateStrategy updateStrategy;
 
 	@Mock
 	private Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator;
@@ -62,24 +64,22 @@ public class BusEventBasedSecretsWatcherChangeDetectorTests {
 
 	private BusEventBasedSecretsWatcherChangeDetector changeDetector;
 
-	private ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties;
-
 	private BusProperties busProperties;
 
-	@Before
-	public void setup() {
+	@BeforeEach
+	void setup() {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
-		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
+		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		busProperties = new BusProperties();
 		changeDetector = new BusEventBasedSecretsWatcherChangeDetector(mockEnvironment, configReloadProperties, client,
-				updateStrategy, fabric8SecretsPropertySourceLocator, busProperties,
+				UPDATE_STRATEGY, fabric8SecretsPropertySourceLocator, busProperties,
 				configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
 		changeDetector.setApplicationEventPublisher(applicationEventPublisher);
 	}
 
 	@Test
-	public void triggerRefreshWithSecret() {
+	void triggerRefreshWithSecret() {
 		ObjectMeta objectMeta = new ObjectMeta();
 		objectMeta.setName("foo");
 		Secret secret = new Secret();

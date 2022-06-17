@@ -74,7 +74,7 @@ class EventBasedConfigurationChangeDetectorTests {
 		Fabric8ConfigMapPropertySource fabric8ConfigMapPropertySource = new Fabric8ConfigMapPropertySource(context);
 		env.getPropertySources().addFirst(new BootstrapPropertySource<>(fabric8ConfigMapPropertySource));
 
-		ConfigurationUpdateStrategy configurationUpdateStrategy = new ConfigurationUpdateStrategy("some", () -> {
+		ConfigurationUpdateStrategy configurationUpdateStrategy = new ConfigurationUpdateStrategy("strategy", () -> {
 
 		});
 		Fabric8ConfigMapPropertySourceLocator configMapLocator = mock(Fabric8ConfigMapPropertySourceLocator.class);

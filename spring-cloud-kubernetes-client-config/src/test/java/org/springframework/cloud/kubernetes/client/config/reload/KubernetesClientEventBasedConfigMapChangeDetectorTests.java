@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -107,7 +107,7 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		V1ConfigMap applicationConfig = new V1ConfigMap().kind("ConfigMap")
 				.metadata(new V1ObjectMeta().namespace("default").name("bar1")).data(data);
 		V1ConfigMapList configMapList = new V1ConfigMapList().metadata(new V1ListMeta().resourceVersion("0"))
-				.items(Arrays.asList(applicationConfig));
+				.items(List.of(applicationConfig));
 		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
 				.whenScenarioStateIs(STARTED).withQueryParam("watch", equalTo("false"))
 				.willReturn(aResponse().withStatus(200).withBody(gson.toJson(configMapList))).willSetStateTo("update"));
@@ -171,7 +171,7 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 	// This is needed when using JDK17 because GSON uses reflection to construct an
 	// OffsetDateTime but that constructor
 	// is protected.
-	public static class GsonOffsetDateTimeAdapter extends TypeAdapter<OffsetDateTime> {
+	public final static class GsonOffsetDateTimeAdapter extends TypeAdapter<OffsetDateTime> {
 
 		@Override
 		public void write(JsonWriter jsonWriter, OffsetDateTime localDateTime) throws IOException {
