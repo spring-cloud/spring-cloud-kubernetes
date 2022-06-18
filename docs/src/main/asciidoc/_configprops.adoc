@@ -92,7 +92,7 @@
 |spring.cloud.kubernetes.reload.monitoring-config-maps | `true` | Enables monitoring on config maps to detect changes.
 |spring.cloud.kubernetes.reload.monitoring-secrets | `false` | Enables monitoring on secrets to detect changes.
 |spring.cloud.kubernetes.reload.period | `15000ms` | Sets the polling period to use when the detection mode is POLLING.
-|spring.cloud.kubernetes.reload.strategy |  | Sets the reload strategy for Kubernetes configuration reload on change.
+|spring.cloud.kubernetes.reload.strategy |  | Sets reload strategy for Kubernetes configuration reload on change.
 |spring.cloud.kubernetes.secrets.enable-api | `false` | 
 |spring.cloud.kubernetes.secrets.enabled | `true` | Enable the Secrets property source locator.
 |spring.cloud.kubernetes.secrets.fail-fast | `false` | 
