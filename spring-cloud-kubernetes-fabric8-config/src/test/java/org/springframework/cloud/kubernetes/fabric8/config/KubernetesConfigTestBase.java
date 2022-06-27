@@ -25,7 +25,7 @@ import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoCon
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.bootstrap.BootstrapConfiguration;
-import org.springframework.cloud.kubernetes.fabric8.config.reload.ConfigReloadAutoConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8ConfigReloadAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
@@ -45,8 +45,9 @@ public class KubernetesConfigTestBase {
 		String[] properties = Stream.concat(Arrays.stream(commonProperties), Arrays.stream(env))
 				.toArray(size -> new String[size]);
 		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class, mockClientConfiguration,
-				BootstrapConfiguration.class, ConfigReloadAutoConfiguration.class, RefreshAutoConfiguration.class)
-						.web(org.springframework.boot.WebApplicationType.NONE).properties(properties).run();
+				BootstrapConfiguration.class, Fabric8ConfigReloadAutoConfiguration.class,
+				RefreshAutoConfiguration.class).web(org.springframework.boot.WebApplicationType.NONE)
+						.properties(properties).run();
 	}
 
 	@AfterEach

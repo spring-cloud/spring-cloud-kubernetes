@@ -176,7 +176,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		}
 
 		@Override
-		public OffsetDateTime read(JsonReader jsonReader) throws IOException {
+		public OffsetDateTime read(JsonReader jsonReader) {
 			return OffsetDateTime.now();
 		}
 

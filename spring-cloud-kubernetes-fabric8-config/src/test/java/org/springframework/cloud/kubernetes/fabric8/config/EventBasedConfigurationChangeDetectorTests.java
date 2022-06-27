@@ -35,7 +35,7 @@ import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormali
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.reload.EventBasedConfigMapChangeDetector;
+import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8EventBasedConfigMapChangeDetector;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -78,8 +78,8 @@ class EventBasedConfigurationChangeDetectorTests {
 
 		});
 		Fabric8ConfigMapPropertySourceLocator configMapLocator = mock(Fabric8ConfigMapPropertySourceLocator.class);
-		EventBasedConfigMapChangeDetector detector = new EventBasedConfigMapChangeDetector(env, configReloadProperties,
-				k8sClient, configurationUpdateStrategy, configMapLocator);
+		Fabric8EventBasedConfigMapChangeDetector detector = new Fabric8EventBasedConfigMapChangeDetector(env,
+				configReloadProperties, k8sClient, configurationUpdateStrategy, configMapLocator);
 		List<Fabric8ConfigMapPropertySource> sources = detector
 				.findPropertySources(Fabric8ConfigMapPropertySource.class);
 		assertThat(sources.size()).isEqualTo(1);
