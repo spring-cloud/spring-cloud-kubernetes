@@ -122,7 +122,7 @@ class SecretsEventReloadIT {
 		v1Secret.setData(secretData);
 		api.replaceNamespacedSecret("event-reload", NAMESPACE, v1Secret, null, null, null);
 
-		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
+		Awaitility.await().timeout(Duration.ofSeconds(120)).pollInterval(Duration.ofSeconds(2))
 				.until(() -> secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 						.retryWhen(retrySpec()).block().equals("after-change"));
 	}
