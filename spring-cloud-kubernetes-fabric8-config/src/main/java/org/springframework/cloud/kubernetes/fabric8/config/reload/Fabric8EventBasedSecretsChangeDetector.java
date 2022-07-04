@@ -49,8 +49,8 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 	private SharedIndexInformer<Secret> informer;
 
 	public Fabric8EventBasedSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
-												  KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-												  Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator) {
+			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
+			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator) {
 		super(environment, properties, strategy);
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8SecretsPropertySourceLocator = fabric8SecretsPropertySourceLocator;

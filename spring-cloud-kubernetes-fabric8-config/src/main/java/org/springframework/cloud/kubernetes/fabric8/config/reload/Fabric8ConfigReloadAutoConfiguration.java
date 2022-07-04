@@ -27,10 +27,6 @@ import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfi
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-<<<<<<< HEAD
-=======
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
->>>>>>> main
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
@@ -44,10 +40,7 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationC
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingSecretsChangeDetector;
-<<<<<<< HEAD
 import org.springframework.cloud.kubernetes.commons.config.reload.condition.ConditionalOnKubernetesReloadEnabled;
-=======
->>>>>>> main
 import org.springframework.cloud.kubernetes.commons.config.reload.condition.EventReloadDetectionMode;
 import org.springframework.cloud.kubernetes.commons.config.reload.condition.PollingReloadDetectionMode;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySource;
@@ -69,18 +62,11 @@ import org.springframework.scheduling.TaskScheduler;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesAndConfigEnabled
-<<<<<<< HEAD
 @ConditionalOnKubernetesReloadEnabled
-=======
->>>>>>> main
-@ConditionalOnClass(EndpointAutoConfiguration.class)
+@ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-		RefreshAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
+		RefreshAutoConfiguration.class })
 @EnableConfigurationProperties(ConfigReloadProperties.class)
-<<<<<<< HEAD
-=======
-@ConditionalOnProperty("spring.cloud.kubernetes.reload.enabled")
->>>>>>> main
 @Import(ConfigReloadAutoConfiguration.class)
 public class Fabric8ConfigReloadAutoConfiguration {
 
