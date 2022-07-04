@@ -59,7 +59,12 @@ import org.springframework.scheduling.TaskScheduler;
 @ConditionalOnKubernetesReloadEnabled
 @ConditionalOnClass(EndpointAutoConfiguration.class)
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
+<<<<<<< HEAD
 		RefreshAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
+=======
+		RefreshAutoConfiguration.class })
+@Import(ConfigReloadAutoConfiguration.class)
+>>>>>>> main
 @EnableConfigurationProperties(ConfigReloadProperties.class)
 @Import(ConfigReloadAutoConfiguration.class)
 public class KubernetesClientConfigReloadAutoConfiguration {

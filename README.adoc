@@ -1828,10 +1828,10 @@ the name of the Kubernetes service and service instance information.  Below is a
 ----
 ====
 
-#### `/app/{name}`
+#### `/apps/{name}`
 
-A `GET` request to `/app/{name}` can be used to get instance data for all instances of a given
-service.  Below is a sample response when a `GET` request is made to `/app/kubernetes`.
+A `GET` request to `/apps/{name}` can be used to get instance data for all instances of a given
+service.  Below is a sample response when a `GET` request is made to `/apps/kubernetes`.
 
 ====
 [source,json]

@@ -49,8 +49,8 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 	private SharedIndexInformer<Secret> informer;
 
 	public Fabric8EventBasedSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
-			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator) {
+												  KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
+												  Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator) {
 		super(environment, properties, strategy);
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8SecretsPropertySourceLocator = fabric8SecretsPropertySourceLocator;
@@ -94,7 +94,7 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 	protected void onEvent(Secret secret) {
 		log.debug("onEvent secrets: " + secret.toString());
 		boolean changed = changed(locateMapPropertySources(fabric8SecretsPropertySourceLocator, environment),
-				findPropertySources(Fabric8SecretsPropertySource.class));
+			findPropertySources(Fabric8SecretsPropertySource.class));
 		if (changed) {
 			log.info("Detected change in secrets");
 			reloadProperties();

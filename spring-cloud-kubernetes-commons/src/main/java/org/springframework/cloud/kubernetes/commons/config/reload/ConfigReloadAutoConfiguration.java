@@ -65,30 +65,32 @@ public class ConfigReloadAutoConfiguration {
 	public ConfigurationUpdateStrategy configurationUpdateStrategy(ConfigReloadProperties properties,
 			ConfigurableApplicationContext ctx, @Autowired(required = false) RestartEndpoint restarter,
 			ContextRefresher refresher) {
+		String strategyName = properties.getStrategy().name();
 		switch (properties.getStrategy()) {
 		case RESTART_CONTEXT:
 			Objects.requireNonNull(restarter, "Restart endpoint is not enabled");
-			return new ConfigurationUpdateStrategy(properties.getStrategy().name(), () -> {
+			return new ConfigurationUpdateStrategy(strategyName, () -> {
 				wait(properties);
 				restarter.restart();
 			});
 		case REFRESH:
-			return new ConfigurationUpdateStrategy(properties.getStrategy().name(), refresher::refresh);
+			return new ConfigurationUpdateStrategy(strategyName, refresher::refresh);
 		case SHUTDOWN:
-			return new ConfigurationUpdateStrategy(properties.getStrategy().name(), () -> {
+			return new ConfigurationUpdateStrategy(strategyName, () -> {
 				wait(properties);
 				ctx.close();
 			});
 		}
-		throw new IllegalStateException("Unsupported configuration update strategy: " + properties.getStrategy());
+		throw new IllegalStateException("Unsupported configuration update strategy: " + strategyName);
 	}
 
 	private static void wait(ConfigReloadProperties properties) {
-		final long waitMillis = ThreadLocalRandom.current().nextLong(properties.getMaxWaitForRestart().toMillis());
+		long waitMillis = ThreadLocalRandom.current().nextLong(properties.getMaxWaitForRestart().toMillis());
 		try {
 			Thread.sleep(waitMillis);
 		}
 		catch (InterruptedException ignored) {
+			Thread.currentThread().interrupt();
 		}
 	}
 

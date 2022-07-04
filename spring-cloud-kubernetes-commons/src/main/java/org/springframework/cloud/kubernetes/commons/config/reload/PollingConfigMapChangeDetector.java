@@ -62,7 +62,7 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 	}
 
 	@PostConstruct
-	public void init() {
+	private void init() {
 		log.info("Kubernetes polling configMap change detector activated");
 		PeriodicTrigger trigger = new PeriodicTrigger(period);
 		trigger.setInitialDelay(period);

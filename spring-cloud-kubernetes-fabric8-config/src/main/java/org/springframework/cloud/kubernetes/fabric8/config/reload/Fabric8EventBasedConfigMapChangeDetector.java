@@ -49,8 +49,8 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 	private SharedIndexInformer<ConfigMap> informer;
 
 	public Fabric8EventBasedConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
-			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator) {
+													KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
+													Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator) {
 		super(environment, properties, strategy);
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8ConfigMapPropertySourceLocator = fabric8ConfigMapPropertySourceLocator;
@@ -94,7 +94,7 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 	protected void onEvent(ConfigMap configMap) {
 		log.debug("onEvent configMap: " + configMap.toString());
 		boolean changed = changed(locateMapPropertySources(fabric8ConfigMapPropertySourceLocator, environment),
-				findPropertySources(Fabric8ConfigMapPropertySource.class));
+			findPropertySources(Fabric8ConfigMapPropertySource.class));
 		if (changed) {
 			log.info("Detected change in config maps");
 			reloadProperties();

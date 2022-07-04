@@ -62,14 +62,14 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 	}
 
 	@PostConstruct
-	public void init() {
+	private void init() {
 		log.info("Kubernetes polling secrets change detector activated");
 		PeriodicTrigger trigger = new PeriodicTrigger(period);
 		trigger.setInitialDelay(period);
 		taskExecutor.schedule(this::executeCycle, trigger);
 	}
 
-	public void executeCycle() {
+	private void executeCycle() {
 
 		boolean changedSecrets = false;
 		if (monitorSecrets) {
