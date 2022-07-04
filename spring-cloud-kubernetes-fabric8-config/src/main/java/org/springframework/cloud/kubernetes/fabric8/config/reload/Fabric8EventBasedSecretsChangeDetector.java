@@ -71,6 +71,7 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 	@PostConstruct
 	private void inform() {
 		if (monitorSecrets) {
+			log.info("Kubernetes event-based secrets change detector activated");
 			informer = kubernetesClient.secrets().inform();
 			informer.addEventHandler(new ResourceEventHandler<>() {
 				@Override

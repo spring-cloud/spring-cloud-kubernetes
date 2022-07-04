@@ -60,6 +60,7 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 	@PostConstruct
 	private void inform() {
 		if (monitoringConfigMaps) {
+			log.info("Kubernetes event-based configMap change detector activated");
 			informer = kubernetesClient.configMaps().inform();
 			informer.addEventHandler(new ResourceEventHandler<>() {
 				@Override
