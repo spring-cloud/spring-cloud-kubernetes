@@ -77,6 +77,15 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 				public void onDelete(ConfigMap configMap, boolean deletedFinalStateUnknown) {
 					onEvent(configMap);
 				}
+
+				@Override
+				public void onNothing() {
+					boolean isStoreEmpty = informer.getStore().list().isEmpty();
+					if(!isStoreEmpty) {
+						// HTTP_GONE, thus re-inform
+						inform();
+					}
+				}
 			});
 		}
 	}
