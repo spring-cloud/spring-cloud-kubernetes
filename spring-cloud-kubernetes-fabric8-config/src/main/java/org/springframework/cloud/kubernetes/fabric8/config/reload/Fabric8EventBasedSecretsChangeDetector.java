@@ -89,14 +89,15 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 					onEvent(secret);
 				}
 
-				@Override
-				public void onNothing() {
-					boolean isStoreEmpty = informer.getStore().list().isEmpty();
-					if(!isStoreEmpty) {
-						// HTTP_GONE, thus re-inform
-						inform();
-					}
-				}
+// leave as comment on purpose, may be this will be useful in the future
+//				@Override
+//				public void onNothing() {
+//					boolean isStoreEmpty = informer.getStore().list().isEmpty();
+//					if(!isStoreEmpty) {
+//						// HTTP_GONE, thus re-inform
+//						inform();
+//					}
+//				}
 			});
 		}
 	}
