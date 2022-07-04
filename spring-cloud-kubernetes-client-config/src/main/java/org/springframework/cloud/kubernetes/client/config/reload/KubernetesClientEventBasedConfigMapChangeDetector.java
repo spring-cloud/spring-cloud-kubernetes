@@ -25,8 +25,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.util.CallGeneratorParams;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
@@ -42,8 +40,6 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
  * @author Ryan Baxter
  */
 public class KubernetesClientEventBasedConfigMapChangeDetector extends ConfigurationChangeDetector {
-
-	private static final Log LOG = LogFactory.getLog(KubernetesClientEventBasedConfigMapChangeDetector.class);
 
 	private final CoreV1Api coreV1Api;
 
@@ -84,19 +80,19 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 			configMapInformer.addEventHandler(new ResourceEventHandler<>() {
 				@Override
 				public void onAdd(V1ConfigMap obj) {
-					LOG.info("ConfigMap " + obj.getMetadata().getName() + " was added.");
+					log.info("ConfigMap " + obj.getMetadata().getName() + " was added.");
 					onEvent(obj);
 				}
 
 				@Override
 				public void onUpdate(V1ConfigMap oldObj, V1ConfigMap newObj) {
-					LOG.info("ConfigMap " + newObj.getMetadata().getName() + " was added.");
+					log.info("ConfigMap " + newObj.getMetadata().getName() + " was added.");
 					onEvent(newObj);
 				}
 
 				@Override
 				public void onDelete(V1ConfigMap obj, boolean deletedFinalStateUnknown) {
-					LOG.info("ConfigMap " + obj.getMetadata() + " was deleted.");
+					log.info("ConfigMap " + obj.getMetadata() + " was deleted.");
 					onEvent(obj);
 				}
 			});
@@ -110,15 +106,15 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 	}
 
 	private void onEvent(V1ConfigMap configMap) {
-		LOG.debug("onEvent configMap: " + configMap.toString());
+		log.debug("onEvent configMap: " + configMap.toString());
 		boolean changed = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
 				findPropertySources(KubernetesClientConfigMapPropertySource.class));
 		if (changed) {
-			LOG.info("Configuration change detected, reloading properties.");
+			log.info("Configuration change detected, reloading properties.");
 			reloadProperties();
 		}
 		else {
-			LOG.warn("Configuration change was not detected.");
+			log.warn("Configuration change was not detected.");
 		}
 
 	}
