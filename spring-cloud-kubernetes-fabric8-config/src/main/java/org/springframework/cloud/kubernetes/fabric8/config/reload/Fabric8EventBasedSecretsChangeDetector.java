@@ -89,15 +89,15 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 					onEvent(secret);
 				}
 
-// leave as comment on purpose, may be this will be useful in the future
-//				@Override
-//				public void onNothing() {
-//					boolean isStoreEmpty = informer.getStore().list().isEmpty();
-//					if(!isStoreEmpty) {
-//						// HTTP_GONE, thus re-inform
-//						inform();
-//					}
-//				}
+				// leave as comment on purpose, may be this will be useful in the future
+				// @Override
+				// public void onNothing() {
+				// boolean isStoreEmpty = informer.getStore().list().isEmpty();
+				// if(!isStoreEmpty) {
+				// // HTTP_GONE, thus re-inform
+				// inform();
+				// }
+				// }
 			});
 		}
 	}
@@ -105,7 +105,7 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 	protected void onEvent(Secret secret) {
 		log.debug("onEvent secrets: " + secret.toString());
 		boolean changed = changed(locateMapPropertySources(fabric8SecretsPropertySourceLocator, environment),
-			findPropertySources(Fabric8SecretsPropertySource.class));
+				findPropertySources(Fabric8SecretsPropertySource.class));
 		if (changed) {
 			log.info("Detected change in secrets");
 			reloadProperties();

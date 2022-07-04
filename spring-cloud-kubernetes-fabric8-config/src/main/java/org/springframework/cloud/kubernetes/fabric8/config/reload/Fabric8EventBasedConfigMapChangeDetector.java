@@ -78,15 +78,15 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 					onEvent(configMap);
 				}
 
-// leave as comment on purpose, may be this will be useful in the future
-//				@Override
-//				public void onNothing() {
-//					boolean isStoreEmpty = informer.getStore().list().isEmpty();
-//					if(!isStoreEmpty) {
-//						// HTTP_GONE, thus re-inform
-//						inform();
-//					}
-//				}
+				// leave as comment on purpose, may be this will be useful in the future
+				// @Override
+				// public void onNothing() {
+				// boolean isStoreEmpty = informer.getStore().list().isEmpty();
+				// if(!isStoreEmpty) {
+				// // HTTP_GONE, thus re-inform
+				// inform();
+				// }
+				// }
 			});
 		}
 	}
@@ -105,7 +105,7 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 	protected void onEvent(ConfigMap configMap) {
 		log.debug("onEvent configMap: " + configMap.toString());
 		boolean changed = changed(locateMapPropertySources(fabric8ConfigMapPropertySourceLocator, environment),
-			findPropertySources(Fabric8ConfigMapPropertySource.class));
+				findPropertySources(Fabric8ConfigMapPropertySource.class));
 		if (changed) {
 			log.info("Detected change in config maps");
 			reloadProperties();

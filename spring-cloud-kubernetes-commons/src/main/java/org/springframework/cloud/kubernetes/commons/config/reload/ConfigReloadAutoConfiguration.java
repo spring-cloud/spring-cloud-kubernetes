@@ -16,11 +16,9 @@
 
 package org.springframework.cloud.kubernetes.commons.config.reload;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -64,8 +62,7 @@ public class ConfigReloadAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public ConfigurationUpdateStrategy configurationUpdateStrategy(ConfigReloadProperties properties,
-			ConfigurableApplicationContext ctx, Optional<RestartEndpoint> restarter,
-			ContextRefresher refresher) {
+			ConfigurableApplicationContext ctx, Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
 		String strategyName = properties.getStrategy().name();
 		switch (properties.getStrategy()) {
 		case RESTART_CONTEXT:
