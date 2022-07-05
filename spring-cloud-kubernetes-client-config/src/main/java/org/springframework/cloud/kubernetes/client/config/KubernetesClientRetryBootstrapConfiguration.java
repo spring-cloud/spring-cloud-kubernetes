@@ -20,8 +20,6 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
-import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
@@ -44,7 +42,6 @@ import org.springframework.context.annotation.Import;
 @AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 @AutoConfigureBefore(KubernetesClientBootstrapConfiguration.class)
 @Import({ KubernetesCommonsAutoConfiguration.class, KubernetesClientAutoConfiguration.class })
-@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnKubernetesConfigOrSecretsRetryEnabled
 public class KubernetesClientRetryBootstrapConfiguration {
 

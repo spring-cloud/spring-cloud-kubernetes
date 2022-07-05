@@ -41,7 +41,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = MultiSecretsApp.class,
-		properties = { "spring.cloud.bootstrap.name=multiple-secrets", "spring.main.cloud-platform=KUBERNETES" })
+		properties = { "spring.cloud.bootstrap.name=multiple-secrets" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
 public class MultipleSecretsTests {

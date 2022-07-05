@@ -43,8 +43,7 @@ import static org.assertj.core.util.Lists.newArrayList;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "spring.application.name=" + ConfigMapsMixedTests.APPLICATION_NAME,
 				"spring.cloud.kubernetes.config.enableApi=true",
-				"spring.cloud.kubernetes.config.paths=" + ConfigMapsMixedTests.FILE_NAME_FULL_PATH,
-				"spring.main.cloud-platform=KUBERNETES" })
+				"spring.cloud.kubernetes.config.paths=" + ConfigMapsMixedTests.FILE_NAME_FULL_PATH })
 @EnableKubernetesMockClient(crud = true, https = false)
 public class ConfigMapsMixedTests {
 

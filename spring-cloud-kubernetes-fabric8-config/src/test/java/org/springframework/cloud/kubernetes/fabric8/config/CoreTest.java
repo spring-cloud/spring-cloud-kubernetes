@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(classes = TestApplication.class,
 		properties = { "spring.application.name=testapp", "spring.cloud.kubernetes.client.namespace=testns",
 				"spring.cloud.kubernetes.client.trustCerts=true", "spring.cloud.kubernetes.config.namespace=testns",
-				"spring.cloud.kubernetes.secrets.enableApi=true", "spring.main.cloud-platform=KUBERNETES" })
+				"spring.cloud.kubernetes.secrets.enableApi=true" })
 @EnableKubernetesMockClient(crud = true, https = false)
 public class CoreTest {
 

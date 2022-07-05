@@ -39,8 +39,7 @@ import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
-		properties = "spring.main.cloud-platform=KUBERNETES")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
 @TestPropertySource("classpath:/application-secrets.properties")
 @EnableKubernetesMockClient(crud = true, https = false)
 class Fabric8SecretsPropertySourceTest {

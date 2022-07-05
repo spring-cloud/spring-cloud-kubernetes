@@ -42,8 +42,7 @@ import static org.assertj.core.util.Lists.newArrayList;
 				"spring.cloud.kubernetes.config.enableApi=false",
 				"spring.cloud.kubernetes.config.paths=" + ConfigMapsFromFilePathsTests.FIRST_FILE_NAME_FULL_PATH + ","
 						+ ConfigMapsFromFilePathsTests.SECOND_FILE_NAME_FULL_PATH + ","
-						+ ConfigMapsFromFilePathsTests.FIRST_FILE_NAME_DUPLICATED_FULL_PATH,
-				"spring.main.cloud-platform=KUBERNETES" })
+						+ ConfigMapsFromFilePathsTests.FIRST_FILE_NAME_DUPLICATED_FULL_PATH })
 @EnableKubernetesMockClient(crud = true, https = false)
 public class ConfigMapsFromFilePathsTests {
 
