@@ -41,7 +41,7 @@ import static org.springframework.cloud.kubernetes.fabric8.config.ConfigMapTestU
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "spring.application.name=configmap-with-profile-no-active-profiles-example",
-				"spring.cloud.kubernetes.reload.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
+				"spring.cloud.kubernetes.reload.enabled=false" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
 public class ConfigMapsWithProfilesNoActiveProfileTests {

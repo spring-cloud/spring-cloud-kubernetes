@@ -91,7 +91,7 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
 			"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true",
 			"spring.cloud.kubernetes.secrets.retry.max-attempts=5", "spring.cloud.kubernetes.secrets.name=my-secret",
-			"spring.cloud.kubernetes.secrets.enable-api=true", "spring.main.cloud-platform=KUBERNETES" },
+			"spring.cloud.kubernetes.secrets.enable-api=true" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
 	class SecretsRetryEnabled {
@@ -162,8 +162,7 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 	@Nested
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 			properties = { "spring.cloud.kubernetes.client.namespace=default",
-					"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
-					"spring.main.cloud-platform=KUBERNETES" },
+					"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
 	class SecretsFailFastDisabled {
@@ -189,7 +188,7 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 					"spring.cloud.kubernetes.secrets.fail-fast=true",
 					"spring.cloud.kubernetes.secrets.retry.enabled=false",
 					"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.secrets.name=my-secret",
-					"spring.cloud.kubernetes.secrets.enable-api=true", "spring.main.cloud-platform=KUBERNETES" },
+					"spring.cloud.kubernetes.secrets.enable-api=true" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
 	class SecretsRetryDisabledButConfigRetryEnabled {
@@ -227,7 +226,7 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
 			"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true",
 			"spring.cloud.kubernetes.secrets.retry.enabled=false", "spring.cloud.kubernetes.secrets.name=my-secret",
-			"spring.cloud.kubernetes.secrets.enable-api=true", "spring.main.cloud-platform=KUBERNETES" },
+			"spring.cloud.kubernetes.secrets.enable-api=true" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
 	class SecretsFailFastEnabledButRetryDisabled {
@@ -285,7 +284,7 @@ public class Fabric8SecretsPropertySourceLocatorRetryTests {
 		@Test
 		public void doesNotContainRetryableSecretsPropertySourceLocator() throws Exception {
 			mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
-			setup("debug=true", "spring.main.cloud-platform=KUBERNETES",
+			setup("debug=true",
 					"spring.cloud.kubernetes.test.enable-retry=true", "spring.cloud.kubernetes.secrets.name=my-secret",
 					"spring.cloud.kubernetes.secrets.enable-api=true");
 			assertThat(context.containsBean("retryableSecretsPropertySourceLocator")).isFalse();

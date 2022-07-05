@@ -84,7 +84,7 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 			properties = { "spring.cloud.kubernetes.client.namespace=default",
 					"spring.cloud.kubernetes.config.fail-fast=true",
-					"spring.cloud.kubernetes.config.retry.max-attempts=5", "spring.main.cloud-platform=KUBERNETES" },
+					"spring.cloud.kubernetes.config.retry.max-attempts=5" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
 	class ConfigRetryEnabled {
@@ -153,7 +153,7 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 	@Nested
 	@SpringBootTest(
 			webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
-					"spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES" },
+					"spring.cloud.kubernetes.client.namespace=default" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
 	class ConfigFailFastDisabled {
@@ -178,7 +178,7 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 			properties = { "spring.cloud.kubernetes.client.namespace=default",
 					"spring.cloud.kubernetes.config.fail-fast=true",
 					"spring.cloud.kubernetes.config.retry.enabled=false",
-					"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.main.cloud-platform=KUBERNETES" },
+					"spring.cloud.kubernetes.secrets.fail-fast=true" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
 	class ConfigRetryDisabledButSecretsRetryEnabled {
@@ -216,7 +216,7 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 			properties = { "spring.cloud.kubernetes.client.namespace=default",
 					"spring.cloud.kubernetes.config.fail-fast=true",
-					"spring.cloud.kubernetes.config.retry.enabled=false", "spring.main.cloud-platform=KUBERNETES" },
+					"spring.cloud.kubernetes.config.retry.enabled=false" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
 	class ConfigFailFastEnabledButRetryDisabled {
@@ -274,8 +274,7 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 		@Test
 		public void doesNotContainRetryableConfigMapPropertySourceLocator() throws Exception {
 			mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
-			setup("debug=true", "spring.main.cloud-platform=KUBERNETES",
-					"spring.cloud.kubernetes.test.enable-retry=true");
+			setup("debug=true", "spring.cloud.kubernetes.test.enable-retry=true");
 			assertThat(context.containsBean("retryableConfigMapPropertySourceLocator")).isFalse();
 		}
 
