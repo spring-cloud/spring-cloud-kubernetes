@@ -111,7 +111,7 @@ class SecretsEventsReloadIT {
 		((HasMetadataOperation) client.secrets().inNamespace("default").withName("event-reload"))
 				.createOrReplace(secret);
 
-		await().timeout(Duration.ofSeconds(30)).until(() -> webClient.method(HttpMethod.GET).retrieve()
+		await().timeout(Duration.ofSeconds(120)).until(() -> webClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("after-change"));
 
 	}
@@ -188,7 +188,7 @@ class SecretsEventsReloadIT {
 	}
 
 	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+		return Retry.fixedDelay(120, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }
