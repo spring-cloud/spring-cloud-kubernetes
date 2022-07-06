@@ -61,7 +61,7 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	 * @param host the address where the service instance can be found.
 	 * @param port the port on which the service is running.
 	 * @param metadata a map containing metadata.
-	 * @param secure indicates whether or not the connection needs to be secure.
+	 * @param secure indicates whether the connection needs to be secure.
 	 */
 	public KubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
 			Map<String, String> metadata, Boolean secure) {
@@ -82,9 +82,9 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	 * @param host the address where the service instance can be found.
 	 * @param port the port on which the service is running.
 	 * @param metadata a map containing metadata.
-	 * @param secure indicates whether or not the connection needs to be secure.
+	 * @param secure indicates whether the connection needs to be secure.
 	 * @param namespace the namespace of the service.
-	 * @param cluster the clust the service resides in.
+	 * @param cluster the cluster the service resides in.
 	 */
 	public KubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
 			Map<String, String> metadata, Boolean secure, String namespace, String cluster) {
