@@ -24,7 +24,7 @@ import org.springframework.context.ApplicationEventPublisher;
 /**
  * @author Ryan Baxter
  */
-public class KubernetesDiscoveryClientHealthIndicatorInitializer implements InitializingBean {
+public final class KubernetesDiscoveryClientHealthIndicatorInitializer implements InitializingBean {
 
 	private final PodUtils<?> podUtils;
 
@@ -36,13 +36,10 @@ public class KubernetesDiscoveryClientHealthIndicatorInitializer implements Init
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
-	public void initialize() {
-		this.applicationEventPublisher.publishEvent(new InstanceRegisteredEvent<>(podUtils.currentPod(), null));
-	}
 
 	@Override
 	public void afterPropertiesSet() {
-		this.initialize();
+		this.applicationEventPublisher.publishEvent(new InstanceRegisteredEvent<>(podUtils.currentPod(), null));
 	}
 
 }
