@@ -1,0 +1,21 @@
+logging:
+  level:
+    root: DEBUG
+
+spring:
+  application:
+    name: event-reload
+  config:
+    import: "kubernetes:"
+  cloud:
+    kubernetes:
+      reload:
+        enabled: true
+        monitoring-secrets: true
+        strategy: shutdown
+        mode: event
+      secrets:
+        enabled: true
+        enable-api: true
+
+
