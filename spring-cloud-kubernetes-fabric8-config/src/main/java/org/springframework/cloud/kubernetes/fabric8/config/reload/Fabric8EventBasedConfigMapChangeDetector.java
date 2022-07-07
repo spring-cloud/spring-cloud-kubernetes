@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,10 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.reload;
 
-import java.net.HttpURLConnection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.WatcherException;
+import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -50,9 +42,11 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 	private final Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator;
 
-	private final Map<String, Watch> watches;
+	private final KubernetesClient kubernetesClient;
 
-	private KubernetesClient kubernetesClient;
+	private final boolean monitoringConfigMaps;
+
+	private SharedIndexInformer<ConfigMap> informer;
 
 	public Fabric8EventBasedConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
@@ -60,80 +54,60 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 		super(environment, properties, strategy);
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8ConfigMapPropertySourceLocator = fabric8ConfigMapPropertySourceLocator;
-		this.watches = new HashMap<>();
-	}
-
-	@PreDestroy
-	public void shutdown() {
-		// Ensure the kubernetes client is cleaned up from spare threads when shutting
-		// down
-		this.kubernetesClient.close();
+		monitoringConfigMaps = properties.isMonitoringConfigMaps();
 	}
 
 	@PostConstruct
-	public void watch() {
-		boolean activated = false;
+	private void inform() {
+		if (monitoringConfigMaps) {
+			log.info("Kubernetes event-based configMap change detector activated");
+			informer = kubernetesClient.configMaps().inform();
+			informer.addEventHandler(new ResourceEventHandler<>() {
+				@Override
+				public void onAdd(ConfigMap configMap) {
+					onEvent(configMap);
+				}
 
-		if (this.properties.isMonitoringConfigMaps()) {
-			try {
-				String name = "config-maps-watch-event";
-				this.watches.put(name, this.kubernetesClient.configMaps().watch(new Watcher<ConfigMap>() {
-					@Override
-					public void eventReceived(Watcher.Action action, ConfigMap configMap) {
-						if (log.isDebugEnabled()) {
-							log.debug(name + " received event for ConfigMap " + configMap.getMetadata().getName());
-						}
-						onEvent(configMap);
-					}
+				@Override
+				public void onUpdate(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
+					onEvent(newConfigMap);
+				}
 
-					@Override
-					public void onClose(WatcherException exception) {
-						log.warn("ConfigMaps watch closed", exception);
-						Optional.ofNullable(exception).map(e -> {
-							log.debug("Exception received during watch", e);
-							return exception.asClientException();
-						}).map(KubernetesClientException::getStatus).map(Status::getCode)
-								.filter(c -> c.equals(HttpURLConnection.HTTP_GONE)).ifPresent(c -> watch());
-					}
-				}));
-				activated = true;
-				this.log.info("Added new Kubernetes watch: " + name);
-			}
-			catch (Exception e) {
-				this.log.error(
-						"Error while establishing a connection to watch config maps: configuration may remain stale",
-						e);
-			}
-		}
+				@Override
+				public void onDelete(ConfigMap configMap, boolean deletedFinalStateUnknown) {
+					onEvent(configMap);
+				}
 
-		if (activated) {
-			this.log.info("Kubernetes event-based configMap change detector activated");
+				// leave as comment on purpose, may be this will be useful in the future
+				// @Override
+				// public void onNothing() {
+				// boolean isStoreEmpty = informer.getStore().list().isEmpty();
+				// if(!isStoreEmpty) {
+				// // HTTP_GONE, thus re-inform
+				// inform();
+				// }
+				// }
+			});
 		}
 	}
 
 	@PreDestroy
-	public void unwatch() {
-		if (this.watches != null) {
-			for (Map.Entry<String, Watch> entry : this.watches.entrySet()) {
-				try {
-					this.log.debug("Closing the watch " + entry.getKey());
-					entry.getValue().close();
-
-				}
-				catch (Exception e) {
-					this.log.error("Error while closing the watch connection", e);
-				}
-			}
+	private void shutdown() {
+		if (informer != null) {
+			log.debug("closing configmap informer");
+			informer.close();
 		}
+		// Ensure the kubernetes client is cleaned up from spare threads when shutting
+		// down
+		kubernetesClient.close();
 	}
 
 	protected void onEvent(ConfigMap configMap) {
-		this.log.debug(String.format("onEvent configMap: %s", configMap.toString()));
-		boolean changed = changed(
-				locateMapPropertySources(this.fabric8ConfigMapPropertySourceLocator, this.environment),
+		log.debug("onEvent configMap: " + configMap.toString());
+		boolean changed = changed(locateMapPropertySources(fabric8ConfigMapPropertySourceLocator, environment),
 				findPropertySources(Fabric8ConfigMapPropertySource.class));
 		if (changed) {
-			this.log.info("Detected change in config maps");
+			log.info("Detected change in config maps");
 			reloadProperties();
 		}
 	}

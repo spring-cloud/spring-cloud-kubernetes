@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,21 @@
 
 package org.springframework.cloud.kubernetes.commons.config.reload;
 
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
 import org.springframework.cloud.commons.util.TaskSchedulerWrapper;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.cloud.context.restart.RestartEndpoint;
 import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesAndConfigEnabled;
+import org.springframework.cloud.kubernetes.commons.config.reload.condition.ConditionalOnKubernetesReloadEnabled;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,10 +42,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesAndConfigEnabled
-@ConditionalOnClass(EndpointAutoConfiguration.class)
+@ConditionalOnKubernetesReloadEnabled
+@ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-		RefreshAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
-@ConditionalOnProperty("spring.cloud.kubernetes.reload.enabled")
+		RefreshAutoConfiguration.class })
 public class ConfigReloadAutoConfiguration {
 
 	@Bean("springCloudKubernetesTaskScheduler")
@@ -63,32 +62,33 @@ public class ConfigReloadAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public ConfigurationUpdateStrategy configurationUpdateStrategy(ConfigReloadProperties properties,
-			ConfigurableApplicationContext ctx, @Autowired(required = false) RestartEndpoint restarter,
-			ContextRefresher refresher) {
+			ConfigurableApplicationContext ctx, Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
+		String strategyName = properties.getStrategy().name();
 		switch (properties.getStrategy()) {
 		case RESTART_CONTEXT:
-			Objects.requireNonNull(restarter, "Restart endpoint is not enabled");
-			return new ConfigurationUpdateStrategy(properties.getStrategy().name(), () -> {
+			restarter.orElseThrow(() -> new AssertionError("Restart endpoint is not enabled"));
+			return new ConfigurationUpdateStrategy(strategyName, () -> {
 				wait(properties);
-				restarter.restart();
+				restarter.get().restart();
 			});
 		case REFRESH:
-			return new ConfigurationUpdateStrategy(properties.getStrategy().name(), refresher::refresh);
+			return new ConfigurationUpdateStrategy(strategyName, refresher::refresh);
 		case SHUTDOWN:
-			return new ConfigurationUpdateStrategy(properties.getStrategy().name(), () -> {
+			return new ConfigurationUpdateStrategy(strategyName, () -> {
 				wait(properties);
 				ctx.close();
 			});
 		}
-		throw new IllegalStateException("Unsupported configuration update strategy: " + properties.getStrategy());
+		throw new IllegalStateException("Unsupported configuration update strategy: " + strategyName);
 	}
 
 	private static void wait(ConfigReloadProperties properties) {
-		final long waitMillis = ThreadLocalRandom.current().nextLong(properties.getMaxWaitForRestart().toMillis());
+		long waitMillis = ThreadLocalRandom.current().nextLong(properties.getMaxWaitForRestart().toMillis());
 		try {
 			Thread.sleep(waitMillis);
 		}
 		catch (InterruptedException ignored) {
+			Thread.currentThread().interrupt();
 		}
 	}
 

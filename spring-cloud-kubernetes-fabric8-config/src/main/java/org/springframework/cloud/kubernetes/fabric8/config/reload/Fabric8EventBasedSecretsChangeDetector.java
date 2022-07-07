@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,10 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.reload;
 
-import java.net.HttpURLConnection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.WatcherException;
+import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -48,11 +40,13 @@ import org.springframework.core.env.AbstractEnvironment;
  */
 public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeDetector {
 
-	private Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator;
+	private final Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator;
 
-	private Map<String, Watch> watches;
+	private final KubernetesClient kubernetesClient;
 
-	private KubernetesClient kubernetesClient;
+	private final boolean monitorSecrets;
+
+	private SharedIndexInformer<Secret> informer;
 
 	public Fabric8EventBasedSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
@@ -60,79 +54,60 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 		super(environment, properties, strategy);
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8SecretsPropertySourceLocator = fabric8SecretsPropertySourceLocator;
-		this.watches = new HashMap<>();
+		this.monitorSecrets = properties.isMonitoringSecrets();
 	}
 
 	@PreDestroy
-	public void shutdown() {
+	private void shutdown() {
+		if (informer != null) {
+			log.debug("closing secrets informer");
+			informer.close();
+		}
 		// Ensure the kubernetes client is cleaned up from spare threads when shutting
 		// down
-		this.kubernetesClient.close();
+		kubernetesClient.close();
 	}
 
 	@PostConstruct
-	public void watch() {
-		boolean activated = false;
-
-		if (this.properties.isMonitoringSecrets()) {
-			try {
-				activated = false;
-				String name = "secrets-watch-event";
-				this.watches.put(name, this.kubernetesClient.secrets().watch(new Watcher<Secret>() {
-					@Override
-					public void eventReceived(Action action, Secret secret) {
-						if (log.isDebugEnabled()) {
-							log.debug(name + " received event for Secret " + secret.getMetadata().getName());
-						}
-						onEvent(secret);
-					}
-
-					@Override
-					public void onClose(WatcherException exception) {
-						log.warn("Secrects watch closed", exception);
-						Optional.ofNullable(exception).map(e -> {
-							log.debug("Exception received during watch", e);
-							return exception.asClientException();
-						}).map(KubernetesClientException::getStatus).map(Status::getCode)
-								.filter(c -> c.equals(HttpURLConnection.HTTP_GONE)).ifPresent(c -> watch());
-					}
-				}));
-				activated = true;
-				this.log.info("Added new Kubernetes watch: " + name);
-			}
-			catch (Exception e) {
-				this.log.error("Error while establishing a connection to watch secrets: configuration may remain stale",
-						e);
-			}
-		}
-
-		if (activated) {
-			this.log.info("Kubernetes event-based secrets change detector activated");
-		}
-	}
-
-	@PreDestroy
-	public void unwatch() {
-		if (this.watches != null) {
-			for (Map.Entry<String, Watch> entry : this.watches.entrySet()) {
-				try {
-					this.log.debug("Closing the watch " + entry.getKey());
-					entry.getValue().close();
-
+	private void inform() {
+		if (monitorSecrets) {
+			log.info("Kubernetes event-based secrets change detector activated");
+			informer = kubernetesClient.secrets().inform();
+			informer.addEventHandler(new ResourceEventHandler<>() {
+				@Override
+				public void onAdd(Secret secret) {
+					onEvent(secret);
 				}
-				catch (Exception e) {
-					this.log.error("Error while closing the watch connection", e);
+
+				@Override
+				public void onUpdate(Secret oldSecret, Secret newSecret) {
+					onEvent(newSecret);
 				}
-			}
+
+				@Override
+				public void onDelete(Secret secret, boolean deletedFinalStateUnknown) {
+					onEvent(secret);
+				}
+
+				// leave as comment on purpose, may be this will be useful in the future
+				// @Override
+				// public void onNothing() {
+				// boolean isStoreEmpty = informer.getStore().list().isEmpty();
+				// if(!isStoreEmpty) {
+				// // HTTP_GONE, thus re-inform
+				// inform();
+				// }
+				// }
+			});
 		}
 	}
 
 	protected void onEvent(Secret secret) {
-		this.log.debug(String.format("onEvent configMap: %s", secret.toString()));
-		boolean changed = changed(locateMapPropertySources(this.fabric8SecretsPropertySourceLocator, this.environment),
+		log.debug("onEvent secrets: " + secret.toString());
+		boolean changed = changed(locateMapPropertySources(fabric8SecretsPropertySourceLocator, environment),
 				findPropertySources(Fabric8SecretsPropertySource.class));
 		if (changed) {
-			this.log.info("Detected change in secrets");
+			log.info("Detected change in secrets");
 			reloadProperties();
 		}
 	}
