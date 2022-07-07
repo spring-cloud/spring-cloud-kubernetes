@@ -120,8 +120,7 @@ public class KubernetesClientSecretsPropertySourceLocatorRetryTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
 			"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true",
 			"spring.cloud.kubernetes.secrets.retry.max-attempts=5", "spring.cloud.kubernetes.secrets.name=my-secret",
-			"spring.cloud.kubernetes.secrets.enable-api=true" },
-			classes = App.class)
+			"spring.cloud.kubernetes.secrets.enable-api=true" }, classes = App.class)
 	class SecretsRetryEnabled {
 
 		@SpyBean
@@ -202,7 +201,8 @@ public class KubernetesClientSecretsPropertySourceLocatorRetryTests {
 	@Nested
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 			properties = { "spring.cloud.kubernetes.client.namespace=default",
-					"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true" },
+					"spring.cloud.kubernetes.secrets.name=my-secret",
+					"spring.cloud.kubernetes.secrets.enable-api=true" },
 			classes = App.class)
 	class SecretsFailFastDisabled {
 
@@ -223,12 +223,10 @@ public class KubernetesClientSecretsPropertySourceLocatorRetryTests {
 	}
 
 	@Nested
-	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-			properties = { "spring.cloud.kubernetes.client.namespace=default",
-					"spring.cloud.kubernetes.secrets.fail-fast=true",
-					"spring.cloud.kubernetes.secrets.retry.enabled=false",
-					"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.secrets.name=my-secret",
-					"spring.cloud.kubernetes.secrets.enable-api=true" },
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
+			"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true",
+			"spring.cloud.kubernetes.secrets.retry.enabled=false", "spring.cloud.kubernetes.config.fail-fast=true",
+			"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true" },
 			classes = App.class)
 	class SecretsRetryDisabledButConfigRetryEnabled {
 
@@ -265,8 +263,7 @@ public class KubernetesClientSecretsPropertySourceLocatorRetryTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
 			"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true",
 			"spring.cloud.kubernetes.secrets.retry.enabled=false", "spring.cloud.kubernetes.secrets.name=my-secret",
-			"spring.cloud.kubernetes.secrets.enable-api=true" },
-			classes = App.class)
+			"spring.cloud.kubernetes.secrets.enable-api=true" }, classes = App.class)
 	class SecretsFailFastEnabledButRetryDisabled {
 
 		@SpyBean
@@ -322,8 +319,8 @@ public class KubernetesClientSecretsPropertySourceLocatorRetryTests {
 		@Test
 		public void doesNotContainRetryableSecretsPropertySourceLocator() throws Exception {
 			stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
-			setup("debug=true",
-					"spring.cloud.kubernetes.test.enable-retry=true", "spring.cloud.kubernetes.secrets.name=my-secret",
+			setup("debug=true", "spring.cloud.kubernetes.test.enable-retry=true",
+					"spring.cloud.kubernetes.secrets.name=my-secret",
 					"spring.cloud.kubernetes.secrets.enable-api=true");
 			assertThat(context.containsBean("retryableSecretsPropertySourceLocator")).isFalse();
 		}

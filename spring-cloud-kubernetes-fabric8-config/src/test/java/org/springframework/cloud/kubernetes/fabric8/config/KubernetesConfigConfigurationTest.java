@@ -104,4 +104,5 @@ public class KubernetesConfigConfigurationTest extends KubernetesConfigTestBase 
 		}
 
 	}
+
 }

@@ -151,10 +151,8 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 	}
 
 	@Nested
-	@SpringBootTest(
-			webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
-					"spring.cloud.kubernetes.client.namespace=default" },
-			classes = Application.class)
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+			properties = { "spring.cloud.kubernetes.client.namespace=default" }, classes = Application.class)
 	@EnableKubernetesMockClient
 	class ConfigFailFastDisabled {
 
@@ -174,11 +172,9 @@ public class Fabric8ConfigMapPropertySourceLocatorRetryTests {
 	}
 
 	@Nested
-	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-			properties = { "spring.cloud.kubernetes.client.namespace=default",
-					"spring.cloud.kubernetes.config.fail-fast=true",
-					"spring.cloud.kubernetes.config.retry.enabled=false",
-					"spring.cloud.kubernetes.secrets.fail-fast=true" },
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
+			"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.config.fail-fast=true",
+			"spring.cloud.kubernetes.config.retry.enabled=false", "spring.cloud.kubernetes.secrets.fail-fast=true" },
 			classes = Application.class)
 	@EnableKubernetesMockClient
 	class ConfigRetryDisabledButSecretsRetryEnabled {

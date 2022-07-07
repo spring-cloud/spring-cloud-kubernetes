@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
-		properties = { "spring.application.name=configmap-example", "spring.cloud.kubernetes.reload.enabled=false"})
+		properties = { "spring.application.name=configmap-example", "spring.cloud.kubernetes.reload.enabled=false" })
 @AutoConfigureWebTestClient
 @EnableKubernetesMockClient(crud = true, https = false)
 public class ConfigMapsTests {
