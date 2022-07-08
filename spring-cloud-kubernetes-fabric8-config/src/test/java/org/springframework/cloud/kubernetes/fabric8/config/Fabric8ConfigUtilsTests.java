@@ -324,4 +324,9 @@ class Fabric8ConfigUtilsTests {
 		Assertions.assertEquals("value-2", result.data().get("property-2"));
 	}
 
+	@Test
+	void testNamespaces() {
+		Assertions.fail("write proper tests for namespaces method");
+	}
+
 }

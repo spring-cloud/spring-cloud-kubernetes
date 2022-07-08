@@ -29,6 +29,7 @@ import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
 import org.springframework.cloud.commons.util.TaskSchedulerWrapper;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.cloud.context.restart.RestartEndpoint;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesAndConfigEnabled;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
@@ -121,7 +122,7 @@ public class Fabric8ConfigReloadAutoConfiguration {
 			AbstractEnvironment environment, KubernetesClient kubernetesClient) {
 
 		return new Fabric8EventBasedConfigMapChangeDetector(environment, properties, kubernetesClient, strategy,
-				fabric8ConfigMapPropertySourceLocator);
+				fabric8ConfigMapPropertySourceLocator, new KubernetesNamespaceProvider(environment));
 	}
 
 	/**

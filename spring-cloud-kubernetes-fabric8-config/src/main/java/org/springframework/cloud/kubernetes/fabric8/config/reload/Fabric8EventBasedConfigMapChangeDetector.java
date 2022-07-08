@@ -16,19 +16,28 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.reload;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
+import io.fabric8.kubernetes.client.informers.SharedInformer;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
+
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.namespaces;
+
 
 /**
  * An Event Based change detector that subscribes to changes in configMaps and fire a
@@ -46,56 +55,81 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 	private final boolean monitoringConfigMaps;
 
-	private SharedIndexInformer<ConfigMap> informer;
+	private List<SharedIndexInformer<ConfigMap>> informers;
+
+	private final Set<String> namespaces;
+
+	private final boolean enableReloadFiltering;
+
+	private final ResourceEventHandler<ConfigMap> handler = new ResourceEventHandler<>() {
+		@Override
+		public void onAdd(ConfigMap configMap) {
+			onEvent(configMap);
+		}
+
+		@Override
+		public void onUpdate(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
+			onEvent(newConfigMap);
+		}
+
+		@Override
+		public void onDelete(ConfigMap configMap, boolean deletedFinalStateUnknown) {
+			onEvent(configMap);
+		}
+
+		// leave as comment on purpose, may be this will be useful in the future
+		// @Override
+		// public void onNothing() {
+		// boolean isStoreEmpty = informer.getStore().list().isEmpty();
+		// if(!isStoreEmpty) {
+		// // HTTP_GONE, thus re-inform
+		// inform();
+		// }
+		// }
+	}
 
 	public Fabric8EventBasedConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator) {
+			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
+			KubernetesNamespaceProvider namespaceProvider) {
 		super(environment, properties, strategy);
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8ConfigMapPropertySourceLocator = fabric8ConfigMapPropertySourceLocator;
+		this.enableReloadFiltering = properties.isEnableReloadFiltering();
 		monitoringConfigMaps = properties.isMonitoringConfigMaps();
+		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "configmap");
 	}
 
 	@PostConstruct
 	private void inform() {
 		if (monitoringConfigMaps) {
 			log.info("Kubernetes event-based configMap change detector activated");
-			informer = kubernetesClient.configMaps().inform();
-			informer.addEventHandler(new ResourceEventHandler<>() {
-				@Override
-				public void onAdd(ConfigMap configMap) {
-					onEvent(configMap);
+
+			namespaces.forEach(namespace -> {
+				SharedIndexInformer<ConfigMap> informer;
+				if (enableReloadFiltering) {
+					informer = kubernetesClient.configMaps().inNamespace(namespace)
+						.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true")).inform();
+					log.debug("added informer for namespace : " + namespace + " with enabled filter");
+				}
+				else {
+					informer = kubernetesClient.configMaps().inNamespace(namespace).inform();
+					log.debug("added informer for namespace : " + namespace);
 				}
 
-				@Override
-				public void onUpdate(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
-					onEvent(newConfigMap);
-				}
-
-				@Override
-				public void onDelete(ConfigMap configMap, boolean deletedFinalStateUnknown) {
-					onEvent(configMap);
-				}
-
-				// leave as comment on purpose, may be this will be useful in the future
-				// @Override
-				// public void onNothing() {
-				// boolean isStoreEmpty = informer.getStore().list().isEmpty();
-				// if(!isStoreEmpty) {
-				// // HTTP_GONE, thus re-inform
-				// inform();
-				// }
-				// }
+				informer.addEventHandler();
 			});
+
+			informer = kubernetesClient.configMaps().inform();
+			informer.addEventHandler();
 		}
 	}
 
 	@PreDestroy
 	private void shutdown() {
-		if (informer != null) {
+		if (informers != null) {
 			log.debug("closing configmap informer");
-			informer.close();
+			informers.forEach(SharedInformer::close);
 		}
 		// Ensure the kubernetes client is cleaned up from spare threads when shutting
 		// down
