@@ -54,8 +54,8 @@ public final class KubernetesClientConfigUtils {
 	/**
 	 * finds namespaces to be used for the event based reloading.
 	 */
-	public static Set<String> namespaces(KubernetesNamespaceProvider provider,
-			ConfigReloadProperties properties, String target) {
+	public static Set<String> namespaces(KubernetesNamespaceProvider provider, ConfigReloadProperties properties,
+			String target) {
 		Set<String> namespaces = properties.getNamespaces();
 		if (namespaces.isEmpty()) {
 			namespaces = Set.of(getApplicationNamespace(null, target, provider));

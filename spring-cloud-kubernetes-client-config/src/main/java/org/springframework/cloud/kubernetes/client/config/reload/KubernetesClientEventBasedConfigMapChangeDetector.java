@@ -18,18 +18,14 @@ package org.springframework.cloud.kubernetes.client.config.reload;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
-import io.kubernetes.client.openapi.models.V1Secret;
-import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.CallGeneratorParams;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -99,9 +95,9 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		// an APIClient configured within the cluster and does not contain the necessary
 		// certificate authorities for the cluster. This results in SSL errors.
 		// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
+		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
 		this.monitorConfigMaps = properties.isMonitoringConfigMaps();
 		this.enableReloadFiltering = properties.isEnableReloadFiltering();
-		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "configmap");
 	}
 
@@ -113,17 +109,20 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<V1ConfigMap> informer;
 				if (enableReloadFiltering) {
-					informer = factory.sharedIndexInformerFor(
-						(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null, null, null,
-							null, null, null, params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
-						V1ConfigMap.class, V1ConfigMapList.class);
+					informer = factory
+							.sharedIndexInformerFor(
+									(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace,
+											null, null, null, null, null, null, params.resourceVersion, null,
+											params.timeoutSeconds, params.watch, null),
+									V1ConfigMap.class, V1ConfigMapList.class);
 					log.debug("added configmap informer for namespace : " + namespace + " with enabled filter");
 				}
 				else {
 					informer = factory.sharedIndexInformerFor(
-						(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null, null, null,
-							null, null, null, params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
-						V1ConfigMap.class, V1ConfigMapList.class);
+							(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null, null,
+									null, null, ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true", null,
+									params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
+							V1ConfigMap.class, V1ConfigMapList.class);
 					log.debug("added configmap informer for namespace : " + namespace);
 				}
 
@@ -137,6 +136,9 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 	@PreDestroy
 	void unwatch() {
+		if (!informers.isEmpty()) {
+			informers.forEach(SharedIndexInformer::stop);
+		}
 		factory.stopAllRegisteredInformers();
 	}
 
