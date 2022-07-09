@@ -102,7 +102,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 	}
 
 	@PostConstruct
-	void watch() {
+	void inform() {
 		if (monitorSecrets) {
 			log.info("Kubernetes event-based secret change detector activated");
 
@@ -135,10 +135,8 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 	}
 
 	@PreDestroy
-	void unwatch() {
-		if (!informers.isEmpty()) {
-			informers.forEach(SharedIndexInformer::stop);
-		}
+	void shutdown() {
+		informers.forEach(SharedIndexInformer::stop);
 		factory.stopAllRegisteredInformers();
 	}
 

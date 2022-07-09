@@ -102,7 +102,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 	}
 
 	@PostConstruct
-	void watch() {
+	void inform() {
 		if (monitorConfigMaps) {
 			log.info("Kubernetes event-based configMap change detector activated");
 
@@ -135,10 +135,8 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 	}
 
 	@PreDestroy
-	void unwatch() {
-		if (!informers.isEmpty()) {
-			informers.forEach(SharedIndexInformer::stop);
-		}
+	void shutdown() {
+		informers.forEach(SharedIndexInformer::stop);
 		factory.stopAllRegisteredInformers();
 	}
 

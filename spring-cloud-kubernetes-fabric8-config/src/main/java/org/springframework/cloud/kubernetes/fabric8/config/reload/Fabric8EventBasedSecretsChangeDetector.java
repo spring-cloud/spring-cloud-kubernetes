@@ -103,10 +103,7 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 	@PreDestroy
 	private void shutdown() {
-		if (!informers.isEmpty()) {
-			log.debug("closing secrets informer");
-			informers.forEach(SharedInformer::close);
-		}
+		informers.forEach(SharedInformer::close);
 		// Ensure the kubernetes client is cleaned up from spare threads when shutting
 		// down
 		kubernetesClient.close();

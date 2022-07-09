@@ -126,10 +126,7 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 	@PreDestroy
 	private void shutdown() {
-		if (!informers.isEmpty()) {
-			log.debug("closing configmap informer");
-			informers.forEach(SharedInformer::close);
-		}
+		informers.forEach(SharedInformer::close);
 		// Ensure the kubernetes client is cleaned up from spare threads when shutting
 		// down
 		kubernetesClient.close();
