@@ -31,7 +31,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ConfigReloadProperties {
 
 	/**
-	 * label for filtering sources
+	 * label for filtering sources.
 	 */
 	public static final String RELOAD_LABEL_FILTER = "spring.cloud.kubernetes.informer.enabled";
 
@@ -66,14 +66,15 @@ public class ConfigReloadProperties {
 	private Duration period = Duration.ofMillis(15000L);
 
 	/**
-	 * namespaces where an informer will be set-up.
-	 * this property is only relevant for event based reloading.
+	 * namespaces where an informer will be set-up. this property is only relevant for
+	 * event based reloading.
 	 */
 	private Set<String> namespaces = Collections.emptySet();
 
 	/**
-	 * create an informer only for sources that have 'spring.cloud.kubernetes.informer.enabled=true'
-	 * label. This property is only relevant for event based reloading.
+	 * create an informer only for sources that have
+	 * 'spring.cloud.kubernetes.informer.enabled=true' label. This property is only
+	 * relevant for event based reloading.
 	 */
 	private boolean enableReloadFiltering = false;
 

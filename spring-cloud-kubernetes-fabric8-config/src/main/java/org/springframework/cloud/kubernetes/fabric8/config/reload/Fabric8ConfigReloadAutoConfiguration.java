@@ -141,7 +141,7 @@ public class Fabric8ConfigReloadAutoConfiguration {
 			KubernetesClient kubernetesClient) {
 
 		return new Fabric8EventBasedSecretsChangeDetector(environment, properties, kubernetesClient, strategy,
-				fabric8SecretsPropertySourceLocator);
+				fabric8SecretsPropertySourceLocator, new KubernetesNamespaceProvider(environment));
 	}
 
 }

@@ -49,6 +49,19 @@ public final class Fabric8ConfigUtils {
 	}
 
 	/**
+	 * finds namespaces to be used for the event based reloading.
+	 */
+	public static Set<String> namespaces(KubernetesClient client, KubernetesNamespaceProvider provider,
+			ConfigReloadProperties properties, String target) {
+		Set<String> namespaces = properties.getNamespaces();
+		if (namespaces.isEmpty()) {
+			namespaces = Set.of(getApplicationNamespace(client, null, target, provider));
+		}
+		LOG.debug("informer namespaces : " + namespaces);
+		return namespaces;
+	}
+
+	/**
 	 * this method does the namespace resolution for both config map and secrets
 	 * implementations. It tries these places to find the namespace:
 	 *
@@ -70,7 +83,7 @@ public final class Fabric8ConfigUtils {
 	 * @return application namespace
 	 * @throws NamespaceResolutionFailedException when namespace could not be resolved
 	 */
-	public static String getApplicationNamespace(KubernetesClient client, String namespace, String configurationTarget,
+	static String getApplicationNamespace(KubernetesClient client, String namespace, String configurationTarget,
 			KubernetesNamespaceProvider provider) {
 
 		if (StringUtils.hasText(namespace)) {
@@ -93,19 +106,6 @@ public final class Fabric8ConfigUtils {
 		}
 		return clientNamespace;
 
-	}
-
-	/**
-	 * finds namespaces to be used for the event based reloading
-	 */
-	public static Set<String> namespaces(KubernetesClient client, KubernetesNamespaceProvider provider,
-			ConfigReloadProperties properties, String target) {
-		Set<String> namespaces = properties.getNamespaces();
-		if (namespaces.isEmpty()) {
-			namespaces = Set.of(getApplicationNamespace(client, null, target, provider));
-		}
-		LOG.debug("informer namespaces : " + namespaces);
-		return namespaces;
 	}
 
 	/**

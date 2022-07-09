@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.reload;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +39,6 @@ import org.springframework.core.env.AbstractEnvironment;
 
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.namespaces;
 
-
 /**
  * An Event Based change detector that subscribes to changes in configMaps and fire a
  * reload when something changes.
@@ -55,13 +55,14 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 	private final boolean monitoringConfigMaps;
 
-	private List<SharedIndexInformer<ConfigMap>> informers;
+	private final List<SharedIndexInformer<ConfigMap>> informers = new ArrayList<>();
 
 	private final Set<String> namespaces;
 
 	private final boolean enableReloadFiltering;
 
 	private final ResourceEventHandler<ConfigMap> handler = new ResourceEventHandler<>() {
+
 		@Override
 		public void onAdd(ConfigMap configMap) {
 			onEvent(configMap);
@@ -86,7 +87,7 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 		// inform();
 		// }
 		// }
-	}
+	};
 
 	public Fabric8EventBasedConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
@@ -109,25 +110,23 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 				SharedIndexInformer<ConfigMap> informer;
 				if (enableReloadFiltering) {
 					informer = kubernetesClient.configMaps().inNamespace(namespace)
-						.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true")).inform();
-					log.debug("added informer for namespace : " + namespace + " with enabled filter");
+							.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true")).inform();
+					log.debug("added configmap informer for namespace : " + namespace + " with enabled filter");
 				}
 				else {
 					informer = kubernetesClient.configMaps().inNamespace(namespace).inform();
-					log.debug("added informer for namespace : " + namespace);
+					log.debug("added configmap informer for namespace : " + namespace);
 				}
 
-				informer.addEventHandler();
+				informer.addEventHandler(handler);
+				informers.add(informer);
 			});
-
-			informer = kubernetesClient.configMaps().inform();
-			informer.addEventHandler();
 		}
 	}
 
 	@PreDestroy
 	private void shutdown() {
-		if (informers != null) {
+		if (!informers.isEmpty()) {
 			log.debug("closing configmap informer");
 			informers.forEach(SharedInformer::close);
 		}

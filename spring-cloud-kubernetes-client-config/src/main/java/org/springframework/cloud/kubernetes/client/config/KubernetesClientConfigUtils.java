@@ -33,6 +33,7 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
@@ -48,6 +49,19 @@ public final class KubernetesClientConfigUtils {
 	private static final boolean DECODE = Boolean.FALSE;
 
 	private KubernetesClientConfigUtils() {
+	}
+
+	/**
+	 * finds namespaces to be used for the event based reloading.
+	 */
+	public static Set<String> namespaces(KubernetesNamespaceProvider provider,
+			ConfigReloadProperties properties, String target) {
+		Set<String> namespaces = properties.getNamespaces();
+		if (namespaces.isEmpty()) {
+			namespaces = Set.of(getApplicationNamespace(null, target, provider));
+		}
+		LOG.debug("informer namespaces : " + namespaces);
+		return namespaces;
 	}
 
 	/**
