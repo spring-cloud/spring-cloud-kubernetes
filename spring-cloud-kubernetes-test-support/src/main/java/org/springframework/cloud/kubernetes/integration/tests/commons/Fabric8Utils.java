@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.integration.tests.commons;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
@@ -26,6 +27,7 @@ import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -90,7 +92,37 @@ public final class Fabric8Utils {
 		innerSetup(client, namespace, serviceAccountAsStream, roleBindingAsStream, roleAsStream);
 	}
 
-	public static void setUpIstio(KubernetesClient client, String namespace) throws Exception {
+	public static void setUpClusterWide(KubernetesClient client, String serviceAccountNamespace,
+			Set<String> namespaces) {
+		InputStream clusterRoleBindingAsStream = inputStream("cluster/cluster-role.yaml");
+		InputStream serviceAccountAsStream = inputStream("cluster/service-account.yaml");
+		InputStream roleBindingAsStream = inputStream("cluster/role-binding.yaml");
+
+		ClusterRole clusterRole = client.rbac().clusterRoles().load(clusterRoleBindingAsStream).get();
+		if (client.rbac().clusterRoles().withName(clusterRole.getMetadata().getName()).get() == null) {
+			client.rbac().clusterRoles().create(clusterRole);
+		}
+
+		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).get();
+		serviceAccountFromStream.getMetadata().setNamespace(serviceAccountNamespace);
+		if (client.serviceAccounts().inNamespace(serviceAccountNamespace)
+				.withName(serviceAccountFromStream.getMetadata().getName()).get() == null) {
+			client.serviceAccounts().inNamespace(serviceAccountNamespace).create(serviceAccountFromStream);
+		}
+
+		RoleBinding roleBindingFromStream = client.rbac().roleBindings().load(roleBindingAsStream).get();
+		namespaces.forEach(namespace -> {
+			roleBindingFromStream.getMetadata().setNamespace(namespace);
+
+			if (client.rbac().roleBindings().inNamespace(namespace)
+					.withName(roleBindingFromStream.getMetadata().getName()).get() == null) {
+				client.rbac().roleBindings().inNamespace(namespace).create(roleBindingFromStream);
+			}
+		});
+
+	}
+
+	public static void setUpIstio(KubernetesClient client, String namespace) {
 		InputStream serviceAccountAsStream = inputStream("istio/service-account.yaml");
 		InputStream roleBindingAsStream = inputStream("istio/role-binding.yaml");
 		InputStream roleAsStream = inputStream("istio/role.yaml");

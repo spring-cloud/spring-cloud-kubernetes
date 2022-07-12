@@ -94,7 +94,7 @@ public final class Fabric8ConfigUtils {
 		if (provider != null) {
 			String providerNamespace = provider.getNamespace();
 			if (StringUtils.hasText(providerNamespace)) {
-				LOG.debug(configurationTarget + " namespace from provider : " + namespace);
+				LOG.debug(configurationTarget + " namespace from provider : " + providerNamespace);
 				return providerNamespace;
 			}
 		}

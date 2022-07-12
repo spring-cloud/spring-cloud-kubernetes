@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.secrets.event.reload;
+package org.springframework.cloud.kubernetes.fabric8.configmap.event.reload;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * @author wind57
  */
-@ConfigurationProperties("from.properties")
-public class SecretsProperties {
+@ConfigurationProperties("left")
+public class LeftProperties {
 
-	private String key;
+	private String value;
 
-	public String getKey() {
-		return key;
+	public String getValue() {
+		return value;
 	}
 
-	public void setKey(String key) {
-		this.key = key;
+	public void setValue(String value) {
+		this.value = value;
 	}
 
 }
