@@ -70,7 +70,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 		@Override
 		public void onUpdate(V1ConfigMap oldObj, V1ConfigMap newObj) {
-			log.info("ConfigMap " + newObj.getMetadata().getName() + " was added.");
+			log.info("ConfigMap " + newObj.getMetadata().getName() + " was updated.");
 			onEvent(newObj);
 		}
 
@@ -108,24 +108,23 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<V1ConfigMap> informer;
+				String filter = null;
+
 				if (enableReloadFiltering) {
-					informer = factory
-							.sharedIndexInformerFor(
-									(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace,
-											null, null, null, null, null, null, params.resourceVersion, null,
-											params.timeoutSeconds, params.watch, null),
-									V1ConfigMap.class, V1ConfigMapList.class);
+					filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
 					log.debug("added configmap informer for namespace : " + namespace + " with enabled filter");
 				}
 				else {
-					informer = factory.sharedIndexInformerFor(
-							(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null, null,
-									null, null, ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true", null,
-									params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
-							V1ConfigMap.class, V1ConfigMapList.class);
 					log.debug("added configmap informer for namespace : " + namespace);
 				}
 
+				String filterOnInformerLabel = filter;
+				informer = factory
+						.sharedIndexInformerFor(
+								(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null,
+										null, null, null, filterOnInformerLabel, null, params.resourceVersion, null,
+										params.timeoutSeconds, params.watch, null),
+								V1ConfigMap.class, V1ConfigMapList.class);
 				informer.addEventHandler(handler);
 				informers.add(informer);
 			});

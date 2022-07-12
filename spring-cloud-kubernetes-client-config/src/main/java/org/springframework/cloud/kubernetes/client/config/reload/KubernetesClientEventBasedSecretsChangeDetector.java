@@ -70,7 +70,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 		@Override
 		public void onUpdate(V1Secret oldObj, V1Secret newObj) {
-			log.info("Secret " + newObj.getMetadata().getName() + " was added.");
+			log.info("Secret " + newObj.getMetadata().getName() + " was updated.");
 			onEvent(newObj);
 		}
 
@@ -104,28 +104,26 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 	@PostConstruct
 	void inform() {
 		if (monitorSecrets) {
-			log.info("Kubernetes event-based secret change detector activated");
+			log.info("Kubernetes event-based secrets change detector activated");
 
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<V1Secret> informer;
+				String filter = null;
+
 				if (enableReloadFiltering) {
-					informer = factory
-							.sharedIndexInformerFor(
-									(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(namespace, null,
-											null, null, null, null, null, params.resourceVersion, null,
-											params.timeoutSeconds, params.watch, null),
-									V1Secret.class, V1SecretList.class);
+					filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
 					log.debug("added secret informer for namespace : " + namespace + " with enabled filter");
 				}
 				else {
-					informer = factory.sharedIndexInformerFor(
-							(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(namespace, null, null,
-									null, null, ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true", null,
-									params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
-							V1Secret.class, V1SecretList.class);
 					log.debug("added secret informer for namespace : " + namespace);
 				}
 
+				String filterOnInformerLabel = filter;
+				informer = factory.sharedIndexInformerFor(
+						(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null, null,
+								null, null, filterOnInformerLabel, null, params.resourceVersion, null,
+								params.timeoutSeconds, params.watch, null),
+						V1Secret.class, V1SecretList.class);
 				informer.addEventHandler(handler);
 				informers.add(informer);
 			});
