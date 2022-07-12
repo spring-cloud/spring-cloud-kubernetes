@@ -186,14 +186,14 @@ class ConfigMapEventReloadIT {
 	}
 
 	/**
-	* <pre>
+	 * <pre>
 	*     - there are two namespaces : left and right (though we do not care about the left one)
 	*     - left has one configmap : left-configmap
 	*     - right has two configmaps: right-configmap, right-configmap-with-label
 	*     - we watch the "right" namespace, but enable tagging; which means that only
 	*       right-configmap-with-label triggers changes.
 	* </pre>
-	*/
+	 */
 	@Test
 	void testInform() throws Exception {
 		deployManifests("three");
@@ -201,20 +201,19 @@ class ConfigMapEventReloadIT {
 		// read the initial value from the right-configmap
 		WebClient rightWebClient = builder().baseUrl("localhost/right").build();
 		String rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-			.retryWhen(retrySpec()).block();
+				.retryWhen(retrySpec()).block();
 		assertThat("right-initial").isEqualTo(rightResult);
 
 		// then read the initial value from the right-with-label-configmap
-		WebClient rightWithLabelWebClient =
-		builder().baseUrl("localhost/with-label").build();
+		WebClient rightWithLabelWebClient = builder().baseUrl("localhost/with-label").build();
 		String rightWithLabelResult = rightWithLabelWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-			.retryWhen(retrySpec()).block();
+				.retryWhen(retrySpec()).block();
 		assertThat("right-with-label-initial").isEqualTo(rightWithLabelResult);
 
 		// then deploy a new version of right-configmap
 		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
-			.withData(Map.of("right.value", "right-after-change")).build();
+				.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
+				.withData(Map.of("right.value", "right-after-change")).build();
 
 		replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
 
@@ -223,12 +222,12 @@ class ConfigMapEventReloadIT {
 
 		// nothing changes in our app, because we are watching only labeled configmaps
 		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-			.block();
+				.block();
 		assertThat("right-initial").isEqualTo(rightResult);
 
 		// then deploy a new version of right-with-label-configmap
-		V1ConfigMap rightWithLabelConfigMapAfterChange = new V1ConfigMapBuilder().withMetadata(
-			new V1ObjectMeta().namespace("right").name("right-configmap-with-label"))
+		V1ConfigMap rightWithLabelConfigMapAfterChange = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap-with-label"))
 				.withData(Map.of("right.with.label.value", "right-with-label-after-change")).build();
 
 		replaceConfigMap(rightWithLabelConfigMapAfterChange, "right-configmap-with-label");
@@ -239,7 +238,7 @@ class ConfigMapEventReloadIT {
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("localhost/with-label").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+					.retryWhen(retrySpec()).block();
 			resultAfterChange[0] = innerResult;
 			return innerResult != null;
 		});
@@ -248,7 +247,7 @@ class ConfigMapEventReloadIT {
 		// right-configmap now will see the new value also, but only because the other
 		// configmap has triggered the restart
 		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-			.block();
+				.block();
 		assertThat("right-after-change").isEqualTo(rightResult);
 
 		deleteManifests();
@@ -358,7 +357,7 @@ class ConfigMapEventReloadIT {
 	}
 
 	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(60, Duration.ofSeconds(1)).filter(Objects::nonNull);
+		return Retry.fixedDelay(120, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 	@SuppressWarnings({ "unchecked", "raw" })
