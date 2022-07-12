@@ -120,9 +120,9 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 				String filterOnInformerLabel = filter;
 				informer = factory.sharedIndexInformerFor(
-						(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null, null,
-								null, null, filterOnInformerLabel, null, params.resourceVersion, null,
-								params.timeoutSeconds, params.watch, null),
+						(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(namespace, null, null, null,
+								null, filterOnInformerLabel, null, params.resourceVersion, null, params.timeoutSeconds,
+								params.watch, null),
 						V1Secret.class, V1SecretList.class);
 				informer.addEventHandler(handler);
 				informers.add(informer);
