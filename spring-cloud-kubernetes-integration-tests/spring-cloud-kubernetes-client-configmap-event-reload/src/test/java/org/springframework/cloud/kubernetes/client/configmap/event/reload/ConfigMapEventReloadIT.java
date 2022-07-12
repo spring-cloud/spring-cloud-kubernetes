@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap.event.reload;
+package org.springframework.cloud.kubernetes.client.configmap.event.reload;
 
-import java.io.InputStream;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
@@ -24,18 +23,17 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.base.HasMetadataOperation;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.apis.NetworkingV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
+import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
@@ -44,25 +42,24 @@ import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Fabric8Utils;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.awaitility.Awaitility.await;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.processExecResult;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
  */
 class ConfigMapEventReloadIT {
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-configmap-event-reload";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-configmap-event-reload";
 
 	private static final String NAMESPACE = "default";
-
-	private static KubernetesClient client;
 
 	private static String deploymentName;
 
@@ -76,6 +73,14 @@ class ConfigMapEventReloadIT {
 
 	private static String rightWithLabelConfigMapName;
 
+	private static CoreV1Api api;
+
+	private static AppsV1Api appsApi;
+
+	private static NetworkingV1Api networkingApi;
+
+	private static K8SUtils k8SUtils;
+
 	private static final K3sContainer K3S = Commons.container();
 
 	@BeforeAll
@@ -83,11 +88,14 @@ class ConfigMapEventReloadIT {
 		K3S.start();
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
-		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
-		client = new DefaultKubernetesClient(config);
-
+		createApiClient(K3S.getKubeConfigYaml());
 		createNamespaces();
-		Fabric8Utils.setUpClusterWide(client, "default", Set.of("left", "right"));
+		api = new CoreV1Api();
+		appsApi = new AppsV1Api();
+		networkingApi = new NetworkingV1Api();
+		k8SUtils = new K8SUtils(api, appsApi);
+
+		k8SUtils.setUpClusterWide(NAMESPACE, Set.of("left", "right"));
 	}
 
 	@AfterAll
@@ -105,7 +113,7 @@ class ConfigMapEventReloadIT {
 	 * </pre>
 	 */
 	@Test
-	void testInformFromOneNamespaceEventNotTriggered() {
+	void testInformFromOneNamespaceEventNotTriggered() throws Exception {
 		deployManifests("one");
 
 		WebClient webClient = builder().baseUrl("localhost/left").build();
@@ -113,16 +121,16 @@ class ConfigMapEventReloadIT {
 				.block();
 
 		// we first read the initial value from the left-configmap
-		Assertions.assertEquals("left-initial", result);
+		assertThat("left-initial").isEqualTo(result);
 
 		// then read the value from the right-configmap
 		webClient = builder().baseUrl("localhost/right").build();
 		result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec()).block();
-		Assertions.assertEquals("right-initial", result);
+		assertThat("right-initial").isEqualTo(result);
 
 		// then deploy a new version of right-configmap
-		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
+		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
 				.withData(Map.of("right.value", "right-after-change")).build();
 
 		replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
@@ -133,7 +141,7 @@ class ConfigMapEventReloadIT {
 		webClient = builder().baseUrl("localhost/left").build();
 		result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec()).block();
 		// left configmap has not changed, no restart of app has happened
-		Assertions.assertEquals("left-initial", result);
+		assertThat("left-initial").isEqualTo(result);
 
 		deleteManifests();
 	}
@@ -147,18 +155,18 @@ class ConfigMapEventReloadIT {
 	 * </pre>
 	 */
 	@Test
-	void testInformFromOneNamespaceEventTriggered() {
+	void testInformFromOneNamespaceEventTriggered() throws Exception {
 		deployManifests("two");
 
 		// read the value from the right-configmap
 		WebClient webClient = builder().baseUrl("localhost/right").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
-		Assertions.assertEquals("right-initial", result);
+		assertThat("right-initial").isEqualTo(result);
 
 		// then deploy a new version of right-configmap
-		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
+		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
 				.withData(Map.of("right.value", "right-after-change")).build();
 
 		replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
@@ -168,43 +176,45 @@ class ConfigMapEventReloadIT {
 			WebClient innerWebClient = builder().baseUrl("localhost/right").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 					.retryWhen(retrySpec()).block();
+
 			resultAfterChange[0] = innerResult;
 			return innerResult != null;
 		});
-		Assertions.assertEquals("right-after-change", resultAfterChange[0]);
+		assertThat("right-after-change").isEqualTo(resultAfterChange[0]);
 
 		deleteManifests();
 	}
 
 	/**
-	 * <pre>
-	 *     - there are two namespaces : left and right (though we do not care about the left one)
-	 *     - left has one configmap : left-configmap
-	 *     - right has two configmaps: right-configmap, right-configmap-with-label
-	 *     - we watch the "right" namespace, but enable tagging; which means that only
-	 *       right-configmap-with-label triggers changes.
-	 * </pre>
-	 */
+	* <pre>
+	*     - there are two namespaces : left and right (though we do not care about the left one)
+	*     - left has one configmap : left-configmap
+	*     - right has two configmaps: right-configmap, right-configmap-with-label
+	*     - we watch the "right" namespace, but enable tagging; which means that only
+	*       right-configmap-with-label triggers changes.
+	* </pre>
+	*/
 	@Test
-	void testInform() {
+	void testInform() throws Exception {
 		deployManifests("three");
 
 		// read the initial value from the right-configmap
 		WebClient rightWebClient = builder().baseUrl("localhost/right").build();
 		String rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
-		Assertions.assertEquals("right-initial", rightResult);
+			.retryWhen(retrySpec()).block();
+		assertThat("right-initial").isEqualTo(rightResult);
 
 		// then read the initial value from the right-with-label-configmap
-		WebClient rightWithLabelWebClient = builder().baseUrl("localhost/with-label").build();
+		WebClient rightWithLabelWebClient =
+		builder().baseUrl("localhost/with-label").build();
 		String rightWithLabelResult = rightWithLabelWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
-		Assertions.assertEquals("right-with-label-initial", rightWithLabelResult);
+			.retryWhen(retrySpec()).block();
+		assertThat("right-with-label-initial").isEqualTo(rightWithLabelResult);
 
 		// then deploy a new version of right-configmap
-		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
-				.withData(Map.of("right.value", "right-after-change")).build();
+		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
+			.withData(Map.of("right.value", "right-after-change")).build();
 
 		replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
 
@@ -213,13 +223,12 @@ class ConfigMapEventReloadIT {
 
 		// nothing changes in our app, because we are watching only labeled configmaps
 		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
-		Assertions.assertEquals("right-initial", rightResult);
+			.block();
+		assertThat("right-initial").isEqualTo(rightResult);
 
 		// then deploy a new version of right-with-label-configmap
-		ConfigMap rightWithLabelConfigMapAfterChange = new ConfigMapBuilder()
-				.withMetadata(
-						new ObjectMetaBuilder().withNamespace("right").withName("right-configmap-with-label").build())
+		V1ConfigMap rightWithLabelConfigMapAfterChange = new V1ConfigMapBuilder().withMetadata(
+			new V1ObjectMeta().namespace("right").name("right-configmap-with-label"))
 				.withData(Map.of("right.with.label.value", "right-with-label-after-change")).build();
 
 		replaceConfigMap(rightWithLabelConfigMapAfterChange, "right-configmap-with-label");
@@ -230,17 +239,17 @@ class ConfigMapEventReloadIT {
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("localhost/with-label").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+				.retryWhen(retrySpec()).block();
 			resultAfterChange[0] = innerResult;
 			return innerResult != null;
 		});
-		Assertions.assertEquals("right-with-label-after-change", resultAfterChange[0]);
+		assertThat("right-with-label-after-change").isEqualTo(resultAfterChange[0]);
 
 		// right-configmap now will see the new value also, but only because the other
 		// configmap has triggered the restart
 		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
-		Assertions.assertEquals("right-after-change", rightResult);
+			.block();
+		assertThat("right-after-change").isEqualTo(rightResult);
 
 		deleteManifests();
 	}
@@ -259,39 +268,37 @@ class ConfigMapEventReloadIT {
 
 		try {
 
-			ConfigMap leftConfigMap = client.configMaps().load(leftConfigMap()).get();
+			V1ConfigMap leftConfigMap = leftConfigMap();
 			leftConfigMapName = leftConfigMap.getMetadata().getName();
-			client.configMaps().create(leftConfigMap);
+			api.createNamespacedConfigMap("left", leftConfigMap, null, null, null);
 
-			ConfigMap rightConfigMap = client.configMaps().load(rightConfigMap()).get();
+			V1ConfigMap rightConfigMap = rightConfigMap();
 			rightConfigMapName = rightConfigMap.getMetadata().getName();
-			client.configMaps().create(rightConfigMap);
+			api.createNamespacedConfigMap("right", rightConfigMap, null, null, null);
 
 			if ("three".equals(deploymentRoot)) {
-				ConfigMap rightWithLabelConfigMap = client.configMaps().load(rightWithLabelConfigMap()).get();
+				V1ConfigMap rightWithLabelConfigMap = rightWithLabelConfigMap();
 				rightWithLabelConfigMapName = rightWithLabelConfigMap.getMetadata().getName();
-				client.configMaps().create(rightWithLabelConfigMap);
+				api.createNamespacedConfigMap("right", rightWithLabelConfigMap, null, null, null);
 			}
 
-			Deployment deployment = client.apps().deployments().load(getDeployment(deploymentRoot)).get();
-
+			V1Deployment deployment = getDeployment(deploymentRoot);
 			String version = K8SUtils.getPomVersion();
 			String currentImage = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(currentImage + ":" + version);
-
-			client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
 			deploymentName = deployment.getMetadata().getName();
+			appsApi.createNamespacedDeployment(NAMESPACE, deployment, null, null, null);
 
-			Service service = client.services().load(getService()).get();
+			V1Service service = getService();
 			serviceName = service.getMetadata().getName();
-			client.services().inNamespace(NAMESPACE).create(service);
+			api.createNamespacedService(NAMESPACE, service, null, null, null);
 
-			Ingress ingress = client.network().v1().ingresses().load(getIngress()).get();
+			V1Ingress ingress = getIngress();
 			ingressName = ingress.getMetadata().getName();
-			client.network().v1().ingresses().inNamespace(NAMESPACE).create(ingress);
+			networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
 
-			Fabric8Utils.waitForDeployment(client,
-					"spring-cloud-kubernetes-fabric8-client-configmap-deployment-event-reload", NAMESPACE, 2, 600);
+			k8SUtils.waitForIngress(ingressName, NAMESPACE);
+			k8SUtils.waitForDeployment("spring-cloud-kubernetes-client-configmap-deployment-event-reload", NAMESPACE);
 
 		}
 		catch (Exception e) {
@@ -304,14 +311,16 @@ class ConfigMapEventReloadIT {
 
 		try {
 
-			client.configMaps().inNamespace("left").withName(leftConfigMapName).delete();
-			client.configMaps().inNamespace("right").withName(rightConfigMapName).delete();
+			api.deleteNamespacedConfigMap(leftConfigMapName, "left", null, null, null, null, null, null);
+			api.deleteNamespacedConfigMap(rightConfigMapName, "right", null, null, null, null, null, null);
+
 			if (rightWithLabelConfigMapName != null) {
-				client.configMaps().inNamespace("right").withName(rightWithLabelConfigMapName).delete();
+				api.deleteNamespacedConfigMap(rightWithLabelConfigMapName, "right", null, null, null, null, null, null);
 			}
-			client.apps().deployments().inNamespace(NAMESPACE).withName(deploymentName).delete();
-			client.services().inNamespace(NAMESPACE).withName(serviceName).delete();
-			client.network().v1().ingresses().inNamespace(NAMESPACE).withName(ingressName).delete();
+
+			appsApi.deleteNamespacedDeployment(deploymentName, NAMESPACE, null, null, null, null, null, null);
+			api.deleteNamespacedService(serviceName, NAMESPACE, null, null, null, null, null, null);
+			networkingApi.deleteNamespacedIngress(ingressName, NAMESPACE, null, null, null, null, null, null);
 
 		}
 		catch (Exception e) {
@@ -320,28 +329,28 @@ class ConfigMapEventReloadIT {
 
 	}
 
-	private static InputStream leftConfigMap() {
-		return Fabric8Utils.inputStream("left-configmap.yaml");
+	private static V1ConfigMap leftConfigMap() throws Exception {
+		return (V1ConfigMap) K8SUtils.readYamlFromClasspath("left-configmap.yaml");
 	}
 
-	private static InputStream rightConfigMap() {
-		return Fabric8Utils.inputStream("right-configmap.yaml");
+	private static V1ConfigMap rightConfigMap() throws Exception {
+		return (V1ConfigMap) K8SUtils.readYamlFromClasspath("right-configmap.yaml");
 	}
 
-	private static InputStream rightWithLabelConfigMap() {
-		return Fabric8Utils.inputStream("right-configmap-with-label.yaml");
+	private static V1ConfigMap rightWithLabelConfigMap() throws Exception {
+		return (V1ConfigMap) K8SUtils.readYamlFromClasspath("right-configmap-with-label.yaml");
 	}
 
-	private static InputStream getDeployment(String root) {
-		return Fabric8Utils.inputStream(root + "/deployment.yaml");
+	private static V1Deployment getDeployment(String root) throws Exception {
+		return (V1Deployment) K8SUtils.readYamlFromClasspath(root + "/deployment.yaml");
 	}
 
-	private static InputStream getService() {
-		return Fabric8Utils.inputStream("service.yaml");
+	private static V1Service getService() throws Exception {
+		return (V1Service) K8SUtils.readYamlFromClasspath("service.yaml");
 	}
 
-	private static InputStream getIngress() {
-		return Fabric8Utils.inputStream("ingress.yaml");
+	private static V1Ingress getIngress() throws Exception {
+		return (V1Ingress) K8SUtils.readYamlFromClasspath("ingress.yaml");
 	}
 
 	private WebClient.Builder builder() {
@@ -349,14 +358,12 @@ class ConfigMapEventReloadIT {
 	}
 
 	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+		return Retry.fixedDelay(60, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
-	// the weird cast comes from :
-	// https://github.com/fabric8io/kubernetes-client/issues/2445
 	@SuppressWarnings({ "unchecked", "raw" })
-	private static void replaceConfigMap(ConfigMap configMap, String name) {
-		((HasMetadataOperation) client.configMaps().inNamespace("right").withName(name)).createOrReplace(configMap);
+	private static void replaceConfigMap(V1ConfigMap configMap, String name) throws ApiException {
+		api.replaceNamespacedConfigMap(name, "right", configMap, null, null, null);
 	}
 
 }

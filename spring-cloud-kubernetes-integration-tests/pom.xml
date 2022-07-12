@@ -118,5 +118,6 @@
 		<module>spring-cloud-kubernetes-configuration-watcher-it</module>
 		<module>spring-cloud-kubernetes-core-k8s-client-it</module>
         <module>spring-cloud-kubernetes-client-secrets-event-reload</module>
-	</modules>
+        <module>spring-cloud-kubernetes-client-configmap-event-reload</module>
+    </modules>
 </project>

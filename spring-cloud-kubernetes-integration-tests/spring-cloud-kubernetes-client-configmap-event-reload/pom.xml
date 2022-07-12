@@ -9,13 +9,12 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-kubernetes-fabric8-client-configmap-event-reload</artifactId>
+	<artifactId>spring-cloud-kubernetes-client-configmap-event-reload</artifactId>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-kubernetes-fabric8-config</artifactId>
+			<artifactId>spring-cloud-starter-kubernetes-client-config</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -36,6 +35,14 @@
 		</dependency>
 
 		<dependency>
+			<groupId>io.kubernetes</groupId>
+			<artifactId>client-java</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.kubernetes</groupId>
+			<artifactId>client-java-extended</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.github.docker-java</groupId>
 			<artifactId>docker-java-core</artifactId>
 			<scope>test</scope>
@@ -43,6 +50,22 @@
 		<dependency>
 			<groupId>com.github.docker-java</groupId>
 			<artifactId>docker-java-transport-httpclient5</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>k3s</artifactId>
 			<scope>test</scope>
 		</dependency>
 
@@ -109,5 +132,6 @@
 		</plugins>
 
 	</build>
+
 
 </project>
