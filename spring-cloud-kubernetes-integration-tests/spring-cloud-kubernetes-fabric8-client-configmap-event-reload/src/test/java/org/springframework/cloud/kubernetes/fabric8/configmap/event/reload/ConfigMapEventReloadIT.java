@@ -125,10 +125,7 @@ class ConfigMapEventReloadIT {
 				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
 				.withData(Map.of("right.value", "right-after-change")).build();
 
-		// the weird cast comes from :
-		// https://github.com/fabric8io/kubernetes-client/issues/2445
-		((HasMetadataOperation) client.configMaps().inNamespace("right").withName("right-configmap"))
-				.createOrReplace(rightConfigMapAfterChange);
+		replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
 
 		// wait dummy for 5 seconds
 		LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(5));
@@ -164,10 +161,7 @@ class ConfigMapEventReloadIT {
 				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
 				.withData(Map.of("right.value", "right-after-change")).build();
 
-		// the weird cast comes from :
-		// https://github.com/fabric8io/kubernetes-client/issues/2445
-		((HasMetadataOperation) client.configMaps().inNamespace("right").withName("right-configmap"))
-				.createOrReplace(rightConfigMapAfterChange);
+		replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
 
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
@@ -212,8 +206,7 @@ class ConfigMapEventReloadIT {
 				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
 				.withData(Map.of("right.value", "right-after-change")).build();
 
-		((HasMetadataOperation) client.configMaps().inNamespace("right").withName("right-configmap"))
-				.createOrReplace(rightConfigMapAfterChange);
+		replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
 
 		// sleep for 5 seconds
 		LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(5));
@@ -229,10 +222,9 @@ class ConfigMapEventReloadIT {
 						new ObjectMetaBuilder().withNamespace("right").withName("right-configmap-with-label").build())
 				.withData(Map.of("right.with.label.value", "right-with-label-after-change")).build();
 
-		((HasMetadataOperation) client.configMaps().inNamespace("right").withName("right-configmap-with-label"))
-				.createOrReplace(rightWithLabelConfigMapAfterChange);
+		replaceConfigMap(rightWithLabelConfigMapAfterChange, "right-configmap-with-label");
 
-		// since we have changes a labeled configmap, app will restart and pick up the new
+		// since we have changed a labeled configmap, app will restart and pick up the new
 		// value
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
@@ -245,7 +237,7 @@ class ConfigMapEventReloadIT {
 		Assertions.assertEquals("right-with-label-after-change", resultAfterChange[0]);
 
 		// right-configmap now will see the new value also, but only because the other
-		// configmap has triggered the restart now
+		// configmap has triggered the restart
 		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 		Assertions.assertEquals("right-after-change", rightResult);
@@ -358,6 +350,14 @@ class ConfigMapEventReloadIT {
 
 	private RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+	}
+
+	// the weird cast comes from :
+	// https://github.com/fabric8io/kubernetes-client/issues/2445
+	@SuppressWarnings({"unchecked", "raw"})
+	private static void replaceConfigMap(ConfigMap configMap, String name) {
+		((HasMetadataOperation) client.configMaps().inNamespace("right").withName(name))
+			.createOrReplace(configMap);
 	}
 
 }
