@@ -868,6 +868,8 @@ The reload feature of Spring Cloud Kubernetes is able to trigger an application 
 `Secret` changes.
 
 By default, this feature is disabled. You can enable it by using the `spring.cloud.kubernetes.reload.enabled=true` configuration property (for example, in the `application.properties` file).
+Please notice that this will enable monitoring of configmaps only (i.e.: `spring.cloud.kubernetes.reload.monitoring-config-maps` will be set to `true`).
+If you want to enable monitoring of secrets, this must be done explicitly via : `spring.cloud.kubernetes.reload.monitoring-secrets=true`.
 
 The following levels of reload are supported (by setting the `spring.cloud.kubernetes.reload.strategy` property):
 
