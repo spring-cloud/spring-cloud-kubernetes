@@ -32,8 +32,6 @@
 	<name>Spring Cloud Kubernetes :: Dependencies</name>
 	<description>Spring Cloud Kubernetes Dependencies</description>
 	<properties>
-		<arquillian.version>1.6.0.Final</arquillian.version>
-		<arquillian-cube.version>1.15.2</arquillian-cube.version>
 		<hoverfly.version>0.13.0</hoverfly.version>
 		<kubernetes-fabric8-client.version>5.12.1</kubernetes-fabric8-client.version>
 		<kubernetes-native-client.version>13.0.2</kubernetes-native-client.version>
@@ -215,30 +213,6 @@
 			</dependency>
 
 			<!-- Testing Dependencies -->
-			<dependency>
-				<groupId>org.jboss.arquillian.junit</groupId>
-				<artifactId>arquillian-junit-standalone</artifactId>
-				<version>${arquillian.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.arquillian.cube</groupId>
-				<artifactId>arquillian-cube-requirement</artifactId>
-				<version>${arquillian-cube.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.arquillian.cube</groupId>
-				<artifactId>arquillian-cube-kubernetes</artifactId>
-				<version>${arquillian-cube.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.arquillian.cube</groupId>
-				<artifactId>arquillian-cube-openshift</artifactId>
-				<version>${arquillian-cube.version}</version>
-				<scope>test</scope>
-			</dependency>
 			<dependency>
 				<groupId>io.specto</groupId>
 				<artifactId>hoverfly-java-junit5</artifactId>
