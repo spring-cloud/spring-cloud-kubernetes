@@ -305,9 +305,12 @@ class ConfigMapEventReloadIT {
 		try {
 
 			client.configMaps().inNamespace("left").withName(leftConfigMapName).delete();
+			Fabric8Utils.waitForConfigMapDelete(client, "left", leftConfigMapName);
 			client.configMaps().inNamespace("right").withName(rightConfigMapName).delete();
+			Fabric8Utils.waitForConfigMapDelete(client, "right", rightConfigMapName);
 			if (rightWithLabelConfigMapName != null) {
 				client.configMaps().inNamespace("right").withName(rightWithLabelConfigMapName).delete();
+				Fabric8Utils.waitForConfigMapDelete(client, "right", rightWithLabelConfigMapName);
 			}
 			client.apps().deployments().inNamespace(NAMESPACE).withName(deploymentName).delete();
 			client.services().inNamespace(NAMESPACE).withName(serviceName).delete();
@@ -349,7 +352,7 @@ class ConfigMapEventReloadIT {
 	}
 
 	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+		return Retry.fixedDelay(120, Duration.ofSeconds(2)).filter(Objects::nonNull);
 	}
 
 	// the weird cast comes from :

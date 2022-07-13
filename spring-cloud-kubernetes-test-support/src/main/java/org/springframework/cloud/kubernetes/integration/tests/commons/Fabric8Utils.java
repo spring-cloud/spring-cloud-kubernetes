@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
@@ -164,6 +165,13 @@ public final class Fabric8Utils {
 			e.printStackTrace();
 		}
 
+	}
+
+	public static void waitForConfigMapDelete(KubernetesClient client, String namespace, String name) {
+		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+			ConfigMap configMap = client.configMaps().inNamespace(namespace).withName(name).get();
+			return configMap == null;
+		});
 	}
 
 	private static void innerSetup(KubernetesClient client, String namespace, InputStream serviceAccountAsStream,
