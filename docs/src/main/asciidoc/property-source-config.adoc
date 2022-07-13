@@ -1011,7 +1011,7 @@ spring:
 ----
 ====
 
-What this will do, is watch configmaps/secrets that only have the `spring.cloud.kubernetes.informer.enabled: true` label.
+What this will do, is watch configmaps/secrets that only have the `spring.cloud.kubernetes.config.informer.enabled: true` label.
 
 .Properties:
 [options="header,footer"]

@@ -33,7 +33,7 @@ public class ConfigReloadProperties {
 	/**
 	 * label for filtering sources.
 	 */
-	public static final String RELOAD_LABEL_FILTER = "spring.cloud.kubernetes.informer.enabled";
+	public static final String RELOAD_LABEL_FILTER = "spring.cloud.kubernetes.config.informer.enabled";
 
 	/**
 	 * Enables the Kubernetes configuration reload on change.
@@ -73,7 +73,7 @@ public class ConfigReloadProperties {
 
 	/**
 	 * create an informer only for sources that have
-	 * 'spring.cloud.kubernetes.informer.enabled=true' label. This property is only
+	 * 'spring.cloud.kubernetes.config.informer.enabled=true' label. This property is only
 	 * relevant for event based reloading.
 	 */
 	private boolean enableReloadFiltering = false;
