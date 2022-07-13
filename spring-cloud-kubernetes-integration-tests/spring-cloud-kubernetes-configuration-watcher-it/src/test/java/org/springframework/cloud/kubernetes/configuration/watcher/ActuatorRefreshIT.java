@@ -20,19 +20,20 @@ import java.time.Duration;
 
 import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.k3s.K3sContainer;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -49,66 +50,84 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
 /**
  * @author Ryan Baxter
  */
-public class ActuatorRefreshIT {
-
-	private static final String CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME = "config-watcher-wiremock-deployment";
-
-	private static final String CONFIG_WATCHER_WIREMOCK_APP_NAME = "config-watcher-wiremock";
+class ActuatorRefreshIT {
 
 	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME = "spring-cloud-kubernetes-configuration-watcher-deployment";
 
 	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher";
 
+	private String configWatcherConfigMapName;
+
 	private static final String WIREMOCK_HOST = "localhost";
 
-	private static final String WIREMOCK_PATH = "/wiremock";
+	private static final String WIREMOCK_PATH = "/";
 
 	private static final int WIREMOCK_PORT = 80;
 
 	private static final String NAMESPACE = "default";
 
-	private ApiClient client;
+	private static CoreV1Api api;
 
-	private CoreV1Api api;
+	private static AppsV1Api appsApi;
 
-	private AppsV1Api appsApi;
+	private static K8SUtils k8SUtils;
 
-	private NetworkingV1Api networkingApi;
+	private static final K3sContainer K3S = Commons.container();
 
-	private K8SUtils k8SUtils;
-
-	@BeforeEach
-	public void setup() throws Exception {
-		this.client = createApiClient();
-		this.api = new CoreV1Api();
-		this.appsApi = new AppsV1Api();
-		this.networkingApi = new NetworkingV1Api();
-		this.k8SUtils = new K8SUtils(api, appsApi);
-
-		deployWiremock();
-		deployConfigWatcher();
-
-		// Check to make sure the wiremock deployment is ready
-		k8SUtils.waitForDeployment(CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME, NAMESPACE);
-		// Check to see if endpoint is ready
-		k8SUtils.waitForEndpointReady(CONFIG_WATCHER_WIREMOCK_APP_NAME, NAMESPACE);
-		// Check to make sure the controller deployment is ready
-		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		K3S.start();
+		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+		createApiClient(K3S.getKubeConfigYaml());
+		api = new CoreV1Api();
+		appsApi = new AppsV1Api();
+		k8SUtils = new K8SUtils(api, appsApi);
+		k8SUtils.setUp(NAMESPACE);
 	}
 
-	@Test
-	public void testActuatorRefresh() throws Exception {
-		// Configure wiremock to point at the server
-		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
+	@AfterAll
+	static void afterAll() throws Exception {
+		Commons.cleanUp(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+		k8SUtils.removeWiremockImage();
+	}
 
-		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
-		// available and we get a 503, we just need to wait a bit
+	@BeforeEach
+	void setup() throws Exception {
+		deployConfigWatcher();
+		k8SUtils.deployWiremock(NAMESPACE, true, K3S);
+	}
+
+	@AfterEach
+	void after() throws Exception {
+
+		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
+				"metadata.name=" + SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, null, null, null, null, null, null,
+				null, null, null);
+		api.deleteNamespacedService(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
+				null);
+
+		api.deleteNamespacedConfigMap(configWatcherConfigMapName, NAMESPACE, null, null, null, null, null, null);
+		api.deleteNamespacedConfigMap("servicea-wiremock", NAMESPACE, null, null, null, null, null, null);
+		k8SUtils.cleanUpWiremock(NAMESPACE);
+	}
+
+	/*
+	 * this test loads uses two services: wiremock on port 8080 and configuration-watcher
+	 * on port 8888. we deploy configuration-watcher first and configure it via a
+	 * configmap with the same name. then, we mock the call to actuator/refresh endpoint
+	 * and deploy a new configmap: "servicea-wiremock", this in turn will trigger that
+	 * refresh that we capture and assert for.
+	 */
+	@Test
+	void testActuatorRefresh() throws Exception {
+		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
 		await().timeout(Duration.ofSeconds(60)).ignoreException(VerificationException.class)
 				.until(() -> stubFor(post(urlEqualTo("/actuator/refresh")).willReturn(aResponse().withStatus(200)))
 						.getResponse().wasConfigured());
 
 		// Create new configmap to trigger controller to signal app to refresh
-		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName(CONFIG_WATCHER_WIREMOCK_APP_NAME)
+		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName("servicea-wiremock")
 				.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "bar").build();
 		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
 
@@ -119,67 +138,33 @@ public class ActuatorRefreshIT {
 		verify(postRequestedFor(urlEqualTo("/actuator/refresh")));
 	}
 
-	@AfterEach
-	public void after() throws Exception {
-
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, null, null, null, null, null, null,
-				null, null, null);
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null,
-				null, null);
-		api.deleteNamespacedService(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
-				null);
-		api.deleteNamespacedService(CONFIG_WATCHER_WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
-		networkingApi.deleteNamespacedIngress("nginx-ingress", NAMESPACE, null, null, null, null, null, null);
-		api.deleteNamespacedConfigMap(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
-				null);
-		api.deleteNamespacedConfigMap(CONFIG_WATCHER_WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
-		// Check to make sure the controller deployment is deleted
-		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
-		k8SUtils.waitForDeploymentToBeDeleted(CONFIG_WATCHER_WIREMOCK_DEPLOYMENT_NAME, NAMESPACE);
-	}
-
 	private void deployConfigWatcher() throws Exception {
-		api.createNamespacedConfigMap(NAMESPACE, getConfigWatcherConfigMap(), null, null, null);
+		V1ConfigMap configMap = getConfigWatcherConfigMap();
+		configWatcherConfigMapName = configMap.getMetadata().getName();
+		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
 		appsApi.createNamespacedDeployment(NAMESPACE, getConfigWatcherDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getConfigWatcherService(), null, null, null);
+
+		// Check to make sure the controller deployment is ready
+		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);
 	}
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) K8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-http-deployment.yaml");
-		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
-				+ getPomVersion();
+		V1Deployment deployment = (V1Deployment) K8SUtils.readYamlFromClasspath(
+				"config-watcher/spring-cloud-kubernetes-configuration-watcher-http-deployment.yaml");
+		String image = K8SUtils.getImageFromDeployment(deployment) + ":" + getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
 	}
 
-	private void deployWiremock() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getWiremockDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getWiremockAppService(), null, null, null);
-		networkingApi.createNamespacedIngress(NAMESPACE, getWiremockIngress(), null, null, null);
-	}
-
 	private V1Service getConfigWatcherService() throws Exception {
-		return (V1Service) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-service.yaml");
+		return (V1Service) K8SUtils
+				.readYamlFromClasspath("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
 	}
 
 	private V1ConfigMap getConfigWatcherConfigMap() throws Exception {
 		return (V1ConfigMap) K8SUtils
-				.readYamlFromClasspath("spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
-	}
-
-	private V1Ingress getWiremockIngress() throws Exception {
-		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
-	}
-
-	private V1Service getWiremockAppService() throws Exception {
-		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock-service.yaml");
-	}
-
-	private V1Deployment getWiremockDeployment() throws Exception {
-		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock-deployment.yaml");
+				.readYamlFromClasspath("config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
 	}
 
 }

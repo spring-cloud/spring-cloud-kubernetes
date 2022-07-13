@@ -16,12 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client.loadbalancer.it;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
 
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -29,33 +27,34 @@ import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.k3s.K3sContainer;
+import reactor.netty.http.client.HttpClient;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.ResponseErrorHandler;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.ResolvableType;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.getPomVersion;
 
 /**
  * @author Ryan Baxter
  */
-public class LoadBalancerIT {
+class LoadBalancerIT {
 
-	private static final Log LOG = LogFactory.getLog(LoadBalancerIT.class);
-
-	private static final String WIREMOCK_DEPLOYMENT_NAME = "servicea-wiremock-deployment";
-
-	private static final String WIREMOCK_APP_NAME = "servicea-wiremock";
+	private static final String SERVICE_URL = "localhost:80/loadbalancer-it/servicea";
 
 	private static final String SPRING_CLOUD_K8S_LOADBALANCER_DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-loadbalancer-it-deployment";
 
@@ -63,54 +62,56 @@ public class LoadBalancerIT {
 
 	private static final String NAMESPACE = "default";
 
-	private ApiClient client;
+	private static CoreV1Api api;
 
-	private CoreV1Api api;
+	private static AppsV1Api appsApi;
 
-	private AppsV1Api appsApi;
+	private static NetworkingV1Api networkingApi;
 
-	private NetworkingV1Api networkingApi;
+	private static K8SUtils k8SUtils;
 
-	private K8SUtils k8SUtils;
+	private static final K3sContainer K3S = Commons.container();
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		K3S.start();
+		Commons.validateImage(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME, K3S);
+		createApiClient(K3S.getKubeConfigYaml());
+		api = new CoreV1Api();
+		appsApi = new AppsV1Api();
+		networkingApi = new NetworkingV1Api();
+		k8SUtils = new K8SUtils(api, appsApi);
+		k8SUtils.setUp(NAMESPACE);
+	}
+
+	@AfterAll
+	static void afterAll() throws Exception {
+		Commons.cleanUp(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME, K3S);
+		k8SUtils.removeWiremockImage();
+	}
 
 	@BeforeEach
-	public void setup() throws Exception {
-		this.client = createApiClient();
-		this.api = new CoreV1Api();
-		this.appsApi = new AppsV1Api();
-		this.networkingApi = new NetworkingV1Api();
-		this.k8SUtils = new K8SUtils(api, appsApi);
+	void setup() throws Exception {
+		k8SUtils.deployWiremock(NAMESPACE, false, K3S);
+	}
 
-		deployWiremock();
-
-		// Check to make sure the wiremock deployment is ready
-		k8SUtils.waitForDeployment(WIREMOCK_DEPLOYMENT_NAME, NAMESPACE);
-
-		// Check to see if endpoint is ready
-		k8SUtils.waitForEndpointReady(WIREMOCK_APP_NAME, NAMESPACE);
-
+	@AfterEach
+	void afterEach() throws Exception {
+		cleanup();
+		k8SUtils.cleanUpWiremock(NAMESPACE);
 	}
 
 	@Test
-	public void testLoadBalancerServiceMode() throws Exception {
-		try {
-			deployLoadbalancerServiceIt();
-			testLoadBalancer();
-		}
-		finally {
-			cleanup();
-		}
+	void testLoadBalancerServiceMode() throws Exception {
+		deployLoadbalancerServiceIt();
+		testLoadBalancer();
 	}
 
 	@Test
-	public void testLoadBalancerPodMode() throws Exception {
-		try {
-			deployLoadbalancerPodIt();
-			testLoadBalancer();
-		}
-		finally {
-			cleanup();
-		}
+	void testLoadBalancerPodMode() throws Exception {
+		deployLoadbalancerPodIt();
+		testLoadBalancer();
 	}
 
 	private void cleanup() throws ApiException {
@@ -125,50 +126,37 @@ public class LoadBalancerIT {
 	private void testLoadBalancer() {
 		// Check to make sure the controller deployment is ready
 		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_LOADBALANCER_DEPLOYMENT_NAME, NAMESPACE);
-		RestTemplate rest = new RestTemplateBuilder().build();
-		rest.setErrorHandler(new ResponseErrorHandler() {
-			@Override
-			public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
-				LOG.warn("Received response status code: " + clientHttpResponse.getRawStatusCode());
-				return clientHttpResponse.getRawStatusCode() != 503;
-			}
 
-			@Override
-			public void handleError(ClientHttpResponse clientHttpResponse) {
+		WebClient.Builder builder = builder();
+		WebClient serviceClient = builder.baseUrl(SERVICE_URL).build();
 
-			}
-		});
-		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
-		// available and we get a 503, we just need to wait a bit
-		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).ignoreExceptions()
-				.until(() -> rest.getForEntity("http://localhost:80/loadbalancer-it/servicea", String.class)
-						.getStatusCode().is2xxSuccessful());
-		Map<String, Object> result = rest.getForObject("http://localhost:80/loadbalancer-it/servicea", Map.class);
-		assertThat(result.containsKey("mappings")).isTrue();
-		assertThat(result.containsKey("meta")).isTrue();
+		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(Map.class, String.class, Object.class);
+		@SuppressWarnings("unchecked")
+		Map<String, Object> result = (Map<String, Object>) serviceClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType())).retryWhen(retrySpec())
+				.block();
 
-	}
-
-	@AfterEach
-	public void after() throws Exception {
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
-
-		api.deleteNamespacedService(WIREMOCK_APP_NAME, NAMESPACE, null, null, null, null, null, null);
-		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE, null, null, null, null, null, null);
+		Assertions.assertThat(result.containsKey("mappings")).isTrue();
+		Assertions.assertThat(result.containsKey("meta")).isTrue();
 
 	}
 
 	private void deployLoadbalancerServiceIt() throws Exception {
 		appsApi.createNamespacedDeployment(NAMESPACE, getLoadbalancerServiceItDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getLoadbalancerItService(), null, null, null);
-		networkingApi.createNamespacedIngress(NAMESPACE, getLoadbalancerItIngress(), null, null, null);
+		deployIngress();
 	}
 
 	private void deployLoadbalancerPodIt() throws Exception {
 		appsApi.createNamespacedDeployment(NAMESPACE, getLoadbalancerPodItDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getLoadbalancerItService(), null, null, null);
-		networkingApi.createNamespacedIngress(NAMESPACE, getLoadbalancerItIngress(), null, null, null);
+		deployIngress();
+	}
+
+	private void deployIngress() throws Exception {
+		V1Ingress ingress = getLoadbalancerItIngress();
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
 	private V1Deployment getLoadbalancerServiceItDeployment() throws Exception {
@@ -189,12 +177,6 @@ public class LoadBalancerIT {
 		return deployment;
 	}
 
-	private void deployWiremock() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getWireockDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getWiremockAppService(), null, null, null);
-		networkingApi.createNamespacedIngress(NAMESPACE, getWiremockIngress(), null, null, null);
-	}
-
 	private V1Ingress getLoadbalancerItIngress() throws Exception {
 		return (V1Ingress) K8SUtils
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-it-ingress.yaml");
@@ -205,16 +187,12 @@ public class LoadBalancerIT {
 				.readYamlFromClasspath("spring-cloud-kubernetes-client-loadbalancer-it-service.yaml");
 	}
 
-	private V1Ingress getWiremockIngress() throws Exception {
-		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock-ingress.yaml");
+	private WebClient.Builder builder() {
+		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
 	}
 
-	private V1Service getWiremockAppService() throws Exception {
-		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock-service.yaml");
-	}
-
-	private V1Deployment getWireockDeployment() throws Exception {
-		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock-deployment.yaml");
+	private RetryBackoffSpec retrySpec() {
+		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }

@@ -22,10 +22,10 @@ spec:
           readinessProbe:
             httpGet:
               port: 8080
-              path: /actuator/health/readiness
+              path: /loadbalancer-it/actuator/health/readiness
           livenessProbe:
             httpGet:
               port: 8080
-              path: /actuator/health/liveness
+              path: /loadbalancer-it/actuator/health/liveness
           ports:
             - containerPort: 8080

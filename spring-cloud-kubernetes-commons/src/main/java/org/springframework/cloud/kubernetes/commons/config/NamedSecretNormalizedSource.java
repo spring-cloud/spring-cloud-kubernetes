@@ -25,8 +25,30 @@ import java.util.Objects;
  */
 public final class NamedSecretNormalizedSource extends NormalizedSource {
 
-	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast) {
+	private final ConfigUtils.Prefix prefix;
+
+	private final boolean includeProfileSpecificSources;
+
+	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix,
+			boolean includeProfileSpecificSources) {
 		super(name, namespace, failFast);
+		this.prefix = Objects.requireNonNull(prefix);
+		this.includeProfileSpecificSources = includeProfileSpecificSources;
+	}
+
+	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast,
+			boolean includeProfileSpecificSources) {
+		super(name, namespace, failFast);
+		this.prefix = ConfigUtils.Prefix.DEFAULT;
+		this.includeProfileSpecificSources = includeProfileSpecificSources;
+	}
+
+	public boolean profileSpecificSources() {
+		return includeProfileSpecificSources;
+	}
+
+	public ConfigUtils.Prefix prefix() {
+		return prefix;
 	}
 
 	@Override
@@ -36,7 +58,7 @@ public final class NamedSecretNormalizedSource extends NormalizedSource {
 
 	@Override
 	public String target() {
-		return "Secret";
+		return "secret";
 	}
 
 	@Override

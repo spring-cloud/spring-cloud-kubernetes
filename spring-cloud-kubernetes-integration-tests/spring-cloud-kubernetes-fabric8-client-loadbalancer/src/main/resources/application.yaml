@@ -1,0 +1,3 @@
+spring:
+  webflux:
+    base-path: /loadbalancer-it

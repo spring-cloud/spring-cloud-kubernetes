@@ -3,13 +3,11 @@ kind: Ingress
 metadata:
   name: it-ingress
   namespace: default
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
     - http:
         paths:
-          - path: /client-config-it(/|$)(.*)
+          - path: /
             pathType: Prefix
             backend:
               service:

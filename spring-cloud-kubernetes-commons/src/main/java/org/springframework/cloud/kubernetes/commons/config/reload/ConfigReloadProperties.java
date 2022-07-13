@@ -44,7 +44,7 @@ public class ConfigReloadProperties {
 	private boolean monitoringSecrets = false;
 
 	/**
-	 * Sets the reload strategy for Kubernetes configuration reload on change.
+	 * Sets reload strategy for Kubernetes configuration reload on change.
 	 */
 	private ReloadStrategy strategy = ReloadStrategy.REFRESH;
 

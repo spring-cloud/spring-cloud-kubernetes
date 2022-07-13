@@ -35,7 +35,7 @@
 		<arquillian.version>1.6.0.Final</arquillian.version>
 		<arquillian-cube.version>1.15.2</arquillian-cube.version>
 		<hoverfly.version>0.13.0</hoverfly.version>
-		<kubernetes-fabric8-client.version>5.9.0</kubernetes-fabric8-client.version>
+		<kubernetes-fabric8-client.version>5.12.1</kubernetes-fabric8-client.version>
 		<kubernetes-native-client.version>13.0.2</kubernetes-native-client.version>
 		<istio-client.version>1.7.7.1</istio-client.version>
 		<wiremock.version>2.26.3</wiremock.version>

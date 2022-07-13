@@ -16,9 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client.loadbalancer.it;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -26,18 +27,22 @@ import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Fabric8Utils;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -47,6 +52,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class Fabric8ClientLoadbalancerIT {
 
 	private static final String NAMESPACE = "default";
+
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-loadbalancer";
 
 	private static KubernetesClient client;
 
@@ -62,33 +69,44 @@ public class Fabric8ClientLoadbalancerIT {
 
 	private static String mockIngressName;
 
-	@BeforeEach
-	public void setup() {
-		Config config = Config.autoConfigure(null);
+	private static final K3sContainer K3S = Commons.container();
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		K3S.start();
+		Commons.validateImage(IMAGE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+
+		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
 		client = new DefaultKubernetesClient(config);
+		Fabric8Utils.setUp(client, NAMESPACE);
+	}
 
+	@AfterAll
+	static void afterAll() throws Exception {
+		Commons.cleanUp(IMAGE_NAME, K3S);
+	}
+
+	@BeforeEach
+	void beforeEach() {
 		deployMockManifests();
-
 	}
 
 	@AfterEach
-	public void after() {
+	void after() {
 		deleteManifests();
 	}
 
 	@Test
-	public void testLoadBalancerServiceMode() {
+	void testLoadBalancerServiceMode() {
 
 		deployServiceManifests();
 
-		WebClient client = WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
-				.baseUrl("localhost/loadbalancer-it/servicea").build();
+		WebClient client = builder().baseUrl("localhost/loadbalancer-it/servicea").build();
 
 		@SuppressWarnings("unchecked")
 		Map<String, String> mapResult = (Map<String, String>) client.method(HttpMethod.GET).retrieve()
-				.bodyToMono(Map.class).retryWhen(Retry.fixedDelay(15, Duration.ofSeconds(1))
-						.filter(x -> ((WebClientResponseException) x).getStatusCode().value() == 503))
-				.block();
+				.bodyToMono(Map.class).retryWhen(retrySpec()).block();
 
 		assertThat(mapResult.containsKey("mappings")).isTrue();
 		assertThat(mapResult.containsKey("meta")).isTrue();
@@ -100,14 +118,11 @@ public class Fabric8ClientLoadbalancerIT {
 
 		deployPodManifests();
 
-		WebClient client = WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
-				.baseUrl("localhost/loadbalancer-it/servicea").build();
+		WebClient client = builder().baseUrl("localhost/loadbalancer-it/servicea").build();
 
 		@SuppressWarnings("unchecked")
 		Map<String, String> mapResult = (Map<String, String>) client.method(HttpMethod.GET).retrieve()
-				.bodyToMono(Map.class).retryWhen(Retry.fixedDelay(15, Duration.ofSeconds(1))
-						.filter(x -> ((WebClientResponseException) x).getStatusCode().value() == 503))
-				.block();
+				.bodyToMono(Map.class).retryWhen(retrySpec()).block();
 
 		assertThat(mapResult.containsKey("mappings")).isTrue();
 		assertThat(mapResult.containsKey("meta")).isTrue();
@@ -200,6 +215,9 @@ public class Fabric8ClientLoadbalancerIT {
 		try {
 
 			Deployment deployment = client.apps().deployments().load(getMockDeployment()).get();
+			String[] image = K8SUtils.getImageFromDeployment(deployment).split(":");
+			Commons.pullImage(image[0], image[1], K3S);
+			Commons.loadImage(image[0], image[1], "wiremock", K3S);
 			client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
 			mockDeploymentName = deployment.getMetadata().getName();
 
@@ -220,32 +238,40 @@ public class Fabric8ClientLoadbalancerIT {
 
 	}
 
-	private static FileInputStream getIngress() throws Exception {
+	private static InputStream getIngress() {
 		return Fabric8Utils.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-ingress.yaml");
 	}
 
-	private static FileInputStream getService() throws Exception {
+	private static InputStream getService() {
 		return Fabric8Utils.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-service.yaml");
 	}
 
-	private static FileInputStream getPodDeployment() throws Exception {
+	private static InputStream getPodDeployment() {
 		return Fabric8Utils.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-pod-deployment.yaml");
 	}
 
-	private static FileInputStream getServiceDeployment() throws Exception {
+	private static InputStream getServiceDeployment() {
 		return Fabric8Utils.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-service-deployment.yaml");
 	}
 
-	private static FileInputStream getMockIngress() throws Exception {
-		return Fabric8Utils.inputStream("wiremock-ingress.yaml");
+	private static InputStream getMockIngress() {
+		return Fabric8Utils.inputStream("wiremock/wiremock-ingress.yaml");
 	}
 
-	private static FileInputStream getMockService() throws Exception {
-		return Fabric8Utils.inputStream("wiremock-service.yaml");
+	private static InputStream getMockService() {
+		return Fabric8Utils.inputStream("wiremock/wiremock-service.yaml");
 	}
 
-	private static FileInputStream getMockDeployment() throws Exception {
-		return Fabric8Utils.inputStream("wiremock-deployment.yaml");
+	private static InputStream getMockDeployment() {
+		return Fabric8Utils.inputStream("wiremock/wiremock-deployment.yaml");
+	}
+
+	private WebClient.Builder builder() {
+		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
+	}
+
+	private RetryBackoffSpec retrySpec() {
+		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }

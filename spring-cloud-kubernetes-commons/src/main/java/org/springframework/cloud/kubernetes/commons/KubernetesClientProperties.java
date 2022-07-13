@@ -20,13 +20,20 @@ import java.time.Duration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import static org.springframework.cloud.kubernetes.commons.KubernetesClientProperties.PREFIX;
+
 /**
  * Kubernetes client properties.
  *
  * @author Ioannis Canellos
  */
-@ConfigurationProperties("spring.cloud.kubernetes.client")
+@ConfigurationProperties(PREFIX)
 public class KubernetesClientProperties {
+
+	/**
+	 * Configuration properties prefix.
+	 */
+	public static final String PREFIX = "spring.cloud.kubernetes.client";
 
 	/**
 	 * Default user-agent for kubernetes client.

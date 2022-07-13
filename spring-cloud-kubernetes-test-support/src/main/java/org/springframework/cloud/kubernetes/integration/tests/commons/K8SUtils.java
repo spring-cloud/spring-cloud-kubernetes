@@ -17,37 +17,49 @@
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.apis.NetworkingV1Api;
+import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentBuilder;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
 import io.kubernetes.client.openapi.models.V1EnvVar;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1LoadBalancerIngress;
+import io.kubernetes.client.openapi.models.V1LoadBalancerStatus;
 import io.kubernetes.client.openapi.models.V1ReplicationController;
 import io.kubernetes.client.openapi.models.V1ReplicationControllerList;
+import io.kubernetes.client.openapi.models.V1Role;
+import io.kubernetes.client.openapi.models.V1RoleBinding;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.Yaml;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.ReflectionUtils;
@@ -64,11 +76,19 @@ public class K8SUtils {
 
 	private static final String KUBERNETES_VERSION_FILE = "META-INF/springcloudkubernetes-version.txt";
 
+	private static final String WIREMOCK_DEPLOYMENT_NAME = "servicea-wiremock-deployment";
+
+	private static final String WIREMOCK_APP_NAME = "servicea-wiremock";
+
 	private final Log log = LogFactory.getLog(getClass());
 
 	private final CoreV1Api api;
 
 	private final AppsV1Api appsApi;
+
+	private final NetworkingV1Api networkingApi;
+
+	private final RbacAuthorizationV1Api rbacApi;
 
 	public static ApiClient createApiClient() throws IOException {
 		return createApiClient(false, Duration.ofSeconds(15));
@@ -97,9 +117,19 @@ public class K8SUtils {
 		return client;
 	}
 
+	public static ApiClient createApiClient(String configFile) throws IOException {
+		ApiClient client = Config.fromConfig(new StringReader(configFile));
+		client.setHttpClient(client.getHttpClient().newBuilder().readTimeout(Duration.ofSeconds(15)).build());
+		client.setDebugging(false);
+		Configuration.setDefaultApiClient(client);
+		return client;
+	}
+
 	public K8SUtils(CoreV1Api api, AppsV1Api appsApi) {
 		this.api = api;
 		this.appsApi = appsApi;
+		this.networkingApi = new NetworkingV1Api();
+		this.rbacApi = new RbacAuthorizationV1Api();
 	}
 
 	public Object readYaml(String urlString) throws Exception {
@@ -125,7 +155,8 @@ public class K8SUtils {
 
 	public static Object readYamlFromClasspath(String fileName) throws Exception {
 		ClassLoader classLoader = K8SUtils.class.getClassLoader();
-		File file = new File(classLoader.getResource(fileName).getFile());
+		String file = new BufferedReader(new InputStreamReader(classLoader.getResourceAsStream(fileName))).lines()
+				.collect(Collectors.joining("\n"));
 		return Yaml.load(file);
 	}
 
@@ -185,7 +216,7 @@ public class K8SUtils {
 
 		V1ReplicationController replicationController = controllerList.getItems().get(0);
 		Integer availableReplicas = replicationController.getStatus().getAvailableReplicas();
-		log.info("Available replicas for " + name + ": " + availableReplicas);
+		log.info("Available replicas for " + name + ": " + (availableReplicas == null ? 0 : availableReplicas));
 		return availableReplicas != null && availableReplicas >= 1;
 
 	}
@@ -193,6 +224,41 @@ public class K8SUtils {
 	public void waitForDeployment(String deploymentName, String namespace) {
 		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS)
 				.until(() -> isDeploymentReady(deploymentName, namespace));
+	}
+
+	public void waitForIngress(String ingressName, String namespace) {
+		await().timeout(Duration.ofSeconds(90)).pollInterval(Duration.ofSeconds(3)).until(() -> {
+			try {
+				V1LoadBalancerStatus status = networkingApi
+						.readNamespacedIngress(ingressName, namespace, null, null, null).getStatus().getLoadBalancer();
+
+				if (status == null) {
+					log.info("ingress : " + ingressName + " not ready yet (loadbalancer not yet present)");
+					return false;
+				}
+
+				List<V1LoadBalancerIngress> loadBalancerIngress = status.getIngress();
+				if (loadBalancerIngress == null) {
+					log.info("ingress : " + ingressName + " not ready yet (loadbalancer ingress not yet present)");
+					return false;
+				}
+
+				String ip = loadBalancerIngress.get(0).getIp();
+				if (ip == null) {
+					log.info("ingress : " + ingressName + " not ready yet");
+					return false;
+				}
+
+				log.info("ingress : " + ingressName + " ready with ip : " + ip);
+				return true;
+			}
+			catch (ApiException e) {
+				if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+					return false;
+				}
+				throw new RuntimeException(e);
+			}
+		});
 	}
 
 	public void waitForDeploymentToBeDeleted(String deploymentName, String namespace) {
@@ -218,8 +284,151 @@ public class K8SUtils {
 		}
 		V1Deployment deployment = deployments.getItems().get(0);
 		Integer availableReplicas = deployment.getStatus().getAvailableReplicas();
-		log.info("Available replicas for " + deploymentName + ": " + availableReplicas);
+		log.info("Available replicas for " + deploymentName + ": "
+				+ (availableReplicas == null ? 0 : availableReplicas));
 		return availableReplicas != null && availableReplicas >= 1;
+	}
+
+	public void setUp(String namespace) throws Exception {
+
+		V1ServiceAccount serviceAccount = getConfigK8sClientItServiceAccount();
+		CheckedSupplier<V1ServiceAccount> accountSupplier = () -> api
+				.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), namespace, null, null, null);
+		CheckedSupplier<V1ServiceAccount> accountDefaulter = () -> api.createNamespacedServiceAccount(namespace,
+				serviceAccount, null, null, null);
+		notExistsHandler(accountSupplier, accountDefaulter);
+
+		V1RoleBinding roleBinding = getConfigK8sClientItRoleBinding();
+		notExistsHandler(() -> rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace, null),
+				() -> rbacApi.createNamespacedRoleBinding(namespace, roleBinding, null, null, null));
+
+		V1Role role = getConfigK8sClientItRole();
+		notExistsHandler(() -> rbacApi.readNamespacedRole(role.getMetadata().getName(), namespace, null),
+				() -> rbacApi.createNamespacedRole(namespace, role, null, null, null));
+	}
+
+	public static V1ServiceAccount getConfigK8sClientItServiceAccount() throws Exception {
+		return (V1ServiceAccount) K8SUtils.readYamlFromClasspath("setup/service-account.yaml");
+	}
+
+	public static V1RoleBinding getConfigK8sClientItRoleBinding() throws Exception {
+		return (V1RoleBinding) K8SUtils.readYamlFromClasspath("setup/role-binding.yaml");
+	}
+
+	public static V1Role getConfigK8sClientItRole() throws Exception {
+		return (V1Role) K8SUtils.readYamlFromClasspath("setup/role.yaml");
+	}
+
+	public void deployWiremock(String namespace, boolean rootPath, K3sContainer container) throws Exception {
+		innerDeployWiremock(namespace, rootPath, container);
+
+		// Check to make sure the wiremock deployment is ready
+		waitForDeployment(WIREMOCK_DEPLOYMENT_NAME, namespace);
+
+		// Check to see if endpoint is ready
+		waitForEndpointReady(WIREMOCK_APP_NAME, namespace);
+	}
+
+	/**
+	 * this removes wiremock related manifests, but keeps the image loaded in the
+	 * container. As such can be used across tests.
+	 */
+	public void cleanUpWiremock(String namespace) throws Exception {
+		appsApi.deleteCollectionNamespacedDeployment(namespace, null, null, null,
+				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
+
+		api.deleteNamespacedService(WIREMOCK_APP_NAME, namespace, null, null, null, null, null, null);
+		networkingApi.deleteNamespacedIngress("wiremock-ingress", namespace, null, null, null, null, null, null);
+		waitForDeploymentToBeDeleted(WIREMOCK_DEPLOYMENT_NAME, namespace);
+	}
+
+	/**
+	 * this one should be called once all tests in a suite are done, as it removes the
+	 * image from a running container.
+	 */
+	public void removeWiremockImage() throws Exception {
+		V1Deployment wiremockDeployment = getWiremockDeployment();
+		String wiremockImage = getImageFromDeployment(wiremockDeployment);
+		Commons.cleanUpDownloadedImage(wiremockImage);
+	}
+
+	/**
+	 * Gets the image from a Kubernetes Client deployment yaml. Assumes there is only one
+	 * container defined in the deployment.
+	 * @param deployment deployment yaml
+	 * @return An array where the first item is the mage name and the second item is the
+	 * tag
+	 */
+	public static String getImageFromDeployment(V1Deployment deployment) {
+		return deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+	}
+
+	/**
+	 * Gets the image from a Fabric8 deployment yaml. Assumes there is only one container
+	 * defined in the deployment.
+	 * @param deployment deployment yaml
+	 * @return An array where the first item is the mage name and the second item is the
+	 * tag
+	 */
+	public static String getImageFromDeployment(Deployment deployment) {
+		return deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+	}
+
+	private void innerDeployWiremock(String namespace, boolean rootPath, K3sContainer container) throws Exception {
+		V1Deployment deployment = getWiremockDeployment();
+		String[] image = getImageFromDeployment(deployment).split(":", 2);
+		Commons.pullImage(image[0], image[1], container);
+		Commons.loadImage(image[0], image[1], "wiremock", container);
+		appsApi.createNamespacedDeployment(namespace, getWiremockDeployment(), null, null, null);
+		api.createNamespacedService(namespace, getWiremockAppService(), null, null, null);
+
+		V1Ingress ingress;
+		if (rootPath) {
+			ingress = getWiremockRootPathIngress();
+		}
+		else {
+			ingress = getWiremockIngress();
+		}
+
+		networkingApi.createNamespacedIngress(namespace, ingress, null, null, null);
+		waitForIngress(ingress.getMetadata().getName(), namespace);
+	}
+
+	private static V1Ingress getWiremockIngress() throws Exception {
+		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock/wiremock-ingress.yaml");
+	}
+
+	private static V1Ingress getWiremockRootPathIngress() throws Exception {
+		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock/wiremock-root-path-ingress.yaml");
+	}
+
+	private static V1Service getWiremockAppService() throws Exception {
+		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock/wiremock-service.yaml");
+	}
+
+	private static V1Deployment getWiremockDeployment() throws Exception {
+		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock/wiremock-deployment.yaml");
+	}
+
+	private static <T> void notExistsHandler(CheckedSupplier<T> callee, CheckedSupplier<T> defaulter) throws Exception {
+		try {
+			callee.get();
+		}
+		catch (Exception exception) {
+			if (exception instanceof ApiException apiException) {
+				if (apiException.getCode() == 404) {
+					defaulter.get();
+					return;
+				}
+			}
+			throw new RuntimeException(exception);
+		}
+	}
+
+	private interface CheckedSupplier<T> {
+
+		T get() throws Exception;
+
 	}
 
 }

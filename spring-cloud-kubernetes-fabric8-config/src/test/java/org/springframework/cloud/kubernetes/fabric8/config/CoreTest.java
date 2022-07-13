@@ -23,25 +23,14 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = TestApplication.class,
-		properties = { "spring.application.name=testapp", "spring.cloud.kubernetes.client.namespace=testns",
-				"spring.cloud.kubernetes.client.trustCerts=true", "spring.cloud.kubernetes.config.namespace=testns",
-				"spring.cloud.kubernetes.secrets.enableApi=true", "spring.main.cloud-platform=KUBERNETES" })
-@EnableKubernetesMockClient(crud = true, https = false)
-public class CoreTest {
+abstract class CoreTest {
 
 	private static KubernetesClient mockClient;
 
@@ -51,9 +40,8 @@ public class CoreTest {
 	@Autowired
 	private Config config;
 
-	@BeforeAll
-	public static void setUpBeforeClass() {
-
+	public static void setUpBeforeClass(KubernetesClient mockClient) {
+		CoreTest.mockClient = mockClient;
 		Map<String, String> data1 = new HashMap<>();
 		data1.put("spring.kubernetes.test.value", "value1");
 		mockClient.configMaps().inNamespace("testns").create(

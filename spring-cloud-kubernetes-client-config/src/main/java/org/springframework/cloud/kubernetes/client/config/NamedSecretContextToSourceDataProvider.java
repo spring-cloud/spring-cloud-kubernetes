@@ -16,22 +16,12 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.BiFunction;
+import java.util.Set;
 import java.util.function.Supplier;
 
-import io.kubernetes.client.openapi.models.V1Secret;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
-
-import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.dataFromSecret;
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
+import org.springframework.cloud.kubernetes.commons.config.NamedSourceData;
 
 /**
  * Provides an implementation of {@link KubernetesClientContextToSourceData} for a named
@@ -41,16 +31,7 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.on
  */
 final class NamedSecretContextToSourceDataProvider implements Supplier<KubernetesClientContextToSourceData> {
 
-	private static final Log LOG = LogFactory.getLog(NamedSecretContextToSourceDataProvider.class);
-
-	private final BiFunction<String, String, String> sourceNameMapper;
-
-	private NamedSecretContextToSourceDataProvider(BiFunction<String, String, String> sourceNameFunction) {
-		this.sourceNameMapper = Objects.requireNonNull(sourceNameFunction);
-	}
-
-	static NamedSecretContextToSourceDataProvider of(BiFunction<String, String, String> sourceNameFunction) {
-		return new NamedSecretContextToSourceDataProvider(sourceNameFunction);
+	NamedSecretContextToSourceDataProvider() {
 	}
 
 	@Override
@@ -59,31 +40,14 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 
 			NamedSecretNormalizedSource source = (NamedSecretNormalizedSource) context.normalizedSource();
 
-			Map<String, Object> result = new HashMap<>();
-			String namespace = context.namespace();
-			// error should never be thrown here, since we always expect a name
-			// explicit or implicit
-			String name = source.name().orElseThrow();
-
-			try {
-
-				LOG.info("Loading Secret with name '" + name + "' in namespace '" + namespace + "'");
-				Optional<V1Secret> secret;
-				secret = context.client()
-						.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
-						.getItems().stream().filter(s -> name.equals(s.getMetadata().getName())).findFirst();
-
-				secret.ifPresent(s -> result.putAll(dataFromSecret(s, namespace)));
-
-			}
-			catch (Exception e) {
-				String message = "Unable to read Secret with name '" + name + "' in namespace '" + namespace + "'";
-				onException(source.failFast(), message, e);
-			}
-
-			String propertySourceName = sourceNameMapper.apply(name, namespace);
-			return new SourceData(propertySourceName, result);
-
+			return new NamedSourceData() {
+				@Override
+				public MultipleSourcesContainer dataSupplier(Set<String> sourceNames) {
+					return KubernetesClientConfigUtils.secretsDataByName(context.client(), context.namespace(),
+							sourceNames, context.environment());
+				}
+			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
+					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
 		};
 	}
 

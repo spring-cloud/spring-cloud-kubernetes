@@ -16,11 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client.config.it;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
@@ -29,29 +28,34 @@ import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.k3s.K3sContainer;
+import org.testcontainers.shaded.org.awaitility.Awaitility;
+import reactor.netty.http.client.HttpClient;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.web.client.ResponseErrorHandler;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.getPomVersion;
 
 /**
  * @author Ryan Baxter
  */
-public class ConfigMapAndSecretIT {
+class ConfigMapAndSecretIT {
 
-	private static final Log LOG = LogFactory.getLog(ConfigMapAndSecretIT.class);
+	private static final String PROPERTY_URL = "localhost:80/myProperty";
+
+	private static final String SECRET_URL = "localhost:80/mySecret";
 
 	private static final String SPRING_CLOUD_CLIENT_CONFIG_IT_DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-config-it-deployment";
 
@@ -61,14 +65,7 @@ public class ConfigMapAndSecretIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static final String MYPROPERTY_URL = "http://localhost:80/client-config-it/myProperty";
-
-	private static final String MYSECRET_URL = "http://localhost:80/client-config-it/mySecret";
-
 	private static final String APP_NAME = "spring-cloud-kubernetes-client-config-it";
-
-	// though not obvious, we need this, even if it is "unused"
-	private static ApiClient client;
 
 	private static CoreV1Api api;
 
@@ -78,17 +75,28 @@ public class ConfigMapAndSecretIT {
 
 	private static K8SUtils k8SUtils;
 
+	private static final K3sContainer K3S = Commons.container();
+
 	@BeforeAll
-	public static void setup() throws Exception {
-		client = createApiClient();
+	static void setup() throws Exception {
+		K3S.start();
+		Commons.validateImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
+		createApiClient(K3S.getKubeConfigYaml());
 		api = new CoreV1Api();
 		appsApi = new AppsV1Api();
 		networkingApi = new NetworkingV1Api();
 		k8SUtils = new K8SUtils(api, appsApi);
+		k8SUtils.setUp(NAMESPACE);
+	}
+
+	@AfterAll
+	static void afterAll() throws Exception {
+		Commons.cleanUp(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
 	}
 
 	@AfterEach
-	public void after() throws Exception {
+	void after() throws Exception {
 		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
 				"metadata.name=" + K8S_CONFIG_CLIENT_IT_NAME, null, null, null, null, null, null, null, null, null);
 		api.deleteNamespacedService(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, NAMESPACE, null, null, null, null, null, null);
@@ -97,56 +105,8 @@ public class ConfigMapAndSecretIT {
 		api.deleteNamespacedSecret(APP_NAME, NAMESPACE, null, null, null, null, null, null);
 	}
 
-	public void testConfigMapAndSecretRefresh() throws Exception {
-
-		RestTemplate rest = new RestTemplateBuilder().build();
-		rest.setErrorHandler(new ResponseErrorHandler() {
-			@Override
-			public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
-				LOG.warn("Received response status code: " + clientHttpResponse.getRawStatusCode());
-				return clientHttpResponse.getRawStatusCode() != 503;
-			}
-
-			@Override
-			public void handleError(ClientHttpResponse clientHttpResponse) {
-
-			}
-		});
-
-		// Sometimes the NGINX ingress takes a bit to catch up and realize the service is
-		// available and we get a 503, we just need to wait a bit
-		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
-				.until(() -> rest.getForEntity(MYPROPERTY_URL, String.class).getStatusCode().is2xxSuccessful());
-
-		String myProperty = rest.getForObject(MYPROPERTY_URL, String.class);
-		assertThat(myProperty).isEqualTo("from-config-map");
-		String mySecret = rest.getForObject(MYSECRET_URL, String.class);
-		assertThat(mySecret).isEqualTo("p455w0rd");
-
-		V1ConfigMap configMap = getConfigK8sClientItConfigMap();
-		Map<String, String> data = configMap.getData();
-		data.replace("application.yaml", data.get("application.yaml").replace("from-config-map", "from-unit-test"));
-		configMap.data(data);
-		api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null);
-		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
-				.until(() -> rest.getForObject(MYPROPERTY_URL, String.class).equals("from-unit-test"));
-		myProperty = rest.getForObject(MYPROPERTY_URL, String.class);
-		assertThat(myProperty).isEqualTo("from-unit-test");
-
-		V1Secret secret = getConfigK8sClientItCSecret();
-		Map<String, byte[]> secretData = secret.getData();
-		secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
-		secret.setData(secretData);
-		api.replaceNamespacedSecret(APP_NAME, NAMESPACE, secret, null, null, null);
-		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
-				.until(() -> rest.getForObject(MYSECRET_URL, String.class).equals("p455w1rd"));
-		mySecret = rest.getForObject(MYSECRET_URL, String.class);
-		assertThat(mySecret).isEqualTo("p455w1rd");
-
-	}
-
 	@Test
-	public void testConfigMapAndSecretWatchRefresh() throws Exception {
+	void testConfigMapAndSecretWatchRefresh() throws Exception {
 		deployConfigK8sClientIt();
 
 		// Check to make sure the controller deployment is ready
@@ -155,12 +115,43 @@ public class ConfigMapAndSecretIT {
 	}
 
 	@Test
-	public void testConfigMapAndSecretPollingRefresh() throws Exception {
+	void testConfigMapAndSecretPollingRefresh() throws Exception {
 		deployConfigK8sClientPollingIt();
 
 		// Check to make sure the controller deployment is ready
 		k8SUtils.waitForDeployment(SPRING_CLOUD_CLIENT_CONFIG_IT_DEPLOYMENT_NAME, NAMESPACE);
 		testConfigMapAndSecretRefresh();
+	}
+
+	void testConfigMapAndSecretRefresh() throws Exception {
+
+		WebClient.Builder builder = builder();
+		WebClient propertyClient = builder.baseUrl(PROPERTY_URL).build();
+
+		String property = propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(retrySpec()).block();
+		assertThat(property).isEqualTo("from-config-map");
+
+		WebClient secretClient = builder.baseUrl(SECRET_URL).build();
+		String secret = secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
+		assertThat(secret).isEqualTo("p455w0rd");
+
+		V1ConfigMap configMap = getConfigK8sClientItConfigMap();
+		Map<String, String> data = configMap.getData();
+		data.replace("application.yaml", data.get("application.yaml").replace("from-config-map", "from-unit-test"));
+		configMap.data(data);
+		api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null);
+		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
+				.until(() -> propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block()
+						.equals("from-unit-test"));
+		V1Secret v1Secret = getConfigK8sClientItCSecret();
+		Map<String, byte[]> secretData = v1Secret.getData();
+		secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
+		v1Secret.setData(secretData);
+		api.replaceNamespacedSecret(APP_NAME, NAMESPACE, v1Secret, null, null, null);
+		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2)).until(() -> secretClient
+				.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("p455w1rd"));
 	}
 
 	private static void deployConfigK8sClientIt() throws Exception {
@@ -169,7 +160,10 @@ public class ConfigMapAndSecretIT {
 		api.createNamespacedConfigMap(NAMESPACE, getConfigK8sClientItConfigMap(), null, null, null);
 		appsApi.createNamespacedDeployment(NAMESPACE, getConfigK8sClientItDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getConfigK8sClientItService(), null, null, null);
-		networkingApi.createNamespacedIngress(NAMESPACE, getConfigK8sClientItIngress(), null, null, null);
+
+		V1Ingress ingress = getConfigK8sClientItIngress();
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
 	private static void deployConfigK8sClientPollingIt() throws Exception {
@@ -213,6 +207,14 @@ public class ConfigMapAndSecretIT {
 
 	private static V1Secret getConfigK8sClientItCSecret() throws Exception {
 		return (V1Secret) K8SUtils.readYamlFromClasspath("spring-cloud-kubernetes-client-config-it-secret.yaml");
+	}
+
+	private WebClient.Builder builder() {
+		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
+	}
+
+	private RetryBackoffSpec retrySpec() {
+		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }

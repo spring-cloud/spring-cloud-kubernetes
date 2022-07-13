@@ -52,11 +52,11 @@ public class KubernetesClientSecretsPropertySource extends SecretsPropertySource
 	}
 
 	private static KubernetesClientContextToSourceData namedSecret() {
-		return NamedSecretContextToSourceDataProvider.of(SecretsPropertySource::getSourceName).get();
+		return new NamedSecretContextToSourceDataProvider().get();
 	}
 
 	private static KubernetesClientContextToSourceData labeledSecret() {
-		return LabeledSecretContextToSourceDataProvider.of(SecretsPropertySource::getSourceName).get();
+		return new LabeledSecretContextToSourceDataProvider().get();
 	}
 
 }

@@ -16,13 +16,16 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.AfterEach;
 
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.bootstrap.BootstrapConfiguration;
-import org.springframework.cloud.kubernetes.fabric8.config.reload.ConfigReloadAutoConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8ConfigReloadAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
@@ -32,14 +35,18 @@ public class KubernetesConfigTestBase {
 
 	private ConfigurableApplicationContext context;
 
+	protected String[] commonProperties = new String[0];
+
 	protected ConfigurableApplicationContext getContext() {
 		return context;
 	}
 
 	protected void setup(Class<?> mockClientConfiguration, String... env) {
+		String[] properties = Stream.concat(Arrays.stream(commonProperties), Arrays.stream(env)).toArray(String[]::new);
 		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class, mockClientConfiguration,
-				BootstrapConfiguration.class, ConfigReloadAutoConfiguration.class, RefreshAutoConfiguration.class)
-						.web(org.springframework.boot.WebApplicationType.NONE).properties(env).run();
+				BootstrapConfiguration.class, Fabric8ConfigReloadAutoConfiguration.class,
+				RefreshAutoConfiguration.class).web(org.springframework.boot.WebApplicationType.NONE)
+						.properties(properties).run();
 	}
 
 	@AfterEach

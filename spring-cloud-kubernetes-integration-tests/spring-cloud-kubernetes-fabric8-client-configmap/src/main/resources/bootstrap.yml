@@ -1,7 +1,0 @@
-spring:
-  cloud:
-    kubernetes:
-      config:
-        sources:
-          - name: my-configmap
-            namespace: default

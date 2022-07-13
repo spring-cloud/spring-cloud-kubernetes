@@ -24,12 +24,18 @@ import org.junit.jupiter.api.Test;
  */
 class NamedConfigMapNormalizedSourceTests {
 
+	private static final ConfigUtils.Prefix PREFIX = ConfigUtils.findPrefix("prefix", false, false, "prefix");
+
 	@Test
 	void testEqualsAndHashCode() {
-		NamedConfigMapNormalizedSource left = new NamedConfigMapNormalizedSource("name", "namespace", false, "prefix",
+
+		ConfigUtils.Prefix knownLeft = ConfigUtils.findPrefix("prefix", false, false, "some");
+		ConfigUtils.Prefix knownRight = ConfigUtils.findPrefix("prefix", false, false, "non-equal-prefix");
+
+		NamedConfigMapNormalizedSource left = new NamedConfigMapNormalizedSource("name", "namespace", false, knownLeft,
 				true);
-		NamedConfigMapNormalizedSource right = new NamedConfigMapNormalizedSource("name", "namespace", true,
-				"non-equal-prefix", false);
+		NamedConfigMapNormalizedSource right = new NamedConfigMapNormalizedSource("name", "namespace", true, knownRight,
+				false);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -37,21 +43,22 @@ class NamedConfigMapNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, "prefix",
+
+		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
 				true);
 		Assertions.assertSame(one.type(), NormalizedSourceType.NAMED_CONFIG_MAP);
 	}
 
 	@Test
 	void testTarget() {
-		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, "prefix",
+		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
 				true);
-		Assertions.assertEquals(one.target(), "Config Map");
+		Assertions.assertEquals(one.target(), "configmap");
 	}
 
 	@Test
 	void testConstructorFields() {
-		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, "prefix",
+		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
 				true);
 		Assertions.assertEquals(one.name().get(), "name");
 		Assertions.assertEquals(one.namespace().get(), "namespace");

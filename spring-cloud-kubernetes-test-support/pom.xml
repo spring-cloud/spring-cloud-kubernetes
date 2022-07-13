@@ -41,6 +41,18 @@
 			<artifactId>awaitility</artifactId>
 			<version>${awaitility.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers</artifactId>
+			<version>1.16.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>k3s</artifactId>
+			<version>1.16.3</version>
+		</dependency>
+
 	</dependencies>
 
 </project>

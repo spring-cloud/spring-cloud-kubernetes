@@ -25,18 +25,25 @@ import java.util.Objects;
  */
 public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 
-	private final String prefix;
+	private final ConfigUtils.Prefix prefix;
 
 	private final boolean includeProfileSpecificSources;
 
-	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast, String prefix,
+	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix,
 			boolean includeProfileSpecificSources) {
 		super(name, namespace, failFast);
 		this.prefix = Objects.requireNonNull(prefix);
 		this.includeProfileSpecificSources = includeProfileSpecificSources;
 	}
 
-	public String prefix() {
+	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast,
+			boolean includeProfileSpecificSources) {
+		super(name, namespace, failFast);
+		this.prefix = ConfigUtils.Prefix.DEFAULT;
+		this.includeProfileSpecificSources = includeProfileSpecificSources;
+	}
+
+	public ConfigUtils.Prefix prefix() {
 		return prefix;
 	}
 
@@ -51,7 +58,7 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 
 	@Override
 	public String target() {
-		return "Config Map";
+		return "configmap";
 	}
 
 	@Override

@@ -16,42 +16,68 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.Map;
+import java.util.Set;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author wind57
  */
-public class ConfigUtilsTests {
+class ConfigUtilsTests {
 
 	@Test
-	public void testExplicitPrefixSet() {
-		String result = ConfigUtils.findPrefix("explicitPrefix", null, false, "irrelevant");
-		Assertions.assertEquals(result, "explicitPrefix");
+	void testExplicitPrefixSet() {
+		ConfigUtils.Prefix result = ConfigUtils.findPrefix("explicitPrefix", null, false, "irrelevant");
+		Assertions.assertSame(result, ConfigUtils.Prefix.KNOWN);
+		Assertions.assertEquals(result.prefixProvider().get(), "explicitPrefix");
 	}
 
 	@Test
-	public void testUseNameAsPrefixTrue() {
-		String result = ConfigUtils.findPrefix("", Boolean.TRUE, false, "name-to-use");
-		Assertions.assertEquals(result, "name-to-use");
+	void testUseNameAsPrefixTrue() {
+		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", Boolean.TRUE, false, "name-to-use");
+		Assertions.assertSame(result, ConfigUtils.Prefix.KNOWN);
+		Assertions.assertEquals(result.prefixProvider().get(), "name-to-use");
 	}
 
 	@Test
-	public void testUseNameAsPrefixFalse() {
-		String result = ConfigUtils.findPrefix("", Boolean.FALSE, false, "name-not-to-use");
-		Assertions.assertEquals(result, "");
+	void testUseNameAsPrefixFalse() {
+		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", Boolean.FALSE, false, "name-not-to-use");
+		Assertions.assertSame(result, ConfigUtils.Prefix.DEFAULT);
 	}
 
 	@Test
-	public void testDefaultUseNameAsPrefixTrue() {
-		String result = ConfigUtils.findPrefix("", null, true, "name-to-use");
-		Assertions.assertEquals(result, "name-to-use");
+	void testDefaultUseNameAsPrefixTrue() {
+		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", null, true, "name-to-use");
+		Assertions.assertSame(result, ConfigUtils.Prefix.KNOWN);
+		Assertions.assertEquals(result.prefixProvider().get(), "name-to-use");
 	}
 
 	@Test
-	public void testNoMatch() {
-		String result = ConfigUtils.findPrefix("", null, false, "name-not-to-use");
-		Assertions.assertEquals(result, "");
+	void testNoMatch() {
+		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", null, false, "name-not-to-use");
+		Assertions.assertSame(result, ConfigUtils.Prefix.DEFAULT);
+	}
+
+	@Test
+	void testUnsetEmpty() {
+		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", null, false, "name-not-to-use");
+		Assertions.assertSame(result, ConfigUtils.Prefix.DEFAULT);
+
+		String expected = Assertions.assertDoesNotThrow(() -> result.prefixProvider().get());
+		Assertions.assertEquals("", expected);
+	}
+
+	@Test
+	void testDelayed() {
+		ConfigUtils.Prefix result = ConfigUtils.findPrefix(null, true, false, null);
+		Assertions.assertSame(result, ConfigUtils.Prefix.DELAYED);
+
+		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class,
+				() -> result.prefixProvider().get());
+
+		Assertions.assertEquals("prefix is delayed, needs to be taken elsewhere", ex.getMessage());
 	}
 
 	/**
@@ -66,7 +92,7 @@ public class ConfigUtilsTests {
 	 * above will generate "true" for a normalized source
 	 */
 	@Test
-	public void testUseIncludeProfileSpecificSourcesOnlyDefaultSet() {
+	void testUseIncludeProfileSpecificSourcesOnlyDefaultSet() {
 		Assertions.assertTrue(ConfigUtils.includeProfileSpecificSources(true, null));
 	}
 
@@ -82,7 +108,7 @@ public class ConfigUtilsTests {
 	 * above will generate "false" for a normalized source
 	 */
 	@Test
-	public void testUseIncludeProfileSpecificSourcesOnlyDefaultNotSet() {
+	void testUseIncludeProfileSpecificSourcesOnlyDefaultNotSet() {
 		Assertions.assertFalse(ConfigUtils.includeProfileSpecificSources(false, null));
 	}
 
@@ -101,8 +127,36 @@ public class ConfigUtilsTests {
 	 * above will generate "false" for a normalized source
 	 */
 	@Test
-	public void testUseIncludeProfileSpecificSourcesSourcesOverridesDefault() {
+	void testUseIncludeProfileSpecificSourcesSourcesOverridesDefault() {
 		Assertions.assertFalse(ConfigUtils.includeProfileSpecificSources(true, false));
+	}
+
+	@Test
+	void testWithPrefix() {
+		PrefixContext context = new PrefixContext(Map.of("a", "b", "c", "d"), "prefix", "namespace",
+				Set.of("name1", "name2"));
+
+		SourceData result = ConfigUtils.withPrefix("configmap", context);
+
+		Assertions.assertEquals(result.sourceName(), "configmap.name1.name2.namespace");
+
+		Assertions.assertEquals(result.sourceData().get("prefix.a"), "b");
+		Assertions.assertEquals(result.sourceData().get("prefix.c"), "d");
+	}
+
+	/*
+	 * source names should be reproducible all the time, this test asserts this.
+	 */
+	@Test
+	void testWithPrefixSortedName() {
+		PrefixContext context = new PrefixContext(Map.of("a", "b", "c", "d"), "prefix", "namespace",
+				Set.of("namec", "namea", "nameb"));
+
+		SourceData result = ConfigUtils.withPrefix("configmap", context);
+		Assertions.assertEquals(result.sourceName(), "configmap.namea.nameb.namec.namespace");
+
+		Assertions.assertEquals(result.sourceData().get("prefix.a"), "b");
+		Assertions.assertEquals(result.sourceData().get("prefix.c"), "d");
 	}
 
 }

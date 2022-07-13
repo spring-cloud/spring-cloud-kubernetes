@@ -16,17 +16,17 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Ryan Baxter
  */
-public class ConfigurationWatcherConfigurationPropertiesTests {
+class ConfigurationWatcherConfigurationPropertiesTests {
 
 	@Test
-	public void setActuatorPath() {
+	void setActuatorPath() {
 		ConfigurationWatcherConfigurationProperties properties = new ConfigurationWatcherConfigurationProperties();
 		properties.setActuatorPath("foo");
 		assertThat(properties.getActuatorPath()).isEqualTo("/foo");

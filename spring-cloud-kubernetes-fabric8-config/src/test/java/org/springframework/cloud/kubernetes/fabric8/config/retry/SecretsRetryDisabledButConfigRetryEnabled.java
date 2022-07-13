@@ -16,23 +16,18 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.retry;
 
+import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
 import io.fabric8.kubernetes.api.model.SecretListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.cloud.kubernetes.fabric8.config.Application;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.context.ApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -41,25 +36,23 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Isik Erhan
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = { "spring.cloud.kubernetes.client.namespace=default",
-				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false",
-				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.secrets.name=my-secret",
-				"spring.cloud.kubernetes.secrets.enable-api=true", "spring.main.cloud-platform=KUBERNETES" },
-		classes = Application.class)
-@EnableKubernetesMockClient
-class SecretsRetryDisabledButConfigRetryEnabled {
+abstract class SecretsRetryDisabledButConfigRetryEnabled {
 
-	private static final String API = "/api/v1/namespaces/default/secrets/my-secret";
+	private static final String SECRET_API = "/api/v1/namespaces/default/secrets";
 
-	private static final String LIST_API = "/api/v1/namespaces/default/secrets";
+	private static final String CONFIG_MAP_API = "/api/v1/namespaces/default/configmaps";
 
 	private static KubernetesMockServer mockServer;
 
 	private static KubernetesClient mockClient;
 
-	@BeforeAll
-	static void setup() {
+	protected SecretsPropertySourceLocator psl;
+
+	protected SecretsPropertySourceLocator verifiablePsl;
+
+	protected static void setup(KubernetesClient mockClient, KubernetesMockServer mockServer) {
+		SecretsRetryDisabledButConfigRetryEnabled.mockClient = mockClient;
+		SecretsRetryDisabledButConfigRetryEnabled.mockServer = mockServer;
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -68,34 +61,32 @@ class SecretsRetryDisabledButConfigRetryEnabled {
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		// return empty secret list to not fail context creation
-		mockServer.expect().withPath(LIST_API).andReturn(200, new SecretListBuilder().build()).always();
+		mockServer.expect().withPath(SECRET_API).andReturn(200, new SecretListBuilder().build()).always();
+		mockServer.expect().withPath(CONFIG_MAP_API).andReturn(200, new ConfigMapListBuilder().build()).always();
 	}
-
-	@SpyBean
-	private Fabric8SecretsPropertySourceLocator propertySourceLocator;
 
 	@Autowired
 	private ApplicationContext context;
 
 	@Test
 	void locateShouldFailWithoutRetrying() {
-
 		/*
 		 * Enabling config retry causes Spring Retry to be enabled and a
 		 * RetryOperationsInterceptor bean with NeverRetryPolicy for secrets to be
 		 * defined. SecretsPropertySourceLocator should not retry even Spring Retry is
 		 * enabled.
 		 */
+		mockServer.clearExpectations();
+		mockServer.expect().withPath(SECRET_API).andReturn(500, "Internal Server Error").once();
 
-		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
-
-		assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isTrue();
-		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name 'my-secret' in namespace 'default'");
+		assertRetryBean(context);
+		assertThatThrownBy(() -> psl.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining("v1/namespaces/default/secrets. Message: Internal Server Error");
 
 		// verify that propertySourceLocator.locate is called only once
-		verify(propertySourceLocator, times(1)).locate(any());
+		verify(verifiablePsl, times(1)).locate(any());
 	}
+
+	protected abstract void assertRetryBean(ApplicationContext context);
 
 }

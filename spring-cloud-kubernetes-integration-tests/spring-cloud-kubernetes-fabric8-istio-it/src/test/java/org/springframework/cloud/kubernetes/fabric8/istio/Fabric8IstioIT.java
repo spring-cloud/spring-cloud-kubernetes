@@ -16,9 +16,11 @@
 
 package org.springframework.cloud.kubernetes.fabric8.istio;
 
-import java.io.FileInputStream;
+import java.io.File;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -30,22 +32,37 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.Container;
+import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Fabric8Utils;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 /**
  * @author wind57
  */
-public class Fabric8IstioIT {
+class Fabric8IstioIT {
 
 	private static final String NAMESPACE = "istio-test";
+
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-istio-it";
+
+	private static final String ISTIO_PROXY = "istio/proxyv2";
+
+	private static final String ISTIO_PILOT = "istio/pilot";
+
+	private static final String ISTIO_VERSION = "1.13.3";
+
+	private static final String LOCAL_ISTIO_BIN_PATH = "../../istio-cli/istio-" + ISTIO_VERSION + "/bin";
+
+	private static final String CONTAINER_ISTIO_BIN_PATH = "/tmp/istio/istio-bin/bin/";
 
 	private static KubernetesClient client;
 
@@ -55,27 +72,59 @@ public class Fabric8IstioIT {
 
 	private static String ingressName;
 
+	private static K3sContainer K3S;
+
 	@BeforeAll
-	public static void setup() {
-		Config config = Config.autoConfigure(null);
+	static void beforeAll() throws Exception {
+		// Path passed to K3S container must be absolute
+		String absolutePath = new File(LOCAL_ISTIO_BIN_PATH).getAbsolutePath();
+		K3S = Commons.container().withFileSystemBind(absolutePath, CONTAINER_ISTIO_BIN_PATH);
+		K3S.start();
+		Commons.validateImage(IMAGE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+
+		Commons.pullImage(ISTIO_PROXY, ISTIO_VERSION, K3S);
+		Commons.loadImage(ISTIO_PROXY, ISTIO_VERSION, "istioproxy", K3S);
+		Commons.pullImage(ISTIO_PILOT, ISTIO_VERSION, K3S);
+		Commons.loadImage(ISTIO_PILOT, ISTIO_VERSION, "istiopilot", K3S);
+
+		processExecResult(K3S.execInContainer("sh", "-c", "kubectl create namespace istio-test"));
+		processExecResult(
+				K3S.execInContainer("sh", "-c", "kubectl label namespace istio-test istio-injection=enabled"));
+
+		// for Mac M1 with aarch64
+		if (System.getProperty("os.arch").equals("aarch64")) {
+			processExecResult(K3S.execInContainer("sh", "-c", CONTAINER_ISTIO_BIN_PATH + "istioctl"
+					+ " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set hub=docker.io/querycapistio --set profile=minimal -y"));
+		}
+		else {
+			processExecResult(K3S.execInContainer("sh", "-c", CONTAINER_ISTIO_BIN_PATH + "istioctl"
+					+ " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=minimal -y"));
+		}
+
+		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
 		client = new DefaultKubernetesClient(config);
+		Fabric8Utils.setUpIstio(client, NAMESPACE);
+
 		deployManifests();
 	}
 
 	@AfterAll
-	public static void after() {
+	static void afterAll() throws Exception {
+		Commons.cleanUp(IMAGE_NAME, K3S);
+	}
+
+	@AfterAll
+	static void after() {
 		deleteManifests();
 	}
 
 	@Test
-	public void test() {
-		WebClient client = WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
-				.baseUrl("localhost/fabric8-client-istio/profiles").build();
+	void test() {
+		WebClient client = builder().baseUrl("localhost/profiles").build();
 
 		@SuppressWarnings("unchecked")
-		List<String> result = client.method(HttpMethod.GET).retrieve().bodyToMono(List.class)
-				.retryWhen(Retry.fixedDelay(15, Duration.ofSeconds(1))
-						.filter(x -> ((WebClientResponseException) x).getStatusCode().value() == 503))
+		List<String> result = client.method(HttpMethod.GET).retrieve().bodyToMono(List.class).retryWhen(retrySpec())
 				.block();
 
 		// istio profile is present
@@ -92,6 +141,7 @@ public class Fabric8IstioIT {
 
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 
@@ -118,26 +168,44 @@ public class Fabric8IstioIT {
 			ingressName = ingress.getMetadata().getName();
 			client.network().v1().ingresses().inNamespace(NAMESPACE).create(ingress);
 
+			Fabric8Utils.waitForIngress(client, ingressName, NAMESPACE);
 			Fabric8Utils.waitForDeployment(client, "spring-cloud-kubernetes-fabric8-istio-it-deployment", NAMESPACE, 2,
 					600);
 
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 
 	}
 
-	private static FileInputStream getService() throws Exception {
+	private static InputStream getService() {
 		return Fabric8Utils.inputStream("istio-service.yaml");
 	}
 
-	private static FileInputStream getDeployment() throws Exception {
+	private static InputStream getDeployment() {
 		return Fabric8Utils.inputStream("istio-deployment.yaml");
 	}
 
-	private static FileInputStream getIngress() throws Exception {
+	private static InputStream getIngress() {
 		return Fabric8Utils.inputStream("istio-ingress.yaml");
+	}
+
+	private WebClient.Builder builder() {
+		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
+	}
+
+	private RetryBackoffSpec retrySpec() {
+		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+	}
+
+	private static String processExecResult(Container.ExecResult execResult) {
+		if (execResult.getExitCode() != 0) {
+			throw new RuntimeException("stdout=" + execResult.getStdout() + "\n" + "stderr=" + execResult.getStderr());
+		}
+
+		return execResult.getStdout();
 	}
 
 }

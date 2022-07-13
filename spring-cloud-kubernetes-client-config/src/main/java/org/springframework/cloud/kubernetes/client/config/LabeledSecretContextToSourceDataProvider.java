@@ -16,25 +16,13 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.BiFunction;
+import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Secret;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
-
-import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.dataFromSecret;
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
-import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
+import org.springframework.cloud.kubernetes.commons.config.LabeledSourceData;
+import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 
 /**
  * Provides an implementation of {@link KubernetesClientContextToSourceData} for a labeled
@@ -44,16 +32,8 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.PROP
  */
 final class LabeledSecretContextToSourceDataProvider implements Supplier<KubernetesClientContextToSourceData> {
 
-	private static final Log LOG = LogFactory.getLog(LabeledSecretContextToSourceDataProvider.class);
+	LabeledSecretContextToSourceDataProvider() {
 
-	private final BiFunction<String, String, String> sourceNameMapper;
-
-	private LabeledSecretContextToSourceDataProvider(BiFunction<String, String, String> sourceNameFunction) {
-		this.sourceNameMapper = Objects.requireNonNull(sourceNameFunction);
-	}
-
-	static LabeledSecretContextToSourceDataProvider of(BiFunction<String, String, String> sourceNameFunction) {
-		return new LabeledSecretContextToSourceDataProvider(sourceNameFunction);
 	}
 
 	/*
@@ -71,38 +51,18 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Kuberne
 	public KubernetesClientContextToSourceData get() {
 		return context -> {
 
-			Map<String, Object> result = new HashMap<>();
 			LabeledSecretNormalizedSource source = (LabeledSecretNormalizedSource) context.normalizedSource();
-			Map<String, String> labels = source.labels();
-			String namespace = context.namespace();
-			String sourceName = String.join(PROPERTY_SOURCE_NAME_SEPARATOR, labels.keySet());
 
-			try {
-
-				LOG.info("Loading Secret with labels '" + labels + "' in namespace '" + namespace + "'");
-				List<V1Secret> secrets = context.client().listNamespacedSecret(namespace, null, null, null, null,
-						createLabelsSelector(labels), null, null, null, null, null).getItems();
-
-				if (!secrets.isEmpty()) {
-					sourceName = secrets.stream().map(V1Secret::getMetadata).map(V1ObjectMeta::getName)
-							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-
-					secrets.forEach(s -> result.putAll(dataFromSecret(s, namespace)));
+			return new LabeledSourceData() {
+				@Override
+				public MultipleSourcesContainer dataSupplier(Map<String, String> labels, Set<String> profiles) {
+					return KubernetesClientConfigUtils.secretsDataByLabels(context.client(), context.namespace(),
+							labels, context.environment(), profiles);
 				}
 
-			}
-			catch (Exception e) {
-				String message = "Unable to read Secret with labels [" + labels + "] in namespace '" + namespace + "'";
-				onException(source.failFast(), message, e);
-			}
-
-			String propertySourceName = sourceNameMapper.apply(sourceName, namespace);
-			return new SourceData(propertySourceName, result);
+			}.compute(source.labels(), source.prefix(), source.target(), source.profileSpecificSources(),
+					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
 		};
-	}
-
-	private static String createLabelsSelector(Map<String, String> labels) {
-		return labels.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(","));
 	}
 
 }

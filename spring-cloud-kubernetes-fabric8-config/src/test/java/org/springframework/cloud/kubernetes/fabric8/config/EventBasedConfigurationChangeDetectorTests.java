@@ -22,8 +22,11 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
+import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import org.junit.jupiter.api.Test;
 
@@ -32,47 +35,51 @@ import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormali
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.reload.EventBasedConfigMapChangeDetector;
+import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8EventBasedConfigMapChangeDetector;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * @author Ryan Baxter
  */
-public class EventBasedConfigurationChangeDetectorTests {
+class EventBasedConfigurationChangeDetectorTests {
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "raw" })
 	@Test
-	public void verifyConfigChangesAccountsForBootstrapPropertySources() {
+	void verifyConfigChangesAccountsForBootstrapPropertySources() {
 		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
 		MockEnvironment env = new MockEnvironment();
 		KubernetesClient k8sClient = mock(KubernetesClient.class);
 		ConfigMap configMap = new ConfigMap();
+		configMap.setMetadata(new ObjectMetaBuilder().withName("myconfigmap").build());
 		Map<String, String> data = new HashMap<>();
 		data.put("foo", "bar");
 		configMap.setData(data);
 		MixedOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mixedOperation = mock(MixedOperation.class);
 		when(k8sClient.configMaps()).thenReturn(mixedOperation);
+		NonNamespaceOperation nonNamespaceOperation = mock(NonNamespaceOperation.class);
+		when(mixedOperation.inNamespace("default")).thenReturn(nonNamespaceOperation);
+		when(nonNamespaceOperation.list()).thenReturn(new ConfigMapListBuilder().addToItems(configMap).build());
+
 		Resource<ConfigMap> resource = mock(Resource.class);
 
 		when(resource.get()).thenReturn(configMap);
-		when(mixedOperation.withName(eq("myconfigmap"))).thenReturn(resource);
-		when(mixedOperation.inNamespace("default")).thenReturn(mixedOperation);
 		when(k8sClient.getNamespace()).thenReturn("default");
 
-		NormalizedSource source = new NamedConfigMapNormalizedSource("myconfigmap", "default", true, "", false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(k8sClient, source, "default", new MockEnvironment());
+		NormalizedSource source = new NamedConfigMapNormalizedSource("myconfigmap", "default", true, false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(k8sClient, source, "default", env);
 		Fabric8ConfigMapPropertySource fabric8ConfigMapPropertySource = new Fabric8ConfigMapPropertySource(context);
 		env.getPropertySources().addFirst(new BootstrapPropertySource<>(fabric8ConfigMapPropertySource));
 
-		ConfigurationUpdateStrategy configurationUpdateStrategy = mock(ConfigurationUpdateStrategy.class);
+		ConfigurationUpdateStrategy configurationUpdateStrategy = new ConfigurationUpdateStrategy("strategy", () -> {
+
+		});
 		Fabric8ConfigMapPropertySourceLocator configMapLocator = mock(Fabric8ConfigMapPropertySourceLocator.class);
-		EventBasedConfigMapChangeDetector detector = new EventBasedConfigMapChangeDetector(env, configReloadProperties,
-				k8sClient, configurationUpdateStrategy, configMapLocator);
+		Fabric8EventBasedConfigMapChangeDetector detector = new Fabric8EventBasedConfigMapChangeDetector(env,
+				configReloadProperties, k8sClient, configurationUpdateStrategy, configMapLocator);
 		List<Fabric8ConfigMapPropertySource> sources = detector
 				.findPropertySources(Fabric8ConfigMapPropertySource.class);
 		assertThat(sources.size()).isEqualTo(1);

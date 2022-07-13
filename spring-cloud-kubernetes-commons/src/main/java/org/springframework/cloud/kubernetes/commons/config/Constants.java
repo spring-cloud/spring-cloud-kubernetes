@@ -59,9 +59,9 @@ public final class Constants {
 	public static final String APPLICATION_PROPERTIES = "application.properties";
 
 	/**
-	 * prefix of the configMap.
+	 * reload mode spring property.
 	 */
-	public static final String PREFIX = "configmap";
+	public static final String RELOAD_MODE = "spring.cloud.kubernetes.reload.mode";
 
 	private Constants() {
 	}

@@ -16,13 +16,18 @@
 
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.rbac.Role;
+import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,10 +46,8 @@ public final class Fabric8Utils {
 		throw new AssertionError("no instance provided");
 	}
 
-	public static FileInputStream inputStream(String fileName) throws Exception {
-		ClassLoader classLoader = Fabric8Utils.class.getClassLoader();
-		File file = new File(classLoader.getResource(fileName).getFile());
-		return new FileInputStream(file);
+	public static InputStream inputStream(String fileName) {
+		return Fabric8Utils.class.getClassLoader().getResourceAsStream(fileName);
 	}
 
 	public static void waitForDeployment(KubernetesClient client, String deploymentName, String namespace,
@@ -64,7 +67,7 @@ public final class Fabric8Utils {
 		Deployment deployment = client.apps().deployments().inNamespace(namespace).withName(deploymentName).get();
 
 		Integer availableReplicas = deployment.getStatus().getAvailableReplicas();
-		LOG.info("Available replicas for " + deploymentName + ": " + availableReplicas);
+		LOG.info("Available replicas for " + deploymentName + ": " + ((availableReplicas == null) ? 0 : 1));
 		return availableReplicas != null && availableReplicas >= 1;
 	}
 
@@ -77,6 +80,79 @@ public final class Fabric8Utils {
 		}
 
 		return endpoint.getSubsets().get(0).getAddresses().size() >= 1;
+	}
+
+	public static void setUp(KubernetesClient client, String namespace) throws Exception {
+		InputStream serviceAccountAsStream = inputStream("setup/service-account.yaml");
+		InputStream roleBindingAsStream = inputStream("setup/role-binding.yaml");
+		InputStream roleAsStream = inputStream("setup/role.yaml");
+
+		innerSetup(client, namespace, serviceAccountAsStream, roleBindingAsStream, roleAsStream);
+	}
+
+	public static void setUpIstio(KubernetesClient client, String namespace) throws Exception {
+		InputStream serviceAccountAsStream = inputStream("istio/service-account.yaml");
+		InputStream roleBindingAsStream = inputStream("istio/role-binding.yaml");
+		InputStream roleAsStream = inputStream("istio/role.yaml");
+
+		innerSetup(client, namespace, serviceAccountAsStream, roleBindingAsStream, roleAsStream);
+	}
+
+	public static void waitForIngress(KubernetesClient client, String ingressName, String namespace) {
+
+		try {
+			await().pollInterval(Duration.ofSeconds(2)).atMost(180, TimeUnit.SECONDS).until(() -> {
+				Ingress ingress = client.network().v1().ingresses().inNamespace(namespace).withName(ingressName).get();
+
+				if (ingress == null) {
+					System.out.println("ingress : " + ingressName + " not ready yet present");
+					return false;
+				}
+
+				List<LoadBalancerIngress> loadBalancerIngress = ingress.getStatus().getLoadBalancer().getIngress();
+				if (loadBalancerIngress == null || loadBalancerIngress.isEmpty()) {
+					System.out.println(
+							"ingress : " + ingressName + " not ready yet (loadbalancer ingress not yet present)");
+					return false;
+				}
+
+				String ip = loadBalancerIngress.get(0).getIp();
+				if (ip == null) {
+					System.out.println("ingress : " + ingressName + " not ready yet");
+					return false;
+				}
+
+				System.out.println("ingress : " + ingressName + " ready with ip : " + ip);
+				return true;
+
+			});
+		}
+		catch (Exception e) {
+			System.out.println("Error waiting for ingress");
+			e.printStackTrace();
+		}
+
+	}
+
+	private static void innerSetup(KubernetesClient client, String namespace, InputStream serviceAccountAsStream,
+			InputStream roleBindingAsStream, InputStream roleAsStream) {
+		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).get();
+		if (client.serviceAccounts().inNamespace(namespace).withName(serviceAccountFromStream.getMetadata().getName())
+				.get() == null) {
+			client.serviceAccounts().inNamespace(namespace).create(serviceAccountFromStream);
+		}
+
+		RoleBinding roleBindingFromStream = client.rbac().roleBindings().load(roleBindingAsStream).get();
+		if (client.rbac().roleBindings().inNamespace(namespace).withName(roleBindingFromStream.getMetadata().getName())
+				.get() == null) {
+			client.rbac().roleBindings().inNamespace(namespace).create(roleBindingFromStream);
+		}
+
+		Role roleFromStream = client.rbac().roles().load(roleAsStream).get();
+		if (client.rbac().roles().inNamespace(namespace).withName(roleFromStream.getMetadata().getName())
+				.get() == null) {
+			client.rbac().roles().inNamespace(namespace).create(roleFromStream);
+		}
 	}
 
 }

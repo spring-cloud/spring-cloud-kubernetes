@@ -16,21 +16,12 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.BiFunction;
+import java.util.Set;
 import java.util.function.Supplier;
 
-import io.fabric8.kubernetes.api.model.Secret;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
-
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.dataFromSecret;
+import org.springframework.cloud.kubernetes.commons.config.NamedSourceData;
 
 /**
  * Provides an implementation of {@link Fabric8ContextToSourceData} for a named secret.
@@ -39,16 +30,7 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
  */
 final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8ContextToSourceData> {
 
-	private static final Log LOG = LogFactory.getLog(LabeledSecretContextToSourceDataProvider.class);
-
-	private final BiFunction<String, String, String> sourceNameMapper;
-
-	private NamedSecretContextToSourceDataProvider(BiFunction<String, String, String> sourceNameFunction) {
-		this.sourceNameMapper = Objects.requireNonNull(sourceNameFunction);
-	}
-
-	static NamedSecretContextToSourceDataProvider of(BiFunction<String, String, String> sourceNameFunction) {
-		return new NamedSecretContextToSourceDataProvider(sourceNameFunction);
+	NamedSecretContextToSourceDataProvider() {
 	}
 
 	@Override
@@ -57,33 +39,14 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 
 			NamedSecretNormalizedSource source = (NamedSecretNormalizedSource) context.normalizedSource();
 
-			Map<String, Object> result = new HashMap<>();
-			// error should never be thrown here, since we always expect a name
-			// explicit or implicit
-			String secretName = source.name().orElseThrow();
-			String namespace = context.namespace();
-
-			try {
-
-				LOG.info("Loading Secret with name '" + secretName + "' in namespace '" + namespace + "'");
-				Secret secret = context.client().secrets().inNamespace(namespace).withName(secretName).get();
-				// the API is documented that it might return null
-				if (secret == null) {
-					LOG.warn("secret with name : " + secretName + " in namespace : " + namespace + " not found");
+			return new NamedSourceData() {
+				@Override
+				public MultipleSourcesContainer dataSupplier(Set<String> sourceNames) {
+					return Fabric8ConfigUtils.secretsDataByName(context.client(), context.namespace(), sourceNames,
+							context.environment());
 				}
-				else {
-					result = dataFromSecret(secret, namespace);
-				}
-
-			}
-			catch (Exception e) {
-				String message = "Unable to read Secret with name '" + secretName + "' in namespace '" + namespace
-						+ "'";
-				onException(source.failFast(), message, e);
-			}
-
-			String sourceName = sourceNameMapper.apply(secretName, namespace);
-			return new SourceData(sourceName, result);
+			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
+					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
 		};
 	}
 

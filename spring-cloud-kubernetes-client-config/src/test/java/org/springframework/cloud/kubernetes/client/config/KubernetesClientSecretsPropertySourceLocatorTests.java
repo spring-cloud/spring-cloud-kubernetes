@@ -80,7 +80,7 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 	private static final MockEnvironment ENV = new MockEnvironment();
 
 	@BeforeAll
-	public static void setup() {
+	static void setup() {
 		wireMockServer = new WireMockServer(options().dynamicPort());
 
 		wireMockServer.start();
@@ -92,12 +92,12 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 	}
 
 	@AfterAll
-	public static void after() {
+	static void after() {
 		wireMockServer.stop();
 	}
 
 	@AfterEach
-	public void afterEach() {
+	void afterEach() {
 		WireMock.reset();
 	}
 
@@ -160,7 +160,7 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 	}
 
 	@Test
-	public void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
+	void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
@@ -174,11 +174,11 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties);
 
 		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Unable to read Secret with name 'db-secret' in namespace 'default'");
+				.hasMessage("Internal Server Error");
 	}
 
 	@Test
-	public void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
+	void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 

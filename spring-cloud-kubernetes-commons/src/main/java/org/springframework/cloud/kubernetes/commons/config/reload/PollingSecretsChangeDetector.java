@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons.config.reload;
 
-import java.time.Duration;
 import java.util.List;
 
 import jakarta.annotation.PostConstruct;
@@ -30,7 +29,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
- * A change detector that periodically retrieves secrets and fire a reload when something
+ * A change detector that periodically retrieves secrets and fires a reload when something
  * changes.
  *
  * @author Nicola Ferraro
@@ -43,47 +42,48 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 
 	private final PropertySourceLocator propertySourceLocator;
 
-	private Class propertySourceClass;
+	private final Class<? extends MapPropertySource> propertySourceClass;
 
-	private TaskScheduler taskExecutor;
+	private final TaskScheduler taskExecutor;
 
-	private Duration period = Duration.ofMillis(1500);
+	private final long period;
+
+	private final boolean monitorSecrets;
 
 	public PollingSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
-			ConfigurationUpdateStrategy strategy, Class propertySourceClass,
+			ConfigurationUpdateStrategy strategy, Class<? extends MapPropertySource> propertySourceClass,
 			PropertySourceLocator propertySourceLocator, TaskScheduler taskExecutor) {
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
 		this.propertySourceClass = propertySourceClass;
 		this.taskExecutor = taskExecutor;
-		this.period = properties.getPeriod();
+		this.period = properties.getPeriod().toMillis();
+		this.monitorSecrets = properties.isMonitoringSecrets();
 	}
 
 	@PostConstruct
-	public void init() {
-		this.log.info("Kubernetes polling secrets change detector activated");
-		PeriodicTrigger trigger = new PeriodicTrigger(period.toMillis());
-		trigger.setInitialDelay(period.toMillis());
+	private void init() {
+		log.info("Kubernetes polling secrets change detector activated");
+		PeriodicTrigger trigger = new PeriodicTrigger(period);
+		trigger.setInitialDelay(period);
 		taskExecutor.schedule(this::executeCycle, trigger);
 	}
 
-	public void executeCycle() {
+	private void executeCycle() {
 
 		boolean changedSecrets = false;
-		if (this.properties.isMonitoringSecrets()) {
-			if (log.isDebugEnabled()) {
-				log.debug("Polling for changes in secrets");
-			}
+		if (monitorSecrets) {
+			log.debug("Polling for changes in secrets");
 			List<MapPropertySource> currentSecretSources = locateMapPropertySources(this.propertySourceLocator,
 					this.environment);
 			if (currentSecretSources != null && !currentSecretSources.isEmpty()) {
-				List<MapPropertySource> propertySources = findPropertySources(this.propertySourceClass);
+				List<? extends MapPropertySource> propertySources = findPropertySources(this.propertySourceClass);
 				changedSecrets = changed(currentSecretSources, propertySources);
 			}
 		}
 
 		if (changedSecrets) {
-			this.log.info("Detected change in secrets");
+			log.info("Detected change in secrets");
 			reloadProperties();
 		}
 	}

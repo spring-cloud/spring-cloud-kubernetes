@@ -36,6 +36,11 @@ public enum NormalizedSourceType {
 	/**
 	 * denotes the fact that this is a config map source based on name.
 	 */
-	NAMED_CONFIG_MAP
+	NAMED_CONFIG_MAP,
+
+	/**
+	 * denotes the fact that this is a config map source based on labels.
+	 */
+	LABELED_CONFIG_MAP
 
 }

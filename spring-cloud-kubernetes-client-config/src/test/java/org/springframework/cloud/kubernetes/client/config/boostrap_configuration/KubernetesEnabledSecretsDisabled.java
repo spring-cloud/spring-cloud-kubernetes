@@ -32,7 +32,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
 		properties = { "spring.cloud.kubernetes.secrets.enabled=false",
-				"spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES" })
+				"spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES",
+				"spring.cloud.bootstrap.enabled=true" })
 class KubernetesEnabledSecretsDisabled {
 
 	@Autowired

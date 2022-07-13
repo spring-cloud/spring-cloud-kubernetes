@@ -29,7 +29,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
-import org.springframework.cloud.kubernetes.fabric8.config.reload.EventBasedSecretsChangeDetector;
+import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8EventBasedSecretsChangeDetector;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -37,11 +37,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-public abstract class SecretsWatcherChangeDetector extends EventBasedSecretsChangeDetector {
+public abstract class SecretsWatcherChangeDetector extends Fabric8EventBasedSecretsChangeDetector {
 
 	protected Log log = LogFactory.getLog(getClass());
 
-	private ScheduledExecutorService executorService;
+	private final ScheduledExecutorService executorService;
 
 	protected ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
 

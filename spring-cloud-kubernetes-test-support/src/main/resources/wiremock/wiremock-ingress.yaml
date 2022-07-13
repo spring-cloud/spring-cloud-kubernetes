@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wiremock-ingress
+  namespace: default
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /wiremock/
+            pathType: Prefix
+            backend:
+              service:
+                name: servicea-wiremock
+                port:
+                  number: 8080
+

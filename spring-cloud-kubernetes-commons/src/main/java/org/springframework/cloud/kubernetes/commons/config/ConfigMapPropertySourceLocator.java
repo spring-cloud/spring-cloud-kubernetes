@@ -67,9 +67,9 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 
 			CompositePropertySource composite = new CompositePropertySource("composite-configmap");
 			if (this.properties.isEnableApi()) {
-				Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources());
+				Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources(environment));
 				LOG.debug("Config Map normalized sources : " + sources);
-				sources.forEach(s -> composite.addFirstPropertySource(getMapPropertySourceForSingleConfigMap(env, s)));
+				sources.forEach(s -> composite.addFirstPropertySource(getMapPropertySource(s, env)));
 			}
 
 			addPropertySourcesFromPaths(environment, composite);
@@ -82,12 +82,6 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	@Override
 	public Collection<PropertySource<?>> locateCollection(Environment environment) {
 		return PropertySourceLocator.super.locateCollection(environment);
-	}
-
-	private MapPropertySource getMapPropertySourceForSingleConfigMap(ConfigurableEnvironment environment,
-			NormalizedSource normalizedSource) {
-
-		return getMapPropertySource(normalizedSource, environment);
 	}
 
 	private void addPropertySourcesFromPaths(Environment environment, CompositePropertySource composite) {
