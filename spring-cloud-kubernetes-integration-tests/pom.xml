@@ -107,6 +107,9 @@
 		<module>spring-cloud-kubernetes-fabric8-istio-it</module>
 		<module>spring-cloud-kubernetes-fabric8-client-discovery</module>
 		<module>spring-cloud-kubernetes-fabric8-client-loadbalancer</module>
+		<module>spring-cloud-kubernetes-fabric8-client-configmap-polling-reload</module>
+		<module>spring-cloud-kubernetes-fabric8-client-secrets-event-reload</module>
+		<module>spring-cloud-kubernetes-fabric8-client-configmap-event-reload</module>
 
 		<module>spring-cloud-kubernetes-discoveryclient-it</module>
 		<module>spring-cloud-kubernetes-client-config-it</module>
@@ -114,8 +117,7 @@
 		<module>spring-cloud-kubernetes-client-reactive-discoveryclient-it</module>
 		<module>spring-cloud-kubernetes-configuration-watcher-it</module>
 		<module>spring-cloud-kubernetes-core-k8s-client-it</module>
-		<module>spring-cloud-kubernetes-fabric8-client-configmap-polling-reload</module>
-        <module>spring-cloud-kubernetes-fabric8-client-secrets-event-reload</module>
         <module>spring-cloud-kubernetes-client-secrets-event-reload</module>
+        <module>spring-cloud-kubernetes-client-configmap-event-reload</module>
     </modules>
 </project>

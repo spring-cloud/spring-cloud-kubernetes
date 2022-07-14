@@ -1,0 +1,16 @@
+logging:
+  level:
+    root: DEBUG
+
+spring:
+  application:
+    name: event-reload
+  cloud:
+    kubernetes:
+      reload:
+        enabled: true
+        strategy: shutdown
+        mode: event
+        namespaces:
+          - left
+        monitoring-config-maps: true

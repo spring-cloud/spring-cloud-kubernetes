@@ -31,6 +31,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.env.Environment;
+import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -261,7 +262,7 @@ public final class ConfigUtils {
 		/**
 		 * prefix has not been provided.
 		 */
-		public static final Prefix DEFAULT = new Prefix(() -> "");
+		public static final Prefix DEFAULT = new Prefix(() -> "", "DEFAULT");
 
 		/**
 		 * prefix has been enabled, but the actual value will be known later; the value
@@ -270,7 +271,7 @@ public final class ConfigUtils {
 		 */
 		public static final Prefix DELAYED = new Prefix(() -> {
 			throw new IllegalArgumentException("prefix is delayed, needs to be taken elsewhere");
-		});
+		}, "DELAYED");
 
 		/**
 		 * prefix is known at the callsite.
@@ -283,12 +284,19 @@ public final class ConfigUtils {
 
 		private final Supplier<String> prefixProvider;
 
-		private Prefix(Supplier<String> prefixProvider) {
+		private final String name;
+
+		private Prefix(Supplier<String> prefixProvider, String name) {
 			this.prefixProvider = prefixProvider;
+			this.name = name;
 		}
 
 		private static void computeKnown(Supplier<String> supplier) {
-			KNOWN = new Prefix(supplier);
+			KNOWN = new Prefix(supplier, "KNOWN");
+		}
+
+		public String toString() {
+			return new ToStringCreator(this).append("name", name).toString();
 		}
 
 	}
