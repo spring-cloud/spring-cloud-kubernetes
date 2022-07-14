@@ -61,34 +61,6 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 	private final boolean enableReloadFiltering;
 
-	private final ResourceEventHandler<ConfigMap> handler = new ResourceEventHandler<>() {
-
-		@Override
-		public void onAdd(ConfigMap configMap) {
-			onEvent(configMap);
-		}
-
-		@Override
-		public void onUpdate(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
-			onEvent(newConfigMap);
-		}
-
-		@Override
-		public void onDelete(ConfigMap configMap, boolean deletedFinalStateUnknown) {
-			onEvent(configMap);
-		}
-
-		// leave as comment on purpose, may be this will be useful in the future
-		// @Override
-		// public void onNothing() {
-		// boolean isStoreEmpty = informer.getStore().list().isEmpty();
-		// if(!isStoreEmpty) {
-		// // HTTP_GONE, thus re-inform
-		// inform();
-		// }
-		// }
-	};
-
 	public Fabric8EventBasedConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
@@ -118,7 +90,7 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 					log.debug("added configmap informer for namespace : " + namespace);
 				}
 
-				informer.addEventHandler(handler);
+				informer.addEventHandler(new ConfigMapInformerAwareEventHandler(informer));
 				informers.add(informer);
 			});
 		}
