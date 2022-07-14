@@ -142,4 +142,36 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 		}
 	}
 
+	private final class ConfigMapInformerAwareEventHandler implements ResourceEventHandler<ConfigMap> {
+
+		private final SharedIndexInformer<ConfigMap> informer;
+
+		private ConfigMapInformerAwareEventHandler(SharedIndexInformer<ConfigMap> informer) {
+			this.informer = informer;
+		}
+
+		@Override
+		public void onAdd(ConfigMap configMap) {
+			onEvent(configMap);
+		}
+
+		@Override
+		public void onUpdate(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
+			onEvent(newConfigMap);
+		}
+
+		@Override
+		public void onDelete(ConfigMap configMap, boolean deletedFinalStateUnknown) {
+			onEvent(configMap);
+		}
+
+		@Override
+		public void onNothing() {
+			List<ConfigMap> store = informer.getStore().list();
+			log.info("onNothing called with a store of size : " + store.size());
+			log.info("this might be an indication of a HTTP_GONE code");
+		}
+
+	}
+
 }

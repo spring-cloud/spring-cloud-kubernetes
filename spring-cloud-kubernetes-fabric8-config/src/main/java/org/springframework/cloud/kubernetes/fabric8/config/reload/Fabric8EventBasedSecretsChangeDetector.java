@@ -61,34 +61,6 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 	private final boolean enableReloadFiltering;
 
-	private final ResourceEventHandler<Secret> handler = new ResourceEventHandler<>() {
-
-		@Override
-		public void onAdd(Secret secret) {
-			onEvent(secret);
-		}
-
-		@Override
-		public void onUpdate(Secret oldSecret, Secret newSecret) {
-			onEvent(newSecret);
-		}
-
-		@Override
-		public void onDelete(Secret secret, boolean deletedFinalStateUnknown) {
-			onEvent(secret);
-		}
-
-		// leave as comment on purpose, may be this will be useful in the future
-		// @Override
-		// public void onNothing() {
-		// boolean isStoreEmpty = informer.getStore().list().isEmpty();
-		// if(!isStoreEmpty) {
-		// // HTTP_GONE, thus re-inform
-		// inform();
-		// }
-		// }
-	};
-
 	public Fabric8EventBasedSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
@@ -126,7 +98,7 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 					log.debug("added secret informer for namespace : " + namespace);
 				}
 
-				informer.addEventHandler(handler);
+				informer.addEventHandler(new SecretInformerAwareEventHandler(informer));
 				informers.add(informer);
 			});
 		}
@@ -140,6 +112,38 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 			log.info("Detected change in secrets");
 			reloadProperties();
 		}
+	}
+
+	private final class SecretInformerAwareEventHandler implements ResourceEventHandler<Secret> {
+
+		private final SharedIndexInformer<Secret> informer;
+
+		private SecretInformerAwareEventHandler(SharedIndexInformer<Secret> informer) {
+			this.informer = informer;
+		}
+
+		@Override
+		public void onAdd(Secret secret) {
+			onEvent(secret);
+		}
+
+		@Override
+		public void onUpdate(Secret oldSecret, Secret newSecret) {
+			onEvent(newSecret);
+		}
+
+		@Override
+		public void onDelete(Secret secret, boolean deletedFinalStateUnknown) {
+			onEvent(secret);
+		}
+
+		@Override
+		public void onNothing() {
+			List<Secret> store = informer.getStore().list();
+			log.info("onNothing called with a store of size : " + store.size());
+			log.info("this might be an indication of a HTTP_GONE code");
+		}
+
 	}
 
 }
