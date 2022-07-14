@@ -124,16 +124,19 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 		@Override
 		public void onAdd(Secret secret) {
+			log.debug("Secret " + secret.getMetadata().getName() + " was added.");
 			onEvent(secret);
 		}
 
 		@Override
 		public void onUpdate(Secret oldSecret, Secret newSecret) {
+			log.debug("Secret " + newSecret.getMetadata().getName() + " was updated.");
 			onEvent(newSecret);
 		}
 
 		@Override
 		public void onDelete(Secret secret, boolean deletedFinalStateUnknown) {
+			log.debug("Secret " + secret.getMetadata().getName() + " was deleted.");
 			onEvent(secret);
 		}
 

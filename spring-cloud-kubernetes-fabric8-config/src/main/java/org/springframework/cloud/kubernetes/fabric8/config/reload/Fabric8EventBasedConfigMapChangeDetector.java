@@ -124,16 +124,19 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 		@Override
 		public void onAdd(ConfigMap configMap) {
+			log.debug("ConfigMap " + configMap.getMetadata().getName() + " was added.");
 			onEvent(configMap);
 		}
 
 		@Override
 		public void onUpdate(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
+			log.debug("ConfigMap " + newConfigMap.getMetadata().getName() + " was updated.");
 			onEvent(newConfigMap);
 		}
 
 		@Override
 		public void onDelete(ConfigMap configMap, boolean deletedFinalStateUnknown) {
+			log.debug("ConfigMap " + configMap.getMetadata().getName() + " was deleted.");
 			onEvent(configMap);
 		}
 

@@ -9,7 +9,7 @@ spring:
     kubernetes:
       reload:
         enabled: true
-        strategy: shutdown
+        strategy: refresh
         mode: event
         namespaces:
           - right

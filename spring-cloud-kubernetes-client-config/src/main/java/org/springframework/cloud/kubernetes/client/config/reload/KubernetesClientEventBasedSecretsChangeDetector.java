@@ -64,19 +64,19 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 		@Override
 		public void onAdd(V1Secret obj) {
-			log.info("Secret " + obj.getMetadata().getName() + " was added.");
+			log.debug("Secret " + obj.getMetadata().getName() + " was added.");
 			onEvent(obj);
 		}
 
 		@Override
 		public void onUpdate(V1Secret oldObj, V1Secret newObj) {
-			log.info("Secret " + newObj.getMetadata().getName() + " was updated.");
+			log.debug("Secret " + newObj.getMetadata().getName() + " was updated.");
 			onEvent(newObj);
 		}
 
 		@Override
 		public void onDelete(V1Secret obj, boolean deletedFinalStateUnknown) {
-			log.info("Secret " + obj.getMetadata() + " was deleted.");
+			log.debug("Secret " + obj.getMetadata() + " was deleted.");
 			onEvent(obj);
 		}
 	};

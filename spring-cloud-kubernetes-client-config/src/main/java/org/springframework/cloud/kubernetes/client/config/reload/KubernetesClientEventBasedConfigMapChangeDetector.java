@@ -64,19 +64,19 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 		@Override
 		public void onAdd(V1ConfigMap obj) {
-			log.info("ConfigMap " + obj.getMetadata().getName() + " was added.");
+			log.debug("ConfigMap " + obj.getMetadata().getName() + " was added.");
 			onEvent(obj);
 		}
 
 		@Override
 		public void onUpdate(V1ConfigMap oldObj, V1ConfigMap newObj) {
-			log.info("ConfigMap " + newObj.getMetadata().getName() + " was updated.");
+			log.debug("ConfigMap " + newObj.getMetadata().getName() + " was updated.");
 			onEvent(newObj);
 		}
 
 		@Override
 		public void onDelete(V1ConfigMap obj, boolean deletedFinalStateUnknown) {
-			log.info("ConfigMap " + obj.getMetadata() + " was deleted.");
+			log.debug("ConfigMap " + obj.getMetadata() + " was deleted.");
 			onEvent(obj);
 		}
 	};
