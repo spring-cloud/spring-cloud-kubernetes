@@ -32,8 +32,13 @@ jobs:
 
       - if: ${{ steps.cache-maven-repo.outputs.cache-hit == 'false' }}
         name: cache miss callback
-        continue-on-error: true
+        continue-on-error: false
         run: echo 'cache miss'
+
+      - if: ${{ steps.cache-maven-repo.outputs.cache-hit == 'true' }}
+        name: cache hit callback
+        continue-on-error: false
+        run: echo 'cache hit'
 
       - name: Build with Maven
         run: ./mvnw -s .settings.xml clean org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dmaven.wagon.http.pool=false -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
