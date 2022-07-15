@@ -28,6 +28,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,7 @@ import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
+import io.kubernetes.client.openapi.models.V1ClusterRole;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentBuilder;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
@@ -305,6 +307,46 @@ public class K8SUtils {
 		V1Role role = getConfigK8sClientItRole();
 		notExistsHandler(() -> rbacApi.readNamespacedRole(role.getMetadata().getName(), namespace, null),
 				() -> rbacApi.createNamespacedRole(namespace, role, null, null, null));
+	}
+
+	public void setUpClusterWide(String serviceAccountNamespace, Set<String> namespaces) throws Exception {
+
+		V1ServiceAccount serviceAccount = getConfigK8sClientItClusterServiceAccount();
+		CheckedSupplier<V1ServiceAccount> accountSupplier = () -> api.readNamespacedServiceAccount(
+				serviceAccount.getMetadata().getName(), serviceAccountNamespace, null, null, null);
+		CheckedSupplier<V1ServiceAccount> accountDefaulter = () -> api
+				.createNamespacedServiceAccount(serviceAccountNamespace, serviceAccount, null, null, null);
+		notExistsHandler(accountSupplier, accountDefaulter);
+
+		V1ClusterRole clusterRole = getConfigK8sClientItClusterRole();
+		notExistsHandler(() -> rbacApi.readClusterRole(clusterRole.getMetadata().getName(), null),
+				() -> rbacApi.createClusterRole(clusterRole, null, null, null));
+
+		V1RoleBinding roleBinding = getConfigK8sClientItClusterRoleBinding();
+		namespaces.forEach(namespace -> {
+			roleBinding.getMetadata().setNamespace(namespace);
+			try {
+				notExistsHandler(
+						() -> rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace, null),
+						() -> rbacApi.createNamespacedRoleBinding(namespace, roleBinding, null, null, null));
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		});
+
+	}
+
+	public static V1ServiceAccount getConfigK8sClientItClusterServiceAccount() throws Exception {
+		return (V1ServiceAccount) K8SUtils.readYamlFromClasspath("cluster/service-account.yaml");
+	}
+
+	public static V1ClusterRole getConfigK8sClientItClusterRole() throws Exception {
+		return (V1ClusterRole) K8SUtils.readYamlFromClasspath("cluster/cluster-role.yaml");
+	}
+
+	public static V1RoleBinding getConfigK8sClientItClusterRoleBinding() throws Exception {
+		return (V1RoleBinding) K8SUtils.readYamlFromClasspath("cluster/role-binding.yaml");
 	}
 
 	public static V1ServiceAccount getConfigK8sClientItServiceAccount() throws Exception {

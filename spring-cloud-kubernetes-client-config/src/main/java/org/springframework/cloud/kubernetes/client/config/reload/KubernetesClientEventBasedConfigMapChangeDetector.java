@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -35,6 +39,7 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationU
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.createApiClientForInformerClient;
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.namespaces;
 
 /**
  * @author Ryan Baxter
@@ -45,11 +50,36 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 	private final KubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
 
+	private final boolean monitorConfigMaps;
+
 	private final SharedInformerFactory factory;
 
-	private final String namespace;
+	private final List<SharedIndexInformer<V1ConfigMap>> informers = new ArrayList<>();
 
-	private final boolean monitorConfigMaps;
+	private final Set<String> namespaces;
+
+	private final boolean enableReloadFiltering;
+
+	private final ResourceEventHandler<V1ConfigMap> handler = new ResourceEventHandler<>() {
+
+		@Override
+		public void onAdd(V1ConfigMap obj) {
+			log.debug("ConfigMap " + obj.getMetadata().getName() + " was added.");
+			onEvent(obj);
+		}
+
+		@Override
+		public void onUpdate(V1ConfigMap oldObj, V1ConfigMap newObj) {
+			log.debug("ConfigMap " + newObj.getMetadata().getName() + " was updated.");
+			onEvent(newObj);
+		}
+
+		@Override
+		public void onDelete(V1ConfigMap obj, boolean deletedFinalStateUnknown) {
+			log.debug("ConfigMap " + obj.getMetadata() + " was deleted.");
+			onEvent(obj);
+		}
+	};
 
 	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
@@ -66,42 +96,46 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		// certificate authorities for the cluster. This results in SSL errors.
 		// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
 		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
-		this.namespace = kubernetesNamespaceProvider.getNamespace();
 		this.monitorConfigMaps = properties.isMonitoringConfigMaps();
+		this.enableReloadFiltering = properties.isEnableReloadFiltering();
+		namespaces = namespaces(kubernetesNamespaceProvider, properties, "configmap");
 	}
 
 	@PostConstruct
-	public void watch() {
-		if (coreV1Api != null && monitorConfigMaps) {
-			SharedIndexInformer<V1ConfigMap> configMapInformer = factory.sharedIndexInformerFor(
-					(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null, null, null,
-							null, null, null, params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
-					V1ConfigMap.class, V1ConfigMapList.class);
-			configMapInformer.addEventHandler(new ResourceEventHandler<>() {
-				@Override
-				public void onAdd(V1ConfigMap obj) {
-					log.info("ConfigMap " + obj.getMetadata().getName() + " was added.");
-					onEvent(obj);
+	void inform() {
+		if (monitorConfigMaps) {
+			log.info("Kubernetes event-based configMap change detector activated");
+
+			namespaces.forEach(namespace -> {
+				SharedIndexInformer<V1ConfigMap> informer;
+				String filter = null;
+
+				if (enableReloadFiltering) {
+					filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
+					log.debug("added configmap informer for namespace : " + namespace + " with enabled filter");
+				}
+				else {
+					log.debug("added configmap informer for namespace : " + namespace);
 				}
 
-				@Override
-				public void onUpdate(V1ConfigMap oldObj, V1ConfigMap newObj) {
-					log.info("ConfigMap " + newObj.getMetadata().getName() + " was added.");
-					onEvent(newObj);
-				}
-
-				@Override
-				public void onDelete(V1ConfigMap obj, boolean deletedFinalStateUnknown) {
-					log.info("ConfigMap " + obj.getMetadata() + " was deleted.");
-					onEvent(obj);
-				}
+				String filterOnInformerLabel = filter;
+				informer = factory
+						.sharedIndexInformerFor(
+								(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null,
+										null, null, null, filterOnInformerLabel, null, params.resourceVersion, null,
+										params.timeoutSeconds, params.watch, null),
+								V1ConfigMap.class, V1ConfigMapList.class);
+				informer.addEventHandler(handler);
+				informers.add(informer);
 			});
+
 			factory.startAllRegisteredInformers();
 		}
 	}
 
 	@PreDestroy
-	public void unwatch() {
+	void shutdown() {
+		informers.forEach(SharedIndexInformer::stop);
 		factory.stopAllRegisteredInformers();
 	}
 

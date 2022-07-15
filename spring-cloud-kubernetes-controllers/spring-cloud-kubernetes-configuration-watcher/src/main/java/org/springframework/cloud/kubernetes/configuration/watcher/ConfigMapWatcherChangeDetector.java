@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
@@ -50,7 +51,8 @@ public abstract class ConfigMapWatcherChangeDetector extends Fabric8EventBasedCo
 			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(environment, properties, kubernetesClient, strategy, fabric8ConfigMapPropertySourceLocator);
+		super(environment, properties, kubernetesClient, strategy, fabric8ConfigMapPropertySourceLocator,
+				new KubernetesNamespaceProvider(environment));
 		this.executorService = Executors.newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(),
 				threadPoolTaskExecutor);
 		this.k8SConfigurationProperties = k8SConfigurationProperties;

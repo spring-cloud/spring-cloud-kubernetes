@@ -161,7 +161,7 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		KubernetesClientEventBasedConfigMapChangeDetector changeDetector = new KubernetesClientEventBasedConfigMapChangeDetector(
 				coreV1Api, environment, new ConfigReloadProperties(), strategy, locator, kubernetesNamespaceProvider);
 
-		Thread controllerThread = new Thread(changeDetector::watch);
+		Thread controllerThread = new Thread(changeDetector::inform);
 		controllerThread.setDaemon(true);
 		controllerThread.start();
 
