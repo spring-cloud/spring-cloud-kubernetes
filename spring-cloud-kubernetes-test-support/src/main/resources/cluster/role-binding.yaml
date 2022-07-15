@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: spring-cloud-kubernetes-core-k8s-client-it
+  name: spring-cloud-kubernetes-role-binding
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: cluster-role
+subjects:
+  - kind: ServiceAccount
+    name: spring-cloud-kubernetes-serviceaccount
+    namespace: default

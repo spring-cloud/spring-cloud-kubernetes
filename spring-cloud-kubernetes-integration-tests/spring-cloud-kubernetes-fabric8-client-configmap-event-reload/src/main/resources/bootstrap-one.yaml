@@ -1,0 +1,13 @@
+logging:
+  level:
+    root: DEBUG
+
+spring:
+  cloud:
+    kubernetes:
+      config:
+        sources:
+          - namespace: left
+            name: left-configmap
+          - namespace: right
+            name: right-configmap
