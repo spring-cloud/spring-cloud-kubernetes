@@ -25,7 +25,7 @@ jobs:
       - name: Extract branch name
         id: extract_branch
         shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_BASE_REF})"
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_HEAD_REF})"
 
       - name: Cache local Maven repository
         id: cache-maven-repo
