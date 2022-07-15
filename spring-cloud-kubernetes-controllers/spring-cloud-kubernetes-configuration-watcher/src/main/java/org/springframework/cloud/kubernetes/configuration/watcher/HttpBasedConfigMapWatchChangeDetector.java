@@ -18,20 +18,21 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.net.URI;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.fabric8.discovery.reactive.KubernetesReactiveDiscoveryClient;
-import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.StringUtils;
@@ -53,15 +54,16 @@ public class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatcherChang
 
 	private WebClient webClient;
 
-	private KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient;
+	private KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient;
 
-	public HttpBasedConfigMapWatchChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
-			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
+	public HttpBasedConfigMapWatchChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor, WebClient webClient,
-			KubernetesReactiveDiscoveryClient k8sReactiveDiscoveryClient) {
-		super(environment, properties, kubernetesClient, strategy, fabric8ConfigMapPropertySourceLocator,
+			KubernetesInformerReactiveDiscoveryClient k8sReactiveDiscoveryClient) {
+		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider,
 				k8SConfigurationProperties, threadPoolTaskExecutor);
 		this.webClient = webClient;
 		this.kubernetesReactiveDiscoveryClient = k8sReactiveDiscoveryClient;
@@ -110,7 +112,7 @@ public class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatcherChang
 		return actuatorUriBuilder.build().toUri();
 	}
 
-	protected Flux<ResponseEntity<Void>> refresh(ObjectMeta objectMeta) {
+	protected Flux<ResponseEntity<Void>> refresh(V1ObjectMeta objectMeta) {
 
 		return kubernetesReactiveDiscoveryClient.getInstances(objectMeta.getName()).flatMap(si -> {
 			URI actuatorUri = getActuatorUri(si);
@@ -131,7 +133,7 @@ public class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatcherChang
 	}
 
 	@Override
-	protected Mono<Void> triggerRefresh(ConfigMap configMap) {
+	protected Mono<Void> triggerRefresh(V1ConfigMap configMap) {
 		return refresh(configMap.getMetadata()).then();
 	}
 

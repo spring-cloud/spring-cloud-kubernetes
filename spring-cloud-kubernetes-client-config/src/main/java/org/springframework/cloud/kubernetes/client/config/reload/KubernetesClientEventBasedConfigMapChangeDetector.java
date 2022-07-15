@@ -105,7 +105,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		factory.stopAllRegisteredInformers();
 	}
 
-	private void onEvent(V1ConfigMap configMap) {
+	protected void onEvent(V1ConfigMap configMap) {
 		log.debug("onEvent configMap: " + configMap.toString());
 		boolean changed = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
 				findPropertySources(KubernetesClientConfigMapPropertySource.class));

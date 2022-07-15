@@ -99,7 +99,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		}
 	}
 
-	private void onEvent(V1Secret secret) {
+	protected void onEvent(V1Secret secret) {
 		log.debug("onEvent configMap: " + secret.toString());
 		boolean changed = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
 				findPropertySources(KubernetesClientSecretsPropertySource.class));

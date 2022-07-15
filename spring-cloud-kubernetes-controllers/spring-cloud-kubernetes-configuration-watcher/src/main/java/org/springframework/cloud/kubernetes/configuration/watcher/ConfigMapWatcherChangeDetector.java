@@ -20,24 +20,25 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8EventBasedConfigMapChangeDetector;
-import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-public abstract class ConfigMapWatcherChangeDetector extends Fabric8EventBasedConfigMapChangeDetector {
+public abstract class ConfigMapWatcherChangeDetector extends KubernetesClientEventBasedConfigMapChangeDetector {
 
 	protected Log log = LogFactory.getLog(getClass());
 
@@ -45,19 +46,20 @@ public abstract class ConfigMapWatcherChangeDetector extends Fabric8EventBasedCo
 
 	protected ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
 
-	public ConfigMapWatcherChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
-			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
+	public ConfigMapWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(environment, properties, kubernetesClient, strategy, fabric8ConfigMapPropertySourceLocator);
+		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider);
 		this.executorService = Executors.newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(),
 				threadPoolTaskExecutor);
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
 	}
 
 	@Override
-	protected void onEvent(ConfigMap configMap) {
+	protected void onEvent(V1ConfigMap configMap) {
 		if (isSpringCloudKubernetesConfig(configMap)) {
 			if (log.isDebugEnabled()) {
 				log.debug("Scheduling remote refresh event to be published for ConfigMap "
@@ -75,7 +77,7 @@ public abstract class ConfigMapWatcherChangeDetector extends Fabric8EventBasedCo
 		}
 	}
 
-	protected boolean isSpringCloudKubernetesConfig(ConfigMap configMap) {
+	protected boolean isSpringCloudKubernetesConfig(V1ConfigMap configMap) {
 		if (configMap.getMetadata() == null || configMap.getMetadata().getLabels() == null) {
 			return false;
 		}
@@ -83,6 +85,6 @@ public abstract class ConfigMapWatcherChangeDetector extends Fabric8EventBasedCo
 				configMap.getMetadata().getLabels().getOrDefault(k8SConfigurationProperties.getConfigLabel(), "false"));
 	}
 
-	protected abstract Mono<Void> triggerRefresh(ConfigMap configMap);
+	protected abstract Mono<Void> triggerRefresh(V1ConfigMap configMap);
 
 }

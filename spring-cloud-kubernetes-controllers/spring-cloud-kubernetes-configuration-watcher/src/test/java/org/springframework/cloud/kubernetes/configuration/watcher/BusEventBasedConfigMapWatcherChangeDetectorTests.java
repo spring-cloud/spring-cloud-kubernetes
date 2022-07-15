@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,15 +28,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
 
 /**
  * @author Ryan Baxter
@@ -51,10 +53,10 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 			});
 
 	@Mock
-	private KubernetesClient client;
+	private CoreV1Api coreV1Api;
 
 	@Mock
-	private Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator;
+	private KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator;
 
 	@Mock
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
@@ -69,20 +71,22 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 	@BeforeEach
 	void setup() {
 		MockEnvironment mockEnvironment = new MockEnvironment();
+		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
 		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
 		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		busProperties = new BusProperties();
-		changeDetector = new BusEventBasedConfigMapWatcherChangeDetector(mockEnvironment, configReloadProperties,
-				client, UPDATE_STRATEGY, fabric8ConfigMapPropertySourceLocator, busProperties,
+		changeDetector = new BusEventBasedConfigMapWatcherChangeDetector(coreV1Api, mockEnvironment,
+				configReloadProperties, UPDATE_STRATEGY, configMapPropertySourceLocator,
+				new KubernetesNamespaceProvider(mockEnvironment), busProperties,
 				configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
 		changeDetector.setApplicationEventPublisher(applicationEventPublisher);
 	}
 
 	@Test
 	void triggerRefreshWithConfigMap() {
-		ObjectMeta objectMeta = new ObjectMeta();
+		V1ObjectMeta objectMeta = new V1ObjectMeta();
 		objectMeta.setName("foo");
-		ConfigMap configMap = new ConfigMap();
+		V1ConfigMap configMap = new V1ConfigMap();
 		configMap.setMetadata(objectMeta);
 		changeDetector.triggerRefresh(configMap);
 		ArgumentCaptor<RefreshRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
