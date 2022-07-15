@@ -90,11 +90,13 @@
 |spring.cloud.kubernetes.loadbalancer.enabled | `+++true+++` | Load balancer enabled,default true.
 |spring.cloud.kubernetes.loadbalancer.mode |  | {@link KubernetesLoadBalancerMode} setting load balancer server list with ip of pod or service name. default value is POD.
 |spring.cloud.kubernetes.loadbalancer.port-name | `+++http+++` | service port name.
+|spring.cloud.kubernetes.reload.enable-reload-filtering | `+++false+++` | create an informer only for sources that have 'spring.cloud.kubernetes.config.informer.enabled=true' label. This property is only relevant for event based reloading.
 |spring.cloud.kubernetes.reload.enabled | `+++false+++` | Enables the Kubernetes configuration reload on change.
 |spring.cloud.kubernetes.reload.max-wait-for-restart | `+++2s+++` | If Restart or Shutdown strategies are used, Spring Cloud Kubernetes waits a random amount of time before restarting. This is done in order to avoid having all instances of the same application restart at the same time. This property configures the maximum of amount of wait time from the moment the signal is received that a restart is needed until the moment the restart is actually triggered
 |spring.cloud.kubernetes.reload.mode |  | Sets the detection mode for Kubernetes configuration reload.
 |spring.cloud.kubernetes.reload.monitoring-config-maps | `+++true+++` | Enables monitoring on config maps to detect changes.
 |spring.cloud.kubernetes.reload.monitoring-secrets | `+++false+++` | Enables monitoring on secrets to detect changes.
+|spring.cloud.kubernetes.reload.namespaces |  | namespaces where an informer will be set-up. this property is only relevant for event based reloading.
 |spring.cloud.kubernetes.reload.period | `+++15000ms+++` | Sets the polling period to use when the detection mode is POLLING.
 |spring.cloud.kubernetes.reload.strategy |  | Sets reload strategy for Kubernetes configuration reload on change.
 |spring.cloud.kubernetes.secrets.enable-api | `+++false+++` | 
