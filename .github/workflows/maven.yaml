@@ -1,7 +1,4 @@
-# This workflow will build a Java project with Maven
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
-
-name: Build
+name: spring-cloud-kubernetes-github-workflow
 
 on:
   push:
@@ -10,11 +7,9 @@ on:
     branches: [ main ]
 
 jobs:
-
   # build the project, skip tests, update snapshots
   ###########################################################################################################################
   ######################################## Build test support dependency and Run test #######################################
-
   build:
     runs-on: ubuntu-latest
 
@@ -31,6 +26,9 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_HEAD_REF})"
 
+      # this only downloads the cache, if this is != first build, otherwise this step is a NOOP.
+      # Saving the cache happens _after_ this phase is done, and it is exactly what we want
+      # if we think about SNAPSHOT dependencies that are supposed to be shared across jobs.
       - name: Cache local Maven repository
         id: cache-maven-repo
         uses: actions/cache@v2
@@ -89,7 +87,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
 
-      - name: test fabric8
+      - name: test fabric8 istio
         run: |
           cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
           ../.././mvnw clean install
