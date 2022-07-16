@@ -10,8 +10,12 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
 
+  # build the project, skip tests, update snapshots
+  ###########################################################################################################################
+  ######################################## Build test support dependency and Run test #######################################
+
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -46,15 +50,68 @@ jobs:
         continue-on-error: false
         run: echo 'cache hit'
 
-      - name: Build with Maven
-        run: ./mvnw -s .settings.xml clean org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dmaven.wagon.http.pool=false -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
-      - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v2
-        if: always() # always run even if the previous step fails
+      - name: Build with skip tests
+        #run: ./mvnw -s .settings.xml clean org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dmaven.wagon.http.pool=false -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
+        run: ./mvnw -s .settings.xml clean install -U -DskipTests
+#      - name: Publish Test Report
+#        uses: mikepenz/action-junit-report@v2
+#        if: always() # always run even if the previous step fails
+#        with:
+#          report_paths: '**/surefire-reports/TEST-*.xml'
+#      - name: Archive code coverage results
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: surefire-reports
+#          path: '**/surefire-reports/*'
+
+  # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
+  # Otherwise, (since we use static ports) there might be two instances starting at the same time, and ports might conflict
+  ###########################################################################################################################
+  ######################################## Build test support dependency and Run test #######################################
+  fabric8_istio_test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
         with:
-          report_paths: '**/surefire-reports/TEST-*.xml'
-      - name: Archive code coverage results
-        uses: actions/upload-artifact@v2
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache local Maven repository
+        id: cache-maven-repo
+        uses: actions/cache@v2
         with:
-          name: surefire-reports
-          path: '**/surefire-reports/*'
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
+
+      - name: test fabric8
+        run: |
+          cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
+          ../.././mvnw clean install
+          cd ../..
+
+
+#  test:
+#    needs: build
+#    runs-on: ubuntu-latest
+#
+#    strategy:
+#      fail-fast: true
+#      matrix:
+#        current_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+#        total_number: [16]
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - uses: actions/setup-java@v2
+#        name: Set up JDK
+#        with:
+#          distribution: 'temurin'
+#          java-version: '17'
+
