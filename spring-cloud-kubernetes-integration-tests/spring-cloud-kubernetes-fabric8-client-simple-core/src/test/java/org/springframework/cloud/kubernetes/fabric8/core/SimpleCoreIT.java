@@ -1,4 +1,4 @@
-package org.springframework.cloud.kubernetes.fabric8.core;/*
+/*
  * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,8 @@ package org.springframework.cloud.kubernetes.fabric8.core;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package org.springframework.cloud.kubernetes.fabric8.core;
 
 import java.io.InputStream;
 import java.time.Duration;
