@@ -82,7 +82,7 @@ jobs:
       - name: test fabric8 istio
         run: |
           cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
-          ../.././mvnw -s .settings.xml clean install
+          ../.././mvnw clean install
           cd ../..
 
 
