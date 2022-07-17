@@ -93,8 +93,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        current_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-        number_of_jobs: [16]
+        current_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+        number_of_jobs: [32]
 
     steps:
       - uses: actions/checkout@v2
@@ -125,6 +125,7 @@ jobs:
           # replace / with .
           # drop last ".java"
           # replace newline with space
+          # sort
 
           CLASSNAMES=($(find . -name '*.java' \
           				 | grep  'src/test/java' \
@@ -133,6 +134,7 @@ jobs:
           				 | sed 's/.*src.test.java.//g' \
           				 | sed 's@/@.@g' \
           				 | sed 's/.\{5\}$//' \
+                         | sort \
           				 | tr '\n' ' '))
 
           number_of_tests=${#CLASSNAMES[@]}
