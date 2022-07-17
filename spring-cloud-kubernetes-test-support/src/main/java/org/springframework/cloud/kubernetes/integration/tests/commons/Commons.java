@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.github.dockerjava.api.model.Image;
+import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -45,7 +46,7 @@ public final class Commons {
 	/**
 	 * Rancher version to use for test-containers.
 	 */
-	public static final String RANCHER = "rancher/k3s:v1.21.10-k3s1";
+	public static final String RANCHER = "rancher/k3s:v1.24.2-k3s2";
 
 	/**
 	 * Command to use when starting rancher. Without "server" option, traefik is not
@@ -110,6 +111,14 @@ public final class Commons {
 
 	public static void pullImage(String image, String tag, K3sContainer container) throws InterruptedException {
 		container.getDockerClient().pullImageCmd(image).withTag(tag).start().awaitCompletion();
+	}
+
+	public static String processExecResult(Container.ExecResult execResult) {
+		if (execResult.getExitCode() != 0) {
+			throw new RuntimeException("stdout=" + execResult.getStdout() + "\n" + "stderr=" + execResult.getStderr());
+		}
+
+		return execResult.getStdout();
 	}
 
 	/**

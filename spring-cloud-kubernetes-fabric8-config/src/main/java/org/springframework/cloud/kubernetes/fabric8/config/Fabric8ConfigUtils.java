@@ -32,6 +32,7 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
@@ -40,11 +41,24 @@ import org.springframework.util.StringUtils;
  *
  * @author Ioannis Canellos
  */
-final class Fabric8ConfigUtils {
+public final class Fabric8ConfigUtils {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8ConfigUtils.class);
 
 	private Fabric8ConfigUtils() {
+	}
+
+	/**
+	 * finds namespaces to be used for the event based reloading.
+	 */
+	public static Set<String> namespaces(KubernetesClient client, KubernetesNamespaceProvider provider,
+			ConfigReloadProperties properties, String target) {
+		Set<String> namespaces = properties.getNamespaces();
+		if (namespaces.isEmpty()) {
+			namespaces = Set.of(getApplicationNamespace(client, null, target, provider));
+		}
+		LOG.debug("informer namespaces : " + namespaces);
+		return namespaces;
 	}
 
 	/**
@@ -73,14 +87,14 @@ final class Fabric8ConfigUtils {
 			KubernetesNamespaceProvider provider) {
 
 		if (StringUtils.hasText(namespace)) {
-			LOG.debug(configurationTarget + " namespace from normalized source : " + namespace);
+			LOG.debug(configurationTarget + " namespace : " + namespace);
 			return namespace;
 		}
 
 		if (provider != null) {
 			String providerNamespace = provider.getNamespace();
 			if (StringUtils.hasText(providerNamespace)) {
-				LOG.debug(configurationTarget + " namespace from provider : " + namespace);
+				LOG.debug(configurationTarget + " namespace from provider : " + providerNamespace);
 				return providerNamespace;
 			}
 		}
