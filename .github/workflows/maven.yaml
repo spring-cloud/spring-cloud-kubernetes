@@ -118,15 +118,15 @@ jobs:
           CURRENT_INDEX: ${{ matrix.current_index }}
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
         run: |
-              # find all tests
-              # exclude Fabric8IstionIT
-              # only take classes that have @Test inside them
-              # drop the "begining" xxx/src/test/java
-              # replace / with .
-              # drop last ".java"
-              # replace newline with space
+          # find all tests
+          # exclude Fabric8IstionIT
+          # only take classes that have @Test inside them
+          # drop the "begining" xxx/src/test/java
+          # replace / with .
+          # drop last ".java"
+          # replace newline with space
 
-          	CLASSNAMES=($(find . -name '*.java' \
+          CLASSNAMES=($(find . -name '*.java' \
           				 | grep  'src/test/java' \
           				 | grep -v 'Fabric8IstioIT' \
           				 | xargs grep -l '@Test' \
@@ -135,62 +135,62 @@ jobs:
           				 | sed 's/.\{5\}$//' \
           				 | tr '\n' ' '))
 
-          	number_of_tests=${#CLASSNAMES[@]}
-          	number_of_jobs=${NUMBER_OF_JOBS}
-          	current_index=${CURRENT_INDEX}
+          number_of_tests=${#CLASSNAMES[@]}
+          number_of_jobs=${NUMBER_OF_JOBS}
+          current_index=${CURRENT_INDEX}
 
-          	per_instance=$((number_of_tests / number_of_jobs))
+          per_instance=$((number_of_tests / number_of_jobs))
 
-          	# we do not get an ideal distribution all the time, so this is needed to add one more test
-          	# to the first "reminder" number of instances.
+          # we do not get an ideal distribution all the time, so this is needed to add one more test
+          # to the first "reminder" number of instances.
 
-          	# consider the case when there are 10 tests, and 4 instances
-          	# 10/4=2 (and this is "per_instance"), at the same time "reminder" = (10 - 4 * 2) = 2
-          	# this means that the first instance will run (2 + 1) tests
-          	# second instance will run (2 + 1) tests
-          	# all subsequent instances will run 2 tests.
+          # consider the case when there are 10 tests, and 4 instances
+          # 10/4=2 (and this is "per_instance"), at the same time "reminder" = (10 - 4 * 2) = 2
+          # this means that the first instance will run (2 + 1) tests
+          # second instance will run (2 + 1) tests
+          # all subsequent instances will run 2 tests.
 
-          	reminder=$((number_of_tests - number_of_jobs * per_instance))
-          	elements_in_current_instance=$((per_instance + 1))
+          reminder=$((number_of_tests - number_of_jobs * per_instance))
+          elements_in_current_instance=$((per_instance + 1))
 
-          	left_bound=0
-          	right_bound=0
+          left_bound=0
+          right_bound=0
 
-          	# we are in a range where we might need to add one more test to each instance
-          	# notice the "less then" condition here, it is important and must not change
-          	if [[ $current_index -lt $reminder ]]; then
+          # we are in a range where we might need to add one more test to each instance
+          # notice the "less then" condition here, it is important and must not change
+          if [[ $current_index -lt $reminder ]]; then
 
-          		# this one is easy, the range will be [0..3] (following our example above)
-          		if [[ $current_index == 0 ]]; then
-          			left_bound=0
-          			right_bound=$elements_in_current_instance
-          		# this one will be [3..6]
-          		else
-          			left_bound=$((current_index * elements_in_current_instance))
-          			right_bound=$(((current_index + 1) * elements_in_current_instance))
-          		fi
-
-          		echo "total tests : $number_of_tests, jobs: $number_of_jobs, current index : $current_index. will run tests in range : [$left_bound..$right_bound]"
-
+          	# this one is easy, the range will be [0..3] (following our example above)
+          	if [[ $current_index == 0 ]]; then
+          	  left_bound=0
+          	  right_bound=$elements_in_current_instance
+          	  # this one will be [3..6]
           	else
-
-          		# reminder can be zero here (in case of a perfect distribution): in such a case, this is just "current_index * per_instance".
-          		# if reminder is not zero, we have two regions here, logically. the one of the left is "reminder * elements_in_current_instance",
-          		# basically [0..3] and [3..6]
-          		# and the region on the right [6..8].
-          		left_bound=$((reminder * elements_in_current_instance + ((current_index - reminder) * per_instance)))
-          		right_bound=$((left_bound + per_instance))
-
-          		echo "total tests : $number_of_tests, jobs: $number_of_jobs, current index : $current_index. will run tests in range : [$left_bound..$right_bound]"
+          	  left_bound=$((current_index * elements_in_current_instance))
+          	  right_bound=$(((current_index + 1) * elements_in_current_instance))
           	fi
 
-          	diff=$((right_bound - left_bound))
-          	sliced_array=("${CLASSNAMES[@]:$left_bound:$diff}")
-          	TEST_ARG=$(echo $sliced_array | sed 's/ /,/g')
+          	echo "total tests : $number_of_tests, jobs: $number_of_jobs, current index : $current_index. will run tests in range : [$left_bound..$right_bound]"
 
-          	./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install \
-                             -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
-                             -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+          else
+
+            # reminder can be zero here (in case of a perfect distribution): in such a case, this is just "current_index * per_instance".
+          	# if reminder is not zero, we have two regions here, logically. the one of the left is "reminder * elements_in_current_instance",
+          	# basically [0..3] and [3..6]
+          	# and the region on the right [6..8].
+          	left_bound=$((reminder * elements_in_current_instance + ((current_index - reminder) * per_instance)))
+          	right_bound=$((left_bound + per_instance))
+
+          	echo "total tests : $number_of_tests, jobs: $number_of_jobs, current index : $current_index. will run tests in range : [$left_bound..$right_bound]"
+          fi
+
+          diff=$((right_bound - left_bound))
+          sliced_array=("${CLASSNAMES[@]:$left_bound:$diff}")
+          TEST_ARG=$(echo $sliced_array | sed 's/ /,/g')
+
+          ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install \
+              -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
+              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v2
