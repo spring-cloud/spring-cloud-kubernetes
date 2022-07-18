@@ -33,6 +33,7 @@ import org.mockito.Mockito;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -322,6 +323,27 @@ class Fabric8ConfigUtilsTests {
 		Assertions.assertEquals(2, result.data().size());
 		Assertions.assertEquals("value", result.data().get("property"));
 		Assertions.assertEquals("value-2", result.data().get("property-2"));
+	}
+
+	@Test
+	void testNamespacesFromProperties() {
+		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
+		configReloadProperties.setNamespaces(Set.of("non-default"));
+		Set<String> namespaces = Fabric8ConfigUtils.namespaces(null,
+				new KubernetesNamespaceProvider(new MockEnvironment()), configReloadProperties, "configmap");
+		Assertions.assertEquals(1, namespaces.size());
+		Assertions.assertEquals(namespaces.iterator().next(), "non-default");
+	}
+
+	@Test
+	void testNamespacesFromProvider() {
+		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
+		MockEnvironment environment = new MockEnvironment();
+		environment.setProperty("spring.cloud.kubernetes.client.namespace", "some");
+		KubernetesNamespaceProvider provider = new KubernetesNamespaceProvider(environment);
+		Set<String> namespaces = Fabric8ConfigUtils.namespaces(null, provider, configReloadProperties, "configmap");
+		Assertions.assertEquals(1, namespaces.size());
+		Assertions.assertEquals(namespaces.iterator().next(), "some");
 	}
 
 }
