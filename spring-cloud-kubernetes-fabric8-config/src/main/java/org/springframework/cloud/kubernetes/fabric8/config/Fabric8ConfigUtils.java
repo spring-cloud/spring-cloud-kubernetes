@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -161,7 +162,7 @@ public final class Fabric8ConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer secretsDataByName(KubernetesClient client, String namespace,
-			Set<String> sourceNames, Environment environment) {
+			LinkedHashSet<String> sourceNames, Environment environment) {
 		List<Secret> secrets = secretsSearch(client, namespace);
 		if (ConfigUtils.noSources(secrets, namespace)) {
 			return MultipleSourcesContainer.empty();
@@ -181,7 +182,7 @@ public final class Fabric8ConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer configMapsDataByName(KubernetesClient client, String namespace,
-			Set<String> sourceNames, Environment environment) {
+			LinkedHashSet<String> sourceNames, Environment environment) {
 		List<ConfigMap> configMaps = configMapsSearch(client, namespace);
 		if (ConfigUtils.noSources(configMaps, namespace)) {
 			return MultipleSourcesContainer.empty();

@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -154,8 +155,8 @@ public final class KubernetesClientConfigUtils {
 	 *     4. gather all the names of the secrets + decoded data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer secretsDataByName(CoreV1Api client, String namespace, Set<String> sourceNames,
-			Environment environment) {
+	static MultipleSourcesContainer secretsDataByName(CoreV1Api client, String namespace,
+			LinkedHashSet<String> sourceNames, Environment environment) {
 		List<V1Secret> secrets = secretsSearch(client, namespace);
 		if (ConfigUtils.noSources(secrets, namespace)) {
 			return MultipleSourcesContainer.empty();
@@ -174,8 +175,8 @@ public final class KubernetesClientConfigUtils {
 	 *     4. gather all the names of the config maps + data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer configMapsDataByName(CoreV1Api client, String namespace, Set<String> sourceNames,
-			Environment environment) {
+	static MultipleSourcesContainer configMapsDataByName(CoreV1Api client, String namespace,
+			LinkedHashSet<String> sourceNames, Environment environment) {
 		List<V1ConfigMap> configMaps = configMapsSearch(client, namespace);
 		if (ConfigUtils.noSources(configMaps, namespace)) {
 			return MultipleSourcesContainer.empty();
