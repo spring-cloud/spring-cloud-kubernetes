@@ -17,6 +17,8 @@
 package org.springframework.cloud.kubernetes.commons.config.reload;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -27,6 +29,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties(prefix = "spring.cloud.kubernetes.reload")
 public class ConfigReloadProperties {
+
+	/**
+	 * label for filtering sources.
+	 */
+	public static final String RELOAD_LABEL_FILTER = "spring.cloud.kubernetes.config.informer.enabled";
 
 	/**
 	 * Enables the Kubernetes configuration reload on change.
@@ -57,6 +64,19 @@ public class ConfigReloadProperties {
 	 * Sets the polling period to use when the detection mode is POLLING.
 	 */
 	private Duration period = Duration.ofMillis(15000L);
+
+	/**
+	 * namespaces where an informer will be set-up. this property is only relevant for
+	 * event based reloading.
+	 */
+	private Set<String> namespaces = Collections.emptySet();
+
+	/**
+	 * create an informer only for sources that have
+	 * 'spring.cloud.kubernetes.config.informer.enabled=true' label. This property is only
+	 * relevant for event based reloading.
+	 */
+	private boolean enableReloadFiltering = false;
 
 	/**
 	 * If Restart or Shutdown strategies are used, Spring Cloud Kubernetes waits a random
@@ -125,6 +145,22 @@ public class ConfigReloadProperties {
 
 	public void setMaxWaitForRestart(Duration maxWaitForRestart) {
 		this.maxWaitForRestart = maxWaitForRestart;
+	}
+
+	public Set<String> getNamespaces() {
+		return namespaces;
+	}
+
+	public void setNamespaces(Set<String> namespaces) {
+		this.namespaces = namespaces;
+	}
+
+	public boolean isEnableReloadFiltering() {
+		return enableReloadFiltering;
+	}
+
+	public void setEnableReloadFiltering(boolean enableReloadFiltering) {
+		this.enableReloadFiltering = enableReloadFiltering;
 	}
 
 	/**

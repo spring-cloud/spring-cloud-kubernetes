@@ -30,8 +30,8 @@ public class SecretsProperties {
 		return key;
 	}
 
-	public void setKey(String key1) {
-		this.key = key1;
+	public void setKey(String key) {
+		this.key = key;
 	}
 
 }

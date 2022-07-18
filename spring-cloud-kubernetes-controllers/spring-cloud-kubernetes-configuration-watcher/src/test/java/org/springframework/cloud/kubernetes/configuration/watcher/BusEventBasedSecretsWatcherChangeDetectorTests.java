@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import java.util.Set;
+
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -70,6 +72,7 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 	void setup() {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
+		configReloadProperties.setNamespaces(Set.of("default"));
 		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		busProperties = new BusProperties();
 		changeDetector = new BusEventBasedSecretsWatcherChangeDetector(mockEnvironment, configReloadProperties, client,
