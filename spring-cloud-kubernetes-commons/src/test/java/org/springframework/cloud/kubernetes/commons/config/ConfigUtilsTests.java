@@ -22,6 +22,8 @@ import java.util.Set;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.mock.env.MockEnvironment;
+
 /**
  * @author wind57
  */
@@ -157,6 +159,42 @@ class ConfigUtilsTests {
 
 		Assertions.assertEquals(result.sourceData().get("prefix.a"), "b");
 		Assertions.assertEquals(result.sourceData().get("prefix.c"), "d");
+	}
+
+	@Test
+	void testProfilesProvidedIncludeTrue() {
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("b");
+		Set<String> expected = ConfigUtils.profiles(true, Set.of("a"), environment);
+
+		Assertions.assertEquals(Set.of("a"), expected);
+	}
+
+	@Test
+	void testProfilesProvidedIncludeFalse() {
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("b");
+		Set<String> expected = ConfigUtils.profiles(false, Set.of("a"), environment);
+
+		Assertions.assertEquals(Set.of("a"), expected);
+	}
+
+	@Test
+	void testProfilesNotProvidedNotTakenFromEvn() {
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("b");
+		Set<String> expected = ConfigUtils.profiles(false, Set.of(), environment);
+
+		Assertions.assertEquals(Set.of(), expected);
+	}
+
+	@Test
+	void testProfilesNotProvidedTakenFromEnv() {
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("b");
+		Set<String> expected = ConfigUtils.profiles(true, Set.of(), environment);
+
+		Assertions.assertEquals(Set.of("b"), expected);
 	}
 
 }

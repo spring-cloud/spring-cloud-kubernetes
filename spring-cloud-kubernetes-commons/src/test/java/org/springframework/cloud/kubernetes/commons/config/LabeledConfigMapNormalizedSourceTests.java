@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -30,10 +31,14 @@ class LabeledConfigMapNormalizedSourceTests {
 
 	@Test
 	void testEqualsAndHashCode() {
+
+		Set<String> leftProfiles = Set.of("left");
+		Set<String> rightProfiles = Set.of("right");
+
 		LabeledConfigMapNormalizedSource left = new LabeledConfigMapNormalizedSource("name", Map.of("key", "value"),
-				false, false);
+				false, leftProfiles, false);
 		LabeledConfigMapNormalizedSource right = new LabeledConfigMapNormalizedSource("name", Map.of("key", "value"),
-				true, false);
+				true, rightProfiles, false);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -41,38 +46,44 @@ class LabeledConfigMapNormalizedSourceTests {
 
 	@Test
 	void testType() {
+		Set<String> leftProfiles = Set.of("left");
 		LabeledConfigMapNormalizedSource source = new LabeledConfigMapNormalizedSource("name", Map.of("key", "value"),
-				false, false);
+				false, leftProfiles, false);
 		Assertions.assertSame(source.type(), NormalizedSourceType.LABELED_CONFIG_MAP);
 	}
 
 	@Test
 	void testTarget() {
+		Set<String> leftProfiles = Set.of("left");
 		LabeledConfigMapNormalizedSource source = new LabeledConfigMapNormalizedSource("name", Map.of("key", "value"),
-				false, false);
+				false, leftProfiles, false);
 		Assertions.assertEquals(source.target(), "configmap");
 	}
 
 	@Test
 	void testConstructorFields() {
+		Set<String> leftProfiles = Set.of("left");
 		LabeledConfigMapNormalizedSource source = new LabeledConfigMapNormalizedSource("namespace",
-				Map.of("key", "value"), false, PREFIX, true);
+				Map.of("key", "value"), false, PREFIX, leftProfiles, true);
 		Assertions.assertEquals(source.labels(), Map.of("key", "value"));
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertFalse(source.failFast());
 		Assertions.assertSame(PREFIX, source.prefix());
-		Assertions.assertTrue(source.profileSpecificSources());
+		Assertions.assertTrue(source.strict());
+		Assertions.assertEquals(source.profiles(), Set.of("left"));
 	}
 
 	@Test
 	void testConstructorWithoutPrefixFields() {
+		Set<String> leftProfiles = Set.of("left");
 		LabeledConfigMapNormalizedSource source = new LabeledConfigMapNormalizedSource("namespace",
-				Map.of("key", "value"), true, true);
+				Map.of("key", "value"), true, leftProfiles, true);
 		Assertions.assertEquals(source.labels(), Map.of("key", "value"));
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertTrue(source.failFast());
 		Assertions.assertSame(ConfigUtils.Prefix.DEFAULT, source.prefix());
-		Assertions.assertTrue(source.profileSpecificSources());
+		Assertions.assertTrue(source.strict());
+		Assertions.assertEquals(source.profiles(), Set.of("left"));
 	}
 
 }

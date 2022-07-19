@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,6 +30,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.profiles;
 
 /**
  * Config map configuration properties.
@@ -91,12 +93,12 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		if (this.sources.isEmpty()) {
 			List<NormalizedSource> result = new ArrayList<>(2);
 			String name = getApplicationName(environment, this.name, "ConfigMap");
-			result.add(new NamedConfigMapNormalizedSource(name, this.namespace, this.failFast,
-					this.includeProfileSpecificSources));
+			Set<String> profiles = profiles(this.includeProfileSpecificSources, Set.of(), environment);
+			result.add(new NamedConfigMapNormalizedSource(name, this.namespace, this.failFast, profiles, false));
 
 			if (!labels.isEmpty()) {
 				result.add(new LabeledConfigMapNormalizedSource(this.namespace, this.labels, this.failFast,
-						ConfigUtils.Prefix.DEFAULT, false));
+						ConfigUtils.Prefix.DEFAULT, profiles, false));
 			}
 			return result;
 		}
@@ -140,9 +142,19 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		/**
 		 * Use profile name to append to a config map name. Can't be a primitive, we need
-		 * to know if it was explicitly set or not
+		 * to know if it was explicitly set or not.
 		 */
-		protected Boolean includeProfileSpecificSources;
+		private Boolean includeProfileSpecificSources;
+
+		/**
+		 * explicit profiles have been defined.
+		 */
+		private Set<String> profiles = Collections.emptySet();
+
+		/**
+		 * fail or not, if such a configmap is not present.
+		 */
+		private boolean strict = false;
 
 		public Source() {
 
@@ -200,6 +212,22 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			this.labels = labels;
 		}
 
+		public Set<String> getProfiles() {
+			return profiles;
+		}
+
+		public void setProfiles(Set<String> profiles) {
+			this.profiles = profiles;
+		}
+
+		public boolean isStrict() {
+			return strict;
+		}
+
+		public void setStrict(boolean strict) {
+			this.strict = strict;
+		}
+
 		public boolean isEmpty() {
 			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
 		}
@@ -221,13 +249,15 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
 					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
+			Set<String> profiles = profiles(includeProfileSpecificSources, getProfiles(), environment);
+
 			NormalizedSource namedBasedSource = new NamedConfigMapNormalizedSource(configMapName, normalizedNamespace,
-					failFast, prefix, includeProfileSpecificSources);
+					failFast, prefix, profiles, strict);
 			normalizedSources.add(namedBasedSource);
 
 			if (!normalizedLabels.isEmpty()) {
 				NormalizedSource labeledBasedSource = new LabeledConfigMapNormalizedSource(normalizedNamespace, labels,
-						failFast, prefix, includeProfileSpecificSources);
+						failFast, prefix, profiles, strict);
 				normalizedSources.add(labeledBasedSource);
 			}
 

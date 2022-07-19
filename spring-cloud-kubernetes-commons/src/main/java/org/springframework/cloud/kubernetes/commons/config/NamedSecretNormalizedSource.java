@@ -17,6 +17,9 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Objects;
+import java.util.Set;
+
+import org.springframework.core.style.ToStringCreator;
 
 /**
  * A secret source that is based on name.
@@ -27,24 +30,16 @@ public final class NamedSecretNormalizedSource extends NormalizedSource {
 
 	private final ConfigUtils.Prefix prefix;
 
-	private final boolean includeProfileSpecificSources;
-
 	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix,
-			boolean includeProfileSpecificSources) {
-		super(name, namespace, failFast);
+			Set<String> profiles, boolean strict) {
+		super(name, namespace, failFast, profiles, strict);
 		this.prefix = Objects.requireNonNull(prefix);
-		this.includeProfileSpecificSources = includeProfileSpecificSources;
 	}
 
-	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast,
-			boolean includeProfileSpecificSources) {
-		super(name, namespace, failFast);
+	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast, Set<String> profiles,
+			boolean strict) {
+		super(name, namespace, failFast, profiles, strict);
 		this.prefix = ConfigUtils.Prefix.DEFAULT;
-		this.includeProfileSpecificSources = includeProfileSpecificSources;
-	}
-
-	public boolean profileSpecificSources() {
-		return includeProfileSpecificSources;
 	}
 
 	public ConfigUtils.Prefix prefix() {
@@ -63,7 +58,15 @@ public final class NamedSecretNormalizedSource extends NormalizedSource {
 
 	@Override
 	public String toString() {
-		return "{ secret name : '" + name() + "', namespace : '" + namespace() + "'";
+		ToStringCreator creator = new ToStringCreator(this);
+		creator.append("name", name());
+		creator.append("namespace", namespace());
+		creator.append("failFast", failFast());
+		creator.append("prefix", prefix());
+		creator.append("profiles", profiles());
+		creator.append("strict", strict());
+
+		return creator.toString();
 	}
 
 	@Override

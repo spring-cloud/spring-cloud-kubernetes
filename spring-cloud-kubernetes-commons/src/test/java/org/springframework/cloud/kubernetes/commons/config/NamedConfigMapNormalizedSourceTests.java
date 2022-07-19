@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -32,10 +34,13 @@ class NamedConfigMapNormalizedSourceTests {
 		ConfigUtils.Prefix knownLeft = ConfigUtils.findPrefix("prefix", false, false, "some");
 		ConfigUtils.Prefix knownRight = ConfigUtils.findPrefix("prefix", false, false, "non-equal-prefix");
 
+		Set<String> leftProfiles = Set.of("left");
+		Set<String> rightProfiles = Set.of("right");
+
 		NamedConfigMapNormalizedSource left = new NamedConfigMapNormalizedSource("name", "namespace", false, knownLeft,
-				true);
+				leftProfiles, false);
 		NamedConfigMapNormalizedSource right = new NamedConfigMapNormalizedSource("name", "namespace", true, knownRight,
-				false);
+				rightProfiles, true);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -43,26 +48,30 @@ class NamedConfigMapNormalizedSourceTests {
 
 	@Test
 	void testType() {
-
+		Set<String> leftProfiles = Set.of("left");
 		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
-				true);
+				leftProfiles, false);
 		Assertions.assertSame(one.type(), NormalizedSourceType.NAMED_CONFIG_MAP);
 	}
 
 	@Test
 	void testTarget() {
+		Set<String> leftProfiles = Set.of("left");
 		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
-				true);
+				leftProfiles, false);
 		Assertions.assertEquals(one.target(), "configmap");
 	}
 
 	@Test
 	void testConstructorFields() {
+		Set<String> leftProfiles = Set.of("left");
 		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
-				true);
+				leftProfiles, true);
 		Assertions.assertEquals(one.name().get(), "name");
 		Assertions.assertEquals(one.namespace().get(), "namespace");
 		Assertions.assertFalse(one.failFast());
+		Assertions.assertTrue(one.strict());
+		Assertions.assertEquals(one.profiles(), Set.of("left"));
 	}
 
 }

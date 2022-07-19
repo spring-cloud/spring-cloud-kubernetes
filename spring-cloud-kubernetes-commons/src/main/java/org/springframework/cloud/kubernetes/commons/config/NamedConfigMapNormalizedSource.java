@@ -17,6 +17,9 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Objects;
+import java.util.Set;
+
+import org.springframework.core.style.ToStringCreator;
 
 /**
  * A config map source that is based on name.
@@ -27,28 +30,20 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 
 	private final ConfigUtils.Prefix prefix;
 
-	private final boolean includeProfileSpecificSources;
-
 	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix,
-			boolean includeProfileSpecificSources) {
-		super(name, namespace, failFast);
+			Set<String> profiles, boolean strict) {
+		super(name, namespace, failFast, profiles, strict);
 		this.prefix = Objects.requireNonNull(prefix);
-		this.includeProfileSpecificSources = includeProfileSpecificSources;
 	}
 
-	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast,
-			boolean includeProfileSpecificSources) {
-		super(name, namespace, failFast);
+	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast, Set<String> profiles,
+			boolean strict) {
+		super(name, namespace, failFast, profiles, strict);
 		this.prefix = ConfigUtils.Prefix.DEFAULT;
-		this.includeProfileSpecificSources = includeProfileSpecificSources;
 	}
 
 	public ConfigUtils.Prefix prefix() {
 		return prefix;
-	}
-
-	public boolean profileSpecificSources() {
-		return includeProfileSpecificSources;
 	}
 
 	@Override
@@ -63,7 +58,15 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 
 	@Override
 	public String toString() {
-		return "{ config-map name : '" + name() + "', namespace : '" + namespace() + "', prefix : '" + prefix() + "' }";
+		ToStringCreator creator = new ToStringCreator(this);
+		creator.append("name", name());
+		creator.append("namespace", namespace());
+		creator.append("failFast", failFast());
+		creator.append("prefix", prefix());
+		creator.append("profiles", profiles());
+		creator.append("strict", strict());
+
+		return creator.toString();
 	}
 
 	@Override

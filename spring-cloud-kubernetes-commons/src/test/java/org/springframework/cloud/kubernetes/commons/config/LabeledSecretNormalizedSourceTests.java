@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -31,8 +32,13 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testEqualsAndHashCode() {
-		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, false, false);
-		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true, false);
+		Set<String> leftProfiles = Set.of("left");
+		Set<String> rightProfiles = Set.of("right");
+
+		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, false, leftProfiles,
+				false);
+		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, false,
+				rightProfiles, true);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -45,13 +51,16 @@ class LabeledSecretNormalizedSourceTests {
 	@Test
 	void testEqualsAndHashCodePrefixDoesNotMatter() {
 
+		Set<String> leftProfiles = Set.of("left");
+		Set<String> rightProfiles = Set.of("right");
+
 		ConfigUtils.Prefix knownLeft = ConfigUtils.findPrefix("left", false, false, "some");
 		ConfigUtils.Prefix knownRight = ConfigUtils.findPrefix("right", false, false, "some");
 
 		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, true, knownLeft,
-				false);
+				leftProfiles, false);
 		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true, knownRight,
-				false);
+				rightProfiles, false);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -59,40 +68,51 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, false);
+		Set<String> leftProfiles = Set.of("left");
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false,
+				leftProfiles, false);
 		Assertions.assertSame(source.type(), NormalizedSourceType.LABELED_SECRET);
 	}
 
 	@Test
 	void testImmutableGetLabels() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, false);
+		Set<String> leftProfiles = Set.of("left");
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false,
+				leftProfiles, false);
 		Assertions.assertThrows(RuntimeException.class, () -> source.labels().put("c", "d"));
 	}
 
 	@Test
 	void testTarget() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, false);
+		Set<String> leftProfiles = Set.of("left");
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false,
+				leftProfiles, false);
 		Assertions.assertEquals(source.target(), "secret");
 	}
 
 	@Test
 	void testConstructorFields() {
+		Set<String> leftProfiles = Set.of("left");
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, "some");
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, prefix,
-				true);
+				leftProfiles, true);
 		Assertions.assertTrue(source.name().isEmpty());
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertFalse(source.failFast());
-		Assertions.assertTrue(source.profileSpecificSources());
+		Assertions.assertTrue(source.strict());
+		Assertions.assertEquals(source.profiles(), Set.of("left"));
 	}
 
 	@Test
 	void testConstructorWithoutPrefixFields() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, true, true);
+		Set<String> leftProfiles = Set.of("left");
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, true,
+				leftProfiles, true);
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertTrue(source.failFast());
 		Assertions.assertSame(ConfigUtils.Prefix.DEFAULT, source.prefix());
-		Assertions.assertTrue(source.profileSpecificSources());
+		Assertions.assertTrue(source.strict());
+		Assertions.assertEquals(source.profiles(), Set.of("left"));
 	}
 
 }

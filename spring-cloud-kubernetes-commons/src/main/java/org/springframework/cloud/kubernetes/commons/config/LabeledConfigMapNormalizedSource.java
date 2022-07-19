@@ -19,6 +19,9 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+
+import org.springframework.core.style.ToStringCreator;
 
 /**
  * A config map source that is based on labels.
@@ -31,22 +34,18 @@ public final class LabeledConfigMapNormalizedSource extends NormalizedSource {
 
 	private final ConfigUtils.Prefix prefix;
 
-	private final boolean includeProfileSpecificSources;
-
 	public LabeledConfigMapNormalizedSource(String namespace, Map<String, String> labels, boolean failFast,
-			ConfigUtils.Prefix prefix, boolean includeProfileSpecificSources) {
-		super(null, namespace, failFast);
+			ConfigUtils.Prefix prefix, Set<String> profiles, boolean strict) {
+		super(null, namespace, failFast, profiles, strict);
 		this.labels = Collections.unmodifiableMap(Objects.requireNonNull(labels));
 		this.prefix = Objects.requireNonNull(prefix);
-		this.includeProfileSpecificSources = includeProfileSpecificSources;
 	}
 
 	public LabeledConfigMapNormalizedSource(String namespace, Map<String, String> labels, boolean failFast,
-			boolean includeProfileSpecificSources) {
-		super(null, namespace, failFast);
+			Set<String> profiles, boolean strict) {
+		super(null, namespace, failFast, profiles, strict);
 		this.labels = Collections.unmodifiableMap(Objects.requireNonNull(labels));
 		this.prefix = ConfigUtils.Prefix.DEFAULT;
-		this.includeProfileSpecificSources = includeProfileSpecificSources;
 	}
 
 	/**
@@ -58,10 +57,6 @@ public final class LabeledConfigMapNormalizedSource extends NormalizedSource {
 
 	public ConfigUtils.Prefix prefix() {
 		return prefix;
-	}
-
-	public boolean profileSpecificSources() {
-		return this.includeProfileSpecificSources;
 	}
 
 	@Override
@@ -76,7 +71,15 @@ public final class LabeledConfigMapNormalizedSource extends NormalizedSource {
 
 	@Override
 	public String toString() {
-		return "{ config map labels : '" + labels() + "', namespace : '" + namespace() + "'";
+		ToStringCreator creator = new ToStringCreator(this);
+		creator.append("labels", labels());
+		creator.append("namespace", namespace());
+		creator.append("failFast", failFast());
+		creator.append("prefix", prefix());
+		creator.append("profiles", profiles());
+		creator.append("strict", strict());
+
+		return creator.toString();
 	}
 
 	@Override

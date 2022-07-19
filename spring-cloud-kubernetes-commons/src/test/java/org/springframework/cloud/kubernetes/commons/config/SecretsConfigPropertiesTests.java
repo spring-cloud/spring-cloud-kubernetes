@@ -363,7 +363,10 @@ class SecretsConfigPropertiesTests {
 
 		properties.setSources(Arrays.asList(one, two, three, four));
 
-		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("from-env");
+
+		List<NormalizedSource> sources = properties.determineSources(environment);
 		// we get 8 property sources, since "named" ones with "application" are
 		// duplicated.
 		// that's OK, since later in the code we get a LinkedHashSet out of them all,
@@ -372,19 +375,19 @@ class SecretsConfigPropertiesTests {
 
 		LabeledSecretNormalizedSource labeled1 = (LabeledSecretNormalizedSource) sources.get(1);
 		Assertions.assertEquals(labeled1.prefix().prefixProvider().get(), "one");
-		Assertions.assertFalse(labeled1.profileSpecificSources());
+		Assertions.assertEquals(labeled1.profiles(), Set.of());
 
 		LabeledSecretNormalizedSource labeled3 = (LabeledSecretNormalizedSource) sources.get(3);
 		Assertions.assertEquals(labeled3.prefix().prefixProvider().get(), "two");
-		Assertions.assertTrue(labeled3.profileSpecificSources());
+		Assertions.assertEquals(labeled3.profiles(), Set.of("from-env"));
 
 		LabeledSecretNormalizedSource labeled5 = (LabeledSecretNormalizedSource) sources.get(5);
 		Assertions.assertEquals(labeled5.prefix().prefixProvider().get(), "three");
-		Assertions.assertFalse(labeled5.profileSpecificSources());
+		Assertions.assertEquals(labeled5.profiles(), Set.of());
 
 		LabeledSecretNormalizedSource labeled7 = (LabeledSecretNormalizedSource) sources.get(7);
 		Assertions.assertSame(labeled7.prefix(), ConfigUtils.Prefix.DEFAULT);
-		Assertions.assertFalse(labeled7.profileSpecificSources());
+		Assertions.assertEquals(labeled7.profiles(), Set.of());
 
 		Set<NormalizedSource> set = new LinkedHashSet<>(sources);
 		Assertions.assertEquals(5, set.size());

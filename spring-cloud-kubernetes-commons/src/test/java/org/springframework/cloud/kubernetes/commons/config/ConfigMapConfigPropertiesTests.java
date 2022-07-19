@@ -240,8 +240,9 @@ class ConfigMapConfigPropertiesTests {
 	 * </pre>
 	 *
 	 * a config as above will result in a NormalizedSource where
-	 * includeProfileSpecificSources will be true (this test proves that the change we
-	 * added is not a breaking change for the already existing functionality)
+	 * includeProfileSpecificSources will be true, thus active profiles are taken from
+	 * environment (this test proves that the change we added is not a breaking change for
+	 * the already existing functionality)
 	 */
 	@Test
 	void testUseIncludeProfileSpecificSourcesNoChanges() {
@@ -250,10 +251,12 @@ class ConfigMapConfigPropertiesTests {
 		properties.setName("config-map-a");
 		properties.setNamespace("spring-k8s");
 
-		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("a");
+		List<NormalizedSource> sources = properties.determineSources(environment);
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
-		Assertions.assertTrue(((NamedConfigMapNormalizedSource) sources.get(0)).profileSpecificSources());
+		Assertions.assertEquals((sources.get(0)).profiles(), Set.of("a"));
 	}
 
 	/**
@@ -281,10 +284,12 @@ class ConfigMapConfigPropertiesTests {
 		properties.setNamespace("spring-k8s");
 		properties.setIncludeProfileSpecificSources(false);
 
-		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("a");
+		List<NormalizedSource> sources = properties.determineSources(environment);
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
-		Assertions.assertFalse(((NamedConfigMapNormalizedSource) sources.get(0)).profileSpecificSources());
+		Assertions.assertEquals((sources.get(0)).profiles(), Set.of());
 	}
 
 	/**
@@ -331,12 +336,15 @@ class ConfigMapConfigPropertiesTests {
 
 		properties.setSources(Arrays.asList(one, two, three));
 
-		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("from-env");
+
+		List<NormalizedSource> sources = properties.determineSources(environment);
 		Assertions.assertEquals(sources.size(), 3);
 
-		Assertions.assertTrue(((NamedConfigMapNormalizedSource) sources.get(0)).profileSpecificSources());
-		Assertions.assertFalse(((NamedConfigMapNormalizedSource) sources.get(1)).profileSpecificSources());
-		Assertions.assertFalse(((NamedConfigMapNormalizedSource) sources.get(2)).profileSpecificSources());
+		Assertions.assertEquals((sources.get(0)).profiles(), Set.of("from-env"));
+		Assertions.assertEquals((sources.get(1)).profiles(), Set.of());
+		Assertions.assertEquals((sources.get(2)).profiles(), Set.of());
 	}
 
 	/**
@@ -397,7 +405,10 @@ class ConfigMapConfigPropertiesTests {
 
 		properties.setSources(Arrays.asList(one, two, three, four));
 
-		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("a");
+
+		List<NormalizedSource> sources = properties.determineSources(environment);
 		// we get 8 property sources, since "named" ones with "application" are
 		// duplicated.
 		// that's OK, since later in the code we get a LinkedHashSet out of them all,
@@ -406,19 +417,19 @@ class ConfigMapConfigPropertiesTests {
 
 		LabeledConfigMapNormalizedSource labeled1 = (LabeledConfigMapNormalizedSource) sources.get(1);
 		Assertions.assertEquals(labeled1.prefix().prefixProvider().get(), "one");
-		Assertions.assertFalse(labeled1.profileSpecificSources());
+		Assertions.assertEquals(labeled1.profiles(), Set.of());
 
 		LabeledConfigMapNormalizedSource labeled3 = (LabeledConfigMapNormalizedSource) sources.get(3);
 		Assertions.assertEquals(labeled3.prefix().prefixProvider().get(), "two");
-		Assertions.assertTrue(labeled3.profileSpecificSources());
+		Assertions.assertEquals(labeled3.profiles(), Set.of("a"));
 
 		LabeledConfigMapNormalizedSource labeled5 = (LabeledConfigMapNormalizedSource) sources.get(5);
 		Assertions.assertEquals(labeled5.prefix().prefixProvider().get(), "three");
-		Assertions.assertFalse(labeled5.profileSpecificSources());
+		Assertions.assertEquals(labeled5.profiles(), Set.of());
 
 		LabeledConfigMapNormalizedSource labeled7 = (LabeledConfigMapNormalizedSource) sources.get(7);
 		Assertions.assertSame(labeled7.prefix(), ConfigUtils.Prefix.DEFAULT);
-		Assertions.assertFalse(labeled7.profileSpecificSources());
+		Assertions.assertEquals(labeled7.profiles(), Set.of());
 
 		Set<NormalizedSource> set = new LinkedHashSet<>(sources);
 		Assertions.assertEquals(5, set.size());

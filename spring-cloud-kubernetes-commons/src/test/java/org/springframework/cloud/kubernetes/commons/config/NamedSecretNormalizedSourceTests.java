@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -28,8 +30,14 @@ class NamedSecretNormalizedSourceTests {
 
 	@Test
 	void testEqualsAndHashCode() {
-		NamedSecretNormalizedSource left = new NamedSecretNormalizedSource("name", "namespace", false, false);
-		NamedSecretNormalizedSource right = new NamedSecretNormalizedSource("name", "namespace", true, false);
+
+		Set<String> leftProfiles = Set.of("left");
+		Set<String> rightProfiles = Set.of("right");
+
+		NamedSecretNormalizedSource left = new NamedSecretNormalizedSource("name", "namespace", false, leftProfiles,
+				false);
+		NamedSecretNormalizedSource right = new NamedSecretNormalizedSource("name", "namespace", true, rightProfiles,
+				true);
 
 		Assertions.assertEquals(left.hashCode(), right.hashCode());
 		Assertions.assertEquals(left, right);
@@ -37,34 +45,42 @@ class NamedSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, false);
+		Set<String> leftProfiles = Set.of("left");
+		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, leftProfiles,
+				false);
 		Assertions.assertSame(source.type(), NormalizedSourceType.NAMED_SECRET);
 	}
 
 	@Test
 	void testTarget() {
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, false);
+		Set<String> leftProfiles = Set.of("left");
+		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, leftProfiles,
+				false);
 		Assertions.assertEquals(source.target(), "secret");
 	}
 
 	@Test
 	void testConstructorFields() {
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, PREFIX, true);
+		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, PREFIX,
+				Set.of("a"), true);
 		Assertions.assertEquals(source.name().get(), "name");
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertFalse(source.failFast());
 		Assertions.assertSame(PREFIX, source.prefix());
-		Assertions.assertTrue(source.profileSpecificSources());
+		Assertions.assertEquals(source.profiles(), Set.of("a"));
+		Assertions.assertTrue(source.strict());
 	}
 
 	@Test
 	void testConstructorWithoutPrefixFields() {
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", true, true);
+		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", true, Set.of("b"),
+				true);
 		Assertions.assertEquals(source.name().get(), "name");
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertTrue(source.failFast());
 		Assertions.assertSame(ConfigUtils.Prefix.DEFAULT, source.prefix());
-		Assertions.assertTrue(source.profileSpecificSources());
+		Assertions.assertEquals(source.profiles(), Set.of("b"));
+		Assertions.assertTrue(source.strict());
 	}
 
 }

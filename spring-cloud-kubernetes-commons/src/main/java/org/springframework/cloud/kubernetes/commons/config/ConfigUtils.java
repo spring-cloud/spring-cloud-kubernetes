@@ -17,7 +17,9 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -259,6 +261,25 @@ public final class ConfigUtils {
 			return true;
 		}
 		return false;
+	}
+
+	public static Set<String> profiles(boolean includeProfileSpecificSources, Set<String> profiles,
+			Environment environment) {
+
+		if (!profiles.isEmpty()) {
+			LOG.debug("profiles has been provided with value : " + profiles);
+			return profiles;
+		}
+
+		if (includeProfileSpecificSources) {
+			LOG.debug("include-profile-specific-sources is true");
+			return Arrays.stream(environment.getActiveProfiles()).collect(Collectors.toSet());
+		}
+
+		// explicit profiles have not been provided and include-profile-specific-sources
+		// is set to false
+		return Collections.emptySet();
+
 	}
 
 	private static Map<String, String> decodeData(Map<String, String> data) {
