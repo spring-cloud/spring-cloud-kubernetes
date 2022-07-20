@@ -32,8 +32,8 @@ class LabeledConfigMapNormalizedSourceTests {
 	@Test
 	void testEqualsAndHashCode() {
 
-		Set<String> leftProfiles = Set.of("left");
-		Set<String> rightProfiles = Set.of("right");
+		Set<StrictProfile> leftProfiles = Set.of(new StrictProfile("left", false));
+		Set<StrictProfile> rightProfiles = Set.of(new StrictProfile("right", true));
 
 		LabeledConfigMapNormalizedSource left = new LabeledConfigMapNormalizedSource("name", Map.of("key", "value"),
 				false, leftProfiles, false);
@@ -46,44 +46,45 @@ class LabeledConfigMapNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		Set<String> leftProfiles = Set.of("left");
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
 		LabeledConfigMapNormalizedSource source = new LabeledConfigMapNormalizedSource("name", Map.of("key", "value"),
-				false, leftProfiles, false);
+				false, profiles, false);
 		Assertions.assertSame(source.type(), NormalizedSourceType.LABELED_CONFIG_MAP);
 	}
 
 	@Test
 	void testTarget() {
-		Set<String> leftProfiles = Set.of("left");
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
 		LabeledConfigMapNormalizedSource source = new LabeledConfigMapNormalizedSource("name", Map.of("key", "value"),
-				false, leftProfiles, false);
+				false, profiles, false);
 		Assertions.assertEquals(source.target(), "configmap");
 	}
 
 	@Test
 	void testConstructorFields() {
-		Set<String> leftProfiles = Set.of("left");
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
 		LabeledConfigMapNormalizedSource source = new LabeledConfigMapNormalizedSource("namespace",
-				Map.of("key", "value"), false, PREFIX, leftProfiles, true);
+				Map.of("key", "value"), false, PREFIX, profiles, true);
 		Assertions.assertEquals(source.labels(), Map.of("key", "value"));
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertFalse(source.failFast());
 		Assertions.assertSame(PREFIX, source.prefix());
 		Assertions.assertTrue(source.strict());
-		Assertions.assertEquals(source.profiles(), Set.of("left"));
+		Assertions.assertEquals(source.profiles().iterator().next().name(), "profile");
+		Assertions.assertFalse(source.profiles().iterator().next().strict());
 	}
 
 	@Test
 	void testConstructorWithoutPrefixFields() {
-		Set<String> leftProfiles = Set.of("left");
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
 		LabeledConfigMapNormalizedSource source = new LabeledConfigMapNormalizedSource("namespace",
-				Map.of("key", "value"), true, leftProfiles, true);
+				Map.of("key", "value"), true, profiles, true);
 		Assertions.assertEquals(source.labels(), Map.of("key", "value"));
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertTrue(source.failFast());
 		Assertions.assertSame(ConfigUtils.Prefix.DEFAULT, source.prefix());
-		Assertions.assertTrue(source.strict());
-		Assertions.assertEquals(source.profiles(), Set.of("left"));
+		Assertions.assertEquals(source.profiles().iterator().next().name(), "profile");
+		Assertions.assertFalse(source.profiles().iterator().next().strict());
 	}
 
 }

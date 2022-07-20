@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -167,23 +168,31 @@ public final class ConfigUtils {
 	 * defined order).
 	 */
 	public static MultipleSourcesContainer processNamedData(List<StrippedSourceContainer> strippedSources,
-			Environment environment, LinkedHashSet<String> sourceNames, String namespace, boolean decode) {
+			Environment environment, LinkedHashSet<StrictSource> sources, String namespace, boolean decode) {
 
-		Map<String, StrippedSourceContainer> hashByName = strippedSources.stream()
-				.collect(Collectors.toMap(StrippedSourceContainer::name, Function.identity()));
-
+		Map<String, StrippedSourceContainer> hashByName = hashByName(strippedSources);
 		LinkedHashSet<String> foundSourceNames = new LinkedHashSet<>();
 		Map<String, Object> data = new HashMap<>();
 
 		// this is an ordered stream, and it means that non-profile based sources will be
 		// processed before profile based sources. This way, we replicate that
-		// "application-dev.yaml"
-		// overrides properties from "application.yaml"
-		sourceNames.forEach(source -> {
-			StrippedSourceContainer stripped = hashByName.get(source);
+		// "application-dev.yaml" overrides properties from "application.yaml"
+		sources.forEach(source -> {
+			String name = source.name();
+			StrippedSourceContainer stripped = hashByName.get(source.name());
+
+			if (stripped == null && source.strict()) {
+				LOG.error("source with name : " + name + " must be present in namespace: : " + namespace);
+				throw new StrictSourceNotFoundException("source : " + name + " not present in namespace: " + namespace);
+			}
+
+			if (stripped == null) {
+				LOG.warn("source with name : " + name + " not found in namespace : " + namespace + ". Ignoring.");
+			}
+
 			if (stripped != null) {
-				LOG.debug("Found source with name : '" + source + " in namespace: '" + namespace + "'");
-				foundSourceNames.add(source);
+				LOG.debug("Found source : '" + source + " in namespace: '" + namespace + "'");
+				foundSourceNames.add(name);
 				// see if data is a single yaml/properties file and if it needs decoding
 				Map<String, String> rawData = stripped.data();
 				if (decode) {
@@ -203,34 +212,57 @@ public final class ConfigUtils {
 	 * defined order). This method first searches by labels, find the sources, then uses
 	 * these names to find any profile based sources.
 	 */
+	public static MultipleSourcesContainer processLabeledData(List<StrippedSourceContainer> strippedSources,
+			Environment environment, Map<String, String> labels, String namespace, Set<StrictProfile> profiles,
+			boolean decode, boolean strict) {
 
-	public static MultipleSourcesContainer processLabeledData(List<StrippedSourceContainer> containers,
-			Environment environment, Map<String, String> labels, String namespace, Set<String> profiles,
-			boolean decode) {
-
-		// find sources by provided labels
-		List<StrippedSourceContainer> byLabels = containers.stream().filter(one -> {
+		// find sources by provided labels. strippedSources contains all the sources in
+		// the namespace,
+		// we narrow those all to the ones that match our labels only.
+		List<StrippedSourceContainer> byLabels = strippedSources.stream().filter(one -> {
 			Map<String, String> sourceLabels = one.labels();
 			Map<String, String> labelsToSearchAgainst = sourceLabels == null ? Map.of() : sourceLabels;
 			return labelsToSearchAgainst.entrySet().containsAll((labels.entrySet()));
 		}).collect(Collectors.toList());
 
-		// compute profile based source names (based on the ones we found by labels)
-		List<String> sourceNamesByLabelsWithProfile = new ArrayList<>();
+		if (byLabels.isEmpty() && strict) {
+			LOG.error("source(s) with labels : " + labels + " must be present in namespace : " + namespace);
+			throw new StrictSourceNotFoundException(
+					"source(s) with labels : " + labels + " not present in namespace: " + namespace);
+		}
+
+		// once we know the names of configmaps (that we found by labels above),
+		// we can find out their profile based siblings. This just computes their names,
+		// nothing more.
+		List<StrictSource> sourceNamesByLabelsWithProfile = new ArrayList<>();
 		if (profiles != null && !profiles.isEmpty()) {
 			for (StrippedSourceContainer one : byLabels) {
-				for (String profile : profiles) {
-					String name = one.name() + "-" + profile;
-					sourceNamesByLabelsWithProfile.add(name);
+				for (StrictProfile profile : profiles) {
+					String name = one.name() + "-" + profile.name();
+					sourceNamesByLabelsWithProfile.add(new StrictSource(name, profile.strict()));
 				}
 			}
 		}
 
+		Map<String, StrippedSourceContainer> hashByName = hashByName(strippedSources);
+
 		// once we know sources by labels (and thus their names), we can find out
 		// profiles based sources from the above. This would get all sources
 		// we are interested in.
-		List<StrippedSourceContainer> byProfile = containers.stream()
-				.filter(one -> sourceNamesByLabelsWithProfile.contains(one.name())).collect(Collectors.toList());
+		List<StrippedSourceContainer> byProfile = sourceNamesByLabelsWithProfile.stream().map(one -> {
+			StrippedSourceContainer strippedSource = hashByName.get(one.name());
+			if (strippedSource == null && one.strict()) {
+				LOG.error("source : " + one.name() + " must be present in namespace: " + namespace);
+				throw new StrictSourceNotFoundException(
+						"source : " + one.name() + " not present in namespace: " + namespace);
+			}
+
+			if (strippedSource == null) {
+				LOG.warn("source with name : " + one.name() + " not found in namespace : " + namespace + ". Ignoring.");
+			}
+
+			return strippedSource;
+		}).collect(Collectors.toList());
 
 		// this makes sure that we first have "app" and then "app-dev" in the list
 		List<StrippedSourceContainer> all = new ArrayList<>(byLabels.size() + byProfile.size());
@@ -263,22 +295,39 @@ public final class ConfigUtils {
 		return false;
 	}
 
-	public static Set<String> profiles(boolean includeProfileSpecificSources, Set<String> profiles,
+	public static Set<StrictProfile> profiles(boolean includeProfileSpecificSources, Set<String> strictForProfiles,
 			Environment environment) {
 
-		if (!profiles.isEmpty()) {
-			LOG.debug("profiles has been provided with value : " + profiles);
-			return profiles;
+		Set<String> activeProfiles = Arrays.stream(environment.getActiveProfiles())
+				.collect(Collectors.toCollection(HashSet::new));
+
+		if (!includeProfileSpecificSources) {
+			LOG.debug("include-profile-specific-sources is false, thus ignoring strict-for-profiles");
+			return Collections.emptySet();
 		}
 
-		if (includeProfileSpecificSources) {
-			LOG.debug("include-profile-specific-sources is true");
-			return Arrays.stream(environment.getActiveProfiles()).collect(Collectors.toSet());
+		if (strictForProfiles.isEmpty()) {
+			LOG.debug("include-profile-specific-sources = true, strict-for-profiles = empty");
+			return StrictProfile.allNonStrict(activeProfiles);
 		}
 
-		// explicit profiles have not been provided and include-profile-specific-sources
-		// is set to false
-		return Collections.emptySet();
+		// include-profile-specific-sources = true
+		// strict-for-profiles != empty
+		Set<String> strictProfiles = strictForProfiles.stream().filter(strict -> {
+			boolean present = activeProfiles.contains(strict);
+			if (!present) {
+				LOG.warn("strict profile : " + strict + " is not part of active profiles of the app, will ignore it");
+			}
+			return present;
+		}).collect(Collectors.toSet());
+		activeProfiles.removeAll(strictProfiles);
+
+		Set<StrictProfile> left = StrictProfile.allStrict(strictProfiles);
+		Set<StrictProfile> right = StrictProfile.allNonStrict(activeProfiles);
+		left.addAll(right);
+
+		LOG.debug("profile-strictness result : " + left);
+		return left;
 
 	}
 
@@ -286,6 +335,10 @@ public final class ConfigUtils {
 		Map<String, String> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
 		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));
 		return result;
+	}
+
+	private static Map<String, StrippedSourceContainer> hashByName(List<StrippedSourceContainer> strippedSources) {
+		return strippedSources.stream().collect(Collectors.toMap(StrippedSourceContainer::name, Function.identity()));
 	}
 
 	public static final class Prefix {

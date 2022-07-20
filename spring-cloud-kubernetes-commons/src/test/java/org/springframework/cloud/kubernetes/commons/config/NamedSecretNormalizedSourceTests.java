@@ -31,8 +31,8 @@ class NamedSecretNormalizedSourceTests {
 	@Test
 	void testEqualsAndHashCode() {
 
-		Set<String> leftProfiles = Set.of("left");
-		Set<String> rightProfiles = Set.of("right");
+		Set<StrictProfile> leftProfiles = Set.of(new StrictProfile("left", false));
+		Set<StrictProfile> rightProfiles = Set.of(new StrictProfile("right", true));
 
 		NamedSecretNormalizedSource left = new NamedSecretNormalizedSource("name", "namespace", false, leftProfiles,
 				false);
@@ -45,41 +45,44 @@ class NamedSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		Set<String> leftProfiles = Set.of("left");
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, leftProfiles,
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, profiles,
 				false);
 		Assertions.assertSame(source.type(), NormalizedSourceType.NAMED_SECRET);
 	}
 
 	@Test
 	void testTarget() {
-		Set<String> leftProfiles = Set.of("left");
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, leftProfiles,
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, profiles,
 				false);
 		Assertions.assertEquals(source.target(), "secret");
 	}
 
 	@Test
 	void testConstructorFields() {
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
 		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, PREFIX,
-				Set.of("a"), true);
+				profiles, true);
 		Assertions.assertEquals(source.name().get(), "name");
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertFalse(source.failFast());
 		Assertions.assertSame(PREFIX, source.prefix());
-		Assertions.assertEquals(source.profiles(), Set.of("a"));
+		Assertions.assertEquals(source.profiles().iterator().next().name(), "profile");
+		Assertions.assertFalse(source.profiles().iterator().next().strict());
 		Assertions.assertTrue(source.strict());
 	}
 
 	@Test
 	void testConstructorWithoutPrefixFields() {
-		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", true, Set.of("b"),
-				true);
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", true, profiles, true);
 		Assertions.assertEquals(source.name().get(), "name");
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertTrue(source.failFast());
 		Assertions.assertSame(ConfigUtils.Prefix.DEFAULT, source.prefix());
-		Assertions.assertEquals(source.profiles(), Set.of("b"));
+		Assertions.assertEquals(source.profiles().iterator().next().name(), "profile");
+		Assertions.assertFalse(source.profiles().iterator().next().strict());
 		Assertions.assertTrue(source.strict());
 	}
 

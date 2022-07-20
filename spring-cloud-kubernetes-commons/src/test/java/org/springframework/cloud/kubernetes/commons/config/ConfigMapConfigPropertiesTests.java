@@ -256,7 +256,9 @@ class ConfigMapConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(environment);
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
 
-		Assertions.assertEquals((sources.get(0)).profiles(), Set.of("a"));
+		Assertions.assertEquals(sources.get(0).profiles().iterator().next().name(), "a");
+		Assertions.assertFalse(sources.get(0).profiles().iterator().next().strict());
+		Assertions.assertFalse(sources.get(0).strict());
 	}
 
 	/**
@@ -342,7 +344,9 @@ class ConfigMapConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(environment);
 		Assertions.assertEquals(sources.size(), 3);
 
-		Assertions.assertEquals((sources.get(0)).profiles(), Set.of("from-env"));
+		Assertions.assertEquals(sources.get(0).profiles().iterator().next().name(), "from-env");
+		Assertions.assertFalse(sources.get(0).profiles().iterator().next().strict());
+		Assertions.assertFalse(sources.get(0).strict());
 		Assertions.assertEquals((sources.get(1)).profiles(), Set.of());
 		Assertions.assertEquals((sources.get(2)).profiles(), Set.of());
 	}
@@ -421,7 +425,9 @@ class ConfigMapConfigPropertiesTests {
 
 		LabeledConfigMapNormalizedSource labeled3 = (LabeledConfigMapNormalizedSource) sources.get(3);
 		Assertions.assertEquals(labeled3.prefix().prefixProvider().get(), "two");
-		Assertions.assertEquals(labeled3.profiles(), Set.of("a"));
+		Assertions.assertEquals(labeled3.profiles().iterator().next().name(), "a");
+		Assertions.assertFalse(labeled3.profiles().iterator().next().strict());
+		Assertions.assertFalse(labeled3.strict());
 
 		LabeledConfigMapNormalizedSource labeled5 = (LabeledConfigMapNormalizedSource) sources.get(5);
 		Assertions.assertEquals(labeled5.prefix().prefixProvider().get(), "three");

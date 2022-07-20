@@ -16,9 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.Arrays;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
@@ -33,16 +31,12 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.PROP
 public abstract class LabeledSourceData {
 
 	public final SourceData compute(Map<String, String> labels, ConfigUtils.Prefix prefix, String target,
-			boolean profileSources, boolean failFast, String namespace, String[] activeProfiles) {
+			boolean failFast, String namespace) {
 
 		MultipleSourcesContainer data = MultipleSourcesContainer.empty();
 
 		try {
-			Set<String> profiles = Set.of();
-			if (profileSources) {
-				profiles = Arrays.stream(activeProfiles).collect(Collectors.toSet());
-			}
-			data = dataSupplier(labels, profiles);
+			data = dataSupplier();
 
 			// need this check because when there is no data, the name of the property
 			// source
@@ -81,12 +75,9 @@ public abstract class LabeledSourceData {
 	/**
 	 * Implementation specific (fabric8 or k8s-native) way to get the data from then given
 	 * source names.
-	 * @param labels the ones that have been configured
-	 * @param profiles profiles to taken into account when gathering source data. Can be
-	 * empty.
 	 * @return a container that holds the names of the source that were found and their
 	 * data
 	 */
-	public abstract MultipleSourcesContainer dataSupplier(Map<String, String> labels, Set<String> profiles);
+	public abstract MultipleSourcesContainer dataSupplier();
 
 }

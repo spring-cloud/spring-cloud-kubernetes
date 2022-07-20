@@ -32,8 +32,8 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testEqualsAndHashCode() {
-		Set<String> leftProfiles = Set.of("left");
-		Set<String> rightProfiles = Set.of("right");
+		Set<StrictProfile> leftProfiles = Set.of(new StrictProfile("left", false));
+		Set<StrictProfile> rightProfiles = Set.of(new StrictProfile("right", true));
 
 		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, false, leftProfiles,
 				false);
@@ -51,8 +51,8 @@ class LabeledSecretNormalizedSourceTests {
 	@Test
 	void testEqualsAndHashCodePrefixDoesNotMatter() {
 
-		Set<String> leftProfiles = Set.of("left");
-		Set<String> rightProfiles = Set.of("right");
+		Set<StrictProfile> leftProfiles = Set.of(new StrictProfile("left", false));
+		Set<StrictProfile> rightProfiles = Set.of(new StrictProfile("right", true));
 
 		ConfigUtils.Prefix knownLeft = ConfigUtils.findPrefix("left", false, false, "some");
 		ConfigUtils.Prefix knownRight = ConfigUtils.findPrefix("right", false, false, "some");
@@ -68,51 +68,52 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		Set<String> leftProfiles = Set.of("left");
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false,
-				leftProfiles, false);
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, profiles,
+				false);
 		Assertions.assertSame(source.type(), NormalizedSourceType.LABELED_SECRET);
 	}
 
 	@Test
 	void testImmutableGetLabels() {
-		Set<String> leftProfiles = Set.of("left");
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false,
-				leftProfiles, false);
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, profiles,
+				false);
 		Assertions.assertThrows(RuntimeException.class, () -> source.labels().put("c", "d"));
 	}
 
 	@Test
 	void testTarget() {
-		Set<String> leftProfiles = Set.of("left");
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false,
-				leftProfiles, false);
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, profiles,
+				false);
 		Assertions.assertEquals(source.target(), "secret");
 	}
 
 	@Test
 	void testConstructorFields() {
-		Set<String> leftProfiles = Set.of("left");
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, "some");
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, prefix,
-				leftProfiles, true);
+				profiles, true);
 		Assertions.assertTrue(source.name().isEmpty());
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertFalse(source.failFast());
 		Assertions.assertTrue(source.strict());
-		Assertions.assertEquals(source.profiles(), Set.of("left"));
+		Assertions.assertEquals(source.profiles().iterator().next().name(), "profile");
+		Assertions.assertFalse(source.profiles().iterator().next().strict());
 	}
 
 	@Test
 	void testConstructorWithoutPrefixFields() {
-		Set<String> leftProfiles = Set.of("left");
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, true,
-				leftProfiles, true);
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, true, profiles,
+				true);
 		Assertions.assertEquals(source.namespace().get(), "namespace");
 		Assertions.assertTrue(source.failFast());
 		Assertions.assertSame(ConfigUtils.Prefix.DEFAULT, source.prefix());
-		Assertions.assertTrue(source.strict());
-		Assertions.assertEquals(source.profiles(), Set.of("left"));
+		Assertions.assertEquals(source.profiles().iterator().next().name(), "profile");
+		Assertions.assertFalse(source.profiles().iterator().next().strict());
 	}
 
 }

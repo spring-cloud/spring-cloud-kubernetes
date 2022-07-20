@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
@@ -31,24 +32,21 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.PROP
  */
 public abstract class NamedSourceData {
 
-	public final SourceData compute(String sourceName, ConfigUtils.Prefix prefix, String target, boolean profileSources,
-			boolean failFast, String namespace, String[] activeProfiles) {
+	public final SourceData compute(String sourceName, ConfigUtils.Prefix prefix, String target, boolean failFast,
+			String namespace, Set<StrictProfile> profiles, boolean strict) {
 
-		LinkedHashSet<String> sourceNames = new LinkedHashSet<>();
+		LinkedHashSet<StrictSource> sources = new LinkedHashSet<>();
 		// first comes non-profile based source
-		sourceNames.add(sourceName);
-
+		sources.add(new StrictSource(sourceName, strict));
 		MultipleSourcesContainer data = MultipleSourcesContainer.empty();
 
 		try {
-			if (profileSources) {
-				for (String activeProfile : activeProfiles) {
-					// add all profile based sources _after_ non-profile based one
-					sourceNames.add(sourceName + "-" + activeProfile);
-				}
+			for (StrictProfile profile : profiles) {
+				// add all profile based sources _after_ non-profile based one
+				sources.add(new StrictSource(sourceName + "-" + profile.name(), profile.strict()));
 			}
 
-			data = dataSupplier(sourceNames);
+			data = dataSupplier(sources);
 
 			if (data.names().isEmpty()) {
 				return new SourceData(ConfigUtils.sourceName(target, sourceName, namespace), Map.of());
@@ -73,10 +71,10 @@ public abstract class NamedSourceData {
 	/**
 	 * Implementation specific (fabric8 or k8s-native) way to get the data from then given
 	 * source names.
-	 * @param sourceNames the ones that have been configured, LinkedHashSet in order ot
+	 * @param sources the ones that have been configured, LinkedHashSet in order ot
 	 * preserve the order: non-profile source first and then the rest
 	 * @return an Entry that holds the names of the source that were found and their data
 	 */
-	public abstract MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames);
+	public abstract MultipleSourcesContainer dataSupplier(LinkedHashSet<StrictSource> sources);
 
 }

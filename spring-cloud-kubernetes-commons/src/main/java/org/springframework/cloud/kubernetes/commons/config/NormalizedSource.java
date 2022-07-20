@@ -36,9 +36,10 @@ public sealed abstract class NormalizedSource permits NamedSecretNormalizedSourc
 
 	private final boolean strict;
 
-	private final Set<String> profiles;
+	private final Set<StrictProfile> profiles;
 
-	protected NormalizedSource(String name, String namespace, boolean failFast, Set<String> profiles, boolean strict) {
+	protected NormalizedSource(String name, String namespace, boolean failFast, Set<StrictProfile> profiles,
+			boolean strict) {
 		this.name = name;
 		this.namespace = namespace;
 		this.failFast = failFast;
@@ -63,7 +64,7 @@ public sealed abstract class NormalizedSource permits NamedSecretNormalizedSourc
 		return strict;
 	}
 
-	public final Set<String> profiles() {
+	public final Set<StrictProfile> profiles() {
 		return profiles;
 	}
 

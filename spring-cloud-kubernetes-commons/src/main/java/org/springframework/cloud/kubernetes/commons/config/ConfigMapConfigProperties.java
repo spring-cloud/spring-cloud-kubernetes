@@ -93,7 +93,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		if (this.sources.isEmpty()) {
 			List<NormalizedSource> result = new ArrayList<>(2);
 			String name = getApplicationName(environment, this.name, "ConfigMap");
-			Set<String> profiles = profiles(this.includeProfileSpecificSources, Set.of(), environment);
+			Set<StrictProfile> profiles = profiles(this.includeProfileSpecificSources, Set.of(), environment);
 			result.add(new NamedConfigMapNormalizedSource(name, this.namespace, this.failFast, profiles, false));
 
 			if (!labels.isEmpty()) {
@@ -149,7 +149,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 		/**
 		 * explicit profiles have been defined.
 		 */
-		private Set<String> profiles = Collections.emptySet();
+		private Set<String> strictForProfiles = Collections.emptySet();
 
 		/**
 		 * fail or not, if such a configmap is not present.
@@ -212,12 +212,12 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 			this.labels = labels;
 		}
 
-		public Set<String> getProfiles() {
-			return profiles;
+		public Set<String> getStrictForProfiles() {
+			return strictForProfiles;
 		}
 
-		public void setProfiles(Set<String> profiles) {
-			this.profiles = profiles;
+		public void setStrictForProfiles(Set<String> strictForProfiles) {
+			this.strictForProfiles = strictForProfiles;
 		}
 
 		public boolean isStrict() {
@@ -249,7 +249,7 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
 					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
-			Set<String> profiles = profiles(includeProfileSpecificSources, getProfiles(), environment);
+			Set<StrictProfile> profiles = profiles(includeProfileSpecificSources, getStrictForProfiles(), environment);
 
 			NormalizedSource namedBasedSource = new NamedConfigMapNormalizedSource(configMapName, normalizedNamespace,
 					failFast, prefix, profiles, strict);

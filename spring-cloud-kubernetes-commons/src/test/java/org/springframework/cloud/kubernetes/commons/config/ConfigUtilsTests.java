@@ -16,8 +16,14 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -162,39 +168,277 @@ class ConfigUtilsTests {
 	}
 
 	@Test
-	void testProfilesProvidedIncludeTrue() {
-		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("b");
-		Set<String> expected = ConfigUtils.profiles(true, Set.of("a"), environment);
-
-		Assertions.assertEquals(Set.of("a"), expected);
-	}
-
-	@Test
 	void testProfilesProvidedIncludeFalse() {
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("b");
-		Set<String> expected = ConfigUtils.profiles(false, Set.of("a"), environment);
+		environment.setActiveProfiles("a", "b");
 
-		Assertions.assertEquals(Set.of("a"), expected);
+		Set<StrictProfile> expected = ConfigUtils.profiles(false, Set.of("a"), environment);
+		Assertions.assertEquals(0, expected.size());
 	}
 
+	/**
+	 * <pre>
+	 *     - env holds :      [a, b]
+	 *     - strict-profiles: [a]
+	 *
+	 *     as a result : [a=strict, b=non-strict]
+	 * </pre>
+	 */
 	@Test
-	void testProfilesNotProvidedNotTakenFromEvn() {
+	void testProfilesNotProvidedIncludeTrue() {
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("b");
-		Set<String> expected = ConfigUtils.profiles(false, Set.of(), environment);
+		environment.setActiveProfiles("a", "b");
 
-		Assertions.assertEquals(Set.of(), expected);
+		Set<StrictProfile> expected = ConfigUtils.profiles(true, Set.of(), environment);
+		Assertions.assertEquals(2, expected.size());
+		Set<StrictProfile> sorted = expected.stream().sorted(Comparator.comparing(StrictProfile::name))
+				.collect(Collectors.toCollection(LinkedHashSet::new));
+
+		Assertions.assertEquals(sorted.size(), 2);
+		Iterator<StrictProfile> iterator = sorted.iterator();
+		StrictProfile first = iterator.next();
+		Assertions.assertEquals(first.name(), "a");
+		Assertions.assertFalse(first.strict());
+
+		StrictProfile second = iterator.next();
+		Assertions.assertEquals(second.name(), "b");
+		Assertions.assertFalse(second.strict());
 	}
 
+	/**
+	 * <pre>
+	 *     - env holds :      [a, b]
+	 *     - strict-profiles: []
+	 *
+	 *     as a result : [a=non-strict, b=non-strict]
+	 * </pre>
+	 */
 	@Test
-	void testProfilesNotProvidedTakenFromEnv() {
+	void testProfilesProvidedIncludeTrue() {
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("b");
-		Set<String> expected = ConfigUtils.profiles(true, Set.of(), environment);
+		environment.setActiveProfiles("a", "b");
 
-		Assertions.assertEquals(Set.of("b"), expected);
+		Set<StrictProfile> expected = ConfigUtils.profiles(true, Set.of("a"), environment);
+		Assertions.assertEquals(2, expected.size());
+		Set<StrictProfile> sorted = expected.stream().sorted(Comparator.comparing(StrictProfile::name))
+				.collect(Collectors.toCollection(LinkedHashSet::new));
+
+		Assertions.assertEquals(sorted.size(), 2);
+		Iterator<StrictProfile> iterator = sorted.iterator();
+		StrictProfile first = iterator.next();
+		Assertions.assertEquals(first.name(), "a");
+		Assertions.assertTrue(first.strict());
+
+		StrictProfile second = iterator.next();
+		Assertions.assertEquals(second.name(), "b");
+		Assertions.assertFalse(second.strict());
+	}
+
+	/**
+	 * <pre>
+	 *     - env holds :      [a, b]
+	 *     - strict-profiles: [a, d]
+	 *
+	 *     as a result : [a=strict, b=non-strict]
+	 * </pre>
+	 */
+	@Test
+	void testProfilesProvideUnExistentProfileIncludeTrue() {
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("a", "b");
+
+		Set<StrictProfile> expected = ConfigUtils.profiles(true, Set.of("a", "d"), environment);
+		Assertions.assertEquals(2, expected.size());
+		Set<StrictProfile> sorted = expected.stream().sorted(Comparator.comparing(StrictProfile::name))
+				.collect(Collectors.toCollection(LinkedHashSet::new));
+
+		Assertions.assertEquals(sorted.size(), 2);
+		Iterator<StrictProfile> iterator = sorted.iterator();
+		StrictProfile first = iterator.next();
+		Assertions.assertEquals(first.name(), "a");
+		Assertions.assertTrue(first.strict());
+
+		StrictProfile second = iterator.next();
+		Assertions.assertEquals(second.name(), "b");
+		Assertions.assertFalse(second.strict());
+	}
+
+	/**
+	 * <pre>
+	 *     - strippedSources: {a, a-dev, a-prod}
+	 *     - env profiles   : {dev}
+	 *     - strictSources  : {[a, true], [a-dev, true], [a-k8s, false]}
+	 *
+	 *     As a result, "a" and "a-dev" are being picked up, while "a-k8s" is skipped and "a-prod" is ignored.
+	 *     "{a, a-dev}" is the data we hold.
+	 * </pre>
+	 */
+	@Test
+	void testProcessNamedDataNoFailures() {
+
+		StrippedSourceContainer a = new StrippedSourceContainer(null, "a", Map.of("a", "a"));
+		StrippedSourceContainer aDev = new StrippedSourceContainer(null, "a-dev", Map.of("a", "a-dev"));
+		StrippedSourceContainer aProd = new StrippedSourceContainer(null, "a-prod", Map.of("a", "a-prod"));
+		List<StrippedSourceContainer> strippedSources = List.of(a, aDev, aProd);
+
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("dev");
+		environment.setProperty("spring.application.name", "no-failure");
+
+		StrictSource aStrict = new StrictSource("a", true);
+		StrictSource aDevStrict = new StrictSource("a-dev", true);
+		StrictSource aK8sStrict = new StrictSource("a-k8s", false);
+		LinkedHashSet<StrictSource> strictSources = Stream.of(aStrict, aDevStrict, aK8sStrict)
+				.collect(Collectors.toCollection(LinkedHashSet::new));
+
+		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, strictSources,
+				"default", false);
+		Assertions.assertNotNull(result);
+
+		LinkedHashSet<String> names = result.names();
+		Iterator<String> iterator = names.iterator();
+		String first = iterator.next();
+		Assertions.assertEquals("a", first);
+		String second = iterator.next();
+		Assertions.assertEquals("a-dev", second);
+
+		Map<String, Object> data = result.data();
+		Assertions.assertEquals(1, data.size());
+		Assertions.assertEquals("a-dev", data.get("a"));
+	}
+
+	/**
+	 * <pre>
+	 *     - strippedSources: {a, a-dev, a-prod}
+	 *     - env profiles   : {dev}
+	 *     - strictSources  : {[a, true], [a-dev, true], [a-k8s, true]}
+	 *
+	 *     As a result, we fail, because "a-k8s" is mandatory, but it is not found within strippedSources
+	 * </pre>
+	 */
+	@Test
+	void testProcessNamedDataFailure() {
+
+		StrippedSourceContainer a = new StrippedSourceContainer(null, "a", Map.of("a", "a"));
+		StrippedSourceContainer aDev = new StrippedSourceContainer(null, "a-dev", Map.of("a", "a-dev"));
+		StrippedSourceContainer aProd = new StrippedSourceContainer(null, "a-prod", Map.of("a", "a-prod"));
+		List<StrippedSourceContainer> strippedSources = List.of(a, aDev, aProd);
+
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("dev");
+		environment.setProperty("spring.application.name", "no-failure");
+
+		StrictSource aStrict = new StrictSource("a", true);
+		StrictSource aDevStrict = new StrictSource("a-dev", true);
+		StrictSource aK8sStrict = new StrictSource("a-k8s", true);
+		LinkedHashSet<StrictSource> strictSources = Stream.of(aStrict, aDevStrict, aK8sStrict)
+				.collect(Collectors.toCollection(LinkedHashSet::new));
+
+		StrictSourceNotFoundException ex = Assertions.assertThrows(StrictSourceNotFoundException.class,
+				() -> ConfigUtils.processNamedData(strippedSources, environment, strictSources, "default", false));
+
+		Assertions.assertEquals("source : a-k8s not present in namespace: default", ex.getMessage());
+	}
+
+	/**
+	 * <pre>
+	 *     - strippedSources: {a}
+	 *     - strict: true
+	 *     - labels: {key=value}
+	 *
+	 *     As a result, we fail, because such a source is not found.
+	 * </pre>
+	 */
+	@Test
+	void testProcessLabelDataFailureByLabels() {
+		StrippedSourceContainer a = new StrippedSourceContainer(null, "a", Map.of("a", "a"));
+		List<StrippedSourceContainer> strippedSources = List.of(a);
+
+		MockEnvironment environment = new MockEnvironment();
+		LinkedHashSet<StrictProfile> strictProfiles = new LinkedHashSet<>();
+
+		StrictSourceNotFoundException ex = Assertions.assertThrows(StrictSourceNotFoundException.class,
+				() -> ConfigUtils.processLabeledData(strippedSources, environment, Map.of("key", "value"), "default",
+						strictProfiles, false, true));
+
+		Assertions.assertEquals("source(s) with labels : {key=value} not present in namespace: default",
+				ex.getMessage());
+	}
+
+	/**
+	 * <pre>
+	 *     - strippedSources: "a" with labels "color: red"
+	 *     - strictProfiles: [{"dev", false}, {"prod", true}]
+	 *     - strict: true
+	 *     - labels: {color=red}
+	 *
+	 *     We have a source called "a" with labels "color: red". Also two profiles are enabled:
+	 *     "dev" that is not strict and "prod", that is strict.
+	 *
+	 *     We search by labels "color: red" and while "a-dev" is ignored since it is not found,
+	 *     "a-prod" causes a failure since it is strict/mandatory.
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testProcessLabelDataFailureByProfile() {
+		StrippedSourceContainer a = new StrippedSourceContainer(Map.of("color", "red"), "a", Map.of("a", "a"));
+		List<StrippedSourceContainer> strippedSources = List.of(a);
+
+		MockEnvironment environment = new MockEnvironment();
+		LinkedHashSet<StrictProfile> strictProfiles = new LinkedHashSet<>();
+		strictProfiles.add(new StrictProfile("dev", false));
+		strictProfiles.add(new StrictProfile("prod", true));
+
+		StrictSourceNotFoundException ex = Assertions.assertThrows(StrictSourceNotFoundException.class,
+				() -> ConfigUtils.processLabeledData(strippedSources, environment, Map.of("color", "red"), "default",
+						strictProfiles, false, true));
+
+		Assertions.assertEquals("source : a-prod not present in namespace: default", ex.getMessage());
+	}
+
+	/**
+	 * <pre>
+	 *     - strippedSources: {["a" with labels "color: red"], ["a-dev" with labels "color-dev: red-dev"],
+	 *                        ["a-prod" with labels "color-prod: red-prod"], ["a-xx" with labels "color-xxx, "red-xx"]
+	 *     - strictProfiles: [{"dev", true}, {"prod", true}]
+	 *     - strict: true
+	 *     - labels: {color=red}
+	 *
+	 *     We have a source called "a" with labels "color: red". Also two profiles are enabled:
+	 *     "dev" and "prod", both are strict/mandatory
+	 *
+	 *     We search by labels "color: red" find source "a", but also find "a-dev" and "a-prod".
+	 *     "a-xx" although present in the namespaces is not taken into account, since "xx" is not an active profile.
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testProcessLabelDataNoFailure() {
+		StrippedSourceContainer a = new StrippedSourceContainer(Map.of("color", "red"), "a", Map.of("a", "a"));
+		StrippedSourceContainer aDev = new StrippedSourceContainer(Map.of("color-dev", "red-dev"), "a-dev",
+				Map.of("a", "a-dev"));
+		StrippedSourceContainer aProd = new StrippedSourceContainer(Map.of("color-prod", "red-prod"), "a-prod",
+				Map.of("a", "a-prod"));
+		StrippedSourceContainer aXX = new StrippedSourceContainer(Map.of("color-xx", "red-xx"), "a-xx",
+				Map.of("a", "a-xx"));
+		List<StrippedSourceContainer> strippedSources = List.of(a, aDev, aProd, aXX);
+
+		MockEnvironment environment = new MockEnvironment();
+		LinkedHashSet<StrictProfile> strictProfiles = new LinkedHashSet<>();
+		strictProfiles.add(new StrictProfile("dev", true));
+		strictProfiles.add(new StrictProfile("prod", true));
+
+		MultipleSourcesContainer result = ConfigUtils.processLabeledData(strippedSources, environment,
+				Map.of("color", "red"), "default", strictProfiles, false, true);
+
+		Assertions.assertNotNull(result);
+		Iterator<String> names = result.names().iterator();
+		Assertions.assertEquals("a", names.next());
+		Assertions.assertEquals("a-dev", names.next());
+		Assertions.assertEquals("a-prod", names.next());
+
+		Assertions.assertEquals("a-prod", result.data().get("a"));
 	}
 
 }

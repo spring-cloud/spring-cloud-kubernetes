@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSourceData;
+import org.springframework.cloud.kubernetes.commons.config.StrictSource;
 
 /**
  * Provides an implementation of {@link Fabric8ContextToSourceData} for a named secret.
@@ -41,12 +42,12 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 
 			return new NamedSourceData() {
 				@Override
-				public MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames) {
-					return Fabric8ConfigUtils.secretsDataByName(context.client(), context.namespace(), sourceNames,
+				public MultipleSourcesContainer dataSupplier(LinkedHashSet<StrictSource> sources) {
+					return Fabric8ConfigUtils.secretsDataByName(context.client(), context.namespace(), sources,
 							context.environment());
 				}
-			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
-					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
+			}.compute(source.name().orElseThrow(), source.prefix(), source.target(),
+					source.failFast(), context.namespace(), source.profiles(), source.strict());
 		};
 	}
 

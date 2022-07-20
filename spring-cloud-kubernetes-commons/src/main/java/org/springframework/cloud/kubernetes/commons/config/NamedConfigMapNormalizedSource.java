@@ -31,12 +31,12 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 	private final ConfigUtils.Prefix prefix;
 
 	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix,
-			Set<String> profiles, boolean strict) {
+			Set<StrictProfile> profiles, boolean strict) {
 		super(name, namespace, failFast, profiles, strict);
 		this.prefix = Objects.requireNonNull(prefix);
 	}
 
-	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast, Set<String> profiles,
+	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast, Set<StrictProfile> profiles,
 			boolean strict) {
 		super(name, namespace, failFast, profiles, strict);
 		this.prefix = ConfigUtils.Prefix.DEFAULT;
@@ -63,7 +63,7 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 		creator.append("namespace", namespace());
 		creator.append("failFast", failFast());
 		creator.append("prefix", prefix());
-		creator.append("profiles", profiles());
+		creator.append("profiles-strictness", profiles());
 		creator.append("strict", strict());
 
 		return creator.toString();

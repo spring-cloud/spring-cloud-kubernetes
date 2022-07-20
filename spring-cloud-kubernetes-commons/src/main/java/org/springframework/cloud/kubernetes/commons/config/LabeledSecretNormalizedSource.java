@@ -35,14 +35,14 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 	private final ConfigUtils.Prefix prefix;
 
 	public LabeledSecretNormalizedSource(String namespace, Map<String, String> labels, boolean failFast,
-			ConfigUtils.Prefix prefix, Set<String> profiles, boolean strict) {
+			ConfigUtils.Prefix prefix, Set<StrictProfile> profiles, boolean strict) {
 		super(null, namespace, failFast, profiles, strict);
 		this.labels = Collections.unmodifiableMap(Objects.requireNonNull(labels));
 		this.prefix = Objects.requireNonNull(prefix);
 	}
 
 	public LabeledSecretNormalizedSource(String namespace, Map<String, String> labels, boolean failFast,
-			Set<String> profiles, boolean strict) {
+			Set<StrictProfile> profiles, boolean strict) {
 		super(null, namespace, failFast, profiles, strict);
 		this.labels = Collections.unmodifiableMap(Objects.requireNonNull(labels));
 		this.prefix = ConfigUtils.Prefix.DEFAULT;
@@ -76,7 +76,7 @@ public final class LabeledSecretNormalizedSource extends NormalizedSource {
 		creator.append("namespace", namespace());
 		creator.append("failFast", failFast());
 		creator.append("prefix", prefix());
-		creator.append("profiles", profiles());
+		creator.append("profiles-strictness", profiles());
 		creator.append("strict", strict());
 
 		return creator.toString();

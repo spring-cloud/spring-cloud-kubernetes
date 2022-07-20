@@ -32,6 +32,8 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.cloud.kubernetes.commons.config.StrictProfile;
+import org.springframework.cloud.kubernetes.commons.config.StrictSource;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.core.env.Environment;
@@ -120,14 +122,14 @@ public final class Fabric8ConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer secretsDataByLabels(KubernetesClient client, String namespace,
-			Map<String, String> labels, Environment environment, Set<String> profiles) {
+			Map<String, String> labels, Environment environment, Set<StrictProfile> profiles, boolean strict) {
 		List<Secret> secrets = secretsSearch(client, namespace);
 		if (ConfigUtils.noSources(secrets, namespace)) {
 			return MultipleSourcesContainer.empty();
 		}
 
 		List<StrippedSourceContainer> strippedSources = strippedSecrets(secrets);
-		return ConfigUtils.processLabeledData(strippedSources, environment, labels, namespace, profiles, true);
+		return ConfigUtils.processLabeledData(strippedSources, environment, labels, namespace, profiles, true, strict);
 
 	}
 
@@ -142,7 +144,7 @@ public final class Fabric8ConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer configMapsDataByLabels(KubernetesClient client, String namespace,
-			Map<String, String> labels, Environment environment, Set<String> profiles) {
+			Map<String, String> labels, Environment environment, Set<StrictProfile> profiles, boolean strict) {
 
 		List<ConfigMap> configMaps = configMapsSearch(client, namespace);
 		if (ConfigUtils.noSources(configMaps, namespace)) {
@@ -150,7 +152,7 @@ public final class Fabric8ConfigUtils {
 		}
 
 		List<StrippedSourceContainer> strippedSources = strippedConfigMaps(configMaps);
-		return ConfigUtils.processLabeledData(strippedSources, environment, labels, namespace, profiles, false);
+		return ConfigUtils.processLabeledData(strippedSources, environment, labels, namespace, profiles, false, strict);
 	}
 
 	/**
@@ -162,14 +164,14 @@ public final class Fabric8ConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer secretsDataByName(KubernetesClient client, String namespace,
-			LinkedHashSet<String> sourceNames, Environment environment) {
+			LinkedHashSet<StrictSource> sources, Environment environment) {
 		List<Secret> secrets = secretsSearch(client, namespace);
 		if (ConfigUtils.noSources(secrets, namespace)) {
 			return MultipleSourcesContainer.empty();
 		}
 
 		List<StrippedSourceContainer> strippedSources = strippedSecrets(secrets);
-		return ConfigUtils.processNamedData(strippedSources, environment, sourceNames, namespace, true);
+		return ConfigUtils.processNamedData(strippedSources, environment, sources, namespace, true);
 
 	}
 
@@ -182,14 +184,14 @@ public final class Fabric8ConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer configMapsDataByName(KubernetesClient client, String namespace,
-			LinkedHashSet<String> sourceNames, Environment environment) {
+			LinkedHashSet<StrictSource> sources, Environment environment) {
 		List<ConfigMap> configMaps = configMapsSearch(client, namespace);
 		if (ConfigUtils.noSources(configMaps, namespace)) {
 			return MultipleSourcesContainer.empty();
 		}
 
 		List<StrippedSourceContainer> strippedSources = strippedConfigMaps(configMaps);
-		return ConfigUtils.processNamedData(strippedSources, environment, sourceNames, namespace, false);
+		return ConfigUtils.processNamedData(strippedSources, environment, sources, namespace, false);
 
 	}
 

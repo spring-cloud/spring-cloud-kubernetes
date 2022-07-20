@@ -379,7 +379,9 @@ class SecretsConfigPropertiesTests {
 
 		LabeledSecretNormalizedSource labeled3 = (LabeledSecretNormalizedSource) sources.get(3);
 		Assertions.assertEquals(labeled3.prefix().prefixProvider().get(), "two");
-		Assertions.assertEquals(labeled3.profiles(), Set.of("from-env"));
+		Assertions.assertEquals(labeled3.profiles().iterator().next().name(), "from-env");
+		Assertions.assertFalse(labeled3.profiles().iterator().next().strict());
+		Assertions.assertFalse(labeled3.strict());
 
 		LabeledSecretNormalizedSource labeled5 = (LabeledSecretNormalizedSource) sources.get(5);
 		Assertions.assertEquals(labeled5.prefix().prefixProvider().get(), "three");

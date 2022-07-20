@@ -93,7 +93,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		if (this.sources.isEmpty()) {
 			List<NormalizedSource> result = new ArrayList<>(2);
 			String name = getApplicationName(environment, this.name, "Secret");
-			Set<String> profiles = profiles(this.includeProfileSpecificSources, Set.of(), environment);
+			Set<StrictProfile> profiles = profiles(this.includeProfileSpecificSources, Set.of(), environment);
 			result.add(new NamedSecretNormalizedSource(name, this.namespace, this.failFast, profiles, false));
 
 			if (!labels.isEmpty()) {
@@ -241,7 +241,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 
 			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
 					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
-			Set<String> profiles = profiles(includeProfileSpecificSources, getProfiles(), environment);
+			Set<StrictProfile> profiles = profiles(includeProfileSpecificSources, getProfiles(), environment);
 
 			NormalizedSource namedBasedSource = new NamedSecretNormalizedSource(secretName, normalizedNamespace,
 					failFast, prefix, profiles, strict);

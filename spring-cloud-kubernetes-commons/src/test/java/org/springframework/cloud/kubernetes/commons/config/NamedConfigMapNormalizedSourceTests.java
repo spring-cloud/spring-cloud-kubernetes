@@ -34,8 +34,8 @@ class NamedConfigMapNormalizedSourceTests {
 		ConfigUtils.Prefix knownLeft = ConfigUtils.findPrefix("prefix", false, false, "some");
 		ConfigUtils.Prefix knownRight = ConfigUtils.findPrefix("prefix", false, false, "non-equal-prefix");
 
-		Set<String> leftProfiles = Set.of("left");
-		Set<String> rightProfiles = Set.of("right");
+		Set<StrictProfile> leftProfiles = Set.of(new StrictProfile("left", false));
+		Set<StrictProfile> rightProfiles = Set.of(new StrictProfile("right", true));
 
 		NamedConfigMapNormalizedSource left = new NamedConfigMapNormalizedSource("name", "namespace", false, knownLeft,
 				leftProfiles, false);
@@ -48,30 +48,31 @@ class NamedConfigMapNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		Set<String> leftProfiles = Set.of("left");
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
 		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
-				leftProfiles, false);
+				profiles, false);
 		Assertions.assertSame(one.type(), NormalizedSourceType.NAMED_CONFIG_MAP);
 	}
 
 	@Test
 	void testTarget() {
-		Set<String> leftProfiles = Set.of("left");
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
 		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
-				leftProfiles, false);
+				profiles, false);
 		Assertions.assertEquals(one.target(), "configmap");
 	}
 
 	@Test
 	void testConstructorFields() {
-		Set<String> leftProfiles = Set.of("left");
+		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
 		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
-				leftProfiles, true);
+				profiles, true);
 		Assertions.assertEquals(one.name().get(), "name");
 		Assertions.assertEquals(one.namespace().get(), "namespace");
 		Assertions.assertFalse(one.failFast());
 		Assertions.assertTrue(one.strict());
-		Assertions.assertEquals(one.profiles(), Set.of("left"));
+		Assertions.assertEquals(one.profiles().iterator().next().name(), "profile");
+		Assertions.assertFalse(one.profiles().iterator().next().strict());
 	}
 
 }
