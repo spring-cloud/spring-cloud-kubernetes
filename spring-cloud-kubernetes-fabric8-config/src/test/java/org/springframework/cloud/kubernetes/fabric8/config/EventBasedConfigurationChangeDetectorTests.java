@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
@@ -70,7 +71,7 @@ class EventBasedConfigurationChangeDetectorTests {
 		when(resource.get()).thenReturn(configMap);
 		when(k8sClient.getNamespace()).thenReturn("default");
 
-		NormalizedSource source = new NamedConfigMapNormalizedSource("myconfigmap", "default", true, false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("myconfigmap", "default", true, Set.of(), false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(k8sClient, source, "default", env);
 		Fabric8ConfigMapPropertySource fabric8ConfigMapPropertySource = new Fabric8ConfigMapPropertySource(context);
 		env.getPropertySources().addFirst(new BootstrapPropertySource<>(fabric8ConfigMapPropertySource));
