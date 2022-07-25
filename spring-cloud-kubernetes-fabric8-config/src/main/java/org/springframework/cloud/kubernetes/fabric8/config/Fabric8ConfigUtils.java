@@ -146,10 +146,6 @@ public final class Fabric8ConfigUtils {
 			return MultipleSourcesContainer.empty();
 		}
 
-		if (ConfigUtils.noSources(secrets, namespace)) {
-			return MultipleSourcesContainer.empty();
-		}
-
 		List<StrippedSourceContainer> strippedSources = strippedSecrets(secrets);
 		return ConfigUtils.processLabeledData(strippedSources, environment, labels, namespace, profiles, true, strict);
 

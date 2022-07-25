@@ -221,6 +221,53 @@ class Fabric8ConfigUtilsTests {
 		Assertions.assertEquals("4", result.data().get("four"));
 	}
 
+	/**
+	 * <pre>
+	 *     - secret with name "a" and labels {color: red} is present in namespace
+	 *     - secret with name "a-dev" and labels {color: red} is present in namespace
+	 *     - active profile "dev" exists also.
+	 *
+	 *     this test makes sure that no failures are present. What we mean by this is :
+	 *     - since we search for all secrets by labels first, we will find both "a" and "a-dev"
+	 *     - since "dev" is an active profile, "a-dev" will not be considered a 'root' secret.
+	 *     - if our implementation would have considered both 'root' secrets (i.e.: we would be computing
+	 *       profile based siblings from the above), this test would have failed.
+	 * </pre>
+	 */
+	@Test
+	void testSecretsCorrectSourcesAreTaken() {
+		client.secrets().inNamespace("spring-k8s")
+			.create(new SecretBuilder()
+				.withMetadata(new ObjectMetaBuilder().withName("a")
+					.withLabels(Map.of("color", "red")).build())
+				.addToData(Map.of("a", Base64.getEncoder().encodeToString("a".getBytes()))).build());
+
+		client.secrets().inNamespace("spring-k8s")
+			.create(new SecretBuilder()
+				.withMetadata(new ObjectMetaBuilder().withName("a-dev")
+					.withLabels(Map.of("color", "red")).build())
+				.addToData(Map.of("a", Base64.getEncoder().encodeToString("a-dev".getBytes()))).build());
+
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("dev", true));
+
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("dev");
+
+		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
+			Map.of("color", "red"), environment, profiles, true);
+
+		Assertions.assertNotNull(result);
+
+		LinkedHashSet<String> expectedNames = new LinkedHashSet<>();
+		expectedNames.add("a");
+		expectedNames.add("a-dev");
+		Assertions.assertEquals(expectedNames, result.names());
+
+		Assertions.assertEquals(Map.of("a", "a-dev"), result.data());
+
+	}
+
 	// secret "my-secret" is deployed; we search for it by name and do not find it.
 	@Test
 	void testSecretDataByNameSecretNotFound() {

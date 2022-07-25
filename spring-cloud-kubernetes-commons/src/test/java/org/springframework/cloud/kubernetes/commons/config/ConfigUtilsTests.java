@@ -515,4 +515,109 @@ class ConfigUtilsTests {
 		Assertions.assertDoesNotThrow(() -> ConfigUtils.onException(false, new RuntimeException("just because")));
 	}
 
+	/**
+	 * <pre>
+	 *     - StrictProfiles : {[dev, false], [prod, true]}
+	 *     - byLabels: {a-dev, b-prod, c}
+	 * </pre>
+	 */
+	@Test
+	void testRootSourcesOne() {
+
+		List<StrippedSourceContainer> byLabels = List.of(
+			new StrippedSourceContainer(Map.of("a", "b"), "a-dev", Map.of()),
+			new StrippedSourceContainer(Map.of("a", "b"), "b-prod", Map.of()),
+			new StrippedSourceContainer(Map.of("a", "b"), "c", Map.of())
+		);
+
+		LinkedHashSet<StrictProfile> strictProfiles = new LinkedHashSet<>();
+		strictProfiles.add(new StrictProfile("dev", false));
+		strictProfiles.add(new StrictProfile("prod", true));
+
+		List<StrippedSourceContainer> result = ConfigUtils.rootSources(byLabels, strictProfiles);
+		Assertions.assertEquals(1, result.size());
+		Assertions.assertEquals("c", result.get(0).name());
+	}
+
+	/**
+	 * <pre>
+	 *     - StrictProfiles : {[dev, false], [prod, true]}
+	 *     - byLabels: {a-dev, b-prod}
+	 * </pre>
+	 */
+	@Test
+	void testRootSourcesTwo() {
+
+		List<StrippedSourceContainer> byLabels = List.of(
+			new StrippedSourceContainer(Map.of("a", "b"), "a-dev", Map.of()),
+			new StrippedSourceContainer(Map.of("a", "b"), "b-prod", Map.of())
+		);
+
+		LinkedHashSet<StrictProfile> strictProfiles = new LinkedHashSet<>();
+		strictProfiles.add(new StrictProfile("dev", false));
+		strictProfiles.add(new StrictProfile("prod", true));
+
+		List<StrippedSourceContainer> result = ConfigUtils.rootSources(byLabels, strictProfiles);
+		Assertions.assertEquals(0, result.size());
+	}
+
+	/**
+	 * <pre>
+	 *     - rootSources: {[a, b, c]}
+	 *     - StrictProfiles : {[dev, false], [prod, true]}
+	 *     - byLabels: {a-dev, b-prod}
+	 * </pre>
+	 */
+	@Test
+	void testSiblingsRootSourcesPresent() {
+
+		List<StrippedSourceContainer> rootSources = List.of(
+			new StrippedSourceContainer(Map.of("key", "value"), "a", Map.of()),
+			new StrippedSourceContainer(Map.of("key", "value"), "b", Map.of()),
+			new StrippedSourceContainer(Map.of("key", "value"), "c", Map.of())
+		);
+
+		LinkedHashSet<StrictProfile> strictProfiles = new LinkedHashSet<>();
+		strictProfiles.add(new StrictProfile("dev", false));
+		strictProfiles.add(new StrictProfile("prod", true));
+
+		List<StrictSource> result = ConfigUtils.siblings(rootSources, strictProfiles, List.of());
+		Assertions.assertEquals(6, result.size());
+		Assertions.assertEquals("a-dev", result.get(0).name());
+		Assertions.assertEquals("b-dev", result.get(1).name());
+		Assertions.assertEquals("c-dev", result.get(2).name());
+
+		Assertions.assertEquals("a-prod", result.get(3).name());
+		Assertions.assertEquals("b-prod", result.get(4).name());
+		Assertions.assertEquals("c-prod", result.get(5).name());
+	}
+
+	/**
+	 * <pre>
+	 *     - rootSources: {}
+	 *     - StrictProfiles : {[dev, false], [prod, true]}
+	 *     - byLabels: {a-dev, b-prod, c-k8s}
+	 * </pre>
+	 */
+	@Test
+	void testSiblingsRootSourcesNotPresent() {
+
+		List<StrippedSourceContainer> byLabels = List.of(
+			new StrippedSourceContainer(Map.of("key", "value"), "a-dev", Map.of()),
+			new StrippedSourceContainer(Map.of("key", "value"), "b-prod", Map.of()),
+			new StrippedSourceContainer(Map.of("key", "value"), "c-k8s", Map.of())
+		);
+
+		LinkedHashSet<StrictProfile> strictProfiles = new LinkedHashSet<>();
+		strictProfiles.add(new StrictProfile("dev", false));
+		strictProfiles.add(new StrictProfile("prod", true));
+
+		// c-k8s is not present, simply because k8s is not a profile that we have currently active
+		List<StrictSource> result = ConfigUtils.siblings(List.of(), strictProfiles, byLabels);
+		Assertions.assertEquals(2, result.size());
+		Assertions.assertEquals("a-dev", result.get(0).name());
+		Assertions.assertEquals("b-prod", result.get(1).name());
+
+	}
+
 }

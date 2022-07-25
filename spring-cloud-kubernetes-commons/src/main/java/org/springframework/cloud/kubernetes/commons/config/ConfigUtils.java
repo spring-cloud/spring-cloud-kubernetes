@@ -220,61 +220,28 @@ public final class ConfigUtils {
 	 * these names to find any profile based sources.
 	 */
 	public static MultipleSourcesContainer processLabeledData(List<StrippedSourceContainer> strippedSources,
-			Environment environment, Map<String, String> labels, String namespace, Set<StrictProfile> profiles,
+			Environment environment, Map<String, String> labels, String namespace, LinkedHashSet<StrictProfile> profiles,
 			boolean decode, boolean strict) {
 
-		// find sources by provided labels. strippedSources contains all the sources in
-		// the namespace,
-		// we narrow those all to the ones that match our labels only.
+		// take all sources from the namespace and filter the ones by labels only.
 		List<StrippedSourceContainer> byLabels = strippedSources.stream().filter(one -> {
 			Map<String, String> sourceLabels = one.labels();
 			Map<String, String> labelsToSearchAgainst = sourceLabels == null ? Map.of() : sourceLabels;
 			return labelsToSearchAgainst.entrySet().containsAll((labels.entrySet()));
 		}).collect(Collectors.toList());
 
-		if (byLabels.isEmpty() && strict) {
-			LOG.error("source(s) with labels : " + labels + " must be present in namespace : " + namespace);
-			throw new StrictSourceNotFoundException(
-					"source(s) with labels : " + labels + " not present in namespace: " + namespace);
-		}
+		// find 'root' sources, i.e.: non-profile based ones
+		List<StrippedSourceContainer> rootSources = rootSources(byLabels, profiles);
+		failForStrictRootSources(labels, strict, namespace, rootSources);
+		// find siblings for the above root sources
+		List<StrictSource> siblingSources = siblings(rootSources, profiles, byLabels);
+		List<StrippedSourceContainer> strippedSiblingSources = strictStrippedSources(strippedSources, siblingSources, namespace);
 
-		// once we know the names of configmaps (that we found by labels above),
-		// we can find out their profile based siblings. This just computes their names,
-		// nothing more.
-		List<StrictSource> sourceNamesByLabelsWithProfile = new ArrayList<>();
-		if (profiles != null && !profiles.isEmpty()) {
-			for (StrippedSourceContainer one : byLabels) {
-				for (StrictProfile profile : profiles) {
-					String name = one.name() + "-" + profile.name();
-					sourceNamesByLabelsWithProfile.add(new StrictSource(name, profile.strict()));
-				}
-			}
-		}
-
-		Map<String, StrippedSourceContainer> hashByName = hashByName(strippedSources);
-
-		// once we know sources by labels (and thus their names), we can find out
-		// profiles based sources from the above. This would get all sources
-		// we are interested in.
-		List<StrippedSourceContainer> byProfile = sourceNamesByLabelsWithProfile.stream().map(one -> {
-			StrippedSourceContainer strippedSource = hashByName.get(one.name());
-			if (strippedSource == null && one.strict()) {
-				LOG.error("source : " + one.name() + " must be present in namespace: " + namespace);
-				throw new StrictSourceNotFoundException(
-						"source : " + one.name() + " not present in namespace: " + namespace);
-			}
-
-			if (strippedSource == null) {
-				LOG.warn("source with name : " + one.name() + " not found in namespace : " + namespace + ". Ignoring.");
-			}
-
-			return strippedSource;
-		}).filter(Objects::nonNull).collect(Collectors.toList());
 
 		// this makes sure that we first have "app" and then "app-dev" in the list
-		List<StrippedSourceContainer> all = new ArrayList<>(byLabels.size() + byProfile.size());
-		all.addAll(byLabels);
-		all.addAll(byProfile);
+		List<StrippedSourceContainer> all = new ArrayList<>(byLabels.size() + strippedSiblingSources.size());
+		all.addAll(rootSources);
+		all.addAll(strippedSiblingSources);
 
 		LinkedHashSet<String> sourceNames = new LinkedHashSet<>();
 		Map<String, Object> result = new HashMap<>();
@@ -343,6 +310,96 @@ public final class ConfigUtils {
 
 	}
 
+	/**
+	 * <pre>
+	 * 	 root sources are the ones that do _not_ end in profile.name from profiles.
+	 * 	 for example, we have StrictProfiles : {[dev, false], [prod, true]} and byLabels:
+	 * 	 - a-dev
+	 * 	 - b-prod
+	 * 	 - c
+	 *
+	 * 	 in such a case, rootProfiles are considered only : "c".
+	 *
+	 * </pre>
+	 */
+	static List<StrippedSourceContainer> rootSources(List<StrippedSourceContainer> byLabels,
+			LinkedHashSet<StrictProfile> profiles) {
+		return byLabels.stream().filter(one -> {
+			String name = one.name();
+			for (StrictProfile profile: profiles) {
+				if (name.endsWith("-" + profile.name())) {
+					return false;
+				}
+			}
+			return true;
+		}).collect(Collectors.toList());
+	}
+
+	/**
+	 * <pre>
+	 *     - if rootSources are present, get their names and compute their sibling names
+	 *       and thus a List<StrictSource>. We still need to check if these are present at all,
+	 *       since the names are taken from root + profile, so no idea if they exist yet.
+	 *
+	 *     - if rootSources are empty and byLabels are not, it most probably means that
+	 *       "strict: false" is enabled for root sources. As such, we need to filter
+	 *       the ones that are siblings only; because not everything that we got by labels
+	 *       might be a sibling in the current run.
+	 * </pre>
+	 */
+	static List<StrictSource> siblings(List<StrippedSourceContainer> rootSources,
+			LinkedHashSet<StrictProfile> profiles, List<StrippedSourceContainer> byLabels) {
+		List<StrictSource> siblingSources = new ArrayList<>();
+		// once we know the names of sources (that we found by labels before this),
+		// find siblings of those. For example: "a-dev", "map-us-west".
+		if (!rootSources.isEmpty()) {
+			for (StrictProfile profile : profiles) {
+				for (StrippedSourceContainer one : rootSources) {
+					String name = one.name() + "-" + profile.name();
+					siblingSources.add(new StrictSource(name, profile.strict()));
+				}
+			}
+		}
+		else {
+			if (!byLabels.isEmpty()) {
+				// filter from all only the sibling ones, i.e.: ones that have the format : "XXX-<profile.name>"
+				siblingSources = byLabels.stream().map(one -> {
+					for (StrictProfile profile : profiles) {
+						if (one.name().endsWith("-" + profile.name())) {
+							return new StrictSource(one.name(), profile.strict());
+						}
+					}
+					return null;
+				}).filter(Objects::nonNull).collect(Collectors.toList());
+			}
+		}
+
+		return siblingSources;
+	}
+
+	/**
+	 * this method checks if the siblings we computed are actually present in the namespace
+	 */
+	static List<StrippedSourceContainer> strictStrippedSources(List<StrippedSourceContainer> strippedSources,
+			List<StrictSource> siblingSources, String namespace) {
+		Map<String, StrippedSourceContainer> hashByName = hashByName(strippedSources);
+
+		return siblingSources.stream().map(one -> {
+			StrippedSourceContainer strippedSource = hashByName.get(one.name());
+			if (strippedSource == null && one.strict()) {
+				LOG.error("source : " + one.name() + " must be present in namespace: " + namespace);
+				throw new StrictSourceNotFoundException(
+					"source : " + one.name() + " not present in namespace: " + namespace);
+			}
+
+			if (strippedSource == null) {
+				LOG.warn("source with name : " + one.name() + " not found in namespace : " + namespace + ". Ignoring.");
+			}
+
+			return strippedSource;
+		}).filter(Objects::nonNull).collect(Collectors.toList());
+	}
+
 	private static Map<String, String> decodeData(Map<String, String> data) {
 		Map<String, String> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
 		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));
@@ -351,6 +408,15 @@ public final class ConfigUtils {
 
 	private static Map<String, StrippedSourceContainer> hashByName(List<StrippedSourceContainer> strippedSources) {
 		return strippedSources.stream().collect(Collectors.toMap(StrippedSourceContainer::name, Function.identity()));
+	}
+
+	private static void failForStrictRootSources(Map<String, String> labels, boolean strict, String namespace,
+			List<StrippedSourceContainer> rootSources) {
+		if (rootSources.isEmpty() && strict) {
+			LOG.error("source(s) with labels : " + labels + " must be present in namespace : " + namespace);
+			throw new StrictSourceNotFoundException(
+				"source(s) with labels : " + labels + " not present in namespace: " + namespace);
+		}
 	}
 
 	public static final class Prefix {
