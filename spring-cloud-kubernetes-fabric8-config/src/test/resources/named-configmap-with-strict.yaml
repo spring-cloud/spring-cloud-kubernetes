@@ -1,0 +1,20 @@
+spring:
+  cloud:
+    kubernetes:
+      config:
+        sources:
+          - name: one
+            strict: true
+            namespace: spring-k8s
+            include-profile-specific-sources: true
+            strict-for-profiles:
+              - dev
+
+          - name: two
+            strict: false
+            namespace: spring-k8s
+            include-profile-specific-sources: true
+            strict-for-profiles:
+              - d
+              - c
+              - b

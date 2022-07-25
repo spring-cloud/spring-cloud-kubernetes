@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
 
 /**
@@ -29,19 +29,19 @@ import java.util.stream.Collectors;
 public final record StrictProfile(String name, boolean strict) {
 
 	/**
-	 * returns a mutable Set where all entries are non-strict.
+	 * returns a mutable LinkedHashSet where all entries are non-strict.
 	 */
-	static Set<StrictProfile> allNonStrict(Set<String> profileNames) {
-		return profileNames.stream().map(name -> new StrictProfile(name, false))
-				.collect(Collectors.toCollection(HashSet::new));
+	static LinkedHashSet<StrictProfile> allNonStrict(String[] profileNames) {
+		return Arrays.stream(profileNames).map(name -> new StrictProfile(name, false))
+				.collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 
 	/**
-	 * returns a mutable Set where all entries are strict.
+	 * returns a mutable LinkedHashSet where all entries are strict.
 	 */
-	static Set<StrictProfile> allStrict(Set<String> profileNames) {
+	static LinkedHashSet<StrictProfile> allStrict(LinkedHashSet<String> profileNames) {
 		return profileNames.stream().map(name -> new StrictProfile(name, true))
-				.collect(Collectors.toCollection(HashSet::new));
+				.collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 
 }

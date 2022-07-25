@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.LinkedHashSet;
 import java.util.Objects;
-import java.util.Set;
 
 import org.springframework.core.style.ToStringCreator;
 
@@ -31,13 +31,13 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 	private final ConfigUtils.Prefix prefix;
 
 	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix,
-			Set<StrictProfile> profiles, boolean strict) {
+			LinkedHashSet<StrictProfile> profiles, boolean strict) {
 		super(name, namespace, failFast, profiles, strict);
 		this.prefix = Objects.requireNonNull(prefix);
 	}
 
-	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast, Set<StrictProfile> profiles,
-			boolean strict) {
+	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast,
+			LinkedHashSet<StrictProfile> profiles, boolean strict) {
 		super(name, namespace, failFast, profiles, strict);
 		this.prefix = ConfigUtils.Prefix.DEFAULT;
 	}

@@ -16,9 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Base class for Normalized Sources. It should contain all the "normalized" properties
@@ -36,15 +35,15 @@ public sealed abstract class NormalizedSource permits NamedSecretNormalizedSourc
 
 	private final boolean strict;
 
-	private final Set<StrictProfile> profiles;
+	private final LinkedHashSet<StrictProfile> profiles;
 
-	protected NormalizedSource(String name, String namespace, boolean failFast, Set<StrictProfile> profiles,
+	protected NormalizedSource(String name, String namespace, boolean failFast, LinkedHashSet<StrictProfile> profiles,
 			boolean strict) {
 		this.name = name;
 		this.namespace = namespace;
 		this.failFast = failFast;
 		this.strict = strict;
-		this.profiles = Optional.ofNullable(profiles).orElse(Collections.emptySet());
+		this.profiles = Optional.ofNullable(profiles).orElse(new LinkedHashSet<>());
 	}
 
 	public final Optional<String> namespace() {
@@ -64,7 +63,7 @@ public sealed abstract class NormalizedSource permits NamedSecretNormalizedSourc
 		return strict;
 	}
 
-	public final Set<StrictProfile> profiles() {
+	public final LinkedHashSet<StrictProfile> profiles() {
 		return profiles;
 	}
 

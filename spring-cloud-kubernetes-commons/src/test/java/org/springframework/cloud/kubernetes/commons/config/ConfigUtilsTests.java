@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -172,7 +171,9 @@ class ConfigUtilsTests {
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("a", "b");
 
-		Set<StrictProfile> expected = ConfigUtils.profiles(false, Set.of("a"), environment);
+		LinkedHashSet<String> profiles = new LinkedHashSet<>();
+
+		Set<StrictProfile> expected = ConfigUtils.profiles(false, profiles, environment);
 		Assertions.assertEquals(0, expected.size());
 	}
 
@@ -189,13 +190,12 @@ class ConfigUtilsTests {
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("a", "b");
 
-		Set<StrictProfile> expected = ConfigUtils.profiles(true, Set.of(), environment);
-		Assertions.assertEquals(2, expected.size());
-		Set<StrictProfile> sorted = expected.stream().sorted(Comparator.comparing(StrictProfile::name))
-				.collect(Collectors.toCollection(LinkedHashSet::new));
+		LinkedHashSet<String> profiles = new LinkedHashSet<>();
 
-		Assertions.assertEquals(sorted.size(), 2);
-		Iterator<StrictProfile> iterator = sorted.iterator();
+		LinkedHashSet<StrictProfile> expected = ConfigUtils.profiles(true, profiles, environment);
+		Assertions.assertEquals(2, expected.size());
+
+		Iterator<StrictProfile> iterator = expected.iterator();
 		StrictProfile first = iterator.next();
 		Assertions.assertEquals(first.name(), "a");
 		Assertions.assertFalse(first.strict());
@@ -218,16 +218,14 @@ class ConfigUtilsTests {
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("a", "b");
 
-		Set<StrictProfile> expected = ConfigUtils.profiles(true, Set.of("a"), environment);
-		Assertions.assertEquals(2, expected.size());
-		Set<StrictProfile> sorted = expected.stream().sorted(Comparator.comparing(StrictProfile::name))
-				.collect(Collectors.toCollection(LinkedHashSet::new));
+		LinkedHashSet<String> profiles = new LinkedHashSet<>();
 
-		Assertions.assertEquals(sorted.size(), 2);
-		Iterator<StrictProfile> iterator = sorted.iterator();
+		Set<StrictProfile> expected = ConfigUtils.profiles(true, profiles, environment);
+		Assertions.assertEquals(2, expected.size());
+		Iterator<StrictProfile> iterator = expected.iterator();
 		StrictProfile first = iterator.next();
 		Assertions.assertEquals(first.name(), "a");
-		Assertions.assertTrue(first.strict());
+		Assertions.assertFalse(first.strict());
 
 		StrictProfile second = iterator.next();
 		Assertions.assertEquals(second.name(), "b");
@@ -247,20 +245,55 @@ class ConfigUtilsTests {
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("a", "b");
 
-		Set<StrictProfile> expected = ConfigUtils.profiles(true, Set.of("a", "d"), environment);
-		Assertions.assertEquals(2, expected.size());
-		Set<StrictProfile> sorted = expected.stream().sorted(Comparator.comparing(StrictProfile::name))
-				.collect(Collectors.toCollection(LinkedHashSet::new));
+		LinkedHashSet<String> profiles = new LinkedHashSet<>();
+		profiles.add("a");
+		profiles.add("d");
 
-		Assertions.assertEquals(sorted.size(), 2);
-		Iterator<StrictProfile> iterator = sorted.iterator();
+		StrictSourceNotFoundException ex = Assertions.assertThrows(StrictSourceNotFoundException.class,
+				() -> ConfigUtils.profiles(true, profiles, environment));
+
+		Assertions.assertEquals(
+				"profile : d is not an active profile, but there is source definition for it under 'strict-for-profiles'",
+				ex.getMessage());
+	}
+
+	/**
+	 * <pre>
+	 *     - env holds :      [a, b, c, d]
+	 *     - strict-profiles: [d, c]
+	 *
+	 *     as a result : [a=non-strict, b=non-strict, d=strict, c=strict]
+	 * </pre>
+	 */
+	@Test
+	void testProfilesCorrectOrder() {
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("a", "b", "c", "d");
+
+		LinkedHashSet<String> profiles = new LinkedHashSet<>();
+		profiles.add("d");
+		profiles.add("c");
+
+		Set<StrictProfile> expected = ConfigUtils.profiles(true, profiles, environment);
+		Assertions.assertEquals(4, expected.size());
+
+		Assertions.assertEquals(4, expected.size());
+		Iterator<StrictProfile> iterator = expected.iterator();
 		StrictProfile first = iterator.next();
 		Assertions.assertEquals(first.name(), "a");
-		Assertions.assertTrue(first.strict());
+		Assertions.assertFalse(first.strict());
 
 		StrictProfile second = iterator.next();
 		Assertions.assertEquals(second.name(), "b");
 		Assertions.assertFalse(second.strict());
+
+		StrictProfile third = iterator.next();
+		Assertions.assertEquals(third.name(), "d");
+		Assertions.assertTrue(third.strict());
+
+		StrictProfile fourth = iterator.next();
+		Assertions.assertEquals(fourth.name(), "c");
+		Assertions.assertTrue(fourth.strict());
 	}
 
 	/**
@@ -439,6 +472,47 @@ class ConfigUtilsTests {
 		Assertions.assertEquals("a-prod", names.next());
 
 		Assertions.assertEquals("a-prod", result.data().get("a"));
+	}
+
+	/**
+	 * failFast=true and exception is of type StrictSourceNotFoundException
+	 */
+	@Test
+	void onExceptionFailFastTrueStrictException() {
+		StrictSourceNotFoundException ex = Assertions.assertThrows(StrictSourceNotFoundException.class,
+				() -> ConfigUtils.onException(true, new StrictSourceNotFoundException("just because")));
+
+		Assertions.assertEquals("just because", ex.getMessage());
+	}
+
+	/**
+	 * failFast=true and exception is of type RuntimeException
+	 */
+	@Test
+	void onExceptionFailFastTrueRuntimeException() {
+		IllegalStateException ex = Assertions.assertThrows(IllegalStateException.class,
+				() -> ConfigUtils.onException(true, new RuntimeException("just because")));
+
+		Assertions.assertEquals("just because", ex.getMessage());
+	}
+
+	/**
+	 * failFast=false and exception is of type StrictSourceNotFoundException
+	 */
+	@Test
+	void onExceptionFailFastFalseStrictException() {
+		StrictSourceNotFoundException ex = Assertions.assertThrows(StrictSourceNotFoundException.class,
+				() -> ConfigUtils.onException(false, new StrictSourceNotFoundException("just because")));
+
+		Assertions.assertEquals("just because", ex.getMessage());
+	}
+
+	/**
+	 * failFast=false and exception is of type RuntimeException
+	 */
+	@Test
+	void onExceptionFailFastFalseRuntimeException() {
+		Assertions.assertDoesNotThrow(() -> ConfigUtils.onException(false, new RuntimeException("just because")));
 	}
 
 }

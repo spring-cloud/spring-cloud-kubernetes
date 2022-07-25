@@ -17,8 +17,8 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -35,6 +35,7 @@ import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormali
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.cloud.kubernetes.commons.config.StrictProfile;
+import org.springframework.cloud.kubernetes.commons.config.StrictSourceNotFoundException;
 import org.springframework.mock.env.MockEnvironment;
 
 /**
@@ -52,6 +53,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	private static final ConfigUtils.Prefix PREFIX = ConfigUtils.findPrefix("some", false, false, "irrelevant");
 
 	private static final Map<String, String> COLOR_REALLY_RED = Map.of("color", "really-red");
+
+	private static final LinkedHashSet<StrictProfile> EMPTY = new LinkedHashSet<>();
 
 	@BeforeAll
 	static void beforeAll() {
@@ -85,7 +88,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("blue", NAMESPACE, true, Set.of(), false);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("blue", NAMESPACE, true, EMPTY, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -111,7 +114,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, Set.of(), false);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, EMPTY, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -145,8 +148,11 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		// add one more profile and specify that we want profile based config maps
 		MockEnvironment env = new MockEnvironment();
 		env.setActiveProfiles("with-profile");
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true,
-			Set.of(new StrictProfile("with-profile", true)), true);
+
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("with-profile", true));
+
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, profiles, true);
 
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
@@ -185,8 +191,12 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		// also append prefix
 		MockEnvironment env = new MockEnvironment();
 		env.setActiveProfiles("with-profile");
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, PREFIX,
-			Set.of(new StrictProfile("with-profile", true)), true);
+
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("with-profile", true));
+
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, PREFIX, profiles,
+				true);
 
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
@@ -229,8 +239,12 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		MockEnvironment env = new MockEnvironment();
 		env.setActiveProfiles("with-taste", "with-shape");
 
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, PREFIX,
-			Set.of(new StrictProfile("with-taste", true), new StrictProfile("with-shape", true)), true);
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("with-taste", true));
+		profiles.add(new StrictProfile("with-shape", true));
+
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, PREFIX, profiles,
+				true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
@@ -257,7 +271,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("application", NAMESPACE, true, Set.of(), false);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("application", NAMESPACE, true, EMPTY,
+				false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -284,7 +299,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
 		String wrongNamespace = NAMESPACE + "nope";
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", wrongNamespace, true, Set.of(), false);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", wrongNamespace, true, EMPTY,
+				false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -307,7 +323,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, Set.of(), false);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, EMPTY, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -335,7 +351,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("k8s");
 
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("one", NAMESPACE, true, Set.of(), true);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("one", NAMESPACE, true, EMPTY, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
 
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
@@ -343,6 +359,260 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.one.default");
 		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("key", "value"));
+	}
+
+	/**
+	 * <pre>
+	 *
+	 *     spring:
+	 *       cloud:
+	 *         kubernetes:
+	 *           config:
+	 *             sources:
+	 *               - name: a
+	 *                 strict: false
+	 *
+	 *     we want to read a configmap "a" and it has "strict=false".
+	 *     since "a" is not present at all, as a result we get an empty SourceData.
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testStrictOne() {
+		MockEnvironment environment = new MockEnvironment();
+
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("a", NAMESPACE, true, EMPTY, false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+
+		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.a.default");
+		Assertions.assertEquals(sourceData.sourceData().size(), 0);
+	}
+
+	/**
+	 * <pre>
+	 *
+	 *     spring:
+	 *       cloud:
+	 *         kubernetes:
+	 *           config:
+	 *             sources:
+	 *               - name: a
+	 *                 strict: true
+	 *
+	 *     - we want to read a configmap "a" and it has "strict=true"
+	 *     - since "a" is not present at all (but strict=true), we fail
+	 * </pre>
+	 */
+	@Test
+	void testStrictTwo() {
+		MockEnvironment environment = new MockEnvironment();
+
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("a", NAMESPACE, true, EMPTY, true);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+
+		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
+		StrictSourceNotFoundException ex = Assertions.assertThrows(StrictSourceNotFoundException.class,
+				() -> data.apply(context));
+
+		Assertions.assertEquals(ex.getMessage(), "configmap with name : a not found in namespace: default");
+	}
+
+	/**
+	 * <pre>
+	 *
+	 *     spring:
+	 *       cloud:
+	 *         kubernetes:
+	 *           config:
+	 *             sources:
+	 *               - name: a
+	 *                 strict: false
+	 *                 strict-for-profiles:
+	 *                   - k8s
+	 *
+	 *     - we want to read a configmap "a" and it has "strict=false"
+	 *     - there is one profile active "k8s" and there is a configmap "a-k8s" that has strict=true
+	 *
+	 *     since "a" is not present at all, as a result we get an empty SourceData.
+	 *     "a-k8s" is not even tried to be read.
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testStrictThree() {
+		ConfigMap aK8s = new ConfigMapBuilder().withNewMetadata().withName("a-k8s").endMetadata()
+				.addToData("key", "value").build();
+
+		mockClient.configMaps().inNamespace(NAMESPACE).create(aK8s);
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("k8s");
+
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("k8s", true));
+
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("a", NAMESPACE, true, profiles, false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+
+		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.a-k8s.default");
+		Assertions.assertEquals(sourceData.sourceData().get("key"), "value");
+	}
+
+	/**
+	 * <pre>
+	 *
+	 *     spring:
+	 *       cloud:
+	 *         kubernetes:
+	 *           config:
+	 *             sources:
+	 *               - name: a
+	 *                 strict: true
+	 *                 strict-for-profiles:
+	 *                   - k8s
+	 *                 include-profile-specific-sources: true
+	 *
+	 *     - we want to read a configmap "a" and it has "strict=true"
+	 *     - there is one profile active "k8s" and there is a configmap "a-k8s" that has strict=true
+	 *     - we also have a profile "us-west", but a configmap "a-us-west" is not present, and since
+	 *       it is not part of the "strict-for-profiles", it will be skipped
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testStrictFour() {
+
+		ConfigMap a = new ConfigMapBuilder().withNewMetadata().withName("a").endMetadata().addToData("a", "a").build();
+
+		ConfigMap aK8s = new ConfigMapBuilder().withNewMetadata().withName("a-k8s").endMetadata()
+				.addToData("a", "a-k8s").build();
+
+		mockClient.configMaps().inNamespace(NAMESPACE).create(aK8s);
+		mockClient.configMaps().inNamespace(NAMESPACE).create(a);
+
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("k8s");
+		environment.setActiveProfiles("us-west");
+
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("k8s", true));
+
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("a", NAMESPACE, true, profiles, true);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+
+		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.a.a-k8s.default");
+		Assertions.assertEquals(sourceData.sourceData().get("a"), "a-k8s");
+	}
+
+	/**
+	 * <pre>
+	 *
+	 *     spring:
+	 *       cloud:
+	 *         kubernetes:
+	 *           config:
+	 *             sources:
+	 *               - name: a
+	 *                 strict: true
+	 *                 strict-for-profiles:
+	 *                   - k8s
+	 *                   - us-west
+	 *
+	 *     - we want to read a configmap "a" and it has "strict=true"
+	 *     - there is one profile active "k8s" and there is a configmap "a-k8s" that has strict=true
+	 *     - we also have a profile "us-west", but a configmap "a-us-west" is not present, and since
+	 *       it is part of the "strict-for-profiles", we will fail
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testStrictFive() {
+
+		ConfigMap a = new ConfigMapBuilder().withNewMetadata().withName("a").endMetadata().addToData("a", "a").build();
+
+		ConfigMap aK8s = new ConfigMapBuilder().withNewMetadata().withName("a-k8s").endMetadata()
+				.addToData("a", "a-k8s").build();
+
+		mockClient.configMaps().inNamespace(NAMESPACE).create(aK8s);
+		mockClient.configMaps().inNamespace(NAMESPACE).create(a);
+
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("k8s");
+		environment.setActiveProfiles("us-west");
+
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("k8s", true));
+		profiles.add(new StrictProfile("us-west", true));
+
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("a", NAMESPACE, true, profiles, true);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+
+		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
+		StrictSourceNotFoundException ex = Assertions.assertThrows(StrictSourceNotFoundException.class,
+				() -> data.apply(context));
+
+		Assertions.assertEquals(ex.getMessage(), "source : a-us-west not present in namespace: default");
+	}
+
+	/**
+	 * <pre>
+	 *
+	 *     spring:
+	 *       cloud:
+	 *         kubernetes:
+	 *           config:
+	 *             sources:
+	 *               - name: a
+	 *                 strict: true
+	 *                 strict-for-profiles:
+	 *                   - k8s
+	 *                 include-profile-specific-sources: true
+	 *
+	 *     - we want to read a configmap "a" and it has "strict=true"
+	 *     - there is one profile active "k8s" and there is a configmap "a-k8s" that has strict=true
+	 *     - we also have a profile "us-west", and a configmap "a-us-west" is present, and since
+	 *       it is part of the "include-profile-specific-sources", it will be read
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testStrictSix() {
+
+		ConfigMap a = new ConfigMapBuilder().withNewMetadata().withName("a").endMetadata().addToData("a", "a").build();
+
+		ConfigMap aK8s = new ConfigMapBuilder().withNewMetadata().withName("a-k8s").endMetadata()
+				.addToData("a", "a-k8s").build();
+
+		ConfigMap aUsWest = new ConfigMapBuilder().withNewMetadata().withName("a-us-west").endMetadata()
+				.addToData("a", "a-us-west").build();
+
+		mockClient.configMaps().inNamespace(NAMESPACE).create(a);
+		mockClient.configMaps().inNamespace(NAMESPACE).create(aK8s);
+		mockClient.configMaps().inNamespace(NAMESPACE).create(aUsWest);
+
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("k8s", "us-west");
+
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("us-west", false));
+		profiles.add(new StrictProfile("k8s", true));
+
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("a", NAMESPACE, true, profiles, true);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+
+		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.a.a-k8s.a-us-west.default");
+		Assertions.assertEquals(sourceData.sourceData().get("a"), "a-k8s");
 	}
 
 }

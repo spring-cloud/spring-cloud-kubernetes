@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -76,7 +76,8 @@ public class ConfigMapsTest {
 				.build();
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
-		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, Set.of(), false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false,
+				new LinkedHashSet<>(), false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
@@ -93,7 +94,8 @@ public class ConfigMapsTest {
 				.addToData("application.yaml", ConfigMapTestUtil.readResourceFile("application.yaml")).build();
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
-		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, Set.of(), false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false,
+				new LinkedHashSet<>(), false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
@@ -110,7 +112,8 @@ public class ConfigMapsTest {
 				.addToData("adhoc.yml", ConfigMapTestUtil.readResourceFile("adhoc.yml")).build();
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
-		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, Set.of(), false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false,
+				new LinkedHashSet<>(), false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
@@ -127,7 +130,8 @@ public class ConfigMapsTest {
 				.addToData("application.properties", "somevalue").build();
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
-		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "namespace", false, Set.of(), false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "namespace", false,
+				new LinkedHashSet<>(), false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
@@ -142,7 +146,8 @@ public class ConfigMapsTest {
 				.addToData("application.yaml", "somevalue").build();
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
-		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "namespace", false, Set.of(), false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "namespace", false,
+				new LinkedHashSet<>(), false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
@@ -158,7 +163,8 @@ public class ConfigMapsTest {
 				.addToData("adhoc.properties", ConfigMapTestUtil.readResourceFile("adhoc.properties")).build();
 
 		mockClient.configMaps().inNamespace("test").create(configMap);
-		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, Set.of(), false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false,
+				new LinkedHashSet<>(), false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);

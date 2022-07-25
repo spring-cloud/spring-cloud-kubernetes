@@ -19,9 +19,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -140,8 +138,16 @@ public final class ConfigUtils {
 	 */
 	public static void onException(boolean failFast, Exception e) {
 		if (failFast) {
+			if (e instanceof StrictSourceNotFoundException) {
+				throw (StrictSourceNotFoundException) e;
+			}
 			throw new IllegalStateException(e.getMessage(), e);
 		}
+
+		if (e instanceof StrictSourceNotFoundException) {
+			throw (StrictSourceNotFoundException) e;
+		}
+
 		LOG.warn(e.getMessage() + ". Ignoring.", e);
 	}
 
@@ -296,15 +302,15 @@ public final class ConfigUtils {
 		return false;
 	}
 
-	public static Set<StrictProfile> profiles(boolean includeProfileSpecificSources, Set<String> strictForProfiles,
-			Environment environment) {
+	public static LinkedHashSet<StrictProfile> profiles(boolean includeProfileSpecificSources,
+			LinkedHashSet<String> strictForProfiles, Environment environment) {
 
-		Set<String> activeProfiles = Arrays.stream(environment.getActiveProfiles())
-				.collect(Collectors.toCollection(HashSet::new));
+		String[] activeProfiles = environment.getActiveProfiles();
+		Set<String> activeProfilesAsSet = Arrays.stream(activeProfiles).collect(Collectors.toSet());
 
 		if (!includeProfileSpecificSources) {
 			LOG.debug("include-profile-specific-sources is false, thus ignoring strict-for-profiles");
-			return Collections.emptySet();
+			return new LinkedHashSet<>();
 		}
 
 		if (strictForProfiles.isEmpty()) {
@@ -312,23 +318,28 @@ public final class ConfigUtils {
 			return StrictProfile.allNonStrict(activeProfiles);
 		}
 
-		// include-profile-specific-sources = true
-		// strict-for-profiles != empty
-		Set<String> strictProfiles = strictForProfiles.stream().filter(strict -> {
-			boolean present = activeProfiles.contains(strict);
-			if (!present) {
-				LOG.warn("strict profile : " + strict + " is not part of active profiles of the app, will ignore it");
+		// include-profile-specific-sources = true, strict-for-profiles != empty
+		// 1. make sure that strict-for-profiles are all present
+		for (String profile : strictForProfiles) {
+			boolean isPresent = activeProfilesAsSet.contains(profile);
+			if (!isPresent) {
+				throw new StrictSourceNotFoundException("profile : " + profile + " is not an active profile, but there "
+						+ "is source definition for it under 'strict-for-profiles'");
 			}
-			return present;
-		}).collect(Collectors.toSet());
-		activeProfiles.removeAll(strictProfiles);
+		}
 
-		Set<StrictProfile> left = StrictProfile.allStrict(strictProfiles);
-		Set<StrictProfile> right = StrictProfile.allNonStrict(activeProfiles);
-		left.addAll(right);
+		// 2. non-strict profiles are supposed to come first, since we treat them as
+		// "optional"
+		LinkedHashSet<StrictProfile> result = new LinkedHashSet<>();
+		for (String profile : activeProfiles) {
+			if (!strictForProfiles.contains(profile)) {
+				result.add(new StrictProfile(profile, false));
+			}
+		}
 
-		LOG.debug("profile-strictness result : " + left);
-		return left;
+		// 3. strict-for-profiles will come in strict order
+		result.addAll(StrictProfile.allStrict(strictForProfiles));
+		return result;
 
 	}
 

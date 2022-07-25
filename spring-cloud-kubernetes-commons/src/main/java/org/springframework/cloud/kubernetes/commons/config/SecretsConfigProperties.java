@@ -18,9 +18,9 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -93,7 +93,8 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		if (this.sources.isEmpty()) {
 			List<NormalizedSource> result = new ArrayList<>(2);
 			String name = getApplicationName(environment, this.name, "Secret");
-			Set<StrictProfile> profiles = profiles(this.includeProfileSpecificSources, Set.of(), environment);
+			LinkedHashSet<StrictProfile> profiles = profiles(this.includeProfileSpecificSources, new LinkedHashSet<>(),
+					environment);
 			result.add(new NamedSecretNormalizedSource(name, this.namespace, this.failFast, profiles, false));
 
 			if (!labels.isEmpty()) {
@@ -146,7 +147,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 		/**
 		 * explicit profiles have been defined.
 		 */
-		private Set<String> profiles = Collections.emptySet();
+		private LinkedHashSet<String> strictForProfiles = new LinkedHashSet<>();
 
 		/**
 		 * fail or not, if such a configmap is not present.
@@ -204,12 +205,12 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			this.includeProfileSpecificSources = includeProfileSpecificSources;
 		}
 
-		public Set<String> getProfiles() {
-			return profiles;
+		public LinkedHashSet<String> getStrictForProfiles() {
+			return strictForProfiles;
 		}
 
-		public void setProfiles(Set<String> profiles) {
-			this.profiles = profiles;
+		public void setStrictForProfiles(LinkedHashSet<String> strictForProfiles) {
+			this.strictForProfiles = strictForProfiles;
 		}
 
 		public boolean isStrict() {
@@ -241,7 +242,7 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 
 			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
 					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
-			Set<StrictProfile> profiles = profiles(includeProfileSpecificSources, getProfiles(), environment);
+			LinkedHashSet<StrictProfile> profiles = profiles(includeProfileSpecificSources, getStrictForProfiles(), environment);
 
 			NormalizedSource namedBasedSource = new NamedSecretNormalizedSource(secretName, normalizedNamespace,
 					failFast, prefix, profiles, strict);

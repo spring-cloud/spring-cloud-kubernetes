@@ -30,7 +30,7 @@ import org.springframework.cloud.kubernetes.commons.config.StrictSource;
  *
  * @author wind57
  */
-final class  NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric8ContextToSourceData> {
+final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric8ContextToSourceData> {
 
 	NamedConfigMapContextToSourceDataProvider() {
 	}
@@ -55,8 +55,8 @@ final class  NamedConfigMapContextToSourceDataProvider implements Supplier<Fabri
 					return Fabric8ConfigUtils.configMapsDataByName(context.client(), context.namespace(), sources,
 							context.environment());
 				}
-			}.compute(source.name().orElseThrow(), source.prefix(), source.target(),
-					source.failFast(), context.namespace(), source.profiles(), source.strict());
+			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.failFast(),
+					context.namespace(), source.profiles(), source.strict());
 		};
 
 	}

@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.LinkedHashSet;
+
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -30,8 +32,6 @@ import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormali
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.mock.env.MockEnvironment;
-
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -100,7 +100,8 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 		Mockito.when(client.getNamespace()).thenReturn(null);
 		Fabric8ConfigMapPropertySourceLocator source = new Fabric8ConfigMapPropertySourceLocator(client,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
-		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("name", null, false, PREFIX, Set.of(), false);
+		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("name", null, false, PREFIX,
+				new LinkedHashSet<>(), false);
 		assertThatThrownBy(() -> source.getMapPropertySource(normalizedSource, new MockEnvironment()))
 				.isInstanceOf(NamespaceResolutionFailedException.class);
 	}

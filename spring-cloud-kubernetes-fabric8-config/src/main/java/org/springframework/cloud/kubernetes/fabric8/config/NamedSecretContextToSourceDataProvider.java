@@ -46,8 +46,8 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 					return Fabric8ConfigUtils.secretsDataByName(context.client(), context.namespace(), sources,
 							context.environment());
 				}
-			}.compute(source.name().orElseThrow(), source.prefix(), source.target(),
-					source.failFast(), context.namespace(), source.profiles(), source.strict());
+			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.failFast(),
+					context.namespace(), source.profiles(), source.strict());
 		};
 	}
 

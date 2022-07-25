@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -34,8 +34,11 @@ class NamedConfigMapNormalizedSourceTests {
 		ConfigUtils.Prefix knownLeft = ConfigUtils.findPrefix("prefix", false, false, "some");
 		ConfigUtils.Prefix knownRight = ConfigUtils.findPrefix("prefix", false, false, "non-equal-prefix");
 
-		Set<StrictProfile> leftProfiles = Set.of(new StrictProfile("left", false));
-		Set<StrictProfile> rightProfiles = Set.of(new StrictProfile("right", true));
+		LinkedHashSet<StrictProfile> leftProfiles = new LinkedHashSet<>();
+		leftProfiles.add(new StrictProfile("left", false));
+
+		LinkedHashSet<StrictProfile> rightProfiles = new LinkedHashSet<>();
+		rightProfiles.add(new StrictProfile("right", false));
 
 		NamedConfigMapNormalizedSource left = new NamedConfigMapNormalizedSource("name", "namespace", false, knownLeft,
 				leftProfiles, false);
@@ -48,7 +51,8 @@ class NamedConfigMapNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
 				profiles, false);
 		Assertions.assertSame(one.type(), NormalizedSourceType.NAMED_CONFIG_MAP);
@@ -56,7 +60,8 @@ class NamedConfigMapNormalizedSourceTests {
 
 	@Test
 	void testTarget() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
 				profiles, false);
 		Assertions.assertEquals(one.target(), "configmap");
@@ -64,7 +69,8 @@ class NamedConfigMapNormalizedSourceTests {
 
 	@Test
 	void testConstructorFields() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
 				profiles, true);
 		Assertions.assertEquals(one.name().get(), "name");

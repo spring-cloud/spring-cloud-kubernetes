@@ -19,8 +19,8 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -54,6 +54,8 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	private static final Map<String, String> PINK_LABEL = Map.of("color", "pink");
 
 	private static final Map<String, String> BLUE_LABEL = Map.of("color", "blue");
+
+	private static final LinkedHashSet<StrictProfile> EMPTY = new LinkedHashSet<>();
 
 	private static KubernetesClient mockClient;
 
@@ -92,7 +94,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
 
-		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE, LABELS, true, Set.of(), false);
+		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE, LABELS, true, EMPTY, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -124,7 +126,8 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		mockClient.configMaps().inNamespace(NAMESPACE).create(redTwo);
 		mockClient.configMaps().inNamespace(NAMESPACE).create(blue);
 
-		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE, RED_LABEL, true, Set.of(), false);
+		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE, RED_LABEL, true, EMPTY,
+				false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -149,7 +152,8 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		mockClient.configMaps().inNamespace(NAMESPACE).create(pink);
 
-		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true, Set.of(), false);
+		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true, EMPTY,
+				false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -176,7 +180,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		// different namespace
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE + "nope", LABELS, true,
-			Set.of(), false);
+				EMPTY, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -203,7 +207,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		ConfigUtils.Prefix mePrefix = ConfigUtils.findPrefix("me", false, false, "irrelevant");
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
-				Collections.singletonMap("color", "blue"), true, mePrefix, Set.of(), false);
+				Collections.singletonMap("color", "blue"), true, mePrefix, EMPTY, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -237,7 +241,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		mockClient.configMaps().inNamespace(NAMESPACE).create(anotherBlue);
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
-				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED, Set.of(), false);
+				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED, EMPTY, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
 				new MockEnvironment());
 
@@ -281,7 +285,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
-				Collections.singletonMap("color", "red"), true, ConfigUtils.Prefix.DEFAULT, Set.of(), false);
+				Collections.singletonMap("color", "red"), true, ConfigUtils.Prefix.DEFAULT, EMPTY, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
 
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
@@ -311,7 +315,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
-				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DEFAULT, Set.of(), true);
+				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DEFAULT, EMPTY, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
 
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
@@ -342,9 +346,11 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("k8s");
 
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("k8s", true));
+
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
-				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED,
-			Set.of(new StrictProfile("k8s", true)), true);
+				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED, profiles, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
 
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
@@ -392,9 +398,11 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("k8s");
 
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("k8s", true));
+
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
-				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED,
-					Set.of(new StrictProfile("k8s", true)), true);
+				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED, profiles, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
 
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();

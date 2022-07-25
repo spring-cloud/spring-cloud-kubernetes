@@ -19,7 +19,9 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -34,6 +36,7 @@ import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContai
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.StrictProfile;
 import org.springframework.cloud.kubernetes.commons.config.StrictSource;
+import org.springframework.cloud.kubernetes.commons.config.StrictSourceNotFoundException;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.core.env.Environment;
@@ -122,8 +125,27 @@ public final class Fabric8ConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer secretsDataByLabels(KubernetesClient client, String namespace,
-			Map<String, String> labels, Environment environment, Set<StrictProfile> profiles, boolean strict) {
+			Map<String, String> labels, Environment environment, LinkedHashSet<StrictProfile> profiles,
+			boolean strict) {
 		List<Secret> secrets = secretsSearch(client, namespace);
+		if (ConfigUtils.noSources(secrets, namespace)) {
+
+			// labels have been provided in a source and strict=true
+			if (strict) {
+				throw new StrictSourceNotFoundException(
+					"secret(s) with labels : " + labels + " not found in namespace: " + namespace);
+			}
+
+			// there are no secrets at all in the namespace, but do we have any strict profiles?
+			Optional<StrictProfile> opt = profiles.stream().filter(StrictProfile::strict).findFirst();
+			if (opt.isPresent()) {
+				throw new StrictSourceNotFoundException(
+					"profile based secret with profile: " + opt.get().name() + " and labels : " + labels + " not found in namespace: " + namespace);
+			}
+
+			return MultipleSourcesContainer.empty();
+		}
+
 		if (ConfigUtils.noSources(secrets, namespace)) {
 			return MultipleSourcesContainer.empty();
 		}
@@ -167,6 +189,14 @@ public final class Fabric8ConfigUtils {
 			LinkedHashSet<StrictSource> sources, Environment environment) {
 		List<Secret> secrets = secretsSearch(client, namespace);
 		if (ConfigUtils.noSources(secrets, namespace)) {
+			// there are no secrets at all in the namespace, but do we have any strict
+			// ones?
+			Optional<StrictSource> opt = sources.stream().filter(StrictSource::strict).findFirst();
+			if (opt.isPresent()) {
+				throw new StrictSourceNotFoundException(
+						"secret with name : " + opt.get().name() + " not found in namespace: " + namespace);
+			}
+
 			return MultipleSourcesContainer.empty();
 		}
 
@@ -187,6 +217,14 @@ public final class Fabric8ConfigUtils {
 			LinkedHashSet<StrictSource> sources, Environment environment) {
 		List<ConfigMap> configMaps = configMapsSearch(client, namespace);
 		if (ConfigUtils.noSources(configMaps, namespace)) {
+			// there are no configmaps at all in the namespace, but do we have any strict
+			// ones?
+			Optional<StrictSource> opt = sources.stream().filter(StrictSource::strict).findFirst();
+			if (opt.isPresent()) {
+				throw new StrictSourceNotFoundException(
+						"configmap with name : " + opt.get().name() + " not found in namespace: " + namespace);
+			}
+
 			return MultipleSourcesContainer.empty();
 		}
 

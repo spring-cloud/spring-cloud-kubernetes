@@ -17,8 +17,8 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -32,8 +32,10 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testEqualsAndHashCode() {
-		Set<StrictProfile> leftProfiles = Set.of(new StrictProfile("left", false));
-		Set<StrictProfile> rightProfiles = Set.of(new StrictProfile("right", true));
+		LinkedHashSet<StrictProfile> leftProfiles = new LinkedHashSet<>();
+		leftProfiles.add(new StrictProfile("left", false));
+		LinkedHashSet<StrictProfile> rightProfiles = new LinkedHashSet<>();
+		leftProfiles.add(new StrictProfile("right", false));
 
 		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, false, leftProfiles,
 				false);
@@ -51,8 +53,10 @@ class LabeledSecretNormalizedSourceTests {
 	@Test
 	void testEqualsAndHashCodePrefixDoesNotMatter() {
 
-		Set<StrictProfile> leftProfiles = Set.of(new StrictProfile("left", false));
-		Set<StrictProfile> rightProfiles = Set.of(new StrictProfile("right", true));
+		LinkedHashSet<StrictProfile> leftProfiles = new LinkedHashSet<>();
+		leftProfiles.add(new StrictProfile("left", false));
+		LinkedHashSet<StrictProfile> rightProfiles = new LinkedHashSet<>();
+		leftProfiles.add(new StrictProfile("right", false));
 
 		ConfigUtils.Prefix knownLeft = ConfigUtils.findPrefix("left", false, false, "some");
 		ConfigUtils.Prefix knownRight = ConfigUtils.findPrefix("right", false, false, "some");
@@ -68,7 +72,8 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, profiles,
 				false);
 		Assertions.assertSame(source.type(), NormalizedSourceType.LABELED_SECRET);
@@ -76,7 +81,8 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testImmutableGetLabels() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, profiles,
 				false);
 		Assertions.assertThrows(RuntimeException.class, () -> source.labels().put("c", "d"));
@@ -84,7 +90,8 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testTarget() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, profiles,
 				false);
 		Assertions.assertEquals(source.target(), "secret");
@@ -92,7 +99,8 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testConstructorFields() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, "some");
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, prefix,
 				profiles, true);
@@ -106,7 +114,8 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testConstructorWithoutPrefixFields() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, true, profiles,
 				true);
 		Assertions.assertEquals(source.namespace().get(), "namespace");

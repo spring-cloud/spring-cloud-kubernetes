@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -31,8 +31,10 @@ class NamedSecretNormalizedSourceTests {
 	@Test
 	void testEqualsAndHashCode() {
 
-		Set<StrictProfile> leftProfiles = Set.of(new StrictProfile("left", false));
-		Set<StrictProfile> rightProfiles = Set.of(new StrictProfile("right", true));
+		LinkedHashSet<StrictProfile> leftProfiles = new LinkedHashSet<>();
+		leftProfiles.add(new StrictProfile("left", false));
+		LinkedHashSet<StrictProfile> rightProfiles = new LinkedHashSet<>();
+		rightProfiles.add(new StrictProfile("right", false));
 
 		NamedSecretNormalizedSource left = new NamedSecretNormalizedSource("name", "namespace", false, leftProfiles,
 				false);
@@ -45,7 +47,8 @@ class NamedSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, profiles,
 				false);
 		Assertions.assertSame(source.type(), NormalizedSourceType.NAMED_SECRET);
@@ -53,7 +56,8 @@ class NamedSecretNormalizedSourceTests {
 
 	@Test
 	void testTarget() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, profiles,
 				false);
 		Assertions.assertEquals(source.target(), "secret");
@@ -61,7 +65,8 @@ class NamedSecretNormalizedSourceTests {
 
 	@Test
 	void testConstructorFields() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, PREFIX,
 				profiles, true);
 		Assertions.assertEquals(source.name().get(), "name");
@@ -75,7 +80,8 @@ class NamedSecretNormalizedSourceTests {
 
 	@Test
 	void testConstructorWithoutPrefixFields() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", true, profiles, true);
 		Assertions.assertEquals(source.name().get(), "name");
 		Assertions.assertEquals(source.namespace().get(), "namespace");

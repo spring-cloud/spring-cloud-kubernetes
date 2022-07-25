@@ -54,6 +54,8 @@ class Fabric8ConfigUtilsTests {
 
 	private final KubernetesNamespaceProvider provider = Mockito.mock(KubernetesNamespaceProvider.class);
 
+	private static final LinkedHashSet<StrictProfile> EMPTY = new LinkedHashSet<>();
+
 	@Test
 	void testGetApplicationNamespaceNotPresent() {
 		String result = Fabric8ConfigUtils.getApplicationNamespace(client, "", "target", null);
@@ -99,7 +101,7 @@ class Fabric8ConfigUtilsTests {
 		client.secrets().inNamespace("spring-k8s").create(
 				new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build()).build());
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("color", "red"), new MockEnvironment(), Set.of(), false);
+				Map.of("color", "red"), new MockEnvironment(), EMPTY, false);
 		Assertions.assertEquals(Map.of(), result.data());
 		Assertions.assertTrue(result.names().isEmpty());
 	}
@@ -113,8 +115,12 @@ class Fabric8ConfigUtilsTests {
 				.addToData(Map.of("property", Base64.getEncoder().encodeToString("value".getBytes()))).build());
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("color", "pink"), new MockEnvironment(), Set.of(), true);
-		Assertions.assertEquals(Set.of("my-secret"), result.names());
+				Map.of("color", "pink"), new MockEnvironment(), EMPTY, true);
+
+		LinkedHashSet<String> name = new LinkedHashSet<>();
+		name.add("my-secret");
+
+		Assertions.assertEquals(name, result.names());
 		Assertions.assertEquals(Map.of("property", "value"), result.data());
 	}
 
@@ -129,8 +135,11 @@ class Fabric8ConfigUtilsTests {
 				.build());
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("color", "pink"), new MockEnvironment(), Set.of(), true);
-		Assertions.assertEquals(Set.of("my-secret"), result.names());
+				Map.of("color", "pink"), new MockEnvironment(), EMPTY, true);
+
+		LinkedHashSet<String> name = new LinkedHashSet<>();
+		name.add("my-secret");
+		Assertions.assertEquals(name, result.names());
 		Assertions.assertEquals(Map.of("key1", "value1"), result.data());
 	}
 
@@ -148,7 +157,7 @@ class Fabric8ConfigUtilsTests {
 				.addToData(Map.of("property-2", Base64.getEncoder().encodeToString("value-2".getBytes()))).build());
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("color", "pink"), new MockEnvironment(), Set.of(), true);
+				Map.of("color", "pink"), new MockEnvironment(), EMPTY, true);
 		Assertions.assertTrue(result.names().contains("my-secret"));
 		Assertions.assertTrue(result.names().contains("my-secret-2"));
 
@@ -196,8 +205,11 @@ class Fabric8ConfigUtilsTests {
 								.withLabels(Map.of("color", "blue", "shape", "triangle", "tag", "no-fit")).build())
 						.addToData(Map.of("four", Base64.getEncoder().encodeToString("4".getBytes()))).build());
 
+		LinkedHashSet<StrictProfile> name = new LinkedHashSet<>();
+		name.add(new StrictProfile("k8s", false));
+
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("tag", "fit", "color", "blue"), new MockEnvironment(), Set.of(new StrictProfile("k8s", false)), true);
+				Map.of("tag", "fit", "color", "blue"), new MockEnvironment(), name, true);
 
 		Assertions.assertTrue(result.names().contains("blue-circle-secret"));
 		Assertions.assertTrue(result.names().contains("blue-square-secret"));
@@ -274,7 +286,11 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertEquals(Set.of("my-config-map"), result.names());
+
+		LinkedHashSet<String> name = new LinkedHashSet<>();
+		name.add("my-config-map");
+
+		Assertions.assertEquals(name, result.names());
 		Assertions.assertTrue(result.data().isEmpty());
 	}
 
@@ -287,7 +303,7 @@ class Fabric8ConfigUtilsTests {
 		names.add(new StrictSource("my-config-map-not-found", false));
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertEquals(Set.of(), result.names());
+		Assertions.assertEquals(new LinkedHashSet<>(), result.names());
 		Assertions.assertTrue(result.data().isEmpty());
 	}
 
@@ -303,7 +319,10 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertEquals(Set.of("my-config-map"), result.names());
+
+		LinkedHashSet<String> name = new LinkedHashSet<>();
+		name.add("my-config-map");
+		Assertions.assertEquals(name, result.names());
 		Assertions.assertEquals(Map.of("property", "value"), result.data());
 	}
 
@@ -320,7 +339,11 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertEquals(Set.of("my-config-map"), result.names());
+
+		LinkedHashSet<String> name = new LinkedHashSet<>();
+		name.add("my-config-map");
+
+		Assertions.assertEquals(name, result.names());
 		Assertions.assertEquals(Map.of("key1", "value1"), result.data());
 	}
 

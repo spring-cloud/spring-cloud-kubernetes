@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -32,8 +32,10 @@ class LabeledConfigMapNormalizedSourceTests {
 	@Test
 	void testEqualsAndHashCode() {
 
-		Set<StrictProfile> leftProfiles = Set.of(new StrictProfile("left", false));
-		Set<StrictProfile> rightProfiles = Set.of(new StrictProfile("right", true));
+		LinkedHashSet<StrictProfile> leftProfiles = new LinkedHashSet<>();
+		leftProfiles.add(new StrictProfile("left", false));
+		LinkedHashSet<StrictProfile> rightProfiles = new LinkedHashSet<>();
+		leftProfiles.add(new StrictProfile("right", false));
 
 		LabeledConfigMapNormalizedSource left = new LabeledConfigMapNormalizedSource("name", Map.of("key", "value"),
 				false, leftProfiles, false);
@@ -46,7 +48,8 @@ class LabeledConfigMapNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		LabeledConfigMapNormalizedSource source = new LabeledConfigMapNormalizedSource("name", Map.of("key", "value"),
 				false, profiles, false);
 		Assertions.assertSame(source.type(), NormalizedSourceType.LABELED_CONFIG_MAP);
@@ -54,7 +57,8 @@ class LabeledConfigMapNormalizedSourceTests {
 
 	@Test
 	void testTarget() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		LabeledConfigMapNormalizedSource source = new LabeledConfigMapNormalizedSource("name", Map.of("key", "value"),
 				false, profiles, false);
 		Assertions.assertEquals(source.target(), "configmap");
@@ -62,7 +66,8 @@ class LabeledConfigMapNormalizedSourceTests {
 
 	@Test
 	void testConstructorFields() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		LabeledConfigMapNormalizedSource source = new LabeledConfigMapNormalizedSource("namespace",
 				Map.of("key", "value"), false, PREFIX, profiles, true);
 		Assertions.assertEquals(source.labels(), Map.of("key", "value"));
@@ -76,7 +81,8 @@ class LabeledConfigMapNormalizedSourceTests {
 
 	@Test
 	void testConstructorWithoutPrefixFields() {
-		Set<StrictProfile> profiles = Set.of(new StrictProfile("profile", false));
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("profile", false));
 		LabeledConfigMapNormalizedSource source = new LabeledConfigMapNormalizedSource("namespace",
 				Map.of("key", "value"), true, profiles, true);
 		Assertions.assertEquals(source.labels(), Map.of("key", "value"));

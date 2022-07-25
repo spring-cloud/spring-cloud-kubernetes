@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.LinkedHashSet;
+
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -26,9 +28,8 @@ import org.mockito.Mockito;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.StrictProfile;
 import org.springframework.mock.env.MockEnvironment;
-
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -48,6 +49,8 @@ class Fabric8ConfigMapPropertySourceTests {
 
 	private static final ConfigUtils.Prefix DEFAULT = ConfigUtils.findPrefix("default", false, false, "irrelevant");
 
+	private static final LinkedHashSet<StrictProfile> EMPTY = new LinkedHashSet<>();
+
 	@Test
 	void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
 		final String name = "my-config";
@@ -55,7 +58,7 @@ class Fabric8ConfigMapPropertySourceTests {
 		final String path = String.format("/api/v1/namespaces/%s/configmaps", namespace);
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
-		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, true, DEFAULT, Set.of(), true);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, true, DEFAULT, EMPTY, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "default", new MockEnvironment());
 		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(context)).isInstanceOf(IllegalStateException.class)
 				.hasMessageContaining("v1/namespaces/default/configmaps. Message: Internal Server Error.");
@@ -68,7 +71,7 @@ class Fabric8ConfigMapPropertySourceTests {
 		final String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
-		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, false, Set.of(), false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, false, EMPTY, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 		assertThatNoException().isThrownBy(() -> new Fabric8ConfigMapPropertySource(context));
 	}
@@ -77,7 +80,7 @@ class Fabric8ConfigMapPropertySourceTests {
 	void constructorWithClientNamespaceMustNotFail() {
 
 		Mockito.when(client.getNamespace()).thenReturn("namespace");
-		NormalizedSource source = new NamedConfigMapNormalizedSource("configmap", null, false, Set.of(), false);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("configmap", null, false, EMPTY, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 		assertThat(new Fabric8ConfigMapPropertySource(context)).isNotNull();
 	}
@@ -86,7 +89,7 @@ class Fabric8ConfigMapPropertySourceTests {
 	void constructorWithNamespaceMustNotFail() {
 
 		Mockito.when(client.getNamespace()).thenReturn(null);
-		NormalizedSource source = new NamedConfigMapNormalizedSource("configMap", null, false, Set.of(), true);
+		NormalizedSource source = new NamedConfigMapNormalizedSource("configMap", null, false, EMPTY, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 		assertThat(new Fabric8ConfigMapPropertySource(context)).isNotNull();
 	}
