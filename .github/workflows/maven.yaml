@@ -192,7 +192,11 @@ jobs:
 
           ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install \
               -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
-              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+              -Dhttp.keepAlive=false \
+              -Dmaven.wagon.http.pool=false \
+              -Dmaven.wagon.http.retryHandler.class=standard \
+              -Dmaven.wagon.http.retryHandler.count=3
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v2
