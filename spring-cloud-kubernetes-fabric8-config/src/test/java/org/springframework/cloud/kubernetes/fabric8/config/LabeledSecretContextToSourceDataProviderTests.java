@@ -733,12 +733,11 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 *                  - dev
 	 *                include-profile-specific-sources: true
 	 *
-	 *  we want to read a secret with labels {color: red} in a non-profile specific source, but it does not exist.
-	 *  It has "strict=false", so we do not fail.
+	 *  - we want to read a secret with labels {color: red} in a non-profile specific source, but it does not exist.
+	 *  - since it has "strict=false", we will not fail
 	 *
-	 *  Since {strict-for-profiles : dev}, we will be looking for the same labels in a secret that
-	 *  is profile based, specifically "dev" profile based.
-	 *
+	 *  - we do have a sibling source because of {strict-for-profiles : dev} + it matches the initial labels,
+	 *    so we will read it.
 	 *
 	 * </pre>
 	 */
@@ -751,10 +750,9 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
 		profiles.add(new StrictProfile("dev", true));
-		profiles.add(new StrictProfile("k8s", false));
 
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("dev", "k8s");
+		environment.setActiveProfiles("dev");
 
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "red"), true, profiles, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
@@ -762,8 +760,69 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.a.a-k8s.a-us-west.default");
-		Assertions.assertEquals(sourceData.sourceData().get("a"), "a-k8s");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.a-dev.default");
+		Assertions.assertEquals(sourceData.sourceData().get("a"), "a-dev");
+
+	}
+
+	/**
+	 * <pre>
+	 *   spring:
+	 *     cloud:
+	 *       kubernetes:
+	 *         secrets:
+	 *            sources:
+	 *              - labels:
+	 *                   color: red
+	 *                strict: false
+	 *                strict-for-profiles:
+	 *                  - dev
+	 *                  - ack
+	 *                include-profile-specific-sources: true
+	 *
+	 *  - there are 4 active profiles : "dev", "ack", "k8s", "prod".
+	 *  - there are 3 secrets: "a-dev", "a-ack", "a-k8s".
+	 *
+	 *  - we want to read a secret with labels {color: red} in a non-profile specific source, but it does not exist.
+	 *  - since it has "strict=false", we will not fail
+	 *
+	 *  - we have 3 siblings for it: "a-dev", "a-ack" and "a-k8s".
+	 *  - "a-prod" does not exist, and it's OK, since "k8s" is not part of "strict-for-profiles" and as such is optional.
+	 *  - it is important to notice the order in which we read secrets also.
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testStrictEight() {
+		Secret aDev = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "red")).withName("a-dev").endMetadata()
+			.addToData("a", Base64.getEncoder().encodeToString("a-dev".getBytes(StandardCharsets.UTF_8))).build();
+
+		Secret aAck = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "red")).withName("a-ack").endMetadata()
+			.addToData("a", Base64.getEncoder().encodeToString("a-ack".getBytes(StandardCharsets.UTF_8))).build();
+
+		Secret aK8s = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "red")).withName("a-k8s").endMetadata()
+			.addToData("a", Base64.getEncoder().encodeToString("a-k8s".getBytes(StandardCharsets.UTF_8))).build();
+
+		mockClient.secrets().inNamespace(NAMESPACE).create(aDev);
+		mockClient.secrets().inNamespace(NAMESPACE).create(aAck);
+		mockClient.secrets().inNamespace(NAMESPACE).create(aK8s);
+
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("dev", true));
+		profiles.add(new StrictProfile("ack", true));
+		profiles.add(new StrictProfile("k8s", false));
+
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("dev", "ack", "k8s");
+
+		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "red"), true, profiles, false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+
+		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secret.a-ack.a-dev.a-k8s.default");
+		Assertions.assertEquals(sourceData.sourceData().get("a"), "a-dev");
 
 	}
 
