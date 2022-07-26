@@ -186,7 +186,7 @@ jobs:
           sliced_array=("${CLASSNAMES[@]:$left_bound:$diff}")
           TEST_ARG=$(echo $sliced_array | sed 's/ /,/g')
 
-          echo 'will run tests : ${TEST_ARG}'
+          echo "will run tests : $TEST_ARG"
 
           ./mvnw -s .settings.xml -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install \
               -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
