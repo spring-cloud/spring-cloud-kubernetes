@@ -242,7 +242,8 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 
 			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
 					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
-			LinkedHashSet<StrictProfile> profiles = profiles(includeProfileSpecificSources, getStrictForProfiles(), environment);
+			LinkedHashSet<StrictProfile> profiles = profiles(includeProfileSpecificSources, getStrictForProfiles(),
+					environment);
 
 			NormalizedSource namedBasedSource = new NamedSecretNormalizedSource(secretName, normalizedNamespace,
 					failFast, prefix, profiles, strict);

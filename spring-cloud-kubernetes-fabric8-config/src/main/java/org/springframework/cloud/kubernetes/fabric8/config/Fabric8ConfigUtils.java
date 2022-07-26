@@ -162,7 +162,7 @@ public final class Fabric8ConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer configMapsDataByLabels(KubernetesClient client, String namespace,
-			Map<String, String> labels, Environment environment, Set<StrictProfile> profiles, boolean strict) {
+			Map<String, String> labels, Environment environment, LinkedHashSet<StrictProfile> profiles, boolean strict) {
 
 		List<ConfigMap> configMaps = configMapsSearch(client, namespace);
 		if (ConfigUtils.noSources(configMaps, namespace)) {

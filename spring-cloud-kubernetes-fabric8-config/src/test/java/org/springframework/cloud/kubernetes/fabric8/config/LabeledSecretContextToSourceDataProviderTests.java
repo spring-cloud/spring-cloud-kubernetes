@@ -462,18 +462,18 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 	/**
 	 * <pre>
-	 *
 	 *     spring:
 	 *       cloud:
 	 *         kubernetes:
-	 *           secret:
+	 *           secrets:
 	 *             sources:
 	 *               - labels:
 	 *               	 color: red
 	 *                 strict: false
 	 *
-	 *     we want to read a secret with labels "color: red" and it has "strict=false".
-	 *     since it is not present at all, as a result we get an empty SourceData.
+	 *     - we want to read a secret with labels "color: red".
+	 *     - there are no secrets in the namespace at all and since "strict: false",
+	 *       we will not fail.
 	 *
 	 * </pre>
 	 */
@@ -494,7 +494,6 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 	/**
 	 * <pre>
-	 *
 	 *     spring:
 	 *       cloud:
 	 *         kubernetes:
@@ -504,8 +503,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 *                   color: red
 	 *                 strict: true
 	 *
-	 *     - we want to read a secret with labels "color: red" and it has "strict=true"
-	 *     - since it is not present at all (but strict=true), we fail
+	 *     - we want to read a secret with labels "color: red".
+	 *     - since there are no secrets in the namespace and "strict: true", we will fail
 	 * </pre>
 	 */
 	@Test
@@ -525,7 +524,6 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 	/**
 	 * <pre>
-	 *
 	 *     spring:
 	 *       cloud:
 	 *         kubernetes:
