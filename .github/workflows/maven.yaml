@@ -1,7 +1,4 @@
-# This workflow will build a Java project with Maven
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
-
-name: Build
+name: github-workflow
 
 on:
   push:
@@ -10,8 +7,10 @@ on:
     branches: [ main ]
 
 jobs:
+  # build the project, skip tests, update snapshots
+  ###########################################################################################################################
+  ######################################## Build test support dependency and Run test #######################################
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -27,6 +26,12 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_HEAD_REF})"
 
+      # if this is the first build, this is a NOOP and every dependency is downloaded.
+      # if this is != first build, cache is restored. We then issue mvn clean install with "-U",
+      # and thus update any third party snapshots; also we build the project, thus update
+      # any inter-module snapshot dependencies.
+      # only after that is the cache saved, which is what we want. Any subsequent restores as such
+      # will have the latest versions of snapshots available.
       - name: Cache local Maven repository
         id: cache-maven-repo
         uses: actions/cache@v2
@@ -46,15 +51,158 @@ jobs:
         continue-on-error: false
         run: echo 'cache hit'
 
-      - name: Build with Maven
-        run: ./mvnw -s .settings.xml clean org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dmaven.wagon.http.pool=false -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
+      - name: Build with skip tests
+        run: ./mvnw -s .settings.xml clean install -U -DskipTests
+
+  # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
+  # Otherwise, (since we use static ports) there might be two instances starting at the same time, and ports might conflict
+  ###########################################################################################################################
+  ###################################################### Fabric8 istio test #################################################
+  fabric8_istio_test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache local Maven repository
+        id: cache-maven-repo
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
+
+      - name: test fabric8 istio
+        run: |
+          cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
+          ../.././mvnw clean install
+          cd ../..
+
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        current_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+        number_of_jobs: [32]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        name: Set up JDK
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache local Maven repository
+        id: cache-maven-repo
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
+
+      - name: run tests
+        env:
+          CURRENT_INDEX: ${{ matrix.current_index }}
+          NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
+        run: |
+          # find all tests
+          # exclude Fabric8IstionIT
+          # only take classes that have @Test inside them
+          # drop the "begining" xxx/src/test/java
+          # replace / with .
+          # drop last ".java"
+          # replace newline with space
+          # sort
+
+          CLASSNAMES=($(find . -name '*.java' \
+          				 | grep  'src/test/java' \
+          				 | grep -v 'Fabric8IstioIT' \
+          				 | xargs grep -l '@Test' \
+          				 | sed 's/.*src.test.java.//g' \
+          				 | sed 's@/@.@g' \
+          				 | sed 's/.\{5\}$//' \
+                         | sort \
+          				 | tr '\n' ' '))
+
+          number_of_tests=${#CLASSNAMES[@]}
+          number_of_jobs=${NUMBER_OF_JOBS}
+          current_index=${CURRENT_INDEX}
+
+          per_instance=$((number_of_tests / number_of_jobs))
+
+          # we do not get an ideal distribution all the time, so this is needed to add one more test
+          # to the first "reminder" number of instances.
+
+          # consider the case when there are 10 tests, and 4 instances
+          # 10/4=2 (and this is "per_instance"), at the same time "reminder" = (10 - 4 * 2) = 2
+          # this means that the first instance will run (2 + 1) tests
+          # second instance will run (2 + 1) tests
+          # all subsequent instances will run 2 tests.
+
+          reminder=$((number_of_tests - number_of_jobs * per_instance))
+          elements_in_current_instance=$((per_instance + 1))
+
+          left_bound=0
+          right_bound=0
+
+          # we are in a range where we might need to add one more test to each instance
+          # notice the "less then" condition here, it is important and must not change
+          if [[ $current_index -lt $reminder ]]; then
+
+          	# this one is easy, the range will be [0..3] (following our example above)
+          	if [[ $current_index == 0 ]]; then
+          	  left_bound=0
+          	  right_bound=$elements_in_current_instance
+          	  # this one will be [3..6]
+          	else
+          	  left_bound=$((current_index * elements_in_current_instance))
+          	  right_bound=$(((current_index + 1) * elements_in_current_instance))
+          	fi
+
+          	echo "total tests : $number_of_tests, jobs: $number_of_jobs, current index : $current_index. will run tests in range : [$left_bound..$right_bound]"
+
+          else
+
+            # reminder can be zero here (in case of a perfect distribution): in such a case, this is just "current_index * per_instance".
+          	# if reminder is not zero, we have two regions here, logically. the one of the left is "reminder * elements_in_current_instance",
+          	# basically [0..3] and [3..6]
+          	# and the region on the right [6..8].
+          	left_bound=$((reminder * elements_in_current_instance + ((current_index - reminder) * per_instance)))
+          	right_bound=$((left_bound + per_instance))
+
+          	echo "total tests : $number_of_tests, jobs: $number_of_jobs, current index : $current_index. will run tests in range : [$left_bound..$right_bound]"
+          fi
+
+          diff=$((right_bound - left_bound))
+          sliced_array=("${CLASSNAMES[@]:$left_bound:$diff}")
+          TEST_ARG=$(echo $sliced_array | sed 's/ /,/g')
+
+          ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install \
+              -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
+              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v2
         if: always() # always run even if the previous step fails
         with:
           report_paths: '**/surefire-reports/TEST-*.xml'
+
       - name: Archive code coverage results
         uses: actions/upload-artifact@v2
         with:
           name: surefire-reports
           path: '**/surefire-reports/*'
+
