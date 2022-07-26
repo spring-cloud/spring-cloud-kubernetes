@@ -239,7 +239,7 @@ public final class ConfigUtils {
 				namespace);
 
 		// this makes sure that we first have "app" and then "app-dev" in the list
-		List<StrippedSourceContainer> all = new ArrayList<>(byLabels.size() + strippedSiblingSources.size());
+		List<StrippedSourceContainer> all = new ArrayList<>(rootSources.size() + strippedSiblingSources.size());
 		all.addAll(rootSources);
 		all.addAll(strippedSiblingSources);
 
@@ -366,14 +366,13 @@ public final class ConfigUtils {
 			if (!byLabels.isEmpty()) {
 				// filter from all only the sibling ones, i.e.: ones that have the format
 				// : "XXX-<profile.name>"
-				siblingSources = byLabels.stream().map(one -> {
-					for (StrictProfile profile : profiles) {
+				for (StrictProfile profile : profiles) {
+					for (StrippedSourceContainer one : byLabels) {
 						if (one.name().endsWith("-" + profile.name())) {
-							return new StrictSource(one.name(), profile.strict());
+							siblingSources.add(new StrictSource(one.name(), profile.strict()));
 						}
 					}
-					return null;
-				}).filter(Objects::nonNull).collect(Collectors.toList());
+				}
 			}
 		}
 

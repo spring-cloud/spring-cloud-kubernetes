@@ -808,9 +808,9 @@ class LabeledSecretContextToSourceDataProviderTests {
 		mockClient.secrets().inNamespace(NAMESPACE).create(aK8s);
 
 		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("k8s", false));
 		profiles.add(new StrictProfile("dev", true));
 		profiles.add(new StrictProfile("ack", true));
-		profiles.add(new StrictProfile("k8s", false));
 
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("dev", "ack", "k8s");
@@ -822,7 +822,168 @@ class LabeledSecretContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.a-ack.a-dev.a-k8s.default");
-		Assertions.assertEquals(sourceData.sourceData().get("a"), "a-dev");
+		Assertions.assertEquals(sourceData.sourceData().get("a"), "a-ack");
+
+	}
+
+	/**
+	 * <pre>
+	 *
+	 *   spring:
+	 *     cloud:
+	 *       kubernetes:
+	 *         secrets:
+	 *            sources:
+	 *              - labels:
+	 *                   color: red
+	 *                strict: false
+	 *                strict-for-profiles:
+	 *                  - dev
+	 *                  - ack
+	 *                include-profile-specific-sources: true
+	 *
+	 *  - there are 4 active profiles : "dev", "ack", "k8s", "prod".
+	 *  - there are 5 secrets: "a", "b", "a-dev", "a-ack", "b-dev".
+	 *
+	 *  - we want to read secrets with labels {color: red} in a non-profile specific source.
+	 *  - there are two root sources : "a" and "b".
+	 *  - there are 3 siblings for them: "a-dev", "a-ack", "b-dev".
+	 *  - notice that "b-ack" is missing, as such we fail the application start-up.
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testStrictNine() {
+
+		Secret a = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "red")).withName("a").endMetadata()
+			.addToData("a", Base64.getEncoder().encodeToString("a".getBytes(StandardCharsets.UTF_8))).build();
+
+		Secret b = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "red")).withName("b").endMetadata()
+			.addToData("b", Base64.getEncoder().encodeToString("b".getBytes(StandardCharsets.UTF_8))).build();
+
+		// labels for the above don't matter, and they do not match either
+		Secret aDev = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "blue")).withName("a-dev").endMetadata()
+			.addToData("a", Base64.getEncoder().encodeToString("a-dev".getBytes(StandardCharsets.UTF_8))).build();
+
+		Secret aAck = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "blue")).withName("a-ack").endMetadata()
+			.addToData("a", Base64.getEncoder().encodeToString("a-ack".getBytes(StandardCharsets.UTF_8))).build();
+
+		Secret bDev = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "blue")).withName("b-dev").endMetadata()
+			.addToData("b", Base64.getEncoder().encodeToString("b-dev".getBytes(StandardCharsets.UTF_8))).build();
+
+		mockClient.secrets().inNamespace(NAMESPACE).create(a);
+		mockClient.secrets().inNamespace(NAMESPACE).create(b);
+		mockClient.secrets().inNamespace(NAMESPACE).create(aDev);
+		mockClient.secrets().inNamespace(NAMESPACE).create(aAck);
+		mockClient.secrets().inNamespace(NAMESPACE).create(bDev);
+
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("k8s", false));
+		profiles.add(new StrictProfile("prod", false));
+		profiles.add(new StrictProfile("dev", true));
+		profiles.add(new StrictProfile("ack", true));
+
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("dev", "ack", "k8s", "prod");
+
+		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "red"), true, profiles, false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+
+		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
+
+		StrictSourceNotFoundException ex = Assertions.assertThrows(
+			StrictSourceNotFoundException.class,
+			() -> data.apply(context)
+		);
+
+		Assertions.assertEquals("source : b-ack not present in namespace: default", ex.getMessage());
+
+	}
+
+
+	/**
+	 * <pre>
+	 *
+	 *   spring:
+	 *     cloud:
+	 *       kubernetes:
+	 *         secrets:
+	 *            sources:
+	 *              - labels:
+	 *                   color: red
+	 *                strict: true
+	 *                strict-for-profiles:
+	 *                  - dev
+	 *                  - ack
+	 *                include-profile-specific-sources: true
+	 *
+	 *  - there are 4 active profiles : "dev", "ack", "k8s", "prod".
+	 *  - there are 8 secrets: "a", "b", "a-dev", "a-ack", "b-dev", "b-ack", "a-k8s", "b-prod"
+	 *
+	 *  - we want to read secrets with labels {color: red} in a non-profile specific source.
+	 *  - there are two root sources : "a" and "b".
+	 *  - there are 6 siblings for them: "a-dev", "a-ack", "b-dev", "b-ack", "a-k8s", "b-prod".
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testStrictTen() {
+
+		Secret a = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "red")).withName("a").endMetadata()
+			.addToData("a", Base64.getEncoder().encodeToString("a".getBytes(StandardCharsets.UTF_8))).build();
+
+		Secret b = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "red")).withName("b").endMetadata()
+			.addToData("b", Base64.getEncoder().encodeToString("b".getBytes(StandardCharsets.UTF_8))).build();
+
+		// labels for the above don't matter, and they do not match either
+		Secret aDev = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "blue")).withName("a-dev").endMetadata()
+			.addToData("a", Base64.getEncoder().encodeToString("a-dev".getBytes(StandardCharsets.UTF_8))).build();
+
+		Secret aAck = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "blue")).withName("a-ack").endMetadata()
+			.addToData("a", Base64.getEncoder().encodeToString("a-ack".getBytes(StandardCharsets.UTF_8))).build();
+
+		Secret bDev = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "blue")).withName("b-dev").endMetadata()
+			.addToData("b", Base64.getEncoder().encodeToString("b-dev".getBytes(StandardCharsets.UTF_8))).build();
+
+		Secret bAck = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "blue")).withName("b-ack").endMetadata()
+			.addToData("b", Base64.getEncoder().encodeToString("b-ack".getBytes(StandardCharsets.UTF_8))).build();
+
+		Secret aK8s = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "blue")).withName("a-k8s").endMetadata()
+			.addToData("a", Base64.getEncoder().encodeToString("a-k8s".getBytes(StandardCharsets.UTF_8))).build();
+
+		Secret bProd = new SecretBuilder().withNewMetadata().withLabels(Map.of("color", "blue")).withName("b-prod").endMetadata()
+			.addToData("b", Base64.getEncoder().encodeToString("b-prod".getBytes(StandardCharsets.UTF_8))).build();
+
+		mockClient.secrets().inNamespace(NAMESPACE).create(a);
+		mockClient.secrets().inNamespace(NAMESPACE).create(b);
+
+		mockClient.secrets().inNamespace(NAMESPACE).create(aDev);
+		mockClient.secrets().inNamespace(NAMESPACE).create(aAck);
+
+		mockClient.secrets().inNamespace(NAMESPACE).create(bDev);
+		mockClient.secrets().inNamespace(NAMESPACE).create(bAck);
+
+		mockClient.secrets().inNamespace(NAMESPACE).create(aK8s);
+		mockClient.secrets().inNamespace(NAMESPACE).create(bProd);
+
+		LinkedHashSet<StrictProfile> profiles = new LinkedHashSet<>();
+		profiles.add(new StrictProfile("k8s", false));
+		profiles.add(new StrictProfile("prod", false));
+		profiles.add(new StrictProfile("dev", true));
+		profiles.add(new StrictProfile("ack", true));
+
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("dev", "ack", "k8s", "prod");
+
+		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "red"), true, profiles, false);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+
+		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertEquals(sourceData.sourceName(), "secret.a.a-ack.a-dev.a-k8s.b.b-ack.b-dev.b-prod.default");
+		Assertions.assertEquals(sourceData.sourceData().get("a"), "a-ack");
+		Assertions.assertEquals(sourceData.sourceData().get("b"), "b-ack");
 
 	}
 
