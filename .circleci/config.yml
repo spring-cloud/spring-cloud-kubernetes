@@ -43,6 +43,11 @@ jobs:
             # needed for .withReuse(true) to work
             echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
       - checkout
+      - restore_cache:
+          keys:
+            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - spring-cloud-kubernetes-{{ .Branch }}
+            - spring-cloud-kubernetes
       - attach_workspace:
           at: /tmp/docker
       - run:
@@ -56,6 +61,8 @@ jobs:
       - run:
           name: Run regular tests
           command: |
+
+            set -x
 
             ###########################################################################################################################
             ################################################# Build test support dependency ###########################################
@@ -161,7 +168,7 @@ jobs:
       - run:
           name: dependencies
           command: |
-            ./mvnw -s .settings.xml -U dependency:resolve-plugins dependency:go-offline -B -Dservice.occurence=${_SERVICE_OCCURENCE} || true
+            ./mvnw -s .settings.xml -U dependency:resolve-plugins dependency:go-offline -B || true
       - run:
           name: build
           command: |
