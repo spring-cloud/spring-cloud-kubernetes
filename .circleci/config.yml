@@ -65,7 +65,8 @@ jobs:
 
             ###########################################################################################################################
             ##################################################### Split and run tests #################################################
-            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" | grep -v 'Fabric8IstioIT' \
+            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" \
+                               | grep -v 'Fabric8IstioIT' \
                                | xargs grep -l '@Test' \
                                | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
                                | sed 's/.\{5\}$//' \
