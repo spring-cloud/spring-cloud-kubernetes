@@ -110,9 +110,9 @@ jobs:
                     | sed 's/.\{5\}$//'"
 
             while read class_name; do
-               replaced=$(echo ${DERIVED_FROM_ABSTRACT_CLASSES_COMMAND/replace_me/"$class_name"})
-               result=($(eval $replaced))
-               PLAIN_TEST_CLASSNAMES+=(${result[@]})
+              replaced=$(echo ${DERIVED_FROM_ABSTRACT_CLASSES_COMMAND/replace_me/"$class_name"})
+              result=($(eval $replaced))
+              PLAIN_TEST_CLASSNAMES+=(${result[@]})
             done < <(eval $ABSTRACT_TEST_CLASSNAMES_COMMAND)
 
             IFS=$'\n'
