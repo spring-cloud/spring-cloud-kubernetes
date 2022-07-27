@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
@@ -79,7 +80,8 @@ class EventBasedConfigurationChangeDetectorTests {
 		});
 		Fabric8ConfigMapPropertySourceLocator configMapLocator = mock(Fabric8ConfigMapPropertySourceLocator.class);
 		Fabric8EventBasedConfigMapChangeDetector detector = new Fabric8EventBasedConfigMapChangeDetector(env,
-				configReloadProperties, k8sClient, configurationUpdateStrategy, configMapLocator);
+				configReloadProperties, k8sClient, configurationUpdateStrategy, configMapLocator,
+				new KubernetesNamespaceProvider(new MockEnvironment()));
 		List<Fabric8ConfigMapPropertySource> sources = detector
 				.findPropertySources(Fabric8ConfigMapPropertySource.class);
 		assertThat(sources.size()).isEqualTo(1);

@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -24,6 +28,7 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.CallGeneratorParams;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
@@ -34,6 +39,7 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationU
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.createApiClientForInformerClient;
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.namespaces;
 
 /**
  * @author Ryan Baxter
@@ -44,11 +50,36 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	private final KubernetesClientSecretsPropertySourceLocator propertySourceLocator;
 
+	private final boolean monitorSecrets;
+
 	private final SharedInformerFactory factory;
 
-	private final String namespace;
+	private final List<SharedIndexInformer<V1Secret>> informers = new ArrayList<>();
 
-	private final boolean monitorSecrets;
+	private final Set<String> namespaces;
+
+	private final boolean enableReloadFiltering;
+
+	private final ResourceEventHandler<V1Secret> handler = new ResourceEventHandler<>() {
+
+		@Override
+		public void onAdd(V1Secret obj) {
+			log.debug("Secret " + obj.getMetadata().getName() + " was added.");
+			onEvent(obj);
+		}
+
+		@Override
+		public void onUpdate(V1Secret oldObj, V1Secret newObj) {
+			log.debug("Secret " + newObj.getMetadata().getName() + " was updated.");
+			onEvent(newObj);
+		}
+
+		@Override
+		public void onDelete(V1Secret obj, boolean deletedFinalStateUnknown) {
+			log.debug("Secret " + obj.getMetadata() + " was deleted.");
+			onEvent(obj);
+		}
+	};
 
 	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
@@ -56,51 +87,59 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
+		this.coreV1Api = coreV1Api;
 		// We need to pass an APIClient to the SharedInformerFactory because if we use the
-		// default constructor it will use the configured default APIClient but that may
-		// not
-		// contain an APIClient configured within the cluster and does not contain the
-		// necessary
+		// default
+		// constructor it will use the configured default APIClient but that may not
+		// contain
+		// an APIClient configured within the cluster and does not contain the necessary
 		// certificate authorities for the cluster. This results in SSL errors.
 		// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
 		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
-		this.coreV1Api = coreV1Api;
-		this.namespace = kubernetesNamespaceProvider.getNamespace();
 		this.monitorSecrets = properties.isMonitoringSecrets();
+		this.enableReloadFiltering = properties.isEnableReloadFiltering();
+		namespaces = namespaces(kubernetesNamespaceProvider, properties, "secret");
 	}
 
 	@PostConstruct
-	public void watch() {
-		if (coreV1Api != null && monitorSecrets) {
-			SharedIndexInformer<V1Secret> configMapInformer = factory.sharedIndexInformerFor(
-					(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(namespace, null, null, null,
-							null, null, null, params.resourceVersion, null, params.timeoutSeconds, params.watch, null),
-					V1Secret.class, V1SecretList.class);
-			configMapInformer.addEventHandler(new ResourceEventHandler<>() {
-				@Override
-				public void onAdd(V1Secret obj) {
-					log.info("Secret " + obj.getMetadata().getName() + " was added.");
-					onEvent(obj);
+	void inform() {
+		if (monitorSecrets) {
+			log.info("Kubernetes event-based secrets change detector activated");
+
+			namespaces.forEach(namespace -> {
+				SharedIndexInformer<V1Secret> informer;
+				String filter = null;
+
+				if (enableReloadFiltering) {
+					filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
+					log.debug("added secret informer for namespace : " + namespace + " with enabled filter");
+				}
+				else {
+					log.debug("added secret informer for namespace : " + namespace);
 				}
 
-				@Override
-				public void onUpdate(V1Secret oldObj, V1Secret newObj) {
-					log.info("Secret " + newObj.getMetadata().getName() + " was added.");
-					onEvent(newObj);
-				}
-
-				@Override
-				public void onDelete(V1Secret obj, boolean deletedFinalStateUnknown) {
-					log.info("Secret " + obj.getMetadata() + " was deleted.");
-					onEvent(obj);
-				}
+				String filterOnInformerLabel = filter;
+				informer = factory.sharedIndexInformerFor(
+						(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(namespace, null, null, null,
+								null, filterOnInformerLabel, null, params.resourceVersion, null, params.timeoutSeconds,
+								params.watch, null),
+						V1Secret.class, V1SecretList.class);
+				informer.addEventHandler(handler);
+				informers.add(informer);
 			});
+
 			factory.startAllRegisteredInformers();
 		}
 	}
+	
+	@PreDestroy
+	void shutdown() {
+		informers.forEach(SharedIndexInformer::stop);
+		factory.stopAllRegisteredInformers();
+	}
 
-	protected void onEvent(V1Secret secret) {
-		log.debug("onEvent configMap: " + secret.toString());
+	private void onEvent(V1Secret secret) {
+		log.debug("onEvent secret: " + secret.toString());
 		boolean changed = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
 				findPropertySources(KubernetesClientSecretsPropertySource.class));
 		if (changed) {

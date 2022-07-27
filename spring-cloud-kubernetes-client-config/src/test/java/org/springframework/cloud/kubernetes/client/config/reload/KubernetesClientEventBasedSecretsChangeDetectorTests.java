@@ -158,7 +158,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		KubernetesClientEventBasedSecretsChangeDetector changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(
 				coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider);
 
-		Thread controllerThread = new Thread(changeDetector::watch);
+		Thread controllerThread = new Thread(changeDetector::inform);
 		controllerThread.setDaemon(true);
 		controllerThread.start();
 

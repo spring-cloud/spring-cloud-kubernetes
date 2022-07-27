@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+package org.springframework.cloud.kubernetes.fabric8.core;
+
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.Objects;
