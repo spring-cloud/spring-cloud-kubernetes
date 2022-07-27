@@ -62,8 +62,6 @@ jobs:
           name: Run regular tests
           command: |
 
-            set -x
-
             ###########################################################################################################################
             ################################################# Build test support dependency ###########################################
             cd spring-cloud-kubernetes-test-support
@@ -90,7 +88,7 @@ jobs:
                     | xargs grep -L 'abstract class' \
                     | sed 's/.*src.test.java.//g' \
                     | sed 's@/@.@g' \
-                    | sed 's/.\{5\}$//')
+                    | sed 's/.\{5\}$//'))
 
             # classes that have @Test and are abstract, for example: "LabeledSecretWithPrefixTests"
             # - exclude Fabric8IstionIT
