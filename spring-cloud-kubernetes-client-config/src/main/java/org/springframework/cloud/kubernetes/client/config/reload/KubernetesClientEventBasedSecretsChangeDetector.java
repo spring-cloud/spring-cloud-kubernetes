@@ -131,14 +131,14 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 			factory.startAllRegisteredInformers();
 		}
 	}
-	
+
 	@PreDestroy
 	void shutdown() {
 		informers.forEach(SharedIndexInformer::stop);
 		factory.stopAllRegisteredInformers();
 	}
 
-	private void onEvent(V1Secret secret) {
+	protected void onEvent(V1Secret secret) {
 		log.debug("onEvent secret: " + secret.toString());
 		boolean changed = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
 				findPropertySources(KubernetesClientSecretsPropertySource.class));
