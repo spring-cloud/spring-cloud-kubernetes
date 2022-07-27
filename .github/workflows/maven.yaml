@@ -168,7 +168,6 @@ jobs:
           IFS=$'\n'
           PLAIN_TEST_CLASSNAMES=$(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}")
           unset IFS
-          echo ${PLAIN_TEST_CLASSNAMES[@]}
 
           number_of_tests=${#PLAIN_TEST_CLASSNAMES[@]}
           number_of_jobs=${NUMBER_OF_JOBS}
