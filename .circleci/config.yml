@@ -116,7 +116,7 @@ jobs:
             done < <(eval $ABSTRACT_TEST_CLASSNAMES_COMMAND)
 
             IFS=$'\n'
-            PLAIN_TEST_CLASSNAMES=$(sort \\<<< "${PLAIN_TEST_CLASSNAMES[*]}")
+            PLAIN_TEST_CLASSNAMES=$(sort \<<< "${PLAIN_TEST_CLASSNAMES[*]}")
             unset IFS
 
             CLASSNAMES=$(echo ${PLAIN_TEST_CLASSNAMES[@]} | circleci tests split --split-by=timings)
