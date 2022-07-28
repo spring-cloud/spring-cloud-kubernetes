@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-
 import java.util.Set;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
