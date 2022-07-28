@@ -71,6 +71,15 @@ jobs:
             ###########################################################################################################################
             ##################################################### Split and run tests #################################################
 
+            # DELETE_ME
+
+            echo '---------------------'
+            arr=( $(circleci tests glob "**/src/test/**/**.java" | grep -v 'Fabric8IstioIT' | xargs grep -l '@Test' | sed 's/.*src.test.java.//g' | sed 's@/@.@g' | sed 's/.\{5\}$//') )
+            echo -ne "${arr[@]}"
+
+            after-split=( $(echo -ne "${arr[@]}" | circleci tests split --split-by=timings) )
+            echo -ne "${after_split[@]}"
+
             # - find all tests
             # - exclude Fabric8IstionIT
             # - only take classes that have @Test inside them
