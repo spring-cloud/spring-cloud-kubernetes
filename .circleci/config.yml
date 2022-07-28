@@ -134,24 +134,21 @@ jobs:
             left=( "${SORTED_TEST_CLASSNAMES[@]:0:$leftBound}" )
             right=( "${SORTED_TEST_CLASSNAMES[@]:$leftBound:$rightBound}" )
 
+            # I have not found to make it work on circleci without writign to an actual file
             printf "%s\n" "${left[@]}" > left.txt
             printf "%s\n" "${right[@]}" > right.txt
 
-            echo '------------------------------------------'
-            cat left.txt
-            echo '------------------------------------------'
-            cat right.txt
-
             CLASSNAMES=()
-            LEFT_CLASSNAMES=$(echo -ne ${left[@]} | tr '\n' ' ' | circleci tests split --split-by=timings)
-            RIGHT_CLASSNAMES=$(echo -ne ${right[@]} | tr '\n' ' ' | circleci tests split --split-by=timings)
+            LEFT_CLASSNAMES=$(cat left.txt | circleci tests split --split-by=timings)
+            RIGHT_CLASSNAMES=$(cat right.txt | circleci tests split --split-by=timings)
 
             CLASSNAMES+=(${LEFT_CLASSNAMES[@]})
             CLASSNAMES+=(${RIGHT_CLASSNAMES[@]})
 
-            echo $CLASSNAMES
             TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
+            echo '----------------------- tests ---------------------'
             echo $TEST_ARG
+            echo '---------------------------------------------------'
 
             ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install \
                    -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \

@@ -3,9 +3,6 @@
 
 main() {
 
-            ###########################################################################################################################
-            ##################################################### Split and run tests #################################################
-
             # - find all tests
             # - exclude Fabric8IstionIT
             # - only take classes that have @Test inside them
@@ -52,28 +49,18 @@ main() {
             while read class_name; do
               replaced=$(echo ${DERIVED_FROM_ABSTRACT_CLASSES_COMMAND/replace_me/"$class_name"})
               result=($(eval $replaced))
+
+              if [[ ${#result[@]} -ne 2 ]]; then
+                    echo $class_name
+              fi      
               PLAIN_TEST_CLASSNAMES+=(${result[@]})
             done < <(eval $ABSTRACT_TEST_CLASSNAMES_COMMAND)
 
             IFS=$'\n'
-            SORTED_TEST_CLASSNAMES=( $(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}") )
+            SORTED_TEST_CLASSNAMES=( $(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}" | uniq -u) )
             unset IFS
 
-            echo -ne "${SORTED_TEST_CLASSNAMES[@]}"
-
-            # split in half, because of the issue below, and failure in the circleci with error:
-            # "Error: failed to read input: bufio.Scanner: token too long"
-            ########## https://github.com/CircleCI-Public/circleci-cli/pull/441
-            size="${#SORTED_TEST_CLASSNAMES[@]}"
-            let leftBound="$size/2"
-            let rightBound="$size - $leftBound"
-
-            left=( "${SORTED_TEST_CLASSNAMES[@]:0:$leftBound}" )
-            right=( "${SORTED_TEST_CLASSNAMES[@]:$leftBound:$rightBound}" )
-
-            #echo "left is : ${left[@]}"
-            #echo '----------------------------'
-            #echo "right is : ${right[@]}"
+            printf "%s\n" "${SORTED_TEST_CLASSNAMES[@]}" > left.txt
     
 }
 
