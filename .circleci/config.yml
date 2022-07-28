@@ -43,11 +43,11 @@ jobs:
             # needed for .withReuse(true) to work
             echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
       - checkout
-      - restore_cache:
-          keys:
-            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - spring-cloud-kubernetes-{{ .Branch }}
-            - spring-cloud-kubernetes
+#      - restore_cache:
+#          keys:
+#            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+#            - spring-cloud-kubernetes-{{ .Branch }}
+#            - spring-cloud-kubernetes
       - attach_workspace:
           at: /tmp/docker
 #      - run:
@@ -77,7 +77,7 @@ jobs:
             arr=( $(circleci tests glob "**/src/test/**/**.java" | grep -v 'Fabric8IstioIT' | xargs grep -l '@Test' | sed 's/.*src.test.java.//g' | sed 's@/@.@g' | sed 's/.\{5\}$//') )
             echo -ne "${arr[@]}"
 
-            after_split=( $(echo -ne "${arr[@]}" | circleci tests split --split-by=timings) )
+            after_split=( $(echo -ne "${arr[@]}" | tr ' ' '\n' | circleci tests split --split-by=timings) )
             echo -ne "${after_split[@]}"
 
             # - find all tests
