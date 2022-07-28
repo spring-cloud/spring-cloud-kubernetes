@@ -135,7 +135,7 @@ jobs:
             right=( "${PLAIN_TEST_CLASSNAMES[@]:$leftBound:$rightBound}" )
 
             echo "left is : ${left[@]}"
-            echo "right is : ${left[@]}"
+            echo "right is : ${right[@]}"
 
             CLASSNAMES=()
             LEFT_CLASSNAMES=$(echo ${left[@]} | circleci tests split --split-by=timings)
