@@ -124,7 +124,23 @@ jobs:
             PLAIN_TEST_CLASSNAMES=$(sort \<<< "${PLAIN_TEST_CLASSNAMES[*]}")
             unset IFS
 
-            CLASSNAMES=$(echo ${PLAIN_TEST_CLASSNAMES[@]} | circleci tests split --split-by=timings)
+            # split in half, because of the issue above, and failure in the circleci with error:
+            # "Error: failed to read input: bufio.Scanner: token too long"
+            ########## https://github.com/CircleCI-Public/circleci-cli/pull/441
+            size="${#PLAIN_TEST_CLASSNAMES[@]}"
+            let leftBound="$size/2"
+            let rightBound="$size - $leftBound"
+
+            left=( "${PLAIN_TEST_CLASSNAMES[@]:0:$leftBound}" )
+            right=( "${PLAIN_TEST_CLASSNAMES[@]:$leftBound:$rightBound}" )
+
+            CLASSNAMES=()
+            LEFT_CLASSNAMES=$(echo ${left[@]} | circleci tests split --split-by=timings)
+            RIGHT_CLASSNAMES=$(echo ${right[@]} | circleci tests split --split-by=timings)
+
+            CLASSNAMES+=(${LEFT_CLASSNAMES[@]})
+            CLASSNAMES+=(${RIGHT_CLASSNAMES[@]})
+
             echo $CLASSNAMES
             TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
             echo $TEST_ARG
