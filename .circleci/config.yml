@@ -126,6 +126,7 @@ jobs:
 
             printf "%s\n" "${SORTED_TEST_CLASSNAMES[@]}" > file.txt
             CLASSNAMES=( $(cat file.txt | circleci tests split --split-by=timings) )
+            rm file.txt
 
             TEST_ARG=$(echo ${CLASSNAMES[@]} | sed 's/ /,/g')
             echo '----------------------- tests ---------------------'
