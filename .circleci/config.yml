@@ -138,6 +138,8 @@ jobs:
             printf "%s\n" "${left[@]}" > left.txt
             printf "%s\n" "${right[@]}" > right.txt
 
+            cat left.txt
+
             CLASSNAMES=()
             LEFT_CLASSNAMES=$(cat left.txt | circleci tests split --split-by=timings)
             RIGHT_CLASSNAMES=$(cat right.txt | circleci tests split --split-by=timings)
