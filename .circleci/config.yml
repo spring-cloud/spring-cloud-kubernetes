@@ -25,7 +25,7 @@ workflows:
       - fabric8_istio:
           requires:
             - build
-      - test
+      - test:
           requires:
             - fabric8_istio
 jobs:
