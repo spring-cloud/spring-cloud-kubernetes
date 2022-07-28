@@ -138,8 +138,8 @@ jobs:
             echo "right is : ${right[@]}"
 
             CLASSNAMES=()
-            LEFT_CLASSNAMES=$(echo ${left[@]} | circleci tests split --split-by=timings)
-            RIGHT_CLASSNAMES=$(echo ${right[@]} | circleci tests split --split-by=timings)
+            LEFT_CLASSNAMES=$(echo ${left[@]} | tr '\n' ' ' | circleci tests split --split-by=timings)
+            RIGHT_CLASSNAMES=$(echo ${right[@]} | tr '\n' ' ' | circleci tests split --split-by=timings)
 
             CLASSNAMES+=(${LEFT_CLASSNAMES[@]})
             CLASSNAMES+=(${RIGHT_CLASSNAMES[@]})

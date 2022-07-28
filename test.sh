@@ -11,8 +11,8 @@ let rightBound="$size - $leftBound"
 left=( "${array[@]:0:$leftBound}" )
 right=( "${array[@]:$leftBound:$rightBound}" )
     
-    echo "${left[@]}"
-    echo "${right[@]}"
+    echo "left: ${left[@]}" | tr '\n' ' '
+    echo "right: ${right[@]}" | tr '\n' ' '
     
 }
 
