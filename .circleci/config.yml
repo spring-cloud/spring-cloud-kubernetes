@@ -134,21 +134,15 @@ jobs:
             left=( "${SORTED_TEST_CLASSNAMES[@]:0:$leftBound}" )
             right=( "${SORTED_TEST_CLASSNAMES[@]:$leftBound:$rightBound}" )
 
-            # I have not found to make it work on circleci without writign to an actual file
+            # I have not found a way to make it work on circleci without writing to an actual file
             printf "%s\n" "${left[@]}" > left.txt
             printf "%s\n" "${right[@]}" > right.txt
 
-            echo '------ left file -----'
-            cat left.txt
-            echo '------ done left file -----'
-
-            echo '------ right file -----'
-            cat right.txt
-            echo '------ done right file -----'
-
             CLASSNAMES=()
             LEFT_CLASSNAMES=( $(cat left.txt | circleci tests split --split-by=timings) )
+            echo 'left done'
             RIGHT_CLASSNAMES=( $(cat right.txt | circleci tests split --split-by=timings) )
+            echo 'right done'
 
             CLASSNAMES+=(${LEFT_CLASSNAMES[@]})
             CLASSNAMES+=(${RIGHT_CLASSNAMES[@]})
