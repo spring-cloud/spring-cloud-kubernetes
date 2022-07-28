@@ -137,24 +137,9 @@ jobs:
             # I have not found a way to make it work on circleci without writing to an actual file
             printf "%s\n" "${left[@]}" > left.txt
             printf "%s\n" "${right[@]}" > right.txt
+            cat right.txt >> left.txt
 
-            echo '------ left file -----'
-            cat left.txt
-            echo '------ done left file -----'
-
-            echo '------ right file -----'
-            cat right.txt
-            echo '------ done right file -----'
-
-            CLASSNAMES=()
-            LEFT_CLASSNAMES=( $(cat left.txt | circleci tests split --split-by=timings) )
-            echo ' ----- left classnames -----'
-            echo ${LEFT_CLASSNAMES[@]}
-            echo ' ----- done left classnames -----'
-            RIGHT_CLASSNAMES=( $(cat right.txt | circleci tests split --split-by=timings) )
-
-            CLASSNAMES+=(${LEFT_CLASSNAMES[@]})
-            CLASSNAMES+=(${RIGHT_CLASSNAMES[@]})
+            CLASSNAMES==( $(cat left.txt | circleci tests split --split-by=timings) )
 
             TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
             echo '----------------------- tests ---------------------'
