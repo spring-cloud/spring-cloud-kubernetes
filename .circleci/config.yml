@@ -147,11 +147,11 @@ jobs:
             echo '------ done right file -----'
 
             CLASSNAMES=()
-            LEFT_CLASSNAMES=( $(cat left.txt | circleci tests split) )
+            LEFT_CLASSNAMES=( $(cat left.txt | circleci tests split --split-by=timings) )
             echo ' ----- left classnames -----'
             echo ${LEFT_CLASSNAMES[@]}
             echo ' ----- done left classnames -----'
-            RIGHT_CLASSNAMES=( $(cat right.txt | circleci tests split) )
+            RIGHT_CLASSNAMES=( $(cat right.txt | circleci tests split --split-by=timings) )
 
             CLASSNAMES+=(${LEFT_CLASSNAMES[@]})
             CLASSNAMES+=(${RIGHT_CLASSNAMES[@]})
