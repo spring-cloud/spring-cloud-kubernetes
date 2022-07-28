@@ -73,7 +73,7 @@ jobs:
 
             # DELETE_ME
 
-            echo '---------------------'
+            echo "---------------------"
             arr=( $(circleci tests glob "**/src/test/**/**.java" | grep -v 'Fabric8IstioIT' | xargs grep -l '@Test' | sed 's/.*src.test.java.//g' | sed 's@/@.@g' | sed 's/.\{5\}$//') )
             echo -ne "${arr[@]}"
 
