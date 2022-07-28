@@ -124,22 +124,8 @@ jobs:
             SORTED_TEST_CLASSNAMES=( $(sort \<<< "${PLAIN_TEST_CLASSNAMES[*]}" | uniq -u) )
             unset IFS
 
-            # split in half, because of the issue below, and failure in the circleci with error:
-            # "Error: failed to read input: bufio.Scanner: token too long"
-            ########## https://github.com/CircleCI-Public/circleci-cli/pull/441
-            size=${#SORTED_TEST_CLASSNAMES[@]}
-            let leftBound="$size/2"
-            let rightBound="$size - $leftBound"
-
-            left=( "${SORTED_TEST_CLASSNAMES[@]:0:$leftBound}" )
-            right=( "${SORTED_TEST_CLASSNAMES[@]:$leftBound:$rightBound}" )
-
-            # I have not found a way to make it work on circleci without writing to an actual file
-            printf "%s\n" "${left[@]}" > left.txt
-            printf "%s\n" "${right[@]}" > right.txt
-            cat right.txt >> left.txt
-
-            CLASSNAMES=( $(cat left.txt | circleci tests split --split-by=timings) )
+            printf "%s\n" "${SORTED_TEST_CLASSNAMES[@]}" > file.txt
+            CLASSNAMES=( $(cat file.txt | circleci tests split --split-by=timings) )
 
             TEST_ARG=$(echo ${CLASSNAMES[@]} | sed 's/ /,/g')
             echo '----------------------- tests ---------------------'
