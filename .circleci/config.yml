@@ -21,13 +21,13 @@ workflows:
   version: 2
   build-then-test:
     jobs:
-      - build
-      - fabric8_istio:
-          requires:
-            - build
-      - test:
-          requires:
-            - fabric8_istio
+      #- build
+      #- fabric8_istio:
+      #    requires:
+      #      - build
+      - test
+          #requires:
+          #  - fabric8_istio
 jobs:
   test:
     parallelism: 5 # parallel containers to split the tests among
@@ -133,6 +133,9 @@ jobs:
 
             left=( "${PLAIN_TEST_CLASSNAMES[@]:0:$leftBound}" )
             right=( "${PLAIN_TEST_CLASSNAMES[@]:$leftBound:$rightBound}" )
+
+            echo "left is : ${left[@]}"
+            echo "right is : ${left[@]}"
 
             CLASSNAMES=()
             LEFT_CLASSNAMES=$(echo ${left[@]} | circleci tests split --split-by=timings)
