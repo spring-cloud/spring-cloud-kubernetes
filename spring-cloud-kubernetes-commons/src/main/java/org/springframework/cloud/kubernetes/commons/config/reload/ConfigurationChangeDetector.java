@@ -140,7 +140,7 @@ public abstract class ConfigurationChangeDetector {
 			result.addAll(list);
 		}
 		else {
-			log.debug(() ->"Found property source that cannot be handled: " + propertySource.getClass());
+			log.debug(() -> "Found property source that cannot be handled: " + propertySource.getClass());
 		}
 
 		log.debug(() -> "environment: " + environment);
