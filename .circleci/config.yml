@@ -128,8 +128,6 @@ jobs:
             # "Error: failed to read input: bufio.Scanner: token too long"
             ########## https://github.com/CircleCI-Public/circleci-cli/pull/441
             size=${#SORTED_TEST_CLASSNAMES[@]}
-            echo 'size is'
-            echo $size
             let leftBound="$size/2"
             let rightBound="$size - $leftBound"
 
@@ -149,11 +147,11 @@ jobs:
             echo '------ done right file -----'
 
             CLASSNAMES=()
-            LEFT_CLASSNAMES=( $(cat left.txt | circleci tests split --split-by=timings) )
+            LEFT_CLASSNAMES=( $(cat left.txt | circleci tests split) )
             echo ' ----- left classnames -----'
             echo ${LEFT_CLASSNAMES[@]}
             echo ' ----- done left classnames -----'
-            RIGHT_CLASSNAMES=( $(cat right.txt | circleci tests split --split-by=timings) )
+            RIGHT_CLASSNAMES=( $(cat right.txt | circleci tests split) )
 
             CLASSNAMES+=(${LEFT_CLASSNAMES[@]})
             CLASSNAMES+=(${RIGHT_CLASSNAMES[@]})
