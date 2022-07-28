@@ -141,6 +141,9 @@ jobs:
 
             CLASSNAMES=( $(cat left.txt | circleci tests split --split-by=timings) )
 
+            echo '11111111111111'
+            echo ${CLASNAMES[@]}
+
             TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
             echo '----------------------- tests ---------------------'
             echo ${TEST_ARG[@]}
