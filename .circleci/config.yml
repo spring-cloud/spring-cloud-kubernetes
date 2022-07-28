@@ -139,6 +139,9 @@ jobs:
             printf "%s\n" "${right[@]}" > right.txt
             cat right.txt >> left.txt
 
+            echo '22222222 22222'
+            cat left.txt
+
             CLASSNAMES=( $(cat left.txt | circleci tests split --split-by=timings) )
 
             echo '11111111111111'
