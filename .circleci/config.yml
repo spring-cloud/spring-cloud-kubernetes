@@ -21,13 +21,13 @@ workflows:
   version: 2
   build-then-test:
     jobs:
-      #- build
-      #- fabric8_istio:
-      #    requires:
-      #      - build
+      - build
+      - fabric8_istio:
+          requires:
+            - build
       - test
-          #requires:
-          #  - fabric8_istio
+          requires:
+            - fabric8_istio
 jobs:
   test:
     parallelism: 5 # parallel containers to split the tests among
