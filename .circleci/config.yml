@@ -71,15 +71,6 @@ jobs:
             ###########################################################################################################################
             ##################################################### Split and run tests #################################################
 
-            # DELETE_ME
-
-            echo "---------------------"
-            arr=( $(circleci tests glob "**/src/test/**/**.java" | grep -v 'Fabric8IstioIT' | xargs grep -l '@Test' | sed 's/.*src.test.java.//g' | sed 's@/@.@g' | sed 's/.\{5\}$//') )
-            printf "%s\n" "${arr[@]}" > arr.txt
-
-            after_split=( $(cat arr.txt | circleci tests split --split-by=timings) )
-            echo -ne "${after_split[@]}"
-
             # - find all tests
             # - exclude Fabric8IstionIT
             # - only take classes that have @Test inside them
@@ -133,8 +124,6 @@ jobs:
             SORTED_TEST_CLASSNAMES=( $(sort \<<< "${PLAIN_TEST_CLASSNAMES[*]}") )
             unset IFS
 
-            #echo -ne "${SORTED_TEST_CLASSNAMES[@]}"
-
             # split in half, because of the issue below, and failure in the circleci with error:
             # "Error: failed to read input: bufio.Scanner: token too long"
             ########## https://github.com/CircleCI-Public/circleci-cli/pull/441
@@ -145,8 +134,13 @@ jobs:
             left=( "${SORTED_TEST_CLASSNAMES[@]:0:$leftBound}" )
             right=( "${SORTED_TEST_CLASSNAMES[@]:$leftBound:$rightBound}" )
 
-            echo -ne "left is : ${left[@]}"
-            echo -ne "right is : ${right[@]}"
+            printf "%s\n" "${left[@]}" > left.txt
+            printf "%s\n" "${right[@]}" > right.txt
+
+            echo '------------------------------------------'
+            cat left.txt
+            echo '------------------------------------------'
+            cat right.txt
 
             CLASSNAMES=()
             LEFT_CLASSNAMES=$(echo -ne ${left[@]} | tr '\n' ' ' | circleci tests split --split-by=timings)
