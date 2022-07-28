@@ -121,7 +121,7 @@ jobs:
             done < <(eval $ABSTRACT_TEST_CLASSNAMES_COMMAND)
 
             IFS=$'\n'
-            SORTED_TEST_CLASSNAMES=( $(sort \<<< "${PLAIN_TEST_CLASSNAMES[*]}") )
+            SORTED_TEST_CLASSNAMES=( $(sort \<<< "${PLAIN_TEST_CLASSNAMES[*]}" | uniq -u) )
             unset IFS
 
             # split in half, because of the issue below, and failure in the circleci with error:
@@ -147,8 +147,8 @@ jobs:
             echo '------ done right file -----'
 
             CLASSNAMES=()
-            LEFT_CLASSNAMES=$(cat left.txt | circleci tests split --split-by=timings)
-            RIGHT_CLASSNAMES=$(cat right.txt | circleci tests split --split-by=timings)
+            LEFT_CLASSNAMES=( $(cat left.txt | circleci tests split --split-by=timings) )
+            RIGHT_CLASSNAMES=( $(cat right.txt | circleci tests split --split-by=timings) )
 
             CLASSNAMES+=(${LEFT_CLASSNAMES[@]})
             CLASSNAMES+=(${RIGHT_CLASSNAMES[@]})
