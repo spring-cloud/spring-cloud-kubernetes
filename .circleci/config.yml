@@ -75,9 +75,9 @@ jobs:
 
             echo "---------------------"
             arr=( $(circleci tests glob "**/src/test/**/**.java" | grep -v 'Fabric8IstioIT' | xargs grep -l '@Test' | sed 's/.*src.test.java.//g' | sed 's@/@.@g' | sed 's/.\{5\}$//') )
-            echo -ne "${arr[@]}"
+            printf "%s\n" "${arr[@]}" > arr.txt
 
-            after_split=( $(echo -ne "${arr[@]}" | tr ' ' '\n' | circleci tests split --split-by=timings) )
+            after_split=( $(cat arr.txt | circleci tests split --split-by=timings) )
             echo -ne "${after_split[@]}"
 
             # - find all tests
