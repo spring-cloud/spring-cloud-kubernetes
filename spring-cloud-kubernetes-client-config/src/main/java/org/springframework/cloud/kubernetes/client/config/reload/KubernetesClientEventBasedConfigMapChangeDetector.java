@@ -144,11 +144,11 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		boolean changed = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
 				findPropertySources(KubernetesClientConfigMapPropertySource.class));
 		if (changed) {
-			log.info(() ->"Configuration change detected, reloading properties.");
+			log.info(() -> "Configuration change detected, reloading properties.");
 			reloadProperties();
 		}
 		else {
-			log.warn(() ->"Configuration change was not detected.");
+			log.warn(() -> "Configuration change was not detected.");
 		}
 
 	}

@@ -67,7 +67,7 @@ public class ConfigurationWatcherAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
+	@ConditionalOnMissingBean
 	@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
 	public SecretsWatcherChangeDetector httpBasedSecretsWatchChangeDetector(AbstractEnvironment environment,
 			CoreV1Api coreV1Api, KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
