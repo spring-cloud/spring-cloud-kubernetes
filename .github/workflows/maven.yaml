@@ -26,9 +26,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ env.GITHUB_HEAD_REF }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
+            ${{ runner.os }}-maven-${{ env.GITHUB_HEAD_REF }}-${{ hashFiles('**/pom.xml') }}
 
       - if: ${{ steps.cache-maven-repo.outputs.cache-hit == 'false' }}
         name: cache miss callback
