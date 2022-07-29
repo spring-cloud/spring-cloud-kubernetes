@@ -33,6 +33,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
 
+      - name: test-me
+        run: ls ~/.m2/repository/org/apache/maven/plugins
+
       - if: ${{ steps.cache-maven-repo.outputs.cache-hit == 'false' }}
         name: cache miss callback
         continue-on-error: false
