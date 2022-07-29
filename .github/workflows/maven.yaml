@@ -21,7 +21,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: set env variable
+      - name: set branch name env variable
         run: echo "BRANCH_NAME=$(echo $GITHUB_HEAD_REF)" >> $GITHUB_ENV
 
       - name: Cache local Maven repository
@@ -67,9 +67,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
+            ${{ runner.os }}-maven-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
 
       - name: test fabric8 istio
         run: |
@@ -101,9 +101,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ env.GITHUB_HEAD_REF }}-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-maven-${{ env.GITHUB_HEAD_REF }}-${{ hashFiles('**/pom.xml') }}
+            ${{ runner.os }}-maven-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
 
       - name: run tests
         env:
