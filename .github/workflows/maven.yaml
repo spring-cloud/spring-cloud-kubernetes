@@ -21,14 +21,17 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - uses: ./.github/workflows/composites/extract-branch-name
+        id: extract_branch
+
       - name: Cache local Maven repository
         id: cache-maven-repo
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${GITHUB_HEAD_REF}-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-maven-${GITHUB_HEAD_REF}-${{ hashFiles('**/pom.xml') }}
+            ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
 
       - if: ${{ steps.cache-maven-repo.outputs.cache-hit == 'false' }}
         name: cache miss callback
@@ -104,9 +107,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ env GITHUB_HEAD_REF }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
+            ${{ runner.os }}-maven-${{ env GITHUB_HEAD_REF }}-${{ hashFiles('**/pom.xml') }}
 
       - name: run tests
         env:
