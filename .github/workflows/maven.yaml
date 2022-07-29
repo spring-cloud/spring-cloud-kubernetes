@@ -62,6 +62,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: set branch name env variable
+        run: echo "BRANCH_NAME=$(echo $GITHUB_HEAD_REF)" >> $GITHUB_ENV
+
       - name: Cache local Maven repository
         id: cache-maven-repo
         uses: actions/cache@v2
@@ -95,6 +98,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      - name: set branch name env variable
+        run: echo "BRANCH_NAME=$(echo $GITHUB_HEAD_REF)" >> $GITHUB_ENV
 
       - name: Cache local Maven repository
         id: cache-maven-repo
