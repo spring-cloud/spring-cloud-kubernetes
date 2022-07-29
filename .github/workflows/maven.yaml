@@ -107,9 +107,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ env GITHUB_HEAD_REF }}-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ env.GITHUB_HEAD_REF }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-maven-${{ env GITHUB_HEAD_REF }}-${{ hashFiles('**/pom.xml') }}
+            ${{ runner.os }}-maven-${{ env.GITHUB_HEAD_REF }}-${{ hashFiles('**/pom.xml') }}
 
       - name: run tests
         env:
