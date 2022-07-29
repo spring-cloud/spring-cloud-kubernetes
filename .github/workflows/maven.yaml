@@ -21,7 +21,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - uses: composites/extract-branch-name@v1
+      - uses: ./.github/workflow/composites/extract-branch-name@v1
         id: extract_branch
 
       - name: Cache local Maven repository
