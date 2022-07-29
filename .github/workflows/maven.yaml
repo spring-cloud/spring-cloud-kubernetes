@@ -46,7 +46,7 @@ jobs:
         run: echo 'cache hit'
 
       - name: Build with skip tests
-        #run: ./mvnw -s .settings.xml clean install -U -DskipTests
+        run: ./mvnw -s .settings.xml clean install -U -DskipTests
 
   # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
   # Otherwise, (since we use static ports) there might be two instances starting at the same time, and ports might conflict
@@ -64,22 +64,21 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-#TODO
-#      - name: Cache local Maven repository
-#        id: cache-maven-repo
-#        uses: actions/cache@v2
-#        with:
-#          path: ~/.m2/repository
-#          key: ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
-#          restore-keys: |
-#            ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
+      - name: Cache local Maven repository
+        id: cache-maven-repo
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ steps.extract_branch.outputs.branch }}-${{ hashFiles('**/pom.xml') }}
 
       - name: test fabric8 istio
         run: |
           cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
-          # TODO
-          # ../.././mvnw clean install -U
+          ../.././mvnw clean install
           cd ../..
+
   test:
     needs: build
     runs-on: ubuntu-latest
@@ -166,7 +165,7 @@ jobs:
           done < <(eval $ABSTRACT_TEST_CLASSNAMES_COMMAND)
 
           IFS=$'\n'
-          SORTED_TEST_CLASSNAMES=$(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}" | uniq -u)
+          SORTED_TEST_CLASSNAMES=$(sort <<< "${PLAIN_TEST_CLASSNAMES[*]} | uniq -u")
           unset IFS
 
           number_of_tests=${#SORTED_TEST_CLASSNAMES[@]}
@@ -224,13 +223,13 @@ jobs:
 
           echo "will run tests : ${TEST_ARG[@]}"
 
-#          ./mvnw -s .settings.xml -DtestsToRun=${TEST_ARG[@]} -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install \
-#              -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
-#              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-#              -Dhttp.keepAlive=false \
-#              -Dmaven.wagon.http.pool=false \
-#              -Dmaven.wagon.http.retryHandler.class=standard \
-#              -Dmaven.wagon.http.retryHandler.count=3
+          ./mvnw -s .settings.xml -DtestsToRun=${TEST_ARG[@]} -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install \
+              -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
+              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+              -Dhttp.keepAlive=false \
+              -Dmaven.wagon.http.pool=false \
+              -Dmaven.wagon.http.retryHandler.class=standard \
+              -Dmaven.wagon.http.retryHandler.count=3
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v2
