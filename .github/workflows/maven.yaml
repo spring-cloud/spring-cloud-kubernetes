@@ -21,6 +21,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: env variables
+        run: echo "$GITHUB_HEAD_REF"
+
       - name: Cache local Maven repository
         id: cache-maven-repo
         uses: actions/cache@v2
