@@ -1,0 +1,5 @@
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_HEAD_REF})"
