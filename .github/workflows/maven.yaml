@@ -76,10 +76,8 @@ jobs:
       - name: test fabric8 istio
         run: |
           cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
-          ../.././mvnw clean install
+          ../.././mvnw clean install -U
           cd ../..
-
-
   test:
     needs: build
     runs-on: ubuntu-latest
@@ -166,7 +164,7 @@ jobs:
           done < <(eval $ABSTRACT_TEST_CLASSNAMES_COMMAND)
 
           IFS=$'\n'
-          PLAIN_TEST_CLASSNAMES=$(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}")
+          PLAIN_TEST_CLASSNAMES=$(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}" | uniq -u)
           unset IFS
 
           number_of_tests=${#PLAIN_TEST_CLASSNAMES[@]}
@@ -219,7 +217,7 @@ jobs:
           fi
 
           diff=$((right_bound - left_bound))
-          sliced_array=("${CLASSNAMES[@]:$left_bound:$diff}")
+          sliced_array=("${PLAIN_TEST_CLASSNAMES[@]:$left_bound:$diff}")
           TEST_ARG=$(echo ${sliced_array[@]} | sed 's/ /,/g')
 
           echo "will run tests : ${TEST_ARG[@]}"
