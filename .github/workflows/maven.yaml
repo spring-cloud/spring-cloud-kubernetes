@@ -81,7 +81,7 @@ jobs:
           cd ../..
 
   test:
-    needs: build
+    needs: [ build, fabric8_istio_test ]
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
