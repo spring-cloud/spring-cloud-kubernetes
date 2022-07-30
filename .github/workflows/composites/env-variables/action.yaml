@@ -1,0 +1,10 @@
+name: sets environment variables
+description: set branch_name and project_tag as environment variables
+runs:
+  using: "composite"
+  steps:
+    - name: set env variables
+      shell: bash
+      run: |
+        echo "BRANCH_NAME=$(echo $GITHUB_HEAD_REF)" >> $GITHUB_ENV
+        echo "PROJECT_TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV

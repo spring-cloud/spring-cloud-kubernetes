@@ -21,8 +21,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: set branch name env variable
-        run: echo "BRANCH_NAME=$(echo $GITHUB_HEAD_REF)" >> $GITHUB_ENV
+      - name: set env variables
+        uses: .github/workflows/composites/env-variables
 
       - name: Cache local Maven repository
         id: cache-maven-repo
@@ -32,16 +32,6 @@ jobs:
           key: ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
-
-      - if: ${{ steps.cache-cache-repo.outputs.cache-hit == 'false' }}
-        name: cache miss callback
-        continue-on-error: false
-        run: echo 'cache miss'
-
-      - if: ${{ steps.cache-cache-repo.outputs.cache-hit == 'true' }}
-        name: cache hit callback
-        continue-on-error: false
-        run: echo 'cache hit'
 
       # build a lightweight project so that dependencies for the
       # maven-surefire-plugin are downloaded and thus cached also
@@ -57,22 +47,23 @@ jobs:
 
       - name: save controller docker images
         run: |
-          TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
-          echo $TAG
-          mkdir -p /tmp/docker/images/
-          docker save -o /tmp/docker/images/spring-cloud-kubernetes-configuration-watcher.tar docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${TAG}
-          docker save -o /tmp/docker/images/spring-cloud-kubernetes-discoveryserver.tar docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${TAG}
-          docker save -o /tmp/docker/images/spring-cloud-kubernetes-configserver.tar docker.io/springcloud/spring-cloud-kubernetes-configserver:${TAG}
+          TAG=$()
+          integ_tests_command="mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'integration-tests'"
+          while read integ_test; do
+             docker save -o /tmp/docker/images/${integ_test}.tar docker.io/springcloud/${integ_test}:${TAG}
+          done < <(eval $integ_tests_command)
 
       - name: save integration tests docker images
         run: |
           TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
-          integ_tests_coomand="mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'integration-tests'"
+          cd spring-cloud-kubernetes-integration-tests
+          integ_tests_command="mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'integration-tests'"
           while read integ_test; do
             docker save -o /tmp/docker/images/${integ_test}.tar docker.io/springcloud/${integ_test}:${TAG}
-          done < <(eval $integ_tests_coomand)
+          done < <(eval $integ_tests_command)
+          cd ..
 
-      - name: print saved iamges
+      - name: print saved images
         run: |
           VIEW=$(ls -l /tmp/docker/images)
           echo "${VIEW}"
