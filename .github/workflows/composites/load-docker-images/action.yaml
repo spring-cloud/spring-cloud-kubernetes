@@ -6,5 +6,6 @@ runs:
     - uses: actions/download-artifact@v3
       with:
         name: tar-images
+        path: /tmp/docker/images
 
 

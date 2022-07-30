@@ -66,12 +66,8 @@ jobs:
       - name: echo saved images
         uses: ./.github/workflows/composites/echo-saved-images
 
-      #TODO build without image
       - name: integration test fabric8 istio
-        run: |
-          cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
-          ../.././mvnw clean install
-          cd ../..
+        uses: ./.github/workflows/composites/fabric8-istio-integration-test
 
   test:
     needs: [ build, fabric8_istio_integration_test ]
