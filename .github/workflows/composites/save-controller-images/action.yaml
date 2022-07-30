@@ -1,12 +1,18 @@
 name: save controller docker images
 description: save controller docker images
+
+inputs:
+  project_tag:
+    description: project tag
+    required: true
+
 runs:
   using: "composite"
   steps:
     - name: save controller docker images
       shell: bash
       run: |
-        tag=$(echo $PROJECT_TAG)
+        echo "project tag is : ${{inputs.project_tag}}""
         cd spring-cloud-kubernetes-controllers
         integ_tests_command="mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-controllers'"
         while read integ_test; do

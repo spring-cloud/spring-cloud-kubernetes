@@ -3,11 +3,6 @@ description: cache
 runs:
   using: "composite"
   steps:
-    - name: delete-me
-      shell: bash
-      run: |
-          tag=$(echo $PROJECT_TAG)
-          echo 'tag is : $tag'
     - uses: actions/cache@v2
       with:
         path: ~/.m2/repository

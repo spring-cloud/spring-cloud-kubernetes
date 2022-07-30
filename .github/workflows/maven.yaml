@@ -26,11 +26,13 @@ jobs:
       - name: build fabric8 istio
         uses: ./.github/workflows/composites/fabric8-istio
 
-      - name: build with skip tests
-        run: ./mvnw -s .settings.xml clean install -U -DskipTests
+#      - name: build with skip tests
+#        run: ./mvnw -s .settings.xml clean install -U -DskipTests
 
       - name: save controller docker images
         uses: ./.github/workflows/composites/save-controller-images
+        with:
+          project_tag: $PROJECT_TAG
 
       - name: save integration tests docker images
         uses: ./.github/workflows/composites/save-integration-tests-images
