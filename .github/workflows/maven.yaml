@@ -14,12 +14,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v2
-        name: Set up JDK
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+      - name: set env variables
+        uses: ./.github/workflows/composites/checkout-and-setup
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
@@ -42,8 +38,7 @@ jobs:
           cd ..
 
       - name: Build with skip tests
-        run: |
-          ./mvnw -s .settings.xml clean install -U -DskipTests
+        run: ./mvnw -s .settings.xml clean install -U -DskipTests
 
       - name: save controller docker images
         run: |
@@ -84,8 +79,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: set branch name env variable
-        run: echo "BRANCH_NAME=$(echo $GITHUB_HEAD_REF)" >> $GITHUB_ENV
+      - name: set env variables
+        uses: ./.github/workflows/composites/env-variables
 
       - name: Cache local Maven repository
         id: cache-maven-repo
@@ -121,8 +116,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: set branch name env variable
-        run: echo "BRANCH_NAME=$(echo $GITHUB_HEAD_REF)" >> $GITHUB_ENV
+      - name: set env variables
+        uses: ./.github/workflows/composites/env-variables
 
       - name: Cache local Maven repository
         id: cache-maven-repo
