@@ -6,7 +6,7 @@ runs:
     - name: save controller docker images
       shell: bash
       run: |
-        echo 'saving controller images with tag : $PROJECT_TAG'
+        tag=$(echo $PROJECT_TAG)
         cd spring-cloud-kubernetes-controllers
         integ_tests_command="mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-controllers'"
         while read integ_test; do

@@ -1,0 +1,10 @@
+name: load docker images
+description: load docker images
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: tar-images
+
+

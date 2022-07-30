@@ -33,17 +33,16 @@ jobs:
         uses: ./.github/workflows/composites/save-controller-images
 
       - name: save integration tests docker images
-        uses: ./.github/workflows/composites/save-integration-tests-images|
+        uses: ./.github/workflows/composites/save-integration-tests-images
 
-      - name: print saved images
-        run: |
-          VIEW=$(ls -l /tmp/docker/images)
-          echo "${VIEW}"
+      - name: echo saved images
+        uses: ./.github/workflows/composites/echo-saved-images
+
+      - name: persist docker images
+        uses: ./.github/workflows/composites/persist-docker-images
 
   # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
   # Otherwise, (since we use static ports) there might be two instances starting at the same time, and ports might conflict
-  ###########################################################################################################################
-  ###################################################### Fabric8 istio test #################################################
   fabric8_istio_integration_test:
     needs: build
     runs-on: ubuntu-latest
@@ -61,7 +60,14 @@ jobs:
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
 
-      - name: test fabric8 istio
+      - name: load docker images
+        uses: ./.github/workflows/composites/load-docker-images
+
+      - name: echo saved images
+        uses: ./.github/workflows/composites/echo-saved-images
+
+      #TODO build without image
+      - name: integration test fabric8 istio
         run: |
           cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
           ../.././mvnw clean install
