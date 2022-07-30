@@ -21,7 +21,7 @@ jobs:
         uses: ./.github/workflows/composites/env-variables
 
       - name: del-test-me
-        run: echo ${env.PROJECT_TAG}
+        run: echo $PROJECT_TAG
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
