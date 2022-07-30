@@ -7,12 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  # build the project, skip tests, update snapshots
-  ###########################################################################################################################
-  ######################################## Build test support dependency and Run test #######################################
   build:
     runs-on: ubuntu-latest
-
     steps:
 
       - name: checkout project
@@ -27,26 +23,15 @@ jobs:
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
 
-
-      # build a lightweight project so that dependencies for the
-      # maven-surefire-plugin are downloaded and thus cached also
       - name: build fabric8 istio
-        run: |
-          cd spring-cloud-kubernetes-fabric8-istio
-          .././mvnw -s ../.settings.xml clean install -U
-          cd ..
+        uses: ./.github/workflows/composites/fabric8-istio
 
-      - name: Build with skip tests
+      - name: build with skip tests
         run: ./mvnw -s .settings.xml clean install -U -DskipTests
 
       - name: save controller docker images
-        run: |
-          cd spring-cloud-kubernetes-controllers
-          integ_tests_command="mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'integration-tests'"
-          while read integ_test; do
-             docker save -o /tmp/docker/images/${integ_test}.tar docker.io/springcloud/${integ_test}:${PROJECT_TAG}
-          done < <(eval $integ_tests_command)
-          cd ..
+        uses: ./.github/workflows/composites/save-controller-images
+
 
       - name: save integration tests docker images
         run: |
@@ -71,24 +56,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+      - name: checkout project
+        uses: actions/checkout@v2
+
+      - name: setup project
+        uses: ./.github/workflows/composites/setup
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
-      - name: Cache local Maven repository
-        id: cache-maven-repo
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
+      - name: cache local maven repository
+        uses: ./.github/workflows/composites/cache
 
       - name: test fabric8 istio
         run: |
@@ -108,24 +86,17 @@ jobs:
         number_of_jobs: [32]
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v2
-        name: Set up JDK
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+      - name: checkout project
+        uses: actions/checkout@v2
+
+      - name: setup project
+        uses: ./.github/workflows/composites/setup
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
-      - name: Cache local Maven repository
-        id: cache-maven-repo
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
+      - name: cache local maven repository
+        uses: ./.github/workflows/composites/cache
 
       - name: run tests
         env:
