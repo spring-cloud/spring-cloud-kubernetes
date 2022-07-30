@@ -43,22 +43,45 @@ jobs:
         continue-on-error: false
         run: echo 'cache hit'
 
-      - name: Build with skip tests
+      # build a lightweight project so that dependencies for the
+      # maven-surefire-plugin are downloaded and thus cached also
+      - name: build fabric8 istio
         run: |
-          ./mvnw -s .settings.xml clean install -U -DskipTests
-
-          # build a lightweight project so that dependencies for the
-          # maven-surefire-plugin are downloaded and thus cached also
           cd spring-cloud-kubernetes-fabric8-istio
           .././mvnw -s ../.settings.xml clean install -U
           cd ..
 
+      - name: Build with skip tests
+        run: |
+          ./mvnw -s .settings.xml clean install -U -DskipTests
+
+      - name: save controller docker images
+        run: |
+          TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo $TAG
+          mkdir -p /tmp/docker/images/
+          docker save -o /tmp/docker/images/spring-cloud-kubernetes-configuration-watcher.tar docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${TAG}
+          docker save -o /tmp/docker/images/spring-cloud-kubernetes-discoveryserver.tar docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${TAG}
+          docker save -o /tmp/docker/images/spring-cloud-kubernetes-configserver.tar docker.io/springcloud/spring-cloud-kubernetes-configserver:${TAG}
+
+      - name: save integration tests docker images
+        run: |
+          TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+          integ_tests_coomand="mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'integration-tests'"
+          while read integ_test; do
+            docker save -o /tmp/docker/images/${integ_test}.tar docker.io/springcloud/${integ_test}:${TAG}
+          done < <(eval $integ_tests_coomand)
+
+      - name: print saved iamges
+        run: |
+          VIEW=$(ls -l /tmp/docker/images)
+          echo "${VIEW}"
 
   # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
   # Otherwise, (since we use static ports) there might be two instances starting at the same time, and ports might conflict
   ###########################################################################################################################
   ###################################################### Fabric8 istio test #################################################
-  fabric8_istio_test:
+  fabric8_istio_integration_test:
     needs: build
     runs-on: ubuntu-latest
 
@@ -89,9 +112,9 @@ jobs:
           cd ../..
 
   test:
-    needs: [ build, fabric8_istio_test ]
+    needs: [ build, fabric8_istio_integration_test ]
     runs-on: ubuntu-latest
-    #timeout-minutes: 60
+    timeout-minutes: 60
 
     strategy:
       fail-fast: true
