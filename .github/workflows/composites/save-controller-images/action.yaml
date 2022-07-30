@@ -8,7 +8,7 @@ runs:
       run: |
         echo 'saving controller images with tag : ${PROJECT_TAG}'
         cd spring-cloud-kubernetes-controllers
-        integ_tests_command="mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'integration-tests'"
+        integ_tests_command="mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-controllers'"
         while read integ_test; do
           docker save -o /tmp/docker/images/${integ_test}.tar docker.io/springcloud/${integ_test}:${PROJECT_TAG}
         done < <(eval $integ_tests_command)
