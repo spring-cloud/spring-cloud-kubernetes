@@ -6,6 +6,7 @@ runs:
     - name: save integration tests docker images
       shell: bash
       run: |
+        mkdir -p /tmp/docker/images
         TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
         cd spring-cloud-kubernetes-integration-tests
         while read integ_test; do
