@@ -32,7 +32,7 @@ jobs:
       - name: save controller docker images
         uses: ./.github/workflows/composites/save-controller-images
         with:
-          project_tag: $PROJECT_TAG
+          project_tag: ${{ env.PROJECT_TAG }}
 
       - name: save integration tests docker images
         uses: ./.github/workflows/composites/save-integration-tests-images
