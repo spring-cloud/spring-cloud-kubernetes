@@ -4,6 +4,6 @@ runs:
   using: "composite"
   steps:
     - uses: actions/setup-java@v2
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+      with:
+        distribution: 'temurin'
+        java-version: '17'

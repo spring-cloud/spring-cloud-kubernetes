@@ -18,7 +18,7 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v2
 
-      - name: checkout and setup project
+      - name: setup project
         uses: ./.github/workflows/composites/setup
 
       - name: set env variables
