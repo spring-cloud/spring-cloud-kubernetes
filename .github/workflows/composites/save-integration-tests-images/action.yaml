@@ -6,10 +6,10 @@ runs:
     - name: save integration tests docker images
       shell: bash
       run: |
-        echo 'saving integration tests docker images : $PROJECT_TAG'
+        TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
         cd spring-cloud-kubernetes-integration-tests
         integ_tests_command="mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-integration-tests'"
         while read integ_test; do
-          docker save -o /tmp/docker/images/${integ_test}.tar docker.io/springcloud/${integ_test}:$PROJECT_TAG
+          docker save -o /tmp/docker/images/${integ_test}.tar docker.io/springcloud/${integ_test}:$TAG
         done < <(eval $integ_tests_command)
         cd ..
