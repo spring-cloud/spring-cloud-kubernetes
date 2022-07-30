@@ -14,8 +14,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      - name: checkout project
+        uses: actions/checkout@v2
+
       - name: checkout and setup project
-        uses: ./.github/workflows/composites/checkout-and-setup
+        uses: ./.github/workflows/composites/setup
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
