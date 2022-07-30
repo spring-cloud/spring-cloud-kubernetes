@@ -20,9 +20,6 @@ jobs:
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
-      - name: del-test-me
-        run: echo $PROJECT_TAG
-
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
 
@@ -35,15 +32,8 @@ jobs:
       - name: save controller docker images
         uses: ./.github/workflows/composites/save-controller-images
 
-
       - name: save integration tests docker images
-        run: |
-          cd spring-cloud-kubernetes-integration-tests
-          integ_tests_command="mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'integration-tests'"
-          while read integ_test; do
-            docker save -o /tmp/docker/images/${integ_test}.tar docker.io/springcloud/${integ_test}:${PROJECT_TAG}
-          done < <(eval $integ_tests_command)
-          cd ..
+        uses: ./.github/workflows/composites/save-integration-tests-images|
 
       - name: print saved images
         run: |
