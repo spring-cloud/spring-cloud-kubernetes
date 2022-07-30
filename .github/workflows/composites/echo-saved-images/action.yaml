@@ -3,13 +3,6 @@ description: echo saved images
 runs:
   using: "composite"
   steps:
-
-    - name: delete-me
-      shell: bash
-      run: |
-        tag=$(echo $PROJECT_TAG)
-        echo 'tag is : $tag'
-
     - name: echo saved images
       shell: bash
       run: |
