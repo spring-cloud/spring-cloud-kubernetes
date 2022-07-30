@@ -120,6 +120,7 @@
 				<configuration>
 					<imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
 					<imageBuilder>paketobuildpacks/builder</imageBuilder>
+					<skip>${skip.build.image}</skip>
 				</configuration>
 				<executions>
 					<execution>
