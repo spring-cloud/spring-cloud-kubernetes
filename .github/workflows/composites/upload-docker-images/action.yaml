@@ -1,0 +1,11 @@
+name: upload docker images
+description: upload docker images
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/upload-artifact@v3
+      with:
+        name: tar-images
+        path: /tmp/docker/images
+
+

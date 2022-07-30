@@ -38,8 +38,8 @@ jobs:
       - name: echo saved images
         uses: ./.github/workflows/composites/echo-saved-images
 
-      - name: persist docker images
-        uses: ./.github/workflows/composites/persist-docker-images
+      - name: upload docker images
+        uses: ./.github/workflows/composites/upload-docker-images
 
   # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
   # Otherwise, (since we use static ports) there might be two instances starting at the same time, and ports might conflict
@@ -60,8 +60,8 @@ jobs:
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
 
-      - name: load docker images
-        uses: ./.github/workflows/composites/load-docker-images
+      - name: download docker images
+        uses: ./.github/workflows/composites/download-docker-images
 
       - name: echo saved images
         uses: ./.github/workflows/composites/echo-saved-images
@@ -92,6 +92,12 @@ jobs:
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
+
+      - name: download docker images
+        uses: ./.github/workflows/composites/download-docker-images
+
+      - name: load docker images into local repo
+        uses: ./.github/workflows/composites/load-docker-images
 
       - name: run tests
         env:
@@ -209,13 +215,18 @@ jobs:
 
           echo "will run tests : ${TEST_ARG[@]}"
 
-          ./mvnw -s .settings.xml -DtestsToRun=${TEST_ARG[@]} -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install \
-              -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
+          ./mvnw -s .settings.xml \
+              -DtestsToRun=${TEST_ARG[@]} \
+              -e clean install \
+              org.jacoco:jacoco-maven-plugin:prepare-agent \
+              -U -P sonar -nsu --batch-mode \
+              -Dmaven.test.redirectTestOutputToFile=true \
               -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
               -Dhttp.keepAlive=false \
               -Dmaven.wagon.http.pool=false \
               -Dmaven.wagon.http.retryHandler.class=standard \
-              -Dmaven.wagon.http.retryHandler.count=3
+              -Dmaven.wagon.http.retryHandler.count=3 \
+              -Dskip.build.image=true
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v2
