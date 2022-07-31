@@ -351,6 +351,7 @@
 						<configuration>
 							<parallel>all</parallel>
 							<reuseForks>false</reuseForks>
+							<skip>${jacoco.skip}</skip>
 						</configuration>
 					</plugin>
 				</plugins>
