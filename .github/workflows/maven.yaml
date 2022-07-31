@@ -219,7 +219,7 @@ jobs:
               -DtestsToRun=${TEST_ARG[@]} \
               -e clean install \
               org.jacoco:jacoco-maven-plugin:prepare-agent \
-              -U -P sonar -nsu --batch-mode \
+              -U -X -P sonar -nsu --batch-mode \
               -Dmaven.test.redirectTestOutputToFile=true \
               -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
               -Dhttp.keepAlive=false \

@@ -25,4 +25,3 @@ runs:
         docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-client-secrets-event-reload.tar
         docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-client-simple-core.tar
         docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-istio-it.tar
-
