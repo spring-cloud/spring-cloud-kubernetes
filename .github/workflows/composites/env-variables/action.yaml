@@ -1,5 +1,5 @@
 name: sets environment variables
-description: set branch_name as environment variable
+description: sets environment variables
 runs:
   using: "composite"
   steps:

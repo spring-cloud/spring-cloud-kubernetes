@@ -1,3 +1,6 @@
+# we are not going to use upload/download actions, since it is slower than cache usage
+# as key to the cache we are going to use DOCKER_IMAGES_KEY, which is the same as GITHUB_RUN_ID
+
 name: upload docker images
 description: upload docker images
 runs:
