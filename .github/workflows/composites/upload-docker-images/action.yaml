@@ -6,7 +6,7 @@ runs:
     - uses: actions/cache@v2
       with:
         path: /tmp/docker/images
-        key: docker-images-cache-${{ env.GITHUB_RUN_ID }}
-        restore-keys: docker-images-cache-${{ env.GITHUB_RUN_ID }}
+        key: docker-images-cache-${{ env.DOCKER_IMAGES_KEY }}
+        restore-keys: docker-images-cache-${{ env.DOCKER_IMAGES_KEY }}
 
 
