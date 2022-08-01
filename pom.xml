@@ -350,7 +350,7 @@
 						<artifactId>maven-surefire-plugin</artifactId>
 						<configuration>
 							<parallel>all</parallel>
-							<reuseForks>false</reuseForks>
+							<reuseForks>true</reuseForks>
 						</configuration>
 					</plugin>
 				</plugins>
