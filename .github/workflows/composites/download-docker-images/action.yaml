@@ -1,13 +1,3 @@
-#name: download docker images
-#description: download docker images
-#runs:
-#  using: "composite"
-#  steps:
-#    - uses: actions/download-artifact@v3
-#      with:
-#        name: tar-images
-#        path: /tmp/docker/images
-
 name: download docker images
 description: download docker images
 runs:
