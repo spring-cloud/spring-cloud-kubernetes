@@ -7,6 +7,5 @@ runs:
       shell: bash
       run: |
         cd spring-cloud-kubernetes-controllers
-        # build with one thread per core
         .././mvnw -T 1C clean install
         cd ..
