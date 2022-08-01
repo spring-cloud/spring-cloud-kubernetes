@@ -26,8 +26,14 @@ jobs:
       - name: build fabric8 istio
         uses: ./.github/workflows/composites/fabric8-istio
 
-      - name: build with skip tests
-        run: ./mvnw -s .settings.xml clean install -U -DskipTests
+      - name: build with skip tests and skip images
+        run: ./mvnw -s .settings.xml clean install -U -DskipTests -Dskip.build.image=true
+
+      - name: build controllers project
+        run:  ./.github/workflows/composites/build-controllers-project
+
+      - name: build integration tests project without tests
+        run: ./.github/workflows/composites/build-controllers-project
 
       - name: save controller docker images
         uses: ./.github/workflows/composites/save-controller-images
@@ -151,7 +157,6 @@ jobs:
                     	| tr '\n' ' '"
 
           while read class_name; do
-                echo "class name : $class_name"
               	replaced=$(echo ${DERIVED_FROM_ABSTRACT_CLASSES_COMMAND/replace_me/"$class_name"})
             	result=($(eval $replaced))
             	PLAIN_TEST_CLASSNAMES+=(${result[@]})
