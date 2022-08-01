@@ -33,7 +33,7 @@ jobs:
         run:  ./.github/workflows/composites/build-controllers-project
 
       - name: build integration tests project without tests
-        run: ./.github/workflows/composites/build-controllers-project
+        run: ./.github/workflows/composites/build-integration-tests-project
 
       - name: save controller docker images
         uses: ./.github/workflows/composites/save-controller-images
