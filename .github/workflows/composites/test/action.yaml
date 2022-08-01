@@ -1,9 +1,9 @@
-name: build controllers project
-description: build controllers project
+name: sets environment variables
+description: set branch_name as environment variable
 runs:
   using: "composite"
   steps:
-    - name: build controllers project
+    - name: set env variables
       shell: bash
       run: |
-        pwd
+        echo "BRANCH_NAME=$(echo $GITHUB_HEAD_REF)" >> $GITHUB_ENV
