@@ -16,19 +16,20 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.bus.event.PathDestinationFactory;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
@@ -42,19 +43,19 @@ public class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatche
 
 	private final BusProperties busProperties;
 
-	public BusEventBasedConfigMapWatcherChangeDetector(AbstractEnvironment environment,
-			ConfigReloadProperties properties, KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator, BusProperties busProperties,
+	public BusEventBasedConfigMapWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider, BusProperties busProperties,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(environment, properties, kubernetesClient, strategy, fabric8ConfigMapPropertySourceLocator,
+		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider,
 				k8SConfigurationProperties, threadPoolTaskExecutor);
-
 		this.busProperties = busProperties;
 	}
 
 	@Override
-	protected Mono<Void> triggerRefresh(ConfigMap configMap) {
+	protected Mono<Void> triggerRefresh(V1ConfigMap configMap) {
 		this.applicationEventPublisher.publishEvent(new RefreshRemoteApplicationEvent(configMap, busProperties.getId(),
 				new PathDestinationFactory().getDestination(configMap.getMetadata().getName())));
 		return Mono.empty();

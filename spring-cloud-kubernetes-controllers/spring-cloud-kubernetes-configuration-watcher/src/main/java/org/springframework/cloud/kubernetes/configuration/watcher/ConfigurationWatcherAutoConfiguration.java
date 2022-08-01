@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.boot.actuate.autoconfigure.amqp.RabbitHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -24,11 +24,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.function.context.config.ContextFunctionCatalogAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
-import org.springframework.cloud.kubernetes.fabric8.discovery.reactive.KubernetesReactiveDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -53,31 +54,30 @@ public class ConfigurationWatcherAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
-	@ConditionalOnBean(Fabric8ConfigMapPropertySourceLocator.class)
+	@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
 	public ConfigMapWatcherChangeDetector httpBasedConfigMapWatchChangeDetector(AbstractEnvironment environment,
-			KubernetesClient kubernetesClient,
-			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
-			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator, ConfigReloadProperties properties,
-			ConfigurationUpdateStrategy strategy,
+			CoreV1Api coreV1Api, KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-			ThreadPoolTaskExecutor threadFactory, WebClient webClient,
-			KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient) {
-		return new HttpBasedConfigMapWatchChangeDetector(environment, properties, kubernetesClient, strategy,
-				fabric8ConfigMapPropertySourceLocator, k8SConfigurationProperties, threadFactory, webClient,
+			KubernetesNamespaceProvider namespaceProvider, ThreadPoolTaskExecutor threadFactory, WebClient webClient,
+			KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient) {
+		return new HttpBasedConfigMapWatchChangeDetector(coreV1Api, environment, properties, strategy,
+				configMapPropertySourceLocator, namespaceProvider, k8SConfigurationProperties, threadFactory, webClient,
 				kubernetesReactiveDiscoveryClient);
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
-	@ConditionalOnBean(Fabric8SecretsPropertySourceLocator.class)
+	@ConditionalOnMissingBean
+	@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
 	public SecretsWatcherChangeDetector httpBasedSecretsWatchChangeDetector(AbstractEnvironment environment,
-			KubernetesClient kubernetesClient, Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			CoreV1Api coreV1Api, KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
+			KubernetesNamespaceProvider namespaceProvider, ConfigReloadProperties properties,
+			ConfigurationUpdateStrategy strategy,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadFactory, WebClient webClient,
-			KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient) {
-		return new HttpBasedSecretsWatchChangeDetector(environment, properties, kubernetesClient, strategy,
-				fabric8SecretsPropertySourceLocator, k8SConfigurationProperties, threadFactory, webClient,
+			KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient) {
+		return new HttpBasedSecretsWatchChangeDetector(coreV1Api, environment, properties, strategy,
+				secretsPropertySourceLocator, namespaceProvider, k8SConfigurationProperties, threadFactory, webClient,
 				kubernetesReactiveDiscoveryClient);
 	}
 
@@ -88,28 +88,32 @@ public class ConfigurationWatcherAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
-		@ConditionalOnBean(Fabric8ConfigMapPropertySourceLocator.class)
+		@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
 		public ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(BusProperties busProperties,
-				AbstractEnvironment environment, KubernetesClient kubernetesClient,
-				Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
-				ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+				AbstractEnvironment environment, CoreV1Api coreV1Api,
+				KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
+				KubernetesNamespaceProvider kubernetesNamespaceProvider, ConfigReloadProperties properties,
+				ConfigurationUpdateStrategy strategy,
 				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 				ThreadPoolTaskExecutor threadFactory) {
-			return new BusEventBasedConfigMapWatcherChangeDetector(environment, properties, kubernetesClient, strategy,
-					fabric8ConfigMapPropertySourceLocator, busProperties, k8SConfigurationProperties, threadFactory);
+			return new BusEventBasedConfigMapWatcherChangeDetector(coreV1Api, environment, properties, strategy,
+					configMapPropertySourceLocator, kubernetesNamespaceProvider, busProperties,
+					k8SConfigurationProperties, threadFactory);
 		}
 
 		@Bean
 		@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
-		@ConditionalOnBean(Fabric8SecretsPropertySourceLocator.class)
+		@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
 		public SecretsWatcherChangeDetector busSecretsChangeWatcher(BusProperties busProperties,
-				AbstractEnvironment environment, KubernetesClient kubernetesClient,
-				Fabric8SecretsPropertySourceLocator secretsPropertySourceLocator, ConfigReloadProperties properties,
+				AbstractEnvironment environment, CoreV1Api coreV1Api,
+				KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
+				ConfigReloadProperties properties, KubernetesNamespaceProvider kubernetesNamespaceProvider,
 				ConfigurationUpdateStrategy strategy,
 				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 				ThreadPoolTaskExecutor threadFactory) {
-			return new BusEventBasedSecretsWatcherChangeDetector(environment, properties, kubernetesClient, strategy,
-					secretsPropertySourceLocator, busProperties, k8SConfigurationProperties, threadFactory);
+			return new BusEventBasedSecretsWatcherChangeDetector(coreV1Api, environment, properties, strategy,
+					secretsPropertySourceLocator, kubernetesNamespaceProvider, busProperties,
+					k8SConfigurationProperties, threadFactory);
 		}
 
 	}
@@ -121,28 +125,31 @@ public class ConfigurationWatcherAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
-		@ConditionalOnBean(Fabric8ConfigMapPropertySourceLocator.class)
+		@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
 		public ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(BusProperties busProperties,
-				AbstractEnvironment environment, KubernetesClient kubernetesClient,
-				Fabric8ConfigMapPropertySourceLocator configMapPropertySourceLocator, ConfigReloadProperties properties,
+				AbstractEnvironment environment, CoreV1Api coreV1Api,
+				KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
+				ConfigReloadProperties properties, KubernetesNamespaceProvider namespaceProvider,
 				ConfigurationUpdateStrategy strategy,
 				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 				ThreadPoolTaskExecutor threadFactory) {
-			return new BusEventBasedConfigMapWatcherChangeDetector(environment, properties, kubernetesClient, strategy,
-					configMapPropertySourceLocator, busProperties, k8SConfigurationProperties, threadFactory);
+			return new BusEventBasedConfigMapWatcherChangeDetector(coreV1Api, environment, properties, strategy,
+					configMapPropertySourceLocator, namespaceProvider, busProperties, k8SConfigurationProperties,
+					threadFactory);
 		}
 
 		@Bean
 		@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
-		@ConditionalOnBean(Fabric8SecretsPropertySourceLocator.class)
+		@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
 		public SecretsWatcherChangeDetector busSecretsChangeWatcher(BusProperties busProperties,
-				AbstractEnvironment environment, KubernetesClient kubernetesClient,
-				Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
+				AbstractEnvironment environment, CoreV1Api coreV1Api,
+				KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
 				ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-				ThreadPoolTaskExecutor threadFactory) {
-			return new BusEventBasedSecretsWatcherChangeDetector(environment, properties, kubernetesClient, strategy,
-					fabric8SecretsPropertySourceLocator, busProperties, k8SConfigurationProperties, threadFactory);
+				ThreadPoolTaskExecutor threadFactory, KubernetesNamespaceProvider namespaceProvider) {
+			return new BusEventBasedSecretsWatcherChangeDetector(coreV1Api, environment, properties, strategy,
+					secretsPropertySourceLocator, namespaceProvider, busProperties, k8SConfigurationProperties,
+					threadFactory);
 		}
 
 	}

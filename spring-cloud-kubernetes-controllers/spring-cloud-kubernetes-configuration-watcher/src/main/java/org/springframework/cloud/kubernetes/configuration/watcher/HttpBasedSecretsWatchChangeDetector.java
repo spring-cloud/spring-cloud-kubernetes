@@ -18,18 +18,19 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.net.URI;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Secret;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
-import org.springframework.cloud.kubernetes.fabric8.discovery.reactive.KubernetesReactiveDiscoveryClient;
-import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.StringUtils;
@@ -49,22 +50,23 @@ public class HttpBasedSecretsWatchChangeDetector extends SecretsWatcherChangeDet
 
 	private WebClient webClient;
 
-	private KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient;
+	private KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient;
 
-	public HttpBasedSecretsWatchChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
-			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
+	public HttpBasedSecretsWatchChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor, WebClient webClient,
-			KubernetesReactiveDiscoveryClient k8sReactiveDiscoveryClient) {
-		super(environment, properties, kubernetesClient, strategy, fabric8SecretsPropertySourceLocator,
+			KubernetesInformerReactiveDiscoveryClient k8sReactiveDiscoveryClient) {
+		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider,
 				k8SConfigurationProperties, threadPoolTaskExecutor);
 		this.webClient = webClient;
 		this.kubernetesReactiveDiscoveryClient = k8sReactiveDiscoveryClient;
 	}
 
 	@Override
-	protected Mono<Void> triggerRefresh(Secret secret) {
+	protected Mono<Void> triggerRefresh(V1Secret secret) {
 		return refresh(secret.getMetadata()).then();
 	}
 
@@ -111,7 +113,7 @@ public class HttpBasedSecretsWatchChangeDetector extends SecretsWatcherChangeDet
 		return actuatorUriBuilder.build().toUri();
 	}
 
-	protected Flux<ResponseEntity<Void>> refresh(ObjectMeta objectMeta) {
+	protected Flux<ResponseEntity<Void>> refresh(V1ObjectMeta objectMeta) {
 
 		return kubernetesReactiveDiscoveryClient.getInstances(objectMeta.getName()).flatMap(si -> {
 			URI actuatorUri = getActuatorUri(si);
