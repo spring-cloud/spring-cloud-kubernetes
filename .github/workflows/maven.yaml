@@ -17,23 +17,23 @@ jobs:
       - name: setup project
         uses: ./.github/workflows/composites/setup
 
-#      - name: set env variables
-#        uses: ./.github/workflows/composites/env-variables
+      - name: set env variables
+        uses: ./.github/workflows/composites/env-variables
 
-#      - name: cache local maven repository
-#        uses: ./.github/workflows/composites/cache
+      - name: cache local maven repository
+        uses: ./.github/workflows/composites/cache
 
-#      - name: build fabric8 istio
-#        uses: ./.github/workflows/composites/fabric8-istio
+      - name: build fabric8 istio
+        uses: ./.github/workflows/composites/fabric8-istio
 
-#      - name: build with skip tests and skip images
-#        run: ./mvnw -T 1C -s .settings.xml clean install -U -DskipTests -Dskip.build.image=true
+      - name: build with skip tests and skip images
+        run: ./mvnw -T 1C -s .settings.xml clean install -U -DskipTests -Dskip.build.image=true
 
       - name: build controllers project
-        run: ./.github/workflows/composites/env-variables
+        uses:  ./.github/workflows/composites/build-controllers-project
 
       - name: build integration tests project without tests
-        run: ./.github/workflows/composites/build-integration-tests-project
+        uses: ./.github/workflows/composites/build-integration-tests-project
 
       - name: save controller docker images
         uses: ./.github/workflows/composites/save-controller-images
