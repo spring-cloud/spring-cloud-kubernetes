@@ -125,9 +125,6 @@ jobs:
                     	| sed 's/.\{5\}$//' \
                     	| tr '\n' ' '))
 
-          echo 'plain -------- '
-          echo "${PLAIN_TEST_CLASSNAMES[@]}"
-
           # classes that have @Test and are abstract, for example: "LabeledSecretWithPrefixTests"
           # - exclude Fabric8IstionIT
           # - only take classes that have @Test inside them
@@ -157,13 +154,8 @@ jobs:
                 echo "class name : $class_name"
               	replaced=$(echo ${DERIVED_FROM_ABSTRACT_CLASSES_COMMAND/replace_me/"$class_name"})
             	result=($(eval $replaced))
-                echo '-------'
-                echo ${result[@]}
-                echo '-------'
             	PLAIN_TEST_CLASSNAMES+=(${result[@]})
           done < <(eval $ABSTRACT_TEST_CLASSNAMES_COMMAND)
-
-          echo '-------- done ---------'
 
           IFS=$'\n'
           SORTED_TEST_CLASSNAMES=( $(sort <<< "${PLAIN_TEST_CLASSNAMES[*]} | uniq -u") )
