@@ -6,10 +6,16 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  DOCKER_IMAGES_KEY: $(uuidgen)
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+
+      - name: test-me
+        run: echo "key is $DOCKER_IMAGES_KEY!"
 
       - name: checkout project
         uses: actions/checkout@v2
