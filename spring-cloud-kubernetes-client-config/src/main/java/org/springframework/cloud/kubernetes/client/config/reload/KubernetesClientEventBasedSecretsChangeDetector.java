@@ -64,19 +64,19 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 		@Override
 		public void onAdd(V1Secret obj) {
-			log.debug("Secret " + obj.getMetadata().getName() + " was added.");
+			log.debug(() -> "Secret " + obj.getMetadata().getName() + " was added.");
 			onEvent(obj);
 		}
 
 		@Override
 		public void onUpdate(V1Secret oldObj, V1Secret newObj) {
-			log.debug("Secret " + newObj.getMetadata().getName() + " was updated.");
+			log.debug(() -> "Secret " + newObj.getMetadata().getName() + " was updated.");
 			onEvent(newObj);
 		}
 
 		@Override
 		public void onDelete(V1Secret obj, boolean deletedFinalStateUnknown) {
-			log.debug("Secret " + obj.getMetadata() + " was deleted.");
+			log.debug(() -> "Secret " + obj.getMetadata() + " was deleted.");
 			onEvent(obj);
 		}
 	};
@@ -104,7 +104,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 	@PostConstruct
 	void inform() {
 		if (monitorSecrets) {
-			log.info("Kubernetes event-based secrets change detector activated");
+			log.info(() -> "Kubernetes event-based secrets change detector activated");
 
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<V1Secret> informer;
@@ -112,10 +112,10 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 				if (enableReloadFiltering) {
 					filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
-					log.debug("added secret informer for namespace : " + namespace + " with enabled filter");
+					log.debug(() -> "added secret informer for namespace : " + namespace + " with enabled filter");
 				}
 				else {
-					log.debug("added secret informer for namespace : " + namespace);
+					log.debug(() -> "added secret informer for namespace : " + namespace);
 				}
 
 				String filterOnInformerLabel = filter;
@@ -138,12 +138,12 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		factory.stopAllRegisteredInformers();
 	}
 
-	private void onEvent(V1Secret secret) {
-		log.debug("onEvent secret: " + secret.toString());
+	protected void onEvent(V1Secret secret) {
+		log.debug(() -> "onEvent secret: " + secret.toString());
 		boolean changed = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
 				findPropertySources(KubernetesClientSecretsPropertySource.class));
 		if (changed) {
-			log.info("Detected change in secrets");
+			log.info(() -> "Detected change in secrets");
 			reloadProperties();
 		}
 	}

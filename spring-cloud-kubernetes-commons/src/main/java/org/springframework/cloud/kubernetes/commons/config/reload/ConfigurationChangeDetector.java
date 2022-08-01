@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
@@ -32,6 +31,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * This is the superclass of all beans that can listen to changes in the configuration and
@@ -41,7 +41,7 @@ import org.springframework.core.env.PropertySource;
  */
 public abstract class ConfigurationChangeDetector {
 
-	protected Log log = LogFactory.getLog(getClass());
+	protected LogAccessor log = new LogAccessor(LogFactory.getLog(this.getClass()));
 
 	protected ConfigurableEnvironment environment;
 
@@ -57,21 +57,21 @@ public abstract class ConfigurationChangeDetector {
 	}
 
 	public void reloadProperties() {
-		log.info("Reloading using strategy: " + this.strategy.name());
+		log.info(() -> "Reloading using strategy: " + this.strategy.name());
 		strategy.reloadProcedure().run();
 	}
 
 	public boolean changed(List<? extends MapPropertySource> left, List<? extends MapPropertySource> right) {
 		if (left.size() != right.size()) {
-			log.warn("The current number of ConfigMap PropertySources does not match "
+			log.warn(() -> "The current number of ConfigMap PropertySources does not match "
 					+ "the ones loaded from the Kubernetes - No reload will take place");
 
 			if (log.isDebugEnabled()) {
 				log.debug("left size: " + left.size());
-				left.forEach(item -> log.debug(item));
+				left.forEach(item -> log.debug(item.toString()));
 
 				log.debug("right size: " + right.size());
-				right.forEach(item -> log.debug(item));
+				right.forEach(item -> log.debug(item.toString()));
 			}
 			return false;
 		}
@@ -94,8 +94,8 @@ public abstract class ConfigurationChangeDetector {
 
 		List<PropertySource<?>> sources = environment.getPropertySources().stream()
 				.collect(Collectors.toCollection(ArrayList::new));
-		log.debug("environment: " + environment);
-		log.debug("environment sources: " + sources);
+		log.debug(() -> "environment: " + environment);
+		log.debug(() -> "environment sources: " + sources);
 
 		while (!sources.isEmpty()) {
 			PropertySource<?> source = sources.remove(0);
@@ -140,11 +140,11 @@ public abstract class ConfigurationChangeDetector {
 			result.addAll(list);
 		}
 		else {
-			log.debug("Found property source that cannot be handled: " + propertySource.getClass());
+			log.debug(() -> "Found property source that cannot be handled: " + propertySource.getClass());
 		}
 
-		log.debug("environment: " + environment);
-		log.debug("sources: " + result);
+		log.debug(() -> "environment: " + environment);
+		log.debug(() -> "sources: " + result);
 
 		return result;
 	}

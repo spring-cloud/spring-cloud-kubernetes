@@ -64,19 +64,19 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 		@Override
 		public void onAdd(V1ConfigMap obj) {
-			log.debug("ConfigMap " + obj.getMetadata().getName() + " was added.");
+			log.debug(() -> "ConfigMap " + obj.getMetadata().getName() + " was added.");
 			onEvent(obj);
 		}
 
 		@Override
 		public void onUpdate(V1ConfigMap oldObj, V1ConfigMap newObj) {
-			log.debug("ConfigMap " + newObj.getMetadata().getName() + " was updated.");
+			log.debug(() -> "ConfigMap " + newObj.getMetadata().getName() + " was updated.");
 			onEvent(newObj);
 		}
 
 		@Override
 		public void onDelete(V1ConfigMap obj, boolean deletedFinalStateUnknown) {
-			log.debug("ConfigMap " + obj.getMetadata() + " was deleted.");
+			log.debug(() -> "ConfigMap " + obj.getMetadata() + " was deleted.");
 			onEvent(obj);
 		}
 	};
@@ -104,7 +104,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 	@PostConstruct
 	void inform() {
 		if (monitorConfigMaps) {
-			log.info("Kubernetes event-based configMap change detector activated");
+			log.info(() -> "Kubernetes event-based configMap change detector activated");
 
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<V1ConfigMap> informer;
@@ -112,10 +112,10 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 				if (enableReloadFiltering) {
 					filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
-					log.debug("added configmap informer for namespace : " + namespace + " with enabled filter");
+					log.debug(() -> "added configmap informer for namespace : " + namespace + " with enabled filter");
 				}
 				else {
-					log.debug("added configmap informer for namespace : " + namespace);
+					log.debug(() -> "added configmap informer for namespace : " + namespace);
 				}
 
 				String filterOnInformerLabel = filter;
@@ -139,16 +139,16 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		factory.stopAllRegisteredInformers();
 	}
 
-	private void onEvent(V1ConfigMap configMap) {
-		log.debug("onEvent configMap: " + configMap.toString());
+	protected void onEvent(V1ConfigMap configMap) {
+		log.debug(() -> "onEvent configMap: " + configMap.toString());
 		boolean changed = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
 				findPropertySources(KubernetesClientConfigMapPropertySource.class));
 		if (changed) {
-			log.info("Configuration change detected, reloading properties.");
+			log.info(() -> "Configuration change detected, reloading properties.");
 			reloadProperties();
 		}
 		else {
-			log.warn("Configuration change was not detected.");
+			log.warn(() -> "Configuration change was not detected.");
 		}
 
 	}

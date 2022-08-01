@@ -21,11 +21,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointPort;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1EndpointPort;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Secret;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -35,17 +35,19 @@ import org.mockito.junit.MockitoJUnitRunner;
 import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
-import org.springframework.cloud.kubernetes.fabric8.discovery.reactive.KubernetesReactiveDiscoveryClient;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
 
 /**
  * @author Ryan Baxter
@@ -60,19 +62,19 @@ public class HttpBasedSecretsWatchChangeDetectorTests {
 	// public WireMockRule wireMockRule = new WireMockRule(0);
 
 	@Mock
-	private KubernetesClient client;
+	private CoreV1Api coreV1Api;
 
 	@Mock
 	private ConfigurationUpdateStrategy updateStrategy;
 
 	@Mock
-	private Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator;
+	private KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator;
 
 	@Mock
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
 	@Mock
-	private KubernetesReactiveDiscoveryClient reactiveDiscoveryClient;
+	private KubernetesInformerReactiveDiscoveryClient reactiveDiscoveryClient;
 
 	private HttpBasedSecretsWatchChangeDetector changeDetector;
 
@@ -80,10 +82,10 @@ public class HttpBasedSecretsWatchChangeDetectorTests {
 
 	@Before
 	public void setup() {
-		EndpointAddress fooEndpointAddress = new EndpointAddress();
+		V1EndpointAddress fooEndpointAddress = new V1EndpointAddress();
 		fooEndpointAddress.setIp("127.0.0.1");
 		fooEndpointAddress.setHostname("localhost");
-		EndpointPort fooEndpointPort = new EndpointPort();
+		V1EndpointPort fooEndpointPort = new V1EndpointPort();
 		// fooEndpointPort.setPort(wireMockRule.port());
 		List<ServiceInstance> instances = new ArrayList<>();
 		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance("foo", "foo",
@@ -91,18 +93,20 @@ public class HttpBasedSecretsWatchChangeDetectorTests {
 		instances.add(fooServiceInstance);
 		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
 		MockEnvironment mockEnvironment = new MockEnvironment();
+		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
 		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
 		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		WebClient webClient = WebClient.builder().build();
-		changeDetector = new HttpBasedSecretsWatchChangeDetector(mockEnvironment, configReloadProperties, client,
-				updateStrategy, fabric8SecretsPropertySourceLocator, configurationWatcherConfigurationProperties,
-				threadPoolTaskExecutor, webClient, reactiveDiscoveryClient);
+		changeDetector = new HttpBasedSecretsWatchChangeDetector(coreV1Api, mockEnvironment, configReloadProperties,
+				updateStrategy, secretsPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
+				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, webClient,
+				reactiveDiscoveryClient);
 	}
 
 	@Test
 	public void triggerSecretRefresh() throws InterruptedException {
-		Secret secret = new Secret();
-		ObjectMeta objectMeta = new ObjectMeta();
+		V1Secret secret = new V1Secret();
+		V1ObjectMeta objectMeta = new V1ObjectMeta();
 		objectMeta.setName("foo");
 		secret.setMetadata(objectMeta);
 		// WireMock.configureFor("localhost", wireMockRule.port());
@@ -114,8 +118,8 @@ public class HttpBasedSecretsWatchChangeDetectorTests {
 	@Test
 	public void triggerSecretRefreshWithPropertiesBasedActuatorPath() throws InterruptedException {
 		configurationWatcherConfigurationProperties.setActuatorPath("/my/custom/actuator");
-		Secret secret = new Secret();
-		ObjectMeta objectMeta = new ObjectMeta();
+		V1Secret secret = new V1Secret();
+		V1ObjectMeta objectMeta = new V1ObjectMeta();
 		objectMeta.setName("foo");
 		secret.setMetadata(objectMeta);
 		// WireMock.configureFor("localhost", wireMockRule.port());
@@ -129,18 +133,18 @@ public class HttpBasedSecretsWatchChangeDetectorTests {
 		Map<String, String> metadata = new HashMap<>();
 		// metadata.put(ANNOTATION_KEY, "http://:" + wireMockRule.port() +
 		// "/my/custom/actuator");
-		EndpointAddress fooEndpointAddress = new EndpointAddress();
+		V1EndpointAddress fooEndpointAddress = new V1EndpointAddress();
 		fooEndpointAddress.setIp("127.0.0.1");
 		fooEndpointAddress.setHostname("localhost");
-		EndpointPort fooEndpointPort = new EndpointPort();
+		V1EndpointPort fooEndpointPort = new V1EndpointPort();
 		// fooEndpointPort.setPort(wireMockRule.port());
 		List<ServiceInstance> instances = new ArrayList<>();
 		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance("foo", "foo",
 				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), metadata, false);
 		instances.add(fooServiceInstance);
 		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
-		Secret secret = new Secret();
-		ObjectMeta objectMeta = new ObjectMeta();
+		V1Secret secret = new V1Secret();
+		V1ObjectMeta objectMeta = new V1ObjectMeta();
 		objectMeta.setName("foo");
 		secret.setMetadata(objectMeta);
 		// stubFor(post(WireMock.urlEqualTo("/my/custom/actuator/refresh")).willReturn(aResponse().withStatus(200)));
