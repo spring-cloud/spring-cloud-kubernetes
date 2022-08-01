@@ -30,7 +30,7 @@ jobs:
 #        run: ./mvnw -T 1C -s .settings.xml clean install -U -DskipTests -Dskip.build.image=true
 
       - name: build controllers project
-        run:  ./.github/workflows/composites/build-controllers-project
+        run: ./.github/workflows/composites/build-controllers-project
 
       - name: build integration tests project without tests
         run: ./.github/workflows/composites/build-integration-tests-project
