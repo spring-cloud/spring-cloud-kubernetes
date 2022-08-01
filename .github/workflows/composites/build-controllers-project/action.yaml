@@ -6,6 +6,7 @@ runs:
     - name: build controllers project
       shell: bash
       run: |
+        pwd
         cd spring-cloud-kubernetes-controllers
         .././mvnw -T 1C clean install
         cd ..
