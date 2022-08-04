@@ -6,22 +6,17 @@ runs:
     - name: load docker images
       shell: bash
       run: |
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-client-config-it.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-client-configmap-event-reload.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-client-loadbalancer-it.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-client-reactive-discoveryclient-it.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-client-secrets-event-reload.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-configserver.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-configuration-watcher-it.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-configuration-watcher.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-core-k8s-client-it.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-discoveryclient-it.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-discoveryserver.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-client-configmap-event-reload.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-client-configmap-polling-reload.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-client-configmap.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-client-discovery.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-client-loadbalancer.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-client-secrets-event-reload.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-client-simple-core.tar
-        docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-istio-it.tar
+
+        # get the name of the images to load from children of spring-cloud-kubernetes-controllers
+        cd spring-cloud-kubernetes-controllers
+        while read controller_image; do
+          docker load -i /tmp/docker/images/${controller_image}.tar
+        done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-controllers')
+        cd ..
+
+        # get the name of the images to load from children of spring-cloud-kubernetes-integration-tests
+        cd spring-cloud-kubernetes-integration-tests
+        while read integration_test_image; do
+          docker load -i /tmp/docker/images/${integration_test_image}.tar
+        done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-integration-tests')
+        cd ..
