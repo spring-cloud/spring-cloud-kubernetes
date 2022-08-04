@@ -15,7 +15,7 @@ jobs:
       - name: set-it
         run: |
           echo $TESTCONTAINERS_REUSE_ENABLE
-          export TESTCONTAINERS_REUSE_ENABLE=true
+          TESTCONTAINERS_REUSE_ENABLE=true
 
       - name: read-it
         run: |
