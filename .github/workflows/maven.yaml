@@ -12,14 +12,6 @@ jobs:
     env:
       TESTCONTAINERS_REUSE_ENABLE: false
     steps:
-      - name: set-it
-        run: |
-          echo $TESTCONTAINERS_REUSE_ENABLE
-          echo "TESTCONTAINERS_REUSE_ENABLE=true" >> $GITHUB_ENV
-
-      - name: read-it
-        run: |
-          echo $TESTCONTAINERS_REUSE_ENABLE
 
       - name: checkout project
         uses: actions/checkout@v2
