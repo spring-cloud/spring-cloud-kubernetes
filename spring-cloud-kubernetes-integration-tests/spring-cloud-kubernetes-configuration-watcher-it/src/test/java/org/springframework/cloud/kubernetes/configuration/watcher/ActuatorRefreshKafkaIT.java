@@ -152,7 +152,7 @@ class ActuatorRefreshKafkaIT {
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/it").build();
 
 		Boolean[] value = new Boolean[1];
-		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
+		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(180)).until(() -> {
 			value[0] = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(Boolean.class).retryWhen(retrySpec())
 					.block();
 			return value[0];
