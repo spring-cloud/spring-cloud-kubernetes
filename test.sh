@@ -1,106 +1,25 @@
-name: github-workflow
+#!/bin/bash
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+main() {
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
 
-      - name: checkout project
-        uses: actions/checkout@v2
+if [[ $CURRENT_INDEX -eq $(($NUMBER_OF_JOBS-1)) ]]; then
+	cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
+    ../.././mvnw clean install -Dskip.build.image=true
+    cd ../..
 
-      - name: setup project
-        uses: ./.github/workflows/composites/setup
+    echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
-      - name: set env variables
-        uses: ./.github/workflows/composites/env-variables
+	return
+fi
 
-      - name: cache local maven repository
-        uses: ./.github/workflows/composites/cache
+TEST_CONTAINERS_REUSE_SUPPORT_FILE=~/.testcontainers.properties2
+while [ ! -f "$TEST_CONTAINERS_REUSE_SUPPORT_FILE" ]; do
+	echo 'fabric8 istio test not yet finished, will wait for 5 seconds'
+    sleep 5
+done
 
-      - name: build fabric8 istio
-        uses: ./.github/workflows/composites/fabric8-istio
 
-      - name: build with skip tests and skip images
-        run: ./mvnw -T 1C -s .settings.xml clean install -U -DskipTests -Dskip.build.image=true
-
-      - name: build controllers project
-        uses:  ./.github/workflows/composites/build-controllers-project
-
-      - name: build integration tests project without tests
-        uses: ./.github/workflows/composites/build-integration-tests-project
-
-      - name: save controller docker images
-        uses: ./.github/workflows/composites/save-controller-images
-
-      - name: save integration tests docker images
-        uses: ./.github/workflows/composites/save-integration-tests-images
-
-      - name: echo saved images
-        uses: ./.github/workflows/composites/echo-saved-images
-
-      - name: upload docker images
-        uses: ./.github/workflows/composites/upload-docker-images
-
-  test:
-    needs: [ build ]
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-
-    strategy:
-      fail-fast: true
-      matrix:
-        current_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
-        number_of_jobs: [33]
-
-    steps:
-
-      - name: checkout project
-        uses: actions/checkout@v2
-
-      - name: setup project
-        uses: ./.github/workflows/composites/setup
-
-      - name: set env variables
-        uses: ./.github/workflows/composites/env-variables
-
-      - name: cache local maven repository
-        uses: ./.github/workflows/composites/cache
-
-      - name: download docker images
-        uses: ./.github/workflows/composites/download-docker-images
-
-      - name: load docker images into local repo
-        uses: ./.github/workflows/composites/load-docker-images
-
-      - name: run tests
-        env:
-          CURRENT_INDEX: ${{ matrix.current_index }}
-          NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
-        run: |
-
-          # we need to run a test so that reuse for containers is enabled. This is needed because of static ports
-          # that our container is started with, otherwise we will potentially hit "port already in usage" problem.
-          # we do that by running FabricIstioIT in the last step. Every other steps are waiting for this one to finish.
-
-          if [[ $CURRENT_INDEX -eq $(($NUMBER_OF_JOBS-1)) ]]; then
-          	cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
-              ../.././mvnw clean install -Dskip.build.image=true
-              cd ../..
-              echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
-          	return
-          fi
-
-          TEST_CONTAINERS_REUSE_SUPPORT_FILE=~/.testcontainers.properties
-          while [ ! -f "$TEST_CONTAINERS_REUSE_SUPPORT_FILE" ]; do
-          	echo 'fabric8 istio test not yet finished, will wait for 5 seconds'
-              sleep 5
-          done
 
 
           # - find all tests
@@ -217,27 +136,6 @@ jobs:
 
           echo "will run tests : ${TEST_ARG[@]}"
 
-          ./mvnw -s .settings.xml \
-              -DtestsToRun=${TEST_ARG[@]} \
-              -e clean install \
-              -U -P sonar -nsu --batch-mode \
-              -Dmaven.test.redirectTestOutputToFile=true \
-              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-              -Dhttp.keepAlive=false \
-              -Dmaven.wagon.http.pool=false \
-              -Dmaven.wagon.http.retryHandler.class=standard \
-              -Dmaven.wagon.http.retryHandler.count=3 \
-              -Dskip.build.image=true
+}
 
-      - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v2
-        if: always() # always run even if the previous step fails
-        with:
-          report_paths: '**/surefire-reports/TEST-*.xml'
-
-      - name: Archive code coverage results
-        uses: actions/upload-artifact@v2
-        with:
-          name: surefire-reports
-          path: '**/surefire-reports/*'
-
+main
