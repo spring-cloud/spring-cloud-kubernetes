@@ -34,9 +34,6 @@ jobs:
       - name: build controllers project
         uses:  ./.github/workflows/composites/build-controllers-project
 
-      - name: build integration tests project without tests
-        uses: ./.github/workflows/composites/build-integration-tests-project
-
       - name: save controller docker images
         uses: ./.github/workflows/composites/save-controller-images
 
@@ -48,6 +45,34 @@ jobs:
 
       - name: upload docker images
         uses: ./.github/workflows/composites/upload-docker-images
+
+  # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
+  # Otherwise, (since we use static ports) there might be two instances starting at the same time, and ports might conflict
+  fabric8_istio_integration_test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout project
+        uses: actions/checkout@v2
+
+      - name: setup project
+        uses: ./.github/workflows/composites/setup
+
+      - name: set env variables
+        uses: ./.github/workflows/composites/env-variables
+
+      - name: cache local maven repository
+        uses: ./.github/workflows/composites/cache
+
+      - name: download docker images
+        uses: ./.github/workflows/composites/download-docker-images
+
+      - name: echo saved images
+        uses: ./.github/workflows/composites/echo-saved-images
+
+      - name: integration test fabric8 istio
+        uses: ./.github/workflows/composites/fabric8-istio-integration-test
 
   test:
     needs: [ build ]
