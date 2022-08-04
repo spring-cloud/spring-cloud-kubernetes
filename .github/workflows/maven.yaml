@@ -9,7 +9,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      TESTCONTAINERS_REUSE_ENABLE: false
     steps:
+      - name: set-it
+        run: |
+          echo $TESTCONTAINERS_REUSE_ENABLE
+          export TESTCONTAINERS_REUSE_ENABLE=true
+
+      - name: read-it
+        run: |
+          echo $TESTCONTAINERS_REUSE_ENABLE
 
       - name: checkout project
         uses: actions/checkout@v2
@@ -147,7 +157,7 @@ jobs:
                         | tr '\n' ' '"
 
             while read class_name; do
-                    replaced=$(echo ${DERIVED_FROM_ABSTRACT_CLASSES_COMMAND/replace_me/"$class_name"})
+                replaced=$(echo ${DERIVED_FROM_ABSTRACT_CLASSES_COMMAND/replace_me/"$class_name"})
                 result=($(eval $replaced))
                 PLAIN_TEST_CLASSNAMES+=(${result[@]})
             done < <(eval $ABSTRACT_TEST_CLASSNAMES_COMMAND)
@@ -218,7 +228,6 @@ jobs:
                 -DtestsToRun=${TEST_ARG[@]} \
                 -e clean install \
                 -U -P sonar -nsu --batch-mode \
-                -Dmaven.test.redirectTestOutputToFile=true \
                 -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
                 -Dhttp.keepAlive=false \
                 -Dmaven.wagon.http.pool=false \
