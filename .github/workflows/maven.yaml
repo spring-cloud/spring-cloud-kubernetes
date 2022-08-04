@@ -15,7 +15,7 @@ jobs:
       - name: set-it
         run: |
           echo $TESTCONTAINERS_REUSE_ENABLE
-          echo "TESTCONTAINERS_REUSE_ENABL=true" >> $GITHUB_ENV
+          echo "TESTCONTAINERS_REUSE_ENABLE=true" >> $GITHUB_ENV
 
       - name: read-it
         run: |
