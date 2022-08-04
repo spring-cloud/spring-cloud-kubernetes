@@ -108,9 +108,6 @@ jobs:
       - name: load docker images into local repo
         uses: ./.github/workflows/composites/load-docker-images
 
-      - name: run fabric8 istio integration test
-        uses: ./.github/workflows/composites/fabric8-istio-integration-test
-
       - name: run tests
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
