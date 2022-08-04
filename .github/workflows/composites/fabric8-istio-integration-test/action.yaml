@@ -10,5 +10,3 @@ runs:
         cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
         ../.././mvnw clean install -Dskip.build.image=true
         cd ../..
-
-        echo "TESTCONTAINERS_REUSE_ENABLE=true" >> $GITHUB_ENV

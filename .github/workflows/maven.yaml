@@ -90,6 +90,9 @@ jobs:
 
     steps:
 
+      - name: testcontainers reuse support
+        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
+
       - name: checkout project
         uses: actions/checkout@v2
 
