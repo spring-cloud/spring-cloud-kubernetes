@@ -93,7 +93,6 @@ jobs:
               ../.././mvnw clean install -Dskip.build.image=true
               cd ../..
               echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
-          	return
           else
             TEST_CONTAINERS_REUSE_SUPPORT_FILE=~/.testcontainers.properties
             while [ ! -f "$TEST_CONTAINERS_REUSE_SUPPORT_FILE" ]; do
