@@ -152,7 +152,7 @@ class ActuatorRefreshKafkaIT {
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/it").build();
 
 		Boolean[] value = new Boolean[1];
-		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(360)).until(() -> {
+		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(720)).until(() -> {
 			value[0] = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(Boolean.class).retryWhen(retrySpec())
 					.block();
 			return value[0];
@@ -285,7 +285,7 @@ class ActuatorRefreshKafkaIT {
 	}
 
 	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(60, Duration.ofSeconds(1)).filter(Objects::nonNull);
+		return Retry.fixedDelay(720, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }
