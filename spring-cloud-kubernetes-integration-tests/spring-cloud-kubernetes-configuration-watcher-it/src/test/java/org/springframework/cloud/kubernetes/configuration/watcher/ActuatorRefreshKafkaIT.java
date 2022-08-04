@@ -285,7 +285,7 @@ class ActuatorRefreshKafkaIT {
 	}
 
 	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+		return Retry.fixedDelay(60, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }
