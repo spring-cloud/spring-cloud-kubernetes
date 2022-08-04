@@ -54,6 +54,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      - name: test-containers reuse support
+        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
+
       - name: checkout project
         uses: actions/checkout@v2
 
@@ -87,6 +91,10 @@ jobs:
         number_of_jobs: [32]
 
     steps:
+
+      - name: show test-containers reuse support
+        run: cat ~/.testcontainers.properties
+
       - name: checkout project
         uses: actions/checkout@v2
 
