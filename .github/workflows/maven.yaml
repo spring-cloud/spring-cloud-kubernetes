@@ -49,38 +49,38 @@ jobs:
 
   # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
   # Otherwise, (since we use static ports) there might be two instances starting at the same time, and ports might conflict
-  fabric8_istio_integration_test:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-
-      - name: test-containers reuse support
-        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
-
-      - name: checkout project
-        uses: actions/checkout@v2
-
-      - name: setup project
-        uses: ./.github/workflows/composites/setup
-
-      - name: set env variables
-        uses: ./.github/workflows/composites/env-variables
-
-      - name: cache local maven repository
-        uses: ./.github/workflows/composites/cache
-
-      - name: download docker images
-        uses: ./.github/workflows/composites/download-docker-images
-
-      - name: echo saved images
-        uses: ./.github/workflows/composites/echo-saved-images
-
-      - name: integration test fabric8 istio
-        uses: ./.github/workflows/composites/fabric8-istio-integration-test
+#  fabric8_istio_integration_test:
+#    needs: build
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#
+#      - name: test-containers reuse support
+#        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
+#
+#      - name: checkout project
+#        uses: actions/checkout@v2
+#
+#      - name: setup project
+#        uses: ./.github/workflows/composites/setup
+#
+#      - name: set env variables
+#        uses: ./.github/workflows/composites/env-variables
+#
+#      - name: cache local maven repository
+#        uses: ./.github/workflows/composites/cache
+#
+#      - name: download docker images
+#        uses: ./.github/workflows/composites/download-docker-images
+#
+#      - name: echo saved images
+#        uses: ./.github/workflows/composites/echo-saved-images
+#
+#      - name: integration test fabric8 istio
+#        uses: ./.github/workflows/composites/fabric8-istio-integration-test
 
   test:
-    needs: [ build, fabric8_istio_integration_test ]
+    needs: [ build ]
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -91,9 +91,11 @@ jobs:
         number_of_jobs: [32]
 
     steps:
+      - name: test-containers reuse support
+        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
-      - name: show test-containers reuse support
-        run: cat ~/.testcontainers.properties
+#      - name: show test-containers reuse support
+#        run: cat ~/.testcontainers.properties
 
       - name: checkout project
         uses: actions/checkout@v2
@@ -131,7 +133,6 @@ jobs:
 
           PLAIN_TEST_CLASSNAMES=($(find . -name '*.java' \
                 		| grep 'src/test/java' \
-                    	| grep -v 'Fabric8IstioIT' \
                     	| xargs grep -l '@Test' \
                         | xargs grep -L 'abstract class' \
                     	| sed 's/.*src.test.java.//g' \
@@ -148,7 +149,6 @@ jobs:
 
           ABSTRACT_TEST_CLASSNAMES_COMMAND="find . -name '*.java' \
                         | grep  'src/test/java' \
-                        | grep -v 'Fabric8IstioIT' \
                         | xargs grep -l '@Test' \
                         | xargs grep -l 'abstract class' \
                         | sed 's/.*\///g' \
@@ -157,7 +157,6 @@ jobs:
           # find classes that extend abstract test classes
           DERIVED_FROM_ABSTRACT_CLASSES_COMMAND="find . -name '*.java' \
                         | grep  'src/test/java' \
-                        | grep -v 'Fabric8IstioIT' \
                         | xargs grep -l 'extends replace_me ' \
                         | sed 's/.*src.test.java.//g' \
                     	| sed 's@/@.@g' \
