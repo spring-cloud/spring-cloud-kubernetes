@@ -32,7 +32,10 @@ jobs:
         run: ./mvnw -T 1C -s .settings.xml clean install -U -DskipTests -Dskip.build.image=true
 
       - name: build controllers project
-        uses:  ./.github/workflows/composites/build-controllers-project
+        uses: ./.github/workflows/composites/build-controllers-project
+
+      - name: build integration tests project
+        uses: ./.github/workflows/composites/build-integration-tests-project
 
       - name: save controller docker images
         uses: ./.github/workflows/composites/save-controller-images
