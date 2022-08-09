@@ -142,7 +142,7 @@ class ActuatorRefreshKafkaIT {
 	}
 
 	// TODO figure out why this one fails on bus-starter-4.0.0-SNAPSHOT
-	@Disabled
+	// @Disabled
 	@Test
 	void testRefresh() throws Exception {
 		// Create new configmap to trigger controller to signal app to refresh

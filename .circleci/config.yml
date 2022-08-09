@@ -55,9 +55,21 @@ jobs:
           command: |
             VIEW=$(ls -l /tmp/docker/images)
             echo "${VIEW}"
-            docker load -i /tmp/docker/images/spring-cloud-kubernetes-configuration-watcher.tar
-            docker load -i /tmp/docker/images/spring-cloud-kubernetes-discoveryserver.tar
-            docker load -i /tmp/docker/images/spring-cloud-kubernetes-configserver.tar
+
+            # get the name of the images to load from children of spring-cloud-kubernetes-controllers
+            cd spring-cloud-kubernetes-controllers
+            while read controller_image; do
+                docker load -i /tmp/docker/images/${controller_image}.tar
+            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-controllers')
+            cd ..
+
+            # get the name of the images to load from children of spring-cloud-kubernetes-integration-tests
+            cd spring-cloud-kubernetes-integration-tests
+            while read integration_test_image; do
+                 docker load -i /tmp/docker/images/${integration_test_image}.tar
+            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-integration-tests')
+            cd ..
+
       - run:
           name: Run regular tests
           command: |
@@ -133,9 +145,17 @@ jobs:
             echo ${TEST_ARG[@]}
             echo '---------------------------------------------------'
 
-            ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install \
-                   -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
-                   -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+            ./mvnw -s .settings.xml \
+                  -DtestsToRun=${TEST_ARG[@]} \
+                  -e clean install \
+                  -U -P sonar -nsu --batch-mode \
+                  -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+                  -Dhttp.keepAlive=false \
+                  -Dmaven.wagon.http.pool=false \
+                  -Dmaven.wagon.http.retryHandler.class=standard \
+                  -Dmaven.wagon.http.retryHandler.count=3 \
+                  -Dskip.build.image=true
+
             mkdir -p $HOME/artifacts/junit/
             find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
@@ -170,9 +190,6 @@ jobs:
       - run:
           name: dependencies
           command: |
-            mkdir -p /tmp/docker/images/
-            VIEW=$(ls -l /tmp/docker/images)
-            echo "${VIEW}"
             ./mvnw -s .settings.xml -U dependency:resolve-plugins dependency:go-offline -B || true
       - run:
           name: build
@@ -184,9 +201,19 @@ jobs:
             TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
             echo $TAG
             mkdir -p /tmp/docker/images/
-            docker save -o /tmp/docker/images/spring-cloud-kubernetes-configuration-watcher.tar docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${TAG}
-            docker save -o /tmp/docker/images/spring-cloud-kubernetes-discoveryserver.tar docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${TAG}
-            docker save -o /tmp/docker/images/spring-cloud-kubernetes-configserver.tar docker.io/springcloud/spring-cloud-kubernetes-configserver:${TAG}
+
+            cd spring-cloud-kubernetes-controllers
+            while read controller_image; do
+               docker save -o /tmp/docker/images/${controller_image}.tar docker.io/springcloud/${controller_image}:$TAG
+            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-controllers')
+            cd ..
+
+            cd spring-cloud-kubernetes-integration-tests
+            while read integ_test; do
+                docker save -o /tmp/docker/images/${integ_test}.tar docker.io/springcloud/${integ_test}:$TAG
+            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-integration-tests')
+            cd ..
+
             VIEW=$(ls -l /tmp/docker/images)
             echo "${VIEW}"
       - persist_to_workspace:
@@ -221,7 +248,7 @@ jobs:
             cd ..
 
             cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
-            ../.././mvnw clean install
+            ../.././mvnw clean install -Dskip.build.image=true
             cd ../..
 notify:
   webhooks:
