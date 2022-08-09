@@ -172,7 +172,7 @@ jobs:
           command: |
             mkdir -p /tmp/docker/images/
             VIEW=$(ls -l /tmp/docker/images)
-            echo "${VIEW}
+            echo "${VIEW}"
             ./mvnw -s .settings.xml -U dependency:resolve-plugins dependency:go-offline -B || true
       - run:
           name: build
