@@ -170,11 +170,14 @@ jobs:
       - run:
           name: dependencies
           command: |
+            mkdir -p /tmp/docker/images/
+            VIEW=$(ls -l /tmp/docker/images)
+            echo "${VIEW}
             ./mvnw -s .settings.xml -U dependency:resolve-plugins dependency:go-offline -B || true
       - run:
           name: build
           command: |
-            ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} -DskipTests
+            ./mvnw -s .settings.xml clean install -DskipTests
       - run:
           name: save docker images
           command: |
