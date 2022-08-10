@@ -163,12 +163,11 @@ jobs:
       - build-fabric8-istio-integration-test
 
   test:
-    parallelism: 5 # parallel containers to split the tests among
+    parallelism: 10 # parallel containers to split the tests among
     machine:
       image: ubuntu-2204:2022.04.1
     environment:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
-      _SERVICE_OCCURENCE: 5
     steps:
       - checkout-code-then-restore-cache-then-attach-workspace
       - enable-test-containers-reuse-support
