@@ -17,19 +17,35 @@ spec:
         app: kafka
         component: kafka-broker
     spec:
+      # otherwise we will get an env var "KAFKA_PORT" (from service name: "kafka" and appended with "_PORT")
+      # and this will cause this problem: https://github.com/confluentinc/cp-docker-images/blob/master/debian/kafka/include/etc/confluent/docker/configure#L58-L62
+      # Another solution is to rename the service.
+      enableServiceLinks: false
       containers:
-      - name: kafka
-        image: wurstmeister/kafka:2.13-2.6.0
-        ports:
-        - containerPort: 9092
-        env:
-          - name: KAFKA_PORT
-            value: "9092"
-          - name: KAFKA_ADVERTISED_PORT
-            value: "9092"
-          - name: KAFKA_ADVERTISED_HOST_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-          - name: KAFKA_ZOOKEEPER_CONNECT
-            value: zookeeper:2181
+        - name: kafka
+          image: confluentinc/cp-kafka:7.2.1
+          ports:
+            - containerPort: 9092
+          env:
+            - name: KAFKA_LISTENERS
+              value: "INTERNAL://0.0.0.0:9092,OUTSIDE://0.0.0.0:9094"
+
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT"
+
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: "INTERNAL://kafka:9092,OUTSIDE://localhost:9094"
+
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: "INTERNAL://kafka:9092,OUTSIDE://localhost:9094"
+
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: "INTERNAL"
+
+            - name: KAFKA_ADVERTISED_HOST_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: zookeeper:2181
