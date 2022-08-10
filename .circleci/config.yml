@@ -12,7 +12,7 @@ commands:
       - restore_cache:
           when:
             condition:
-              - equal: ["build", << pipeline.parameters.action >> ]
+              - equal: << parameters.restore_main_cache >>
           keys:
             - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
       # we need this step because we run maven with "-U" and thus update snapshots,
@@ -134,6 +134,8 @@ workflows:
 jobs:
 
   build:
+    parameters:
+      restore_main_cache: true
     machine:
       image: ubuntu-2204:2022.04.1
     environment:
