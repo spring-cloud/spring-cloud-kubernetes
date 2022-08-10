@@ -12,7 +12,7 @@ commands:
       - restore_cache:
           when:
             condition:
-              - equal: ["build", ${CIRCLE_JOB} ]
+              - equal: ["build", "${CIRCLE_JOB}" ]
           keys:
             - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
       # we need this step because we run maven with "-U" and thus update snapshots,
