@@ -8,6 +8,7 @@ commands:
   # download any cache if its already present based on branch and hash of the pom
   restore_main_cache:
     steps:
+      - checkout
       - restore_cache:
           keys:
             - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
