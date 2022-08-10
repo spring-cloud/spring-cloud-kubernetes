@@ -1,18 +1,31 @@
-#
-# Copyright (C) 2018 to the original authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#         https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+
+#################################################### common stuff ##################################################
+####################################################################################################################
+
+commands:
+
+  checkout-and-restore:
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - spring-cloud-kubernetes-{{ .Branch }}
+            - spring-cloud-kubernetes
+
+  persist-save-cache:
+    steps:
+    - persist_to_workspace:
+        root: /tmp/docker/
+        paths:
+          - images
+    - save_cache:
+        paths:
+          - ~/.m2
+        key: spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+
+####################################################################################################################
+####################################################################################################################
 
 orbs:
   kube-orb: circleci/kubernetes@0.11.0
@@ -29,6 +42,73 @@ workflows:
           requires:
             - fabric8_istio
 jobs:
+
+  build:
+    machine:
+      image: ubuntu-2204:2022.04.1
+    environment:
+      _JAVA_OPTIONS: "-Xms2g -Xmx2g"
+    steps:
+      - checkout-and-restore
+      - run:
+          name: dependencies
+          command: |
+            ./mvnw -s .settings.xml -U dependency:resolve-plugins dependency:go-offline -B || true
+      - run:
+          name: build
+          command: |
+            ./mvnw -s .settings.xml clean install -DskipTests
+      - run:
+          name: save docker images
+          command: |
+            TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+            echo $TAG
+            mkdir -p /tmp/docker/images/
+
+            cd spring-cloud-kubernetes-controllers
+            while read controller_image; do
+               docker save -o /tmp/docker/images/${controller_image}.tar docker.io/springcloud/${controller_image}:$TAG
+            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-controllers')
+            cd ..
+
+            cd spring-cloud-kubernetes-integration-tests
+            while read integ_test; do
+                docker save -o /tmp/docker/images/${integ_test}.tar docker.io/springcloud/${integ_test}:$TAG
+            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-integration-tests')
+            cd ..
+
+            VIEW=$(ls -l /tmp/docker/images)
+            echo "${VIEW}"
+
+      - persist-save-cache
+
+  fabric8_istio:
+    machine:
+      image: ubuntu-2204:2022.04.1
+    steps:
+      - checkout-and-restore
+      - attach_workspace:
+          at: /tmp/docker
+      - run:
+          name: Run fabric8 istio test
+          command: |
+
+            # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
+            # otherwise (since we use static ports) there might be two instances starting at the same time, and ports might conflict
+
+            ###########################################################################################################################
+            ######################################## Build test support dependency and Run test #######################################
+            cd spring-cloud-kubernetes-test-support
+            .././mvnw clean install
+            cd ..
+
+            docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-istio-it.tar
+
+            cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
+            ../.././mvnw clean install -Dskip.build.image=true
+            cd ../..
+
+
   test:
     parallelism: 5 # parallel containers to split the tests among
     machine:
@@ -37,19 +117,14 @@ jobs:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
       _SERVICE_OCCURENCE: 5
     steps:
+      - checkout-and-restore
+      - attach_workspace:
+          at: /tmp/docker
       - run:
           name: testcontainers reuse support
           command: |
             # needed for .withReuse(true) to work
             echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
-      - checkout
-      - restore_cache:
-          keys:
-            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - spring-cloud-kubernetes-{{ .Branch }}
-            - spring-cloud-kubernetes
-      - attach_workspace:
-          at: /tmp/docker
       - run:
           name: Load Controller Images From Workspace
           command: |
@@ -174,84 +249,6 @@ jobs:
       - store_test_results:
           path: ~/junit/
           destination: testartifacts
-  build:
-    machine:
-      image: ubuntu-2204:2022.04.1
-    environment:
-      _JAVA_OPTIONS: "-Xms2g -Xmx2g"
-      _SERVICE_OCCURENCE: 5
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - spring-cloud-kubernetes-{{ .Branch }}
-            - spring-cloud-kubernetes
-      - run:
-          name: dependencies
-          command: |
-            ./mvnw -s .settings.xml -U dependency:resolve-plugins dependency:go-offline -B || true
-      - run:
-          name: build
-          command: |
-            ./mvnw -s .settings.xml clean install -DskipTests
-      - run:
-          name: save docker images
-          command: |
-            TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
-            echo $TAG
-            mkdir -p /tmp/docker/images/
-
-            cd spring-cloud-kubernetes-controllers
-            while read controller_image; do
-               docker save -o /tmp/docker/images/${controller_image}.tar docker.io/springcloud/${controller_image}:$TAG
-            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-controllers')
-            cd ..
-
-            cd spring-cloud-kubernetes-integration-tests
-            while read integ_test; do
-                docker save -o /tmp/docker/images/${integ_test}.tar docker.io/springcloud/${integ_test}:$TAG
-            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-integration-tests')
-            cd ..
-
-            VIEW=$(ls -l /tmp/docker/images)
-            echo "${VIEW}"
-      - persist_to_workspace:
-          root: /tmp/docker/
-          paths:
-            - images
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-  fabric8_istio:
-    machine:
-      image: ubuntu-2204:2022.04.1
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - spring-cloud-kubernetes-{{ .Branch }}
-            - spring-cloud-kubernetes
-      - run:
-          name: Run fabric8 istio test
-          command: |
-
-            # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
-            # otherwise (since we use static ports) there might be two instances starting at the same time, and ports might conflict
-
-            ###########################################################################################################################
-            ######################################## Build test support dependency and Run test #######################################
-            cd spring-cloud-kubernetes-test-support
-            .././mvnw clean install
-            cd ..
-
-            docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-istio-it.tar
-
-            cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
-            ../.././mvnw clean install -Dskip.build.image=true
-            cd ../..
 notify:
   webhooks:
     - url: https://webhooks.gitter.im/e/22e6bb4eb945dd61ba54
