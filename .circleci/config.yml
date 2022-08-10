@@ -4,7 +4,7 @@
 
 commands:
 
-  checkout-and-restore:
+  checkout-restore-attach:
     steps:
       - checkout
       - restore_cache:
@@ -12,6 +12,8 @@ commands:
             - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
             - spring-cloud-kubernetes-{{ .Branch }}
             - spring-cloud-kubernetes
+      - attach_workspace:
+          at: /tmp/docker
 
   persist-save-cache:
     steps:
@@ -86,9 +88,7 @@ jobs:
     machine:
       image: ubuntu-2204:2022.04.1
     steps:
-      - checkout-and-restore
-      - attach_workspace:
-          at: /tmp/docker
+      - checkout-restore-attach
       - run:
           name: Run fabric8 istio test
           command: |
@@ -117,7 +117,7 @@ jobs:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
       _SERVICE_OCCURENCE: 5
     steps:
-      - checkout-and-restore
+      - checkout-restore-attach
       - attach_workspace:
           at: /tmp/docker
       - run:
