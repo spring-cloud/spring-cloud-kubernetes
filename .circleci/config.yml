@@ -12,7 +12,7 @@ commands:
       - restore_cache:
           when:
             condition:
-              - equal: << parameters.restore_main_cache >>
+              - equal: ["true", << parameters.restore_main_cache >> ]
           keys:
             - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
       # we need this step because we run maven with "-U" and thus update snapshots,
