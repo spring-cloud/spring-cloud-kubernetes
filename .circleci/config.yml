@@ -1,6 +1,7 @@
 
-#################################################### common stuff ##################################################
-####################################################################################################################
+################################################################################################################################################################
+################################################################   common stuff ################################################################################
+################################################################################################################################################################
 
 commands:
 
@@ -52,8 +53,60 @@ commands:
             VIEW=$(ls -l /tmp/docker/images)
             echo "${VIEW}"
 
-####################################################################################################################
-####################################################################################################################
+  build-fabric8-istio-integration-test:
+    steps:
+      - run:
+         name: Run fabric8 istio test
+         command: |
+
+           # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
+           # otherwise (since we use static ports) there might be two instances starting at the same time, and ports might conflict
+           ###########################################################################################################################
+           ######################################## Build test support dependency and Run test #######################################
+           cd spring-cloud-kubernetes-test-support
+           .././mvnw clean install
+           cd ..
+
+           docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-istio-it.tar
+
+           cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
+           ../.././mvnw clean install -Dskip.build.image=true
+           cd ../..
+
+  enable-test-containers-reuse-support:
+    steps:
+      - run:
+          name: testcontainers reuse support
+          command: |
+            # needed for .withReuse(true) to work
+            echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
+
+  load-docker-images:
+    steps:
+      - run:
+          name: Load Controller Images From Workspace
+          command: |
+            VIEW=$(ls -l /tmp/docker/images)
+            echo "${VIEW}"
+
+            # get the name of the images to load from children of spring-cloud-kubernetes-controllers
+            cd spring-cloud-kubernetes-controllers
+            while read controller_image; do
+                docker load -i /tmp/docker/images/${controller_image}.tar
+            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-controllers')
+            cd ..
+
+            # get the name of the images to load from children of spring-cloud-kubernetes-integration-tests
+            cd spring-cloud-kubernetes-integration-tests
+            while read integration_test_image; do
+                 docker load -i /tmp/docker/images/${integration_test_image}.tar
+            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-integration-tests')
+            cd ..
+
+
+################################################################################################################################################################
+################################################################################################################################################################
+################################################################################################################################################################
 
 orbs:
   kube-orb: circleci/kubernetes@0.11.0
@@ -86,25 +139,7 @@ jobs:
       image: ubuntu-2204:2022.04.1
     steps:
       - checkout-code-then-restore-cache-then-attach-workspace
-      - run:
-          name: Run fabric8 istio test
-          command: |
-
-            # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
-            # otherwise (since we use static ports) there might be two instances starting at the same time, and ports might conflict
-
-            ###########################################################################################################################
-            ######################################## Build test support dependency and Run test #######################################
-            cd spring-cloud-kubernetes-test-support
-            .././mvnw clean install
-            cd ..
-
-            docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-istio-it.tar
-
-            cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
-            ../.././mvnw clean install -Dskip.build.image=true
-            cd ../..
-
+      - build-fabric8-istio-integration-test
 
   test:
     parallelism: 5 # parallel containers to split the tests among
@@ -115,30 +150,8 @@ jobs:
       _SERVICE_OCCURENCE: 5
     steps:
       - checkout-code-then-restore-cache-then-attach-workspace
-      - run:
-          name: testcontainers reuse support
-          command: |
-            # needed for .withReuse(true) to work
-            echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
-      - run:
-          name: Load Controller Images From Workspace
-          command: |
-            VIEW=$(ls -l /tmp/docker/images)
-            echo "${VIEW}"
-
-            # get the name of the images to load from children of spring-cloud-kubernetes-controllers
-            cd spring-cloud-kubernetes-controllers
-            while read controller_image; do
-                docker load -i /tmp/docker/images/${controller_image}.tar
-            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-controllers')
-            cd ..
-
-            # get the name of the images to load from children of spring-cloud-kubernetes-integration-tests
-            cd spring-cloud-kubernetes-integration-tests
-            while read integration_test_image; do
-                 docker load -i /tmp/docker/images/${integration_test_image}.tar
-            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-integration-tests')
-            cd ..
+      - enable-test-containers-reuse-suppor
+      - load-docker-images
 
       - run:
           name: Run regular tests
