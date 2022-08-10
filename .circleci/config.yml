@@ -118,8 +118,6 @@ jobs:
       _SERVICE_OCCURENCE: 5
     steps:
       - checkout-restore-attach
-      - attach_workspace:
-          at: /tmp/docker
       - run:
           name: testcontainers reuse support
           command: |
