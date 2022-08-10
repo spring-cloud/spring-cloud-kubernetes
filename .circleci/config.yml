@@ -9,7 +9,7 @@ commands:
       - checkout
       - restore_cache:
           keys:
-            - spring-cloud-kubernetes-{{ .Branch }}-{{.BUILD_ID}}
+            - spring-cloud-kubernetes-{{ .Branch }}-{{ .Environment.CIRCLE_WORKFLOW_ID }}
       - attach_workspace:
           at: /tmp/docker
 
