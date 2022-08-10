@@ -11,8 +11,7 @@ commands:
       # download any cache if its already present based on branch and hash of the pom
       - restore_cache:
           when:
-            condition:
-              - equal: ["build", "${CIRCLE_JOB}" ]
+            - equal: ["build", "${CIRCLE_JOB}" ]
           keys:
             - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
       # we need this step because we run maven with "-U" and thus update snapshots,
