@@ -150,7 +150,7 @@ jobs:
       _SERVICE_OCCURENCE: 5
     steps:
       - checkout-code-then-restore-cache-then-attach-workspace
-      - enable-test-containers-reuse-suppor
+      - enable-test-containers-reuse-support
       - load-docker-images
 
       - run:
