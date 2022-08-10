@@ -5,16 +5,20 @@
 
 commands:
 
+  # download any cache if its already present based on branch and hash of the pom
+  restore_main_cache:
+    steps:
+      - restore_cache:
+          keys:
+            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+
   checkout-code-then-restore-cache-then-attach-workspace:
     steps:
       - checkout
-      # download any cache if its already present based on branch and hash of the pom
-      - restore_cache:
-          << parameters.restore_main_cache >>
-          keys:
-            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
       # we need this step because we run maven with "-U" and thus update snapshots,
       # later we use this key for the cache, where snapshots are already updated
+      # in the build step, this one will be a NOOP; in all steps that follow
+      # this will be populated with the latest snapshots.
       - restore_cache:
           keys:
             - spring-cloud-kubernetes-{{ .Environment.CIRCLE_WORKFLOW_ID }}
@@ -142,6 +146,7 @@ jobs:
     environment:
       _JAVA_OPTIONS: "-Xms2g -Xmx2g"
     steps:
+      - restore_main_cache
       - checkout-code-then-restore-cache-then-attach-workspace
       - build-project-then-save-docker-images
       - persist-workspace-then-save-cache
