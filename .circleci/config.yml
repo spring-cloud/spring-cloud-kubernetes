@@ -135,7 +135,7 @@ jobs:
 
   build:
     parameters:
-      restore_main_cache: true
+      restore_main_cache: "true"
     machine:
       image: ubuntu-2204:2022.04.1
     environment:
