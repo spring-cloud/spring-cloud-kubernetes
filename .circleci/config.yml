@@ -8,7 +8,7 @@ commands:
     steps:
       - run:
           name: "Setup unique ID per workflow build"
-          command: echo 'export BUILD_ID="FOO"' >> $CIRCLE_WORKFLOW_ID
+          command: echo 'export BUILD_ID=$CIRCLE_WORKFLOW_ID' >> "${BASH_ENV}"
       - checkout
       - restore_cache:
           keys:
