@@ -136,11 +136,6 @@ workflows:
 jobs:
 
   build:
-    parameters:
-      restore_main_cache:
-        when:
-          - and:
-              equal: [ "build", "${CIRCLE_JOB}" ]
     machine:
       image: ubuntu-2204:2022.04.1
     environment:
