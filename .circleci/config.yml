@@ -50,7 +50,7 @@ commands:
       - run:
           name: build
           command: |
-            ./mvnw -s .settings.xml clean install -U -DskipTests
+            ./mvnw -s .settings.xml -T 1C clean install -U -DskipTests
       - run:
           name: save docker images
           command: |
