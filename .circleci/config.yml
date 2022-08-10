@@ -51,7 +51,7 @@ jobs:
     environment:
       _JAVA_OPTIONS: "-Xms2g -Xmx2g"
     steps:
-      - checkout-and-restore
+      - checkout-restore-attach
       - run:
           name: dependencies
           command: |
