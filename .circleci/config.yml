@@ -8,6 +8,15 @@ commands:
   checkout-code-then-restore-cache-then-attach-workspace:
     steps:
       - checkout
+      # download any cache if its already present based on branch and hash of the pom
+      - restore_cache:
+          when:
+            condition:
+              - equal: ["build", << pipeline.parameters.action >> ]
+          keys:
+            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+      # we need this step because we run maven with "-U" and thus update snapshots,
+      # later we use this key for the cache, where snapshots are already updated
       - restore_cache:
           keys:
             - spring-cloud-kubernetes-{{ .Environment.CIRCLE_WORKFLOW_ID }}
