@@ -247,6 +247,8 @@ jobs:
             .././mvnw clean install
             cd ..
 
+            docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-istio-it.tar
+
             cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
             ../.././mvnw clean install -Dskip.build.image=true
             cd ../..
