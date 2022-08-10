@@ -11,7 +11,7 @@ commands:
       - checkout
       - restore_cache:
           keys:
-            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - spring-cloud-kubernetes-pom-based-cache-{{ .Branch }}-{{ checksum "pom.xml" }}
 
   checkout-code-then-restore-cache-then-attach-workspace:
     steps:
@@ -22,7 +22,7 @@ commands:
       # this will be populated with the latest snapshots.
       - restore_cache:
           keys:
-            - spring-cloud-kubernetes-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+            - spring-cloud-kubernetes-per-run-based-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
       - attach_workspace:
           at: /tmp/docker
 
@@ -32,10 +32,18 @@ commands:
           root: /tmp/docker/
           paths:
             - images
+
+      # save both caches. first one is pom based, meaning it changes when pom changes
+      # the second one is specific per this run only, and it includes the latest snapshots
       - save_cache:
           paths:
             - ~/.m2
-          key: spring-cloud-kubernetes-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+          key: spring-cloud-kubernetes-per-run-based-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: spring-cloud-kubernetes-pom-based-cache-{{ .Branch }}-{{ checksum "pom.xml" }}
 
   build-project-then-save-docker-images:
     steps:
