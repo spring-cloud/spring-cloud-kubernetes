@@ -9,7 +9,7 @@ commands:
       - checkout
       - restore_cache:
           keys:
-            - spring-cloud-kubernetes-{{ .Branch }}-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+            - spring-cloud-kubernetes-{{ .Environment.CIRCLE_WORKFLOW_ID }}
       - attach_workspace:
           at: /tmp/docker
 
@@ -22,7 +22,7 @@ commands:
       - save_cache:
           paths:
             - ~/.m2
-          key: spring-cloud-kubernetes-{{ .Branch }}-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+          key: spring-cloud-kubernetes-{{ .Environment.CIRCLE_WORKFLOW_ID }}
 
   build-project-then-save-docker-images:
     steps:
