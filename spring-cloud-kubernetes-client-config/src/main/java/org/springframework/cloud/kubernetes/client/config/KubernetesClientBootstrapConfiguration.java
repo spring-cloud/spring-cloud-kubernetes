@@ -19,8 +19,6 @@ package org.springframework.cloud.kubernetes.client.config;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
-import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
@@ -41,7 +39,6 @@ import org.springframework.context.annotation.Import;
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 @Import({ KubernetesCommonsAutoConfiguration.class, KubernetesClientAutoConfiguration.class })
-@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 public class KubernetesClientBootstrapConfiguration {
 
 	@Bean
