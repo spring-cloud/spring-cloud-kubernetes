@@ -74,8 +74,14 @@ public abstract class SecretsWatcherChangeDetector extends EventBasedSecretsChan
 						+ " to be published in " + k8SConfigurationProperties.getRefreshDelay().toMillis()
 						+ " milliseconds");
 			}
-			executorService.schedule(() -> triggerRefresh(secret).subscribe(),
-					k8SConfigurationProperties.getRefreshDelay().toMillis(), TimeUnit.MILLISECONDS);
+			executorService.schedule(() -> {
+				try {
+					triggerRefresh(secret).subscribe();
+				}
+				catch (Throwable t) {
+					log.warn("Error when refreshing ConfigMap " + secret.getMetadata().getName(), t);
+				}
+			}, k8SConfigurationProperties.getRefreshDelay().toMillis(), TimeUnit.MILLISECONDS);
 		}
 		else {
 			if (log.isDebugEnabled()) {

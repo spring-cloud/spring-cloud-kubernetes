@@ -64,8 +64,14 @@ public abstract class ConfigMapWatcherChangeDetector extends EventBasedConfigMap
 						+ configMap.getMetadata().getName() + " to be published in "
 						+ k8SConfigurationProperties.getRefreshDelay().toMillis() + " milliseconds");
 			}
-			executorService.schedule(() -> triggerRefresh(configMap).subscribe(),
-					k8SConfigurationProperties.getRefreshDelay().toMillis(), TimeUnit.MILLISECONDS);
+			executorService.schedule(() -> {
+				try {
+					triggerRefresh(configMap).subscribe();
+				}
+				catch (Throwable t) {
+					log.warn("Error when refreshing ConfigMap " + configMap.getMetadata().getName(), t);
+				}
+			}, k8SConfigurationProperties.getRefreshDelay().toMillis(), TimeUnit.MILLISECONDS);
 		}
 		else {
 			if (log.isDebugEnabled()) {
