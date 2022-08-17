@@ -140,8 +140,6 @@ class ActuatorRefreshKafkaIT {
 		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_K8S_CONFIG_WATCHER_IT_DEPLOYMENT_NAME, NAMESPACE);
 	}
 
-	// TODO figure out why this one fails on bus-starter-4.0.0-SNAPSHOT
-	// @Disabled
 	@Test
 	void testRefresh() throws Exception {
 		// Create new configmap to trigger controller to signal app to refresh
@@ -154,7 +152,7 @@ class ActuatorRefreshKafkaIT {
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/it").build();
 
 		Boolean[] value = new Boolean[1];
-		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(120)).until(() -> {
+		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(240)).until(() -> {
 			value[0] = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(Boolean.class).retryWhen(retrySpec())
 					.block();
 			return value[0];
@@ -287,7 +285,7 @@ class ActuatorRefreshKafkaIT {
 	}
 
 	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(120, Duration.ofSeconds(1)).filter(Objects::nonNull);
+		return Retry.fixedDelay(240, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }
