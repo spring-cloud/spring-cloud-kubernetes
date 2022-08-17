@@ -172,7 +172,6 @@ jobs:
       - checkout-code-then-restore-cache-then-attach-workspace
       - enable-test-containers-reuse-support
       - load-docker-images
-
       - run:
           name: Run regular tests
           command: |
