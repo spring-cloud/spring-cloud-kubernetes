@@ -132,7 +132,7 @@ class ActuatorRefreshIT {
 		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
 
 		// Wait a bit before we verify
-		await().atMost(Duration.ofMillis(3400))
+		await().atMost(Duration.ofSeconds(30))
 				.until(() -> !findAll(postRequestedFor(urlEqualTo("/actuator/refresh"))).isEmpty());
 
 		verify(postRequestedFor(urlEqualTo("/actuator/refresh")));
