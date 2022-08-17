@@ -66,6 +66,7 @@
 						<name>${env.IMAGE}</name>
 					</image>
 					<goal>build-image</goal>
+					<skip>${skip.build.image}</skip>
 				</configuration>
 				<executions>
 					<execution>

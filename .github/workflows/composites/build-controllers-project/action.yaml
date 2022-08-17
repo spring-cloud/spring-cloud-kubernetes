@@ -1,0 +1,11 @@
+name: build controllers project
+description: build controllers project
+runs:
+  using: "composite"
+  steps:
+    - name: build controllers project
+      shell: bash
+      run: |
+        cd spring-cloud-kubernetes-controllers
+        .././mvnw -T 1C clean install
+        cd ..

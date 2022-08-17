@@ -1,0 +1,12 @@
+name: build integration tests project without tests
+description: build integration tests project without tests
+runs:
+  using: "composite"
+  steps:
+    - name: build integration tests project without tests
+      shell: bash
+      run: |
+        cd spring-cloud-kubernetes-integration-tests
+        # build the images, but dont run the tests
+        .././mvnw -T 1C clean install -DskipTests
+        cd ..
