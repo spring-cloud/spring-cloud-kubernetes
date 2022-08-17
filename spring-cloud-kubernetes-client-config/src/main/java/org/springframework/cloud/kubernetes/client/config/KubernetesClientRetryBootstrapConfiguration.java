@@ -42,8 +42,8 @@ import org.springframework.context.annotation.Import;
 @AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 @AutoConfigureBefore(KubernetesClientBootstrapConfiguration.class)
 @Import({ KubernetesCommonsAutoConfiguration.class, KubernetesClientAutoConfiguration.class })
-@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnKubernetesConfigOrSecretsRetryEnabled
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 public class KubernetesClientRetryBootstrapConfiguration {
 
 	@Bean
