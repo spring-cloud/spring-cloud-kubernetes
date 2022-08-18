@@ -50,6 +50,9 @@ abstract class NamedSecretWithProfileTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
+		// both "secret-one" and "secret-one-k8s" have the same property "one.property",
+		// but since non-profile based sources are used before profile based sources,
+		// properties from secret "secret-one-k8s" must be visible in our tests.
 		Map<String, String> one = Collections.singletonMap("one.property",
 				Base64.getEncoder().encodeToString("one".getBytes(StandardCharsets.UTF_8)));
 		Map<String, String> oneFromKubernetesProfile = Collections.singletonMap("one.property",

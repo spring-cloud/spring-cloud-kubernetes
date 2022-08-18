@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.config.boostrap.stubs;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
@@ -64,15 +65,21 @@ public class LabeledSecretWithProfileConfigurationStub {
 		return apiClient;
 	}
 
-	/*
-	 * <pre> - secret with name "color-secret", with labels: "{color: blue}" and
-	 * "explicitPrefix: blue" - secret with name "green-secret", with labels:
-	 * "{color: green}" and "explicitPrefix: blue-again" - secret with name "red-secret",
-	 * with labels "{color: not-red}" and "useNameAsPrefix: true" - secret with name
-	 * "yellow-secret" with labels "{color: not-yellow}" and useNameAsPrefix: true -
-	 * secret with name "color-secret-k8s", with labels : "{color: not-blue}" - secret
-	 * with name "green-secret-k8s", with labels : "{color: green-k8s}" - secret with name
-	 * "green-secret-prod", with labels : "{color: green-prod}" </pre>
+	/**
+	 * <pre>
+	 *     - secret with name "color-secret", with labels: "{color: blue}" and "explicitPrefix: blue"
+	 *     - secret with name "green-secret", with labels: "{color: green}" and "explicitPrefix: blue-again"
+	 *     - secret with name "red-secret", with labels "{color: not-red}" and "useNameAsPrefix: true"
+	 *     - secret with name "yellow-secret" with labels "{color: not-yellow}" and useNameAsPrefix: true
+	 *     - secret with name "color-secret-k8s", with labels : "{color: not-blue}"
+	 *     - secret with name "green-secret-k8s", with labels : "{color: green-k8s}"
+	 *     - secret with name "green-secret-prod", with labels : "{color: green-prod}"
+	 *
+	 *     # a test that proves order: first read non-profile based secrets, thus profile based
+	 *     # secrets override non-profile ones.
+	 *     - secret with name "green-purple-secret", labels "{color: green, shape: round}", data: "{eight: 8}"
+	 *     - secret with name "green-purple-secret-k8s", labels "{color: black}", data: "{eight: eight-ish}"
+	 * </pre>
 	 */
 	public static void stubData() {
 
@@ -80,42 +87,54 @@ public class LabeledSecretWithProfileConfigurationStub {
 		V1Secret colorSecret = new V1SecretBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("color-secret").withNamespace("spring-k8s")
 						.withLabels(Map.of("color", "blue")).build())
-				.addToData(Collections.singletonMap("one", "1".getBytes())).build();
+				.addToData(Collections.singletonMap("one", "1".getBytes(StandardCharsets.UTF_8))).build();
 
 		// is not taken, since "profileSpecificSources=false" for the above
 		V1Secret colorSecretK8s = new V1SecretBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("color-secret-k8s").withNamespace("spring-k8s")
 						.withLabels(Map.of("color", "not-blue")).build())
-				.addToData(Collections.singletonMap("five", "5".getBytes())).build();
+				.addToData(Collections.singletonMap("five", "5".getBytes(StandardCharsets.UTF_8))).build();
 
 		// is found by labels
 		V1Secret greenSecret = new V1SecretBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("green-secret").withNamespace("spring-k8s")
 						.withLabels(Map.of("color", "green")).build())
-				.addToData(Collections.singletonMap("two", "2".getBytes())).build();
+				.addToData(Collections.singletonMap("two", "2".getBytes(StandardCharsets.UTF_8))).build();
 
 		V1Secret greenSecretK8s = new V1SecretBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("green-secret-k8s").withNamespace("spring-k8s")
 						.withLabels(Map.of("color", "green-k8s")).build())
-				.addToData(Collections.singletonMap("six", "6".getBytes())).build();
+				.addToData(Collections.singletonMap("six", "6".getBytes(StandardCharsets.UTF_8))).build();
 
 		// is taken because prod profile is active and "profileSpecificSources=true"
 		V1Secret shapeSecretProd = new V1SecretBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("green-secret-prod").withNamespace("spring-k8s")
 						.withLabels(Map.of("color", "green-prod")).build())
-				.addToData(Collections.singletonMap("seven", "7".getBytes())).build();
+				.addToData(Collections.singletonMap("seven", "7".getBytes(StandardCharsets.UTF_8))).build();
 
 		// not taken
 		V1Secret redSecret = new V1SecretBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("red-secret").withNamespace("spring-k8s")
 						.withLabels(Map.of("color", "not-red")).build())
-				.addToData(Collections.singletonMap("three", "3".getBytes())).build();
+				.addToData(Collections.singletonMap("three", "3".getBytes(StandardCharsets.UTF_8))).build();
 
 		// not taken
 		V1Secret yellowSecret = new V1SecretBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("yellow-secret").withNamespace("spring-k8s")
 						.withLabels(Map.of("color", "not-yellow")).build())
-				.addToData(Collections.singletonMap("four", "4".getBytes())).build();
+				.addToData(Collections.singletonMap("four", "4".getBytes(StandardCharsets.UTF_8))).build();
+
+		// is found by labels
+		V1Secret greenPurpleSecret = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("green-purple-secret").withNamespace("spring-k8s")
+						.withLabels(Map.of("color", "green", "shape", "round")).build())
+				.addToData(Collections.singletonMap("eight", "8".getBytes(StandardCharsets.UTF_8))).build();
+
+		// is taken and thus overrides the above
+		V1Secret greenPurpleSecretK8s = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("green-purple-secret-k8s").withNamespace("spring-k8s")
+						.withLabels(Map.of("color", "black")).build())
+				.addToData(Collections.singletonMap("eight", "eight-ish".getBytes(StandardCharsets.UTF_8))).build();
 
 		// the actual stub for CoreV1Api calls
 		V1SecretList secrets = new V1SecretList();
@@ -126,6 +145,8 @@ public class LabeledSecretWithProfileConfigurationStub {
 		secrets.addItemsItem(shapeSecretProd);
 		secrets.addItemsItem(redSecret);
 		secrets.addItemsItem(yellowSecret);
+		secrets.addItemsItem(greenPurpleSecret);
+		secrets.addItemsItem(greenPurpleSecretK8s);
 
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/secrets")
 				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(secrets))));

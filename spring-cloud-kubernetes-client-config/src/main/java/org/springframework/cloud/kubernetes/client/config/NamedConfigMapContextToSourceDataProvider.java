@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.Set;
+import java.util.LinkedHashSet;
 import java.util.function.Supplier;
 
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
@@ -43,7 +43,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 
 			return new NamedSourceData() {
 				@Override
-				public MultipleSourcesContainer dataSupplier(Set<String> sourceNames) {
+				public MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames) {
 					return KubernetesClientConfigUtils.configMapsDataByName(context.client(), context.namespace(),
 							sourceNames, context.environment());
 				}

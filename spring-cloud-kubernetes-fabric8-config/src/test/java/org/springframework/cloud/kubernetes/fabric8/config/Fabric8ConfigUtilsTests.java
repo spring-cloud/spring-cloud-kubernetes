@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.Base64;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -211,7 +212,9 @@ class Fabric8ConfigUtilsTests {
 	void testSecretDataByNameSecretNotFound() {
 		client.secrets().inNamespace("spring-k8s").create(
 				new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build()).build());
-		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", Set.of("nope"),
+		LinkedHashSet<String> names = new LinkedHashSet<>();
+		names.add("nope");
+		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
 		Assertions.assertEquals(0, result.names().size());
 		Assertions.assertEquals(0, result.data().size());
@@ -223,9 +226,11 @@ class Fabric8ConfigUtilsTests {
 		client.secrets().inNamespace("spring-k8s")
 				.create(new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build())
 						.addToData(Map.of("property", Base64.getEncoder().encodeToString("value".getBytes()))).build());
+		LinkedHashSet<String> names = new LinkedHashSet<>();
+		names.add("my-secret");
 
-		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s",
-				Set.of("my-secret"), new MockEnvironment());
+		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
+				new MockEnvironment());
 		Assertions.assertEquals(1, result.names().size());
 		Assertions.assertEquals("value", result.data().get("property"));
 	}
@@ -242,9 +247,12 @@ class Fabric8ConfigUtilsTests {
 				.create(new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret-2").build())
 						.addToData(Map.of("property-2", Base64.getEncoder().encodeToString("value-2".getBytes())))
 						.build());
+		LinkedHashSet<String> names = new LinkedHashSet<>();
+		names.add("my-secret");
+		names.add("my-secret-2");
 
-		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s",
-				Set.of("my-secret", "my-secret-2"), new MockEnvironment());
+		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
+				new MockEnvironment());
 		Assertions.assertTrue(result.names().contains("my-secret"));
 		Assertions.assertTrue(result.names().contains("my-secret-2"));
 
@@ -259,8 +267,11 @@ class Fabric8ConfigUtilsTests {
 	void testConfigMapsDataByNameFoundNoData() {
 		client.configMaps().inNamespace("spring-k8s").create(
 				new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build()).build());
-		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s",
-				Set.of("my-config-map"), new MockEnvironment());
+		LinkedHashSet<String> names = new LinkedHashSet<>();
+		names.add("my-config-map");
+
+		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
+				new MockEnvironment());
 		Assertions.assertEquals(Set.of("my-config-map"), result.names());
 		Assertions.assertTrue(result.data().isEmpty());
 	}
@@ -270,8 +281,10 @@ class Fabric8ConfigUtilsTests {
 	void testConfigMapsDataByNameNotFound() {
 		client.configMaps().inNamespace("spring-k8s").create(
 				new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build()).build());
-		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s",
-				Set.of("my-config-map-not-found"), new MockEnvironment());
+		LinkedHashSet<String> names = new LinkedHashSet<>();
+		names.add("my-config-map-not-found");
+		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
+				new MockEnvironment());
 		Assertions.assertEquals(Set.of(), result.names());
 		Assertions.assertTrue(result.data().isEmpty());
 	}
@@ -283,8 +296,11 @@ class Fabric8ConfigUtilsTests {
 				.create(new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build())
 						.addToData(Map.of("property", "value")).build());
 
-		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s",
-				Set.of("my-config-map"), new MockEnvironment());
+		LinkedHashSet<String> names = new LinkedHashSet<>();
+		names.add("my-config-map");
+
+		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
+				new MockEnvironment());
 		Assertions.assertEquals(Set.of("my-config-map"), result.names());
 		Assertions.assertEquals(Map.of("property", "value"), result.data());
 	}
@@ -297,8 +313,11 @@ class Fabric8ConfigUtilsTests {
 				.create(new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build())
 						.addToData(Map.of("application.yaml", "key1: value1")).build());
 
-		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s",
-				Set.of("my-config-map"), new MockEnvironment());
+		LinkedHashSet<String> names = new LinkedHashSet<>();
+		names.add("my-config-map");
+
+		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
+				new MockEnvironment());
 		Assertions.assertEquals(Set.of("my-config-map"), result.names());
 		Assertions.assertEquals(Map.of("key1", "value1"), result.data());
 	}
@@ -315,8 +334,12 @@ class Fabric8ConfigUtilsTests {
 				.create(new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map-2").build())
 						.addToData(Map.of("property-2", "value-2")).build());
 
-		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s",
-				Set.of("my-config-map", "my-config-map-2"), new MockEnvironment());
+		LinkedHashSet<String> names = new LinkedHashSet<>();
+		names.add("my-config-map");
+		names.add("my-config-map-2");
+
+		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
+				new MockEnvironment());
 		Assertions.assertTrue(result.names().contains("my-config-map"));
 		Assertions.assertTrue(result.names().contains("my-config-map-2"));
 

@@ -64,6 +64,12 @@ public class NamedSecretWithProfileConfigurationStub {
 	}
 
 	public static void stubData() {
+
+		// "one" and "oneWithProfile" also prove the fact that the right order is
+		// preserved: first non-profile based
+		// and only after profile based sources. Thus, properties from "one" are
+		// overridden by the ones from "oneWithProfile".
+		// We have a test that asserts this.
 		V1Secret one = new V1SecretBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("secret-one").withNamespace("spring-k8s")
 						.withResourceVersion("1").build())

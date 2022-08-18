@@ -40,7 +40,7 @@ public class LabeledSecretWithProfileController {
 
 	@GetMapping("/labeled-secret/profile/green")
 	public String green() {
-		return green.getTwo() + "#" + green.getSix() + "#" + green.getSeven();
+		return green.getTwo() + "#" + green.getSix() + "#" + green.getSeven() + "#" + green.getEight();
 	}
 
 }
