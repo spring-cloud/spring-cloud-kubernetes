@@ -36,7 +36,6 @@ public final class KubernetesDiscoveryClientHealthIndicatorInitializer implement
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
-
 	@Override
 	public void afterPropertiesSet() {
 		this.applicationEventPublisher.publishEvent(new InstanceRegisteredEvent<>(podUtils.currentPod(), null));
