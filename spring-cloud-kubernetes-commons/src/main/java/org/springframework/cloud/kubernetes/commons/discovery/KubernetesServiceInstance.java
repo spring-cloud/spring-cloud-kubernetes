@@ -21,8 +21,9 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.core.style.ToStringCreator;
 
-public class KubernetesServiceInstance implements ServiceInstance {
+public final class KubernetesServiceInstance implements ServiceInstance {
 
 	/**
 	 * Key of the namespace metadata.
@@ -32,10 +33,6 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	private static final String HTTP_PREFIX = "http";
 
 	private static final String HTTPS_PREFIX = "https";
-
-	private static final String DSL = "//";
-
-	private static final String COLON = ":";
 
 	private String instanceId;
 
@@ -61,7 +58,7 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	 * @param host the address where the service instance can be found.
 	 * @param port the port on which the service is running.
 	 * @param metadata a map containing metadata.
-	 * @param secure indicates whether or not the connection needs to be secure.
+	 * @param secure indicates whether the connection needs to be secure.
 	 */
 	public KubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
 			Map<String, String> metadata, Boolean secure) {
@@ -82,9 +79,9 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	 * @param host the address where the service instance can be found.
 	 * @param port the port on which the service is running.
 	 * @param metadata a map containing metadata.
-	 * @param secure indicates whether or not the connection needs to be secure.
+	 * @param secure indicates whether the connection needs to be secure.
 	 * @param namespace the namespace of the service.
-	 * @param cluster the clust the service resides in.
+	 * @param cluster the cluster the service resides in.
 	 */
 	public KubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
 			Map<String, String> metadata, Boolean secure, String namespace, String cluster) {
@@ -143,7 +140,7 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	}
 
 	private URI createUri(String scheme, String host, int port) {
-		return URI.create(scheme + COLON + DSL + host + COLON + port);
+		return URI.create(scheme + "://" + host + ":" + port);
 	}
 
 	public String getNamespace() {
@@ -212,9 +209,18 @@ public class KubernetesServiceInstance implements ServiceInstance {
 
 	@Override
 	public String toString() {
-		return "KubernetesServiceInstance{" + "instanceId='" + instanceId + '\'' + ", serviceId='" + serviceId + '\''
-				+ ", host='" + host + '\'' + ", port=" + port + ", uri=" + uri + ", secure=" + secure + ", namespace="
-				+ getNamespace() + ", cluster=" + cluster + ", metadata=" + metadata + '}';
+		ToStringCreator creator = new ToStringCreator(this);
+		creator.append("instanceId", instanceId);
+		creator.append("serviceId", serviceId);
+		creator.append("host", host);
+		creator.append("port", port);
+		creator.append("uri", uri);
+		creator.append("secure", secure);
+		creator.append("namespace", getNamespace());
+		creator.append("cluster", cluster);
+		creator.append("metadata", metadata);
+
+		return creator.toString();
 	}
 
 	@Override
