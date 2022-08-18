@@ -52,6 +52,6 @@ spec:
 
             # we have enabled auto creation of topics and when this happens there is a replication factor of 3
             # that is set automatically. Since we don't have that many, producers will fail.
-            # This setting esures that there is just one replication
+            # This setting ensures that there is just one replication
             - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
               value: 1
