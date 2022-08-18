@@ -24,25 +24,21 @@ import org.springframework.context.ApplicationEventPublisher;
 /**
  * @author Ryan Baxter
  */
-public class KubernetesDiscoveryClientHealthIndicatorInitializer implements InitializingBean {
+public final class KubernetesDiscoveryClientHealthIndicatorInitializer implements InitializingBean {
 
-	private PodUtils podUtils;
+	private final PodUtils<?> podUtils;
 
-	private ApplicationEventPublisher applicationEventPublisher;
+	private final ApplicationEventPublisher applicationEventPublisher;
 
-	public KubernetesDiscoveryClientHealthIndicatorInitializer(PodUtils podUtils,
+	public KubernetesDiscoveryClientHealthIndicatorInitializer(PodUtils<?> podUtils,
 			ApplicationEventPublisher applicationEventPublisher) {
 		this.podUtils = podUtils;
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
-	public void initialize() {
-		this.applicationEventPublisher.publishEvent(new InstanceRegisteredEvent<>(podUtils.currentPod(), null));
-	}
-
 	@Override
 	public void afterPropertiesSet() {
-		this.initialize();
+		this.applicationEventPublisher.publishEvent(new InstanceRegisteredEvent<>(podUtils.currentPod(), null));
 	}
 
 }

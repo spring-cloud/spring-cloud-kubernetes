@@ -55,11 +55,6 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-		<!--
-			We need that(actuator) so that it can be used in readiness probes.
-			Readiness checks are needed by arquillian, so that it
-			knows when to run the actual test.
-		-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>

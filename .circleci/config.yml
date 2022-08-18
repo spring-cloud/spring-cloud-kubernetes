@@ -1,18 +1,132 @@
-#
-# Copyright (C) 2018 to the original authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#         https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+
+################################################################################################################################################################
+################################################################   common stuff ################################################################################
+################################################################################################################################################################
+
+commands:
+
+  # download any cache if its already present based on branch and hash of the pom
+  restore_main_cache:
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - spring-cloud-kubernetes-pom-based-cache-{{ .Branch }}-{{ checksum "pom.xml" }}
+
+  checkout-code-then-restore-cache-then-attach-workspace:
+    steps:
+      - checkout
+      # we need this step because we run maven with "-U" and thus update snapshots,
+      # later we use this key for the cache, where snapshots are already updated
+      # in the build step, this one will be a NOOP; in all steps that follow
+      # this will be populated with the latest snapshots.
+      - restore_cache:
+          keys:
+            - spring-cloud-kubernetes-per-run-based-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+      - attach_workspace:
+          at: /tmp/docker
+
+  persist-workspace-then-save-cache:
+    steps:
+      - persist_to_workspace:
+          root: /tmp/docker/
+          paths:
+            - images
+
+      # save both caches. first one is pom based, meaning it changes when pom changes
+      # the second one is specific per this run only, and it includes the latest snapshots
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: spring-cloud-kubernetes-per-run-based-cache-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: spring-cloud-kubernetes-pom-based-cache-{{ .Branch }}-{{ checksum "pom.xml" }}
+
+  build-project-then-save-docker-images:
+    steps:
+      - run:
+          name: build
+          command: |
+            ./mvnw -s .settings.xml -T 1C clean install -U -DskipTests
+      - run:
+          name: save docker images
+          command: |
+            TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+            echo $TAG
+            mkdir -p /tmp/docker/images/
+
+            cd spring-cloud-kubernetes-controllers
+            while read controller_image; do
+                docker save -o /tmp/docker/images/${controller_image}.tar docker.io/springcloud/${controller_image}:$TAG
+            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-controllers')
+            cd ..
+
+            cd spring-cloud-kubernetes-integration-tests
+            while read integ_test; do
+                docker save -o /tmp/docker/images/${integ_test}.tar docker.io/springcloud/${integ_test}:$TAG
+            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-integration-tests')
+            cd ..
+
+            VIEW=$(ls -l /tmp/docker/images)
+            echo "${VIEW}"
+
+  build-fabric8-istio-integration-test:
+    steps:
+      - run:
+         name: Run fabric8 istio test
+         command: |
+
+           # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
+           # otherwise (since we use static ports) there might be two instances starting at the same time, and ports might conflict
+           ###########################################################################################################################
+           ######################################## Build test support dependency and Run test #######################################
+           cd spring-cloud-kubernetes-test-support
+           .././mvnw clean install
+           cd ..
+
+           docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-istio-it.tar
+
+           cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
+           ../.././mvnw clean install -Dskip.build.image=true
+           cd ../..
+
+  enable-test-containers-reuse-support:
+    steps:
+      - run:
+          name: testcontainers reuse support
+          command: |
+            # needed for .withReuse(true) to work
+            echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
+
+  load-docker-images:
+    steps:
+      - run:
+          name: Load Controller Images From Workspace
+          command: |
+            VIEW=$(ls -l /tmp/docker/images)
+            echo "${VIEW}"
+
+            # get the name of the images to load from children of spring-cloud-kubernetes-controllers
+            cd spring-cloud-kubernetes-controllers
+            while read controller_image; do
+                docker load -i /tmp/docker/images/${controller_image}.tar
+            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-controllers')
+            cd ..
+
+            # get the name of the images to load from children of spring-cloud-kubernetes-integration-tests
+            cd spring-cloud-kubernetes-integration-tests
+            while read integration_test_image; do
+                 docker load -i /tmp/docker/images/${integration_test_image}.tar
+            done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-integration-tests')
+            cd ..
+
+
+################################################################################################################################################################
+################################################################################################################################################################
+################################################################################################################################################################
 
 orbs:
   kube-orb: circleci/kubernetes@0.11.0
@@ -29,30 +143,35 @@ workflows:
           requires:
             - fabric8_istio
 jobs:
+
+  build:
+    machine:
+      image: ubuntu-2204:2022.04.1
+    environment:
+      _JAVA_OPTIONS: "-Xms2g -Xmx2g"
+    steps:
+      - restore_main_cache
+      - checkout-code-then-restore-cache-then-attach-workspace
+      - build-project-then-save-docker-images
+      - persist-workspace-then-save-cache
+
+  fabric8_istio:
+    machine:
+      image: ubuntu-2204:2022.04.1
+    steps:
+      - checkout-code-then-restore-cache-then-attach-workspace
+      - build-fabric8-istio-integration-test
+
   test:
-    parallelism: 5 # parallel containers to split the tests among
+    parallelism: 10 # parallel containers to split the tests among
     machine:
       image: ubuntu-2204:2022.04.1
     environment:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
-      _SERVICE_OCCURENCE: 5
     steps:
-      - run:
-          name: testcontainers reuse support
-          command: |
-            # needed for .withReuse(true) to work
-            echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
-      - checkout
-      - attach_workspace:
-          at: /tmp/docker
-      - run:
-          name: Load Controller Images From Workspace
-          command: |
-            VIEW=$(ls -l /tmp/docker/images)
-            echo "${VIEW}"
-            docker load -i /tmp/docker/images/spring-cloud-kubernetes-configuration-watcher.tar
-            docker load -i /tmp/docker/images/spring-cloud-kubernetes-discoveryserver.tar
-            docker load -i /tmp/docker/images/spring-cloud-kubernetes-configserver.tar
+      - checkout-code-then-restore-cache-then-attach-workspace
+      - enable-test-containers-reuse-support
+      - load-docker-images
       - run:
           name: Run regular tests
           command: |
@@ -60,22 +179,85 @@ jobs:
             ###########################################################################################################################
             ################################################# Build test support dependency ###########################################
             cd spring-cloud-kubernetes-test-support
-            .././mvnw clean install
+             .././mvnw clean install
             cd ..
 
             ###########################################################################################################################
             ##################################################### Split and run tests #################################################
-            CLASSNAMES=$(circleci tests glob "**/src/test/**/**.java" | grep -v 'Fabric8IstioIT' \
-                               | xargs grep -l '@Test' \
-                               | sed 's/.*src.test.java.//g' | sed 's@/@.@g' \
-                               | sed 's/.\{5\}$//' \
-                               | circleci tests split --split-by=timings)
-            echo $CLASSNAMES
-            TEST_ARG=$(echo $CLASSNAMES | sed 's/ /,/g')
-            echo $TEST_ARG
-            ./mvnw -s .settings.xml  -DfailIfNoTests=false -DtestsToRun=$TEST_ARG -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install \
-                   -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true \
-                   -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+
+            # - find all tests
+            # - exclude Fabric8IstionIT
+            # - only take classes that have @Test inside them
+            # - ignore the ones that have 'abstract class'. we do this because otherwise we would pass
+            #   to -DtestsToRun an abstract class, and it will not run anything.
+            # - drop the "begining" xxx/src/test/java
+            # - replace / with .
+            # - drop last ".java"
+            # - replace newline with space
+
+            PLAIN_TEST_CLASSNAMES=($(find . -name '*.java' \
+                    | grep 'src/test/java' \
+                    | grep -v 'Fabric8IstioIT' \
+                    | xargs grep -l '@Test' \
+                    | xargs grep -L 'abstract class' \
+                    | sed 's/.*src.test.java.//g' \
+                    | sed 's@/@.@g' \
+                    | sed 's/.\{5\}$//'))
+
+            # classes that have @Test and are abstract, for example: "LabeledSecretWithPrefixTests"
+            # - exclude Fabric8IstionIT
+            # - only take classes that have @Test inside them
+            # - only take classes that are abstract
+            # - drop everything up until the last "/"
+            # - drop ".java"
+
+            ABSTRACT_TEST_CLASSNAMES_COMMAND="find . -name '*.java' \
+                    | grep  'src/test/java' \
+                    | grep -v 'Fabric8IstioIT' \
+                    | xargs grep -l '@Test' \
+                    | xargs grep -l 'abstract class' \
+                    | sed 's/.*\///g' \
+                    | sed 's/.java//g'"
+
+            # find classes that extend abstract test classes
+            DERIVED_FROM_ABSTRACT_CLASSES_COMMAND="find . -name '*.java' \
+                    | grep  'src/test/java' \
+                    | grep -v 'Fabric8IstioIT' \
+                    | xargs grep -l 'extends replace_me ' \
+                    | sed 's/.*src.test.java.//g' \
+                    | sed 's@/@.@g' \
+                    | sed 's/.\{5\}$//'"
+
+            while read class_name; do
+              replaced=$(echo ${DERIVED_FROM_ABSTRACT_CLASSES_COMMAND/replace_me/"$class_name"})
+              result=($(eval $replaced))
+              PLAIN_TEST_CLASSNAMES+=(${result[@]})
+            done < <(eval $ABSTRACT_TEST_CLASSNAMES_COMMAND)
+
+            IFS=$'\n'
+            SORTED_TEST_CLASSNAMES=( $(sort \<<< "${PLAIN_TEST_CLASSNAMES[*]}" | uniq -u) )
+            unset IFS
+
+            printf "%s\n" "${SORTED_TEST_CLASSNAMES[@]}" > file.txt
+            CLASSNAMES=( $(cat file.txt | circleci tests split --split-by=timings) )
+            rm file.txt
+
+            TEST_ARG=$(echo ${CLASSNAMES[@]} | sed 's/ /,/g')
+            echo '----------------------- tests ---------------------'
+            echo ${TEST_ARG[@]}
+            echo '---------------------------------------------------'
+
+            ./mvnw -s .settings.xml \
+                  -DtestsToRun=${TEST_ARG[@]} \
+                  -e clean install \
+                  -U -P sonar -nsu --batch-mode \
+                  -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+                  -Dhttp.keepAlive=false \
+                  -Dmaven.wagon.http.pool=false \
+                  -Dmaven.wagon.http.retryHandler.class=standard \
+                  -Dmaven.wagon.http.retryHandler.count=3 \
+                  -Dskip.build.image=true
+
             mkdir -p $HOME/artifacts/junit/
             find . -type f -regex ".*/spring-cloud-*.*/target/*.*" -exec cp {} $HOME/artifacts/ \;
             find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $HOME/artifacts/junit/ \;
@@ -94,72 +276,6 @@ jobs:
       - store_test_results:
           path: ~/junit/
           destination: testartifacts
-  build:
-    machine:
-      image: ubuntu-2204:2022.04.1
-    environment:
-      _JAVA_OPTIONS: "-Xms2g -Xmx2g"
-      _SERVICE_OCCURENCE: 5
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - spring-cloud-kubernetes-{{ .Branch }}
-            - spring-cloud-kubernetes
-      - run:
-          name: dependencies
-          command: |
-            ./mvnw -s .settings.xml -U dependency:resolve-plugins dependency:go-offline -B -Dservice.occurence=${_SERVICE_OCCURENCE} || true
-      - run:
-          name: build
-          command: |
-            ./mvnw -s .settings.xml clean install -Dservice.occurence=${_SERVICE_OCCURENCE} -DskipTests
-      - run:
-          name: save docker images
-          command: |
-            TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
-            echo $TAG
-            mkdir -p /tmp/docker/images/
-            docker save -o /tmp/docker/images/spring-cloud-kubernetes-configuration-watcher.tar docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher:${TAG}
-            docker save -o /tmp/docker/images/spring-cloud-kubernetes-discoveryserver.tar docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:${TAG}
-            docker save -o /tmp/docker/images/spring-cloud-kubernetes-configserver.tar docker.io/springcloud/spring-cloud-kubernetes-configserver:${TAG}
-            VIEW=$(ls -l /tmp/docker/images)
-            echo "${VIEW}"
-      - persist_to_workspace:
-          root: /tmp/docker/
-          paths:
-            - images
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-  fabric8_istio:
-    machine:
-      image: ubuntu-2204:2022.04.1
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - spring-cloud-kubernetes-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - spring-cloud-kubernetes-{{ .Branch }}
-            - spring-cloud-kubernetes
-      - run:
-          name: Run fabric8 istio test
-          command: |
-
-            # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
-            # otherwise (since we use static ports) there might be two instances starting at the same time, and ports might conflict
-
-            ###########################################################################################################################
-            ######################################## Build test support dependency and Run test #######################################
-            cd spring-cloud-kubernetes-test-support
-            .././mvnw clean install
-            cd ..
-
-            cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
-            ../.././mvnw clean install
-            cd ../..
 notify:
   webhooks:
     - url: https://webhooks.gitter.im/e/22e6bb4eb945dd61ba54
