@@ -18,12 +18,14 @@ spec:
         component: zookeeper
     spec:
       containers:
-      - name: zookeeper
-        image: zookeeper:3.6.2
-        ports:
-        - containerPort: 2181
-        env:
-        - name: ZOOKEEPER_ID
-          value: "1"
-        - name: ZOOKEEPER_SERVER_1
-          value: zookeeper
+        - name: zookeeper
+          image: confluentinc/cp-zookeeper:7.2.1
+          ports:
+            - containerPort: 2181
+          env:
+            - name: ZOOKEEPER_ID
+              value: "1"
+            - name: ZOOKEEPER_SERVER_1
+              value: zookeeper
+            - name: ZOOKEEPER_CLIENT_PORT
+              value: 2181
