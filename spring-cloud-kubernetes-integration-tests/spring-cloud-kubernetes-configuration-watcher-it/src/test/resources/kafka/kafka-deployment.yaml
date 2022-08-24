@@ -33,9 +33,6 @@ spec:
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
               value: "INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT"
 
-            - name: KAFKA_ZOOKEEPER_CONNECT
-              value: "INTERNAL://kafka:9092,OUTSIDE://localhost:9094"
-
             - name: KAFKA_ADVERTISED_LISTENERS
               value: "INTERNAL://kafka:9092,OUTSIDE://localhost:9094"
 
