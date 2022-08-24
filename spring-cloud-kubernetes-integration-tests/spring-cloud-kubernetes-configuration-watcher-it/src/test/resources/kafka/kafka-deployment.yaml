@@ -2,24 +2,21 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: kafka
-    component: kafka-broker
-  name: kafka-broker
+    app: kafka-2
+    component: kafka-broker-2
+  name: kafka-broker-2
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kafka
-      component: kafka-broker
+      app: kafka-2
+      component: kafka-broker-2
   template:
     metadata:
       labels:
-        app: kafka
-        component: kafka-broker
+        app: kafka-2
+        component: kafka-broker-2
     spec:
-      # otherwise we will get an env var "KAFKA_PORT" (from service name: "kafka" and appended with "_PORT")
-      # and this will cause this problem: https://github.com/confluentinc/cp-docker-images/blob/master/debian/kafka/include/etc/confluent/docker/configure#L58-L62
-      # Another solution is to rename the service.
       enableServiceLinks: false
       containers:
         - name: kafka
@@ -28,13 +25,13 @@ spec:
             - containerPort: 9092
           env:
             - name: KAFKA_LISTENERS
-              value: "INTERNAL://0.0.0.0:9092,OUTSIDE://0.0.0.0:9094"
+              value: "INTERNAL://0.0.0.0:9091,OUTSIDE://0.0.0.0:9093"
 
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
               value: "INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT"
 
             - name: KAFKA_ADVERTISED_LISTENERS
-              value: "INTERNAL://kafka:9092,OUTSIDE://localhost:9094"
+              value: "INTERNAL://kafka:9091,OUTSIDE://localhost:9093"
 
             - name: KAFKA_INTER_BROKER_LISTENER_NAME
               value: "INTERNAL"
@@ -47,8 +44,5 @@ spec:
             - name: KAFKA_ZOOKEEPER_CONNECT
               value: zookeeper:2181
 
-            # we have enabled auto creation of topics and when this happens there is a replication factor of 3
-            # that is set automatically. Since we don't have that many, producers will fail.
-            # This setting ensures that there is just one replication
             - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
-              value: 1
+              value: "1"
