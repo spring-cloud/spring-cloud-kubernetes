@@ -28,14 +28,17 @@ import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformer;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySource;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.namespaces;
 
@@ -48,6 +51,9 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
  * @author Kris Iyer
  */
 public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeDetector {
+
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(Fabric8EventBasedSecretsChangeDetector.class));
 
 	private final Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator;
 
@@ -84,18 +90,18 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 	@PostConstruct
 	private void inform() {
 		if (monitorSecrets) {
-			log.info("Kubernetes event-based secrets change detector activated");
+			LOG.info("Kubernetes event-based secrets change detector activated");
 
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<Secret> informer;
 				if (enableReloadFiltering) {
 					informer = kubernetesClient.secrets().inNamespace(namespace)
 							.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true")).inform();
-					log.debug("added secret informer for namespace : " + namespace + " with enabled filter");
+					LOG.debug("added secret informer for namespace : " + namespace + " with enabled filter");
 				}
 				else {
 					informer = kubernetesClient.secrets().inNamespace(namespace).inform();
-					log.debug("added secret informer for namespace : " + namespace);
+					LOG.debug("added secret informer for namespace : " + namespace);
 				}
 
 				informer.addEventHandler(new SecretInformerAwareEventHandler(informer));
@@ -105,13 +111,13 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 	}
 
 	protected void onEvent(Secret secret) {
-		log.debug("onEvent secrets: " + secret.toString());
-		boolean changed = changed(locateMapPropertySources(fabric8SecretsPropertySourceLocator, environment),
-				findPropertySources(Fabric8SecretsPropertySource.class));
-		if (changed) {
-			log.info("Detected change in secrets");
+
+		boolean reload = ConfigReloadUtil.reload("secrets", secret.toString(), fabric8SecretsPropertySourceLocator,
+				environment, Fabric8SecretsPropertySource.class);
+		if (reload) {
 			reloadProperties();
 		}
+
 	}
 
 	private final class SecretInformerAwareEventHandler implements ResourceEventHandler<Secret> {
@@ -124,27 +130,27 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 		@Override
 		public void onAdd(Secret secret) {
-			log.debug("Secret " + secret.getMetadata().getName() + " was added.");
+			LOG.debug("Secret " + secret.getMetadata().getName() + " was added.");
 			onEvent(secret);
 		}
 
 		@Override
 		public void onUpdate(Secret oldSecret, Secret newSecret) {
-			log.debug("Secret " + newSecret.getMetadata().getName() + " was updated.");
+			LOG.debug("Secret " + newSecret.getMetadata().getName() + " was updated.");
 			onEvent(newSecret);
 		}
 
 		@Override
 		public void onDelete(Secret secret, boolean deletedFinalStateUnknown) {
-			log.debug("Secret " + secret.getMetadata().getName() + " was deleted.");
+			LOG.debug("Secret " + secret.getMetadata().getName() + " was deleted.");
 			onEvent(secret);
 		}
 
 		@Override
 		public void onNothing() {
 			List<Secret> store = informer.getStore().list();
-			log.info("onNothing called with a store of size : " + store.size());
-			log.info("this might be an indication of a HTTP_GONE code");
+			LOG.info("onNothing called with a store of size : " + store.size());
+			LOG.info("this might be an indication of a HTTP_GONE code");
 		}
 
 	}
