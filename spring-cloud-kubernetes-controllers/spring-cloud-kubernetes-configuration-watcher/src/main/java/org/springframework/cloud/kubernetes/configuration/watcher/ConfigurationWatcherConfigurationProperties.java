@@ -28,8 +28,14 @@ import org.springframework.boot.convert.DurationUnit;
 @ConfigurationProperties("spring.cloud.kubernetes.configuration.watcher")
 public class ConfigurationWatcherConfigurationProperties {
 
+	/**
+	 * label to enable refresh/restart when using configmaps.
+	 */
 	public static final String CONFIG_LABEL = "spring.cloud.kubernetes.config";
 
+	/**
+	 * label to enable refresh/restart when using secrets.
+	 */
 	public static final String SECRET_LABEL = "spring.cloud.kubernetes.secret";
 
 	/**
