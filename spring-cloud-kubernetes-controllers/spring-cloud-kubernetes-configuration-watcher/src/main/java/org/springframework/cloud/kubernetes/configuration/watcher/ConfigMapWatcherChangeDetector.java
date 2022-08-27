@@ -89,7 +89,7 @@ public abstract class ConfigMapWatcherChangeDetector extends KubernetesClientEve
 			return false;
 		}
 		return Boolean.parseBoolean(configMap.getMetadata().getLabels()
-				.getOrDefault(ConfigurationWatcherConfigurationProperties.SECRET_LABEL, "false"));
+				.getOrDefault(ConfigurationWatcherConfigurationProperties.CONFIG_LABEL, "false"));
 	}
 
 	protected abstract Mono<Void> triggerRefresh(V1ConfigMap configMap);
