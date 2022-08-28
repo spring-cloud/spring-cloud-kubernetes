@@ -58,16 +58,6 @@ public abstract class SecretsWatcherChangeDetector extends KubernetesClientEvent
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
 	}
 
-	protected boolean isSpringCloudKubernetesSecret(V1Secret secret) {
-		if (secret.getMetadata() == null || secret.getMetadata().getLabels() == null) {
-			return false;
-		}
-		return Boolean.parseBoolean(secret.getMetadata().getLabels()
-				.getOrDefault(ConfigurationWatcherConfigurationProperties.SECRET_LABEL, "false"));
-	}
-
-	protected abstract Mono<Void> triggerRefresh(V1Secret secret);
-
 	@Override
 	protected void onEvent(V1Secret secret) {
 		if (isSpringCloudKubernetesSecret(secret)) {
@@ -91,6 +81,16 @@ public abstract class SecretsWatcherChangeDetector extends KubernetesClientEvent
 						+ " does not contain the label " + ConfigurationWatcherConfigurationProperties.SECRET_LABEL);
 			}
 		}
+	}
+
+	protected abstract Mono<Void> triggerRefresh(V1Secret secret);
+
+	private boolean isSpringCloudKubernetesSecret(V1Secret secret) {
+		if (secret.getMetadata() == null || secret.getMetadata().getLabels() == null) {
+			return false;
+		}
+		return Boolean.parseBoolean(secret.getMetadata().getLabels()
+				.getOrDefault(ConfigurationWatcherConfigurationProperties.SECRET_LABEL, "false"));
 	}
 
 }
