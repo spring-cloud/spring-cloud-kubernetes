@@ -18,13 +18,9 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1Secret;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
@@ -34,17 +30,18 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationU
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import static org.springframework.cloud.kubernetes.configuration.watcher.WatcherUtil.isSpringCloudKubernetes;
+
 /**
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-public abstract class SecretsWatcherChangeDetector extends KubernetesClientEventBasedSecretsChangeDetector {
-
-	protected Log log = LogFactory.getLog(getClass());
+public abstract class SecretsWatcherChangeDetector extends KubernetesClientEventBasedSecretsChangeDetector
+		implements RefreshTrigger {
 
 	private final ScheduledExecutorService executorService;
 
-	protected ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
+	private final long refreshDelay;
 
 	public SecretsWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
@@ -55,42 +52,16 @@ public abstract class SecretsWatcherChangeDetector extends KubernetesClientEvent
 		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider);
 		this.executorService = Executors.newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(),
 				threadPoolTaskExecutor);
-		this.k8SConfigurationProperties = k8SConfigurationProperties;
+		this.refreshDelay = k8SConfigurationProperties.getRefreshDelay().toMillis();
 	}
 
 	@Override
-	protected void onEvent(V1Secret secret) {
-		if (isSpringCloudKubernetesSecret(secret)) {
-			if (log.isDebugEnabled()) {
-				log.debug("Scheduling remote refresh event to be published for Secret " + secret.getMetadata().getName()
-						+ " to be published in " + k8SConfigurationProperties.getRefreshDelay().toMillis()
-						+ " milliseconds");
-			}
-			executorService.schedule(() -> {
-				try {
-					triggerRefresh(secret).subscribe();
-				}
-				catch (Throwable t) {
-					log.warn("Error when refreshing ConfigMap " + secret.getMetadata().getName(), t);
-				}
-			}, k8SConfigurationProperties.getRefreshDelay().toMillis(), TimeUnit.MILLISECONDS);
-		}
-		else {
-			if (log.isDebugEnabled()) {
-				log.debug("Not publishing event. Secret " + secret.getMetadata().getName()
-						+ " does not contain the label " + ConfigurationWatcherConfigurationProperties.SECRET_LABEL);
-			}
-		}
-	}
+	protected void onEvent(KubernetesObject secret) {
+		boolean isSpringCloudKubernetes = isSpringCloudKubernetes(
+			secret, ConfigurationWatcherConfigurationProperties.SECRET_LABEL);
 
-	protected abstract Mono<Void> triggerRefresh(V1Secret secret);
-
-	private boolean isSpringCloudKubernetesSecret(V1Secret secret) {
-		if (secret.getMetadata() == null || secret.getMetadata().getLabels() == null) {
-			return false;
-		}
-		return Boolean.parseBoolean(secret.getMetadata().getLabels()
-				.getOrDefault(ConfigurationWatcherConfigurationProperties.SECRET_LABEL, "false"));
+		WatcherUtil.onEvent(isSpringCloudKubernetes, secret, ConfigurationWatcherConfigurationProperties.SECRET_LABEL,
+			refreshDelay, executorService, "secret", this::triggerRefresh);
 	}
 
 }

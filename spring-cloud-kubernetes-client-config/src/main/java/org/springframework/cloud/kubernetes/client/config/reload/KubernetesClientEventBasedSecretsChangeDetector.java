@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -144,7 +145,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		factory.stopAllRegisteredInformers();
 	}
 
-	protected void onEvent(V1Secret secret) {
+	protected void onEvent(KubernetesObject secret) {
 		boolean reload = ConfigReloadUtil.reload("secrets", secret.toString(), propertySourceLocator, environment,
 				KubernetesClientSecretsPropertySource.class);
 		if (reload) {

@@ -18,13 +18,9 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
@@ -34,17 +30,18 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationU
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import static org.springframework.cloud.kubernetes.configuration.watcher.WatcherUtil.isSpringCloudKubernetes;
+
 /**
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-public abstract class ConfigMapWatcherChangeDetector extends KubernetesClientEventBasedConfigMapChangeDetector {
-
-	protected Log log = LogFactory.getLog(getClass());
+public abstract class ConfigMapWatcherChangeDetector extends KubernetesClientEventBasedConfigMapChangeDetector
+		implements RefreshTrigger {
 
 	private final ScheduledExecutorService executorService;
 
-	protected ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
+	private final long refreshDelay;
 
 	public ConfigMapWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
@@ -53,45 +50,18 @@ public abstract class ConfigMapWatcherChangeDetector extends KubernetesClientEve
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
 		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider);
-
 		this.executorService = Executors.newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(),
 				threadPoolTaskExecutor);
-		this.k8SConfigurationProperties = k8SConfigurationProperties;
+		this.refreshDelay = k8SConfigurationProperties.getRefreshDelay().toMillis();
 	}
 
 	@Override
-	protected void onEvent(V1ConfigMap configMap) {
-		if (isSpringCloudKubernetesConfig(configMap)) {
-			if (log.isDebugEnabled()) {
-				log.debug("Scheduling remote refresh event to be published for ConfigMap "
-						+ configMap.getMetadata().getName() + " to be published in "
-						+ k8SConfigurationProperties.getRefreshDelay().toMillis() + " milliseconds");
-			}
-			executorService.schedule(() -> {
-				try {
-					triggerRefresh(configMap).subscribe();
-				}
-				catch (Throwable t) {
-					log.warn("Error when refreshing ConfigMap " + configMap.getMetadata().getName(), t);
-				}
-			}, k8SConfigurationProperties.getRefreshDelay().toMillis(), TimeUnit.MILLISECONDS);
-		}
-		else {
-			if (log.isDebugEnabled()) {
-				log.debug("Not publishing event. ConfigMap " + configMap.getMetadata().getName()
-						+ " does not contain the label " + ConfigurationWatcherConfigurationProperties.CONFIG_LABEL);
-			}
-		}
-	}
+	protected void onEvent(KubernetesObject configMap) {
+		boolean isSpringCloudKubernetes = isSpringCloudKubernetes(
+			configMap, ConfigurationWatcherConfigurationProperties.CONFIG_LABEL);
 
-	protected abstract Mono<Void> triggerRefresh(V1ConfigMap configMap);
-
-	private boolean isSpringCloudKubernetesConfig(V1ConfigMap configMap) {
-		if (configMap.getMetadata() == null || configMap.getMetadata().getLabels() == null) {
-			return false;
-		}
-		return Boolean.parseBoolean(configMap.getMetadata().getLabels()
-				.getOrDefault(ConfigurationWatcherConfigurationProperties.CONFIG_LABEL, "false"));
+		WatcherUtil.onEvent(isSpringCloudKubernetes, configMap, ConfigurationWatcherConfigurationProperties.CONFIG_LABEL,
+			refreshDelay, executorService, "config-map", this::triggerRefresh);
 	}
 
 }

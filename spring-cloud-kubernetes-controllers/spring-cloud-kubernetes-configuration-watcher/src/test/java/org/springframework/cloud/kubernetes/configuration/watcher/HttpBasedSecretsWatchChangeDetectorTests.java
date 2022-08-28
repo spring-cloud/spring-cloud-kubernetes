@@ -99,8 +99,8 @@ public class HttpBasedSecretsWatchChangeDetectorTests {
 		WebClient webClient = WebClient.builder().build();
 		changeDetector = new HttpBasedSecretsWatchChangeDetector(coreV1Api, mockEnvironment, configReloadProperties,
 				updateStrategy, secretsPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, webClient,
-				reactiveDiscoveryClient);
+				configurationWatcherConfigurationProperties, threadPoolTaskExecutor,
+			new HttpRefreshTrigger(reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient));
 	}
 
 	@Test
