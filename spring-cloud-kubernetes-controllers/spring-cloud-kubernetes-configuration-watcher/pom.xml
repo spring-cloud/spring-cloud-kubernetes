@@ -11,13 +11,6 @@
 
 	<artifactId>spring-cloud-kubernetes-configuration-watcher</artifactId>
 
-	<properties>
-		<jib.version>1.8.0</jib.version>
-		<base.image>openjdk:8u222-slim</base.image>
-		<docker.registry.organization>springcloud</docker.registry.organization>
-		<plexus-archiver.version>4.1.0</plexus-archiver.version>
-	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -45,11 +38,11 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!--<dependency>
+		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-contract-stub-runner</artifactId>
 			<scope>test</scope>
-		</dependency>-->
+		</dependency>
 		<dependency>
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-test</artifactId>
@@ -130,39 +123,6 @@
 			<properties>
 				<env.IMAGE>springcloud/${project.artifactId}:${project.version}</env.IMAGE>
 			</properties>
-		</profile>
-		<profile>
-			<id>jib</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.google.cloud.tools</groupId>
-						<artifactId>jib-maven-plugin</artifactId>
-						<version>${jib.version}</version>
-						<configuration>
-							<from>
-								<image>${base.image}</image>
-							</from>
-							<to>
-								<image>spring-cloud/${project.artifactId}</image>
-							</to>
-							<container>
-								<user>nobody:nogroup</user>
-								<environment>
-								</environment>
-							</container>
-						</configuration>
-						<executions>
-							<execution>
-								<phase>package</phase>
-								<goals>
-									<goal>dockerBuild</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
 		</profile>
 	</profiles>
 
