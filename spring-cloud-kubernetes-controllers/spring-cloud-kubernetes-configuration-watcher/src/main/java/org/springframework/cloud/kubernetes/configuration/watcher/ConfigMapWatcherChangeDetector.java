@@ -84,14 +84,14 @@ public abstract class ConfigMapWatcherChangeDetector extends KubernetesClientEve
 		}
 	}
 
-	protected boolean isSpringCloudKubernetesConfig(V1ConfigMap configMap) {
+	protected abstract Mono<Void> triggerRefresh(V1ConfigMap configMap);
+
+	private boolean isSpringCloudKubernetesConfig(V1ConfigMap configMap) {
 		if (configMap.getMetadata() == null || configMap.getMetadata().getLabels() == null) {
 			return false;
 		}
 		return Boolean.parseBoolean(configMap.getMetadata().getLabels()
 				.getOrDefault(ConfigurationWatcherConfigurationProperties.CONFIG_LABEL, "false"));
 	}
-
-	protected abstract Mono<Void> triggerRefresh(V1ConfigMap configMap);
 
 }

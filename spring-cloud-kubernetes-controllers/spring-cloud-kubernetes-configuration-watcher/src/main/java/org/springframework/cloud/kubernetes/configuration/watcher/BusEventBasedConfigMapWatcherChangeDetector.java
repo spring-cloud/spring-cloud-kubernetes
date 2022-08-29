@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -36,10 +35,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-public class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatcherChangeDetector
-		implements ApplicationEventPublisherAware {
+public class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatcherChangeDetector {
 
-	private ApplicationEventPublisher applicationEventPublisher;
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	private final BusProperties busProperties;
 
@@ -48,10 +46,11 @@ public class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatche
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, BusProperties busProperties,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+			ThreadPoolTaskExecutor threadPoolTaskExecutor, ApplicationEventPublisher applicationEventPublisher) {
 		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider,
 				k8SConfigurationProperties, threadPoolTaskExecutor);
 		this.busProperties = busProperties;
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	@Override
@@ -59,11 +58,6 @@ public class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatche
 		this.applicationEventPublisher.publishEvent(new RefreshRemoteApplicationEvent(configMap, busProperties.getId(),
 				new PathDestinationFactory().getDestination(configMap.getMetadata().getName())));
 		return Mono.empty();
-	}
-
-	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 }

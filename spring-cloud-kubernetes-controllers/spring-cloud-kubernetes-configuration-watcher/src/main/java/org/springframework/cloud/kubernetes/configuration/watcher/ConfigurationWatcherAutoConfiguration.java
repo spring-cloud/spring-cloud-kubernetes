@@ -30,6 +30,7 @@ import org.springframework.cloud.kubernetes.client.discovery.reactive.Kubernetes
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -95,10 +96,10 @@ public class ConfigurationWatcherAutoConfiguration {
 				KubernetesNamespaceProvider kubernetesNamespaceProvider, ConfigReloadProperties properties,
 				ConfigurationUpdateStrategy strategy,
 				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-				ThreadPoolTaskExecutor threadFactory) {
+				ThreadPoolTaskExecutor threadFactory, ApplicationEventPublisher applicationEventPublisher) {
 			return new BusEventBasedConfigMapWatcherChangeDetector(coreV1Api, environment, properties, strategy,
 					configMapPropertySourceLocator, kubernetesNamespaceProvider, busProperties,
-					k8SConfigurationProperties, threadFactory);
+					k8SConfigurationProperties, threadFactory, applicationEventPublisher);
 		}
 
 		@Bean
@@ -110,10 +111,10 @@ public class ConfigurationWatcherAutoConfiguration {
 				ConfigReloadProperties properties, KubernetesNamespaceProvider kubernetesNamespaceProvider,
 				ConfigurationUpdateStrategy strategy,
 				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-				ThreadPoolTaskExecutor threadFactory) {
+				ThreadPoolTaskExecutor threadFactory, ApplicationEventPublisher applicationEventPublisher) {
 			return new BusEventBasedSecretsWatcherChangeDetector(coreV1Api, environment, properties, strategy,
 					secretsPropertySourceLocator, kubernetesNamespaceProvider, busProperties,
-					k8SConfigurationProperties, threadFactory);
+					k8SConfigurationProperties, threadFactory, applicationEventPublisher);
 		}
 
 	}
@@ -132,10 +133,10 @@ public class ConfigurationWatcherAutoConfiguration {
 				ConfigReloadProperties properties, KubernetesNamespaceProvider namespaceProvider,
 				ConfigurationUpdateStrategy strategy,
 				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-				ThreadPoolTaskExecutor threadFactory) {
+				ThreadPoolTaskExecutor threadFactory, ApplicationEventPublisher applicationEventPublisher) {
 			return new BusEventBasedConfigMapWatcherChangeDetector(coreV1Api, environment, properties, strategy,
 					configMapPropertySourceLocator, namespaceProvider, busProperties, k8SConfigurationProperties,
-					threadFactory);
+					threadFactory, applicationEventPublisher);
 		}
 
 		@Bean
@@ -146,10 +147,11 @@ public class ConfigurationWatcherAutoConfiguration {
 				KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
 				ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-				ThreadPoolTaskExecutor threadFactory, KubernetesNamespaceProvider namespaceProvider) {
+				ThreadPoolTaskExecutor threadFactory, KubernetesNamespaceProvider namespaceProvider,
+				ApplicationEventPublisher applicationEventPublisher) {
 			return new BusEventBasedSecretsWatcherChangeDetector(coreV1Api, environment, properties, strategy,
 					secretsPropertySourceLocator, namespaceProvider, busProperties, k8SConfigurationProperties,
-					threadFactory);
+					threadFactory, applicationEventPublisher);
 		}
 
 	}
