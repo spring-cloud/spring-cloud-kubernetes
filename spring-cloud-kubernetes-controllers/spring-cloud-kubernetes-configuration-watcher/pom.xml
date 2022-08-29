@@ -11,6 +11,11 @@
 
 	<artifactId>spring-cloud-kubernetes-configuration-watcher</artifactId>
 
+	<properties>
+		<docker.registry.organization>springcloud</docker.registry.organization>
+		<plexus-archiver.version>4.1.0</plexus-archiver.version>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
