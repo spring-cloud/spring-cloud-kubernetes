@@ -29,6 +29,16 @@ import org.springframework.boot.convert.DurationUnit;
 public class ConfigurationWatcherConfigurationProperties {
 
 	/**
+	 * label to enable refresh/restart when using configmaps.
+	 */
+	public static final String CONFIG_LABEL = "spring.cloud.kubernetes.config";
+
+	/**
+	 * label to enable refresh/restart when using secrets.
+	 */
+	public static final String SECRET_LABEL = "spring.cloud.kubernetes.secret";
+
+	/**
 	 * Amount of time to delay the posting of the event to allow the app volume to update
 	 * data.
 	 */
@@ -36,10 +46,6 @@ public class ConfigurationWatcherConfigurationProperties {
 	private Duration refreshDelay = Duration.ofMillis(120000);
 
 	private int threadPoolSize = 1;
-
-	private String configLabel = "spring.cloud.kubernetes.config";
-
-	private String secretLabel = "spring.cloud.kubernetes.secret";
 
 	private String actuatorPath = "/actuator";
 
@@ -66,22 +72,6 @@ public class ConfigurationWatcherConfigurationProperties {
 
 	public void setActuatorPort(Integer actuatorPort) {
 		this.actuatorPort = actuatorPort;
-	}
-
-	public String getSecretLabel() {
-		return secretLabel;
-	}
-
-	public void setSecretLabel(String secretLabel) {
-		this.secretLabel = secretLabel;
-	}
-
-	public String getConfigLabel() {
-		return configLabel;
-	}
-
-	public void setConfigLabel(String configLabel) {
-		this.configLabel = configLabel;
 	}
 
 	public Duration getRefreshDelay() {

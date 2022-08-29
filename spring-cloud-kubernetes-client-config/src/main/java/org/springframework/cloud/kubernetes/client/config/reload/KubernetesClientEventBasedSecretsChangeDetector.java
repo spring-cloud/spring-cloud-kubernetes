@@ -29,14 +29,17 @@ import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.CallGeneratorParams;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.createApiClientForInformerClient;
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.namespaces;
@@ -45,6 +48,9 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
  * @author Ryan Baxter
  */
 public class KubernetesClientEventBasedSecretsChangeDetector extends ConfigurationChangeDetector {
+
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(KubernetesClientEventBasedSecretsChangeDetector.class));
 
 	private final CoreV1Api coreV1Api;
 
@@ -64,19 +70,19 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 		@Override
 		public void onAdd(V1Secret obj) {
-			log.debug(() -> "Secret " + obj.getMetadata().getName() + " was added.");
+			LOG.debug(() -> "Secret " + obj.getMetadata().getName() + " was added.");
 			onEvent(obj);
 		}
 
 		@Override
 		public void onUpdate(V1Secret oldObj, V1Secret newObj) {
-			log.debug(() -> "Secret " + newObj.getMetadata().getName() + " was updated.");
+			LOG.debug(() -> "Secret " + newObj.getMetadata().getName() + " was updated.");
 			onEvent(newObj);
 		}
 
 		@Override
 		public void onDelete(V1Secret obj, boolean deletedFinalStateUnknown) {
-			log.debug(() -> "Secret " + obj.getMetadata() + " was deleted.");
+			LOG.debug(() -> "Secret " + obj.getMetadata() + " was deleted.");
 			onEvent(obj);
 		}
 	};
@@ -104,7 +110,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 	@PostConstruct
 	void inform() {
 		if (monitorSecrets) {
-			log.info(() -> "Kubernetes event-based secrets change detector activated");
+			LOG.info(() -> "Kubernetes event-based secrets change detector activated");
 
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<V1Secret> informer;
@@ -112,10 +118,10 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 				if (enableReloadFiltering) {
 					filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
-					log.debug(() -> "added secret informer for namespace : " + namespace + " with enabled filter");
+					LOG.debug(() -> "added secret informer for namespace : " + namespace + " with enabled filter");
 				}
 				else {
-					log.debug(() -> "added secret informer for namespace : " + namespace);
+					LOG.debug(() -> "added secret informer for namespace : " + namespace);
 				}
 
 				String filterOnInformerLabel = filter;
@@ -139,11 +145,9 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 	}
 
 	protected void onEvent(V1Secret secret) {
-		log.debug(() -> "onEvent secret: " + secret.toString());
-		boolean changed = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
-				findPropertySources(KubernetesClientSecretsPropertySource.class));
-		if (changed) {
-			log.info(() -> "Detected change in secrets");
+		boolean reload = ConfigReloadUtil.reload("secrets", secret.toString(), propertySourceLocator, environment,
+				KubernetesClientSecretsPropertySource.class);
+		if (reload) {
 			reloadProperties();
 		}
 	}

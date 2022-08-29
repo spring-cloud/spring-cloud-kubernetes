@@ -79,7 +79,7 @@ public abstract class ConfigMapWatcherChangeDetector extends KubernetesClientEve
 		else {
 			if (log.isDebugEnabled()) {
 				log.debug("Not publishing event. ConfigMap " + configMap.getMetadata().getName()
-						+ " does not contain the label " + k8SConfigurationProperties.getConfigLabel());
+						+ " does not contain the label " + ConfigurationWatcherConfigurationProperties.CONFIG_LABEL);
 			}
 		}
 	}
@@ -88,8 +88,8 @@ public abstract class ConfigMapWatcherChangeDetector extends KubernetesClientEve
 		if (configMap.getMetadata() == null || configMap.getMetadata().getLabels() == null) {
 			return false;
 		}
-		return Boolean.parseBoolean(
-				configMap.getMetadata().getLabels().getOrDefault(k8SConfigurationProperties.getConfigLabel(), "false"));
+		return Boolean.parseBoolean(configMap.getMetadata().getLabels()
+				.getOrDefault(ConfigurationWatcherConfigurationProperties.CONFIG_LABEL, "false"));
 	}
 
 	protected abstract Mono<Void> triggerRefresh(V1ConfigMap configMap);

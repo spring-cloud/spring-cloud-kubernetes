@@ -38,31 +38,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author wind57
  */
-class ConfigurationChangeDetectorTests {
-
-	private final ConfigurationChangeDetector changeDetector = new ConfigurationChangeDetector(new MockEnvironment(),
-			new ConfigReloadProperties(), new ConfigurationUpdateStrategy("some", () -> {
-
-			})) {
-	};
+class ConfigReloadUtilTests {
 
 	@Test
 	void testChangedTwoNulls() {
-		boolean changed = changeDetector.changed(null, (MapPropertySource) null);
+		boolean changed = ConfigReloadUtil.changed(null, (MapPropertySource) null);
 		assertThat(changed).isFalse();
 	}
 
 	@Test
 	void testChangedLeftNullRightNonNull() {
 		MapPropertySource right = new MapPropertySource("rightNonNull", Collections.emptyMap());
-		boolean changed = changeDetector.changed(null, right);
+		boolean changed = ConfigReloadUtil.changed(null, right);
 		assertThat(changed).isTrue();
 	}
 
 	@Test
 	void testChangedLeftNonNullRightNull() {
 		MapPropertySource left = new MapPropertySource("leftNonNull", Collections.emptyMap());
-		boolean changed = changeDetector.changed(left, null);
+		boolean changed = ConfigReloadUtil.changed(left, null);
 		assertThat(changed).isTrue();
 	}
 
@@ -75,7 +69,7 @@ class ConfigurationChangeDetectorTests {
 		rightMap.put("key", value);
 		MapPropertySource left = new MapPropertySource("left", leftMap);
 		MapPropertySource right = new MapPropertySource("right", rightMap);
-		boolean changed = changeDetector.changed(left, right);
+		boolean changed = ConfigReloadUtil.changed(left, right);
 		assertThat(changed).isFalse();
 	}
 
@@ -89,7 +83,7 @@ class ConfigurationChangeDetectorTests {
 		rightMap.put("key", value);
 		MapPropertySource left = new MapPropertySource("left", leftMap);
 		MapPropertySource right = new MapPropertySource("right", rightMap);
-		boolean changed = changeDetector.changed(left, right);
+		boolean changed = ConfigReloadUtil.changed(left, right);
 		assertThat(changed).isTrue();
 	}
 
@@ -97,7 +91,7 @@ class ConfigurationChangeDetectorTests {
 	void testChangedListsDifferentSizes() {
 		List<MapPropertySource> left = Collections.singletonList(new MapPropertySource("one", Collections.emptyMap()));
 		List<MapPropertySource> right = Collections.emptyList();
-		boolean changed = changeDetector.changed(left, right);
+		boolean changed = ConfigReloadUtil.changed(left, right);
 		assertThat(changed).isFalse();
 	}
 
@@ -110,7 +104,7 @@ class ConfigurationChangeDetectorTests {
 		leftMap.put("anotherKey", value);
 		List<MapPropertySource> left = Collections.singletonList(new MapPropertySource("one", leftMap));
 		List<MapPropertySource> right = Collections.singletonList(new MapPropertySource("two", rightMap));
-		boolean changed = changeDetector.changed(left, right);
+		boolean changed = ConfigReloadUtil.changed(left, right);
 		assertThat(changed).isTrue();
 	}
 
@@ -123,19 +117,13 @@ class ConfigurationChangeDetectorTests {
 		leftMap.put("key", value);
 		List<MapPropertySource> left = Collections.singletonList(new MapPropertySource("one", leftMap));
 		List<MapPropertySource> right = Collections.singletonList(new MapPropertySource("two", rightMap));
-		boolean changed = changeDetector.changed(left, right);
+		boolean changed = ConfigReloadUtil.changed(left, right);
 		assertThat(changed).isTrue();
 	}
 
 	@Test
 	void testFindPropertySources() {
 		MockEnvironment environment = new MockEnvironment();
-		ConfigurationChangeDetector detector = new ConfigurationChangeDetector(environment,
-				new ConfigReloadProperties(), new ConfigurationUpdateStrategy("some", () -> {
-
-				})) {
-		};
-
 		MutablePropertySources propertySources = environment.getPropertySources();
 		propertySources.addFirst(new OneComposite());
 		propertySources.addFirst(new PlainPropertySource("plain"));
@@ -151,7 +139,7 @@ class ConfigurationChangeDetectorTests {
 			}
 		}));
 
-		List<PlainPropertySource> result = detector.findPropertySources(PlainPropertySource.class);
+		List<PlainPropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class, environment);
 		Assertions.assertEquals(3, result.size());
 		Assertions.assertEquals("plain", result.get(0).getProperty(""));
 		Assertions.assertEquals("from-bootstrap", result.get(1).getProperty(""));

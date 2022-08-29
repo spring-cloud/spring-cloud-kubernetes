@@ -31,12 +31,9 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8EventBasedConfigMapChangeDetector;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +48,6 @@ class EventBasedConfigurationChangeDetectorTests {
 	@SuppressWarnings({ "unchecked", "raw" })
 	@Test
 	void verifyConfigChangesAccountsForBootstrapPropertySources() {
-		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
 		MockEnvironment env = new MockEnvironment();
 		KubernetesClient k8sClient = mock(KubernetesClient.class);
 		ConfigMap configMap = new ConfigMap();
@@ -75,15 +71,8 @@ class EventBasedConfigurationChangeDetectorTests {
 		Fabric8ConfigMapPropertySource fabric8ConfigMapPropertySource = new Fabric8ConfigMapPropertySource(context);
 		env.getPropertySources().addFirst(new BootstrapPropertySource<>(fabric8ConfigMapPropertySource));
 
-		ConfigurationUpdateStrategy configurationUpdateStrategy = new ConfigurationUpdateStrategy("strategy", () -> {
-
-		});
-		Fabric8ConfigMapPropertySourceLocator configMapLocator = mock(Fabric8ConfigMapPropertySourceLocator.class);
-		Fabric8EventBasedConfigMapChangeDetector detector = new Fabric8EventBasedConfigMapChangeDetector(env,
-				configReloadProperties, k8sClient, configurationUpdateStrategy, configMapLocator,
-				new KubernetesNamespaceProvider(new MockEnvironment()));
-		List<Fabric8ConfigMapPropertySource> sources = detector
-				.findPropertySources(Fabric8ConfigMapPropertySource.class);
+		List<Fabric8ConfigMapPropertySource> sources = ConfigReloadUtil
+				.findPropertySources(Fabric8ConfigMapPropertySource.class, env);
 		assertThat(sources.size()).isEqualTo(1);
 		assertThat(sources.get(0).getProperty("foo")).isEqualTo("bar");
 	}

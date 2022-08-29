@@ -62,8 +62,8 @@ public abstract class SecretsWatcherChangeDetector extends KubernetesClientEvent
 		if (secret.getMetadata() == null || secret.getMetadata().getLabels() == null) {
 			return false;
 		}
-		return Boolean.parseBoolean(
-				secret.getMetadata().getLabels().getOrDefault(k8SConfigurationProperties.getSecretLabel(), "false"));
+		return Boolean.parseBoolean(secret.getMetadata().getLabels()
+				.getOrDefault(ConfigurationWatcherConfigurationProperties.SECRET_LABEL, "false"));
 	}
 
 	protected abstract Mono<Void> triggerRefresh(V1Secret secret);
@@ -88,7 +88,7 @@ public abstract class SecretsWatcherChangeDetector extends KubernetesClientEvent
 		else {
 			if (log.isDebugEnabled()) {
 				log.debug("Not publishing event. Secret " + secret.getMetadata().getName()
-						+ " does not contain the label " + k8SConfigurationProperties.getSecretLabel());
+						+ " does not contain the label " + ConfigurationWatcherConfigurationProperties.SECRET_LABEL);
 			}
 		}
 	}
