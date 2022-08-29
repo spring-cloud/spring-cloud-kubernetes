@@ -29,14 +29,20 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointPort;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.util.ClientBuilder;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
@@ -46,9 +52,9 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceI
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.test.StepVerifier;
 
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
 
@@ -57,9 +63,12 @@ import static org.springframework.cloud.kubernetes.commons.KubernetesNamespacePr
  * @author Kris Iyer
  */
 @ExtendWith(MockitoExtension.class)
-public class HttpBasedConfigMapWatchChangeDetectorTests {
+class HttpBasedConfigMapWatchChangeDetectorTests {
 
-	WireMockServer wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
+	private static MockedStatic<KubernetesClientUtils> clientUtilsMock;
+
+	private static final WireMockServer WIRE_MOCK_SERVER = new WireMockServer(
+			WireMockConfiguration.options().dynamicPort());
 
 	@Mock
 	private CoreV1Api coreV1Api;
@@ -77,26 +86,31 @@ public class HttpBasedConfigMapWatchChangeDetectorTests {
 
 	private ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties;
 
+	@BeforeAll
+	static void beforeAll() {
+		WIRE_MOCK_SERVER.start();
+		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
+		clientUtilsMock.when(KubernetesClientUtils::createApiClientForInformerClient)
+				.thenReturn(new ClientBuilder().setBasePath(WIRE_MOCK_SERVER.baseUrl()).build());
+	}
+
+	@AfterAll
+	static void teardown() {
+		clientUtilsMock.close();
+	}
+
 	@BeforeEach
 	void setup() {
-		wireMockServer.start();
-		V1EndpointAddress fooEndpointAddress = new V1EndpointAddress();
-		fooEndpointAddress.setIp("127.0.0.1");
-		fooEndpointAddress.setHostname("localhost");
-		V1EndpointPort fooEndpointPort = new V1EndpointPort();
-		fooEndpointPort.setPort(wireMockServer.port());
-		List<ServiceInstance> instances = new ArrayList<>();
-		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance("foo", "foo",
-				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), new HashMap<>(), false);
-		instances.add(fooServiceInstance);
-		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
+
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
 		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
 		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		WebClient webClient = WebClient.builder().build();
 
-		ConfigurationUpdateStrategy strategy = new ConfigurationUpdateStrategy("refresh", () -> {});
+		ConfigurationUpdateStrategy strategy = new ConfigurationUpdateStrategy("refresh", () -> {
+
+		});
 
 		changeDetector = new HttpBasedConfigMapWatchChangeDetector(coreV1Api, mockEnvironment, configReloadProperties,
 				strategy, configMapPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
@@ -105,33 +119,38 @@ public class HttpBasedConfigMapWatchChangeDetectorTests {
 	}
 
 	@Test
-	public void triggerConfigMapRefresh() {
+	void triggerConfigMapRefresh() {
+		stubReactiveCall();
 		V1ConfigMap configMap = new V1ConfigMap();
 		V1ObjectMeta objectMeta = new V1ObjectMeta();
 		objectMeta.setName("foo");
 		configMap.setMetadata(objectMeta);
-		WireMock.configureFor("localhost", wireMockServer.port());
-		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh")).willReturn(WireMock.aResponse().withStatus(200)));
+		WireMock.configureFor("localhost", WIRE_MOCK_SERVER.port());
+		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+				.willReturn(WireMock.aResponse().withStatus(200)));
 		StepVerifier.create(changeDetector.triggerRefresh(configMap)).verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 	}
 
 	@Test
-	public void triggerConfigMapRefreshWithPropertiesBasedActuatorPath() throws InterruptedException {
+	void triggerConfigMapRefreshWithPropertiesBasedActuatorPath() {
+		stubReactiveCall();
 		configurationWatcherConfigurationProperties.setActuatorPath("/my/custom/actuator");
 		V1ConfigMap configMap = new V1ConfigMap();
 		V1ObjectMeta objectMeta = new V1ObjectMeta();
 		objectMeta.setName("foo");
 		configMap.setMetadata(objectMeta);
-		WireMock.configureFor("localhost", wireMockServer.port());
-		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator/refresh")).willReturn(WireMock.aResponse().withStatus(200)));
+		WireMock.configureFor("localhost", WIRE_MOCK_SERVER.port());
+		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator/refresh"))
+				.willReturn(WireMock.aResponse().withStatus(200)));
 		StepVerifier.create(changeDetector.triggerRefresh(configMap)).verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator/refresh")));
 	}
 
 	@Test
-	public void triggerConfigMapRefreshWithAnnotationActuatorPath() {
-		int port = wireMockServer.port();
+	void triggerConfigMapRefreshWithAnnotationActuatorPath() {
+		int port = WIRE_MOCK_SERVER.port();
+		WireMock.configureFor("localhost", port);
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put(HttpBasedConfigMapWatchChangeDetector.ANNOTATION_KEY, "http://:" + port + "/my/custom/actuator");
 		V1EndpointAddress fooEndpointAddress = new V1EndpointAddress();
@@ -148,9 +167,26 @@ public class HttpBasedConfigMapWatchChangeDetectorTests {
 		V1ObjectMeta objectMeta = new V1ObjectMeta();
 		objectMeta.setName("foo");
 		configMap.setMetadata(objectMeta);
-		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator/refresh")).willReturn(WireMock.aResponse().withStatus(200)));
+		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator/refresh"))
+				.willReturn(WireMock.aResponse().withStatus(200)));
 		StepVerifier.create(changeDetector.triggerRefresh(configMap)).verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator/refresh")));
+	}
+
+	private void stubReactiveCall() {
+
+		V1EndpointAddress fooEndpointAddress = new V1EndpointAddress();
+		fooEndpointAddress.setIp("127.0.0.1");
+		fooEndpointAddress.setHostname("localhost");
+
+		V1EndpointPort fooEndpointPort = new V1EndpointPort();
+		fooEndpointPort.setPort(WIRE_MOCK_SERVER.port());
+
+		List<ServiceInstance> instances = new ArrayList<>();
+		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance("foo", "foo",
+				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), new HashMap<>(), false);
+		instances.add(fooServiceInstance);
+		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
 	}
 
 }
