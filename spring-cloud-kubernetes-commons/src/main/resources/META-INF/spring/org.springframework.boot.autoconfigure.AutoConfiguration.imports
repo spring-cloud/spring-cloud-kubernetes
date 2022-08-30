@@ -1,0 +1,2 @@
+org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration
+org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadAutoConfiguration
