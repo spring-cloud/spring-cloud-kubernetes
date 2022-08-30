@@ -85,38 +85,35 @@ public class ConfigurationWatcherAutoConfiguration {
 	@Configuration
 	@Profile("bus-amqp")
 	@Import({ ContextFunctionCatalogAutoConfiguration.class, RabbitHealthContributorAutoConfiguration.class,
-		RefreshTriggerConfiguration.class})
+			RefreshTriggerConfiguration.class })
 	static class BusRabbitConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
 		@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
-		public ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(
-				AbstractEnvironment environment, CoreV1Api coreV1Api,
-				KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
+		public ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(AbstractEnvironment environment,
+				CoreV1Api coreV1Api, KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
 				KubernetesNamespaceProvider kubernetesNamespaceProvider, ConfigReloadProperties properties,
 				ConfigurationUpdateStrategy strategy,
 				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 				ThreadPoolTaskExecutor threadFactory, BusRefreshTrigger busRefreshTrigger) {
 			return new BusEventBasedConfigMapWatcherChangeDetector(coreV1Api, environment, properties, strategy,
-					configMapPropertySourceLocator, kubernetesNamespaceProvider,
-					k8SConfigurationProperties, threadFactory, busRefreshTrigger);
+					configMapPropertySourceLocator, kubernetesNamespaceProvider, k8SConfigurationProperties,
+					threadFactory, busRefreshTrigger);
 		}
 
 		@Bean
 		@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
 		@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
-		public SecretsWatcherChangeDetector busSecretsChangeWatcher(
-				AbstractEnvironment environment, CoreV1Api coreV1Api,
-				KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
+		public SecretsWatcherChangeDetector busSecretsChangeWatcher(AbstractEnvironment environment,
+				CoreV1Api coreV1Api, KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
 				ConfigReloadProperties properties, KubernetesNamespaceProvider kubernetesNamespaceProvider,
 				ConfigurationUpdateStrategy strategy,
 				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-				ThreadPoolTaskExecutor threadFactory,
-				BusRefreshTrigger busRefreshTrigger) {
+				ThreadPoolTaskExecutor threadFactory, BusRefreshTrigger busRefreshTrigger) {
 			return new BusEventBasedSecretsWatcherChangeDetector(coreV1Api, environment, properties, strategy,
-					secretsPropertySourceLocator, kubernetesNamespaceProvider,
-					k8SConfigurationProperties, threadFactory, busRefreshTrigger);
+					secretsPropertySourceLocator, kubernetesNamespaceProvider, k8SConfigurationProperties,
+					threadFactory, busRefreshTrigger);
 		}
 
 	}
@@ -129,32 +126,31 @@ public class ConfigurationWatcherAutoConfiguration {
 		@Bean
 		@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
 		@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
-		public ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(
-				AbstractEnvironment environment, CoreV1Api coreV1Api,
-				KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
+		public ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(AbstractEnvironment environment,
+				CoreV1Api coreV1Api, KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
 				ConfigReloadProperties properties, KubernetesNamespaceProvider namespaceProvider,
 				ConfigurationUpdateStrategy strategy,
 				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 				ThreadPoolTaskExecutor threadFactory, BusRefreshTrigger busRefreshTrigger) {
 			return new BusEventBasedConfigMapWatcherChangeDetector(coreV1Api, environment, properties, strategy,
-					configMapPropertySourceLocator, namespaceProvider, k8SConfigurationProperties,
-					threadFactory, busRefreshTrigger);
+					configMapPropertySourceLocator, namespaceProvider, k8SConfigurationProperties, threadFactory,
+					busRefreshTrigger);
 		}
 
 		@Bean
 		@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
 		@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
-		public SecretsWatcherChangeDetector busSecretsChangeWatcher(
-				AbstractEnvironment environment, CoreV1Api coreV1Api,
-				KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
+		public SecretsWatcherChangeDetector busSecretsChangeWatcher(AbstractEnvironment environment,
+				CoreV1Api coreV1Api, KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
 				ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 				ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 				ThreadPoolTaskExecutor threadFactory, KubernetesNamespaceProvider namespaceProvider,
 				BusRefreshTrigger busRefreshTrigger) {
 			return new BusEventBasedSecretsWatcherChangeDetector(coreV1Api, environment, properties, strategy,
-					secretsPropertySourceLocator, namespaceProvider, k8SConfigurationProperties,
-					threadFactory, busRefreshTrigger);
+					secretsPropertySourceLocator, namespaceProvider, k8SConfigurationProperties, threadFactory,
+					busRefreshTrigger);
 		}
+
 	}
 
 	@Configuration
@@ -162,8 +158,8 @@ public class ConfigurationWatcherAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean
-		public BusRefreshTrigger busRefreshTrigger(
-			ApplicationEventPublisher applicationEventPublisher, BusProperties busProperties) {
+		public BusRefreshTrigger busRefreshTrigger(ApplicationEventPublisher applicationEventPublisher,
+				BusProperties busProperties) {
 			return new BusRefreshTrigger(applicationEventPublisher, busProperties.getId());
 		}
 
@@ -176,5 +172,3 @@ public class ConfigurationWatcherAutoConfiguration {
 	}
 
 }
-
-

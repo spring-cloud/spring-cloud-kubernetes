@@ -23,6 +23,7 @@ import reactor.core.publisher.Mono;
  * @author wind57
  */
 interface RefreshTrigger {
+
 	Mono<Void> triggerRefresh(KubernetesObject kubernetesObject);
 
 }

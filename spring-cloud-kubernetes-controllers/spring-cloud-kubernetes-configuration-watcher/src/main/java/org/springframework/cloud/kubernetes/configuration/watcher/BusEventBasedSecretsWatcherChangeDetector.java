@@ -40,8 +40,7 @@ public class BusEventBasedSecretsWatcherChangeDetector extends SecretsWatcherCha
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-			ThreadPoolTaskExecutor threadPoolTaskExecutor,
-			BusRefreshTrigger busRefreshTrigger										 ) {
+			ThreadPoolTaskExecutor threadPoolTaskExecutor, BusRefreshTrigger busRefreshTrigger) {
 		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider,
 				k8SConfigurationProperties, threadPoolTaskExecutor);
 		this.busRefreshTrigger = busRefreshTrigger;

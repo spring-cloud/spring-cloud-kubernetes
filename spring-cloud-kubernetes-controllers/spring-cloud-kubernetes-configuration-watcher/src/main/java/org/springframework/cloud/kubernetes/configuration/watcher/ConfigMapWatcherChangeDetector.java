@@ -57,11 +57,12 @@ public abstract class ConfigMapWatcherChangeDetector extends KubernetesClientEve
 
 	@Override
 	protected void onEvent(KubernetesObject configMap) {
-		boolean isSpringCloudKubernetes = isSpringCloudKubernetes(
-			configMap, ConfigurationWatcherConfigurationProperties.CONFIG_LABEL);
+		boolean isSpringCloudKubernetes = isSpringCloudKubernetes(configMap,
+				ConfigurationWatcherConfigurationProperties.CONFIG_LABEL);
 
-		WatcherUtil.onEvent(isSpringCloudKubernetes, configMap, ConfigurationWatcherConfigurationProperties.CONFIG_LABEL,
-			refreshDelay, executorService, "config-map", this::triggerRefresh);
+		WatcherUtil.onEvent(isSpringCloudKubernetes, configMap,
+				ConfigurationWatcherConfigurationProperties.CONFIG_LABEL, refreshDelay, executorService, "config-map",
+				this::triggerRefresh);
 	}
 
 }

@@ -80,9 +80,8 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 		busProperties = new BusProperties();
 		changeDetector = new BusEventBasedConfigMapWatcherChangeDetector(coreV1Api, mockEnvironment,
 				configReloadProperties, UPDATE_STRATEGY, configMapPropertySourceLocator,
-				new KubernetesNamespaceProvider(mockEnvironment),
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor,
-				new BusRefreshTrigger(applicationEventPublisher, busProperties.getId()));
+				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
+				threadPoolTaskExecutor, new BusRefreshTrigger(applicationEventPublisher, busProperties.getId()));
 	}
 
 	@Test

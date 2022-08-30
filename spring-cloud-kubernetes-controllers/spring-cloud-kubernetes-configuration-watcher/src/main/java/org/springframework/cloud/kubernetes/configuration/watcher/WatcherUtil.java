@@ -24,8 +24,9 @@ import java.util.function.Function;
 
 import io.kubernetes.client.common.KubernetesObject;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.core.log.LogAccessor;
 import reactor.core.publisher.Mono;
+
+import org.springframework.core.log.LogAccessor;
 
 /**
  * A common place where 'onEvent' code delegates to.
@@ -47,8 +48,8 @@ final class WatcherUtil {
 
 		if (isSpringCloudKubernetes) {
 
-			LOG.debug(() -> "Scheduling remote refresh event to be published for " + type + ": "
-				+ name + " to be published in " + refreshDelay + " milliseconds");
+			LOG.debug(() -> "Scheduling remote refresh event to be published for " + type + ": " + name
+					+ " to be published in " + refreshDelay + " milliseconds");
 			executorService.schedule(() -> {
 				try {
 					triggerRefresh.apply(kubernetesObject).subscribe();
@@ -64,13 +65,11 @@ final class WatcherUtil {
 	}
 
 	static boolean isSpringCloudKubernetes(KubernetesObject kubernetesObject, String label) {
-		if (kubernetesObject.getMetadata() == null ) {
+		if (kubernetesObject.getMetadata() == null) {
 			return false;
 		}
-		return Boolean.parseBoolean(
-			Optional.ofNullable(kubernetesObject.getMetadata().getLabels())
-				.orElse(Collections.emptyMap())
-				.getOrDefault(label, "false"));
+		return Boolean.parseBoolean(Optional.ofNullable(kubernetesObject.getMetadata().getLabels())
+				.orElse(Collections.emptyMap()).getOrDefault(label, "false"));
 	}
 
 }

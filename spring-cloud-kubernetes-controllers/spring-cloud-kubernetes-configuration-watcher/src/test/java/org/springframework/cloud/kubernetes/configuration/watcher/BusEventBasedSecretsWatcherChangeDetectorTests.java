@@ -80,9 +80,8 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 		busProperties = new BusProperties();
 		changeDetector = new BusEventBasedSecretsWatcherChangeDetector(coreV1Api, mockEnvironment,
 				configReloadProperties, UPDATE_STRATEGY, secretsPropertySourceLocator,
-				new KubernetesNamespaceProvider(mockEnvironment),
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor,
-				new BusRefreshTrigger(applicationEventPublisher, busProperties.getId()));
+				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
+				threadPoolTaskExecutor, new BusRefreshTrigger(applicationEventPublisher, busProperties.getId()));
 	}
 
 	@Test

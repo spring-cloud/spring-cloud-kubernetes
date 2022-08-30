@@ -40,8 +40,7 @@ public class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatcherChang
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-			ThreadPoolTaskExecutor threadPoolTaskExecutor,
-			HttpRefreshTrigger httpRefreshTrigger) {
+			ThreadPoolTaskExecutor threadPoolTaskExecutor, HttpRefreshTrigger httpRefreshTrigger) {
 		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider,
 				k8SConfigurationProperties, threadPoolTaskExecutor);
 

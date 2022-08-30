@@ -57,11 +57,11 @@ public abstract class SecretsWatcherChangeDetector extends KubernetesClientEvent
 
 	@Override
 	protected void onEvent(KubernetesObject secret) {
-		boolean isSpringCloudKubernetes = isSpringCloudKubernetes(
-			secret, ConfigurationWatcherConfigurationProperties.SECRET_LABEL);
+		boolean isSpringCloudKubernetes = isSpringCloudKubernetes(secret,
+				ConfigurationWatcherConfigurationProperties.SECRET_LABEL);
 
 		WatcherUtil.onEvent(isSpringCloudKubernetes, secret, ConfigurationWatcherConfigurationProperties.SECRET_LABEL,
-			refreshDelay, executorService, "secret", this::triggerRefresh);
+				refreshDelay, executorService, "secret", this::triggerRefresh);
 	}
 
 }
