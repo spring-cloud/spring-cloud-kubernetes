@@ -40,8 +40,8 @@ final class WatcherUtil {
 	private WatcherUtil() {
 	}
 
-	static void onEvent(KubernetesObject kubernetesObject, String label,
-			long refreshDelay, ScheduledExecutorService executorService, String type,
+	static void onEvent(KubernetesObject kubernetesObject, String label, long refreshDelay,
+			ScheduledExecutorService executorService, String type,
 			Function<KubernetesObject, Mono<Void>> triggerRefresh) {
 
 		String name = kubernetesObject.getMetadata().getName();

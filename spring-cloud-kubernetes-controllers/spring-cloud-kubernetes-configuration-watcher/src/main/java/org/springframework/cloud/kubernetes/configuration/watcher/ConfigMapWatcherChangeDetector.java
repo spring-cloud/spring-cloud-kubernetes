@@ -56,8 +56,8 @@ abstract class ConfigMapWatcherChangeDetector extends KubernetesClientEventBased
 	@Override
 	protected final void onEvent(KubernetesObject configMap) {
 		// this::refreshTrigger is coming from BusEventBasedConfigMapWatcherChangeDetector
-		WatcherUtil.onEvent(configMap, ConfigurationWatcherConfigurationProperties.CONFIG_LABEL,
-			refreshDelay, executorService, "config-map", this::triggerRefresh);
+		WatcherUtil.onEvent(configMap, ConfigurationWatcherConfigurationProperties.CONFIG_LABEL, refreshDelay,
+				executorService, "config-map", this::triggerRefresh);
 	}
 
 }
