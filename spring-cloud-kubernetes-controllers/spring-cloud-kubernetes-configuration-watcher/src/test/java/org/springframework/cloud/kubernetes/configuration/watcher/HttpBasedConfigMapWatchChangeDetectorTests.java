@@ -114,8 +114,8 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 
 		changeDetector = new HttpBasedConfigMapWatchChangeDetector(coreV1Api, mockEnvironment, configReloadProperties,
 				strategy, configMapPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, webClient,
-				reactiveDiscoveryClient);
+				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, new HttpRefreshTrigger(
+						reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient));
 	}
 
 	@Test
@@ -152,7 +152,8 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		int port = WIRE_MOCK_SERVER.port();
 		WireMock.configureFor("localhost", port);
 		Map<String, String> metadata = new HashMap<>();
-		metadata.put(HttpBasedConfigMapWatchChangeDetector.ANNOTATION_KEY, "http://:" + port + "/my/custom/actuator");
+		metadata.put(ConfigurationWatcherConfigurationProperties.ANNOTATION_KEY,
+				"http://:" + port + "/my/custom/actuator");
 		V1EndpointAddress fooEndpointAddress = new V1EndpointAddress();
 		fooEndpointAddress.setIp("127.0.0.1");
 		fooEndpointAddress.setHostname("localhost");

@@ -24,7 +24,7 @@ import java.util.Objects;
  *
  * @author Nicola Ferraro
  */
-public final record ConfigurationUpdateStrategy(String name, Runnable reloadProcedure) {
+public record ConfigurationUpdateStrategy(String name, Runnable reloadProcedure) {
 
 	public ConfigurationUpdateStrategy(String name, Runnable reloadProcedure) {
 		this.name = Objects.requireNonNull(name, "name cannot be null");

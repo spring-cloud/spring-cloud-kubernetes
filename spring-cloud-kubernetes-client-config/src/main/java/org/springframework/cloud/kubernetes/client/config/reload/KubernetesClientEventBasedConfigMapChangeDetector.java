@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -145,7 +146,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		factory.stopAllRegisteredInformers();
 	}
 
-	protected void onEvent(V1ConfigMap configMap) {
+	protected void onEvent(KubernetesObject configMap) {
 		boolean reload = ConfigReloadUtil.reload("config-map", configMap.toString(), propertySourceLocator, environment,
 				KubernetesClientConfigMapPropertySource.class);
 		if (reload) {

@@ -39,6 +39,11 @@ public class ConfigurationWatcherConfigurationProperties {
 	public static final String SECRET_LABEL = "spring.cloud.kubernetes.secret";
 
 	/**
+	 * Annotation key for actuator port and path.
+	 */
+	public static final String ANNOTATION_KEY = "boot.spring.io/actuator";
+
+	/**
 	 * Amount of time to delay the posting of the event to allow the app volume to update
 	 * data.
 	 */
