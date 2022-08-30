@@ -1,5 +1,3 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientConfigReloadAutoConfiguration
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
 org.springframework.cloud.kubernetes.client.config.KubernetesClientBootstrapConfiguration,\
 org.springframework.cloud.kubernetes.client.config.KubernetesClientRetryBootstrapConfiguration

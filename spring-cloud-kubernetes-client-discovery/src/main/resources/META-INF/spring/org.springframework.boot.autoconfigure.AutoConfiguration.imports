@@ -1,0 +1,2 @@
+org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration
+org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClientAutoConfiguration
