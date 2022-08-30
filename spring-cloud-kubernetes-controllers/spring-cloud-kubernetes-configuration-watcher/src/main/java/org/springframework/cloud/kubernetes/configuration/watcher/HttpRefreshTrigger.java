@@ -84,7 +84,7 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 		UriComponentsBuilder actuatorUriBuilder = UriComponentsBuilder.newInstance().scheme(si.getScheme())
 				.host(si.getHost());
 
-		if (!StringUtils.hasText(metadataUri)) {
+		if (StringUtils.hasText(metadataUri)) {
 			LOG.debug(() -> "Found actuator URI in service instance metadata");
 			setActuatorUriFromAnnotation(actuatorUriBuilder, metadataUri);
 		}
