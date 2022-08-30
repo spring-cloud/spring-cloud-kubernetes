@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.boot.actuate.autoconfigure.amqp.RabbitHealthContributorAutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -47,6 +48,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 @EnableConfigurationProperties({ ConfigurationWatcherConfigurationProperties.class })
 @Import({ ConfigurationWatcherAutoConfiguration.RefreshTriggerConfiguration.class })
 public class ConfigurationWatcherAutoConfiguration {
+
+	private static final String AMQP = "bus-amqp";
+
+	private static final String KAFKA = "bus-kafka";
 
 	@Bean
 	@ConditionalOnMissingBean
@@ -83,7 +88,7 @@ public class ConfigurationWatcherAutoConfiguration {
 	}
 
 	@Configuration
-	@Profile("bus-amqp")
+	@Profile(AMQP)
 	@Import({ ContextFunctionCatalogAutoConfiguration.class, RabbitHealthContributorAutoConfiguration.class,
 			RefreshTriggerConfiguration.class })
 	static class BusRabbitConfiguration {
@@ -119,7 +124,7 @@ public class ConfigurationWatcherAutoConfiguration {
 	}
 
 	@Configuration
-	@Profile("bus-kafka")
+	@Profile(KAFKA)
 	@Import({ ContextFunctionCatalogAutoConfiguration.class, RefreshTriggerConfiguration.class })
 	static class BusKafkaConfiguration {
 
@@ -153,16 +158,18 @@ public class ConfigurationWatcherAutoConfiguration {
 
 	}
 
-	@Configuration
+	@AutoConfiguration
 	static class RefreshTriggerConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean
+		@Profile({ AMQP, KAFKA })
 		public BusRefreshTrigger busRefreshTrigger(ApplicationEventPublisher applicationEventPublisher,
 				BusProperties busProperties) {
 			return new BusRefreshTrigger(applicationEventPublisher, busProperties.getId());
 		}
 
+		@Bean
 		@ConditionalOnMissingBean
 		public HttpRefreshTrigger httpRefreshTrigger(KubernetesInformerReactiveDiscoveryClient client,
 				ConfigurationWatcherConfigurationProperties properties, WebClient webClient) {
