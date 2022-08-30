@@ -31,11 +31,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-public class BusEventBasedSecretsWatcherChangeDetector extends SecretsWatcherChangeDetector {
+final class BusEventBasedSecretsWatcherChangeDetector extends SecretsWatcherChangeDetector {
 
 	private final BusRefreshTrigger busRefreshTrigger;
 
-	public BusEventBasedSecretsWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+	BusEventBasedSecretsWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider,
@@ -47,7 +47,7 @@ public class BusEventBasedSecretsWatcherChangeDetector extends SecretsWatcherCha
 	}
 
 	@Override
-	public final Mono<Void> triggerRefresh(KubernetesObject secret) {
+	public Mono<Void> triggerRefresh(KubernetesObject secret) {
 		return busRefreshTrigger.triggerRefresh(secret);
 	}
 

@@ -32,6 +32,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
+/**
+ * @author wind57
+ */
 final class HttpRefreshTrigger implements RefreshTrigger {
 
 	private static final LogAccessor LOG = new LogAccessor(
@@ -93,7 +96,7 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 		return actuatorUriBuilder.build().toUri();
 	}
 
-	private static void setActuatorUriFromAnnotation(UriComponentsBuilder actuatorUriBuilder, String metadataUri) {
+	private void setActuatorUriFromAnnotation(UriComponentsBuilder actuatorUriBuilder, String metadataUri) {
 		URI annotationUri = URI.create(metadataUri);
 		actuatorUriBuilder.path(annotationUri.getPath() + "/refresh");
 

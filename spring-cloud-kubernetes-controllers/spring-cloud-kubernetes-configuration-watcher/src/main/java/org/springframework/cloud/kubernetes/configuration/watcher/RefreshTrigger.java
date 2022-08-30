@@ -20,10 +20,15 @@ import io.kubernetes.client.common.KubernetesObject;
 import reactor.core.publisher.Mono;
 
 /**
+ * Defines the refresh trigger contract.
+ *
  * @author wind57
  */
 interface RefreshTrigger {
 
+	/**
+	 * @param kubernetesObject either a config-map or secret at the moment.
+	 */
 	Mono<Void> triggerRefresh(KubernetesObject kubernetesObject);
 
 }

@@ -31,11 +31,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-public class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatcherChangeDetector {
+final class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatcherChangeDetector {
 
 	private final HttpRefreshTrigger httpRefreshTrigger;
 
-	public HttpBasedConfigMapWatchChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+	HttpBasedConfigMapWatchChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider,

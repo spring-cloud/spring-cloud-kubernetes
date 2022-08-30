@@ -30,20 +30,18 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationU
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import static org.springframework.cloud.kubernetes.configuration.watcher.WatcherUtil.isSpringCloudKubernetes;
-
 /**
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-public abstract class ConfigMapWatcherChangeDetector extends KubernetesClientEventBasedConfigMapChangeDetector
+abstract class ConfigMapWatcherChangeDetector extends KubernetesClientEventBasedConfigMapChangeDetector
 		implements RefreshTrigger {
 
 	private final ScheduledExecutorService executorService;
 
 	private final long refreshDelay;
 
-	public ConfigMapWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+	ConfigMapWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider,
@@ -56,13 +54,10 @@ public abstract class ConfigMapWatcherChangeDetector extends KubernetesClientEve
 	}
 
 	@Override
-	protected void onEvent(KubernetesObject configMap) {
-		boolean isSpringCloudKubernetes = isSpringCloudKubernetes(configMap,
-				ConfigurationWatcherConfigurationProperties.CONFIG_LABEL);
-
-		WatcherUtil.onEvent(isSpringCloudKubernetes, configMap,
-				ConfigurationWatcherConfigurationProperties.CONFIG_LABEL, refreshDelay, executorService, "config-map",
-				this::triggerRefresh);
+	protected final void onEvent(KubernetesObject configMap) {
+		// this::refreshTrigger is coming from BusEventBasedConfigMapWatcherChangeDetector
+		WatcherUtil.onEvent(configMap, ConfigurationWatcherConfigurationProperties.CONFIG_LABEL,
+			refreshDelay, executorService, "config-map", this::triggerRefresh);
 	}
 
 }

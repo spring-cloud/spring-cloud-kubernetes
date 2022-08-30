@@ -31,11 +31,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-public class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatcherChangeDetector {
+final class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatcherChangeDetector {
 
 	private final BusRefreshTrigger busRefreshTrigger;
 
-	public BusEventBasedConfigMapWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+	BusEventBasedConfigMapWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider,
@@ -47,7 +47,7 @@ public class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatche
 	}
 
 	@Override
-	public final Mono<Void> triggerRefresh(KubernetesObject configMap) {
+	public Mono<Void> triggerRefresh(KubernetesObject configMap) {
 		return busRefreshTrigger.triggerRefresh(configMap);
 	}
 

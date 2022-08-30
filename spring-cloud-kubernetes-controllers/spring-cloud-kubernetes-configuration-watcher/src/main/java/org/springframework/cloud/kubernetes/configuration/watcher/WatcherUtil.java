@@ -40,11 +40,12 @@ final class WatcherUtil {
 	private WatcherUtil() {
 	}
 
-	static void onEvent(boolean isSpringCloudKubernetes, KubernetesObject kubernetesObject, String label,
+	static void onEvent(KubernetesObject kubernetesObject, String label,
 			long refreshDelay, ScheduledExecutorService executorService, String type,
 			Function<KubernetesObject, Mono<Void>> triggerRefresh) {
 
 		String name = kubernetesObject.getMetadata().getName();
+		boolean isSpringCloudKubernetes = isSpringCloudKubernetes(kubernetesObject, label);
 
 		if (isSpringCloudKubernetes) {
 
@@ -64,7 +65,7 @@ final class WatcherUtil {
 		}
 	}
 
-	static boolean isSpringCloudKubernetes(KubernetesObject kubernetesObject, String label) {
+	private static boolean isSpringCloudKubernetes(KubernetesObject kubernetesObject, String label) {
 		if (kubernetesObject.getMetadata() == null) {
 			return false;
 		}

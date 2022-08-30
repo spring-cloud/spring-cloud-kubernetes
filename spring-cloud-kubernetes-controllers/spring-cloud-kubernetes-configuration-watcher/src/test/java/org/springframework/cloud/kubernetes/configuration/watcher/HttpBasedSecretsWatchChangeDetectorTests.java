@@ -148,7 +148,7 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 	void triggerSecretRefreshWithAnnotationActuatorPath() {
 		WireMock.configureFor("localhost", WIRE_MOCK_SERVER.port());
 		Map<String, String> metadata = new HashMap<>();
-		metadata.put(HttpBasedConfigMapWatchChangeDetector.ANNOTATION_KEY,
+		metadata.put(ConfigurationWatcherConfigurationProperties.ANNOTATION_KEY,
 				"http://:" + WIRE_MOCK_SERVER.port() + "/my/custom/actuator");
 		V1EndpointAddress fooEndpointAddress = new V1EndpointAddress();
 		fooEndpointAddress.setIp("127.0.0.1");

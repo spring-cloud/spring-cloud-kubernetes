@@ -31,11 +31,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-public class HttpBasedSecretsWatchChangeDetector extends SecretsWatcherChangeDetector {
+final class HttpBasedSecretsWatchChangeDetector extends SecretsWatcherChangeDetector {
 
 	private final HttpRefreshTrigger httpRefreshTrigger;
 
-	public HttpBasedSecretsWatchChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+	HttpBasedSecretsWatchChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider,
