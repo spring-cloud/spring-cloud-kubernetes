@@ -90,7 +90,7 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 		objectMeta.setName("foo");
 		V1Secret secret = new V1Secret();
 		secret.setMetadata(objectMeta);
-		changeDetector.triggerRefresh(secret);
+		changeDetector.triggerRefresh(secret, secret.getMetadata().getName());
 		ArgumentCaptor<RefreshRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
 				.forClass(RefreshRemoteApplicationEvent.class);
 		verify(applicationEventPublisher).publishEvent(argumentCaptor.capture());

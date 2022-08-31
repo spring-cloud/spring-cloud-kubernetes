@@ -28,7 +28,9 @@ interface RefreshTrigger {
 
 	/**
 	 * @param kubernetesObject either a config-map or secret at the moment.
+	 * @param appName which is not necessarily equal to
+	 * kubernetesObject.getMetadata().getName()
 	 */
-	Mono<Void> triggerRefresh(KubernetesObject kubernetesObject);
+	Mono<Void> triggerRefresh(KubernetesObject kubernetesObject, String appName);
 
 }

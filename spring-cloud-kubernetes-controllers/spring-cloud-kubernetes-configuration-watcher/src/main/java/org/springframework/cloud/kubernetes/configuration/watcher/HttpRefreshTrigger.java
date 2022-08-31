@@ -54,16 +54,14 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 	}
 
 	@Override
-	public Mono<Void> triggerRefresh(KubernetesObject kubernetesObject) {
+	public Mono<Void> triggerRefresh(KubernetesObject kubernetesObject, String appName) {
 
-		String name = kubernetesObject.getMetadata().getName();
-
-		return kubernetesReactiveDiscoveryClient.getInstances(name).flatMap(si -> {
+		return kubernetesReactiveDiscoveryClient.getInstances(appName).flatMap(si -> {
 			URI actuatorUri = getActuatorUri(si, k8SConfigurationProperties.getActuatorPath(),
 					k8SConfigurationProperties.getActuatorPort());
-			LOG.debug(() -> "Sending refresh request for " + name + " to URI " + actuatorUri);
+			LOG.debug(() -> "Sending refresh request for " + appName + " to URI " + actuatorUri);
 			return webClient.post().uri(actuatorUri).retrieve().toBodilessEntity()
-					.doOnSuccess(onSuccess(name, actuatorUri)).doOnError(onError(name));
+					.doOnSuccess(onSuccess(appName, actuatorUri)).doOnError(onError(appName));
 		}).then();
 	}
 

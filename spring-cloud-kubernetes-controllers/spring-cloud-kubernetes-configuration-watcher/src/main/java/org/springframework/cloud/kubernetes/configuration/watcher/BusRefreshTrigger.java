@@ -40,9 +40,9 @@ final class BusRefreshTrigger implements RefreshTrigger {
 	}
 
 	@Override
-	public Mono<Void> triggerRefresh(KubernetesObject configMap) {
+	public Mono<Void> triggerRefresh(KubernetesObject configMap, String appName) {
 		applicationEventPublisher.publishEvent(new RefreshRemoteApplicationEvent(configMap, busId,
-				new PathDestinationFactory().getDestination(configMap.getMetadata().getName())));
+				new PathDestinationFactory().getDestination(appName)));
 		return Mono.empty();
 	}
 

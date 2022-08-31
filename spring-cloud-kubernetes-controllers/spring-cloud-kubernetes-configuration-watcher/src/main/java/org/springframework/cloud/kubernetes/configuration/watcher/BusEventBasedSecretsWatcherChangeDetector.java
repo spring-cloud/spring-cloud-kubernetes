@@ -47,8 +47,8 @@ final class BusEventBasedSecretsWatcherChangeDetector extends SecretsWatcherChan
 	}
 
 	@Override
-	public Mono<Void> triggerRefresh(KubernetesObject secret) {
-		return busRefreshTrigger.triggerRefresh(secret);
+	public Mono<Void> triggerRefresh(KubernetesObject secret, String appName) {
+		return busRefreshTrigger.triggerRefresh(secret, appName);
 	}
 
 }

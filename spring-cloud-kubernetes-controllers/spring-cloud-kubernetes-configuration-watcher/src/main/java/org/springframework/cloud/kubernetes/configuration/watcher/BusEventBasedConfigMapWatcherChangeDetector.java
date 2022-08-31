@@ -47,8 +47,8 @@ final class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatcher
 	}
 
 	@Override
-	public Mono<Void> triggerRefresh(KubernetesObject configMap) {
-		return busRefreshTrigger.triggerRefresh(configMap);
+	public Mono<Void> triggerRefresh(KubernetesObject configMap, String appName) {
+		return busRefreshTrigger.triggerRefresh(configMap, appName);
 	}
 
 }
