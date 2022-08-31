@@ -70,21 +70,21 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 	private final ResourceEventHandler<V1Secret> handler = new ResourceEventHandler<>() {
 
 		@Override
-		public void onAdd(V1Secret obj) {
-			LOG.debug(() -> "Secret " + obj.getMetadata().getName() + " was added.");
-			onEvent(obj);
+		public void onAdd(V1Secret secret) {
+			LOG.debug(() -> "Secret " + secret.getMetadata().getName() + " was added.");
+			onEvent(secret);
 		}
 
 		@Override
-		public void onUpdate(V1Secret oldObj, V1Secret newObj) {
-			LOG.debug(() -> "Secret " + newObj.getMetadata().getName() + " was updated.");
-			onEvent(newObj);
+		public void onUpdate(V1Secret oldSecret, V1Secret newSecret) {
+			LOG.debug(() -> "Secret " + newSecret.getMetadata().getName() + " was updated.");
+			onEvent(newSecret);
 		}
 
 		@Override
-		public void onDelete(V1Secret obj, boolean deletedFinalStateUnknown) {
-			LOG.debug(() -> "Secret " + obj.getMetadata() + " was deleted.");
-			onEvent(obj);
+		public void onDelete(V1Secret secret, boolean deletedFinalStateUnknown) {
+			LOG.debug(() -> "Secret " + secret.getMetadata().getName() + " was deleted.");
+			onEvent(secret);
 		}
 	};
 
