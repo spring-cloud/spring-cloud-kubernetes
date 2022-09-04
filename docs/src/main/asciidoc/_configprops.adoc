@@ -54,7 +54,10 @@
 |spring.cloud.kubernetes.config.name |  | 
 |spring.cloud.kubernetes.config.namespace |  | 
 |spring.cloud.kubernetes.config.paths |  | 
-|spring.cloud.kubernetes.config.retry |  | 
+|spring.cloud.kubernetes.config.retry.initial-interval | `+++1000+++` | Initial retry interval in milliseconds.
+|spring.cloud.kubernetes.config.retry.max-attempts | `+++6+++` | Maximum number of attempts.
+|spring.cloud.kubernetes.config.retry.max-interval | `+++2000+++` | Maximum interval for backoff.
+|spring.cloud.kubernetes.config.retry.multiplier | `+++1.1+++` | Multiplier for next interval.
 |spring.cloud.kubernetes.config.sources |  | 
 |spring.cloud.kubernetes.config.use-name-as-prefix | `+++false+++` | 
 |spring.cloud.kubernetes.discovery.all-namespaces | `+++false+++` | If discovering all namespaces.
@@ -101,7 +104,10 @@
 |spring.cloud.kubernetes.secrets.name |  | 
 |spring.cloud.kubernetes.secrets.namespace |  | 
 |spring.cloud.kubernetes.secrets.paths |  | 
-|spring.cloud.kubernetes.secrets.retry |  | 
+|spring.cloud.kubernetes.secrets.retry.initial-interval | `+++1000+++` | Initial retry interval in milliseconds.
+|spring.cloud.kubernetes.secrets.retry.max-attempts | `+++6+++` | Maximum number of attempts.
+|spring.cloud.kubernetes.secrets.retry.max-interval | `+++2000+++` | Maximum interval for backoff.
+|spring.cloud.kubernetes.secrets.retry.multiplier | `+++1.1+++` | Multiplier for next interval.
 |spring.cloud.kubernetes.secrets.sources |  | 
 |spring.cloud.kubernetes.secrets.use-name-as-prefix | `+++false+++` | 
 
