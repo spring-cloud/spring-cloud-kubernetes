@@ -49,12 +49,8 @@ class EnabledHealthTest {
 	void healthEndpointShouldContainKubernetes() {
 
 		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
-				.value(System.out::println);
-
-		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody().jsonPath("components")
-				.exists().jsonPath("components.kubernetes").exists();
+				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
+				.jsonPath("components.kubernetes").exists();
 
 		Assertions.assertNotNull(registry.getContributor("kubernetes"),
 				"reactive kubernetes contributor must be present when 'management.health.kubernetes.enabled=true'");
