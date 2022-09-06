@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -49,14 +47,9 @@ class ActuatorDisabledHealthTest {
 
 	@Test
 	void healthEndpointShouldNotContainKubernetes() {
-		String response = this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
-				.returnResult().getResponseBody();
-
-		JsonObject obj = new Gson().fromJson(response, JsonObject.class);
-
-		// kubernetes is not part of the components
-		Assertions.assertNull(obj.getAsJsonObject("components").get("kubernetes"));
+		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
+				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
+				.jsonPath("components.kubernetes").doesNotExist();
 
 		Assertions.assertNull(registry.getContributor("kubernetes"),
 				"reactive kubernetes contributor must NOT be present when 'management.health.kubernetes.enabled=false'");
