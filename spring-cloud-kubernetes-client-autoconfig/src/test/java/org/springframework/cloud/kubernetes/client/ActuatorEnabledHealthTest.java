@@ -16,7 +16,8 @@
 
 package org.springframework.cloud.kubernetes.client;
 
-import org.hamcrest.Matchers;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -45,9 +46,14 @@ class ActuatorEnabledHealthTest {
 
 	@Test
 	void healthEndpointShouldContainKubernetes() {
-		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
+		String response = this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
 				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.containsString("kubernetes"));
+				.returnResult().getResponseBody();
+
+		JsonObject obj = new Gson().fromJson(response, JsonObject.class);
+
+		// kubernetes is part of the components
+		Assertions.assertNotNull(obj.getAsJsonObject("components").get("kubernetes"));
 
 		Assertions.assertNotNull(registry.getContributor("kubernetes"),
 				"reactive kubernetes contributor must be present when 'management.health.kubernetes.enabled=true'");
