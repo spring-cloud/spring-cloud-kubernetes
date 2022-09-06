@@ -119,5 +119,6 @@
 		<module>spring-cloud-kubernetes-core-k8s-client-it</module>
         <module>spring-cloud-kubernetes-client-secrets-event-reload</module>
         <module>spring-cloud-kubernetes-client-configmap-event-reload</module>
+        <module>spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps</module>
     </modules>
 </project>

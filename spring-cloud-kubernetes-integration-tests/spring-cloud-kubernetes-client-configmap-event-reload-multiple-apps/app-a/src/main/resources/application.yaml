@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: app-a
+  cloud:
+    bus:
+      refresh:
+        enabled: false #disable this because we are going to provide our own refresh listener for testing purposes
+      enabled: true
+    stream:
+      default-binder: kafka
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+server:
+  port: 8080
