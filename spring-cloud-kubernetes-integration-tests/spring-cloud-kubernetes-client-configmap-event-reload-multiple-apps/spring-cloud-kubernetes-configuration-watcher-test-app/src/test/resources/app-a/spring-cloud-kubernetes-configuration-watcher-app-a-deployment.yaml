@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spring-cloud-kubernetes-configuration-watcher-app-b-deployment
+  name: spring-cloud-kubernetes-configuration-watcher-app-a-deployment
 spec:
   selector:
     matchLabels:
-      app: spring-cloud-kubernetes-configuration-watcher-app-b
+      app: spring-cloud-kubernetes-configuration-watcher-app-a
   template:
     metadata:
       labels:
-        app: spring-cloud-kubernetes-configuration-watcher-app-b
+        app: spring-cloud-kubernetes-configuration-watcher-app-a
     spec:
       containers:
-        - name: spring-cloud-kubernetes-configuration-watcher-app-b
-          image: docker.io/springcloud/app-b
+        - name: spring-cloud-kubernetes-configuration-watcher-app-a
+          image: docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher-app-a
           imagePullPolicy: IfNotPresent
           env:
             - name: SPRING_PROFILES_ACTIVE
@@ -22,7 +22,7 @@ spec:
               value: kafka:9092
           readinessProbe:
             httpGet:
-              port: 8081
+              port: 8080
               path: /actuator/health/readiness
             initialDelaySeconds: 60
             periodSeconds: 10
@@ -31,7 +31,7 @@ spec:
             successThreshold: 1
           livenessProbe:
             httpGet:
-              port: 8081
+              port: 8080
               path: /actuator/health/liveness
             initialDelaySeconds: 60
             periodSeconds: 10
@@ -39,4 +39,4 @@ spec:
             failureThreshold: 3
             successThreshold: 1
           ports:
-            - containerPort: 8081
+            - containerPort: 8080

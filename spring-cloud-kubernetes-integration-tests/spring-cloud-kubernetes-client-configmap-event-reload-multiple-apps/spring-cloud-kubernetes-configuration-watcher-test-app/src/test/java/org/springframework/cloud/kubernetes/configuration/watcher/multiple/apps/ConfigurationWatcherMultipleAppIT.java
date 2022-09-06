@@ -45,10 +45,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import org.slf4j.LoggerFactory;
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.getPomVersion;
@@ -57,12 +53,6 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
  * @author wind57
  */
 class ConfigurationWatcherMultipleAppIT {
-
-	// set logger programmatically
-	static {
-		Logger root = (Logger)LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
-		root.setLevel(Level.INFO);
-	}
 
 	private static final String CONFIG_WATCHER_APP_A_IMAGE = "spring-cloud-kubernetes-configuration-watcher-app-a";
 

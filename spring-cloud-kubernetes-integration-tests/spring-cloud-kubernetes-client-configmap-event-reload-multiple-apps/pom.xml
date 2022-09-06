@@ -12,9 +12,9 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>app-a</module>
-		<module>app-b</module>
-		<module>test-app</module>
+		<module>spring-cloud-kubernetes-configuration-watcher-app-a</module>
+		<module>spring-cloud-kubernetes-configuration-watcher-app-b</module>
+		<module>spring-cloud-kubernetes-configuration-watcher-test-app</module>
 	</modules>
 
 </project>
