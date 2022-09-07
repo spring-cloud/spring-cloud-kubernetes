@@ -139,9 +139,7 @@ class ConfigurationWatcherMultipleAppIT {
 		cleanUpZookeeper();
 		cleanUpServices();
 		cleanUpDeployments();
-
-		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
-
+		cleanUpIngress();
 		cleanUpConfigMaps();
 
 		k8SUtils.waitForDeploymentToBeDeleted(KAFKA_BROKER, NAMESPACE);
@@ -179,9 +177,14 @@ class ConfigurationWatcherMultipleAppIT {
 		Assertions.assertThat(value[0]).isTrue();
 	}
 
-	// ---------------------------------------------- zookeeper
-	// ---------------------------------------------------
-	// ------------------------------------------------------------------------------------------------------------
+	/**
+	 * <pre>
+	 --------------------------------------------------- zookeeper ----------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 </pre>
+	 */
 	private void deployZookeeper() throws Exception {
 		api.createNamespacedService(NAMESPACE, getZookeeperService(), null, null, null);
 		V1Deployment deployment = getZookeeperDeployment();
@@ -199,9 +202,14 @@ class ConfigurationWatcherMultipleAppIT {
 		return (V1Service) K8SUtils.readYamlFromClasspath("zookeeper/zookeeper-service.yaml");
 	}
 
-	// ---------------------------------------------- kafka
-	// -------------------------------------------------------
-	// ------------------------------------------------------------------------------------------------------------
+	/**
+	 * <pre>
+	 ----------------------------------------------------- kafka ------------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 </pre>
+	 */
 	private void deployKafka() throws Exception {
 		api.createNamespacedService(NAMESPACE, getKafkaService(), null, null, null);
 		V1Deployment deployment = getKafkaDeployment();
@@ -219,10 +227,14 @@ class ConfigurationWatcherMultipleAppIT {
 		return (V1Service) K8SUtils.readYamlFromClasspath("kafka/kafka-service.yaml");
 	}
 
-	// ---------------------------------------------- app-a
-	// -------------------------------------------------------
-	// ------------------------------------------------------------------------------------------------------------
-
+	/**
+	 * <pre>
+	 ----------------------------------------------------- app-a ------------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 </pre>
+	 */
 	private void deployAppA() throws Exception {
 		appsApi.createNamespacedDeployment(NAMESPACE, getAppADeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getAppAService(), null, null, null);
@@ -250,10 +262,14 @@ class ConfigurationWatcherMultipleAppIT {
 				.readYamlFromClasspath("app-a/spring-cloud-kubernetes-configuration-watcher-app-a-ingress.yaml");
 	}
 
-	// ---------------------------------------------- app-b
-	// -------------------------------------------------------
-	// ------------------------------------------------------------------------------------------------------------
-
+	/**
+	 * <pre>
+	 --------------------------------------------------- app-b --------------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 </pre>
+	 */
 	private void deployAppB() throws Exception {
 		appsApi.createNamespacedDeployment(NAMESPACE, getAppBDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getAppBService(), null, null, null);
@@ -281,24 +297,22 @@ class ConfigurationWatcherMultipleAppIT {
 				.readYamlFromClasspath("app-b/spring-cloud-kubernetes-configuration-watcher-app-b-ingress.yaml");
 	}
 
-	// ------------------------------------------ config-watcher
-	// --------------------------------------------------
-	// ------------------------------------------------------------------------------------------------------------
-
+	/**
+	 * <pre>
+	 ------------------------------------------------ config-watcher --------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 ------------------------------------------------------------------------------------------------------------
+	 </pre>
+	 */
 	private void deployConfigWatcher() throws Exception {
-		api.createNamespacedConfigMap(NAMESPACE, getConfigWatcherConfigMap(), null, null, null);
 		appsApi.createNamespacedDeployment(NAMESPACE, getConfigWatcherDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getConfigWatcherService(), null, null, null);
 	}
 
-	private V1ConfigMap getConfigWatcherConfigMap() throws Exception {
-		return (V1ConfigMap) K8SUtils
-				.readYamlFromClasspath("config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
-	}
-
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
 		V1Deployment deployment = (V1Deployment) K8SUtils.readYamlFromClasspath(
-				"app-watcher/spring-cloud-kubernetes-configuration-watcher-bus-kafka-deployment.yaml");
+				"config-watcher/spring-cloud-kubernetes-configuration-watcher-bus-kafka-deployment.yaml");
 		String image = K8SUtils.getImageFromDeployment(deployment) + ":" + getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		return deployment;
@@ -309,9 +323,14 @@ class ConfigurationWatcherMultipleAppIT {
 				.readYamlFromClasspath("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
 	}
 
-	// ------------------------------------------------ common
-	// ----------------------------------------------------
-	// ------------------------------------------------------------------------------------------------------------
+	/**
+	 * <pre>
+		------------------------------------------------ common ----------------------------------------------------
+		------------------------------------------------------------------------------------------------------------
+		------------------------------------------------------------------------------------------------------------
+		------------------------------------------------------------------------------------------------------------
+	 </pre>
+	 */
 	private void waitForDeployment(String deploymentName) {
 		await().pollInterval(Duration.ofSeconds(3)).atMost(600, TimeUnit.SECONDS)
 				.until(() -> k8SUtils.isDeploymentReady(deploymentName, NAMESPACE));
@@ -348,6 +367,11 @@ class ConfigurationWatcherMultipleAppIT {
 		api.deleteNamespacedConfigMap(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
 				null);
 		api.deleteNamespacedConfigMap(CONFIG_MAP_NAME, NAMESPACE, null, null, null, null, null, null);
+	}
+
+	private void cleanUpIngress() throws Exception {
+		networkingApi.deleteNamespacedIngress("it-ingress-app-a", NAMESPACE, null, null, null, null, null, null);
+		networkingApi.deleteNamespacedIngress("it-ingress-app-b", NAMESPACE, null, null, null, null, null, null);
 	}
 
 	private WebClient.Builder builder() {

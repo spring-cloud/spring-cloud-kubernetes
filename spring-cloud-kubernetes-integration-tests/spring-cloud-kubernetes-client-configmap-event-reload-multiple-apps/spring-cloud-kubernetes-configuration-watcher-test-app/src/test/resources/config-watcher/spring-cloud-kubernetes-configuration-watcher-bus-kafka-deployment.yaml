@@ -16,13 +16,28 @@ spec:
         - name: spring-cloud-kubernetes-configuration-watcher
           image: docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher
           imagePullPolicy: IfNotPresent
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: bus-kafka
+            - name: spring.kafka.bootstrap-servers
+              value: kafka:9092
           readinessProbe:
             httpGet:
               port: 8888
               path: /actuator/health/readiness
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
           livenessProbe:
             httpGet:
               port: 8888
               path: /actuator/health/liveness
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
           ports:
             - containerPort: 8888

@@ -96,7 +96,6 @@
 				</configuration>
 			</plugin>
 
-			<!-- run tests in the 'integration-tests' phase, one that is after 'package' (where we build the image) -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
