@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(classes = App.class, properties = { "spring.cloud.kubernetes.client.userAgent=non-default",
 		"spring.main.cloud-platform=KUBERNETES" })
-class Fabric8UserAgentPropertiesConfiguration {
+class Fabric8UserAgentPropertiesConfigurationTests {
 
 	@Autowired
 	private KubernetesClient client;

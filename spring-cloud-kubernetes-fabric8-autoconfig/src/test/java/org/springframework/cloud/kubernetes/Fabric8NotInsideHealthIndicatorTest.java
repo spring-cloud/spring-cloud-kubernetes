@@ -16,16 +16,10 @@
 
 package org.springframework.cloud.kubernetes;
 
-import java.util.Map;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -39,7 +33,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoint.health.show-details=always" })
 @EnableKubernetesMockClient(crud = true, https = false)
-public class Fabric8NotInsideHealthIndicatorTest {
+class Fabric8NotInsideHealthIndicatorTest {
 
 	private static KubernetesClient mockClient;
 
@@ -50,7 +44,7 @@ public class Fabric8NotInsideHealthIndicatorTest {
 	private int port;
 
 	@BeforeAll
-	public static void setUpBeforeClass() {
+	static void setUpBeforeClass() {
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -61,20 +55,13 @@ public class Fabric8NotInsideHealthIndicatorTest {
 	}
 
 	@AfterAll
-	public static void afterClass() {
+	static void afterClass() {
 		System.clearProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY);
 		System.clearProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY);
 		System.clearProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY);
 		System.clearProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY);
 		System.clearProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY);
 		System.clearProperty(Config.KUBERNETES_HTTP2_DISABLE);
-	}
-
-	@Test
-	public void healthEndpointShouldContainKubernetes() {
-		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
-				.value(this::validateKubernetes);
 	}
 
 	/**
@@ -87,22 +74,14 @@ public class Fabric8NotInsideHealthIndicatorTest {
 	 * 	     }
 	 * </pre>
 	 */
-	@SuppressWarnings("unchecked")
-	private void validateKubernetes(String input) {
-		try {
-			Map<String, Object> map = new ObjectMapper().readValue(input, new TypeReference<Map<String, Object>>() {
+	@Test
+	void healthEndpointShouldContainKubernetes() {
 
-			});
-			Map<String, Object> kubernetesProperties = (Map<String, Object>) ((Map<String, Object>) map
-					.get("components")).get("kubernetes");
-			Assertions.assertEquals("UP", kubernetesProperties.get("status"));
+		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
+				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
+				.jsonPath("components.kubernetes.status").isEqualTo("UP")
+				.jsonPath("components.kubernetes.details.inside").isEqualTo("false");
 
-			Map<String, Object> details = (Map<String, Object>) kubernetesProperties.get("details");
-			Assertions.assertFalse((Boolean) details.get("inside"));
-		}
-		catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 }
