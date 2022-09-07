@@ -65,18 +65,18 @@ public class ConfigReloadAutoConfiguration {
 			ConfigurableApplicationContext ctx, Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
 		String strategyName = properties.getStrategy().name();
 		return switch (properties.getStrategy()) {
-		case RESTART_CONTEXT -> {
-			restarter.orElseThrow(() -> new AssertionError("Restart endpoint is not enabled"));
-			yield new ConfigurationUpdateStrategy(strategyName, () -> {
+			case RESTART_CONTEXT -> {
+				restarter.orElseThrow(() -> new AssertionError("Restart endpoint is not enabled"));
+				yield new ConfigurationUpdateStrategy(strategyName, () -> {
+					wait(properties);
+					restarter.get().restart();
+				});
+			}
+			case REFRESH -> new ConfigurationUpdateStrategy(strategyName, refresher::refresh);
+			case SHUTDOWN -> new ConfigurationUpdateStrategy(strategyName, () -> {
 				wait(properties);
-				restarter.get().restart();
+				ctx.close();
 			});
-		}
-		case REFRESH -> new ConfigurationUpdateStrategy(strategyName, refresher::refresh);
-		case SHUTDOWN -> new ConfigurationUpdateStrategy(strategyName, () -> {
-			wait(properties);
-			ctx.close();
-		});
 		};
 	}
 
