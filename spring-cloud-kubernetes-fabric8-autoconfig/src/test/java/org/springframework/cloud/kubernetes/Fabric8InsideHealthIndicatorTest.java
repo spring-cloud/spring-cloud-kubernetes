@@ -17,16 +17,11 @@
 package org.springframework.cloud.kubernetes;
 
 import java.util.Collections;
-import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodStatus;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -51,35 +46,13 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @Import(Fabric8InsideHealthIndicatorTest.KubernetesActuatorTestConfiguration.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "management.endpoint.health.show-details=always" })
-public class Fabric8InsideHealthIndicatorTest {
+class Fabric8InsideHealthIndicatorTest {
 
 	@Autowired
 	private WebTestClient webClient;
 
 	@Value("${local.server.port}")
 	private int port;
-
-	@Test
-	public void test() {
-		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Fabric8InsideHealthIndicatorTest::validateKubernetes);
-	}
-
-	private static Pod stubPod() {
-
-		PodStatus status = new PodStatus();
-		status.setPodIP("10.1.1.1");
-		status.setHostIP("192.160.10.3");
-
-		PodSpec spec = new PodSpec();
-		spec.setServiceAccountName("serviceAccountName");
-		spec.setNodeName("nodeName");
-
-		return new PodBuilder().withNewMetadata().withName("pod").withNamespace("namespace")
-				.withLabels(Collections.singletonMap("labelName", "labelValue")).endMetadata().withStatus(status)
-				.withSpec(spec).build();
-	}
 
 	/**
 	 * <pre>
@@ -99,31 +72,34 @@ public class Fabric8InsideHealthIndicatorTest {
 	 *       }
 	 *  </pre>
 	 */
-	@SuppressWarnings("unchecked")
-	private static void validateKubernetes(String input) {
-		try {
-			Map<String, Object> map = new ObjectMapper().readValue(input, new TypeReference<Map<String, Object>>() {
+	@Test
+	void test() {
+		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
+				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
+				.jsonPath("components.stubKubernetes.status").isEqualTo("UP")
+				.jsonPath("components.stubKubernetes.details.nodeName").isEqualTo("nodeName")
+				.jsonPath("components.stubKubernetes.details.podIp").isEqualTo("10.1.1.1")
+				.jsonPath("components.stubKubernetes.details.hostIp").isEqualTo("192.160.10.3")
+				.jsonPath("components.stubKubernetes.details.namespace").isEqualTo("namespace")
+				.jsonPath("components.stubKubernetes.details.podName").isEqualTo("pod")
+				.jsonPath("components.stubKubernetes.details.serviceAccount").isEqualTo("serviceAccountName")
+				.jsonPath("components.stubKubernetes.details.inside").isEqualTo("true")
+				.jsonPath("components.stubKubernetes.details.labels.labelName").isEqualTo("labelValue");
+	}
 
-			});
-			Map<String, Object> kubernetesProperties = (Map<String, Object>) ((Map<String, Object>) map
-					.get("components")).get("stubKubernetes");
-			Assertions.assertEquals("UP", kubernetesProperties.get("status"));
+	private static Pod stubPod() {
 
-			Map<String, Object> details = (Map<String, Object>) kubernetesProperties.get("details");
-			Assertions.assertEquals("nodeName", details.get("nodeName"));
-			Assertions.assertEquals("10.1.1.1", details.get("podIp"));
-			Assertions.assertEquals("192.160.10.3", details.get("hostIp"));
-			Assertions.assertEquals("namespace", details.get("namespace"));
-			Assertions.assertEquals("pod", details.get("podName"));
-			Assertions.assertEquals("serviceAccountName", details.get("serviceAccount"));
-			Assertions.assertTrue((Boolean) details.get("inside"));
+		PodStatus status = new PodStatus();
+		status.setPodIP("10.1.1.1");
+		status.setHostIP("192.160.10.3");
 
-			Map<String, String> labels = (Map<String, String>) details.get("labels");
-			Assertions.assertEquals("labelValue", labels.get("labelName"));
-		}
-		catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
+		PodSpec spec = new PodSpec();
+		spec.setServiceAccountName("serviceAccountName");
+		spec.setNodeName("nodeName");
+
+		return new PodBuilder().withNewMetadata().withName("pod").withNamespace("namespace")
+				.withLabels(Collections.singletonMap("labelName", "labelValue")).endMetadata().withStatus(status)
+				.withSpec(spec).build();
 	}
 
 	@Configuration

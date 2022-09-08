@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.password=mypassword",
 				"spring.cloud.kubernetes.client.proxy-password=myproxypassword" })
 @EnableKubernetesMockClient(crud = true, https = false)
-public class Fabric8AutoConfigurationTests {
+class Fabric8AutoConfigurationTests {
 
 	private static KubernetesClient mockClient;
 
@@ -46,7 +46,7 @@ public class Fabric8AutoConfigurationTests {
 	ConfigurableApplicationContext context;
 
 	@BeforeAll
-	public static void setUpBeforeClass() {
+	static void setUpBeforeClass() {
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -57,7 +57,7 @@ public class Fabric8AutoConfigurationTests {
 	}
 
 	@AfterAll
-	public static void afterClass() {
+	static void afterClass() {
 		System.clearProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY);
 		System.clearProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY);
 		System.clearProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY);
@@ -67,7 +67,7 @@ public class Fabric8AutoConfigurationTests {
 	}
 
 	@Test
-	public void beansAreCreated() {
+	void beansAreCreated() {
 		assertThat(context.getBeanNamesForType(Config.class)).hasSize(1);
 		assertThat(context.getBeanNamesForType(KubernetesClient.class)).hasSize(1);
 		assertThat(context.getBeanNamesForType(Fabric8PodUtils.class)).hasSize(1);

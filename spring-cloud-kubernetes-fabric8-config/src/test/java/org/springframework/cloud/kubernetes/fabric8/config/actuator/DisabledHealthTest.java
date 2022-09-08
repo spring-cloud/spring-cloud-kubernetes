@@ -27,9 +27,6 @@ import org.springframework.cloud.kubernetes.fabric8.config.example.App;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
-
 /**
  * @author wind57
  */
@@ -51,8 +48,8 @@ class DisabledHealthTest {
 	@Test
 	void healthEndpointShouldContainKubernetes() {
 		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
-				.value(not(containsString("kubernetes")));
+				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
+				.jsonPath("components.kubernetes").doesNotExist();
 
 		Assertions.assertNull(registry.getContributor("kubernetes"),
 				"reactive kubernetes contributor must NOT be present when 'management.health.kubernetes.enabled=false'");
