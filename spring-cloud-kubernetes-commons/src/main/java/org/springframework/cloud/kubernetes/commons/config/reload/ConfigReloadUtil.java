@@ -113,13 +113,11 @@ public final class ConfigReloadUtil {
 		}
 		else if (propertySource instanceof CompositePropertySource source) {
 
-			source.getPropertySources().forEach(
-				x -> {
-					if (x instanceof MapPropertySource mapPropertySource) {
-						result.add(mapPropertySource);
-					}
+			source.getPropertySources().forEach(x -> {
+				if (x instanceof MapPropertySource mapPropertySource) {
+					result.add(mapPropertySource);
 				}
-			);
+			});
 		}
 		else {
 			LOG.debug(() -> "Found property source that cannot be handled: " + propertySource.getClass());

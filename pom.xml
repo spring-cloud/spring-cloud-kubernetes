@@ -209,6 +209,8 @@
 			<plugin>
 				<groupId>io.spring.javaformat</groupId>
 				<artifactId>spring-javaformat-maven-plugin</artifactId>
+				<!-- Remove version when : https://github.com/spring-cloud/spring-cloud-build/pull/235 is integrated and released -->
+				<version>0.0.34</version>
 			</plugin>
 		</plugins>
 	</build>
