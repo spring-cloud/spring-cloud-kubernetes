@@ -15,6 +15,5 @@
 	<suppress files=".*ConfigurationWatcherApplication\.java" checks="HideUtilityClassConstructor"/>
 	<suppress files=".*DiscoveryServerApplication\.java" checks="HideUtilityClassConstructor"/>
 	<suppress files=".*KubernetesConfigServerApplication\.java" checks="HideUtilityClassConstructor"/>
-	<suppress files=".*NormalizedSource\.java" checks="WhitespaceAfter" />
 	<suppress files=".*Fabric8ConfigContext\.java" checks="WhitespaceAround" />
 </suppressions>
