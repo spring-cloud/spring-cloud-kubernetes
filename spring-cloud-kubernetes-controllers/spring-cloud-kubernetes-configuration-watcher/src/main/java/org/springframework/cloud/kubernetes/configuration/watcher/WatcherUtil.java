@@ -27,6 +27,8 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
@@ -46,7 +48,7 @@ final class WatcherUtil {
 	private WatcherUtil() {
 	}
 
-	static void onEvent(KubernetesObject kubernetesObject, String label, String appsLabel, long refreshDelay,
+	static void onEvent(KubernetesObject kubernetesObject, String label, String dataKeyName, long refreshDelay,
 			ScheduledExecutorService executorService, String type,
 			BiFunction<KubernetesObject, String, Mono<Void>> triggerRefresh) {
 
@@ -55,7 +57,7 @@ final class WatcherUtil {
 
 		if (isSpringCloudKubernetes) {
 
-			Set<String> apps = apps(kubernetesObject, appsLabel);
+			Set<String> apps = apps(kubernetesObject, dataKeyName);
 
 			if (!apps.isEmpty()) {
 				LOG.info(() -> "will schedule remote refresh based on apps : " + apps);
@@ -80,25 +82,36 @@ final class WatcherUtil {
 		return Boolean.parseBoolean(labels(kubernetesObject).getOrDefault(label, "false"));
 	}
 
-	static Set<String> apps(KubernetesObject kubernetesObject, String appsLabel) {
-		if (kubernetesObject.getMetadata() == null) {
-			LOG.debug(() -> appsLabel + " not present (no metadata)");
+	static Set<String> apps(KubernetesObject kubernetesObject, String dataKeyName) {
+
+		String kind = kubernetesObject.getKind();
+		Map<String, String> data = switch (kind) {
+		case "ConfigMap":
+			yield ((V1ConfigMap) kubernetesObject).getData();
+		case "Secret":
+			yield ((V1Secret) kubernetesObject).getStringData();
+		default:
+			throw new IllegalArgumentException("type : " + kind + " is not supported");
+		};
+
+		if (data == null || data.isEmpty()) {
+			LOG.debug(() -> dataKeyName + " not present (empty data)");
 			return emptySet();
 		}
 
-		Map<String, String> labels = labels(kubernetesObject);
-		if (labels.isEmpty()) {
-			LOG.debug(() -> appsLabel + " not present (empty labels)");
+		String appsValue = data.get(dataKeyName);
+
+		if (appsValue == null) {
+			LOG.debug(() -> dataKeyName + " not present (missing in data)");
 			return emptySet();
 		}
 
-		String apps = labels.get(appsLabel);
-		if (apps == null) {
-			LOG.debug(() -> appsLabel + " not present (label not found)");
+		if (appsValue.isBlank()) {
+			LOG.debug(() -> appsValue + " not present (blanks only)");
 			return emptySet();
 		}
 
-		return Arrays.stream(apps.split(",")).map(String::trim).collect(Collectors.toSet());
+		return Arrays.stream(appsValue.split(",")).map(String::trim).collect(Collectors.toSet());
 	}
 
 	static Map<String, String> labels(KubernetesObject kubernetesObject) {

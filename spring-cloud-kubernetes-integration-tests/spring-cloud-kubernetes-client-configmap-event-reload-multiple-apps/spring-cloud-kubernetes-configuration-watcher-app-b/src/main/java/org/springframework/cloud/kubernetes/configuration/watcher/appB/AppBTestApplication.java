@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 /**
  * @author wind57
  */
+@SpringBootApplication
 public class AppBTestApplication implements ApplicationListener<RefreshRemoteApplicationEvent> {
 
 	protected Log log = LogFactory.getLog(getClass());

@@ -209,6 +209,7 @@
 			<plugin>
 				<groupId>io.spring.javaformat</groupId>
 				<artifactId>spring-javaformat-maven-plugin</artifactId>
+				<version>0.0.34</version>
 			</plugin>
 		</plugins>
 	</build>
