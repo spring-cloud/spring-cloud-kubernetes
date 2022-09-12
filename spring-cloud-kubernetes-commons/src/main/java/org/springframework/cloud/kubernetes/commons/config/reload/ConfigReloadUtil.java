@@ -84,8 +84,8 @@ public final class ConfigReloadUtil {
 			else if (sourceClass.isInstance(source)) {
 				managedSources.add(sourceClass.cast(source));
 			}
-			else if (source instanceof BootstrapPropertySource) {
-				PropertySource<?> propertySource = ((BootstrapPropertySource<?>) source).getDelegate();
+			else if (source instanceof BootstrapPropertySource<?> bootstrapPropertySource) {
+				PropertySource<?> propertySource = bootstrapPropertySource.getDelegate();
 				if (sourceClass.isInstance(propertySource)) {
 					sources.add(propertySource);
 				}
@@ -108,14 +108,16 @@ public final class ConfigReloadUtil {
 
 		List<MapPropertySource> result = new ArrayList<>();
 		PropertySource<?> propertySource = propertySourceLocator.locate(environment);
-		if (propertySource instanceof MapPropertySource) {
-			result.add((MapPropertySource) propertySource);
+		if (propertySource instanceof MapPropertySource mapPropertySource) {
+			result.add(mapPropertySource);
 		}
 		else if (propertySource instanceof CompositePropertySource source) {
 
-			List<MapPropertySource> list = source.getPropertySources().stream()
-					.filter(p -> p instanceof MapPropertySource).map(x -> (MapPropertySource) x).toList();
-			result.addAll(list);
+			source.getPropertySources().forEach(x -> {
+				if (x instanceof MapPropertySource mapPropertySource) {
+					result.add(mapPropertySource);
+				}
+			});
 		}
 		else {
 			LOG.debug(() -> "Found property source that cannot be handled: " + propertySource.getClass());

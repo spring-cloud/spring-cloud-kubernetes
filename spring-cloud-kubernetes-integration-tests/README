@@ -10,10 +10,12 @@ you must name the image with the same name as the module. For example:
 	<configuration>
 		<imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
 		<imageBuilder>paketobuildpacks/builder</imageBuilder>
-		<skip>${skip.build.image}</skip>
 	</configuration>
 	<executions>
 		<execution>
+			<configuration>
+				<skip>${skip.build.image}</skip>
+			</configuration>
 			<phase>package</phase>
 			<goals>
 				<goal>build-image</goal>

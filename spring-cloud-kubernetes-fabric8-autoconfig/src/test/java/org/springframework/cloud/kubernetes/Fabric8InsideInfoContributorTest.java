@@ -67,14 +67,11 @@ class Fabric8InsideInfoContributorTest {
 	@Test
 	void test() {
 		this.webClient.get().uri("http://localhost:{port}/actuator/info", this.port).accept(MediaType.APPLICATION_JSON)
-				.exchange().expectStatus().isOk().expectBody()
-				.jsonPath("kubernetes.nodeName").isEqualTo("nodeName")
-				.jsonPath("kubernetes.podIp").isEqualTo("10.1.1.1")
-				.jsonPath("kubernetes.hostIp").isEqualTo("192.160.10.3")
-				.jsonPath("kubernetes.namespace").isEqualTo("namespace")
-				.jsonPath("kubernetes.podName").isEqualTo("pod")
-				.jsonPath("kubernetes.serviceAccount").isEqualTo("serviceAccountName")
-				.jsonPath("kubernetes.inside").isEqualTo("true");
+				.exchange().expectStatus().isOk().expectBody().jsonPath("kubernetes.nodeName").isEqualTo("nodeName")
+				.jsonPath("kubernetes.podIp").isEqualTo("10.1.1.1").jsonPath("kubernetes.hostIp")
+				.isEqualTo("192.160.10.3").jsonPath("kubernetes.namespace").isEqualTo("namespace")
+				.jsonPath("kubernetes.podName").isEqualTo("pod").jsonPath("kubernetes.serviceAccount")
+				.isEqualTo("serviceAccountName").jsonPath("kubernetes.inside").isEqualTo("true");
 
 	}
 

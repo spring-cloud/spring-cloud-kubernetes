@@ -64,10 +64,12 @@
 						<name>${env.IMAGE}</name>
 					</image>
 					<goal>build-image</goal>
-					<skip>${skip.build.image}</skip>
 				</configuration>
 				<executions>
 					<execution>
+						<configuration>
+							<skip>${skip.build.image}</skip>
+						</configuration>
 						<phase>package</phase>
 						<goals>
 							<goal>build-image</goal>
