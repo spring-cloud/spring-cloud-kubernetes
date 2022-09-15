@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.CONFIG_MAP_LABEL;
-import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.SECRET_APPS_DATA;
+import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.SECRET_APPS_ANNOTATION;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.SECRET_LABEL;
 
 class WatcherUtilTests {
@@ -80,29 +80,29 @@ class WatcherUtilTests {
 	@Test
 	void appsNoMetadata() {
 		V1Secret secret = new V1SecretBuilder().build();
-		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_DATA);
+		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_ANNOTATION);
 		Assertions.assertEquals(apps.size(), 0);
 	}
 
 	@Test
-	void appsNoLabels() {
-		V1Secret secret = new V1SecretBuilder().withMetadata(new V1ObjectMeta().labels(Map.of())).build();
-		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_DATA);
+	void appsNoAnnotations() {
+		V1Secret secret = new V1SecretBuilder().withMetadata(new V1ObjectMeta().annotations(Map.of())).build();
+		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_ANNOTATION);
 		Assertions.assertEquals(apps.size(), 0);
 	}
 
 	@Test
-	void appsLabelNotFound() {
-		V1Secret secret = new V1SecretBuilder().withMetadata(new V1ObjectMeta().labels(Map.of("a", "b"))).build();
-		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_DATA);
+	void appsAnnotationNotFound() {
+		V1Secret secret = new V1SecretBuilder().withMetadata(new V1ObjectMeta().annotations(Map.of("a", "b"))).build();
+		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_ANNOTATION);
 		Assertions.assertEquals(apps.size(), 0);
 	}
 
 	@Test
 	void appsSingleResult() {
 		V1Secret secret = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMeta().labels(Map.of(SECRET_APPS_DATA, "one-app"))).build();
-		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_DATA);
+				.withMetadata(new V1ObjectMeta().annotations(Map.of(SECRET_APPS_ANNOTATION, "one-app"))).build();
+		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_ANNOTATION);
 		Assertions.assertEquals(apps.size(), 1);
 		Assertions.assertEquals(apps.iterator().next(), "one-app");
 	}
@@ -110,8 +110,9 @@ class WatcherUtilTests {
 	@Test
 	void appsMultipleResults() {
 		V1Secret secret = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMeta().labels(Map.of(SECRET_APPS_DATA, "one, two,  three "))).build();
-		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_DATA);
+				.withMetadata(new V1ObjectMeta().annotations(Map.of(SECRET_APPS_ANNOTATION, "one, two,  three ")))
+				.build();
+		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_ANNOTATION);
 		Assertions.assertEquals(apps.size(), 3);
 		Assertions.assertTrue(apps.contains("one"));
 		Assertions.assertTrue(apps.contains("two"));

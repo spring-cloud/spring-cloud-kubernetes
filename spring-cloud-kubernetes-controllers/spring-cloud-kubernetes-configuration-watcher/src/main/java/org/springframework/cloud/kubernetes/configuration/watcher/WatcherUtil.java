@@ -27,8 +27,7 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
@@ -48,7 +47,7 @@ final class WatcherUtil {
 	private WatcherUtil() {
 	}
 
-	static void onEvent(KubernetesObject kubernetesObject, String label, String dataKeyName, long refreshDelay,
+	static void onEvent(KubernetesObject kubernetesObject, String label, String annotationName, long refreshDelay,
 			ScheduledExecutorService executorService, String type,
 			BiFunction<KubernetesObject, String, Mono<Void>> triggerRefresh) {
 
@@ -57,7 +56,7 @@ final class WatcherUtil {
 
 		if (isSpringCloudKubernetes) {
 
-			Set<String> apps = apps(kubernetesObject, dataKeyName);
+			Set<String> apps = apps(kubernetesObject, annotationName);
 
 			if (!apps.isEmpty()) {
 				LOG.info(() -> "will schedule remote refresh based on apps : " + apps);
@@ -82,27 +81,19 @@ final class WatcherUtil {
 		return Boolean.parseBoolean(labels(kubernetesObject).getOrDefault(label, "false"));
 	}
 
-	static Set<String> apps(KubernetesObject kubernetesObject, String dataKeyName) {
+	static Set<String> apps(KubernetesObject kubernetesObject, String annotationName) {
 
-		String kind = kubernetesObject.getKind();
-		Map<String, String> data = switch (kind) {
-		case "ConfigMap":
-			yield ((V1ConfigMap) kubernetesObject).getData();
-		case "Secret":
-			yield ((V1Secret) kubernetesObject).getStringData();
-		default:
-			throw new IllegalArgumentException("type : " + kind + " is not supported");
-		};
+		Map<String, String> annotations = annotations(kubernetesObject);
 
-		if (data == null || data.isEmpty()) {
-			LOG.debug(() -> dataKeyName + " not present (empty data)");
+		if (annotations.isEmpty()) {
+			LOG.debug(() -> annotationName + " not present (empty data)");
 			return emptySet();
 		}
 
-		String appsValue = data.get(dataKeyName);
+		String appsValue = annotations.get(annotationName);
 
 		if (appsValue == null) {
-			LOG.debug(() -> dataKeyName + " not present (missing in data)");
+			LOG.debug(() -> annotationName + " not present (missing in annotations)");
 			return emptySet();
 		}
 
@@ -115,7 +106,19 @@ final class WatcherUtil {
 	}
 
 	static Map<String, String> labels(KubernetesObject kubernetesObject) {
-		return Optional.ofNullable(kubernetesObject.getMetadata().getLabels()).orElse(Collections.emptyMap());
+		V1ObjectMeta metadata = kubernetesObject.getMetadata();
+		if (metadata == null) {
+			return Map.of();
+		}
+		return Optional.ofNullable(metadata.getLabels()).orElse(Map.of());
+	}
+
+	static Map<String, String> annotations(KubernetesObject kubernetesObject) {
+		V1ObjectMeta metadata = kubernetesObject.getMetadata();
+		if (metadata == null) {
+			return Map.of();
+		}
+		return Optional.ofNullable(metadata.getAnnotations()).orElse(Collections.emptyMap());
 	}
 
 	private static void schedule(String type, String appName, long refreshDelay,

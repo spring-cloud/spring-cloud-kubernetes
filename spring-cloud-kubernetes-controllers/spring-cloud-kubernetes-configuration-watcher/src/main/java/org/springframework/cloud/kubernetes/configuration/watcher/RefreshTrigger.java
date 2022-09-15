@@ -24,7 +24,7 @@ import reactor.core.publisher.Mono;
  *
  * @author wind57
  */
-interface RefreshTrigger {
+sealed interface RefreshTrigger permits BusRefreshTrigger, ConfigMapWatcherChangeDetector, HttpRefreshTrigger, SecretsWatcherChangeDetector {
 
 	/**
 	 * @param kubernetesObject either a config-map or secret at the moment.

@@ -39,14 +39,14 @@ public class ConfigurationWatcherConfigurationProperties {
 	public static final String SECRET_LABEL = "spring.cloud.kubernetes.secret";
 
 	/**
-	 * data key name to enable refresh/restart for specific apps when using configmaps.
+	 * annotation name to enable refresh/restart for specific apps when using configmaps.
 	 */
-	public static final String CONFIG_MAP_APPS_DATA = "spring.cloud.kubernetes.configmap.apps";
+	public static final String CONFIG_MAP_APPS_ANNOTATION = "spring.cloud.kubernetes.configmap.apps";
 
 	/**
-	 * data key name to enable refresh/restart for specific apps when using secrets.
+	 * annotation name to enable refresh/restart for specific apps when using secrets.
 	 */
-	public static final String SECRET_APPS_DATA = "spring.cloud.kubernetes.secret.apps";
+	public static final String SECRET_APPS_ANNOTATION = "spring.cloud.kubernetes.secret.apps";
 
 	/**
 	 * Annotation key for actuator port and path.

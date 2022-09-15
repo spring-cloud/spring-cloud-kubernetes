@@ -11,6 +11,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: spring-cloud-kubernetes-configuration-watcher-app-a-service
+                name: spring-cloud-kubernetes-configuration-watcher-app-a
                 port:
                   number: 8080

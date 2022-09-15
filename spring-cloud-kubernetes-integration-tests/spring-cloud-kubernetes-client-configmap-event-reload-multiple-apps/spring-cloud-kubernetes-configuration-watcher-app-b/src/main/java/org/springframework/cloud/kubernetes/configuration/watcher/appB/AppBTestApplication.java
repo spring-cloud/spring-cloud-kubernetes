@@ -24,14 +24,16 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author wind57
  */
 @SpringBootApplication
+@RestController
 public class AppBTestApplication implements ApplicationListener<RefreshRemoteApplicationEvent> {
 
-	protected Log log = LogFactory.getLog(getClass());
+	private final Log LOG = LogFactory.getLog(getClass());
 
 	private boolean value = false;
 
@@ -41,13 +43,13 @@ public class AppBTestApplication implements ApplicationListener<RefreshRemoteApp
 
 	@GetMapping("/app-b")
 	public boolean index() {
-		log.info("Current value: " + value);
+		LOG.info("Current value: " + value);
 		return value;
 	}
 
 	@Override
 	public void onApplicationEvent(RefreshRemoteApplicationEvent refreshRemoteApplicationEvent) {
-		log.info("Received remote refresh event from origin: " + refreshRemoteApplicationEvent.getOriginService()
+		LOG.info("Received remote refresh event from origin: " + refreshRemoteApplicationEvent.getOriginService()
 				+ " to destination : " + refreshRemoteApplicationEvent.getDestinationService());
 		this.value = true;
 	}

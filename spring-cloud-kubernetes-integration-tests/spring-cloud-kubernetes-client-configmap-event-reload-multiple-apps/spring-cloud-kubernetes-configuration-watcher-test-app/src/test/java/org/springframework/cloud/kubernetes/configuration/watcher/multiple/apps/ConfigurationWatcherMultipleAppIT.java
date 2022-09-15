@@ -156,7 +156,7 @@ class ConfigurationWatcherMultipleAppIT {
 		// and one that says that we should refresh some specific services
 		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName(CONFIG_MAP_NAME)
 				.addToLabels("spring.cloud.kubernetes.config", "true")
-				.addToLabels("spring.cloud.kubernetes.configmap.apps",
+				.addToAnnotations("spring.cloud.kubernetes.configmap.apps",
 						"spring-cloud-kubernetes-configuration-watcher-app-a, spring-cloud-kubernetes-configuration-watcher-app-b")
 				.endMetadata().addToData("foo", "hello world").build();
 		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);

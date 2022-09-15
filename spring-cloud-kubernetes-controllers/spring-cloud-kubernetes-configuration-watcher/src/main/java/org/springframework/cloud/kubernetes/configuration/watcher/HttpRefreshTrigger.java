@@ -100,8 +100,7 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 
 		// The URI may not contain a host so if that is the case the port in the URI will
 		// be -1. The authority of the URI will be :<port> for example :9090, we just need
-		// the
-		// 9090 in this case
+		// the 9090 in this case
 		if (annotationUri.getPort() < 0) {
 			if (annotationUri.getAuthority() != null) {
 				actuatorUriBuilder.port(annotationUri.getAuthority().replaceFirst(":", ""));
