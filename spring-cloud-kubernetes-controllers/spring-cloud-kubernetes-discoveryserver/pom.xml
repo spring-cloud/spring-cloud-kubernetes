@@ -59,12 +59,20 @@
 				</configuration>
 				<executions>
 					<execution>
+						<id>build-image</id>
 						<configuration>
 							<skip>${skip.build.image}</skip>
 						</configuration>
 						<phase>package</phase>
 						<goals>
 							<goal>build-image</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>repackage</id>
+						<phase>package</phase>
+						<goals>
+							<goal>repackage</goal>
 						</goals>
 					</execution>
 				</executions>
