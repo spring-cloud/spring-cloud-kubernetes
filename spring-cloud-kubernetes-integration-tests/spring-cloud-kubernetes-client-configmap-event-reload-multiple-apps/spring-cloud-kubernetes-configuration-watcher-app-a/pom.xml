@@ -61,7 +61,7 @@
 						</goals>
 					</execution>
 					<execution>
-						<id>build-jar</id>
+						<id>repackage</id>
 						<phase>package</phase>
 						<goals>
 							<goal>repackage</goal>

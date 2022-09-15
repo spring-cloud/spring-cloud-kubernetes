@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: it-ingress-app-a
+  name: it-ingress-multiple-apps
   namespace: default
 spec:
   rules:
@@ -14,3 +14,13 @@ spec:
                 name: spring-cloud-kubernetes-configuration-watcher-app-a
                 port:
                   number: 8080
+
+    - http:
+        paths:
+          - path: /app-b
+            pathType: Prefix
+            backend:
+              service:
+                name: spring-cloud-kubernetes-configuration-watcher-app-b
+                port:
+                  number: 8081

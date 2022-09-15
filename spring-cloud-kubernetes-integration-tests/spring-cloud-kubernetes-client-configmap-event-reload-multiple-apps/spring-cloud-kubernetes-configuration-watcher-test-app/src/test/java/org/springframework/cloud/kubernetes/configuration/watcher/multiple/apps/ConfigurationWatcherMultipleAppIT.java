@@ -123,6 +123,7 @@ class ConfigurationWatcherMultipleAppIT {
 		deployKafka();
 		deployAppA();
 		deployAppB();
+		deployIngress();
 		deployConfigWatcher();
 
 		waitForDeployment(ZOOKEEPER_DEPLOYMENT);
@@ -238,10 +239,6 @@ class ConfigurationWatcherMultipleAppIT {
 	private void deployAppA() throws Exception {
 		appsApi.createNamespacedDeployment(NAMESPACE, getAppADeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getAppAService(), null, null, null);
-
-		V1Ingress ingress = getAppAIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
-		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
 	private V1Deployment getAppADeployment() throws Exception {
@@ -257,11 +254,6 @@ class ConfigurationWatcherMultipleAppIT {
 				.readYamlFromClasspath("app-a/spring-cloud-kubernetes-configuration-watcher-app-a-service.yaml");
 	}
 
-	private V1Ingress getAppAIngress() throws Exception {
-		return (V1Ingress) K8SUtils
-				.readYamlFromClasspath("app-a/spring-cloud-kubernetes-configuration-watcher-app-a-ingress.yaml");
-	}
-
 	/**
 	 * <pre>
 	 --------------------------------------------------- app-b --------------------------------------------------
@@ -273,10 +265,6 @@ class ConfigurationWatcherMultipleAppIT {
 	private void deployAppB() throws Exception {
 		appsApi.createNamespacedDeployment(NAMESPACE, getAppBDeployment(), null, null, null);
 		api.createNamespacedService(NAMESPACE, getAppBService(), null, null, null);
-
-		V1Ingress ingress = getAppBIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
-		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
 	private V1Deployment getAppBDeployment() throws Exception {
@@ -290,11 +278,6 @@ class ConfigurationWatcherMultipleAppIT {
 	private V1Service getAppBService() throws Exception {
 		return (V1Service) K8SUtils
 				.readYamlFromClasspath("app-b/spring-cloud-kubernetes-configuration-watcher-app-b-service.yaml");
-	}
-
-	private V1Ingress getAppBIngress() throws Exception {
-		return (V1Ingress) K8SUtils
-				.readYamlFromClasspath("app-b/spring-cloud-kubernetes-configuration-watcher-app-b-ingress.yaml");
 	}
 
 	/**
@@ -331,6 +314,15 @@ class ConfigurationWatcherMultipleAppIT {
 		------------------------------------------------------------------------------------------------------------
 	 </pre>
 	 */
+
+	private void deployIngress() throws Exception {
+		V1Ingress ingress = (V1Ingress) K8SUtils
+			.readYamlFromClasspath("ingress/spring-cloud-kubernetes-configuration-watcher-multiple-apps-ingress.yaml");
+
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
+	}
+
 	private void waitForDeployment(String deploymentName) {
 		await().pollInterval(Duration.ofSeconds(3)).atMost(600, TimeUnit.SECONDS)
 				.until(() -> k8SUtils.isDeploymentReady(deploymentName, NAMESPACE));
@@ -370,8 +362,7 @@ class ConfigurationWatcherMultipleAppIT {
 	}
 
 	private void cleanUpIngress() throws Exception {
-		networkingApi.deleteNamespacedIngress("it-ingress-app-a", NAMESPACE, null, null, null, null, null, null);
-		networkingApi.deleteNamespacedIngress("it-ingress-app-b", NAMESPACE, null, null, null, null, null, null);
+		networkingApi.deleteNamespacedIngress("it-ingress-multiple-apps", NAMESPACE, null, null, null, null, null, null);
 	}
 
 	private WebClient.Builder builder() {
