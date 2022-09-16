@@ -122,14 +122,14 @@ class ConfigurationWatcherMultipleAppIT {
 		deployZookeeper();
 		deployKafka();
 		deployAppA();
-		//deployAppB();
+		deployAppB();
 		deployIngress();
 		deployConfigWatcher();
 
 		waitForDeployment(ZOOKEEPER_DEPLOYMENT);
 		waitForDeployment(KAFKA_BROKER);
 		waitForDeployment(CONFIG_WATCHER_DEPLOYMENT_APP_A_NAME);
-		//waitForDeployment(CONFIG_WATCHER_DEPLOYMENT_APP_B_NAME);
+		waitForDeployment(CONFIG_WATCHER_DEPLOYMENT_APP_B_NAME);
 		waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME);
 	}
 
@@ -153,8 +153,8 @@ class ConfigurationWatcherMultipleAppIT {
 	@Test
 	void testRefresh() throws Exception {
 
-		// configmap has two labels, one that says that we should refresh
-		// and one that says that we should refresh some specific services
+		// configmap has one label, one that says that we should refresh
+		// and one annotation that says that we should refresh some specific services
 		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName(CONFIG_MAP_NAME)
 				.addToLabels("spring.cloud.kubernetes.config", "true")
 				.addToAnnotations("spring.cloud.kubernetes.configmap.apps",
@@ -166,16 +166,25 @@ class ConfigurationWatcherMultipleAppIT {
 		WebClient serviceClientA = builderA.baseUrl("http://localhost:80/app-a").build();
 
 		WebClient.Builder builderB = builder();
-		WebClient serviceClientB = builderA.baseUrl("http://localhost:80/app-b").build();
+		WebClient serviceClientB = builderB.baseUrl("http://localhost:80/app-b").build();
 
-		Boolean[] value = new Boolean[1];
+		Boolean[] valueA = new Boolean[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(240)).until(() -> {
-			value[0] = serviceClientA.method(HttpMethod.GET).retrieve().bodyToMono(Boolean.class).retryWhen(retrySpec())
+			valueA[0] = serviceClientA.method(HttpMethod.GET).retrieve().bodyToMono(Boolean.class).retryWhen(retrySpec())
 					.block();
-			return value[0];
+			return valueA[0];
 		});
 
-		Assertions.assertThat(value[0]).isTrue();
+		Assertions.assertThat(valueA[0]).isTrue();
+
+		Boolean[] valueB = new Boolean[1];
+		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(240)).until(() -> {
+			valueB[0] = serviceClientB.method(HttpMethod.GET).retrieve().bodyToMono(Boolean.class).retryWhen(retrySpec())
+				.block();
+			return valueB[0];
+		});
+
+		Assertions.assertThat(valueB[0]).isTrue();
 	}
 
 	/**
@@ -356,8 +365,6 @@ class ConfigurationWatcherMultipleAppIT {
 	}
 
 	private void cleanUpConfigMaps() throws Exception {
-		api.deleteNamespacedConfigMap(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, null, null, null, null, null,
-				null);
 		api.deleteNamespacedConfigMap(CONFIG_MAP_NAME, NAMESPACE, null, null, null, null, null, null);
 	}
 

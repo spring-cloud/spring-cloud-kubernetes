@@ -1,14 +1,14 @@
-logging:
-  level:
-    org.springframework: DEBUG
-
+#logging:
+#  level:
+#    org.springframework: DEBUG
+#
 spring:
   application:
     name: spring-cloud-kubernetes-configuration-watcher-app-a
   cloud:
     bus:
       refresh:
-        enabled: false #disable this because we are going to provide our own refresh listener for testing purposes
+        enabled: false
       enabled: true
       destination: multiple-apps
     stream:
