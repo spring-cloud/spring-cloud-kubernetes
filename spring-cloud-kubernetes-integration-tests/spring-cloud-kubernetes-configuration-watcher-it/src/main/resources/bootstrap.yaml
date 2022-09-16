@@ -1,3 +1,0 @@
-spring:
-  application:
-    name: spring-cloud-kubernetes-configuration-watcher-it
