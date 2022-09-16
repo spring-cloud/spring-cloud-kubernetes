@@ -6,10 +6,9 @@ spring:
       refresh:
         enabled: false #disable this because we are going to provide our own refresh listener for testing purposes
       enabled: true
+      destination: multiple-apps
     stream:
       default-binder: kafka
-  autoconfigure:
-    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
 management:
   endpoint:
     health:

@@ -19,6 +19,8 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: bus-kafka
+            - name: SPRING_CLOUD_BUS_DESTINATION
+              value: multiple-apps
             - name: spring.kafka.bootstrap-servers
               value: kafka:9092
           readinessProbe:

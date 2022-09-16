@@ -1,15 +1,18 @@
+logging:
+  level:
+    org.springframework: DEBUG
+
 spring:
   application:
-    name: app-a
+    name: spring-cloud-kubernetes-configuration-watcher-app-a
   cloud:
     bus:
       refresh:
         enabled: false #disable this because we are going to provide our own refresh listener for testing purposes
       enabled: true
+      destination: multiple-apps
     stream:
       default-binder: kafka
-  autoconfigure:
-    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
 management:
   endpoint:
     health:
