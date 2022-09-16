@@ -11,5 +11,9 @@ runs:
         cd spring-cloud-kubernetes-integration-tests
         while read integ_test; do
           docker save -o /tmp/docker/images/${integ_test}.tar docker.io/springcloud/${integ_test}:$TAG
-        done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-integration-tests')
+        done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q \
+                    | grep -v 'spring-cloud-kubernetes-integration-tests' \ 
+                    | grep -v 'spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps' \
+                    | grep -v 'spring-cloud-kubernetes-configuration-watcher-test-app' \
+                 )
         cd ..

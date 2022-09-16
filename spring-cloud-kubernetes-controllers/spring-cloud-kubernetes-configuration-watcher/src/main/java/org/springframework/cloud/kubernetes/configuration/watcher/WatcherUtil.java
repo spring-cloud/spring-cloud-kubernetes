@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -118,7 +117,7 @@ final class WatcherUtil {
 		if (metadata == null) {
 			return Map.of();
 		}
-		return Optional.ofNullable(metadata.getAnnotations()).orElse(Collections.emptyMap());
+		return Optional.ofNullable(metadata.getAnnotations()).orElse(Map.of());
 	}
 
 	private static void schedule(String type, String appName, long refreshDelay,
