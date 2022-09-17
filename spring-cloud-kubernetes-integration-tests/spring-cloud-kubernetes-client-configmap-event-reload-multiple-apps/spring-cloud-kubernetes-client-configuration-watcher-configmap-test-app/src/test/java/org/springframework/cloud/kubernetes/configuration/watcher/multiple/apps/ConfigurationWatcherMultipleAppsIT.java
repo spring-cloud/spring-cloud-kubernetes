@@ -260,8 +260,7 @@ class ConfigurationWatcherMultipleAppsIT {
 	}
 
 	private V1Service getAppAService() throws Exception {
-		return (V1Service) K8SUtils
-				.readYamlFromClasspath("app-a/app-a-service.yaml");
+		return (V1Service) K8SUtils.readYamlFromClasspath("app-a/app-a-service.yaml");
 	}
 
 	/**

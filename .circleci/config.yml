@@ -71,7 +71,7 @@ commands:
                         | grep -v 'spring-cloud-kubernetes-integration-tests' \
                         | grep -v 'spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps' \
                         | grep -v 'spring-cloud-kubernetes-client-configuration-watcher-configmap-test-app' \
-                        | grep -v 'spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps' \ 
+                        | grep -v 'spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps' \
                         | grep -v 'spring-cloud-kubernetes-client-configuration-watcher-secrets-test-app' )
             cd ..
 
@@ -129,7 +129,7 @@ commands:
                         | grep -v 'spring-cloud-kubernetes-integration-tests' \
                         | grep -v 'spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps' \
                         | grep -v 'spring-cloud-kubernetes-client-configuration-watcher-configmap-test-app' \
-                        | grep -v 'spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps' \ 
+                        | grep -v 'spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps' \
                         | grep -v 'spring-cloud-kubernetes-client-configuration-watcher-secrets-test-app' )
             cd ..
 
