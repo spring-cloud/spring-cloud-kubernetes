@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: it-ingress-multiple-apps
+  namespace: default
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /app-a
+            pathType: Prefix
+            backend:
+              service:
+                name: app-a
+                port:
+                  number: 8080
+
+    - http:
+        paths:
+          - path: /app-b
+            pathType: Prefix
+            backend:
+              service:
+                name: app-b
+                port:
+                  number: 8081
