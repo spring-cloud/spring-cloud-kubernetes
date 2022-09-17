@@ -23,6 +23,8 @@ spec:
               value: multiple-apps
             - name: spring.kafka.bootstrap-servers
               value: kafka:9092
+            - name: SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESHDELAY
+              value: 1
           readinessProbe:
             httpGet:
               port: 8888

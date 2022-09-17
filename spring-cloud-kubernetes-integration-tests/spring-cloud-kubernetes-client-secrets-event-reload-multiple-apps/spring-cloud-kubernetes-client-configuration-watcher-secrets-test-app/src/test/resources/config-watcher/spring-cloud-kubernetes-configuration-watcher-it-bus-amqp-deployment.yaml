@@ -23,6 +23,8 @@ spec:
               value: rabbitmq-service
             - name: SPRING_CLOUD_BUS_DESTINATION
               value: multiple-apps
+            - name: SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESHDELAY
+              value: 1
           readinessProbe:
             httpGet:
               port: 8888
