@@ -90,7 +90,7 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 		objectMeta.setName("foo");
 		V1ConfigMap configMap = new V1ConfigMap();
 		configMap.setMetadata(objectMeta);
-		changeDetector.triggerRefresh(configMap);
+		changeDetector.triggerRefresh(configMap, configMap.getMetadata().getName());
 		ArgumentCaptor<RefreshRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
 				.forClass(RefreshRemoteApplicationEvent.class);
 		verify(applicationEventPublisher).publishEvent(argumentCaptor.capture());

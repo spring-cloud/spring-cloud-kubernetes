@@ -48,8 +48,8 @@ final class HttpBasedSecretsWatchChangeDetector extends SecretsWatcherChangeDete
 	}
 
 	@Override
-	public Mono<Void> triggerRefresh(KubernetesObject secret) {
-		return httpRefreshTrigger.triggerRefresh(secret);
+	public Mono<Void> triggerRefresh(KubernetesObject secret, String appName) {
+		return httpRefreshTrigger.triggerRefresh(secret, appName);
 	}
 
 }

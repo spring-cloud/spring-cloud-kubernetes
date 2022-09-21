@@ -70,21 +70,21 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 	private final ResourceEventHandler<V1ConfigMap> handler = new ResourceEventHandler<>() {
 
 		@Override
-		public void onAdd(V1ConfigMap obj) {
-			LOG.debug(() -> "ConfigMap " + obj.getMetadata().getName() + " was added.");
-			onEvent(obj);
+		public void onAdd(V1ConfigMap configMap) {
+			LOG.debug(() -> "ConfigMap " + configMap.getMetadata().getName() + " was added.");
+			onEvent(configMap);
 		}
 
 		@Override
-		public void onUpdate(V1ConfigMap oldObj, V1ConfigMap newObj) {
-			LOG.debug(() -> "ConfigMap " + newObj.getMetadata().getName() + " was updated.");
-			onEvent(newObj);
+		public void onUpdate(V1ConfigMap oldConfigMap, V1ConfigMap newConfigMap) {
+			LOG.debug(() -> "ConfigMap " + newConfigMap.getMetadata().getName() + " was updated.");
+			onEvent(newConfigMap);
 		}
 
 		@Override
-		public void onDelete(V1ConfigMap obj, boolean deletedFinalStateUnknown) {
-			LOG.debug(() -> "ConfigMap " + obj.getMetadata() + " was deleted.");
-			onEvent(obj);
+		public void onDelete(V1ConfigMap configMap, boolean deletedFinalStateUnknown) {
+			LOG.debug(() -> "ConfigMap " + configMap.getMetadata().getName() + " was deleted.");
+			onEvent(configMap);
 		}
 	};
 

@@ -48,8 +48,8 @@ final class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatcherChange
 	}
 
 	@Override
-	public Mono<Void> triggerRefresh(KubernetesObject configMap) {
-		return httpRefreshTrigger.triggerRefresh(configMap);
+	public Mono<Void> triggerRefresh(KubernetesObject configMap, String appName) {
+		return httpRefreshTrigger.triggerRefresh(configMap, appName);
 	}
 
 }

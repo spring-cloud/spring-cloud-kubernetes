@@ -30,12 +30,15 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationU
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.SECRET_APPS_ANNOTATION;
+import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.SECRET_LABEL;
+
 /**
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-abstract class SecretsWatcherChangeDetector extends KubernetesClientEventBasedSecretsChangeDetector
-		implements RefreshTrigger {
+abstract sealed class SecretsWatcherChangeDetector extends KubernetesClientEventBasedSecretsChangeDetector implements
+		RefreshTrigger permits BusEventBasedSecretsWatcherChangeDetector, HttpBasedSecretsWatchChangeDetector {
 
 	private final ScheduledExecutorService executorService;
 
@@ -56,8 +59,8 @@ abstract class SecretsWatcherChangeDetector extends KubernetesClientEventBasedSe
 	@Override
 	protected final void onEvent(KubernetesObject secret) {
 		// this::refreshTrigger is coming from BusEventBasedSecretsWatcherChangeDetector
-		WatcherUtil.onEvent(secret, ConfigurationWatcherConfigurationProperties.SECRET_LABEL, refreshDelay,
-				executorService, "secret", this::triggerRefresh);
+		WatcherUtil.onEvent(secret, SECRET_LABEL, SECRET_APPS_ANNOTATION, refreshDelay, executorService, "secret",
+				this::triggerRefresh);
 	}
 
 }
