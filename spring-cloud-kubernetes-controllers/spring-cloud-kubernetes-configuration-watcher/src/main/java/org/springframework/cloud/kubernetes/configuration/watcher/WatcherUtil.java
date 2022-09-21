@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -80,23 +81,25 @@ final class WatcherUtil {
 
 	static Set<String> apps(KubernetesObject kubernetesObject, String annotationName) {
 
+		// mutable on purpose
+		Set<String> apps = new HashSet<>(1);
 		Map<String, String> annotations = annotations(kubernetesObject);
 
 		if (annotations.isEmpty()) {
 			LOG.debug(() -> annotationName + " not present (empty data)");
-			return emptySet();
+			return apps;
 		}
 
 		String appsValue = annotations.get(annotationName);
 
 		if (appsValue == null) {
 			LOG.debug(() -> annotationName + " not present (missing in annotations)");
-			return emptySet();
+			return apps;
 		}
 
 		if (appsValue.isBlank()) {
 			LOG.debug(() -> appsValue + " not present (blanks only)");
-			return emptySet();
+			return apps;
 		}
 
 		return Arrays.stream(appsValue.split(",")).map(String::trim).collect(Collectors.toSet());
