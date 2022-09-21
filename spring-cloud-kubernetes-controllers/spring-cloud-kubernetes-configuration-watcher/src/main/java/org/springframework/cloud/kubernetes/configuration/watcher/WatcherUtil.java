@@ -57,15 +57,13 @@ final class WatcherUtil {
 
 			Set<String> apps = apps(kubernetesObject, annotationName);
 
-			if (!apps.isEmpty()) {
-				LOG.info(() -> "will schedule remote refresh based on apps : " + apps);
-				apps.forEach(appName -> schedule(type, appName, refreshDelay, executorService, triggerRefresh,
-						kubernetesObject));
+			if (apps.isEmpty()) {
+				apps.add(name);
 			}
-			else {
-				LOG.info(() -> "will schedule remote refresh based on name : " + name);
-				schedule(type, name, refreshDelay, executorService, triggerRefresh, kubernetesObject);
-			}
+
+			LOG.info(() -> "will schedule remote refresh based on apps : " + apps);
+			apps.forEach(appName -> schedule(type, appName, refreshDelay, executorService, triggerRefresh,
+				kubernetesObject));
 
 		}
 		else {
