@@ -89,7 +89,7 @@ public class EventBasedConfigMapChangeDetector extends ConfigurationChangeDetect
 
 					@Override
 					public void onClose(WatcherException exception) {
-						log.warn("ConfigMaps watch closed", exception);
+						log.debug("ConfigMaps watch closed", exception);
 						Optional.ofNullable(exception).map(e -> {
 							log.debug("Exception received during watch", e);
 							return exception.asClientException();

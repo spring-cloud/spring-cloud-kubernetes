@@ -90,7 +90,7 @@ public class EventBasedSecretsChangeDetector extends ConfigurationChangeDetector
 
 					@Override
 					public void onClose(WatcherException exception) {
-						log.warn("Secrects watch closed", exception);
+						log.debug("Secrects watch closed", exception);
 						Optional.ofNullable(exception).map(e -> {
 							log.debug("Exception received during watch", e);
 							return exception.asClientException();
