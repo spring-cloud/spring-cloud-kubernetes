@@ -33,8 +33,6 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.core.log.LogAccessor;
 
-import static java.util.Collections.emptySet;
-
 /**
  * A common place where 'onEvent' code delegates to.
  *
