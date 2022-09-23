@@ -98,7 +98,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 
 		try {
 			Map<String, String> data = getLeaderData(this.candidate);
-			if (configMap == null) {
+			if (configMap == null && leaderProperties.isCreateConfigMap()) {
 				createConfigMap(data);
 			}
 			else {
