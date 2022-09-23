@@ -62,7 +62,7 @@ final class WatcherUtil {
 
 			LOG.info(() -> "will schedule remote refresh based on apps : " + apps);
 			apps.forEach(appName -> schedule(type, appName, refreshDelay, executorService, triggerRefresh,
-				kubernetesObject));
+					kubernetesObject));
 
 		}
 		else {
