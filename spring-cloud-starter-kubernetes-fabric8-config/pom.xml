@@ -10,7 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-starter-kubernetes-fabric8-config</artifactId>
-	<name>Spring Cloud Kubernetes :: Starter :: Config</name>
+	<name>Spring Cloud Kubernetes :: Fabric8 Starter :: Config</name>
 
 	<dependencies>
 		<dependency>
