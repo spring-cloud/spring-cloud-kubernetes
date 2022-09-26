@@ -75,7 +75,7 @@ public record KubernetesServiceInstanceRecord(String instanceId, String serviceI
 
 	@Override
 	public URI getUri() {
-		return uri;
+		return createUri(secure ? HTTPS : HTTP, host, port);
 	}
 
 	@Override
