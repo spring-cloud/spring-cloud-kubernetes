@@ -75,7 +75,7 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 	}
 
 	@Override
-	public Boolean isInsideKubernetes() {
+	public boolean isInsideKubernetes() {
 		return currentPod().get() != null;
 	}
 
