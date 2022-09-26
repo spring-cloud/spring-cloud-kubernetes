@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons.discovery;
 
-import org.springframework.cloud.client.ServiceInstance;
-
 import java.net.URI;
 import java.util.Map;
 
@@ -38,7 +36,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  * @param cluster the cluster the service resides in.
  */
 public record KubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
-		Map<String, String> metadata, boolean secure, String namespace, String cluster) implements ServiceInstance {
+		Map<String, String> metadata, boolean secure, String namespace, String cluster) implements EnhancedServiceInstance {
 
 	/**
 	 * @param instanceId the id of the instance.
@@ -93,8 +91,14 @@ public record KubernetesServiceInstance(String instanceId, String serviceId, Str
 		return isSecure() ? HTTPS : HTTP;
 	}
 
-	public String namespace() {
+	@Override
+	public String getNamespace() {
 		return namespace != null ? namespace : this.metadata.get(NAMESPACE_METADATA_KEY);
+	}
+
+	@Override
+	public String getCluster() {
+		return this.cluster;
 	}
 
 	private URI createUri(String scheme, String host, int port) {

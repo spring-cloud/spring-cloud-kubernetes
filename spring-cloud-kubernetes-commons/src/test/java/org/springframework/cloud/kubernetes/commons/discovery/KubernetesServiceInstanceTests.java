@@ -41,8 +41,8 @@ class KubernetesServiceInstanceTests {
 		assertThat(instance.getUri()).isEqualTo(URI.create("https://host:8080"));
 		assertThat(instance.getMetadata()).isEqualTo(Map.of("k8s_namespace", "spring-k8s"));
 		assertThat(instance.getScheme()).isEqualTo("https");
-		//assertThat(instance.getNamespace()).isEqualTo("spring-k8s");
-		//assertThat(instance.getCluster()).isNull();
+		assertThat(instance.getNamespace()).isEqualTo("spring-k8s");
+		assertThat(instance.getCluster()).isNull();
 	}
 
 	@Test
@@ -58,8 +58,8 @@ class KubernetesServiceInstanceTests {
 		assertThat(instance.getUri()).isEqualTo(URI.create("https://host:8080"));
 		assertThat(instance.getMetadata()).isEqualTo(Map.of("a", "b"));
 		assertThat(instance.getScheme()).isEqualTo("https");
-		//assertThat(instance.getNamespace()).isEqualTo("spring-k8s");
-		//assertThat(instance.getCluster()).isEqualTo("cluster");
+		assertThat(instance.getNamespace()).isEqualTo("spring-k8s");
+		assertThat(instance.getCluster()).isEqualTo("cluster");
 	}
 
 }
