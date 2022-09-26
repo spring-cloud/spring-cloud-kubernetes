@@ -10,6 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-starter-kubernetes-client-loadbalancer</artifactId>
+	<name>Spring Cloud Kubernetes :: Kubernetes Native Starter :: LoadBalancer</name>
 
 	<dependencies>
 		<dependency>
