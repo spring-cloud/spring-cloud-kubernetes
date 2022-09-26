@@ -45,6 +45,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
+
 /**
  * @author Min Kim
  * @author Ryan Baxter
@@ -53,12 +57,6 @@ import org.springframework.util.StringUtils;
 public class KubernetesInformerDiscoveryClient implements DiscoveryClient, InitializingBean {
 
 	private static final Log log = LogFactory.getLog(KubernetesInformerDiscoveryClient.class);
-
-	private static final String PRIMARY_PORT_NAME_LABEL_KEY = "primary-port-name";
-
-	private static final String HTTPS_PORT_NAME = "https";
-
-	private static final String HTTP_PORT_NAME = "http";
 
 	private final SharedInformerFactory sharedInformerFactory;
 
@@ -182,7 +180,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 			// In case no port has been found return -1 to log a warning and fall back to
 			// the first port in the list.
 			int discoveredPort = ports.getOrDefault(primaryPortName,
-					ports.getOrDefault(HTTPS_PORT_NAME, ports.getOrDefault(HTTP_PORT_NAME, -1)));
+					ports.getOrDefault(HTTPS, ports.getOrDefault(HTTP, -1)));
 
 			if (discoveredPort == -1) {
 				if (StringUtils.hasText(primaryPortName)) {
