@@ -44,7 +44,10 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import static java.util.stream.Collectors.toMap;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance.NAMESPACE_METADATA_KEY;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 
 /**
  * Kubernetes implementation of {@link DiscoveryClient}.
@@ -55,12 +58,6 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesS
 public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private static final Log log = LogFactory.getLog(KubernetesDiscoveryClient.class);
-
-	private static final String PRIMARY_PORT_NAME_LABEL_KEY = "primary-port-name";
-
-	private static final String HTTPS_PORT_NAME = "https";
-
-	private static final String HTTP_PORT_NAME = "http";
 
 	private final KubernetesDiscoveryProperties properties;
 
@@ -231,7 +228,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			// In case no port has been found return -1 to log a warning and fall back to
 			// the first port in the list.
 			int discoveredPort = ports.getOrDefault(primaryPortName,
-					ports.getOrDefault(HTTPS_PORT_NAME, ports.getOrDefault(HTTP_PORT_NAME, -1)));
+					ports.getOrDefault(HTTPS, ports.getOrDefault(HTTP, -1)));
 
 			if (discoveredPort == -1) {
 				if (StringUtils.hasText(primaryPortName)) {
