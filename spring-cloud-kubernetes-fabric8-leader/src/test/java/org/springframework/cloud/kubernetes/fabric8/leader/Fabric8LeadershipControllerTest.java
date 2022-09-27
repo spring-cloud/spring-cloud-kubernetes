@@ -16,18 +16,32 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gytis Trikleris
@@ -44,7 +58,7 @@ public class Fabric8LeadershipControllerTest {
 	@Mock
 	private LeaderEventPublisher mockLeaderEventPublisher;
 
-	@Mock
+	@Mock(answer = Answers.RETURNS_DEEP_STUBS)
 	private KubernetesClient mockKubernetesClient;
 
 	private Fabric8LeadershipController fabric8LeadershipController;
@@ -58,6 +72,57 @@ public class Fabric8LeadershipControllerTest {
 	@Test
 	public void shouldGetEmptyLocalLeader() {
 		assertThat(this.fabric8LeadershipController.getLocalLeader().isPresent()).isFalse();
+	}
+
+	@Test
+	void whenNonExistentConfigmapAndCreationNotAllowedStopLeadershipAcquire() {
+
+		class MemoryAppender extends ListAppender<ILoggingEvent> {
+
+			public boolean contains(String string, Level level) {
+				return this.list.stream()
+						.anyMatch(event -> event.toString().contains(string) && event.getLevel().equals(level));
+			}
+
+		}
+
+		Logger logger = (Logger) LoggerFactory.getLogger(Fabric8LeadershipController.class);
+		MemoryAppender memoryAppender = new MemoryAppender();
+		logger.setLevel(Level.WARN);
+		logger.addAppender(memoryAppender);
+		memoryAppender.start();
+
+		// given
+		String testNamespace = "test-namespace";
+		String testConfigmap = "test-configmap";
+		Resource mockResource = Mockito.mock(Resource.class);
+		NonNamespaceOperation mockNonNamespaceOperation = Mockito.mock(NonNamespaceOperation.class);
+
+		Fabric8LeadershipController fabric8LeadershipController = new Fabric8LeadershipController(mockCandidate,
+				mockLeaderProperties, mockLeaderEventPublisher, mockKubernetesClient);
+
+		when(mockLeaderProperties.isCreateConfigMap()).thenReturn(false);
+		when(mockLeaderProperties.isPublishFailedEvents()).thenReturn(true);
+		when(mockLeaderProperties.getConfigMapName()).thenReturn(testConfigmap);
+		when(mockKubernetesClient.getNamespace()).thenReturn(testNamespace);
+		when(mockLeaderProperties.getNamespace(anyString())).thenReturn(testNamespace);
+		when(mockKubernetesClient.configMaps().inNamespace(anyString())).thenReturn(mockNonNamespaceOperation);
+		when(mockNonNamespaceOperation.withName(any())).thenReturn(mockResource);
+		when(mockResource.get()).thenReturn(null);
+
+		// when
+		fabric8LeadershipController.update();
+
+		// then
+		assertThat(memoryAppender.contains("ConfigMap '" + testConfigmap + "' does not exist "
+				+ "and leaderProperties.isCreateConfigMap() is false, cannot acquire leadership", Level.WARN)).isTrue();
+		verify(mockLeaderEventPublisher).publishOnFailedToAcquire(any(), any(), any());
+
+		verify(mockKubernetesClient, never()).pods();
+		verify(mockCandidate, never()).getId();
+		verify(mockLeaderProperties, never()).getLeaderIdPrefix();
+		verify(mockLeaderEventPublisher, never()).publishOnGranted(any(), any(), any());
+		verify(mockLeaderEventPublisher, never()).publishOnRevoked(any(), any(), any());
 	}
 
 }
