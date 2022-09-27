@@ -48,7 +48,7 @@
 |spring.cloud.kubernetes.client.watchReconnectInterval | `+++1s+++` | Reconnect Interval
 |spring.cloud.kubernetes.client.watchReconnectLimit | `+++-1+++` | Reconnect Interval limit retries
 |spring.cloud.kubernetes.config.enable-api | `+++true+++` | 
-|spring.cloud.kubernetes.config.enabled | `+++true+++` | Enable the ConfigMap property source locator.
+|spring.cloud.kubernetes.config.enabled | `+++true+++` | 
 |spring.cloud.kubernetes.config.fail-fast | `+++false+++` | 
 |spring.cloud.kubernetes.config.include-profile-specific-sources | `+++true+++` | 
 |spring.cloud.kubernetes.config.labels |  | 
@@ -100,7 +100,7 @@
 |spring.cloud.kubernetes.reload.period | `+++15000ms+++` | Sets the polling period to use when the detection mode is POLLING.
 |spring.cloud.kubernetes.reload.strategy |  | Sets reload strategy for Kubernetes configuration reload on change.
 |spring.cloud.kubernetes.secrets.enable-api | `+++false+++` | 
-|spring.cloud.kubernetes.secrets.enabled | `+++true+++` | Enable the Secrets property source locator.
+|spring.cloud.kubernetes.secrets.enabled | `+++true+++` | 
 |spring.cloud.kubernetes.secrets.fail-fast | `+++false+++` | 
 |spring.cloud.kubernetes.secrets.include-profile-specific-sources | `+++true+++` | 
 |spring.cloud.kubernetes.secrets.labels |  | 
