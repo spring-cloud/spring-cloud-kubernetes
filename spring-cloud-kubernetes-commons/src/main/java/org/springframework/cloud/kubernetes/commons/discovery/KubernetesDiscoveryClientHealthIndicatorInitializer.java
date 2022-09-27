@@ -44,14 +44,10 @@ public final class KubernetesDiscoveryClientHealthIndicatorInitializer {
 
 	@PostConstruct
 	private void afterPropertiesSet() {
-		if (podUtils.isInsideKubernetes()) {
-			LOG.debug(() -> "publishing InstanceRegisteredEvent");
-			this.applicationEventPublisher
-					.publishEvent(new InstanceRegisteredEvent<>(podUtils.currentPod().get(), null));
-		}
-		else {
-			LOG.debug(() -> "Not inside kubernetes. Will not publishing InstanceRegisteredEvent");
-		}
+		LOG.debug(() -> "publishing InstanceRegisteredEvent");
+		this.applicationEventPublisher
+			.publishEvent(new InstanceRegisteredEvent<>(podUtils.currentPod().get(), null));
+
 	}
 
 }
