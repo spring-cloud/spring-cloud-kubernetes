@@ -23,16 +23,11 @@ import java.util.Objects;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.core.style.ToStringCreator;
 
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
+
 public final class KubernetesServiceInstance implements ServiceInstance {
-
-	/**
-	 * Key of the namespace metadata.
-	 */
-	public static final String NAMESPACE_METADATA_KEY = "k8s_namespace";
-
-	private static final String HTTP_PREFIX = "http";
-
-	private static final String HTTPS_PREFIX = "https";
 
 	private String instanceId;
 
@@ -68,7 +63,7 @@ public final class KubernetesServiceInstance implements ServiceInstance {
 		this.port = port;
 		this.metadata = metadata;
 		this.secure = secure;
-		this.uri = createUri(secure ? HTTPS_PREFIX : HTTP_PREFIX, host, port);
+		this.uri = createUri(secure ? HTTPS : HTTP, host, port);
 		this.namespace = null;
 		this.cluster = null;
 	}
@@ -91,7 +86,7 @@ public final class KubernetesServiceInstance implements ServiceInstance {
 		this.port = port;
 		this.metadata = metadata;
 		this.secure = secure;
-		this.uri = createUri(secure ? HTTPS_PREFIX : HTTP_PREFIX, host, port);
+		this.uri = createUri(secure ? HTTPS : HTTP, host, port);
 		this.namespace = namespace;
 		this.cluster = cluster;
 	}
@@ -136,7 +131,7 @@ public final class KubernetesServiceInstance implements ServiceInstance {
 
 	@Override
 	public String getScheme() {
-		return isSecure() ? HTTPS_PREFIX : HTTP_PREFIX;
+		return isSecure() ? HTTPS : HTTP;
 	}
 
 	private URI createUri(String scheme, String host, int port) {
