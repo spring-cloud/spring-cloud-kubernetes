@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.commons.discovery;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,7 @@ class KubernetesServiceInstanceTests {
 
 	@Test
 	void testFirstConstructor() {
-		KubernetesServiceInstance instance = new KubernetesServiceInstance("instanceId","serviceId", "host", 8080,
+		KubernetesServiceInstance instance = new KubernetesServiceInstance("instanceId", "serviceId", "host", 8080,
 			Map.of("k8s_namespace", "spring-k8s"), true);
 
 		assertThat(instance.getInstanceId()).isEqualTo("instanceId");
@@ -47,7 +48,7 @@ class KubernetesServiceInstanceTests {
 
 	@Test
 	void testSecondConstructor() {
-		KubernetesServiceInstance instance = new KubernetesServiceInstance("instanceId","serviceId", "host", 8080,
+		KubernetesServiceInstance instance = new KubernetesServiceInstance("instanceId", "serviceId", "host", 8080,
 			Map.of("a", "b"), true, "spring-k8s", "cluster");
 
 		assertThat(instance.getInstanceId()).isEqualTo("instanceId");
@@ -60,6 +61,29 @@ class KubernetesServiceInstanceTests {
 		assertThat(instance.getScheme()).isEqualTo("https");
 		assertThat(instance.getNamespace()).isEqualTo("spring-k8s");
 		assertThat(instance.getCluster()).isEqualTo("cluster");
+	}
+
+	@Test
+	void schemeIsHttp() {
+		assertServiceInstance(false);
+	}
+
+	@Test
+	void schemeIsHttps() {
+		assertServiceInstance(true);
+	}
+
+	private KubernetesServiceInstance assertServiceInstance(boolean secure) {
+		KubernetesServiceInstance instance = new KubernetesServiceInstance("123", "myservice", "1.2.3.4", 8080,
+			Collections.emptyMap(), secure);
+
+		assertThat(instance.getInstanceId()).isEqualTo("123");
+		assertThat(instance.getServiceId()).isEqualTo("myservice");
+		assertThat(instance.getHost()).isEqualTo("1.2.3.4");
+		assertThat(instance.getPort()).isEqualTo(8080);
+		assertThat(instance.isSecure()).isEqualTo(secure);
+		assertThat(instance.getScheme()).isEqualTo(secure ? "https" : "http");
+		return instance;
 	}
 
 }
