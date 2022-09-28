@@ -39,8 +39,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -159,7 +159,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 					final int port = findEndpointPort(endpointPorts, primaryPortName, serviceId);
 					return addresses.stream()
-							.map(addr -> new KubernetesServiceInstance(
+							.map(addr -> new DefaultKubernetesServiceInstance(
 									addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
 									addr.getIp(), port, metadata, false, service.getMetadata().getNamespace(),
 									service.getMetadata().getClusterName()));

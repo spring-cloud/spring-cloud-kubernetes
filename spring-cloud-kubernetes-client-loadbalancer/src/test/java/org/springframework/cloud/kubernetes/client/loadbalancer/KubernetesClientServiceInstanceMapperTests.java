@@ -26,6 +26,7 @@ import io.kubernetes.client.openapi.models.V1ServicePortBuilder;
 import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
@@ -56,7 +57,7 @@ class KubernetesClientServiceInstanceMapperTests {
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put("org.springframework.cloud", "true");
 		metadata.put("beta", "true");
-		KubernetesServiceInstance result = new KubernetesServiceInstance("0", "database",
+		DefaultKubernetesServiceInstance result = new DefaultKubernetesServiceInstance("0", "database",
 				"database.default.svc.cluster.local", 80, metadata, false);
 		assertThat(serviceInstance).isEqualTo(result);
 	}
@@ -79,7 +80,7 @@ class KubernetesClientServiceInstanceMapperTests {
 				.build();
 
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
-		KubernetesServiceInstance result = new KubernetesServiceInstance("0", "database",
+		DefaultKubernetesServiceInstance result = new DefaultKubernetesServiceInstance("0", "database",
 				"database.default.svc.cluster.local", 443, new HashMap(), true);
 		assertThat(serviceInstance).isEqualTo(result);
 	}
