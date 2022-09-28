@@ -45,12 +45,17 @@ public final class KubernetesDiscoveryClientHealthIndicatorInitializer {
 	@PostConstruct
 	private void postConstruct() {
 		LOG.debug(() -> "publishing InstanceRegisteredEvent");
-		this.applicationEventPublisher
-			.publishEvent(new InstanceRegisteredEvent<>(
-				new RegisteredEventSource("kubernetes", podUtils.isInsideKubernetes(), podUtils.currentPod().get()), null));
+		this.applicationEventPublisher.publishEvent(new InstanceRegisteredEvent<>(
+				new RegisteredEventSource("kubernetes", podUtils.isInsideKubernetes(), podUtils.currentPod().get()),
+				null));
 	}
 
-	private record RegisteredEventSource(String cloudPlatform, boolean inside, Object pod) {
+	/**
+	 * @param cloudPlatform "kubernetes" always
+	 * @param inside inside kubernetes or not
+	 * @param pod an actual pod or null, if we are outside kubernetes
+	 */
+	public record RegisteredEventSource(String cloudPlatform, boolean inside, Object pod) {
 
 	}
 
