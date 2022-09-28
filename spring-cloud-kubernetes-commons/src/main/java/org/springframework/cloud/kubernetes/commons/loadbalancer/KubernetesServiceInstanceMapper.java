@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.commons.loadbalancer;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesAwareServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.util.StringUtils;
 
 /**
@@ -27,7 +27,7 @@ import org.springframework.util.StringUtils;
  */
 public interface KubernetesServiceInstanceMapper<T> {
 
-	KubernetesAwareServiceInstance map(T service);
+	KubernetesServiceInstance map(T service);
 
 	static String createHost(String serviceName, String namespace, String clusterDomain) {
 		return String.format("%s.%s.svc.%s", serviceName, StringUtils.hasText(namespace) ? namespace : "default",

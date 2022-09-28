@@ -29,7 +29,7 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesAwareServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
 
@@ -40,7 +40,7 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties();
 		Service service = buildService("test", "abc", 8080, null, new HashMap<>());
-		KubernetesAwareServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
+		DefaultKubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
 				.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());
@@ -56,7 +56,7 @@ class Fabric8ServiceInstanceMapperTests {
 		ports.add(new ServicePortBuilder().withPort(8080).withName("web").build());
 		ports.add(new ServicePortBuilder().withPort(9000).withName("http").build());
 		Service service = buildService("test", "abc", ports, new HashMap<>());
-		KubernetesAwareServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
+		DefaultKubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
 				.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());
@@ -69,7 +69,7 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties();
 		Service service = buildService("test", "abc", 443, null, new HashMap<>());
-		KubernetesAwareServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
+		DefaultKubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
 				.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());
@@ -84,7 +84,7 @@ class Fabric8ServiceInstanceMapperTests {
 		List<ServicePort> ports = new ArrayList<>();
 		ports.add(new ServicePortBuilder().withPort(443).build());
 		Service service = buildService("test", "abc", ports, null, null);
-		KubernetesAwareServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
+		DefaultKubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
 				.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());
@@ -100,7 +100,7 @@ class Fabric8ServiceInstanceMapperTests {
 		labels.put("secured", "true");
 		labels.put("label1", "123");
 		Service service = buildService("test", "abc", 8080, null, labels);
-		KubernetesAwareServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
+		DefaultKubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
 				.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());

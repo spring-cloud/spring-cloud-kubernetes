@@ -26,14 +26,15 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.client.utils.Utils;
 
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesAwareServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 
 /**
  * Class for mapping Kubernetes Service object into
- * {@link KubernetesAwareServiceInstance}.
+ * {@link KubernetesServiceInstance}.
  *
  * @author Piotr Minkowski
  */
@@ -50,7 +51,7 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 	}
 
 	@Override
-	public KubernetesAwareServiceInstance map(Service service) {
+	public KubernetesServiceInstance map(Service service) {
 		final ObjectMeta meta = service.getMetadata();
 		final List<ServicePort> ports = service.getSpec().getPorts();
 		ServicePort port = null;
@@ -71,7 +72,7 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 				service.getMetadata().getNamespace(), properties.getClusterDomain());
 		final boolean secure = KubernetesServiceInstanceMapper.isSecure(service.getMetadata().getLabels(),
 				service.getMetadata().getAnnotations(), port.getName(), port.getPort());
-		return new KubernetesAwareServiceInstance(meta.getUid(), meta.getName(), host, port.getPort(),
+		return new DefaultKubernetesServiceInstance(meta.getUid(), meta.getName(), host, port.getPort(),
 				getServiceMetadata(service), secure);
 	}
 

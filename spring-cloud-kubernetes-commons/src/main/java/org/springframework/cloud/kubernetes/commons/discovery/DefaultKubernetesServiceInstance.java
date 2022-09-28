@@ -34,7 +34,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  * @param namespace the namespace of the service.
  * @param cluster the cluster the service resides in.
  */
-public record KubernetesAwareServiceInstance(String instanceId, String serviceId, String host, int port,
+public record DefaultKubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
 		Map<String, String> metadata, boolean secure, String namespace,
 		String cluster) implements KubernetesServiceInstance {
 
@@ -46,7 +46,7 @@ public record KubernetesAwareServiceInstance(String instanceId, String serviceId
 	 * @param metadata a map containing metadata.
 	 * @param secure indicates whether the connection needs to be secure.
 	 */
-	public KubernetesAwareServiceInstance(String instanceId, String serviceId, String host, int port,
+	public DefaultKubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
 			Map<String, String> metadata, boolean secure) {
 		this(instanceId, serviceId, host, port, metadata, secure, null, null);
 	}

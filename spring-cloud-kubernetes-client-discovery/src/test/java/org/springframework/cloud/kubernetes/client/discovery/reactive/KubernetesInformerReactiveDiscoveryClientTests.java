@@ -36,7 +36,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesAwareServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -117,7 +117,7 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 				endpointsLister, null, null, kubernetesDiscoveryProperties);
 
 		StepVerifier
-				.create(discoveryClient.getInstances("test-svc-1")).expectNext(new KubernetesAwareServiceInstance("",
+				.create(discoveryClient.getInstances("test-svc-1")).expectNext(new DefaultKubernetesServiceInstance("",
 						"test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false, "namespace1", null))
 				.expectComplete().verify();
 
@@ -137,7 +137,7 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 				kubernetesDiscoveryProperties);
 
 		StepVerifier
-				.create(discoveryClient.getInstances("test-svc-1")).expectNext(new KubernetesAwareServiceInstance("",
+				.create(discoveryClient.getInstances("test-svc-1")).expectNext(new DefaultKubernetesServiceInstance("",
 						"test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false, "namespace1", null))
 				.expectComplete().verify();
 

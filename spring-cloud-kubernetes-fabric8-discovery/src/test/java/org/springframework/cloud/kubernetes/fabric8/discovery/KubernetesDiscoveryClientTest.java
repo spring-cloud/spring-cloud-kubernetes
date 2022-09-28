@@ -35,7 +35,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesAwareServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -268,9 +268,9 @@ public class KubernetesDiscoveryClientTest {
 		assertThat(instances).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1);
 		assertThat(instances).filteredOn(s -> s.getHost().equals("ip2") && !s.isSecure()).hasSize(1);
 		assertThat(instances).filteredOn(s -> s.getServiceId().contains("endpoint")
-				&& ((KubernetesAwareServiceInstance) s).getNamespace().equals("test")).hasSize(1);
+				&& ((DefaultKubernetesServiceInstance) s).getNamespace().equals("test")).hasSize(1);
 		assertThat(instances).filteredOn(s -> s.getServiceId().contains("endpoint")
-				&& ((KubernetesAwareServiceInstance) s).getNamespace().equals("test2")).hasSize(1);
+				&& ((DefaultKubernetesServiceInstance) s).getNamespace().equals("test2")).hasSize(1);
 		assertThat(instances).filteredOn(s -> s.getInstanceId().equals("60")).hasSize(1);
 		assertThat(instances).filteredOn(s -> s.getInstanceId().equals("70")).hasSize(1);
 	}

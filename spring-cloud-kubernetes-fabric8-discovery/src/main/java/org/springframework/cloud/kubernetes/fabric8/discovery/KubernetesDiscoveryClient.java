@@ -34,7 +34,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesAwareServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -178,7 +178,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 					if (endpointAddress.getTargetRef() != null) {
 						instanceId = endpointAddress.getTargetRef().getUid();
 					}
-					instances.add(new KubernetesAwareServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
+					instances.add(new DefaultKubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
 							endpointPort, endpointMetadata,
 							this.servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(endpointPort,
 									service.getMetadata().getName(), service.getMetadata().getLabels(),
