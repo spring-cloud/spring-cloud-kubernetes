@@ -36,8 +36,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesAwareServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.mockito.Mockito.mock;

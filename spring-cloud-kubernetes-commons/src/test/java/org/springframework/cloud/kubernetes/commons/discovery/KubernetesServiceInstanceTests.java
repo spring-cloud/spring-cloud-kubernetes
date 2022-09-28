@@ -31,8 +31,8 @@ class KubernetesServiceInstanceTests {
 
 	@Test
 	void testFirstConstructor() {
-		KubernetesAwareServiceInstance instance = new KubernetesAwareServiceInstance("instanceId", "serviceId", "host", 8080,
-			Map.of("k8s_namespace", "spring-k8s"), true);
+		KubernetesAwareServiceInstance instance = new KubernetesAwareServiceInstance("instanceId", "serviceId", "host",
+				8080, Map.of("k8s_namespace", "spring-k8s"), true);
 
 		assertThat(instance.getInstanceId()).isEqualTo("instanceId");
 		assertThat(instance.getServiceId()).isEqualTo("serviceId");
@@ -48,8 +48,8 @@ class KubernetesServiceInstanceTests {
 
 	@Test
 	void testSecondConstructor() {
-		KubernetesAwareServiceInstance instance = new KubernetesAwareServiceInstance("instanceId", "serviceId", "host", 8080,
-			Map.of("a", "b"), true, "spring-k8s", "cluster");
+		KubernetesAwareServiceInstance instance = new KubernetesAwareServiceInstance("instanceId", "serviceId", "host",
+				8080, Map.of("a", "b"), true, "spring-k8s", "cluster");
 
 		assertThat(instance.getInstanceId()).isEqualTo("instanceId");
 		assertThat(instance.getServiceId()).isEqualTo("serviceId");
@@ -74,8 +74,8 @@ class KubernetesServiceInstanceTests {
 	}
 
 	private KubernetesAwareServiceInstance assertServiceInstance(boolean secure) {
-		KubernetesAwareServiceInstance instance = new KubernetesAwareServiceInstance("123", "myservice", "1.2.3.4", 8080,
-			Collections.emptyMap(), secure);
+		KubernetesAwareServiceInstance instance = new KubernetesAwareServiceInstance("123", "myservice", "1.2.3.4",
+				8080, Collections.emptyMap(), secure);
 
 		assertThat(instance.getInstanceId()).isEqualTo("123");
 		assertThat(instance.getServiceId()).isEqualTo("myservice");

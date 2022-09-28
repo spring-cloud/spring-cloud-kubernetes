@@ -25,7 +25,6 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 
 /**
  * @author wind57
- *
  * @param instanceId the id of the instance.
  * @param serviceId the id of the service.
  * @param host the address where the service instance can be found.
@@ -36,7 +35,8 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  * @param cluster the cluster the service resides in.
  */
 public record KubernetesAwareServiceInstance(String instanceId, String serviceId, String host, int port,
-		Map<String, String> metadata, boolean secure, String namespace, String cluster) implements KubernetesServiceInstance {
+		Map<String, String> metadata, boolean secure, String namespace,
+		String cluster) implements KubernetesServiceInstance {
 
 	/**
 	 * @param instanceId the id of the instance.
