@@ -16,10 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -30,8 +26,9 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.LoggerFactory;
 
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
@@ -74,24 +71,9 @@ public class Fabric8LeadershipControllerTest {
 		assertThat(this.fabric8LeadershipController.getLocalLeader().isPresent()).isFalse();
 	}
 
+	@ExtendWith(OutputCaptureExtension.class)
 	@Test
-	void whenNonExistentConfigmapAndCreationNotAllowedStopLeadershipAcquire() {
-
-		class MemoryAppender extends ListAppender<ILoggingEvent> {
-
-			public boolean contains(String string, Level level) {
-				return this.list.stream()
-						.anyMatch(event -> event.toString().contains(string) && event.getLevel().equals(level));
-			}
-
-		}
-
-		Logger logger = (Logger) LoggerFactory.getLogger(Fabric8LeadershipController.class);
-		MemoryAppender memoryAppender = new MemoryAppender();
-		logger.setLevel(Level.WARN);
-		logger.addAppender(memoryAppender);
-		memoryAppender.start();
-
+	void whenNonExistentConfigmapAndCreationNotAllowedStopLeadershipAcquire(CapturedOutput output) {
 		// given
 		String testNamespace = "test-namespace";
 		String testConfigmap = "test-configmap";
@@ -114,8 +96,8 @@ public class Fabric8LeadershipControllerTest {
 		fabric8LeadershipController.update();
 
 		// then
-		assertThat(memoryAppender.contains("ConfigMap '" + testConfigmap + "' does not exist "
-				+ "and leaderProperties.isCreateConfigMap() is false, cannot acquire leadership", Level.WARN)).isTrue();
+		assertThat(output).contains("ConfigMap '" + testConfigmap + "' does not exist "
+				+ "and leaderProperties.isCreateConfigMap() is false, cannot acquire leadership");
 		verify(mockLeaderEventPublisher).publishOnFailedToAcquire(any(), any(), any());
 
 		verify(mockKubernetesClient, never()).pods();
