@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource;
 
 /**
  * @author wind57
@@ -54,29 +55,42 @@ class KubernetesDiscoveryClientHealthIndicatorInitializerTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	void testInstanceRegistrationEventPublished() {
-		new ApplicationContextRunner().withUserConfiguration(InstanceRegistrationEventPublishedConfiguration.class)
+	void testInstanceRegistrationEventPublishedWhenInsideK8s() {
+		new ApplicationContextRunner()
+				.withUserConfiguration(InstanceRegistrationEventPublishedInsideK8sConfiguration.class)
 				.run(context -> assertThat(context).hasSingleBean(PodUtils.class));
 
-		ArgumentCaptor<InstanceRegisteredEvent<?>> captor = ArgumentCaptor.forClass(InstanceRegisteredEvent.class);
+		ArgumentCaptor<InstanceRegisteredEvent<RegisteredEventSource>> captor = ArgumentCaptor
+				.forClass(InstanceRegisteredEvent.class);
 		Mockito.verify(publisher, Mockito.times(1)).publishEvent(captor.capture());
-		assertThat(captor.getValue().getSource()).isSameAs(POD);
+		KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource source = (KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource) captor
+				.getValue().getSource();
+		assertThat(source.cloudPlatform()).isEqualTo("kubernetes");
+		assertThat(source.inside()).isTrue();
+		assertThat(source.pod()).isSameAs(POD);
 
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
-	void testInstanceRegistrationEventNotPublished() {
-		new ApplicationContextRunner().withUserConfiguration(InstanceRegistrationEventNotPublishedConfiguration.class)
+	void testInstanceRegistrationEventPublishedWhenOutsideK8s() {
+		new ApplicationContextRunner()
+				.withUserConfiguration(InstanceRegistrationEventPublishedOutsideK8sConfiguration.class)
 				.run(context -> assertThat(context).hasSingleBean(PodUtils.class));
 
-		ArgumentCaptor<InstanceRegisteredEvent<?>> captor = ArgumentCaptor.forClass(InstanceRegisteredEvent.class);
-		Mockito.verify(publisher, Mockito.times(0)).publishEvent(captor.capture());
+		ArgumentCaptor<InstanceRegisteredEvent<RegisteredEventSource>> captor = ArgumentCaptor
+				.forClass(InstanceRegisteredEvent.class);
+		Mockito.verify(publisher, Mockito.times(1)).publishEvent(captor.capture());
+		KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource source = (KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource) captor
+				.getValue().getSource();
+		assertThat(source.cloudPlatform()).isEqualTo("kubernetes");
+		assertThat(source.inside()).isFalse();
+		assertThat(source.pod()).isNotNull();
 
 	}
 
 	@Configuration
-	static class InstanceRegistrationEventPublishedConfiguration {
+	static class InstanceRegistrationEventPublishedInsideK8sConfiguration {
 
 		@Bean
 		@SuppressWarnings("unchecked")
@@ -103,13 +117,14 @@ class KubernetesDiscoveryClientHealthIndicatorInitializerTests {
 	}
 
 	@Configuration
-	static class InstanceRegistrationEventNotPublishedConfiguration {
+	static class InstanceRegistrationEventPublishedOutsideK8sConfiguration {
 
 		@Bean
 		@SuppressWarnings("unchecked")
 		PodUtils<Object> podUtils() {
 			PodUtils<Object> podUtils = Mockito.mock(PodUtils.class);
 			Mockito.when(podUtils.isInsideKubernetes()).thenReturn(false);
+			Mockito.when(podUtils.currentPod()).thenReturn(() -> POD);
 			return podUtils;
 		}
 

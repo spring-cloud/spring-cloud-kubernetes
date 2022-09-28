@@ -27,7 +27,7 @@ public interface PodUtils<T> {
 
 	/**
 	 * @return A supplier of the current Pod. The supplier will hold the current Pod if
-	 * inside Kubernetes or false, otherwise.
+	 * inside Kubernetes or null, otherwise.
 	 */
 	Supplier<T> currentPod();
 
