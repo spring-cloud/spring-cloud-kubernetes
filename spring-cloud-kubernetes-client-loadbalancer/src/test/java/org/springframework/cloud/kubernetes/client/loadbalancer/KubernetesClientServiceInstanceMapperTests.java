@@ -27,7 +27,7 @@ import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesAwareServiceInstance;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,11 +52,11 @@ class KubernetesClientServiceInstanceMapperTests {
 						.addToPorts(new V1ServicePortBuilder().withPort(80).withName("http").build()).build())
 				.build();
 
-		KubernetesServiceInstance serviceInstance = mapper.map(service);
+		KubernetesAwareServiceInstance serviceInstance = mapper.map(service);
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put("org.springframework.cloud", "true");
 		metadata.put("beta", "true");
-		KubernetesServiceInstance result = new KubernetesServiceInstance("0", "database",
+		KubernetesAwareServiceInstance result = new KubernetesAwareServiceInstance("0", "database",
 				"database.default.svc.cluster.local", 80, metadata, false);
 		assertThat(serviceInstance).isEqualTo(result);
 	}
@@ -78,8 +78,8 @@ class KubernetesClientServiceInstanceMapperTests {
 						.build())
 				.build();
 
-		KubernetesServiceInstance serviceInstance = mapper.map(service);
-		KubernetesServiceInstance result = new KubernetesServiceInstance("0", "database",
+		KubernetesAwareServiceInstance serviceInstance = mapper.map(service);
+		KubernetesAwareServiceInstance result = new KubernetesAwareServiceInstance("0", "database",
 				"database.default.svc.cluster.local", 443, new HashMap(), true);
 		assertThat(serviceInstance).isEqualTo(result);
 	}

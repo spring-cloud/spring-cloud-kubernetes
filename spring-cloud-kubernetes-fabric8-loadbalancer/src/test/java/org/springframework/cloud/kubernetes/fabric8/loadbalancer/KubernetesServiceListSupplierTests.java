@@ -33,8 +33,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesAwareServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
 import org.springframework.core.env.Environment;
 
@@ -68,7 +68,7 @@ class KubernetesServiceListSupplierTests {
 	@Test
 	void testPositiveMatch() {
 		when(environment.getProperty("loadbalancer.client.name")).thenReturn("test-service");
-		when(mapper.map(any(Service.class))).thenReturn(new KubernetesServiceInstance("", "", "", 0, null, false));
+		when(mapper.map(any(Service.class))).thenReturn(new KubernetesAwareServiceInstance("", "", "", 0, null, false));
 		when(this.client.getNamespace()).thenReturn("test");
 		when(this.client.services()).thenReturn(this.serviceOperation);
 		when(this.serviceOperation.inNamespace("test")).thenReturn(namespaceOperation);
@@ -84,7 +84,7 @@ class KubernetesServiceListSupplierTests {
 	@Test
 	void testPositiveMatchAllNamespaces() {
 		when(environment.getProperty("loadbalancer.client.name")).thenReturn("test-service");
-		when(mapper.map(any(Service.class))).thenReturn(new KubernetesServiceInstance("", "", "", 0, null, false));
+		when(mapper.map(any(Service.class))).thenReturn(new KubernetesAwareServiceInstance("", "", "", 0, null, false));
 		when(this.client.services()).thenReturn(this.serviceOperation);
 		when(this.serviceOperation.inAnyNamespace()).thenReturn(this.multiDeletable);
 		when(this.multiDeletable.withField("metadata.name", "test-service")).thenReturn(this.multiDeletable);

@@ -37,13 +37,13 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesAwareServiceInstance;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.mock.env.MockEnvironment;
@@ -131,7 +131,7 @@ class KubernetesClientServicesListSupplierTests {
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put("org.springframework.cloud", "true");
 		metadata.put("beta", "true");
-		KubernetesServiceInstance service1 = new KubernetesServiceInstance("0", "service1",
+		KubernetesAwareServiceInstance service1 = new KubernetesAwareServiceInstance("0", "service1",
 				"service1.default.svc.cluster.local", 80, metadata, false);
 		List<ServiceInstance> services = new ArrayList<>();
 		services.add(service1);
@@ -161,9 +161,9 @@ class KubernetesClientServicesListSupplierTests {
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put("org.springframework.cloud", "true");
 		metadata.put("beta", "true");
-		KubernetesServiceInstance service1 = new KubernetesServiceInstance("0", "service1",
+		KubernetesAwareServiceInstance service1 = new KubernetesAwareServiceInstance("0", "service1",
 				"service1.default.svc.cluster.local", 80, metadata, false);
-		KubernetesServiceInstance service2 = new KubernetesServiceInstance("1", "service1",
+		KubernetesAwareServiceInstance service2 = new KubernetesAwareServiceInstance("1", "service1",
 				"service1.test.svc.cluster.local", 80, new HashMap<>(), false);
 		List<ServiceInstance> services = new ArrayList<>();
 		services.add(service1);

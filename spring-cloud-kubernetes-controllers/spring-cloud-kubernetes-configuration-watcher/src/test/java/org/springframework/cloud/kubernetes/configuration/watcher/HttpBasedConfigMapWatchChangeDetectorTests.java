@@ -38,6 +38,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesAwareServiceInstance;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -48,7 +49,6 @@ import org.springframework.cloud.kubernetes.client.discovery.reactive.Kubernetes
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -162,7 +162,7 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		V1EndpointPort fooEndpointPort = new V1EndpointPort();
 		fooEndpointPort.setPort(port);
 		List<ServiceInstance> instances = new ArrayList<>();
-		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance("foo", "foo",
+		KubernetesAwareServiceInstance fooServiceInstance = new KubernetesAwareServiceInstance("foo", "foo",
 				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), metadata, false);
 		instances.add(fooServiceInstance);
 		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
@@ -187,7 +187,7 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		fooEndpointPort.setPort(WIRE_MOCK_SERVER.port());
 
 		List<ServiceInstance> instances = new ArrayList<>();
-		KubernetesServiceInstance fooServiceInstance = new KubernetesServiceInstance("foo", "foo",
+		KubernetesAwareServiceInstance fooServiceInstance = new KubernetesAwareServiceInstance("foo", "foo",
 				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), new HashMap<>(), false);
 		instances.add(fooServiceInstance);
 		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));

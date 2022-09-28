@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,92 +16,17 @@
 
 package org.springframework.cloud.kubernetes.commons.discovery;
 
-import java.net.URI;
-import java.util.Map;
-
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
+import org.springframework.cloud.client.ServiceInstance;
 
 /**
  * @author wind57
  *
- * @param instanceId the id of the instance.
- * @param serviceId the id of the service.
- * @param host the address where the service instance can be found.
- * @param port the port on which the service is running.
- * @param metadata a map containing metadata.
- * @param secure indicates whether the connection needs to be secure.
- * @param namespace the namespace of the service.
- * @param cluster the cluster the service resides in.
+ * {@link ServiceInstance} with additional methods, specific to kubernetes.
  */
-public record KubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
-		Map<String, String> metadata, boolean secure, String namespace, String cluster) implements EnhancedServiceInstance {
+sealed interface KubernetesServiceInstance extends ServiceInstance permits KubernetesAwareServiceInstance {
 
-	/**
-	 * @param instanceId the id of the instance.
-	 * @param serviceId the id of the service.
-	 * @param host the address where the service instance can be found.
-	 * @param port the port on which the service is running.
-	 * @param metadata a map containing metadata.
-	 * @param secure indicates whether the connection needs to be secure.
-	 */
-	public KubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
-			Map<String, String> metadata, boolean secure) {
-		this(instanceId, serviceId, host, port, metadata, secure, null, null);
-	}
+	String getNamespace();
 
-	@Override
-	public String getInstanceId() {
-		return this.instanceId;
-	}
+	String getCluster();
 
-	@Override
-	public String getServiceId() {
-		return serviceId;
-	}
-
-	@Override
-	public String getHost() {
-		return host;
-	}
-
-	@Override
-	public int getPort() {
-		return port;
-	}
-
-	@Override
-	public boolean isSecure() {
-		return secure;
-	}
-
-	@Override
-	public URI getUri() {
-		return createUri(secure ? HTTPS : HTTP, host, port);
-	}
-
-	@Override
-	public Map<String, String> getMetadata() {
-		return metadata;
-	}
-
-	@Override
-	public String getScheme() {
-		return isSecure() ? HTTPS : HTTP;
-	}
-
-	@Override
-	public String getNamespace() {
-		return namespace != null ? namespace : this.metadata.get(NAMESPACE_METADATA_KEY);
-	}
-
-	@Override
-	public String getCluster() {
-		return this.cluster;
-	}
-
-	private URI createUri(String scheme, String host, int port) {
-		return URI.create(scheme + "://" + host + ":" + port);
-	}
 }
