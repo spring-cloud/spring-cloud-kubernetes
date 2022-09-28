@@ -32,7 +32,8 @@ import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadB
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 
 /**
- * Class for mapping Kubernetes Service object into {@link KubernetesAwareServiceInstance}.
+ * Class for mapping Kubernetes Service object into
+ * {@link KubernetesAwareServiceInstance}.
  *
  * @author Piotr Minkowski
  */

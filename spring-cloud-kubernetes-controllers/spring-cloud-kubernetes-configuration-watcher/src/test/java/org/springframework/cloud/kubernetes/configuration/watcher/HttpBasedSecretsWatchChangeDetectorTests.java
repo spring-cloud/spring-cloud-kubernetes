@@ -38,7 +38,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesAwareServiceInstance;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -49,6 +48,7 @@ import org.springframework.cloud.kubernetes.client.discovery.reactive.Kubernetes
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesAwareServiceInstance;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.reactive.function.client.WebClient;
