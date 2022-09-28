@@ -86,6 +86,7 @@
 |spring.cloud.kubernetes.leader.publish-failed-events | `+++false+++` | Enable/disable publishing events in case leadership acquisition fails. Default: false
 |spring.cloud.kubernetes.leader.role |  | Role for which leadership this candidate will compete.
 |spring.cloud.kubernetes.leader.update-period | `+++60000ms+++` | Leadership status check period. Default: 60s
+|spring.cloud.kubernetes.leader.create-config-map | `+++true+++` | Enable/disable creating ConfigMap if it does not exist. Default: true
 |spring.cloud.kubernetes.loadbalancer.cluster-domain | `+++cluster.local+++` | cluster domain.
 |spring.cloud.kubernetes.loadbalancer.enabled | `+++true+++` | Load balancer enabled,default true.
 |spring.cloud.kubernetes.loadbalancer.mode |  | {@link KubernetesLoadBalancerMode} setting load balancer server list with ip of pod or service name. default value is POD.
