@@ -40,6 +40,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceI
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties.Metadata;
 
 @ExtendWith(SpringExtension.class)
 @EnableKubernetesMockClient(crud = true, https = false)
@@ -81,9 +82,9 @@ public class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace("test").create(service);
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
+		Metadata metadata = new Metadata(false, null, false, null, true, "port.");
 		properties.setServiceLabels(labels);
-		properties.getMetadata().setAddLabels(false);
-		properties.getMetadata().setAddAnnotations(false);
+		properties.setMetadata(metadata);
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, new ServicePortSecureResolver(properties));
@@ -167,8 +168,8 @@ public class KubernetesDiscoveryClientTest {
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		properties.setServiceLabels(labels);
-		properties.getMetadata().setAddAnnotations(false);
-		properties.getMetadata().setAddLabels(false);
+		Metadata metadata = new Metadata(false, null, false, null, true, "port.");
+		properties.setMetadata(metadata);
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, new ServicePortSecureResolver(properties));

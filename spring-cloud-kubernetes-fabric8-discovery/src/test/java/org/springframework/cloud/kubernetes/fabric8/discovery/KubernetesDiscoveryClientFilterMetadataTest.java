@@ -54,6 +54,7 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties.Metadata;
 
 @RunWith(MockitoJUnitRunner.class)
 public class KubernetesDiscoveryClientFilterMetadataTest {
@@ -66,9 +67,6 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 
 	@Mock
 	private ServicePortSecureResolver isServicePortSecureResolver;
-
-	@Mock
-	private KubernetesDiscoveryProperties.Metadata metadata;
 
 	@Mock
 	private MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation;
@@ -92,10 +90,8 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testAllExtraMetadataDisabled() {
 		final String serviceId = "s";
 
-		when(this.properties.getMetadata()).thenReturn(this.metadata);
-		when(this.metadata.isAddLabels()).thenReturn(false);
-		when(this.metadata.isAddAnnotations()).thenReturn(false);
-		when(this.metadata.isAddPorts()).thenReturn(false);
+		Metadata metadata = new Metadata(false, null, false, null, false, null);
+		when(this.properties.getMetadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -121,10 +117,8 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testLabelsEnabled() {
 		final String serviceId = "s";
 
-		when(this.properties.getMetadata()).thenReturn(this.metadata);
-		when(this.metadata.isAddLabels()).thenReturn(true);
-		when(this.metadata.isAddAnnotations()).thenReturn(false);
-		when(this.metadata.isAddPorts()).thenReturn(false);
+		Metadata metadata = new Metadata(true, null, false, null, false, null);
+		when(this.properties.getMetadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -151,11 +145,8 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testLabelsEnabledWithPrefix() {
 		final String serviceId = "s";
 
-		when(this.properties.getMetadata()).thenReturn(this.metadata);
-		when(this.metadata.isAddLabels()).thenReturn(true);
-		when(this.metadata.getLabelsPrefix()).thenReturn("l_");
-		when(this.metadata.isAddAnnotations()).thenReturn(false);
-		when(this.metadata.isAddPorts()).thenReturn(false);
+		Metadata metadata = new Metadata(true, "l_", false, null, false, null);
+		when(this.properties.getMetadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -182,10 +173,8 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testAnnotationsEnabled() {
 		final String serviceId = "s";
 
-		when(this.properties.getMetadata()).thenReturn(this.metadata);
-		when(this.metadata.isAddLabels()).thenReturn(false);
-		when(this.metadata.isAddAnnotations()).thenReturn(true);
-		when(this.metadata.isAddPorts()).thenReturn(false);
+		Metadata metadata = new Metadata(false, null, true, null, false, null);
+		when(this.properties.getMetadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -212,11 +201,8 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testAnnotationsEnabledWithPrefix() {
 		final String serviceId = "s";
 
-		when(this.properties.getMetadata()).thenReturn(this.metadata);
-		when(this.metadata.isAddLabels()).thenReturn(false);
-		when(this.metadata.isAddAnnotations()).thenReturn(true);
-		when(this.metadata.getAnnotationsPrefix()).thenReturn("a_");
-		when(this.metadata.isAddPorts()).thenReturn(false);
+		Metadata metadata = new Metadata(false, null, true, "a_", false, null);
+		when(this.properties.getMetadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -243,10 +229,8 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testPortsEnabled() {
 		final String serviceId = "s";
 
-		when(this.properties.getMetadata()).thenReturn(this.metadata);
-		when(this.metadata.isAddLabels()).thenReturn(false);
-		when(this.metadata.isAddAnnotations()).thenReturn(false);
-		when(this.metadata.isAddPorts()).thenReturn(true);
+		Metadata metadata = new Metadata(false, null, false, null, true, null);
+		when(this.properties.getMetadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -273,11 +257,8 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testPortsEnabledWithPrefix() {
 		final String serviceId = "s";
 
-		when(this.properties.getMetadata()).thenReturn(this.metadata);
-		when(this.metadata.isAddLabels()).thenReturn(false);
-		when(this.metadata.isAddAnnotations()).thenReturn(false);
-		when(this.metadata.isAddPorts()).thenReturn(true);
-		when(this.metadata.getPortsPrefix()).thenReturn("p_");
+		Metadata metadata = new Metadata(false, null, false, null, true, "p_");
+		when(this.properties.getMetadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -304,13 +285,8 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	public void testLabelsAndAnnotationsAndPortsEnabledWithPrefix() {
 		final String serviceId = "s";
 
-		when(this.properties.getMetadata()).thenReturn(this.metadata);
-		when(this.metadata.isAddLabels()).thenReturn(true);
-		when(this.metadata.getLabelsPrefix()).thenReturn("l_");
-		when(this.metadata.isAddAnnotations()).thenReturn(true);
-		when(this.metadata.getAnnotationsPrefix()).thenReturn("a_");
-		when(this.metadata.isAddPorts()).thenReturn(true);
-		when(this.metadata.getPortsPrefix()).thenReturn("p_");
+		Metadata metadata = new Metadata(true, "l_", true, "a_", true, "p_");
+		when(this.properties.getMetadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{

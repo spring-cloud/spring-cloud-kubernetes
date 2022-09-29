@@ -78,14 +78,14 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 	private Map<String, String> getServiceMetadata(Service service) {
 		final Map<String, String> serviceMetadata = new HashMap<>();
 		KubernetesDiscoveryProperties.Metadata metadataProps = this.discoveryProperties.getMetadata();
-		if (metadataProps.isAddLabels()) {
+		if (metadataProps.addLabels()) {
 			Map<String, String> labelMetadata = KubernetesServiceInstanceMapper
-					.getMapWithPrefixedKeys(service.getMetadata().getLabels(), metadataProps.getLabelsPrefix());
+					.getMapWithPrefixedKeys(service.getMetadata().getLabels(), metadataProps.labelsPrefix());
 			serviceMetadata.putAll(labelMetadata);
 		}
-		if (metadataProps.isAddAnnotations()) {
-			Map<String, String> annotationMetadata = KubernetesServiceInstanceMapper.getMapWithPrefixedKeys(
-					service.getMetadata().getAnnotations(), metadataProps.getAnnotationsPrefix());
+		if (metadataProps.addAnnotations()) {
+			Map<String, String> annotationMetadata = KubernetesServiceInstanceMapper
+					.getMapWithPrefixedKeys(service.getMetadata().getAnnotations(), metadataProps.annotationsPrefix());
 			serviceMetadata.putAll(annotationMetadata);
 		}
 
