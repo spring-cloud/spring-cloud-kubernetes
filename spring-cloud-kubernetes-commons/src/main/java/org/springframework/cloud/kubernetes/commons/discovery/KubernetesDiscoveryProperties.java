@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.core.style.ToStringCreator;
 
 import static org.springframework.cloud.client.discovery.DiscoveryClient.DEFAULT_ORDER;
@@ -175,100 +176,19 @@ public class KubernetesDiscoveryProperties {
 	}
 
 	/**
-	 * Metadata properties.
+	 * @param addLabels included labels of the service as metadata of the returned ServiceInstance.
+	 * @param labelsPrefix prefix for the labels
+	 * @param addAnnotations include annotations of the service as metadata of the returned ServiceInstance.
+	 * @param annotationsPrefix prefix for the annotations
+	 * @param addPorts include ports as metadata of the returned ServiceInstance.
+	 * @param portsPrefix prefix for the ports
 	 */
-	public static class Metadata {
+	public record Metadata(@DefaultValue("true") boolean addLabels, String labelsPrefix, @DefaultValue("true") boolean addAnnotations,
+						   String annotationsPrefix, @DefaultValue("true") boolean addPorts, @DefaultValue( "port.") String portsPrefix) {
 
-		/**
-		 * When set, the Kubernetes labels of the services will be included as metadata of
-		 * the returned ServiceInstance.
-		 */
-		private boolean addLabels = true;
-
-		/**
-		 * When addLabels is set, then this will be used as a prefix to the key names in
-		 * the metadata map.
-		 */
-		private String labelsPrefix;
-
-		/**
-		 * When set, the Kubernetes annotations of the services will be included as
-		 * metadata of the returned ServiceInstance.
-		 */
-		private boolean addAnnotations = true;
-
-		/**
-		 * When addAnnotations is set, then this will be used as a prefix to the key names
-		 * in the metadata map.
-		 */
-		private String annotationsPrefix;
-
-		/**
-		 * When set, any named Kubernetes service ports will be included as metadata of
-		 * the returned ServiceInstance.
-		 */
-		private boolean addPorts = true;
-
-		/**
-		 * When addPorts is set, then this will be used as a prefix to the key names in
-		 * the metadata map.
-		 */
-		private String portsPrefix = "port.";
-
-		public boolean isAddLabels() {
-			return this.addLabels;
-		}
-
-		public void setAddLabels(boolean addLabels) {
-			this.addLabels = addLabels;
-		}
-
-		public String getLabelsPrefix() {
-			return this.labelsPrefix;
-		}
-
-		public void setLabelsPrefix(String labelsPrefix) {
-			this.labelsPrefix = labelsPrefix;
-		}
-
-		public boolean isAddAnnotations() {
-			return this.addAnnotations;
-		}
-
-		public void setAddAnnotations(boolean addAnnotations) {
-			this.addAnnotations = addAnnotations;
-		}
-
-		public String getAnnotationsPrefix() {
-			return this.annotationsPrefix;
-		}
-
-		public void setAnnotationsPrefix(String annotationsPrefix) {
-			this.annotationsPrefix = annotationsPrefix;
-		}
-
-		public boolean isAddPorts() {
-			return this.addPorts;
-		}
-
-		public void setAddPorts(boolean addPorts) {
-			this.addPorts = addPorts;
-		}
-
-		public String getPortsPrefix() {
-			return this.portsPrefix;
-		}
-
-		public void setPortsPrefix(String portsPrefix) {
-			this.portsPrefix = portsPrefix;
-		}
-
-		@Override
-		public String toString() {
-			return new ToStringCreator(this).append("addLabels", this.addLabels)
-					.append("labelsPrefix", this.labelsPrefix).append("addAnnotations", this.addAnnotations)
-					.append("annotationsPrefix", this.annotationsPrefix).append("addPorts", this.addPorts)
-					.append("portsPrefix", this.portsPrefix).toString();
+		// needed in order to get the defaults for some fields
+		public Metadata() {
+			this(true, null, true, null, true, "port.");
 		}
 
 	}
