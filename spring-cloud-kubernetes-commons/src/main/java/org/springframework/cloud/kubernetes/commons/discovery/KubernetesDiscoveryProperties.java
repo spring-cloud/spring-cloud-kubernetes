@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.core.style.ToStringCreator;
 
@@ -176,15 +177,21 @@ public class KubernetesDiscoveryProperties {
 	}
 
 	/**
-	 * @param addLabels included labels of the service as metadata of the returned ServiceInstance.
+	 * @param addLabels include labels as metadata
 	 * @param labelsPrefix prefix for the labels
-	 * @param addAnnotations include annotations of the service as metadata of the returned ServiceInstance.
+	 * @param addAnnotations include annotations as metadata
 	 * @param annotationsPrefix prefix for the annotations
-	 * @param addPorts include ports as metadata of the returned ServiceInstance.
-	 * @param portsPrefix prefix for the ports
+	 * @param addPorts include ports as metadata
+	 * @param portsPrefix prefix for the ports, by default it is "port."
 	 */
-	public record Metadata(@DefaultValue("true") boolean addLabels, String labelsPrefix, @DefaultValue("true") boolean addAnnotations,
-						   String annotationsPrefix, @DefaultValue("true") boolean addPorts, @DefaultValue( "port.") String portsPrefix) {
+	public record Metadata(@DefaultValue("true") boolean addLabels, String labelsPrefix,
+			@DefaultValue("true") boolean addAnnotations, String annotationsPrefix,
+			@DefaultValue("true") boolean addPorts, @DefaultValue("port.") String portsPrefix) {
+
+		@ConstructorBinding
+		public Metadata {
+
+		}
 
 		// needed in order to get the defaults for some fields
 		public Metadata() {
