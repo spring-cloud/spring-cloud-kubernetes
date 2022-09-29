@@ -147,11 +147,11 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				// Extend the service metadata map with per-endpoint port information (if
 				// requested)
 				Map<String, String> endpointMetadata = new HashMap<>(serviceMetadata);
-				if (metadataProps.isAddPorts()) {
+				if (metadataProps.addPorts()) {
 					Map<String, String> ports = s.getPorts().stream()
 							.filter(port -> StringUtils.hasText(port.getName()))
 							.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
-					Map<String, String> portMetadata = getMapWithPrefixedKeys(ports, metadataProps.getPortsPrefix());
+					Map<String, String> portMetadata = getMapWithPrefixedKeys(ports, metadataProps.portsPrefix());
 					if (log.isDebugEnabled()) {
 						log.debug("Adding port metadata: " + portMetadata);
 					}
@@ -193,17 +193,17 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	private Map<String, String> getServiceMetadata(Service service) {
 		final Map<String, String> serviceMetadata = new HashMap<>();
 		KubernetesDiscoveryProperties.Metadata metadataProps = this.properties.getMetadata();
-		if (metadataProps.isAddLabels()) {
+		if (metadataProps.addLabels()) {
 			Map<String, String> labelMetadata = getMapWithPrefixedKeys(service.getMetadata().getLabels(),
-					metadataProps.getLabelsPrefix());
+					metadataProps.labelsPrefix());
 			if (log.isDebugEnabled()) {
 				log.debug("Adding label metadata: " + labelMetadata);
 			}
 			serviceMetadata.putAll(labelMetadata);
 		}
-		if (metadataProps.isAddAnnotations()) {
+		if (metadataProps.addAnnotations()) {
 			Map<String, String> annotationMetadata = getMapWithPrefixedKeys(service.getMetadata().getAnnotations(),
-					metadataProps.getAnnotationsPrefix());
+					metadataProps.annotationsPrefix());
 			if (log.isDebugEnabled()) {
 				log.debug("Adding annotation metadata: " + annotationMetadata);
 			}
