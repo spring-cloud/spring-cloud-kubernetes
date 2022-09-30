@@ -68,12 +68,12 @@
 |spring.cloud.kubernetes.discovery.filter |  | SpEL expression to filter services AFTER they have been retrieved from the Kubernetes API server.
 |spring.cloud.kubernetes.discovery.include-not-ready-addresses | `+++false+++` | If endpoint addresses not marked 'ready' by the k8s api server should be discovered.
 |spring.cloud.kubernetes.discovery.known-secure-ports |  | Set the port numbers that are considered secure and use HTTPS.
-|spring.cloud.kubernetes.discovery.metadata.add-annotations | `+++true+++` | When set, the Kubernetes annotations of the services will be included as metadata of the returned ServiceInstance.
-|spring.cloud.kubernetes.discovery.metadata.add-labels | `+++true+++` | When set, the Kubernetes labels of the services will be included as metadata of the returned ServiceInstance.
-|spring.cloud.kubernetes.discovery.metadata.add-ports | `+++true+++` | When set, any named Kubernetes service ports will be included as metadata of the returned ServiceInstance.
-|spring.cloud.kubernetes.discovery.metadata.annotations-prefix |  | When addAnnotations is set, then this will be used as a prefix to the key names in the metadata map.
-|spring.cloud.kubernetes.discovery.metadata.labels-prefix |  | When addLabels is set, then this will be used as a prefix to the key names in the metadata map.
-|spring.cloud.kubernetes.discovery.metadata.ports-prefix | `+++port.+++` | When addPorts is set, then this will be used as a prefix to the key names in the metadata map.
+|spring.cloud.kubernetes.discovery.metadata.add-annotations | `+++true+++` | 
+|spring.cloud.kubernetes.discovery.metadata.add-labels | `+++true+++` | 
+|spring.cloud.kubernetes.discovery.metadata.add-ports | `+++true+++` | 
+|spring.cloud.kubernetes.discovery.metadata.annotations-prefix |  | 
+|spring.cloud.kubernetes.discovery.metadata.labels-prefix |  | 
+|spring.cloud.kubernetes.discovery.metadata.ports-prefix | `+++port.+++` | 
 |spring.cloud.kubernetes.discovery.order |  | 
 |spring.cloud.kubernetes.discovery.primary-port-name |  | If set then the port with a given name is used as primary when multiple ports are defined for a service.
 |spring.cloud.kubernetes.discovery.service-labels |  | If set, then only the services matching these labels will be fetched from the Kubernetes API server.
