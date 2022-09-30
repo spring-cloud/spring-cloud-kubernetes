@@ -74,7 +74,7 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 	public void testDiscoveryGetServicesAllNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
 
-		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(true);
+		when(kubernetesDiscoveryProperties.allNamespaces()).thenReturn(true);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				new KubernetesNamespaceProvider(new MockEnvironment()), sharedInformerFactory, serviceLister, null,
@@ -84,14 +84,14 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 				.expectNext(testService1.getMetadata().getName(), testService2.getMetadata().getName()).expectComplete()
 				.verify();
 
-		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+		verify(kubernetesDiscoveryProperties, times(1)).allNamespaces();
 	}
 
 	@Test
 	public void testDiscoveryGetServicesOneNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
 
-		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(false);
+		when(kubernetesDiscoveryProperties.allNamespaces()).thenReturn(false);
 
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("namespace1");
@@ -102,7 +102,7 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 		StepVerifier.create(discoveryClient.getServices()).expectNext(testService1.getMetadata().getName())
 				.expectComplete().verify();
 
-		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+		verify(kubernetesDiscoveryProperties, times(1)).allNamespaces();
 	}
 
 	@Test
@@ -110,7 +110,7 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
 
-		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(true);
+		when(kubernetesDiscoveryProperties.allNamespaces()).thenReturn(true);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				new KubernetesNamespaceProvider(new MockEnvironment()), sharedInformerFactory, serviceLister,
@@ -121,7 +121,7 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 						"test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false, "namespace1", null))
 				.expectComplete().verify();
 
-		verify(kubernetesDiscoveryProperties, times(2)).isAllNamespaces();
+		verify(kubernetesDiscoveryProperties, times(2)).allNamespaces();
 	}
 
 	@Test
@@ -129,7 +129,7 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
 
-		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(false);
+		when(kubernetesDiscoveryProperties.allNamespaces()).thenReturn(false);
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("namespace1");
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
@@ -141,7 +141,7 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 						"test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false, "namespace1", null))
 				.expectComplete().verify();
 
-		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
+		verify(kubernetesDiscoveryProperties, times(1)).allNamespaces();
 	}
 
 	private Lister<V1Service> setupServiceLister(V1Service... services) {

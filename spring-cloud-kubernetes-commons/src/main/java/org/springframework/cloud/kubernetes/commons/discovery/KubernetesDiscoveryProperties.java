@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,27 +42,29 @@ import static org.springframework.cloud.client.discovery.DiscoveryClient.DEFAULT
  * @param primaryPortName If set then the port with a given name is used as primary when
  * multiple ports are defined for a service.
  */
+// @formatter:off
 @ConfigurationProperties("spring.cloud.kubernetes.discovery")
-public record KubernetesDiscoveryProperties(@DefaultValue("true") boolean enabled, boolean allNamespaces,
-		@DefaultValue("true") boolean waitCacheReady, @DefaultValue("60") long cacheLoadingTimeoutSeconds,
-		boolean includeNotReadyAddresses, String filter, Set<Integer> knownSecurePorts,
+public record KubernetesDiscoveryProperties(
+		@DefaultValue("true") boolean enabled, boolean allNamespaces,
+		@DefaultValue("true") boolean waitCacheReady,
+		@DefaultValue("60") long cacheLoadingTimeoutSeconds,
+		boolean includeNotReadyAddresses, String filter,
+		@DefaultValue({"443", "8443"}) Set<Integer> knownSecurePorts,
 		Map<String, String> serviceLabels, String primaryPortName, Metadata metadata,
 		@DefaultValue(DEFAULT_ZERO_ORDER) int order) {
+// @formatter:on
 
 	private static final String DEFAULT_ZERO_ORDER = "" + DEFAULT_ORDER;
 
-	private static final Set<Integer> KNOWN_SECURE_PORTS = Set.of(443, 8443);
-
+	// this might be dropped in the future, when
+	// https://github.com/spring-projects/spring-boot/issues/32559
+	// is resolved or a workaround is provided
 	public Map<String, String> serviceLabels() {
 		return serviceLabels == null ? Map.of() : serviceLabels;
 	}
 
 	public Metadata metadata() {
 		return metadata == null ? new Metadata() : metadata;
-	}
-
-	public Set<Integer> knownSecurePorts() {
-		return knownSecurePorts == null ? KNOWN_SECURE_PORTS : knownSecurePorts;
 	}
 
 	/**
