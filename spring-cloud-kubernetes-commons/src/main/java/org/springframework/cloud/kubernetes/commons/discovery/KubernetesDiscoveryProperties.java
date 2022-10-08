@@ -51,14 +51,12 @@ public record KubernetesDiscoveryProperties(
 		boolean includeNotReadyAddresses, String filter,
 		@DefaultValue({"443", "8443"}) Set<Integer> knownSecurePorts,
 		Map<String, String> serviceLabels, String primaryPortName, Metadata metadata,
-		@DefaultValue(DEFAULT_ZERO_ORDER) int order) {
+		@DefaultValue("" + DEFAULT_ORDER) int order) {
 // @formatter:on
 
-	private static final String DEFAULT_ZERO_ORDER = "" + DEFAULT_ORDER;
-
-	// this might be dropped in the future, when
+	// this might be dropped, when
 	// https://github.com/spring-projects/spring-boot/issues/32559
-	// is resolved or a workaround is provided
+	// is part spring boot-3
 	public Map<String, String> serviceLabels() {
 		return serviceLabels == null ? Map.of() : serviceLabels;
 	}
