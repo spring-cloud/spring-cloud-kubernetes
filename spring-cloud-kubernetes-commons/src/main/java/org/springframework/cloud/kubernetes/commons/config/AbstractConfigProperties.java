@@ -113,7 +113,7 @@ public abstract class AbstractConfigProperties {
 
 		@ConstructorBinding
 		public RetryProperties {
-
+			System.out.println("test");
 		}
 
 		public RetryProperties() {
