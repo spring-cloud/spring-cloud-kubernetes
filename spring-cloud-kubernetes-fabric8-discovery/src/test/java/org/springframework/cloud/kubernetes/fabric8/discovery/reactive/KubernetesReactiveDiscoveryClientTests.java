@@ -65,9 +65,8 @@ class KubernetesReactiveDiscoveryClientTests {
 
 	@Test
 	public void verifyDefaults(@KubernetesExtension.Client KubernetesClient kubernetesClient) {
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(
-			true, true, true, 60, false, null, Set.of(), Map.of(), null, new Metadata(), 0
-		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, true, 60, false, null,
+				Set.of(), Map.of(), null, new Metadata(), 0);
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient, properties,
 				KubernetesClient::services);
 		assertThat(client.description()).isEqualTo("Kubernetes Reactive Discovery Client");
@@ -93,9 +92,8 @@ class KubernetesReactiveDiscoveryClientTests {
 						.build())
 				.once();
 
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(
-			true, true, true, 60, false, null, Set.of(), Map.of(), null, new Metadata(), 0
-		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, true, 60, false, null,
+				Set.of(), Map.of(), null, new Metadata(), 0);
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient, properties,
 				KubernetesClient::services);
 		Flux<String> services = client.getServices();
@@ -109,9 +107,8 @@ class KubernetesReactiveDiscoveryClientTests {
 		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
 				.andReturn(200, new ServiceListBuilder().build()).once();
 
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(
-			true, true, true, 60, false, null, Set.of(), Map.of(), null, new Metadata(), 0
-		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, true, 60, false, null,
+				Set.of(), Map.of(), null, new Metadata(), 0);
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient, properties,
 				KubernetesClient::services);
 		Flux<String> services = client.getServices();
@@ -126,9 +123,8 @@ class KubernetesReactiveDiscoveryClientTests {
 				.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dnonexistent-service")
 				.andReturn(200, new EndpointsBuilder().build()).once();
 
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(
-			true, false, true, 60, false, null, Set.of(), Map.of(), null, new Metadata(), 0
-		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, null,
+				Set.of(), Map.of(), null, new Metadata(), 0);
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient, properties,
 				KubernetesClient::services);
 		Flux<ServiceInstance> instances = client.getInstances("nonexistent-service");
@@ -152,9 +148,8 @@ class KubernetesReactiveDiscoveryClientTests {
 				.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dexisting-service")
 				.andReturn(200, new EndpointsBuilder().build()).once();
 
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(
-			true, false, true, 60, false, null, Set.of(), Map.of(), null, new Metadata(), 0
-		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, null,
+				Set.of(), Map.of(), null, new Metadata(), 0);
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient, properties,
 				KubernetesClient::services);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");
@@ -192,11 +187,9 @@ class KubernetesReactiveDiscoveryClientTests {
 		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services/existing-service")
 				.andReturn(200, services.getItems().get(0)).once();
 
-
 		Metadata metadata = new Metadata(false, null, false, null, true, "port.");
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(
-			true, false, true, 60, false, null, Set.of(), Map.of(), null, metadata, 0
-		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, null,
+				Set.of(), Map.of(), null, metadata, 0);
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient, properties,
 				KubernetesClient::services);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");
@@ -239,9 +232,8 @@ class KubernetesReactiveDiscoveryClientTests {
 				.once();
 
 		Metadata metadata = new Metadata(true, "label.", true, "annotation.", true, "port.");
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(
-			true, false, true, 60, false, null, Set.of(), Map.of(), null, metadata, 0
-		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, null,
+				Set.of(), Map.of(), null, metadata, 0);
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient, properties,
 				KubernetesClient::services);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");
@@ -285,9 +277,8 @@ class KubernetesReactiveDiscoveryClientTests {
 						}).endMetadata().build())
 				.once();
 
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(
-			true, false, true, 60, false, null, Set.of(), Map.of(), "https_tcp", new Metadata(), 0
-		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, null,
+				Set.of(), Map.of(), "https_tcp", new Metadata(), 0);
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient, properties,
 				KubernetesClient::services);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");
@@ -327,9 +318,8 @@ class KubernetesReactiveDiscoveryClientTests {
 						}).endMetadata().build())
 				.once();
 
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(
-			true, true, true, 60, false, null, Set.of(), Map.of(), "https_tcp", new Metadata(), 0
-		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, true, 60, false, null,
+				Set.of(), Map.of(), "https_tcp", new Metadata(), 0);
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient, properties,
 				KubernetesClient::services);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");
