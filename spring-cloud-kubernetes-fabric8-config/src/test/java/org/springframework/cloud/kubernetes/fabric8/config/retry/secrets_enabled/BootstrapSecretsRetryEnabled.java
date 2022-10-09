@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.retry;
+package org.springframework.cloud.kubernetes.fabric8.config.retry.secrets_enabled;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -22,12 +22,11 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableSecretsPropertySourceLocator;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
-
-import static org.mockito.Mockito.spy;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.fabric8.config.retry.secrets_enabled.SecretsRetryEnabled;
 
 /**
  * @author Isik Erhan
@@ -40,28 +39,27 @@ import static org.mockito.Mockito.spy;
 				"spring.cloud.kubernetes.secrets.fail-fast=true",
 				"spring.cloud.kubernetes.secrets.retry.max-attempts=5",
 				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
-				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:" },
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class ConfigDataSecretsRetryEnabled extends SecretsRetryEnabled {
+class BootstrapSecretsRetryEnabled extends SecretsRetryEnabled {
 
 	private static KubernetesMockServer mockServer;
 
 	private static KubernetesClient mockClient;
-
-	@Autowired
-	private ConfigDataRetryableSecretsPropertySourceLocator configDataRetryableSecretsPropertySourceLocator;
 
 	@BeforeAll
 	static void setup() {
 		setup(mockClient, mockServer);
 	}
 
+	@SpyBean
+	private Fabric8SecretsPropertySourceLocator propertySourceLocator;
+
 	@BeforeEach
 	public void beforeEach() {
-		psl = configDataRetryableSecretsPropertySourceLocator;
-		verifiablePsl = spy(configDataRetryableSecretsPropertySourceLocator.getSecretsPropertySourceLocator());
-		configDataRetryableSecretsPropertySourceLocator.setSecretsPropertySourceLocator(verifiablePsl);
+		psl = propertySourceLocator;
+		verifiablePsl = propertySourceLocator;
 	}
 
 }
