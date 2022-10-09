@@ -80,6 +80,19 @@ class KubernetesDiscoveryPropertiesTests {
 				});
 	}
 
+	// when we do not specify metadata, @DefaultValue is going to be picked up
+	@Test
+	void metadataSetToNotNull() {
+		new ApplicationContextRunner().withUserConfiguration(KubernetesDiscoveryPropertiesMetadataTests.Config.class)
+				.withPropertyValues("spring.cloud.kubernetes.discovery.filter=some-filter").run(context -> {
+					KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
+					assertThat(props).isNotNull();
+					assertThat(props.metadata().labelsPrefix()).isNull();
+					assertThat(props.metadata().addPorts()).isTrue();
+					assertThat(props.metadata().portsPrefix()).isEqualTo("port.");
+				});
+	}
+
 	@Configuration
 	@EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 	static class Config {

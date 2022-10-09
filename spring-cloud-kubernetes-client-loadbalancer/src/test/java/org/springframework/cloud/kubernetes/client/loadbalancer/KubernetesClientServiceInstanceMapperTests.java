@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.client.loadbalancer;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
@@ -41,7 +42,8 @@ class KubernetesClientServiceInstanceMapperTests {
 	@Test
 	void basicMap() {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties();
+		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
+				true, 60, false, null, Set.of(), Map.of(), null, new KubernetesDiscoveryProperties.Metadata(), 0);
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
 				kubernetesDiscoveryProperties);
 
@@ -66,7 +68,8 @@ class KubernetesClientServiceInstanceMapperTests {
 	void multiportMap() {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		loadBalancerProperties.setPortName("https");
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties();
+		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
+				true, 60, false, null, Set.of(), Map.of(), null, new KubernetesDiscoveryProperties.Metadata(), 0);
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
 				kubernetesDiscoveryProperties);
 

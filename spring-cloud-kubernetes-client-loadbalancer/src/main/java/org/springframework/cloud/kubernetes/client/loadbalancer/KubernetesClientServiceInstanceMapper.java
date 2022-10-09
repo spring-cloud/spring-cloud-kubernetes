@@ -76,7 +76,7 @@ public class KubernetesClientServiceInstanceMapper implements KubernetesServiceI
 
 	private Map<String, String> getServiceMetadata(V1Service service) {
 		final Map<String, String> serviceMetadata = new HashMap<>();
-		KubernetesDiscoveryProperties.Metadata metadataProps = this.discoveryProperties.getMetadata();
+		KubernetesDiscoveryProperties.Metadata metadataProps = this.discoveryProperties.metadata();
 		if (metadataProps.addLabels()) {
 			Map<String, String> labelMetadata = KubernetesServiceInstanceMapper
 					.getMapWithPrefixedKeys(service.getMetadata().getLabels(), metadataProps.labelsPrefix());

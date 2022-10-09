@@ -121,11 +121,11 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	public List<Endpoints> getEndPointsList(String serviceId) {
-		return this.properties.isAllNamespaces()
+		return this.properties.allNamespaces()
 				? this.client.endpoints().inAnyNamespace().withField("metadata.name", serviceId)
-						.withLabels(properties.getServiceLabels()).list().getItems()
-				: this.client.endpoints().withField("metadata.name", serviceId)
-						.withLabels(properties.getServiceLabels()).list().getItems();
+						.withLabels(properties.serviceLabels()).list().getItems()
+				: this.client.endpoints().withField("metadata.name", serviceId).withLabels(properties.serviceLabels())
+						.list().getItems();
 	}
 
 	private List<ServiceInstance> getNamespaceServiceInstances(EndpointSubsetNS es, String serviceId) {
@@ -135,9 +135,9 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		if (!subsets.isEmpty()) {
 			final Service service = this.client.services().inNamespace(namespace).withName(serviceId).get();
 			final Map<String, String> serviceMetadata = this.getServiceMetadata(service);
-			KubernetesDiscoveryProperties.Metadata metadataProps = this.properties.getMetadata();
+			KubernetesDiscoveryProperties.Metadata metadataProps = this.properties.metadata();
 
-			String primaryPortName = this.properties.getPrimaryPortName();
+			String primaryPortName = this.properties.primaryPortName();
 			Map<String, String> labels = service.getMetadata().getLabels();
 			if (labels != null && labels.containsKey(PRIMARY_PORT_NAME_LABEL_KEY)) {
 				primaryPortName = labels.get(PRIMARY_PORT_NAME_LABEL_KEY);
@@ -158,14 +158,13 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 					endpointMetadata.putAll(portMetadata);
 				}
 
-				if (this.properties.isAllNamespaces()) {
+				if (this.properties.allNamespaces()) {
 					endpointMetadata.put(NAMESPACE_METADATA_KEY, namespace);
 				}
 
 				List<EndpointAddress> addresses = s.getAddresses();
 
-				if (this.properties.isIncludeNotReadyAddresses()
-						&& !CollectionUtils.isEmpty(s.getNotReadyAddresses())) {
+				if (this.properties.includeNotReadyAddresses() && !CollectionUtils.isEmpty(s.getNotReadyAddresses())) {
 					if (addresses == null) {
 						addresses = new ArrayList<>();
 					}
@@ -192,7 +191,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private Map<String, String> getServiceMetadata(Service service) {
 		final Map<String, String> serviceMetadata = new HashMap<>();
-		KubernetesDiscoveryProperties.Metadata metadataProps = this.properties.getMetadata();
+		KubernetesDiscoveryProperties.Metadata metadataProps = this.properties.metadata();
 		if (metadataProps.addLabels()) {
 			Map<String, String> labelMetadata = getMapWithPrefixedKeys(service.getMetadata().getLabels(),
 					metadataProps.labelsPrefix());
@@ -282,7 +281,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
-		String spelExpression = this.properties.getFilter();
+		String spelExpression = this.properties.filter();
 		Predicate<Service> filteredServices;
 		if (spelExpression == null || spelExpression.isEmpty()) {
 			filteredServices = (Service instance) -> true;
@@ -307,7 +306,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public int getOrder() {
-		return this.properties.getOrder();
+		return this.properties.order();
 	}
 
 }

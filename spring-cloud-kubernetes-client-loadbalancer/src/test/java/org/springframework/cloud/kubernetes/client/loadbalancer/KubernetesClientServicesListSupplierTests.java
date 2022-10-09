@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -116,7 +117,8 @@ class KubernetesClientServicesListSupplierTests {
 		env.setProperty(LoadBalancerClientFactory.PROPERTY_NAME, "service1");
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties();
+		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, false,
+				true, 60, false, null, Set.of(), Map.of(), null, new KubernetesDiscoveryProperties.Metadata(), 0);
 		CoreV1Api coreV1Api = new CoreV1Api();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(
 				new KubernetesLoadBalancerProperties(), kubernetesDiscoveryProperties);
@@ -145,8 +147,8 @@ class KubernetesClientServicesListSupplierTests {
 		env.setProperty(LoadBalancerClientFactory.PROPERTY_NAME, "service1");
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties();
-		kubernetesDiscoveryProperties.setAllNamespaces(true);
+		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
+				true, 60, false, null, Set.of(), Map.of(), null, new KubernetesDiscoveryProperties.Metadata(), 0);
 		CoreV1Api coreV1Api = new CoreV1Api();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(
 				new KubernetesLoadBalancerProperties(), kubernetesDiscoveryProperties);

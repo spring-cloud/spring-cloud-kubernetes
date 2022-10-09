@@ -50,19 +50,15 @@ public record KubernetesDiscoveryProperties(
 		@DefaultValue("60") long cacheLoadingTimeoutSeconds,
 		boolean includeNotReadyAddresses, String filter,
 		@DefaultValue({"443", "8443"}) Set<Integer> knownSecurePorts,
-		Map<String, String> serviceLabels, String primaryPortName, Metadata metadata,
+		Map<String, String> serviceLabels, String primaryPortName,
+		@DefaultValue Metadata metadata,
 		@DefaultValue("" + DEFAULT_ORDER) int order) {
 // @formatter:on
 
-	// this might be dropped, when
-	// https://github.com/spring-projects/spring-boot/issues/32559
-	// is part spring boot-3
+	// see https://github.com/spring-projects/spring-boot/issues/32559
+	// we can drop this method when we move to spring-boot-3.0.0-RC1
 	public Map<String, String> serviceLabels() {
 		return serviceLabels == null ? Map.of() : serviceLabels;
-	}
-
-	public Metadata metadata() {
-		return metadata == null ? new Metadata() : metadata;
 	}
 
 	/**
@@ -79,7 +75,6 @@ public record KubernetesDiscoveryProperties(
 
 		@ConstructorBinding
 		public Metadata {
-
 		}
 
 		// needed in order to get the defaults for some fields

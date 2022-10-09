@@ -54,8 +54,8 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 
 	@Bean
 	public KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties) {
-		if (properties.getServiceLabels().isEmpty()) {
-			if (properties.isAllNamespaces()) {
+		if (properties.serviceLabels().isEmpty()) {
+			if (properties.allNamespaces()) {
 				return (client) -> client.services().inAnyNamespace();
 			}
 			else {
@@ -63,19 +63,19 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 			}
 		}
 		else {
-			if (properties.isAllNamespaces()) {
-				return (client) -> client.services().inAnyNamespace().withLabels(properties.getServiceLabels());
+			if (properties.allNamespaces()) {
+				return (client) -> client.services().inAnyNamespace().withLabels(properties.serviceLabels());
 			}
 			else {
-				return (client) -> client.services().withLabels(properties.getServiceLabels());
+				return (client) -> client.services().withLabels(properties.serviceLabels());
 			}
 		}
 	}
 
-	@Bean
-	public KubernetesDiscoveryProperties getKubernetesDiscoveryProperties() {
-		return new KubernetesDiscoveryProperties();
-	}
+	 @Bean
+	 public KubernetesDiscoveryProperties getKubernetesDiscoveryProperties() {
+	 	return new KubernetesDiscoveryProperties();
+	 }
 
 	@ConditionalOnClass({ HealthIndicator.class })
 	@ConditionalOnDiscoveryEnabled

@@ -59,76 +59,76 @@ public class KubernetesDiscoveryClientFilterTest {
 				this.kubernetesClientServicesFunction);
 	}
 
-	@Test
-	public void testFilteredServices() {
-		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB");
-		List<Service> services = createSpringBootServiceByName(springBootServiceNames);
-
-		// Add non spring boot service
-		Service service = new Service();
-		ObjectMeta objectMeta = new ObjectMeta();
-		objectMeta.setName("ServiceNonSpringBoot");
-		service.setMetadata(objectMeta);
-		services.add(service);
-
-		ServiceList serviceList = new ServiceList();
-		serviceList.setItems(services);
-		when(this.serviceOperation.list()).thenReturn(serviceList);
-		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
-
-		when(this.properties.getFilter()).thenReturn("metadata.additionalProperties['spring-boot']");
-
-		List<String> filteredServices = this.underTest.getServices();
-
-		System.out.println("Filtered Services: " + filteredServices);
-		assertThat(filteredServices).isEqualTo(springBootServiceNames);
-
-	}
-
-	@Test
-	public void testFilteredServicesByPrefix() {
-		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB", "serviceC");
-		List<Service> services = createSpringBootServiceByName(springBootServiceNames);
-
-		// Add non spring boot service
-		Service service = new Service();
-		ObjectMeta objectMeta = new ObjectMeta();
-		objectMeta.setName("anotherService");
-		service.setMetadata(objectMeta);
-		services.add(service);
-
-		ServiceList serviceList = new ServiceList();
-		serviceList.setItems(services);
-		when(this.serviceOperation.list()).thenReturn(serviceList);
-		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
-
-		when(this.properties.getFilter()).thenReturn("metadata.name.startsWith('service')");
-
-		List<String> filteredServices = this.underTest.getServices();
-
-		System.out.println("Filtered Services: " + filteredServices);
-		assertThat(filteredServices).isEqualTo(springBootServiceNames);
-
-	}
-
-	@Test
-	public void testNoExpression() {
-		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB", "serviceC");
-		List<Service> services = createSpringBootServiceByName(springBootServiceNames);
-
-		ServiceList serviceList = new ServiceList();
-		serviceList.setItems(services);
-		when(this.serviceOperation.list()).thenReturn(serviceList);
-		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
-
-		when(this.properties.getFilter()).thenReturn("");
-
-		List<String> filteredServices = this.underTest.getServices();
-
-		System.out.println("Filtered Services: " + filteredServices);
-		assertThat(filteredServices).isEqualTo(springBootServiceNames);
-
-	}
+//	@Test
+//	public void testFilteredServices() {
+//		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB");
+//		List<Service> services = createSpringBootServiceByName(springBootServiceNames);
+//
+//		// Add non spring boot service
+//		Service service = new Service();
+//		ObjectMeta objectMeta = new ObjectMeta();
+//		objectMeta.setName("ServiceNonSpringBoot");
+//		service.setMetadata(objectMeta);
+//		services.add(service);
+//
+//		ServiceList serviceList = new ServiceList();
+//		serviceList.setItems(services);
+//		when(this.serviceOperation.list()).thenReturn(serviceList);
+//		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
+//
+//		when(this.properties.getFilter()).thenReturn("metadata.additionalProperties['spring-boot']");
+//
+//		List<String> filteredServices = this.underTest.getServices();
+//
+//		System.out.println("Filtered Services: " + filteredServices);
+//		assertThat(filteredServices).isEqualTo(springBootServiceNames);
+//
+//	}
+//
+//	@Test
+//	public void testFilteredServicesByPrefix() {
+//		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB", "serviceC");
+//		List<Service> services = createSpringBootServiceByName(springBootServiceNames);
+//
+//		// Add non spring boot service
+//		Service service = new Service();
+//		ObjectMeta objectMeta = new ObjectMeta();
+//		objectMeta.setName("anotherService");
+//		service.setMetadata(objectMeta);
+//		services.add(service);
+//
+//		ServiceList serviceList = new ServiceList();
+//		serviceList.setItems(services);
+//		when(this.serviceOperation.list()).thenReturn(serviceList);
+//		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
+//
+//		when(this.properties.getFilter()).thenReturn("metadata.name.startsWith('service')");
+//
+//		List<String> filteredServices = this.underTest.getServices();
+//
+//		System.out.println("Filtered Services: " + filteredServices);
+//		assertThat(filteredServices).isEqualTo(springBootServiceNames);
+//
+//	}
+//
+//	@Test
+//	public void testNoExpression() {
+//		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB", "serviceC");
+//		List<Service> services = createSpringBootServiceByName(springBootServiceNames);
+//
+//		ServiceList serviceList = new ServiceList();
+//		serviceList.setItems(services);
+//		when(this.serviceOperation.list()).thenReturn(serviceList);
+//		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
+//
+//		when(this.properties.getFilter()).thenReturn("");
+//
+//		List<String> filteredServices = this.underTest.getServices();
+//
+//		System.out.println("Filtered Services: " + filteredServices);
+//		assertThat(filteredServices).isEqualTo(springBootServiceNames);
+//
+//	}
 
 	private List<Service> createSpringBootServiceByName(List<String> serviceNames) {
 		List<Service> serviceCollection = new ArrayList<>(serviceNames.size());

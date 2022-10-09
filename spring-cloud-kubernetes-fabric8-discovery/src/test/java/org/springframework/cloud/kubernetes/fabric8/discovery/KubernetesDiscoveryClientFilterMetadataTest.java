@@ -91,7 +91,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(false, null, false, null, false, null);
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		when(this.properties.metadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -118,7 +118,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(true, null, false, null, false, null);
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		when(this.properties.metadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -146,7 +146,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(true, "l_", false, null, false, null);
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		when(this.properties.metadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -174,7 +174,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(false, null, true, null, false, null);
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		when(this.properties.metadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -202,7 +202,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(false, null, true, "a_", false, null);
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		when(this.properties.metadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -230,7 +230,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(false, null, false, null, true, null);
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		when(this.properties.metadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -258,7 +258,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(false, null, false, null, true, "p_");
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		when(this.properties.metadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -286,7 +286,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(true, "l_", true, "a_", true, "p_");
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		when(this.properties.metadata()).thenReturn(metadata);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
