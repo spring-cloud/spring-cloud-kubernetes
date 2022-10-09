@@ -33,7 +33,10 @@ import static org.mockito.Mockito.spy;
  * @author Isik Erhan
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = { "spring.cloud.kubernetes.client.namespace=default",
+		properties = {
+				"spring.cloud.kubernetes.config.enabled=false",
+				"spring.cloud.kubernetes.secrets.enabled=true",
+				"spring.cloud.kubernetes.client.namespace=default",
 				"spring.cloud.kubernetes.secrets.fail-fast=true",
 				"spring.cloud.kubernetes.secrets.retry.max-attempts=5",
 				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
