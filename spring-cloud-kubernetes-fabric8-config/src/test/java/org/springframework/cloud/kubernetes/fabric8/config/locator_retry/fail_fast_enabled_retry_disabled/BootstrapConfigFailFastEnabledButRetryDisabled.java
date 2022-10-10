@@ -23,7 +23,6 @@ import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
-import org.springframework.cloud.kubernetes.fabric8.config.locator_retry.fail_fast_enabled_retry_disabled.ConfigFailFastEnabledButRetryDisabled;
 
 /**
  * we call Fabric8ConfigMapPropertySourceLocator::locate directly, thus no need for
