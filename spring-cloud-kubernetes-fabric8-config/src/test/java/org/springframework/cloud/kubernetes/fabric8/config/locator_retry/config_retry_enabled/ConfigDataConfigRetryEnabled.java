@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.locator_retry;
+package org.springframework.cloud.kubernetes.fabric8.config.locator_retry.config_retry_enabled;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -28,6 +28,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
+import org.springframework.cloud.kubernetes.fabric8.config.locator_retry.config_retry_enabled.ConfigRetryEnabled;
 
 import static org.mockito.Mockito.spy;
 
@@ -35,7 +36,9 @@ import static org.mockito.Mockito.spy;
  * @author Isik Erhan
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = { "spring.cloud.kubernetes.client.namespace=default",
+		properties = {
+				"spring.cloud.kubernetes.secrets.enabled=false",
+				"spring.cloud.kubernetes.client.namespace=default",
 				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.max-attempts=5",
 				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:" },
 		classes = Application.class)

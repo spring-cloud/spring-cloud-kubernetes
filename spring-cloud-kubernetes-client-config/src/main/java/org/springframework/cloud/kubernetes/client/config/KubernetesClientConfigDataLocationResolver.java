@@ -70,7 +70,7 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 			registerRetryBeans(configMapProperties, secretsProperties, bootstrapContext, coreV1Api, namespaceProvider);
 		}
 		else {
-			if (configMapProperties.isEnabled()) {
+			if (configMapProperties != null && configMapProperties.isEnabled()) {
 				KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator = new KubernetesClientConfigMapPropertySourceLocator(
 						coreV1Api, configMapProperties, namespaceProvider);
 				bootstrapContext.registerIfAbsent(ConfigMapPropertySourceLocator.class,
@@ -80,7 +80,7 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 								event.getBootstrapContext().get(ConfigMapPropertySourceLocator.class)));
 			}
 
-			if (secretsProperties.isEnabled()) {
+			if (secretsProperties != null && secretsProperties.isEnabled()) {
 				KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator = new KubernetesClientSecretsPropertySourceLocator(
 						coreV1Api, namespaceProvider, secretsProperties);
 				bootstrapContext.registerIfAbsent(SecretsPropertySourceLocator.class,
