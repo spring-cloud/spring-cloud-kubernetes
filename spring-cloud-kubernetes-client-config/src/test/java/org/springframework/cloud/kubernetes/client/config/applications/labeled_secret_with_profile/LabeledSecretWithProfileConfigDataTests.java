@@ -24,7 +24,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.mockito.MockedStatic;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.test.context.ActiveProfiles;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
@@ -42,6 +44,9 @@ import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.
 class LabeledSecretWithProfileConfigDataTests extends LabeledSecretWithProfileTests {
 
 	private static MockedStatic<KubernetesClientUtils> clientUtilsMock;
+
+	@SpyBean
+	private ConfigMapConfigProperties properties;
 
 	@BeforeAll
 	static void wireMock() {

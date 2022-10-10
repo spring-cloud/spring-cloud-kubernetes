@@ -62,14 +62,6 @@ public class KubernetesConfigDataResource extends ConfigDataResource {
 		return this.properties;
 	}
 
-	public ConfigMapConfigProperties getConfigMapProperties() {
-		return configMapProperties;
-	}
-
-	public SecretsConfigProperties getSecretsConfigProperties() {
-		return secretsConfigProperties;
-	}
-
 	public boolean isOptional() {
 		return this.optional;
 	}

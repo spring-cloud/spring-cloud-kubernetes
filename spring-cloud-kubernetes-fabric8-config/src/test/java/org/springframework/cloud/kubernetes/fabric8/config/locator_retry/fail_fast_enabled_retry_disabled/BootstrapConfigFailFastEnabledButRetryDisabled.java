@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.locator_retry;
+package org.springframework.cloud.kubernetes.fabric8.config.locator_retry.fail_fast_enabled_retry_disabled;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -22,9 +22,8 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
+import org.springframework.cloud.kubernetes.fabric8.config.locator_retry.fail_fast_enabled_retry_disabled.ConfigFailFastEnabledButRetryDisabled;
 
 /**
  * we call Fabric8ConfigMapPropertySourceLocator::locate directly, thus no need for
@@ -39,17 +38,14 @@ import org.springframework.cloud.kubernetes.fabric8.config.Application;
 		properties = { "spring.cloud.kubernetes.client.namespace=default",
 				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
 				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.enabled=false",
-				"spring.cloud.kubernetes.secrets.enabled=false", "spring.config.import=kubernetes:" },
+				"spring.cloud.kubernetes.secrets.enabled=false", "spring.cloud.bootstrap.enabled=true" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class ConfigDataConfigFailFastEnabledButRetryDisabled extends ConfigFailFastEnabledButRetryDisabled {
+class BootstrapConfigFailFastEnabledButRetryDisabled extends ConfigFailFastEnabledButRetryDisabled {
 
 	private static KubernetesMockServer mockServer;
 
 	private static KubernetesClient mockClient;
-
-	@MockBean
-	KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
 	@BeforeAll
 	static void setup() {
