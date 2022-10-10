@@ -219,7 +219,6 @@ public abstract class KubernetesConfigDataLocationResolver
 	protected record PropertyHolder(KubernetesClientProperties kubernetesClientProperties,
 			ConfigMapConfigProperties configMapConfigProperties, SecretsConfigProperties secretsProperties,
 			String applicationName) {
-
 	}
 
 }
