@@ -42,6 +42,7 @@ import org.springframework.cloud.kubernetes.fabric8.discovery.support.Kubernetes
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties.Metadata;
 
 /**
  * @author Tim Ysewyn
@@ -180,8 +181,8 @@ class KubernetesReactiveDiscoveryClientTests {
 				.andReturn(200, services.getItems().get(0)).once();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
-		properties.getMetadata().setAddAnnotations(false);
-		properties.getMetadata().setAddLabels(false);
+		Metadata metadata = new Metadata(false, null, false, null, true, "port.");
+		properties.setMetadata(metadata);
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient, properties,
 				KubernetesClient::services);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");
@@ -224,9 +225,8 @@ class KubernetesReactiveDiscoveryClientTests {
 				.once();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
-		properties.getMetadata().setAnnotationsPrefix("annotation.");
-		properties.getMetadata().setLabelsPrefix("label.");
-		properties.getMetadata().setPortsPrefix("port.");
+		Metadata metadata = new Metadata(true, "label.", true, "annotation.", true, "port.");
+		properties.setMetadata(metadata);
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient, properties,
 				KubernetesClient::services);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");

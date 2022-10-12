@@ -38,6 +38,8 @@ public class LeaderProperties {
 
 	private static final boolean DEFAULT_PUBLISH_FAILED_EVENTS = false;
 
+	private static final boolean DEFAULT_CREATE_CONFIG_MAP = true;
+
 	/**
 	 * Should leader election be enabled. Default: true
 	 */
@@ -78,6 +80,11 @@ public class LeaderProperties {
 	 * false
 	 */
 	private boolean publishFailedEvents = DEFAULT_PUBLISH_FAILED_EVENTS;
+
+	/**
+	 * Enable/disable creating ConfigMap if it does not exist. Default: true
+	 */
+	private boolean createConfigMap = DEFAULT_CREATE_CONFIG_MAP;
 
 	public boolean isEnabled() {
 		return this.enabled;
@@ -149,6 +156,14 @@ public class LeaderProperties {
 
 	public void setPublishFailedEvents(boolean publishFailedEvents) {
 		this.publishFailedEvents = publishFailedEvents;
+	}
+
+	public boolean isCreateConfigMap() {
+		return this.createConfigMap;
+	}
+
+	public void setCreateConfigMap(boolean createConfigMap) {
+		this.createConfigMap = createConfigMap;
 	}
 
 }
