@@ -84,7 +84,7 @@ public final class ConfigReloadUtil {
 			else if (sourceClass.isInstance(source)) {
 				managedSources.add(sourceClass.cast(source));
 			}
-			else if (source instanceof BootstrapPropertySource<?> bootstrapPropertySource) {
+			else if (source instanceof BootstrapPropertySource<?>bootstrapPropertySource) {
 				PropertySource<?> propertySource = bootstrapPropertySource.getDelegate();
 				if (sourceClass.isInstance(propertySource)) {
 					sources.add(propertySource);

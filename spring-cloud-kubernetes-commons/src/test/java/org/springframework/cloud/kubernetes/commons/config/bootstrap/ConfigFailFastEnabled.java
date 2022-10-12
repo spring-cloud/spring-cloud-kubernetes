@@ -54,7 +54,8 @@ class ConfigFailFastEnabled {
 	@Test
 	void retryConfigurationShouldBeDefault() {
 		AbstractConfigProperties.RetryProperties retryProperties = configMapConfigProperties.getRetry();
-		AbstractConfigProperties.RetryProperties defaultRetryProperties = new AbstractConfigProperties.RetryProperties();
+		AbstractConfigProperties.RetryProperties defaultRetryProperties = new AbstractConfigProperties.RetryProperties(
+				1000, 1.1, 2000, 6, true);
 
 		assertThat(retryProperties.maxAttempts()).isEqualTo(defaultRetryProperties.maxAttempts());
 		assertThat(retryProperties.initialInterval()).isEqualTo(defaultRetryProperties.initialInterval());

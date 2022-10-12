@@ -58,7 +58,8 @@ public class ConfigAndSecretsFailFastEnabledWithDefaultRetryConfiguration {
 
 	@Test
 	void retryConfigurationShouldBeDefault() {
-		AbstractConfigProperties.RetryProperties defaultRetryProperties = new AbstractConfigProperties.RetryProperties();
+		AbstractConfigProperties.RetryProperties defaultRetryProperties = new AbstractConfigProperties.RetryProperties(
+				1000, 1.1, 2000, 6, true);
 
 		AbstractConfigProperties.RetryProperties configMapRetryProperties = configMapConfigProperties.getRetry();
 

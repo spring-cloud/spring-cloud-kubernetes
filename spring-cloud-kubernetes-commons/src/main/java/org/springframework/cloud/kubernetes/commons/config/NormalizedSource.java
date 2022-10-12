@@ -24,7 +24,7 @@ import java.util.Optional;
  *
  * @author wind57
  */
-public sealed abstract class NormalizedSource permits NamedSecretNormalizedSource, LabeledSecretNormalizedSource, NamedConfigMapNormalizedSource, LabeledConfigMapNormalizedSource {
+public sealed abstract class NormalizedSource permits NamedSecretNormalizedSource,LabeledSecretNormalizedSource,NamedConfigMapNormalizedSource,LabeledConfigMapNormalizedSource {
 
 	private final String namespace;
 

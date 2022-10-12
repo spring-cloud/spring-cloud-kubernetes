@@ -41,7 +41,7 @@ public abstract class AbstractConfigProperties {
 
 	protected boolean failFast = false;
 
-	protected RetryProperties retry = new RetryProperties();
+	protected RetryProperties retry = new RetryProperties(1000, 1.1, 2000, 6, true);
 
 	public boolean isEnabled() {
 		return this.enabled;
@@ -114,10 +114,6 @@ public abstract class AbstractConfigProperties {
 		@ConstructorBinding
 		public RetryProperties {
 			System.out.println("test");
-		}
-
-		public RetryProperties() {
-			this(1000, 1.1, 2000, 6, true);
 		}
 
 	}

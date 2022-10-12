@@ -107,6 +107,29 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 				.collect(Collectors.toList());
 	}
 
+	// because of this current issue
+	// https://github.com/spring-projects/spring-boot/issues/32660
+	// we need this workaround
+	public static ConfigMapConfigProperties fromSelfAndRetry(ConfigMapConfigProperties configMapConfigProperties,
+			RetryProperties retryProperties) {
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
+		properties.setEnableApi(configMapConfigProperties.isEnableApi());
+		properties.setPaths(configMapConfigProperties.getPaths());
+		properties.setSources(configMapConfigProperties.getSources());
+		properties.setLabels(configMapConfigProperties.getLabels());
+
+		properties.setEnabled(configMapConfigProperties.isEnabled());
+		properties.setName(configMapConfigProperties.getName());
+		properties.setNamespace(configMapConfigProperties.getNamespace());
+		properties.setUseNameAsPrefix(configMapConfigProperties.isUseNameAsPrefix());
+		properties.setIncludeProfileSpecificSources(configMapConfigProperties.isIncludeProfileSpecificSources());
+		properties.setFailFast(configMapConfigProperties.isFailFast());
+
+		properties.setRetry(retryProperties);
+
+		return properties;
+	}
+
 	/**
 	 * Config map source.
 	 */

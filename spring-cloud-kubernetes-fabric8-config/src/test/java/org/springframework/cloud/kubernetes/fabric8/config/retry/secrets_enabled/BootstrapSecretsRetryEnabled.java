@@ -26,17 +26,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
-import org.springframework.cloud.kubernetes.fabric8.config.retry.secrets_enabled.SecretsRetryEnabled;
 
 /**
  * @author Isik Erhan
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = {
-				"spring.cloud.kubernetes.config.enabled=false",
-				"spring.cloud.kubernetes.secrets.enabled=true",
-				"spring.cloud.kubernetes.client.namespace=default",
-				"spring.cloud.kubernetes.secrets.fail-fast=true",
+		properties = { "spring.cloud.kubernetes.config.enabled=false", "spring.cloud.kubernetes.secrets.enabled=true",
+				"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.fail-fast=true",
 				"spring.cloud.kubernetes.secrets.retry.max-attempts=5",
 				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
 				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true" },
