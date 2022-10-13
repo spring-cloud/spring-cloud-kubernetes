@@ -144,10 +144,6 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	public record Source(String name, String namespace, @DefaultValue Map<String, String> labels, String explicitPrefix,
 			Boolean useNameAsPrefix, Boolean includeProfileSpecificSources) {
 
-		public boolean isEmpty() {
-			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
-		}
-
 		private Stream<NormalizedSource> normalize(String defaultName, String defaultNamespace,
 				Map<String, String> defaultLabels, boolean defaultIncludeProfileSpecificSources, boolean failFast,
 				boolean defaultUseNameAsPrefix, Environment environment) {
