@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
@@ -107,90 +108,16 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 				.collect(Collectors.toList());
 	}
 
-	public static class Source {
-
-		/**
-		 * The name of the Secret.
-		 */
-		private String name;
-
-		/**
-		 * The namespace where the Secret is found.
-		 */
-		private String namespace;
-
-		/**
-		 * The labels of the Secret to find.
-		 */
-		private Map<String, String> labels = Collections.emptyMap();
-
-		/**
-		 * An explicit prefix to be used for properties.
-		 */
-		private String explicitPrefix;
-
-		/**
-		 * Use secret name as prefix for properties. Can't be a primitive, we need to know
-		 * if it was explicitly set or not
-		 */
-		private Boolean useNameAsPrefix;
-
-		/**
-		 * Use profile name to append to a config map name. Can't be a primitive, we need
-		 * to know if it was explicitly set or not
-		 */
-		protected Boolean includeProfileSpecificSources;
-
-		public Source() {
-		}
-
-		public String getName() {
-			return this.name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public String getNamespace() {
-			return this.namespace;
-		}
-
-		public void setNamespace(String namespace) {
-			this.namespace = namespace;
-		}
-
-		public void setLabels(Map<String, String> labels) {
-			this.labels = labels;
-		}
-
-		public Map<String, String> getLabels() {
-			return this.labels;
-		}
-
-		public String getExplicitPrefix() {
-			return explicitPrefix;
-		}
-
-		public void setExplicitPrefix(String explicitPrefix) {
-			this.explicitPrefix = explicitPrefix;
-		}
-
-		public Boolean getUseNameAsPrefix() {
-			return useNameAsPrefix;
-		}
-
-		public void setUseNameAsPrefix(Boolean useNameAsPrefix) {
-			this.useNameAsPrefix = useNameAsPrefix;
-		}
-
-		public Boolean getIncludeProfileSpecificSources() {
-			return includeProfileSpecificSources;
-		}
-
-		public void setIncludeProfileSpecificSources(Boolean includeProfileSpecificSources) {
-			this.includeProfileSpecificSources = includeProfileSpecificSources;
-		}
+	/**
+	 * @param name The name of the Secret.
+	 * @param namespace The namespace where the Secret is found.
+	 * @param labels The labels of the Secret to find.
+	 * @param explicitPrefix An explicit prefix to be used for properties.
+	 * @param useNameAsPrefix Use secret name as prefix for properties.
+	 * @param includeProfileSpecificSources Use profile name to append to a config map name.
+	 */
+	public record Source(String name, String namespace, @DefaultValue  Map<String, String> labels,
+			String explicitPrefix, Boolean useNameAsPrefix, Boolean includeProfileSpecificSources) {
 
 		public boolean isEmpty() {
 			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);

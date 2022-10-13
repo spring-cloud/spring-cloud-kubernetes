@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.client.config;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -106,12 +107,15 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties();
-		SecretsConfigProperties.Source source1 = new SecretsConfigProperties.Source();
-		source1.setName("db-secret");
-		source1.setNamespace("");
-		SecretsConfigProperties.Source source2 = new SecretsConfigProperties.Source();
-		source2.setName("rabbit-password");
-		source2.setNamespace("");
+
+		SecretsConfigProperties.Source source1 = new SecretsConfigProperties.Source(
+			"db-secret", "", Collections.emptyMap(), null, null, null
+		);
+
+		SecretsConfigProperties.Source source2 = new SecretsConfigProperties.Source(
+			"rabbit-password", "", Collections.emptyMap(), null, null, null
+		);
+
 		List<SecretsConfigProperties.Source> sources = new ArrayList<>();
 		sources.add(source1);
 		sources.add(source2);
