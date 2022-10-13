@@ -110,8 +110,8 @@ class ConfigMapConfigPropertiesTests {
 		properties.setUseNameAsPrefix(true);
 		properties.setNamespace("spring-k8s");
 
-		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source();
-		one.setName("config-map-one");
+		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source("config-map-one", null,
+				Collections.emptyMap(), null, null, null);
 		properties.setSources(Collections.singletonList(one));
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
@@ -148,16 +148,14 @@ class ConfigMapConfigPropertiesTests {
 		properties.setUseNameAsPrefix(true);
 		properties.setNamespace("spring-k8s");
 
-		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source();
-		one.setName("config-map-one");
-		one.setUseNameAsPrefix(false);
+		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source("config-map-one", null,
+				Collections.emptyMap(), null, false, null);
 
-		ConfigMapConfigProperties.Source two = new ConfigMapConfigProperties.Source();
-		two.setName("config-map-two");
-		two.setUseNameAsPrefix(true);
+		ConfigMapConfigProperties.Source two = new ConfigMapConfigProperties.Source("config-map-two", null,
+				Collections.emptyMap(), null, true, null);
 
-		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source();
-		three.setName("config-map-three");
+		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source("config-map-three", null,
+				Collections.emptyMap(), null, true, null);
 
 		properties.setSources(Arrays.asList(one, two, three));
 
@@ -198,22 +196,17 @@ class ConfigMapConfigPropertiesTests {
 		properties.setUseNameAsPrefix(false);
 		properties.setNamespace("spring-k8s");
 
-		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source();
-		one.setNamespace("config-map-one");
-		one.setUseNameAsPrefix(false);
-		one.setExplicitPrefix("one");
+		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source("config-map-one", null,
+				Collections.emptyMap(), "one", false, null);
 
-		ConfigMapConfigProperties.Source two = new ConfigMapConfigProperties.Source();
-		two.setNamespace("config-map-two");
-		two.setUseNameAsPrefix(true);
-		two.setExplicitPrefix("two");
+		ConfigMapConfigProperties.Source two = new ConfigMapConfigProperties.Source("config-map-two", null,
+				Collections.emptyMap(), "two", true, null);
 
-		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source();
-		three.setNamespace("config-map-three");
-		three.setExplicitPrefix("three");
+		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source("config-map-three", null,
+				Collections.emptyMap(), "three", false, null);
 
-		ConfigMapConfigProperties.Source four = new ConfigMapConfigProperties.Source();
-		four.setNamespace("config-map-four");
+		ConfigMapConfigProperties.Source four = new ConfigMapConfigProperties.Source(null, "config-map-four",
+				Collections.emptyMap(), null, false, null);
 
 		properties.setSources(Arrays.asList(one, two, three, four));
 
@@ -318,16 +311,14 @@ class ConfigMapConfigPropertiesTests {
 		properties.setNamespace("spring-k8s");
 		properties.setIncludeProfileSpecificSources(false);
 
-		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source();
-		one.setName("config-map-one");
-		one.setIncludeProfileSpecificSources(true);
+		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source("config-map-one", null,
+				Collections.emptyMap(), "one", null, true);
 
-		ConfigMapConfigProperties.Source two = new ConfigMapConfigProperties.Source();
-		two.setName("config-map-two");
+		ConfigMapConfigProperties.Source two = new ConfigMapConfigProperties.Source("config-map-two", null,
+				Collections.emptyMap(), null, false, null);
 
-		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source();
-		three.setName("config-map-three");
-		three.setIncludeProfileSpecificSources(false);
+		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source("config-map-three", null,
+				Collections.emptyMap(), null, null, false);
 
 		properties.setSources(Arrays.asList(one, two, three));
 
@@ -377,23 +368,17 @@ class ConfigMapConfigPropertiesTests {
 		properties.setNamespace("spring-k8s");
 		properties.setIncludeProfileSpecificSources(false);
 
-		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source();
-		one.setLabels(Map.of("first-label", "configmap-one"));
-		one.setUseNameAsPrefix(false);
-		one.setExplicitPrefix("one");
+		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source(null, null,
+				Map.of("first-label", "configmap-one"), "one", false, null);
 
-		ConfigMapConfigProperties.Source two = new ConfigMapConfigProperties.Source();
-		two.setLabels(Map.of("second-label", "configmap-two"));
-		two.setUseNameAsPrefix(true);
-		two.setExplicitPrefix("two");
-		two.setIncludeProfileSpecificSources(true);
+		ConfigMapConfigProperties.Source two = new ConfigMapConfigProperties.Source(null, null,
+				Map.of("second-label", "configmap-two"), "two", true, true);
 
-		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source();
-		three.setLabels(Map.of("third-label", "configmap-three"));
-		three.setExplicitPrefix("three");
+		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source(null, null,
+				Map.of("third-label", "configmap-three"), "three", null, null);
 
-		ConfigMapConfigProperties.Source four = new ConfigMapConfigProperties.Source();
-		four.setLabels(Map.of("fourth-label", "configmap-four"));
+		ConfigMapConfigProperties.Source four = new ConfigMapConfigProperties.Source(null, null,
+				Map.of("fourth-label", "configmap-four"), null, null, null);
 
 		properties.setSources(Arrays.asList(one, two, three, four));
 
