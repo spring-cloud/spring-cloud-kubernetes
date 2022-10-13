@@ -60,6 +60,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 	private static final String HTTP_PORT_NAME = "http";
 
+	private static final String UNSET_PORT_NAME = "<unset>";
+
 	private final SharedInformerFactory sharedInformerFactory;
 
 	private final Lister<V1Service> serviceLister;
@@ -148,7 +150,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 					Map<String, String> metadata = new HashMap<>(svcMetadata);
 					List<V1EndpointPort> endpointPorts = subset.getPorts();
 					if (this.properties.getMetadata() != null && this.properties.getMetadata().isAddPorts()) {
-						endpointPorts.forEach(p -> metadata.put(p.getName(), Integer.toString(p.getPort())));
+						endpointPorts.forEach(p -> metadata.put(StringUtils.hasText(p.getName()) ? p.getName() : UNSET_PORT_NAME,
+							Integer.toString(p.getPort())));
 					}
 					List<V1EndpointAddress> addresses = subset.getAddresses();
 					if (addresses == null) {

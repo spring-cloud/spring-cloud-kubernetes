@@ -79,6 +79,11 @@ public class KubernetesInformerDiscoveryClientTests {
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
 			.addSubsetsItem(new V1EndpointSubset().addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
 
+	private static final V1Endpoints testEndpointWithUnsetPortName = new V1Endpoints()
+		.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
+		.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(80))
+			.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
+
 	private static final V1Endpoints testEndpointWithMultiplePorts = new V1Endpoints()
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
 			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().name("http").port(80))
@@ -101,6 +106,23 @@ public class KubernetesInformerDiscoveryClientTests {
 			.metadata(new V1ObjectMeta().name("test-svc-3").namespace("namespace1"))
 			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(8080))
 					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
+
+	@Test
+	public void testServiceWithUnsetPortNames() {
+		Lister<V1Service> serviceLister = setupServiceLister(testService1);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpointWithUnsetPortName);
+
+		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(true);
+		when(kubernetesDiscoveryProperties.getMetadata()).thenReturn(new KubernetesDiscoveryProperties.Metadata());
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("",
+			sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
+
+		Map<String, String> ports = new HashMap<>();
+		ports.put("<unset>", "80");
+		assertThat(discoveryClient.getInstances("test-svc-1").toArray()).containsOnly(new KubernetesServiceInstance("",
+			"test-svc-1", "1.1.1.1", 80, ports, false, "namespace1", null));
+	}
 
 	@Test
 	public void testDiscoveryGetServicesAllNamespaceShouldWork() {
