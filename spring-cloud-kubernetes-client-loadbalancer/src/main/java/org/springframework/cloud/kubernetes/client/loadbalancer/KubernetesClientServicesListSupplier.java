@@ -47,15 +47,6 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 
 	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
-	@Deprecated
-	public KubernetesClientServicesListSupplier(Environment environment, KubernetesServiceInstanceMapper mapper,
-			KubernetesDiscoveryProperties discoveryProperties, CoreV1Api coreV1Api,
-			KubernetesClientProperties kubernetesClientProperties) {
-		super(environment, mapper, discoveryProperties);
-		this.coreV1Api = coreV1Api;
-		this.kubernetesClientProperties = kubernetesClientProperties;
-	}
-
 	public KubernetesClientServicesListSupplier(Environment environment, KubernetesServiceInstanceMapper mapper,
 			KubernetesDiscoveryProperties discoveryProperties, CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
