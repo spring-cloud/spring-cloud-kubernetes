@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
@@ -37,52 +38,15 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.ge
  * @author Isik Erhan
  */
 @ConfigurationProperties(SecretsConfigProperties.PREFIX)
-public class SecretsConfigProperties extends AbstractConfigProperties {
+public record SecretsConfigProperties(boolean enableApi, @DefaultValue Map<String, String> labels, @DefaultValue List<String> paths,
+		@DefaultValue List<Source> sources, @DefaultValue("true") boolean enabled, String name, String namespace,
+		boolean useNameAsPrefix, @DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
+		RetryProperties retryProperties) {
 
 	/**
 	 * Prefix for Kubernetes secrets configuration properties.
 	 */
 	public static final String PREFIX = "spring.cloud.kubernetes.secrets";
-
-	private boolean enableApi = false;
-
-	private Map<String, String> labels = Collections.emptyMap();
-
-	private List<String> paths = Collections.emptyList();
-
-	private List<Source> sources = Collections.emptyList();
-
-	public boolean isEnableApi() {
-		return this.enableApi;
-	}
-
-	public void setEnableApi(boolean enableApi) {
-		this.enableApi = enableApi;
-	}
-
-	public Map<String, String> getLabels() {
-		return this.labels;
-	}
-
-	public void setLabels(Map<String, String> labels) {
-		this.labels = labels;
-	}
-
-	public List<String> getPaths() {
-		return this.paths;
-	}
-
-	public void setPaths(List<String> paths) {
-		this.paths = paths;
-	}
-
-	public List<Source> getSources() {
-		return sources;
-	}
-
-	public void setSources(List<Source> sources) {
-		this.sources = sources;
-	}
 
 	/**
 	 * @return A list of Secret source(s) to use.
@@ -110,24 +74,21 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 	// because of this current issue
 	// https://github.com/spring-projects/spring-boot/issues/32660
 	// we need this workaround
-	public static SecretsConfigProperties fromSelfAndRetry(SecretsConfigProperties configMapConfigProperties,
+	public static SecretsConfigProperties fromSelfAndRetry(SecretsConfigProperties secretsConfigProperties,
 			RetryProperties retryProperties) {
-		SecretsConfigProperties properties = new SecretsConfigProperties();
-		properties.setEnableApi(configMapConfigProperties.isEnableApi());
-		properties.setPaths(configMapConfigProperties.getPaths());
-		properties.setSources(configMapConfigProperties.getSources());
-		properties.setLabels(configMapConfigProperties.getLabels());
-
-		properties.setEnabled(configMapConfigProperties.isEnabled());
-		properties.setName(configMapConfigProperties.getName());
-		properties.setNamespace(configMapConfigProperties.getNamespace());
-		properties.setUseNameAsPrefix(configMapConfigProperties.isUseNameAsPrefix());
-		properties.setIncludeProfileSpecificSources(configMapConfigProperties.isIncludeProfileSpecificSources());
-		properties.setFailFast(configMapConfigProperties.isFailFast());
-
-		properties.setRetry(retryProperties);
-
-		return properties;
+		return new SecretsConfigProperties(
+			secretsConfigProperties.enableApi(),
+			secretsConfigProperties.labels(),
+			secretsConfigProperties.paths(),
+			secretsConfigProperties.sources(),
+			secretsConfigProperties.enabled(),
+			secretsConfigProperties.name(),
+			secretsConfigProperties.namespace(),
+			secretsConfigProperties.useNameAsPrefix(),
+			secretsConfigProperties.includeProfileSpecificSources(),
+			secretsConfigProperties.failFast(),
+			retryProperties
+		);
 	}
 
 	public static class Source {

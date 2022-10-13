@@ -17,10 +17,8 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,52 +36,15 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.ge
  * @author Isik Erhan
  */
 @ConfigurationProperties(ConfigMapConfigProperties.PREFIX)
-public class ConfigMapConfigProperties extends AbstractConfigProperties {
+public record ConfigMapConfigProperties(@DefaultValue("true") boolean enableApi, @DefaultValue List<String> paths,
+		@DefaultValue List<Source> sources, @DefaultValue Map<String, String> labels, @DefaultValue("true") boolean enabled,
+		String name, String namespace, boolean useNameAsPrefix, @DefaultValue("true") boolean includeProfileSpecificSources,
+		boolean failFast, RetryProperties retryProperties) {
 
 	/**
 	 * Prefix for Kubernetes config maps configuration properties.
 	 */
 	public static final String PREFIX = "spring.cloud.kubernetes.config";
-
-	private boolean enableApi = true;
-
-	private List<String> paths = Collections.emptyList();
-
-	private List<Source> sources = Collections.emptyList();
-
-	private Map<String, String> labels = Collections.emptyMap();
-
-	public boolean isEnableApi() {
-		return this.enableApi;
-	}
-
-	public void setEnableApi(boolean enableApi) {
-		this.enableApi = enableApi;
-	}
-
-	public List<String> getPaths() {
-		return this.paths;
-	}
-
-	public void setPaths(List<String> paths) {
-		this.paths = paths;
-	}
-
-	public List<Source> getSources() {
-		return this.sources;
-	}
-
-	public void setSources(List<Source> sources) {
-		this.sources = sources;
-	}
-
-	public Map<String, String> getLabels() {
-		return labels;
-	}
-
-	public void setLabels(Map<String, String> labels) {
-		this.labels = labels;
-	}
 
 	/**
 	 * @return A list of config map source(s) to use.
@@ -113,22 +74,19 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 	// we need this workaround
 	public static ConfigMapConfigProperties fromSelfAndRetry(ConfigMapConfigProperties configMapConfigProperties,
 			RetryProperties retryProperties) {
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties();
-		properties.setEnableApi(configMapConfigProperties.isEnableApi());
-		properties.setPaths(configMapConfigProperties.getPaths());
-		properties.setSources(configMapConfigProperties.getSources());
-		properties.setLabels(configMapConfigProperties.getLabels());
-
-		properties.setEnabled(configMapConfigProperties.isEnabled());
-		properties.setName(configMapConfigProperties.getName());
-		properties.setNamespace(configMapConfigProperties.getNamespace());
-		properties.setUseNameAsPrefix(configMapConfigProperties.isUseNameAsPrefix());
-		properties.setIncludeProfileSpecificSources(configMapConfigProperties.isIncludeProfileSpecificSources());
-		properties.setFailFast(configMapConfigProperties.isFailFast());
-
-		properties.setRetry(retryProperties);
-
-		return properties;
+		return new ConfigMapConfigProperties(
+			configMapConfigProperties.enableApi(),
+			configMapConfigProperties.paths(),
+			configMapConfigProperties.sources(),
+			configMapConfigProperties.labels(),
+			configMapConfigProperties.enabled(),
+			configMapConfigProperties.name(),
+			configMapConfigProperties.namespace(),
+			configMapConfigProperties.useNameAsPrefix(),
+			configMapConfigProperties.includeProfileSpecificSources(),
+			configMapConfigProperties.failFast(),
+			retryProperties
+		);
 	}
 
 	/**
