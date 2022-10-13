@@ -344,7 +344,7 @@ class SecretsConfigPropertiesTests {
 		properties.setIncludeProfileSpecificSources(false);
 
 		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source(
-			"one", null, Map.of("first-label", "secret-one"), null, false, null
+			"one", null, Map.of("first-label", "secret-one"), "one", false, null
 		);
 
 		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source(
@@ -352,7 +352,7 @@ class SecretsConfigPropertiesTests {
 		);
 
 		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(
-			null, null, Map.of("third-label", "secret-three"), "three", true, true
+			null, null, Map.of("third-label", "secret-three"), "three", true, null
 		);
 
 		SecretsConfigProperties.Source four = new SecretsConfigProperties.Source(
