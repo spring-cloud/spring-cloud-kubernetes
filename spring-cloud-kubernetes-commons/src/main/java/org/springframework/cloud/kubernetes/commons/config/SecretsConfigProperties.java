@@ -120,10 +120,6 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 	public record Source(String name, String namespace, @DefaultValue Map<String, String> labels,
 			String explicitPrefix, Boolean useNameAsPrefix, Boolean includeProfileSpecificSources) {
 
-		public boolean isEmpty() {
-			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
-		}
-
 		private Stream<NormalizedSource> normalize(String defaultName, String defaultNamespace,
 				Map<String, String> defaultLabels, boolean defaultIncludeProfileSpecificSources, boolean failFast,
 				boolean defaultUseNameAsPrefix, Environment environment) {
@@ -152,23 +148,6 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 			}
 
 			return normalizedSources.build();
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			SecretsConfigProperties.Source other = (SecretsConfigProperties.Source) o;
-			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(name, namespace);
 		}
 
 	}
