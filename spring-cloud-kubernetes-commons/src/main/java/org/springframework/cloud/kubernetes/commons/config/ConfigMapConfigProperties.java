@@ -179,24 +179,6 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 		}
 
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			Source other = (Source) o;
-			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace)
-				&& Objects.equals(this.labels, other.labels);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(name, namespace, labels);
-		}
-
 	}
 
 }
