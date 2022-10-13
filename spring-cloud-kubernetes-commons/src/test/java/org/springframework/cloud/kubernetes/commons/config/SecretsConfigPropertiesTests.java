@@ -343,17 +343,6 @@ class SecretsConfigPropertiesTests {
 		properties.setNamespace("spring-k8s");
 		properties.setIncludeProfileSpecificSources(false);
 
-		//
-		//		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source();
-		//		two.setLabels(Map.of("second-label", "secret-two"));
-		//		two.setUseNameAsPrefix(true);
-		//		two.setExplicitPrefix("two");
-		//		two.setIncludeProfileSpecificSources(true);
-		//
-		//		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source();
-		//		three.setLabels(Map.of("third-label", "secret-three"));
-		//		three.setExplicitPrefix("three");
-
 		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source(
 			"one", null, Map.of("first-label", "secret-one"), "one", false, null
 		);
