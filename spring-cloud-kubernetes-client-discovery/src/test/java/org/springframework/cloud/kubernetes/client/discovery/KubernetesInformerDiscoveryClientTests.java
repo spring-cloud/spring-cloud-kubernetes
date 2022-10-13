@@ -288,6 +288,7 @@ public class KubernetesInformerDiscoveryClientTests {
 
 	@Test
 	public void instanceWithMultiplePortsAndPrimaryPortNameConfiguredWithLabelShouldWork() {
+		V1ObjectMeta oldMetadata = testService1.getMetadata();
 		Lister<V1Service> serviceLister = setupServiceLister(testService1.metadata(new V1ObjectMeta().name("test-svc-1")
 				.namespace("namespace1").putLabelsItem("primary-port-name", "https")));
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpointWithMultiplePorts);
@@ -302,10 +303,13 @@ public class KubernetesInformerDiscoveryClientTests {
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
 		verify(kubernetesDiscoveryProperties, times(1)).isIncludeNotReadyAddresses();
+		//Reset metadata
+		testService1.metadata(oldMetadata);
 	}
 
 	@Test
 	public void instanceWithMultiplePortsAndMisconfiguredPrimaryPortNameInLabelShouldReturnFirstPortAndLogWarning() {
+		V1ObjectMeta oldMetadata = testService1.getMetadata();
 		Lister<V1Service> serviceLister = setupServiceLister(testService1.metadata(new V1ObjectMeta().name("test-svc-1")
 				.namespace("namespace1").putLabelsItem("primary-port-name", "oops")));
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(
@@ -320,6 +324,8 @@ public class KubernetesInformerDiscoveryClientTests {
 				"test-svc-1", "1.1.1.1", 80, new HashMap<>(), false, "namespace1", null));
 		verify(kubernetesDiscoveryProperties, times(1)).isAllNamespaces();
 		verify(kubernetesDiscoveryProperties, times(1)).getPrimaryPortName();
+		//Reset testService1 metadata
+		testService1.metadata(oldMetadata);
 	}
 
 	@Test
