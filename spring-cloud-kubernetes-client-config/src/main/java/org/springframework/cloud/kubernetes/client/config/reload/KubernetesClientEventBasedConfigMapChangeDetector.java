@@ -103,8 +103,8 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		// certificate authorities for the cluster. This results in SSL errors.
 		// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
 		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
-		this.monitorConfigMaps = properties.isMonitoringConfigMaps();
-		this.enableReloadFiltering = properties.isEnableReloadFiltering();
+		this.monitorConfigMaps = properties.monitoringConfigMaps();
+		this.enableReloadFiltering = properties.enableReloadFiltering();
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "configmap");
 	}
 

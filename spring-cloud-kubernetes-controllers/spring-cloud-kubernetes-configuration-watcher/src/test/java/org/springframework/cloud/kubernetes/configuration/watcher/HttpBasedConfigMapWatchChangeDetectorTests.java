@@ -16,10 +16,12 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -104,7 +106,11 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
-		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
+		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties(
+			false, false, false, ConfigReloadProperties.ReloadStrategy.REFRESH,
+			ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ZERO, Set.of(),
+			false, Duration.ZERO
+		);
 		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		WebClient webClient = WebClient.builder().build();
 

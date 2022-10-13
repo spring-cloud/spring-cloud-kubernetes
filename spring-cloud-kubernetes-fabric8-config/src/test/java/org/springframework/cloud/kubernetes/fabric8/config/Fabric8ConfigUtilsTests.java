@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.time.Duration;
 import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -350,8 +351,9 @@ class Fabric8ConfigUtilsTests {
 
 	@Test
 	void testNamespacesFromProperties() {
-		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
-		configReloadProperties.setNamespaces(Set.of("non-default"));
+		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties(false, true, false,
+				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+				Duration.ZERO, Set.of("non-default"), false, Duration.ZERO);
 		Set<String> namespaces = Fabric8ConfigUtils.namespaces(null,
 				new KubernetesNamespaceProvider(new MockEnvironment()), configReloadProperties, "configmap");
 		Assertions.assertEquals(1, namespaces.size());
@@ -360,7 +362,9 @@ class Fabric8ConfigUtilsTests {
 
 	@Test
 	void testNamespacesFromProvider() {
-		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
+		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties(false, true, false,
+				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+				Duration.ZERO, Set.of(), false, Duration.ZERO);
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty("spring.cloud.kubernetes.client.namespace", "some");
 		KubernetesNamespaceProvider provider = new KubernetesNamespaceProvider(environment);
