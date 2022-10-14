@@ -32,7 +32,7 @@ class KubernetesDiscoveryPropertiesMetadataTests {
 
 	@Test
 	void testDefaultConstructor() {
-		Metadata m = new Metadata();
+		Metadata m = Metadata.DEFAULT;
 		assertThat(m.addLabels()).isTrue();
 		assertThat(m.labelsPrefix()).isNull();
 		assertThat(m.addAnnotations()).isTrue();

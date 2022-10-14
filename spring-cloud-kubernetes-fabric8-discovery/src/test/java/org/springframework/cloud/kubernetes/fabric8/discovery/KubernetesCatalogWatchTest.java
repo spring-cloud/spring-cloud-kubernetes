@@ -60,7 +60,7 @@ public class KubernetesCatalogWatchTest {
 	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
 
 	private static final KubernetesDiscoveryProperties PROPERTIES = new KubernetesDiscoveryProperties(true, false, true,
-			60, false, null, Set.of(), Map.of(), null, new KubernetesDiscoveryProperties.Metadata(), 0);
+			60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 
 	private final KubernetesCatalogWatch kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT, PROPERTIES);
 

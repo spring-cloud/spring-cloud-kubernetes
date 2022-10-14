@@ -43,7 +43,7 @@ class KubernetesClientServiceInstanceMapperTests {
 	void basicMap() {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
-				true, 60, false, null, Set.of(), Map.of(), null, new KubernetesDiscoveryProperties.Metadata(), 0);
+				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
 				kubernetesDiscoveryProperties);
 
@@ -69,7 +69,7 @@ class KubernetesClientServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		loadBalancerProperties.setPortName("https");
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
-				true, 60, false, null, Set.of(), Map.of(), null, new KubernetesDiscoveryProperties.Metadata(), 0);
+				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
 				kubernetesDiscoveryProperties);
 

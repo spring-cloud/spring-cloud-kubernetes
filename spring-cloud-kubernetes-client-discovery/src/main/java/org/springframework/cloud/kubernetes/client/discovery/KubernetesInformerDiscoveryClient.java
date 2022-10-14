@@ -48,6 +48,7 @@ import org.springframework.util.StringUtils;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
 
 /**
  * @author Min Kim
@@ -146,7 +147,9 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 					Map<String, String> metadata = new HashMap<>(svcMetadata);
 					List<V1EndpointPort> endpointPorts = subset.getPorts();
 					if (this.properties.metadata() != null && this.properties.metadata().addPorts()) {
-						endpointPorts.forEach(p -> metadata.put(p.getName(), Integer.toString(p.getPort())));
+						endpointPorts.forEach(
+								p -> metadata.put(StringUtils.hasText(p.getName()) ? p.getName() : UNSET_PORT_NAME,
+										Integer.toString(p.getPort())));
 					}
 					List<V1EndpointAddress> addresses = subset.getAddresses();
 					if (addresses == null) {
