@@ -54,25 +54,27 @@ class ServicePortSecureResolver {
 		Integer port = input.port();
 
 		if (TRUTHY_STRINGS.contains(securedLabelValue)) {
-			LOG.debug(() -> "Considering service with name: " + serviceName + " and port " + port
-					+ " is secure since the service contains a true value for the 'secured' label");
+			logEntry(serviceName, port, "the service contains a true value for the 'secured' label");
 			return true;
 		}
 
 		String securedAnnotationValue = input.serviceAnnotations().getOrDefault("secured", "false");
 		if (TRUTHY_STRINGS.contains(securedAnnotationValue)) {
-			LOG.debug(() -> "Considering service with name: " + serviceName + " and port " + port
-					+ " is secure since the service contains a true value for the 'secured' annotation");
+			logEntry(serviceName, port, "the service contains a true value for the 'secured' annotation");
 			return true;
 		}
 
 		if (port != null && this.properties.getKnownSecurePorts().contains(port)) {
-			LOG.debug(() -> "Considering service with name: " + serviceName + " and port " + port
-					+ " is secure due to the port being a known https port");
+			logEntry(serviceName, port, "port is known to be a https port");
 			return true;
 		}
 
 		return false;
+	}
+
+	private static void logEntry(String serviceName, Integer port, String part) {
+		LOG.debug(() -> "Considering service with name: " + serviceName + " and port " + port
+			+ " to be secure since " + part);
 	}
 
 	record Input(Integer port, String serviceName, Map<String, String> serviceLabels,
