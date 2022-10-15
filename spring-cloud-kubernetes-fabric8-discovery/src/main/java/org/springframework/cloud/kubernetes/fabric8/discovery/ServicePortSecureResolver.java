@@ -16,22 +16,19 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.core.log.LogAccessor;
 
 class ServicePortSecureResolver {
 
-	private static final Log LOG = LogFactory.getLog(ServicePortSecureResolver.class);
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(ServicePortSecureResolver.class));
 
-	private static final Set<String> TRUTHY_STRINGS = Stream.of("true", "on", "yes", "1").collect(Collectors.toSet());
+	private static final Set<String> TRUTHY_STRINGS = Set.of("true", "on", "yes", "1");
 
 	private final KubernetesDiscoveryProperties properties;
 
@@ -52,22 +49,25 @@ class ServicePortSecureResolver {
 	 */
 	boolean resolve(Input input) {
 
-		String securedLabelValue = input.serviceLabels.getOrDefault("secured", "false");
+		String securedLabelValue = input.serviceLabels().getOrDefault("secured", "false");
+		String serviceName = input.serviceName();
+		Integer port = input.port();
+
 		if (TRUTHY_STRINGS.contains(securedLabelValue)) {
-			LOG.debug("Considering service with name: " + input.serviceName + " and port " + input.port
+			LOG.debug(() -> "Considering service with name: " + serviceName + " and port " + port
 					+ " is secure since the service contains a true value for the 'secured' label");
 			return true;
 		}
 
-		String securedAnnotationValue = input.serviceAnnotations.getOrDefault("secured", "false");
+		String securedAnnotationValue = input.serviceAnnotations().getOrDefault("secured", "false");
 		if (TRUTHY_STRINGS.contains(securedAnnotationValue)) {
-			LOG.debug("Considering service with name: " + input.serviceName + " and port " + input.port
+			LOG.debug(() -> "Considering service with name: " + serviceName + " and port " + port
 					+ " is secure since the service contains a true value for the 'secured' annotation");
 			return true;
 		}
 
-		if (input.port != null && this.properties.getKnownSecurePorts().contains(input.port)) {
-			LOG.debug("Considering service with name: " + input.serviceName + " and port " + input.port
+		if (input.port() != null && this.properties.getKnownSecurePorts().contains(port)) {
+			LOG.debug(() -> "Considering service with name: " + serviceName + " and port " + port
 					+ " is secure due to the port being a known https port");
 			return true;
 		}
@@ -75,15 +75,8 @@ class ServicePortSecureResolver {
 		return false;
 	}
 
-	static final class Input {
-
-		private final Integer port;
-
-		private final String serviceName;
-
-		private final Map<String, String> serviceLabels;
-
-		private final Map<String, String> serviceAnnotations;
+	record Input(Integer port, String serviceName, Map<String, String> serviceLabels,
+			Map<String, String> serviceAnnotations) {
 
 		// used only for testing
 		Input(Integer port, String serviceName) {
@@ -94,8 +87,8 @@ class ServicePortSecureResolver {
 				Map<String, String> serviceAnnotations) {
 			this.port = port;
 			this.serviceName = serviceName;
-			this.serviceLabels = serviceLabels == null ? Collections.emptyMap() : serviceLabels;
-			this.serviceAnnotations = serviceAnnotations == null ? Collections.emptyMap() : serviceAnnotations;
+			this.serviceLabels = serviceLabels == null ? Map.of() : serviceLabels;
+			this.serviceAnnotations = serviceAnnotations == null ? Map.of() : serviceAnnotations;
 		}
 
 	}
