@@ -66,7 +66,7 @@ class ServicePortSecureResolver {
 			return true;
 		}
 
-		if (input.port() != null && this.properties.getKnownSecurePorts().contains(port)) {
+		if (port != null && this.properties.getKnownSecurePorts().contains(port)) {
 			LOG.debug(() -> "Considering service with name: " + serviceName + " and port " + port
 					+ " is secure due to the port being a known https port");
 			return true;
