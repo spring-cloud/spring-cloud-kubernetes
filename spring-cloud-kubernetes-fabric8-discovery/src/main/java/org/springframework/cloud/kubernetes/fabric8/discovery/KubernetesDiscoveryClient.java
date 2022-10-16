@@ -121,11 +121,30 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	public List<Endpoints> getEndPointsList(String serviceId) {
-		return this.properties.isAllNamespaces()
+		if (properties.getNamespaces().isEmpty()) {
+			return this.properties.isAllNamespaces()
 				? this.client.endpoints().inAnyNamespace().withField("metadata.name", serviceId)
-						.withLabels(properties.getServiceLabels()).list().getItems()
+				.withLabels(properties.getServiceLabels()).list().getItems()
 				: this.client.endpoints().withField("metadata.name", serviceId)
-						.withLabels(properties.getServiceLabels()).list().getItems();
+				.withLabels(properties.getServiceLabels()).list().getItems();
+		} else {
+			return findEndPointsFilteredByNamespaces(serviceId);
+		}
+	}
+	private List<Endpoints> findEndPointsFilteredByNamespaces(String serviceId) {
+		List<Endpoints> endpoints = new ArrayList<>();
+		for (String ns : properties.getNamespaces()) {
+			endpoints.addAll(
+				getClient()
+					.endpoints()
+					.inNamespace(ns)
+					.withField("metadata.name", serviceId)
+					.withLabels(properties.getServiceLabels())
+					.list()
+					.getItems()
+					.stream().toList());
+		}
+		return endpoints;
 	}
 
 	private List<ServiceInstance> getNamespaceServiceInstances(EndpointSubsetNS es, String serviceId) {
@@ -300,10 +319,25 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return getServices(filteredServices);
 	}
 
-	public List<String> getServices(Predicate<Service> filter) {
-		return this.kubernetesClientServicesFunction.apply(this.client).list().getItems().stream().filter(filter)
+    public List<String> getServices(Predicate<Service> filter) {
+        if (properties.getNamespaces().isEmpty()) {
+			return this.kubernetesClientServicesFunction.apply(this.client).list().getItems().stream().filter(filter)
 				.map(s -> s.getMetadata().getName()).collect(Collectors.toList());
-	}
+        }
+        List<String> services = new ArrayList<>();
+        for (String ns : properties.getNamespaces()) {
+            services.addAll(getClient()
+				.services()
+				.inNamespace(ns)
+				.list()
+				.getItems()
+				.stream()
+				.filter(filter)
+				.map(s -> s.getMetadata().getName()).toList());
+        }
+        return services;
+    }
+
 
 	@Override
 	public int getOrder() {

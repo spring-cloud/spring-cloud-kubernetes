@@ -16,8 +16,10 @@
 
 package org.springframework.cloud.kubernetes.commons.discovery;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -80,6 +82,12 @@ public class KubernetesDiscoveryProperties {
 	private Metadata metadata = new Metadata();
 
 	private int order = DEFAULT_ORDER;
+
+	/**
+	 * If set and allNamespaces is false, then only the services and endpoints matching these namespaces will be
+	 * fetched from the Kubernetes API server
+	 */
+	private List<String> namespaces = new ArrayList<>();
 
 	public boolean isEnabled() {
 		return this.enabled;
@@ -151,6 +159,14 @@ public class KubernetesDiscoveryProperties {
 
 	public void setOrder(int order) {
 		this.order = order;
+	}
+
+	public List<String> getNamespaces() {
+		return namespaces;
+	}
+
+	public void setNamespaces(List<String> namespaces) {
+		this.namespaces = namespaces;
 	}
 
 	public boolean isWaitCacheReady() {
