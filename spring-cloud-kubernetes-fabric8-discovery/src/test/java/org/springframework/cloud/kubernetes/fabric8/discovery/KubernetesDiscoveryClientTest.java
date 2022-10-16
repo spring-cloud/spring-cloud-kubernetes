@@ -318,7 +318,6 @@ public class KubernetesDiscoveryClientTest {
 
 
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
-		//properties.setAllNamespaces(true);
 		properties.setNamespaces(List.of(nameSpace1, nameSpace2));
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 			KubernetesClient::services, new ServicePortSecureResolver(properties));
