@@ -24,9 +24,9 @@ import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -153,14 +153,14 @@ public class KubernetesDiscoveryClientTest {
 	@Test
 	public void getEndPointsListTestAllNamespaces() {
 
-		final var namespace1="ns1";
-		final var namespace2="ns2";
+		final var namespace1 = "ns1";
+		final var namespace2 = "ns2";
 
-		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace1)
-			.endMetadata().build();
+		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata()
+				.withName("endpoint").withNamespace(namespace1).endMetadata().build();
 
-		Endpoints endPoint2 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace2)
-			.endMetadata().build();
+		Endpoints endPoint2 = new EndpointsBuilder().withNewMetadata()
+				.withName("endpoint").withNamespace(namespace2).endMetadata().build();
 
 		mockClient.endpoints().inNamespace(namespace1).create(endPoint1);
 		mockClient.endpoints().inNamespace(namespace2).create(endPoint2);
@@ -168,10 +168,12 @@ public class KubernetesDiscoveryClientTest {
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		properties.setAllNamespaces(true);
 
-		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-			KubernetesClient::services, new ServicePortSecureResolver(properties));
+		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(
+				mockClient, properties, KubernetesClient::services,
+				new ServicePortSecureResolver(properties));
 
-		final List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
+		final List<Endpoints> result_endpoints = discoveryClient
+				.getEndPointsList("endpoint");
 
 		assertThat(result_endpoints).hasSize(2);
 	}
