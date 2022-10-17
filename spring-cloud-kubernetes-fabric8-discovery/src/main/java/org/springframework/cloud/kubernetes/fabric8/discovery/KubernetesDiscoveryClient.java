@@ -141,8 +141,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 					.withField("metadata.name", serviceId)
 					.withLabels(properties.getServiceLabels())
 					.list()
-					.getItems()
-					.stream().toList());
+					.getItems());
 		}
 		return endpoints;
 	}
