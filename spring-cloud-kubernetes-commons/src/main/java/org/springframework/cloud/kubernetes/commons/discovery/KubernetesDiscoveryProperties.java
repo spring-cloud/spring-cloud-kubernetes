@@ -84,8 +84,8 @@ public class KubernetesDiscoveryProperties {
 	private int order = DEFAULT_ORDER;
 
 	/**
-	 * If set and allNamespaces is false, then only the services and endpoints matching these namespaces will be
-	 * fetched from the Kubernetes API server.
+	 * If set and allNamespaces is false, then only the services and endpoints matching
+	 * these namespaces will be fetched from the Kubernetes API server.
 	 */
 	private List<String> namespaces = new ArrayList<>();
 

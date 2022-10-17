@@ -183,14 +183,14 @@ public class KubernetesDiscoveryClientTest {
 		final var namespace2 = "ns2";
 		final var namespace3 = "ns3";
 
-		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace1)
-			.endMetadata().build();
+		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata()
+				.withName("endpoint").withNamespace(namespace1).endMetadata().build();
 
-		Endpoints endPoint2 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace2)
-			.endMetadata().build();
+		Endpoints endPoint2 = new EndpointsBuilder().withNewMetadata()
+				.withName("endpoint").withNamespace(namespace2).endMetadata().build();
 
-		Endpoints endPoint3 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace3)
-			.endMetadata().build();
+		Endpoints endPoint3 = new EndpointsBuilder().withNewMetadata()
+				.withName("endpoint").withNamespace(namespace3).endMetadata().build();
 
 		mockClient.endpoints().inNamespace(namespace1).create(endPoint1);
 		mockClient.endpoints().inNamespace(namespace2).create(endPoint2);
@@ -199,14 +199,17 @@ public class KubernetesDiscoveryClientTest {
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		properties.setNamespaces(List.of(namespace1, namespace3));
 
-		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-			KubernetesClient::services, new ServicePortSecureResolver(properties));
+		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(
+				mockClient, properties, KubernetesClient::services,
+				new ServicePortSecureResolver(properties));
 
-		final List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
+		final List<Endpoints> result_endpoints = discoveryClient
+				.getEndPointsList("endpoint");
 
 		assertThat(result_endpoints).hasSize(2);
-		assertThat(result_endpoints.stream().map(Endpoints::getMetadata).map(ObjectMeta::getNamespace).collect(Collectors.toList()))
-			.containsOnly(namespace1, namespace3);
+		assertThat(result_endpoints.stream().map(Endpoints::getMetadata)
+				.map(ObjectMeta::getNamespace).collect(Collectors.toList()))
+						.containsOnly(namespace1, namespace3);
 	}
 
 	@Test
@@ -303,24 +306,24 @@ public class KubernetesDiscoveryClientTest {
 		final var nameSpace2 = "ns2";
 		final var nameSpace3 = "ns3";
 
-		Service service1 = new ServiceBuilder().withNewMetadata().withName("s1").withNamespace(nameSpace1)
-			.endMetadata().build();
+		Service service1 = new ServiceBuilder().withNewMetadata().withName("s1")
+				.withNamespace(nameSpace1).endMetadata().build();
 
-		Service service2 = new ServiceBuilder().withNewMetadata().withName("s2").withNamespace(nameSpace2)
-			.endMetadata().build();
+		Service service2 = new ServiceBuilder().withNewMetadata().withName("s2")
+				.withNamespace(nameSpace2).endMetadata().build();
 
-		Service service3 = new ServiceBuilder().withNewMetadata().withName("s3").withNamespace(nameSpace3)
-			.endMetadata().build();
+		Service service3 = new ServiceBuilder().withNewMetadata().withName("s3")
+				.withNamespace(nameSpace3).endMetadata().build();
 
 		mockClient.services().inNamespace(nameSpace1).create(service1);
 		mockClient.services().inNamespace(nameSpace2).create(service2);
 		mockClient.services().inNamespace(nameSpace3).create(service3);
 
-
 		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
 		properties.setNamespaces(List.of(nameSpace1, nameSpace2));
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-			KubernetesClient::services, new ServicePortSecureResolver(properties));
+		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+				properties, KubernetesClient::services,
+				new ServicePortSecureResolver(properties));
 
 		final List<String> services = discoveryClient.getServices();
 
