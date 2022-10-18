@@ -113,7 +113,7 @@ public class KubernetesInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpointWithUnsetPortName);
 
 		when(kubernetesDiscoveryProperties.isAllNamespaces()).thenReturn(true);
-		when(kubernetesDiscoveryProperties.getMetadata()).thenReturn(new KubernetesDiscoveryProperties.Metadata());
+		when(kubernetesDiscoveryProperties.getMetadata()).thenReturn(KubernetesDiscoveryProperties.Metadata.DEFAULT);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("",
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);

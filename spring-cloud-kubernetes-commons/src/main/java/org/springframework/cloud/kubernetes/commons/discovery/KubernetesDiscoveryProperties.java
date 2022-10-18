@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.core.style.ToStringCreator;
 
@@ -77,7 +76,7 @@ public class KubernetesDiscoveryProperties {
 	 */
 	private String primaryPortName;
 
-	private Metadata metadata = new Metadata();
+	private Metadata metadata = Metadata.DEFAULT;
 
 	private int order = DEFAULT_ORDER;
 
@@ -188,15 +187,10 @@ public class KubernetesDiscoveryProperties {
 			@DefaultValue("true") boolean addAnnotations, String annotationsPrefix,
 			@DefaultValue("true") boolean addPorts, @DefaultValue("port.") String portsPrefix) {
 
-		@ConstructorBinding
-		public Metadata {
-
-		}
-
-		// needed in order to get the defaults for some fields
-		public Metadata() {
-			this(true, null, true, null, true, "port.");
-		}
+		/**
+		 * Default instance.
+		 */
+		public static final Metadata DEFAULT = new Metadata(true, null, true, null, true, "port.");
 
 	}
 
