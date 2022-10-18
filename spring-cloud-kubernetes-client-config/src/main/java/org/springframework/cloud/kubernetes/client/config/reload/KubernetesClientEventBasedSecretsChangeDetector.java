@@ -103,8 +103,8 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		// certificate authorities for the cluster. This results in SSL errors.
 		// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
 		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
-		this.monitorSecrets = properties.isMonitoringSecrets();
-		this.enableReloadFiltering = properties.isEnableReloadFiltering();
+		this.monitorSecrets = properties.monitoringSecrets();
+		this.enableReloadFiltering = properties.enableReloadFiltering();
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "secret");
 	}
 

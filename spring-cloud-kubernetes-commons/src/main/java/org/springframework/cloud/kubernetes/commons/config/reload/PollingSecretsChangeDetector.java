@@ -62,8 +62,8 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 		this.propertySourceLocator = propertySourceLocator;
 		this.propertySourceClass = propertySourceClass;
 		this.taskExecutor = taskExecutor;
-		this.period = properties.getPeriod().toMillis();
-		this.monitorSecrets = properties.isMonitoringSecrets();
+		this.period = properties.period().toMillis();
+		this.monitorSecrets = properties.monitoringSecrets();
 	}
 
 	@PostConstruct
