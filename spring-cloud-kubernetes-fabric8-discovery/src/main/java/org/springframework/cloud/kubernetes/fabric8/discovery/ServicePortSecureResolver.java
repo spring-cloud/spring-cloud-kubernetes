@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ class ServicePortSecureResolver {
 			return true;
 		}
 
-		if (port != null && this.properties.getKnownSecurePorts().contains(port)) {
+		if (port != null && properties.getKnownSecurePorts().contains(port)) {
 			logEntry(serviceName, port, "port is known to be a https port");
 			return true;
 		}
@@ -77,6 +77,9 @@ class ServicePortSecureResolver {
 			+ " to be secure since " + part);
 	}
 
+	/**
+	 * @author wind57
+	 */
 	record Input(Integer port, String serviceName, Map<String, String> serviceLabels,
 			Map<String, String> serviceAnnotations) {
 
