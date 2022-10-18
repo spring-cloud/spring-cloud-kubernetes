@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import java.time.Duration;
-import java.util.Set;
-
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;

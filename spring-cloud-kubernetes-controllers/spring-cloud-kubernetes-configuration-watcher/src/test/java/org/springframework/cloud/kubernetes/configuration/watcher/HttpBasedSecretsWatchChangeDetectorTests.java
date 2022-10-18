@@ -16,12 +16,10 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -97,10 +95,11 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
 		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		WebClient webClient = WebClient.builder().build();
-		changeDetector = new HttpBasedSecretsWatchChangeDetector(coreV1Api, mockEnvironment, ConfigReloadProperties.DEFAULT,
-				updateStrategy, secretsPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, new HttpRefreshTrigger(
-						reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient));
+		changeDetector = new HttpBasedSecretsWatchChangeDetector(coreV1Api, mockEnvironment,
+				ConfigReloadProperties.DEFAULT, updateStrategy, secretsPropertySourceLocator,
+				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
+				threadPoolTaskExecutor, new HttpRefreshTrigger(reactiveDiscoveryClient,
+						configurationWatcherConfigurationProperties, webClient));
 	}
 
 	@BeforeAll

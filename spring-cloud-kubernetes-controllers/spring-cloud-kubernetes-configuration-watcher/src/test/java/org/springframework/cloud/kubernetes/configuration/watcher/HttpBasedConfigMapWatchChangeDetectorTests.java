@@ -16,12 +16,10 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -113,10 +111,11 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 
 		});
 
-		changeDetector = new HttpBasedConfigMapWatchChangeDetector(coreV1Api, mockEnvironment, ConfigReloadProperties.DEFAULT,
-				strategy, configMapPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, new HttpRefreshTrigger(
-						reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient));
+		changeDetector = new HttpBasedConfigMapWatchChangeDetector(coreV1Api, mockEnvironment,
+				ConfigReloadProperties.DEFAULT, strategy, configMapPropertySourceLocator,
+				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
+				threadPoolTaskExecutor, new HttpRefreshTrigger(reactiveDiscoveryClient,
+						configurationWatcherConfigurationProperties, webClient));
 	}
 
 	@Test
