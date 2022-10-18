@@ -51,7 +51,7 @@ public class ServicePortSecureResolverTest {
 	@Test
 	public void testPortNumbersOnly() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, true, 60, false, null,
-				Set.of(443, 8443, 12345), Map.of(), null, new KubernetesDiscoveryProperties.Metadata(), 0);
+				Set.of(443, 8443, 12345), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
 
@@ -67,7 +67,7 @@ public class ServicePortSecureResolverTest {
 	@Test
 	public void testLabelsAndAnnotations() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, true, 60, false, null,
-				Set.of(), Map.of(), null, new KubernetesDiscoveryProperties.Metadata(), 0);
+				Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
 
 		assertThat(secureResolver.resolve(SECURED_TRUE)).isTrue();
