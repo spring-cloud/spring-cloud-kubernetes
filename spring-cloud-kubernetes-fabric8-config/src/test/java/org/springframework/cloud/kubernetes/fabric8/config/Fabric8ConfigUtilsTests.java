@@ -361,7 +361,8 @@ class Fabric8ConfigUtilsTests {
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty("spring.cloud.kubernetes.client.namespace", "some");
 		KubernetesNamespaceProvider provider = new KubernetesNamespaceProvider(environment);
-		Set<String> namespaces = Fabric8ConfigUtils.namespaces(null, provider, ConfigReloadProperties.DEFAULT, "configmap");
+		Set<String> namespaces = Fabric8ConfigUtils.namespaces(null, provider, ConfigReloadProperties.DEFAULT,
+				"configmap");
 		Assertions.assertEquals(1, namespaces.size());
 		Assertions.assertEquals(namespaces.iterator().next(), "some");
 	}
