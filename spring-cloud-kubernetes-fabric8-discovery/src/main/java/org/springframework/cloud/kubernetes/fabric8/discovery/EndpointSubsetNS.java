@@ -25,7 +25,9 @@ import io.fabric8.kubernetes.api.model.EndpointSubset;
  **/
 record EndpointSubsetNS(String namespace, List<EndpointSubset> endpointSubset) {
 	EndpointSubsetNS {
-		endpointSubset = endpointSubset == null ? List.of() : endpointSubset;
+		if (endpointSubset == null) {
+			endpointSubset = List.of();
+		}
 	}
 
 }
