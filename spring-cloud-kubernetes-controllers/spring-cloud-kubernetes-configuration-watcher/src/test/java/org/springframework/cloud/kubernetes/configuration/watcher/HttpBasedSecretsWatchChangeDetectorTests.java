@@ -93,13 +93,13 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 	void setup() {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
-		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
 		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		WebClient webClient = WebClient.builder().build();
-		changeDetector = new HttpBasedSecretsWatchChangeDetector(coreV1Api, mockEnvironment, configReloadProperties,
-				updateStrategy, secretsPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, new HttpRefreshTrigger(
-						reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient));
+		changeDetector = new HttpBasedSecretsWatchChangeDetector(coreV1Api, mockEnvironment,
+				ConfigReloadProperties.DEFAULT, updateStrategy, secretsPropertySourceLocator,
+				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
+				threadPoolTaskExecutor, new HttpRefreshTrigger(reactiveDiscoveryClient,
+						configurationWatcherConfigurationProperties, webClient));
 	}
 
 	@BeforeAll

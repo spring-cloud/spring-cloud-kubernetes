@@ -54,7 +54,7 @@ public final class Fabric8ConfigUtils {
 	 */
 	public static Set<String> namespaces(KubernetesClient client, KubernetesNamespaceProvider provider,
 			ConfigReloadProperties properties, String target) {
-		Set<String> namespaces = properties.getNamespaces();
+		Set<String> namespaces = properties.namespaces();
 		if (namespaces.isEmpty()) {
 			namespaces = Set.of(getApplicationNamespace(client, null, target, provider));
 		}

@@ -158,8 +158,9 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		when(locator.locate(environment)).thenAnswer(x -> new MockPropertySource().withProperty("debug", "false"));
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
+
 		KubernetesClientEventBasedConfigMapChangeDetector changeDetector = new KubernetesClientEventBasedConfigMapChangeDetector(
-				coreV1Api, environment, new ConfigReloadProperties(), strategy, locator, kubernetesNamespaceProvider);
+				coreV1Api, environment, ConfigReloadProperties.DEFAULT, strategy, locator, kubernetesNamespaceProvider);
 
 		Thread controllerThread = new Thread(changeDetector::inform);
 		controllerThread.setDaemon(true);
