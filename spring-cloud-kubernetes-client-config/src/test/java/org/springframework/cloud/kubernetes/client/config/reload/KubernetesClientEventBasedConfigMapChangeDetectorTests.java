@@ -23,7 +23,6 @@ import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -160,12 +159,8 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 
-		ConfigReloadProperties properties = new ConfigReloadProperties(false, true, false,
-				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-				Duration.ofMillis(15000), Set.of(), false, Duration.ofSeconds(2));
-
 		KubernetesClientEventBasedConfigMapChangeDetector changeDetector = new KubernetesClientEventBasedConfigMapChangeDetector(
-				coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider);
+				coreV1Api, environment, ConfigReloadProperties.DEFAULT, strategy, locator, kubernetesNamespaceProvider);
 
 		Thread controllerThread = new Thread(changeDetector::inform);
 		controllerThread.setDaemon(true);
