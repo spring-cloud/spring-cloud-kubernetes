@@ -187,10 +187,8 @@ public class KubernetesDiscoveryClientTest {
 
 		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata()
 				.withName("endpoint").withNamespace(namespace1).endMetadata().build();
-
 		Endpoints endPoint2 = new EndpointsBuilder().withNewMetadata()
 				.withName("endpoint").withNamespace(namespace2).endMetadata().build();
-
 		Endpoints endPoint3 = new EndpointsBuilder().withNewMetadata()
 				.withName("endpoint").withNamespace(namespace3).endMetadata().build();
 
