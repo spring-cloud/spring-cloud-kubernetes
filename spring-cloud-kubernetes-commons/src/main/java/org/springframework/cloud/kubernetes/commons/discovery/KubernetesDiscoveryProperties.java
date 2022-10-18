@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import static org.springframework.cloud.client.discovery.DiscoveryClient.DEFAULT_ORDER;
@@ -54,7 +53,6 @@ public record KubernetesDiscoveryProperties(
 		@DefaultValue Metadata metadata,
 		@DefaultValue("" + DEFAULT_ORDER) int order) {
 // @formatter:on
-
 	/**
 	 * @param addLabels include labels as metadata
 	 * @param labelsPrefix prefix for the labels
@@ -70,11 +68,7 @@ public record KubernetesDiscoveryProperties(
 		/**
 		 * Default instance.
 		 */
-		public static Metadata DEFAULT = new Metadata(true, null, true, null, true, "port.");
-
-		@ConstructorBinding
-		public Metadata {
-		}
+		public static final Metadata DEFAULT = new Metadata(true, null, true, null, true, "port.");
 
 	}
 

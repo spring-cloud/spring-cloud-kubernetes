@@ -129,8 +129,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	private List<ServiceInstance> getNamespaceServiceInstances(EndpointSubsetNS es, String serviceId) {
-		String namespace = es.getNamespace();
-		List<EndpointSubset> subsets = es.getEndpointSubset();
+		String namespace = es.namespace();
+		List<EndpointSubset> subsets = es.endpointSubset();
 		List<ServiceInstance> instances = new ArrayList<>();
 		if (!subsets.isEmpty()) {
 			final Service service = this.client.services().inNamespace(namespace).withName(serviceId).get();
@@ -248,13 +248,10 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	private EndpointSubsetNS getSubsetsFromEndpoints(Endpoints endpoints) {
-		EndpointSubsetNS es = new EndpointSubsetNS();
-		es.setNamespace(this.client.getNamespace()); // start with the default that comes
-														// with the client
-
+		// start with the default that comes with the client
+		EndpointSubsetNS es = new EndpointSubsetNS(this.client.getNamespace(), null);
 		if (endpoints != null && endpoints.getSubsets() != null) {
-			es.setNamespace(endpoints.getMetadata().getNamespace());
-			es.setEndpointSubset(endpoints.getSubsets());
+			es = new EndpointSubsetNS(endpoints.getMetadata().getNamespace(), endpoints.getSubsets());
 		}
 
 		return es;
