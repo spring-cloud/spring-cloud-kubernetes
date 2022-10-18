@@ -25,6 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
@@ -50,6 +51,7 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ Fabric8AutoConfiguration.class })
+@EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 public class KubernetesDiscoveryClientAutoConfiguration {
 
 	@Bean
@@ -70,11 +72,6 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 				return (client) -> client.services().withLabels(properties.getServiceLabels());
 			}
 		}
-	}
-
-	@Bean
-	public KubernetesDiscoveryProperties getKubernetesDiscoveryProperties() {
-		return new KubernetesDiscoveryProperties();
 	}
 
 	@ConditionalOnClass({ HealthIndicator.class })
