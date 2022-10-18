@@ -50,6 +50,11 @@ public record ConfigReloadProperties(boolean enabled, @DefaultValue("true") bool
 		@DefaultValue Set<String> namespaces, boolean enableReloadFiltering,
 		@DefaultValue("2s") Duration maxWaitForRestart) {
 
+	public static ConfigReloadProperties DEFAULT = new ConfigReloadProperties(
+		false, true, false, ReloadStrategy.REFRESH, ReloadDetectionMode.EVENT, Duration.ofMillis(15000),
+		Set.of(), false, Duration.ofSeconds(2)
+	);
+
 	/**
 	 * label for filtering sources.
 	 */

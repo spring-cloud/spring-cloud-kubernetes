@@ -70,9 +70,7 @@ class KubernetesClientConfigUtilsTests {
 
 	@Test
 	void testNamespacesFromProvider() {
-		ConfigReloadProperties properties = new ConfigReloadProperties(false, false, true,
-				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-				Duration.ofMillis(15000), Set.of(), false, Duration.ofSeconds(2));
+		ConfigReloadProperties properties = ConfigReloadProperties.DEFAULT;
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty("spring.cloud.kubernetes.client.namespace", "some");
 		KubernetesNamespaceProvider provider = new KubernetesNamespaceProvider(environment);
