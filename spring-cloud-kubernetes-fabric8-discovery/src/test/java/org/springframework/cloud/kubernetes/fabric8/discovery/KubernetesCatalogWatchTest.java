@@ -19,8 +19,6 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
@@ -59,7 +57,8 @@ public class KubernetesCatalogWatchTest {
 
 	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
 
-	private final KubernetesCatalogWatch kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT, KubernetesDiscoveryProperties.DEFAULT);
+	private final KubernetesCatalogWatch kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT,
+			KubernetesDiscoveryProperties.DEFAULT);
 
 	@Mock
 	private ApplicationEventPublisher applicationEventPublisher;

@@ -218,7 +218,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpointWithoutReadyAddresses);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
-				sharedInformerFactory, serviceLister, endpointsLister, null, null, KubernetesDiscoveryProperties.DEFAULT);
+				sharedInformerFactory, serviceLister, endpointsLister, null, null,
+				KubernetesDiscoveryProperties.DEFAULT);
 
 		assertThat(discoveryClient.getInstances("test-svc-1")).isEmpty();
 	}
@@ -244,7 +245,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister();
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
-				sharedInformerFactory, serviceLister, endpointsLister, null, null, KubernetesDiscoveryProperties.DEFAULT);
+				sharedInformerFactory, serviceLister, endpointsLister, null, null,
+				KubernetesDiscoveryProperties.DEFAULT);
 
 		assertThat(discoveryClient.getInstances("test-svc-1")).isEmpty();
 	}
@@ -255,7 +257,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpointWithoutPorts);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
-				sharedInformerFactory, serviceLister, endpointsLister, null, null, KubernetesDiscoveryProperties.DEFAULT);
+				sharedInformerFactory, serviceLister, endpointsLister, null, null,
+				KubernetesDiscoveryProperties.DEFAULT);
 
 		assertThat(discoveryClient.getInstances("test-svc-1")).isEmpty();
 	}

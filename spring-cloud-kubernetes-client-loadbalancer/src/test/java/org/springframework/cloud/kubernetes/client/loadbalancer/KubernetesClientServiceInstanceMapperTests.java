@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.client.loadbalancer;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1Service;

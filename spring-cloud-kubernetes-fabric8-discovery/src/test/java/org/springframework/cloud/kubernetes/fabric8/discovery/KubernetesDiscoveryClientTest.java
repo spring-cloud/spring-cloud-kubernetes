@@ -82,8 +82,9 @@ public class KubernetesDiscoveryClientTest {
 
 		mockClient.services().inNamespace("test").create(service);
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, KubernetesDiscoveryProperties.DEFAULT,
-				KubernetesClient::services, new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
+		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services,
+				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
 
 		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -133,8 +134,9 @@ public class KubernetesDiscoveryClientTest {
 
 		mockClient.endpoints().inNamespace("test").create(endPoint);
 
-		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, KubernetesDiscoveryProperties.DEFAULT,
-				KubernetesClient::services, new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
+		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services,
+				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
 
 		final List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
 
@@ -191,8 +193,9 @@ public class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace("test").create(service2);
 		mockClient.services().inNamespace("test").create(service3);
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, KubernetesDiscoveryProperties.DEFAULT,
-				KubernetesClient::services, new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
+		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services,
+				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
 
 		final List<String> services = discoveryClient.getServices();
 
@@ -215,7 +218,8 @@ public class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace("test").create(service1);
 		mockClient.services().inNamespace("test").create(service2);
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, KubernetesDiscoveryProperties.DEFAULT,
+		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+				KubernetesDiscoveryProperties.DEFAULT,
 				client -> client.services().withLabels(Collections.singletonMap("label", "value")),
 				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
 
@@ -272,8 +276,9 @@ public class KubernetesDiscoveryClientTest {
 
 		mockClient.endpoints().inNamespace("test").create(endPoint);
 
-		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, KubernetesDiscoveryProperties.DEFAULT,
-				KubernetesClient::services, new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
+		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services,
+				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
 
 		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint1");
 
@@ -417,8 +422,9 @@ public class KubernetesDiscoveryClientTest {
 
 		mockClient.services().inNamespace("test").create(service);
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, KubernetesDiscoveryProperties.DEFAULT,
-				KubernetesClient::services, new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
+		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services,
+				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
 
 		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
