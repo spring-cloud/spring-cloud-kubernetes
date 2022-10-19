@@ -73,8 +73,8 @@ class ServicePortSecureResolver {
 	}
 
 	private static void logEntry(String serviceName, Integer port, String part) {
-		LOG.debug(() -> "Considering service with name: " + serviceName + " and port " + port
-			+ " to be secure since " + part);
+		LOG.debug(() -> "Considering service with name: " + serviceName + " and port " + port + " to be secure since "
+				+ part);
 	}
 
 	/**
