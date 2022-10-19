@@ -191,8 +191,7 @@ public abstract class KubernetesConfigDataLocationResolver
 		}
 		else {
 			kubernetesClientProperties = binder
-					.bind(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class), bindHandler)
-					.orElseGet(KubernetesClientProperties::new);
+					.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class), bindHandler);
 		}
 		kubernetesClientProperties.setNamespace(namespace);
 
@@ -201,14 +200,12 @@ public abstract class KubernetesConfigDataLocationResolver
 
 		ConfigMapConfigProperties configMapConfigProperties = null;
 		if (configEnabled) {
-			configMapConfigProperties = binder.bind(ConfigMapConfigProperties.PREFIX, ConfigMapConfigProperties.class)
-					.orElseGet(ConfigMapConfigProperties::new);
+			configMapConfigProperties = binder.bindOrCreate(ConfigMapConfigProperties.PREFIX, ConfigMapConfigProperties.class);
 		}
 
 		SecretsConfigProperties secretsProperties = null;
 		if (secretsEnabled) {
-			secretsProperties = binder.bind(SecretsConfigProperties.PREFIX, SecretsConfigProperties.class)
-					.orElseGet(SecretsConfigProperties::new);
+			secretsProperties = binder.bindOrCreate(SecretsConfigProperties.PREFIX, SecretsConfigProperties.class);
 		}
 
 		return new PropertyHolder(kubernetesClientProperties, configMapConfigProperties, secretsProperties,
