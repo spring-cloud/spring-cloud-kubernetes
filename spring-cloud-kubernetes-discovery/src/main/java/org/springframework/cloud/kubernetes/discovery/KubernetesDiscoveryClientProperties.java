@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -27,6 +30,12 @@ public class KubernetesDiscoveryClientProperties {
 	private String discoveryServerUrl;
 
 	private boolean enabled = true;
+
+	/**
+	 * If set then only the services and endpoints matching
+	 * these namespaces will be fetched from the Kubernetes API server.
+	 */
+	private List<String> namespaces = new ArrayList<>();
 
 	public String getDiscoveryServerUrl() {
 		return discoveryServerUrl;
@@ -44,4 +53,11 @@ public class KubernetesDiscoveryClientProperties {
 		this.enabled = enabled;
 	}
 
+	List<String> getNamespaces() {
+		return namespaces;
+	}
+
+	void setNamespaces(List<String> namespaces) {
+		this.namespaces = namespaces;
+	}
 }

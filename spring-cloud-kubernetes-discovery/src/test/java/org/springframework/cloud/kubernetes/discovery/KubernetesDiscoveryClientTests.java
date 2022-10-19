@@ -18,14 +18,20 @@ package org.springframework.cloud.kubernetes.discovery;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.web.client.RestTemplate;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -39,9 +45,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class KubernetesDiscoveryClientTests {
 
-	private static final String APPS = "[{\"name\":\"test-svc-1\",\"serviceInstances\":[{\"instanceId\":\"uid1\",\"serviceId\":\"test-svc-1\",\"host\":\"2.2.2.2\",\"port\":8080,\"uri\":\"http://2.2.2.2:8080\",\"secure\":false,\"metadata\":{\"http\":\"8080\"},\"namespace\":\"namespace1\",\"cluster\":null,\"scheme\":\"http\"}]},{\"name\":\"test-svc-3\",\"serviceInstances\":[{\"instanceId\":\"uid2\",\"serviceId\":\"test-svc-3\",\"host\":\"2.2.2.2\",\"port\":8080,\"uri\":\"http://2.2.2.2:8080\",\"secure\":false,\"metadata\":{\"spring\":\"true\",\"http\":\"8080\",\"k8s\":\"true\"},\"namespace\":\"namespace1\",\"cluster\":null,\"scheme\":\"http\"}]}]";
+	private static final String APPS = "[{\"name\":\"test-svc-1\",\"serviceInstances\":[{\"instanceId\":\"uid1\",\"serviceId\":\"test-svc-1\",\"host\":\"2.2.2.2\",\"port\":8080,\"uri\":\"http://2.2.2.2:8080\",\"secure\":false,\"metadata\":{\"http\":\"8080\"},\"namespace\":\"namespace1\",\"cluster\":null,\"scheme\":\"http\"}]},{\"name\":\"test-svc-3\",\"serviceInstances\":[{\"instanceId\":\"uid2\",\"serviceId\":\"test-svc-3\",\"host\":\"2.2.2.2\",\"port\":8080,\"uri\":\"http://2.2.2.2:8080\",\"secure\":false,\"metadata\":{\"spring\":\"true\",\"http\":\"8080\",\"k8s\":\"true\"},\"namespace\":\"namespace2\",\"cluster\":null,\"scheme\":\"http\"}]}]";
 
-	private static final String APPS_NAME = "[{\"instanceId\":\"uid2\",\"serviceId\":\"test-svc-3\",\"host\":\"2.2.2.2\",\"port\":8080,\"uri\":\"http://2.2.2.2:8080\",\"secure\":false,\"metadata\":{\"spring\":\"true\",\"http\":\"8080\",\"k8s\":\"true\"},\"namespace\":\"namespace1\",\"cluster\":null,\"scheme\":\"http\"}]";
+	private static final String APPS_NAME = "[{\"instanceId\":\"uid2\",\"serviceId\":\"test-svc-3\",\"host\":\"2.2.2.2\",\"port\":8080,\"uri\":\"http://2.2.2.2:8080\",\"secure\":false,\"metadata\":{\"spring\":\"true\",\"http\":\"8080\",\"k8s\":\"true\"},\"namespace\":\"namespace2\",\"cluster\":null,\"scheme\":\"http\"}]";
 
 	private static WireMockServer wireMockServer;
 
@@ -79,8 +85,43 @@ class KubernetesDiscoveryClientTests {
 		metadata.put("k8s", "true");
 		assertThat(discoveryClient.getInstances("test-svc-3"))
 				.contains(new KubernetesServiceInstance("uid2", "test-svc-3", "2.2.2.2", 8080, false,
-						URI.create("http://2.2.2.2:8080"), metadata, "http", "namespace1"));
+						URI.create("http://2.2.2.2:8080"), metadata, "http", "namespace2"));
 		assertThat(discoveryClient.getInstances("does-not-exist")).isEmpty();
 	}
 
+	@ParameterizedTest
+	@MethodSource("servicesFilteredByNamespacesSource")
+	void getServicesFilteredByNamespaces(List<String> namespaces, List<String> expectedServices) {
+		RestTemplate rest = new RestTemplateBuilder().build();
+		KubernetesDiscoveryClientProperties properties = new KubernetesDiscoveryClientProperties();
+		properties.setNamespaces(namespaces);
+		properties.setDiscoveryServerUrl(wireMockServer.baseUrl());
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(rest, properties);
+		assertThat(discoveryClient.getServices()).containsExactlyInAnyOrderElementsOf(expectedServices);
+	}
+
+	static Stream<Arguments> servicesFilteredByNamespacesSource() {
+		return Stream.of(Arguments.of(List.of(), List.of("test-svc-1", "test-svc-3")),
+				Arguments.of(List.of("namespace1", "namespace2"), List.of("test-svc-1", "test-svc-3")),
+				Arguments.of(List.of("namespace1"), List.of("test-svc-1")),
+				Arguments.of(List.of("namespace2", "does-not-exist"), List.of("test-svc-3")));
+	}
+
+	@ParameterizedTest
+	@MethodSource("instancesFilteredByNamespacesSource")
+	void getInstancesFilteredByNamespaces(List<String> namespaces, String serviceId, List<String> expectedInstances) {
+		RestTemplate rest = new RestTemplateBuilder().build();
+		KubernetesDiscoveryClientProperties properties = new KubernetesDiscoveryClientProperties();
+		properties.setNamespaces(namespaces);
+		properties.setDiscoveryServerUrl(wireMockServer.baseUrl());
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(rest, properties);
+		assertThat(discoveryClient.getInstances(serviceId)).map(ServiceInstance::getInstanceId)
+				.containsExactlyInAnyOrderElementsOf(expectedInstances);
+	}
+
+	static Stream<Arguments> instancesFilteredByNamespacesSource() {
+		return Stream.of(Arguments.of(List.of(), "test-svc-3", List.of("uid2")),
+				Arguments.of(List.of("namespace1"), "test-svc-3", List.of()),
+				Arguments.of(List.of("namespace2"), "test-svc-3", List.of("uid2")));
+	}
 }
