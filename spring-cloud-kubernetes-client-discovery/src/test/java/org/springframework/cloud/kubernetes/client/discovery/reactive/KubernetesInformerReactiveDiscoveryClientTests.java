@@ -70,12 +70,9 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 	public void testDiscoveryGetServicesAllNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
 
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
-				true, 60, false, null, Set.of(), null, null, null, 0);
-
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				new KubernetesNamespaceProvider(new MockEnvironment()), sharedInformerFactory, serviceLister, null,
-				null, null, kubernetesDiscoveryProperties);
+				null, null, KubernetesDiscoveryProperties.DEFAULT);
 
 		StepVerifier.create(discoveryClient.getServices())
 				.expectNext(testService1.getMetadata().getName(), testService2.getMetadata().getName()).expectComplete()
@@ -87,14 +84,11 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 	public void testDiscoveryGetServicesOneNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
 
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, false,
-				true, 60, false, null, Set.of(), null, null, null, 0);
-
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("namespace1");
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, null, null, null,
-				kubernetesDiscoveryProperties);
+				KubernetesDiscoveryProperties.DEFAULT);
 
 		StepVerifier.create(discoveryClient.getServices()).expectNext(testService1.getMetadata().getName())
 				.expectComplete().verify();

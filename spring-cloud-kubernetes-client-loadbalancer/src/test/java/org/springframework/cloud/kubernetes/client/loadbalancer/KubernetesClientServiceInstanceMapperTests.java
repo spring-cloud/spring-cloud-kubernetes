@@ -42,10 +42,8 @@ class KubernetesClientServiceInstanceMapperTests {
 	@Test
 	void basicMap() {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
-				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
-				kubernetesDiscoveryProperties);
+				KubernetesDiscoveryProperties.DEFAULT);
 
 		V1Service service = new V1ServiceBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("database").withUid("0").withResourceVersion("0")
@@ -68,10 +66,8 @@ class KubernetesClientServiceInstanceMapperTests {
 	void multiportMap() {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		loadBalancerProperties.setPortName("https");
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
-				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
-				kubernetesDiscoveryProperties);
+				KubernetesDiscoveryProperties.DEFAULT);
 
 		V1Service service = new V1ServiceBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("database").withUid("0").withResourceVersion("0")

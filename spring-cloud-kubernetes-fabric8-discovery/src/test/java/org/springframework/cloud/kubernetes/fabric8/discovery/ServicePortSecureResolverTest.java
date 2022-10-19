@@ -66,9 +66,7 @@ public class ServicePortSecureResolverTest {
 
 	@Test
 	public void testLabelsAndAnnotations() {
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, true, 60, false, null,
-				Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
-		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
+		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
 
 		assertThat(secureResolver.resolve(SECURED_TRUE)).isTrue();
 		assertThat(secureResolver.resolve(SECURED_1)).isTrue();
