@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
@@ -40,8 +41,8 @@ import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import org.assertj.core.util.Strings;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.cloud.client.ServiceInstance;
@@ -59,14 +60,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 @RunWith(MockitoJUnitRunner.class)
 public class KubernetesDiscoveryClientFilterMetadataTest {
 
-	@Mock
-	private KubernetesClient kubernetesClient;
-
-	@Mock
-	private KubernetesDiscoveryProperties properties;
-
-	@Mock
-	private ServicePortSecureResolver isServicePortSecureResolver;
+	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
 
 	@Mock
 	private MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation;
@@ -78,20 +72,17 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	private ServiceResource<Service> serviceResource;
 
 	@Mock
-	private Resource<Endpoints> endpointsResource;
-
-	@Mock
 	FilterWatchListDeletable<Endpoints, EndpointsList> filter;
-
-	@InjectMocks
-	private KubernetesDiscoveryClient underTest;
 
 	@Test
 	public void testAllExtraMetadataDisabled() {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(false, null, false, null, false, null);
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, null,
+				Set.of(), Map.of(), null, metadata, 0);
+
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -108,7 +99,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 			}
 		});
 
-		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
+		final List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).isEmpty();
 	}
@@ -118,7 +109,10 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(true, null, false, null, false, null);
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, null,
+				Set.of(), Map.of(), null, metadata, 0);
+
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -136,7 +130,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 			}
 		});
 
-		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
+		final List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l1", "v1"), entry("l2", "v2"));
 	}
@@ -146,7 +140,10 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(true, "l_", false, null, false, null);
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, null,
+				Set.of(), Map.of(), null, metadata, 0);
+
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -164,7 +161,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 			}
 		});
 
-		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
+		final List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l_l1", "v1"), entry("l_l2", "v2"));
 	}
@@ -174,7 +171,10 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(false, null, true, null, false, null);
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, null,
+				Set.of(), Map.of(), null, metadata, 0);
+
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -192,7 +192,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 			}
 		});
 
-		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
+		final List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a1", "v1"), entry("a2", "v2"));
 	}
@@ -202,7 +202,10 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(false, null, true, "a_", false, null);
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, null,
+				Set.of(), Map.of(), null, metadata, 0);
+
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -220,7 +223,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 			}
 		});
 
-		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
+		final List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "v1"), entry("a_a2", "v2"));
 	}
@@ -230,7 +233,10 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(false, null, false, null, true, null);
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, null,
+				Set.of(), Map.of(), null, metadata, 0);
+
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -248,7 +254,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 			}
 		});
 
-		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
+		final List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("http", "80"));
 	}
@@ -258,7 +264,10 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(false, null, false, null, true, "p_");
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, null,
+				Set.of(), Map.of(), null, metadata, 0);
+
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -276,7 +285,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 			}
 		});
 
-		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
+		final List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("p_http", "80"));
 	}
@@ -286,7 +295,10 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final String serviceId = "s";
 
 		Metadata metadata = new Metadata(true, "l_", true, "a_", true, "p_");
-		when(this.properties.getMetadata()).thenReturn(metadata);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, null,
+				Set.of(), Map.of(), null, metadata, 0);
+
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", new HashMap<String, String>() {
 			{
@@ -304,7 +316,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 			}
 		});
 
-		final List<ServiceInstance> instances = this.underTest.getInstances(serviceId);
+		final List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "an1"), entry("a_a2", "an2"),
 				entry("l_l1", "la1"), entry("p_http", "80"));
@@ -317,8 +329,8 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 				.build();
 		when(this.serviceOperation.withName(serviceId)).thenReturn(this.serviceResource);
 		when(this.serviceResource.get()).thenReturn(service);
-		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
-		when(this.kubernetesClient.services().inNamespace(anyString())).thenReturn(this.serviceOperation);
+		when(CLIENT.services()).thenReturn(this.serviceOperation);
+		when(CLIENT.services().inNamespace(anyString())).thenReturn(this.serviceOperation);
 
 		ObjectMeta objectMeta = new ObjectMeta();
 		objectMeta.setNamespace(namespace);
@@ -326,13 +338,13 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 		final Endpoints endpoints = new EndpointsBuilder().withMetadata(objectMeta).addNewSubset()
 				.addAllToPorts(getEndpointPorts(ports)).addNewAddress().endAddress().endSubset().build();
 
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints()).thenReturn(this.endpointsOperation);
 
 		EndpointsList endpointsList = new EndpointsList(null, Collections.singletonList(endpoints), null, null);
 		when(filter.list()).thenReturn(endpointsList);
 		when(filter.withLabels(anyMap())).thenReturn(filter);
 
-		when(this.kubernetesClient.endpoints().withField(eq("metadata.name"), eq(serviceId))).thenReturn(filter);
+		when(CLIENT.endpoints().withField(eq("metadata.name"), eq(serviceId))).thenReturn(filter);
 
 	}
 

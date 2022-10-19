@@ -64,7 +64,7 @@ class ServicePortSecureResolver {
 			return true;
 		}
 
-		if (port != null && properties.getKnownSecurePorts().contains(port)) {
+		if (port != null && properties.knownSecurePorts().contains(port)) {
 			logEntry(serviceName, port, "port is known to be a https port");
 			return true;
 		}

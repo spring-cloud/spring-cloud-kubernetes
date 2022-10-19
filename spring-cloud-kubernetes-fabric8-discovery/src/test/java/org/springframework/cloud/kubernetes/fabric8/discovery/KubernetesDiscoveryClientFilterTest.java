@@ -19,6 +19,8 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
@@ -26,7 +28,6 @@ import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -43,21 +44,10 @@ public class KubernetesDiscoveryClientFilterTest {
 	@Mock
 	private KubernetesClient kubernetesClient;
 
-	@Mock
-	private KubernetesDiscoveryProperties properties;
-
-	private KubernetesClientServicesFunction kubernetesClientServicesFunction = KubernetesClient::services;
+	private final KubernetesClientServicesFunction kubernetesClientServicesFunction = KubernetesClient::services;
 
 	@Mock
 	private MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation;
-
-	private KubernetesDiscoveryClient underTest;
-
-	@Before
-	public void setUp() {
-		this.underTest = new KubernetesDiscoveryClient(this.kubernetesClient, this.properties,
-				this.kubernetesClientServicesFunction);
-	}
 
 	@Test
 	public void testFilteredServices() {
@@ -76,11 +66,13 @@ public class KubernetesDiscoveryClientFilterTest {
 		when(this.serviceOperation.list()).thenReturn(serviceList);
 		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
-		when(this.properties.getFilter()).thenReturn("metadata.additionalProperties['spring-boot']");
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false,
+				"metadata.additionalProperties['spring-boot']", Set.of(), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
+		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
+				this.kubernetesClientServicesFunction);
 
-		List<String> filteredServices = this.underTest.getServices();
-
-		System.out.println("Filtered Services: " + filteredServices);
+		List<String> filteredServices = client.getServices();
 		assertThat(filteredServices).isEqualTo(springBootServiceNames);
 
 	}
@@ -102,11 +94,13 @@ public class KubernetesDiscoveryClientFilterTest {
 		when(this.serviceOperation.list()).thenReturn(serviceList);
 		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
-		when(this.properties.getFilter()).thenReturn("metadata.name.startsWith('service')");
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false,
+				"metadata.name.startsWith('service')", Set.of(), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
+		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
+				this.kubernetesClientServicesFunction);
 
-		List<String> filteredServices = this.underTest.getServices();
-
-		System.out.println("Filtered Services: " + filteredServices);
+		List<String> filteredServices = client.getServices();
 		assertThat(filteredServices).isEqualTo(springBootServiceNames);
 
 	}
@@ -121,9 +115,12 @@ public class KubernetesDiscoveryClientFilterTest {
 		when(this.serviceOperation.list()).thenReturn(serviceList);
 		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
-		when(this.properties.getFilter()).thenReturn("");
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, "",
+				Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
+		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
+				this.kubernetesClientServicesFunction);
 
-		List<String> filteredServices = this.underTest.getServices();
+		List<String> filteredServices = client.getServices();
 
 		System.out.println("Filtered Services: " + filteredServices);
 		assertThat(filteredServices).isEqualTo(springBootServiceNames);
