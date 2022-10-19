@@ -63,8 +63,8 @@ public class ConfigReloadAutoConfiguration {
 	@ConditionalOnMissingBean
 	public ConfigurationUpdateStrategy configurationUpdateStrategy(ConfigReloadProperties properties,
 			ConfigurableApplicationContext ctx, Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
-		String strategyName = properties.getStrategy().name();
-		return switch (properties.getStrategy()) {
+		String strategyName = properties.strategy().name();
+		return switch (properties.strategy()) {
 			case RESTART_CONTEXT -> {
 				restarter.orElseThrow(() -> new AssertionError("Restart endpoint is not enabled"));
 				yield new ConfigurationUpdateStrategy(strategyName, () -> {
@@ -81,7 +81,7 @@ public class ConfigReloadAutoConfiguration {
 	}
 
 	private static void wait(ConfigReloadProperties properties) {
-		long waitMillis = ThreadLocalRandom.current().nextLong(properties.getMaxWaitForRestart().toMillis());
+		long waitMillis = ThreadLocalRandom.current().nextLong(properties.maxWaitForRestart().toMillis());
 		try {
 			Thread.sleep(waitMillis);
 		}
