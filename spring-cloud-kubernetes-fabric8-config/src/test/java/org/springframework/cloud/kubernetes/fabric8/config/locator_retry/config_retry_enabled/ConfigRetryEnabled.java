@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.retry;
+package org.springframework.cloud.kubernetes.fabric8.config.locator_retry.config_retry_enabled;
 
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.fabric8.kubernetes.api.model.SecretListBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -41,20 +40,21 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Isik Erhan
  */
-abstract class SecretsRetryEnabled {
+abstract class ConfigRetryEnabled {
 
-	private static final String API = "/api/v1/namespaces/default/secrets";
-
-	private static final String LIST_API = "/api/v1/namespaces/default/secrets";
+	private static final String API = "/api/v1/namespaces/default/configmaps";
 
 	private static KubernetesMockServer mockServer;
 
-	protected SecretsPropertySourceLocator psl;
+	private static KubernetesClient mockClient;
 
-	protected SecretsPropertySourceLocator verifiablePsl;
+	protected ConfigMapPropertySourceLocator psl;
+
+	protected ConfigMapPropertySourceLocator verifiablePsl;
 
 	static void setup(KubernetesClient mockClient, KubernetesMockServer mockServer) {
-		SecretsRetryEnabled.mockServer = mockServer;
+		ConfigRetryEnabled.mockClient = mockClient;
+		ConfigRetryEnabled.mockServer = mockServer;
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -62,20 +62,21 @@ abstract class SecretsRetryEnabled {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		// return empty secret list to not fail context creation
-		mockServer.expect().withPath(LIST_API).andReturn(200, new SecretListBuilder().build()).once();
+		// needed so that initial call, before our test method kicks in, succeeds
+		mockServer.expect().withPath(API).andReturn(200, new ConfigMapListBuilder().build()).once();
 	}
 
 	@Test
 	void locateShouldNotRetryWhenThereIsNoFailure() {
 		Map<String, String> data = new HashMap<>();
-		data.put("some.sensitive.prop", Base64.getEncoder().encodeToString("theSensitiveValue".getBytes()));
-		data.put("some.sensitive.number", Base64.getEncoder().encodeToString("1".getBytes()));
+		data.put("some.prop", "theValue");
+		data.put("some.number", "0");
 
-		// return secret without failing
-		mockServer.expect().withPath(API).andReturn(200, new SecretListBuilder().withItems(
-				new SecretBuilder().withNewMetadata().withName("my-secret").endMetadata().addToData(data).build())
-				.build()).once();
+		// return config map without failing
+		mockServer
+				.expect().withPath(API).andReturn(200, new ConfigMapListBuilder().withItems(new ConfigMapBuilder()
+						.withNewMetadata().withName("application").endMetadata().addToData(data).build()).build())
+				.once();
 
 		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
 
@@ -83,22 +84,22 @@ abstract class SecretsRetryEnabled {
 		verify(verifiablePsl, times(1)).locate(any());
 
 		// validate the contents of the property source
-		assertThat(propertySource.getProperty("some.sensitive.prop")).isEqualTo("theSensitiveValue");
-		assertThat(propertySource.getProperty("some.sensitive.number")).isEqualTo("1");
+		assertThat(propertySource.getProperty("some.prop")).isEqualTo("theValue");
+		assertThat(propertySource.getProperty("some.number")).isEqualTo("0");
 	}
 
 	@Test
 	void locateShouldRetryAndRecover() {
 		Map<String, String> data = new HashMap<>();
-		data.put("some.sensitive.prop", Base64.getEncoder().encodeToString("theSensitiveValue".getBytes()));
-		data.put("some.sensitive.number", Base64.getEncoder().encodeToString("1".getBytes()));
+		data.put("some.prop", "theValue");
+		data.put("some.number", "0");
 
 		// fail 3 times then succeed at the 4th call
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").times(3);
-
-		mockServer.expect().withPath(API).andReturn(200, new SecretListBuilder().withItems(
-				new SecretBuilder().withNewMetadata().withName("my-secret").endMetadata().addToData(data).build())
-				.build()).once();
+		mockServer
+				.expect().withPath(API).andReturn(200, new ConfigMapListBuilder().withItems(new ConfigMapBuilder()
+						.withNewMetadata().withName("application").endMetadata().addToData(data).build()).build())
+				.once();
 
 		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
 
@@ -106,8 +107,8 @@ abstract class SecretsRetryEnabled {
 		verify(verifiablePsl, times(4)).locate(any());
 
 		// validate the contents of the property source
-		assertThat(propertySource.getProperty("some.sensitive.prop")).isEqualTo("theSensitiveValue");
-		assertThat(propertySource.getProperty("some.sensitive.number")).isEqualTo("1");
+		assertThat(propertySource.getProperty("some.prop")).isEqualTo("theValue");
+		assertThat(propertySource.getProperty("some.number")).isEqualTo("0");
 	}
 
 	@Test
@@ -116,11 +117,10 @@ abstract class SecretsRetryEnabled {
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").times(5);
 
 		assertThatThrownBy(() -> psl.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("api/v1/namespaces/default/secrets. Message: Internal Server Error.");
+				.hasMessageContaining("api/v1/namespaces/default/configmaps. Message: Internal Server Error");
 
 		// verify retried 5 times until failure
 		verify(verifiablePsl, times(5)).locate(any());
-
 	}
 
 }

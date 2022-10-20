@@ -31,7 +31,7 @@ import org.springframework.retry.support.RetryTemplate;
  */
 public class ConfigDataRetryableSecretsPropertySourceLocator extends SecretsPropertySourceLocator {
 
-	private RetryTemplate retryTemplate;
+	private final RetryTemplate retryTemplate;
 
 	private SecretsPropertySourceLocator secretsPropertySourceLocator;
 
@@ -39,9 +39,9 @@ public class ConfigDataRetryableSecretsPropertySourceLocator extends SecretsProp
 			SecretsConfigProperties secretsConfigProperties) {
 		super(secretsConfigProperties);
 		this.secretsPropertySourceLocator = propertySourceLocator;
-		this.retryTemplate = RetryTemplate.builder().maxAttempts(properties.getRetry().getMaxAttempts())
-				.exponentialBackoff(properties.getRetry().getInitialInterval(), properties.getRetry().getMultiplier(),
-						properties.getRetry().getMaxInterval())
+		this.retryTemplate = RetryTemplate.builder().maxAttempts(properties.getRetry().maxAttempts())
+				.exponentialBackoff(properties.getRetry().initialInterval(), properties.getRetry().multiplier(),
+						properties.getRetry().maxInterval())
 				.build();
 	}
 

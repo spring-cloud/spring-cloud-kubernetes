@@ -154,12 +154,12 @@ public abstract class KubernetesConfigDataLocationResolver
 	}
 
 	protected boolean isRetryEnabledForConfigMap(ConfigMapConfigProperties configMapProperties) {
-		return RETRY_IS_PRESENT && configMapProperties != null && configMapProperties.getRetry().isEnabled()
+		return RETRY_IS_PRESENT && configMapProperties != null && configMapProperties.getRetry().enabled()
 				&& configMapProperties.isFailFast();
 	}
 
 	protected boolean isRetryEnabledForSecrets(SecretsConfigProperties secretsProperties) {
-		return RETRY_IS_PRESENT && secretsProperties != null && secretsProperties.getRetry().isEnabled()
+		return RETRY_IS_PRESENT && secretsProperties != null && secretsProperties.getRetry().enabled()
 				&& secretsProperties.isFailFast();
 	}
 
@@ -190,8 +190,8 @@ public abstract class KubernetesConfigDataLocationResolver
 					kubernetesClientProperties);
 		}
 		else {
-			kubernetesClientProperties = binder
-					.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class), bindHandler);
+			kubernetesClientProperties = binder.bindOrCreate(KubernetesClientProperties.PREFIX,
+					Bindable.of(KubernetesClientProperties.class), bindHandler);
 		}
 		kubernetesClientProperties.setNamespace(namespace);
 
@@ -200,7 +200,8 @@ public abstract class KubernetesConfigDataLocationResolver
 
 		ConfigMapConfigProperties configMapConfigProperties = null;
 		if (configEnabled) {
-			configMapConfigProperties = binder.bindOrCreate(ConfigMapConfigProperties.PREFIX, ConfigMapConfigProperties.class);
+			configMapConfigProperties = binder.bindOrCreate(ConfigMapConfigProperties.PREFIX,
+					ConfigMapConfigProperties.class);
 		}
 
 		SecretsConfigProperties secretsProperties = null;
