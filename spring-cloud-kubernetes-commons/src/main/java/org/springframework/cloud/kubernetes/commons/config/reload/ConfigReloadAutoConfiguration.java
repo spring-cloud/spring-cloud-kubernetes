@@ -62,7 +62,7 @@ public class ConfigReloadAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public ConfigurationUpdateStrategy configurationUpdateStrategy(ConfigReloadProperties properties,
-																   ConfigurableApplicationContext ctx, Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
+			ConfigurableApplicationContext ctx, Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
 		String strategyName = properties.strategy().name();
 		return switch (properties.strategy()) {
 			case RESTART_CONTEXT -> {
