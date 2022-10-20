@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
+import java.time.Duration;
 import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
@@ -58,21 +59,22 @@ class KubernetesClientConfigUtilsTests {
 
 	@Test
 	void testNamespacesFromProperties() {
-		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
-		configReloadProperties.setNamespaces(Set.of("non-default"));
-		Set<String> namespaces = KubernetesClientConfigUtils.namespaces(
-				new KubernetesNamespaceProvider(new MockEnvironment()), configReloadProperties, "configmap");
+		ConfigReloadProperties properties = new ConfigReloadProperties(false, false, false,
+				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+				Duration.ofMillis(15000), Set.of("non-default"), false, Duration.ofSeconds(2));
+		Set<String> namespaces = KubernetesClientConfigUtils
+				.namespaces(new KubernetesNamespaceProvider(new MockEnvironment()), properties, "configmap");
 		Assertions.assertEquals(1, namespaces.size());
 		Assertions.assertEquals(namespaces.iterator().next(), "non-default");
 	}
 
 	@Test
 	void testNamespacesFromProvider() {
-		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
+		ConfigReloadProperties properties = ConfigReloadProperties.DEFAULT;
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty("spring.cloud.kubernetes.client.namespace", "some");
 		KubernetesNamespaceProvider provider = new KubernetesNamespaceProvider(environment);
-		Set<String> namespaces = KubernetesClientConfigUtils.namespaces(provider, configReloadProperties, "configmap");
+		Set<String> namespaces = KubernetesClientConfigUtils.namespaces(provider, properties, "configmap");
 		Assertions.assertEquals(1, namespaces.size());
 		Assertions.assertEquals(namespaces.iterator().next(), "some");
 	}
