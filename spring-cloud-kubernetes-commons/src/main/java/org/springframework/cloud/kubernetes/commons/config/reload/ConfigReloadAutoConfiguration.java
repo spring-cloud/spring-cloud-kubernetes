@@ -45,7 +45,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @ConditionalOnKubernetesReloadEnabled
 @ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-		RefreshAutoConfiguration.class })
+	RefreshAutoConfiguration.class })
 public class ConfigReloadAutoConfiguration {
 
 	@Bean("springCloudKubernetesTaskScheduler")
@@ -62,7 +62,7 @@ public class ConfigReloadAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public ConfigurationUpdateStrategy configurationUpdateStrategy(ConfigReloadProperties properties,
-			ConfigurableApplicationContext ctx, Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
+																   ConfigurableApplicationContext ctx, Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
 		String strategyName = properties.strategy().name();
 		return switch (properties.strategy()) {
 			case RESTART_CONTEXT -> {
@@ -75,7 +75,7 @@ public class ConfigReloadAutoConfiguration {
 			case REFRESH -> new ConfigurationUpdateStrategy(strategyName, refresher::refresh);
 			case SHUTDOWN -> new ConfigurationUpdateStrategy(strategyName, () -> {
 				wait(properties);
-				restarter.get().restart();
+				ctx.close();
 			});
 		};
 	}
