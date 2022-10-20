@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,19 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.core.log.LogAccessor;
 
 class ServicePortSecureResolver {
 
-	private static final Log LOG = LogFactory.getLog(ServicePortSecureResolver.class);
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(ServicePortSecureResolver.class));
 
-	private static final Set<String> TRUTHY_STRINGS = Stream.of("true", "on", "yes", "1").collect(Collectors.toSet());
+	private static final Set<String> TRUTHY_STRINGS = Set.of("true", "on", "yes", "1");
 
 	private final KubernetesDiscoveryProperties properties;
 
@@ -52,38 +49,39 @@ class ServicePortSecureResolver {
 	 */
 	boolean resolve(Input input) {
 
-		String securedLabelValue = input.serviceLabels.getOrDefault("secured", "false");
+		String securedLabelValue = input.serviceLabels().getOrDefault("secured", "false");
+		String serviceName = input.serviceName();
+		Integer port = input.port();
+
 		if (TRUTHY_STRINGS.contains(securedLabelValue)) {
-			LOG.debug("Considering service with name: " + input.serviceName + " and port " + input.port
-					+ " is secure since the service contains a true value for the 'secured' label");
+			logEntry(serviceName, port, "the service contains a true value for the 'secured' label");
 			return true;
 		}
 
-		String securedAnnotationValue = input.serviceAnnotations.getOrDefault("secured", "false");
+		String securedAnnotationValue = input.serviceAnnotations().getOrDefault("secured", "false");
 		if (TRUTHY_STRINGS.contains(securedAnnotationValue)) {
-			LOG.debug("Considering service with name: " + input.serviceName + " and port " + input.port
-					+ " is secure since the service contains a true value for the 'secured' annotation");
+			logEntry(serviceName, port, "the service contains a true value for the 'secured' annotation");
 			return true;
 		}
 
-		if (input.port != null && this.properties.getKnownSecurePorts().contains(input.port)) {
-			LOG.debug("Considering service with name: " + input.serviceName + " and port " + input.port
-					+ " is secure due to the port being a known https port");
+		if (port != null && properties.knownSecurePorts().contains(port)) {
+			logEntry(serviceName, port, "port is known to be a https port");
 			return true;
 		}
 
 		return false;
 	}
 
-	static final class Input {
+	private static void logEntry(String serviceName, Integer port, String part) {
+		LOG.debug(() -> "Considering service with name: " + serviceName + " and port " + port + " to be secure since "
+				+ part);
+	}
 
-		private final Integer port;
-
-		private final String serviceName;
-
-		private final Map<String, String> serviceLabels;
-
-		private final Map<String, String> serviceAnnotations;
+	/**
+	 * @author wind57
+	 */
+	record Input(Integer port, String serviceName, Map<String, String> serviceLabels,
+			Map<String, String> serviceAnnotations) {
 
 		// used only for testing
 		Input(Integer port, String serviceName) {
@@ -94,8 +92,8 @@ class ServicePortSecureResolver {
 				Map<String, String> serviceAnnotations) {
 			this.port = port;
 			this.serviceName = serviceName;
-			this.serviceLabels = serviceLabels == null ? Collections.emptyMap() : serviceLabels;
-			this.serviceAnnotations = serviceAnnotations == null ? Collections.emptyMap() : serviceAnnotations;
+			this.serviceLabels = serviceLabels == null ? Map.of() : serviceLabels;
+			this.serviceAnnotations = serviceAnnotations == null ? Map.of() : serviceAnnotations;
 		}
 
 	}

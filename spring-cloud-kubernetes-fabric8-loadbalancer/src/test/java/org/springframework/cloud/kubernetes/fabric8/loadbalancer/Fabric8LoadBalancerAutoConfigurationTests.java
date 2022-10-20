@@ -20,6 +20,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -70,9 +71,13 @@ class Fabric8LoadBalancerAutoConfigurationTests {
 	}
 
 	private void setup(String... env) {
-		this.context = new SpringApplicationBuilder(Fabric8LoadBalancerAutoConfiguration.class,
-				KubernetesDiscoveryProperties.class).web(org.springframework.boot.WebApplicationType.NONE)
-						.properties(env).run();
+		this.context = new SpringApplicationBuilder(Fabric8LoadBalancerAutoConfiguration.class, Config.class)
+				.web(org.springframework.boot.WebApplicationType.NONE).properties(env).run();
+	}
+
+	@EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
+	static class Config {
+
 	}
 
 }

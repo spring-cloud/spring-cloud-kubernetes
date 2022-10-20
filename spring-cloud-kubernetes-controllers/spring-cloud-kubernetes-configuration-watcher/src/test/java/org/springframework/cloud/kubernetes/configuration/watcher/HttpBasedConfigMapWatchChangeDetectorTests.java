@@ -104,7 +104,6 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
-		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
 		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		WebClient webClient = WebClient.builder().build();
 
@@ -112,10 +111,11 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 
 		});
 
-		changeDetector = new HttpBasedConfigMapWatchChangeDetector(coreV1Api, mockEnvironment, configReloadProperties,
-				strategy, configMapPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, new HttpRefreshTrigger(
-						reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient));
+		changeDetector = new HttpBasedConfigMapWatchChangeDetector(coreV1Api, mockEnvironment,
+				ConfigReloadProperties.DEFAULT, strategy, configMapPropertySourceLocator,
+				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
+				threadPoolTaskExecutor, new HttpRefreshTrigger(reactiveDiscoveryClient,
+						configurationWatcherConfigurationProperties, webClient));
 	}
 
 	@Test

@@ -62,8 +62,8 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 		this.propertySourceLocator = propertySourceLocator;
 		this.propertySourceClass = propertySourceClass;
 		this.taskExecutor = taskExecutor;
-		this.period = properties.getPeriod().toMillis();
-		this.monitorConfigMaps = properties.isMonitoringConfigMaps();
+		this.period = properties.period().toMillis();
+		this.monitorConfigMaps = properties.monitoringConfigMaps();
 	}
 
 	@PostConstruct
