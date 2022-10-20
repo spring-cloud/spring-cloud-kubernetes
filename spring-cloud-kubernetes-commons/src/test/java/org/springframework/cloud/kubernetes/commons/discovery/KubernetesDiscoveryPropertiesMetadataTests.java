@@ -32,7 +32,7 @@ class KubernetesDiscoveryPropertiesMetadataTests {
 
 	@Test
 	void testDefaultConstructor() {
-		Metadata m = new Metadata();
+		Metadata m = Metadata.DEFAULT;
 		assertThat(m.addLabels()).isTrue();
 		assertThat(m.labelsPrefix()).isNull();
 		assertThat(m.addAnnotations()).isTrue();
@@ -48,9 +48,9 @@ class KubernetesDiscoveryPropertiesMetadataTests {
 				.run(context -> {
 					KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
 					assertThat(props).isNotNull();
-					assertThat(props.getMetadata().labelsPrefix()).isEqualTo("labelsPrefix");
-					assertThat(props.getMetadata().addPorts()).isTrue();
-					assertThat(props.getMetadata().portsPrefix()).isEqualTo("port.");
+					assertThat(props.metadata().labelsPrefix()).isEqualTo("labelsPrefix");
+					assertThat(props.metadata().addPorts()).isTrue();
+					assertThat(props.metadata().portsPrefix()).isEqualTo("port.");
 				});
 	}
 

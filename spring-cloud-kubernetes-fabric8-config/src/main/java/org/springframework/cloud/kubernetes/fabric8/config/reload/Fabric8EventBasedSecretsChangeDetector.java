@@ -74,8 +74,8 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 		super(environment, properties, strategy);
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8SecretsPropertySourceLocator = fabric8SecretsPropertySourceLocator;
-		this.enableReloadFiltering = properties.isEnableReloadFiltering();
-		monitorSecrets = properties.isMonitoringSecrets();
+		this.enableReloadFiltering = properties.enableReloadFiltering();
+		monitorSecrets = properties.monitoringSecrets();
 		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "secrets");
 	}
 

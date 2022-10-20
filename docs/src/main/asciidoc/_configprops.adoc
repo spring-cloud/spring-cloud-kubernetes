@@ -62,21 +62,21 @@
 |spring.cloud.kubernetes.config.retry.multiplier | `+++1.1+++` | Multiplier for next interval.
 |spring.cloud.kubernetes.config.sources |  | 
 |spring.cloud.kubernetes.config.use-name-as-prefix | `+++false+++` | 
-|spring.cloud.kubernetes.discovery.all-namespaces | `+++false+++` | If discovering all namespaces.
-|spring.cloud.kubernetes.discovery.cache-loading-timeout-seconds | `+++60+++` | Timeout for initializing discovery cache, will abort the application if exceeded.
-|spring.cloud.kubernetes.discovery.enabled | `+++true+++` | If Kubernetes Discovery is enabled.
-|spring.cloud.kubernetes.discovery.filter |  | SpEL expression to filter services AFTER they have been retrieved from the Kubernetes API server.
-|spring.cloud.kubernetes.discovery.include-not-ready-addresses | `+++false+++` | If endpoint addresses not marked 'ready' by the k8s api server should be discovered.
-|spring.cloud.kubernetes.discovery.known-secure-ports |  | Set the port numbers that are considered secure and use HTTPS.
+|spring.cloud.kubernetes.discovery.all-namespaces | `+++false+++` | 
+|spring.cloud.kubernetes.discovery.cache-loading-timeout-seconds | `+++60+++` | 
+|spring.cloud.kubernetes.discovery.enabled | `+++true+++` | 
+|spring.cloud.kubernetes.discovery.filter |  | 
+|spring.cloud.kubernetes.discovery.include-not-ready-addresses | `+++false+++` | 
+|spring.cloud.kubernetes.discovery.known-secure-ports | `+++[443, 8443]+++` | 
 |spring.cloud.kubernetes.discovery.metadata.add-annotations | `+++true+++` | 
 |spring.cloud.kubernetes.discovery.metadata.add-labels | `+++true+++` | 
 |spring.cloud.kubernetes.discovery.metadata.add-ports | `+++true+++` | 
 |spring.cloud.kubernetes.discovery.metadata.annotations-prefix |  | 
 |spring.cloud.kubernetes.discovery.metadata.labels-prefix |  | 
 |spring.cloud.kubernetes.discovery.metadata.ports-prefix | `+++port.+++` | 
-|spring.cloud.kubernetes.discovery.order |  | 
-|spring.cloud.kubernetes.discovery.primary-port-name |  | If set then the port with a given name is used as primary when multiple ports are defined for a service.
-|spring.cloud.kubernetes.discovery.service-labels |  | If set, then only the services matching these labels will be fetched from the Kubernetes API server.
+|spring.cloud.kubernetes.discovery.order | `+++0+++` | 
+|spring.cloud.kubernetes.discovery.primary-port-name |  | 
+|spring.cloud.kubernetes.discovery.service-labels |  | 
 |spring.cloud.kubernetes.discovery.wait-cache-ready | `+++true+++` | 
 |spring.cloud.kubernetes.leader.auto-startup | `+++true+++` | Should leader election be started automatically on startup. Default: true
 |spring.cloud.kubernetes.leader.config-map-name | `+++leaders+++` | Kubernetes ConfigMap where leaders information will be stored. Default: leaders
@@ -91,15 +91,15 @@
 |spring.cloud.kubernetes.loadbalancer.enabled | `+++true+++` | Load balancer enabled,default true.
 |spring.cloud.kubernetes.loadbalancer.mode |  | {@link KubernetesLoadBalancerMode} setting load balancer server list with ip of pod or service name. default value is POD.
 |spring.cloud.kubernetes.loadbalancer.port-name | `+++http+++` | service port name.
-|spring.cloud.kubernetes.reload.enable-reload-filtering | `+++false+++` | create an informer only for sources that have 'spring.cloud.kubernetes.config.informer.enabled=true' label. This property is only relevant for event based reloading.
-|spring.cloud.kubernetes.reload.enabled | `+++false+++` | Enables the Kubernetes configuration reload on change.
-|spring.cloud.kubernetes.reload.max-wait-for-restart | `+++2s+++` | If Restart or Shutdown strategies are used, Spring Cloud Kubernetes waits a random amount of time before restarting. This is done in order to avoid having all instances of the same application restart at the same time. This property configures the maximum of amount of wait time from the moment the signal is received that a restart is needed until the moment the restart is actually triggered
-|spring.cloud.kubernetes.reload.mode |  | Sets the detection mode for Kubernetes configuration reload.
-|spring.cloud.kubernetes.reload.monitoring-config-maps | `+++true+++` | Enables monitoring on config maps to detect changes.
-|spring.cloud.kubernetes.reload.monitoring-secrets | `+++false+++` | Enables monitoring on secrets to detect changes.
-|spring.cloud.kubernetes.reload.namespaces |  | namespaces where an informer will be set-up. this property is only relevant for event based reloading.
-|spring.cloud.kubernetes.reload.period | `+++15000ms+++` | Sets the polling period to use when the detection mode is POLLING.
-|spring.cloud.kubernetes.reload.strategy |  | Sets reload strategy for Kubernetes configuration reload on change.
+|spring.cloud.kubernetes.reload.enable-reload-filtering | `+++false+++` | 
+|spring.cloud.kubernetes.reload.enabled | `+++false+++` | 
+|spring.cloud.kubernetes.reload.max-wait-for-restart | `+++2s+++` | 
+|spring.cloud.kubernetes.reload.mode | `+++EVENT+++` | 
+|spring.cloud.kubernetes.reload.monitoring-config-maps | `+++true+++` | 
+|spring.cloud.kubernetes.reload.monitoring-secrets | `+++false+++` | 
+|spring.cloud.kubernetes.reload.namespaces |  | 
+|spring.cloud.kubernetes.reload.period | `+++15000ms+++` | 
+|spring.cloud.kubernetes.reload.strategy | `+++REFRESH+++` | 
 |spring.cloud.kubernetes.secrets.enable-api | `+++false+++` | 
 |spring.cloud.kubernetes.secrets.enabled | `+++true+++` | Enable the Secrets property source locator.
 |spring.cloud.kubernetes.secrets.fail-fast | `+++false+++` | 

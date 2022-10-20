@@ -34,8 +34,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
@@ -55,14 +55,10 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class KubernetesCatalogWatchTest {
 
-	@Mock
-	private KubernetesDiscoveryProperties properties;
+	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
 
-	@Mock
-	private KubernetesClient kubernetesClient;
-
-	@Mock
-	private KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
+	private final KubernetesCatalogWatch kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT,
+			KubernetesDiscoveryProperties.DEFAULT);
 
 	@Mock
 	private ApplicationEventPublisher applicationEventPublisher;
@@ -73,12 +69,9 @@ public class KubernetesCatalogWatchTest {
 	@Captor
 	private ArgumentCaptor<HeartbeatEvent> heartbeatEventArgumentCaptor;
 
-	@InjectMocks
-	private KubernetesCatalogWatch underTest;
-
 	@Before
 	public void setUp() throws Exception {
-		this.underTest.setApplicationEventPublisher(this.applicationEventPublisher);
+		kubernetesCatalogWatch.setApplicationEventPublisher(this.applicationEventPublisher);
 	}
 
 	@Test
@@ -86,12 +79,12 @@ public class KubernetesCatalogWatchTest {
 		when(this.endpointsOperation.list())
 				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
 				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod", "api-pod"));
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
 		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
@@ -101,14 +94,13 @@ public class KubernetesCatalogWatchTest {
 		when(this.endpointsOperation.list())
 				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
 				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod", "api-pod"));
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
-				.thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().inAnyNamespace().withLabels(anyMap())).thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
 		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
@@ -118,12 +110,12 @@ public class KubernetesCatalogWatchTest {
 		when(this.endpointsOperation.list())
 				.thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
 				.thenReturn(createEndpointsListByServiceName("other-service", "api-service"));
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
 		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
@@ -133,14 +125,13 @@ public class KubernetesCatalogWatchTest {
 		when(this.endpointsOperation.list())
 				.thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
 				.thenReturn(createEndpointsListByServiceName("other-service", "api-service"));
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
-				.thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().inAnyNamespace().withLabels(anyMap())).thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
 		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
@@ -149,10 +140,10 @@ public class KubernetesCatalogWatchTest {
 	public void testEventBody() throws Exception {
 		when(this.endpointsOperation.list())
 				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
 		verify(this.applicationEventPublisher).publishEvent(this.heartbeatEventArgumentCaptor.capture());
 
@@ -167,12 +158,11 @@ public class KubernetesCatalogWatchTest {
 	public void testEventBodyAllNamespaces() throws Exception {
 		when(this.endpointsOperation.list())
 				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
-				.thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().inAnyNamespace().withLabels(anyMap())).thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
 		verify(this.applicationEventPublisher).publishEvent(this.heartbeatEventArgumentCaptor.capture());
 
@@ -189,12 +179,12 @@ public class KubernetesCatalogWatchTest {
 		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets();
 
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
 		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
@@ -205,14 +195,13 @@ public class KubernetesCatalogWatchTest {
 		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets();
 
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
-				.thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().inAnyNamespace().withLabels(anyMap())).thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
 		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
@@ -224,12 +213,12 @@ public class KubernetesCatalogWatchTest {
 		endpoints.getItems().get(0).getSubsets().get(0).setAddresses(null);
 
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
 		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
@@ -241,14 +230,13 @@ public class KubernetesCatalogWatchTest {
 		endpoints.getItems().get(0).getSubsets().get(0).setAddresses(null);
 
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
-				.thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().inAnyNamespace().withLabels(anyMap())).thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
 		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
@@ -260,12 +248,12 @@ public class KubernetesCatalogWatchTest {
 		endpoints.getItems().get(0).getSubsets().get(0).getAddresses().get(0).setTargetRef(null);
 
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
 		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
@@ -277,14 +265,13 @@ public class KubernetesCatalogWatchTest {
 		endpoints.getItems().get(0).getSubsets().get(0).getAddresses().get(0).setTargetRef(null);
 
 		when(this.endpointsOperation.list()).thenReturn(endpoints);
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
-				.thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints().inAnyNamespace().withLabels(anyMap())).thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
 		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
 	}
