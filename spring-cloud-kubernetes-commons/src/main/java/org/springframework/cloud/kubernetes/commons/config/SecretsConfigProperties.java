@@ -107,29 +107,6 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 				.collect(Collectors.toList());
 	}
 
-	// because of this current issue
-	// https://github.com/spring-projects/spring-boot/issues/32660
-	// we need this workaround
-	public static SecretsConfigProperties fromSelfAndRetry(SecretsConfigProperties configMapConfigProperties,
-			RetryProperties retryProperties) {
-		SecretsConfigProperties properties = new SecretsConfigProperties();
-		properties.setEnableApi(configMapConfigProperties.isEnableApi());
-		properties.setPaths(configMapConfigProperties.getPaths());
-		properties.setSources(configMapConfigProperties.getSources());
-		properties.setLabels(configMapConfigProperties.getLabels());
-
-		properties.setEnabled(configMapConfigProperties.isEnabled());
-		properties.setName(configMapConfigProperties.getName());
-		properties.setNamespace(configMapConfigProperties.getNamespace());
-		properties.setUseNameAsPrefix(configMapConfigProperties.isUseNameAsPrefix());
-		properties.setIncludeProfileSpecificSources(configMapConfigProperties.isIncludeProfileSpecificSources());
-		properties.setFailFast(configMapConfigProperties.isFailFast());
-
-		properties.setRetry(retryProperties);
-
-		return properties;
-	}
-
 	public static class Source {
 
 		/**
