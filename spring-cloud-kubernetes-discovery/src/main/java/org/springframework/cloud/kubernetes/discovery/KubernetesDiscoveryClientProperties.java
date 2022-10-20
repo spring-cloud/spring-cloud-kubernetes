@@ -32,8 +32,8 @@ public class KubernetesDiscoveryClientProperties {
 	private boolean enabled = true;
 
 	/**
-	 * If set then only the services and endpoints matching
-	 * these namespaces will be fetched from the Kubernetes API server.
+	 * If set then only the services and endpoints matching these namespaces will be
+	 * fetched from the Kubernetes API server.
 	 */
 	private List<String> namespaces = new ArrayList<>();
 
@@ -60,4 +60,5 @@ public class KubernetesDiscoveryClientProperties {
 	void setNamespaces(List<String> namespaces) {
 		this.namespaces = namespaces;
 	}
+
 }

@@ -124,4 +124,5 @@ class KubernetesDiscoveryClientTests {
 				Arguments.of(List.of("namespace1"), "test-svc-3", List.of()),
 				Arguments.of(List.of("namespace2"), "test-svc-3", List.of("uid2")));
 	}
+
 }

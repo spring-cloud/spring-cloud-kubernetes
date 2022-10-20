@@ -43,6 +43,7 @@ class KubernetesDiscoveryPropertiesTests {
 
 					assertThat(props.enabled()).isTrue();
 					assertThat(props.allNamespaces()).isFalse();
+					assertThat(props.namespaces()).isEmpty();
 					assertThat(props.waitCacheReady()).isTrue();
 					assertThat(props.cacheLoadingTimeoutSeconds()).isEqualTo(60);
 					assertThat(props.includeNotReadyAddresses()).isFalse();
@@ -59,7 +60,9 @@ class KubernetesDiscoveryPropertiesTests {
 		new ApplicationContextRunner().withUserConfiguration(KubernetesDiscoveryPropertiesMetadataTests.Config.class)
 				.withPropertyValues("spring.cloud.kubernetes.discovery.filter=some-filter",
 						"spring.cloud.kubernetes.discovery.knownSecurePorts[0]=222",
-						"spring.cloud.kubernetes.discovery.metadata.labelsPrefix=labelsPrefix")
+						"spring.cloud.kubernetes.discovery.metadata.labelsPrefix=labelsPrefix",
+						"spring.cloud.kubernetes.discovery.namespaces[0]=ns1",
+						"spring.cloud.kubernetes.discovery.namespaces[1]=ns2")
 				.run(context -> {
 					KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
 					assertThat(props).isNotNull();
@@ -69,6 +72,7 @@ class KubernetesDiscoveryPropertiesTests {
 
 					assertThat(props.enabled()).isTrue();
 					assertThat(props.allNamespaces()).isFalse();
+					assertThat(props.namespaces()).containsExactlyInAnyOrder("ns1", "ns2");
 					assertThat(props.waitCacheReady()).isTrue();
 					assertThat(props.cacheLoadingTimeoutSeconds()).isEqualTo(60);
 					assertThat(props.includeNotReadyAddresses()).isFalse();

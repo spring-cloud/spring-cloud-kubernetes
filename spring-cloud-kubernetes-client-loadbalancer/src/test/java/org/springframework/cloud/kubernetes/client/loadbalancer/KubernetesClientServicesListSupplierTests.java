@@ -146,7 +146,8 @@ class KubernetesClientServicesListSupplierTests {
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
-				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
+				Set.of(), true, 60, false, null, Set.of(), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 		CoreV1Api coreV1Api = new CoreV1Api();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(
 				new KubernetesLoadBalancerProperties(), kubernetesDiscoveryProperties);
