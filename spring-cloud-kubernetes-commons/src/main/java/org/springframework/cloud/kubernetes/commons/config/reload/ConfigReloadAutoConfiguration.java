@@ -45,7 +45,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @ConditionalOnKubernetesReloadEnabled
 @ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-	RefreshAutoConfiguration.class })
+		RefreshAutoConfiguration.class })
 public class ConfigReloadAutoConfiguration {
 
 	@Bean("springCloudKubernetesTaskScheduler")
