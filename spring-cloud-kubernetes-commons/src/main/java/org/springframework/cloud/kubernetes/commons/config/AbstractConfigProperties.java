@@ -110,6 +110,9 @@ public abstract class AbstractConfigProperties {
 			@DefaultValue("2000") long maxInterval, @DefaultValue("6") int maxAttempts,
 			@DefaultValue("true") boolean enabled) {
 
+		/**
+		 * Default instance.
+		 */
 		public static final RetryProperties DEFAULT = new RetryProperties(1000, 1.1, 2000, 6, true);
 
 	}
