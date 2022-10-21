@@ -339,32 +339,6 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void testLabelsMultipleCases() {
 
-//		SecretsConfigProperties properties = new SecretsConfigProperties();
-//		properties.setUseNameAsPrefix(false);
-//		properties.setNamespace("spring-k8s");
-//		properties.setIncludeProfileSpecificSources(false);
-//
-//		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source();
-//		one.setLabels(Map.of("first-label", "secret-one"));
-//		one.setUseNameAsPrefix(false);
-//		one.setExplicitPrefix("one");
-//
-//		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source();
-//		two.setLabels(Map.of("second-label", "secret-two"));
-//		two.setUseNameAsPrefix(true);
-//		two.setExplicitPrefix("two");
-//		two.setIncludeProfileSpecificSources(true);
-//
-//		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source();
-//		three.setLabels(Map.of("third-label", "secret-three"));
-//		three.setExplicitPrefix("three");
-//
-//		SecretsConfigProperties.Source four = new SecretsConfigProperties.Source();
-//		four.setLabels(Map.of("fourth-label", "secret-four"));
-//
-//		properties.setSources(Arrays.asList(one, two, three, four));
-
-
 		SecretsConfigProperties properties = new SecretsConfigProperties();
 		properties.setUseNameAsPrefix(false);
 		properties.setNamespace("spring-k8s");
