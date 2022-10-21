@@ -47,4 +47,9 @@ public final class KubernetesDiscoveryConstants {
 	 */
 	public static final String NAMESPACE_METADATA_KEY = "k8s_namespace";
 
+	/**
+	 * Port name to use when there isn't one set.
+	 */
+	public static final String UNSET_PORT_NAME = "<unset>";
+
 }

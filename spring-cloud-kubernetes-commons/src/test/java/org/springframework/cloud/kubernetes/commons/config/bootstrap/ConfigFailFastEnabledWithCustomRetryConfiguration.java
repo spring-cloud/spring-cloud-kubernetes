@@ -44,10 +44,10 @@ class ConfigFailFastEnabledWithCustomRetryConfiguration {
 	void retryConfigurationShouldBeCustomized() {
 		AbstractConfigProperties.RetryProperties retryProperties = configMapConfigProperties.getRetry();
 
-		assertThat(retryProperties.getMaxAttempts()).isEqualTo(3);
-		assertThat(retryProperties.getInitialInterval()).isEqualTo(1500L);
-		assertThat(retryProperties.getMaxInterval()).isEqualTo(3000L);
-		assertThat(retryProperties.getMultiplier()).isEqualTo(1.5D);
+		assertThat(retryProperties.maxAttempts()).isEqualTo(3);
+		assertThat(retryProperties.initialInterval()).isEqualTo(1500L);
+		assertThat(retryProperties.maxInterval()).isEqualTo(3000L);
+		assertThat(retryProperties.multiplier()).isEqualTo(1.5D);
 	}
 
 }

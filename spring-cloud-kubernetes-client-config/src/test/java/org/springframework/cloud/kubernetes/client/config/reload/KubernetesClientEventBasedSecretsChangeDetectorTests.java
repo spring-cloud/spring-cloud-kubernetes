@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -151,8 +152,9 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		KubernetesClientSecretsPropertySourceLocator locator = mock(KubernetesClientSecretsPropertySourceLocator.class);
 		when(locator.locate(environment))
 				.thenAnswer(ignoreMe -> new MockPropertySource().withProperty("db-password", "p455w0rd2"));
-		ConfigReloadProperties properties = new ConfigReloadProperties();
-		properties.setMonitoringSecrets(true);
+		ConfigReloadProperties properties = new ConfigReloadProperties(false, false, true,
+				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+				Duration.ofMillis(15000), Set.of(), false, Duration.ofSeconds(2));
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 		KubernetesClientEventBasedSecretsChangeDetector changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(

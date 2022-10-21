@@ -66,7 +66,7 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 		List<ServiceInstance> result = new ArrayList<>();
 		List<V1Service> services = null;
 		try {
-			if (discoveryProperties.isAllNamespaces()) {
+			if (discoveryProperties.allNamespaces()) {
 				services = coreV1Api.listServiceForAllNamespaces(null, null, "metadata.name=" + this.getServiceId(),
 						null, null, null, null, null, null, null).getItems();
 			}

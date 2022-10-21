@@ -72,7 +72,7 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 					namespaceProvider);
 		}
 		else {
-			if (configMapProperties.isEnabled()) {
+			if (configMapProperties != null && configMapProperties.isEnabled()) {
 				Fabric8ConfigMapPropertySourceLocator configMapPropertySourceLocator = new Fabric8ConfigMapPropertySourceLocator(
 						kubernetesClient, configMapProperties, namespaceProvider);
 				bootstrapContext.registerIfAbsent(ConfigMapPropertySourceLocator.class,
@@ -81,7 +81,7 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 						.registerSingleton("configDataConfigMapPropertySourceLocator",
 								event.getBootstrapContext().get(ConfigMapPropertySourceLocator.class)));
 			}
-			if (secretsProperties.isEnabled()) {
+			if (secretsProperties != null && secretsProperties.isEnabled()) {
 				Fabric8SecretsPropertySourceLocator secretsPropertySourceLocator = new Fabric8SecretsPropertySourceLocator(
 						kubernetesClient, secretsProperties, namespaceProvider);
 				bootstrapContext.registerIfAbsent(SecretsPropertySourceLocator.class,
@@ -96,7 +96,7 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 	private void registerRetryBeans(ConfigMapConfigProperties configMapProperties,
 			SecretsConfigProperties secretsProperties, ConfigurableBootstrapContext bootstrapContext,
 			KubernetesClient kubernetesClient, KubernetesNamespaceProvider namespaceProvider) {
-		if (configMapProperties.isEnabled()) {
+		if (configMapProperties != null && configMapProperties.isEnabled()) {
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator = new Fabric8ConfigMapPropertySourceLocator(
 					kubernetesClient, configMapProperties, namespaceProvider);
 			if (isRetryEnabledForConfigMap(configMapProperties)) {
@@ -111,7 +111,7 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 					event.getBootstrapContext().get(ConfigMapPropertySourceLocator.class)));
 		}
 
-		if (secretsProperties.isEnabled()) {
+		if (secretsProperties != null && secretsProperties.isEnabled()) {
 			SecretsPropertySourceLocator secretsPropertySourceLocator = new Fabric8SecretsPropertySourceLocator(
 					kubernetesClient, secretsProperties, namespaceProvider);
 			if (isRetryEnabledForSecrets(secretsProperties)) {

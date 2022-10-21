@@ -49,7 +49,7 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier 
 	@Override
 	public Flux<List<ServiceInstance>> get() {
 		List<ServiceInstance> result = new ArrayList<>();
-		if (discoveryProperties.isAllNamespaces()) {
+		if (discoveryProperties.allNamespaces()) {
 			List<Service> services = this.kubernetesClient.services().inAnyNamespace()
 					.withField("metadata.name", this.getServiceId()).list().getItems();
 			services.forEach(service -> result.add(mapper.map(service)));

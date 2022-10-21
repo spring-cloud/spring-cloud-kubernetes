@@ -14,46 +14,46 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.locator_retry;
+package org.springframework.cloud.kubernetes.fabric8.config.locator_retry.config_retry_enabled;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 
 /**
- * we call Fabric8ConfigMapPropertySourceLocator::locate directly, thus no need for
- * bootstrap phase to kick in. As such two flags that might look a bit un-expected:
- * "spring.cloud.kubernetes.config.enabled=false"
- * "spring.cloud.kubernetes.secrets.enabled=false"
- *
  * @author Isik Erhan
- * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		properties = { "spring.cloud.kubernetes.client.namespace=default",
-				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
-				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.enabled=false",
-				"spring.cloud.kubernetes.secrets.enabled=false", "spring.config.import=kubernetes:" },
+				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.max-attempts=5",
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class ConfigDataConfigFailFastEnabledButRetryDisabled extends ConfigFailFastEnabledButRetryDisabled {
+class BoostrapConfigRetryEnabled extends ConfigRetryEnabled {
 
 	private static KubernetesMockServer mockServer;
 
 	private static KubernetesClient mockClient;
 
-	@MockBean
-	KubernetesNamespaceProvider kubernetesNamespaceProvider;
-
 	@BeforeAll
 	static void setup() {
 		setup(mockClient, mockServer);
+	}
+
+	@SpyBean
+	Fabric8ConfigMapPropertySourceLocator propertySourceLocator;
+
+	@BeforeEach
+	public void beforeEach() {
+		psl = propertySourceLocator;
+		verifiablePsl = propertySourceLocator;
 	}
 
 }

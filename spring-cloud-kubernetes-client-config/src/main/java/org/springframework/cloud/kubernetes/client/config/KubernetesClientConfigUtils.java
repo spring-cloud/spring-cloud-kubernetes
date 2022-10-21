@@ -57,7 +57,7 @@ public final class KubernetesClientConfigUtils {
 	 */
 	public static Set<String> namespaces(KubernetesNamespaceProvider provider, ConfigReloadProperties properties,
 			String target) {
-		Set<String> namespaces = properties.getNamespaces();
+		Set<String> namespaces = properties.namespaces();
 		if (namespaces.isEmpty()) {
 			namespaces = Set.of(getApplicationNamespace(null, target, provider));
 		}

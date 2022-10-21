@@ -17,6 +17,8 @@
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
@@ -76,7 +78,7 @@ class KubernetesServiceListSupplierTests {
 		when(this.namespaceOperation.withName("test-service")).thenReturn(this.serviceResource);
 		when(this.serviceResource.get()).thenReturn(buildService("test-service", 8080));
 		KubernetesServicesListSupplier supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
-				new KubernetesDiscoveryProperties());
+				KubernetesDiscoveryProperties.DEFAULT);
 		List<ServiceInstance> instances = supplier.get().blockFirst();
 		assert instances != null;
 		Assertions.assertEquals(1, instances.size());
@@ -93,8 +95,8 @@ class KubernetesServiceListSupplierTests {
 		ServiceList serviceList = new ServiceList();
 		serviceList.getItems().add(buildService("test-service", 8080));
 		when(this.multiDeletable.list()).thenReturn(serviceList);
-		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties();
-		discoveryProperties.setAllNamespaces(true);
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, true, true, 60,
+				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 		KubernetesServicesListSupplier supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
 				discoveryProperties);
 		List<ServiceInstance> instances = supplier.get().blockFirst();

@@ -14,11 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   ~
-  -->
-
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xmlns="http://maven.apache.org/POM/4.0.0"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<parent>
 		<artifactId>spring-cloud-kubernetes-examples</artifactId>
 		<groupId>org.springframework.cloud</groupId>
@@ -45,7 +41,7 @@
 	</dependencyManagement>
 
 	<properties>
-		<hibernate-validator.version>5.3.6.Final</hibernate-validator.version>
+		<hibernate-validator.version>6.0.19.Final</hibernate-validator.version>
 	</properties>
 
 	<dependencies>

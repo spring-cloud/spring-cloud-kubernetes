@@ -58,22 +58,21 @@ public class ConfigAndSecretsFailFastEnabledWithDefaultRetryConfiguration {
 
 	@Test
 	void retryConfigurationShouldBeDefault() {
-		AbstractConfigProperties.RetryProperties defaultRetryProperties = new AbstractConfigProperties.RetryProperties();
+		AbstractConfigProperties.RetryProperties defaultRetryProperties = AbstractConfigProperties.RetryProperties.DEFAULT;
 
 		AbstractConfigProperties.RetryProperties configMapRetryProperties = configMapConfigProperties.getRetry();
 
-		assertThat(configMapRetryProperties.getMaxAttempts()).isEqualTo(defaultRetryProperties.getMaxAttempts());
-		assertThat(configMapRetryProperties.getInitialInterval())
-				.isEqualTo(defaultRetryProperties.getInitialInterval());
-		assertThat(configMapRetryProperties.getMaxInterval()).isEqualTo(defaultRetryProperties.getMaxInterval());
-		assertThat(configMapRetryProperties.getMultiplier()).isEqualTo(defaultRetryProperties.getMultiplier());
+		assertThat(configMapRetryProperties.maxAttempts()).isEqualTo(defaultRetryProperties.maxAttempts());
+		assertThat(configMapRetryProperties.initialInterval()).isEqualTo(defaultRetryProperties.initialInterval());
+		assertThat(configMapRetryProperties.maxInterval()).isEqualTo(defaultRetryProperties.maxInterval());
+		assertThat(configMapRetryProperties.multiplier()).isEqualTo(defaultRetryProperties.multiplier());
 
 		AbstractConfigProperties.RetryProperties secretsRetryProperties = secretsConfigProperties.getRetry();
 
-		assertThat(secretsRetryProperties.getMaxAttempts()).isEqualTo(defaultRetryProperties.getMaxAttempts());
-		assertThat(secretsRetryProperties.getInitialInterval()).isEqualTo(defaultRetryProperties.getInitialInterval());
-		assertThat(secretsRetryProperties.getMaxInterval()).isEqualTo(defaultRetryProperties.getMaxInterval());
-		assertThat(secretsRetryProperties.getMultiplier()).isEqualTo(defaultRetryProperties.getMultiplier());
+		assertThat(secretsRetryProperties.maxAttempts()).isEqualTo(defaultRetryProperties.maxAttempts());
+		assertThat(secretsRetryProperties.initialInterval()).isEqualTo(defaultRetryProperties.initialInterval());
+		assertThat(secretsRetryProperties.maxInterval()).isEqualTo(defaultRetryProperties.maxInterval());
+		assertThat(secretsRetryProperties.multiplier()).isEqualTo(defaultRetryProperties.multiplier());
 	}
 
 }

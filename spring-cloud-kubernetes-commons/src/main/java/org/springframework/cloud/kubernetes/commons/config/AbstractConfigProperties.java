@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import org.springframework.boot.context.properties.bind.DefaultValue;
+
 /**
  * Abstraction over configuration properties.
  *
@@ -38,7 +40,7 @@ public abstract class AbstractConfigProperties {
 
 	protected boolean failFast = false;
 
-	protected RetryProperties retry = new RetryProperties();
+	protected RetryProperties retry = RetryProperties.DEFAULT;
 
 	public boolean isEnabled() {
 		return this.enabled;
@@ -98,70 +100,20 @@ public abstract class AbstractConfigProperties {
 
 	/**
 	 * Kubernetes config retry properties.
+	 * @param initialInterval Initial retry interval in milliseconds.
+	 * @param multiplier Maximum interval for backoff.
+	 * @param maxInterval Maximum interval
+	 * @param maxAttempts Maximum number of attempts.
+	 * @param enabled Retry enabled or not
 	 */
-	public static class RetryProperties {
+	public record RetryProperties(@DefaultValue("1000") long initialInterval, @DefaultValue("1.1") double multiplier,
+			@DefaultValue("2000") long maxInterval, @DefaultValue("6") int maxAttempts,
+			@DefaultValue("true") boolean enabled) {
 
 		/**
-		 * Initial retry interval in milliseconds.
+		 * Default instance.
 		 */
-		private long initialInterval = 1000;
-
-		/**
-		 * Multiplier for next interval.
-		 */
-		private double multiplier = 1.1;
-
-		/**
-		 * Maximum interval for backoff.
-		 */
-		private long maxInterval = 2000;
-
-		/**
-		 * Maximum number of attempts.
-		 */
-		private int maxAttempts = 6;
-
-		private boolean enabled = true;
-
-		public long getInitialInterval() {
-			return this.initialInterval;
-		}
-
-		public void setInitialInterval(long initialInterval) {
-			this.initialInterval = initialInterval;
-		}
-
-		public double getMultiplier() {
-			return this.multiplier;
-		}
-
-		public void setMultiplier(double multiplier) {
-			this.multiplier = multiplier;
-		}
-
-		public long getMaxInterval() {
-			return this.maxInterval;
-		}
-
-		public void setMaxInterval(long maxInterval) {
-			this.maxInterval = maxInterval;
-		}
-
-		public int getMaxAttempts() {
-			return this.maxAttempts;
-		}
-
-		public void setMaxAttempts(int maxAttempts) {
-			this.maxAttempts = maxAttempts;
-		}
-
-		public boolean isEnabled() {
-			return enabled;
-		}
-
-		public void setEnabled(boolean enabled) {
-			this.enabled = enabled;
-		}
+		public static final RetryProperties DEFAULT = new RetryProperties(1000, 1.1, 2000, 6, true);
 
 	}
 

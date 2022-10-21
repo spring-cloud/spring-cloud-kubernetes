@@ -17,151 +17,50 @@
 package org.springframework.cloud.kubernetes.commons.config.reload;
 
 import java.time.Duration;
-import java.util.Collections;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 /**
  * General configuration for the configuration reload.
+ * @param enabled Enables the Kubernetes configuration reload on change.
+ * @param monitoringConfigMaps Enables monitoring on secrets to detect changes.
+ * @param monitoringSecrets Monitor secrets or not.
+ * @param strategy Sets reload strategy for Kubernetes configuration reload on change.
+ * @param mode Sets the detection mode for Kubernetes configuration reload.
+ * @param period Sets the polling period to use when the detection mode is POLLING.
+ * @param namespaces namespaces where an informer will be set-up. this property is only
+ * relevant for event based reloading.
+ * @param enableReloadFiltering create an informer only for sources that have
+ * 'spring.cloud.kubernetes.config.informer.enabled=true' label. This property is only
+ * relevant for event based reloading.
+ * @param maxWaitForRestart Restart or Shutdown strategies are used, Spring Cloud
+ * Kubernetes waits a random amount of time before restarting. This is done in order to
+ * avoid having all instances of the same application restart at the same time. This
+ * property configures the maximum of amount of wait time from the moment the signal is
+ * received that a restart is needed until the moment the restart is actually triggered
  *
  * @author Nicola Ferraro
  */
 @ConfigurationProperties(prefix = "spring.cloud.kubernetes.reload")
-public class ConfigReloadProperties {
+public record ConfigReloadProperties(boolean enabled, @DefaultValue("true") boolean monitoringConfigMaps,
+		boolean monitoringSecrets, @DefaultValue("REFRESH") ReloadStrategy strategy,
+		@DefaultValue("EVENT") ReloadDetectionMode mode, @DefaultValue("15000ms") Duration period,
+		@DefaultValue Set<String> namespaces, boolean enableReloadFiltering,
+		@DefaultValue("2s") Duration maxWaitForRestart) {
+
+	/**
+	 * default instance.
+	 */
+	public static ConfigReloadProperties DEFAULT = new ConfigReloadProperties(false, true, false,
+			ReloadStrategy.REFRESH, ReloadDetectionMode.EVENT, Duration.ofMillis(15000), Set.of(), false,
+			Duration.ofSeconds(2));
 
 	/**
 	 * label for filtering sources.
 	 */
 	public static final String RELOAD_LABEL_FILTER = "spring.cloud.kubernetes.config.informer.enabled";
-
-	/**
-	 * Enables the Kubernetes configuration reload on change.
-	 */
-	private boolean enabled = false;
-
-	/**
-	 * Enables monitoring on config maps to detect changes.
-	 */
-	private boolean monitoringConfigMaps = true;
-
-	/**
-	 * Enables monitoring on secrets to detect changes.
-	 */
-	private boolean monitoringSecrets = false;
-
-	/**
-	 * Sets reload strategy for Kubernetes configuration reload on change.
-	 */
-	private ReloadStrategy strategy = ReloadStrategy.REFRESH;
-
-	/**
-	 * Sets the detection mode for Kubernetes configuration reload.
-	 */
-	private ReloadDetectionMode mode = ReloadDetectionMode.EVENT;
-
-	/**
-	 * Sets the polling period to use when the detection mode is POLLING.
-	 */
-	private Duration period = Duration.ofMillis(15000L);
-
-	/**
-	 * namespaces where an informer will be set-up. this property is only relevant for
-	 * event based reloading.
-	 */
-	private Set<String> namespaces = Collections.emptySet();
-
-	/**
-	 * create an informer only for sources that have
-	 * 'spring.cloud.kubernetes.config.informer.enabled=true' label. This property is only
-	 * relevant for event based reloading.
-	 */
-	private boolean enableReloadFiltering = false;
-
-	/**
-	 * If Restart or Shutdown strategies are used, Spring Cloud Kubernetes waits a random
-	 * amount of time before restarting. This is done in order to avoid having all
-	 * instances of the same application restart at the same time. This property
-	 * configures the maximum of amount of wait time from the moment the signal is
-	 * received that a restart is needed until the moment the restart is actually
-	 * triggered
-	 */
-	private Duration maxWaitForRestart = Duration.ofSeconds(2);
-
-	public ConfigReloadProperties() {
-	}
-
-	public boolean isEnabled() {
-		return this.enabled;
-	}
-
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
-
-	public boolean isMonitoringConfigMaps() {
-		return this.monitoringConfigMaps;
-	}
-
-	public void setMonitoringConfigMaps(boolean monitoringConfigMaps) {
-		this.monitoringConfigMaps = monitoringConfigMaps;
-	}
-
-	public boolean isMonitoringSecrets() {
-		return this.monitoringSecrets;
-	}
-
-	public void setMonitoringSecrets(boolean monitoringSecrets) {
-		this.monitoringSecrets = monitoringSecrets;
-	}
-
-	public ReloadStrategy getStrategy() {
-		return this.strategy;
-	}
-
-	public void setStrategy(ReloadStrategy strategy) {
-		this.strategy = strategy;
-	}
-
-	public ReloadDetectionMode getMode() {
-		return this.mode;
-	}
-
-	public void setMode(ReloadDetectionMode mode) {
-		this.mode = mode;
-	}
-
-	public Duration getPeriod() {
-		return this.period;
-	}
-
-	public void setPeriod(Duration period) {
-		this.period = period;
-	}
-
-	public Duration getMaxWaitForRestart() {
-		return maxWaitForRestart;
-	}
-
-	public void setMaxWaitForRestart(Duration maxWaitForRestart) {
-		this.maxWaitForRestart = maxWaitForRestart;
-	}
-
-	public Set<String> getNamespaces() {
-		return namespaces;
-	}
-
-	public void setNamespaces(Set<String> namespaces) {
-		this.namespaces = namespaces;
-	}
-
-	public boolean isEnableReloadFiltering() {
-		return enableReloadFiltering;
-	}
-
-	public void setEnableReloadFiltering(boolean enableReloadFiltering) {
-		this.enableReloadFiltering = enableReloadFiltering;
-	}
 
 	/**
 	 * Reload strategies.

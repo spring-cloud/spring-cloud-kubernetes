@@ -50,9 +50,9 @@ public class KubernetesBootstrapConfiguration {
 
 		public static RetryOperationsInterceptor retryOperationsInterceptor(
 				AbstractConfigProperties.RetryProperties retryProperties) {
-			return RetryInterceptorBuilder.stateless().backOffOptions(retryProperties.getInitialInterval(),
-					retryProperties.getMultiplier(), retryProperties.getMaxInterval())
-					.maxAttempts(retryProperties.getMaxAttempts()).build();
+			return RetryInterceptorBuilder.stateless().backOffOptions(retryProperties.initialInterval(),
+					retryProperties.multiplier(), retryProperties.maxInterval())
+					.maxAttempts(retryProperties.maxAttempts()).build();
 		}
 
 		@Bean

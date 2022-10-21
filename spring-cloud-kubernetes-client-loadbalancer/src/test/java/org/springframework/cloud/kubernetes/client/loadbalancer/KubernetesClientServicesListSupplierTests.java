@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -116,12 +117,11 @@ class KubernetesClientServicesListSupplierTests {
 		env.setProperty(LoadBalancerClientFactory.PROPERTY_NAME, "service1");
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties();
 		CoreV1Api coreV1Api = new CoreV1Api();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(
-				new KubernetesLoadBalancerProperties(), kubernetesDiscoveryProperties);
+				new KubernetesLoadBalancerProperties(), KubernetesDiscoveryProperties.DEFAULT);
 		KubernetesClientServicesListSupplier listSupplier = new KubernetesClientServicesListSupplier(env, mapper,
-				kubernetesDiscoveryProperties, coreV1Api, kubernetesNamespaceProvider);
+				KubernetesDiscoveryProperties.DEFAULT, coreV1Api, kubernetesNamespaceProvider);
 
 		stubFor(get(urlMatching("^/api/v1/namespaces/default/services.*"))
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SERVICE_LIST))));
@@ -145,8 +145,8 @@ class KubernetesClientServicesListSupplierTests {
 		env.setProperty(LoadBalancerClientFactory.PROPERTY_NAME, "service1");
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties();
-		kubernetesDiscoveryProperties.setAllNamespaces(true);
+		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
+				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 		CoreV1Api coreV1Api = new CoreV1Api();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(
 				new KubernetesLoadBalancerProperties(), kubernetesDiscoveryProperties);

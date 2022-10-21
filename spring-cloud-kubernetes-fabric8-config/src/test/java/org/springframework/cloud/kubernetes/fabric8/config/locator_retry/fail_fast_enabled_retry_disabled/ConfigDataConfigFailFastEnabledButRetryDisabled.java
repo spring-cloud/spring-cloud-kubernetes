@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.locator_retry;
+package org.springframework.cloud.kubernetes.fabric8.config.locator_retry.fail_fast_enabled_retry_disabled;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -22,6 +22,10 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
 
 /**
@@ -37,14 +41,20 @@ import org.springframework.cloud.kubernetes.fabric8.config.Application;
 		properties = { "spring.cloud.kubernetes.client.namespace=default",
 				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
 				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.enabled=false",
-				"spring.cloud.kubernetes.secrets.enabled=false", "spring.cloud.bootstrap.enabled=true" },
+				"spring.cloud.kubernetes.secrets.enabled=false", "spring.config.import=kubernetes:" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class BootstrapConfigFailFastEnabledButRetryDisabled extends ConfigFailFastEnabledButRetryDisabled {
+class ConfigDataConfigFailFastEnabledButRetryDisabled extends ConfigFailFastEnabledButRetryDisabled {
 
 	private static KubernetesMockServer mockServer;
 
 	private static KubernetesClient mockClient;
+
+	@MockBean
+	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
+
+	@SpyBean
+	private ConfigMapConfigProperties properties;
 
 	@BeforeAll
 	static void setup() {

@@ -54,12 +54,13 @@ class SecretsFailFastEnabled {
 	@Test
 	void retryConfigurationShouldBeDefault() {
 		AbstractConfigProperties.RetryProperties retryProperties = secretsConfigProperties.getRetry();
-		AbstractConfigProperties.RetryProperties defaultRetryProperties = new AbstractConfigProperties.RetryProperties();
+		AbstractConfigProperties.RetryProperties defaultRetryProperties = new AbstractConfigProperties.RetryProperties(
+				1000, 1.1, 2000, 6, true);
 
-		assertThat(retryProperties.getMaxAttempts()).isEqualTo(defaultRetryProperties.getMaxAttempts());
-		assertThat(retryProperties.getInitialInterval()).isEqualTo(defaultRetryProperties.getInitialInterval());
-		assertThat(retryProperties.getMaxInterval()).isEqualTo(defaultRetryProperties.getMaxInterval());
-		assertThat(retryProperties.getMultiplier()).isEqualTo(defaultRetryProperties.getMultiplier());
+		assertThat(retryProperties.maxAttempts()).isEqualTo(defaultRetryProperties.maxAttempts());
+		assertThat(retryProperties.initialInterval()).isEqualTo(defaultRetryProperties.initialInterval());
+		assertThat(retryProperties.maxInterval()).isEqualTo(defaultRetryProperties.maxInterval());
+		assertThat(retryProperties.multiplier()).isEqualTo(defaultRetryProperties.multiplier());
 	}
 
 }
