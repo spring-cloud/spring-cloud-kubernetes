@@ -20,11 +20,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
@@ -109,100 +109,16 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 	/**
 	 * Config map source.
+	 * @param name The name of the ConfigMap.
+	 * @param namespace The namespace where the ConfigMap is found.
+	 * @param labels labels of the config map to look for against.
+	 * @param explicitPrefix An explicit prefix to be used for properties.
+	 * @param useNameAsPrefix Use config map name as prefix for properties.
+	 * @param includeProfileSpecificSources Use profile name to append to a config map
+	 * name.
 	 */
-	public static class Source {
-
-		/**
-		 * The name of the ConfigMap.
-		 */
-		private String name;
-
-		/**
-		 * The namespace where the ConfigMap is found.
-		 */
-		private String namespace;
-
-		/**
-		 * labels of the config map to look for against.
-		 */
-		private Map<String, String> labels = Collections.emptyMap();
-
-		/**
-		 * An explicit prefix to be used for properties.
-		 */
-		private String explicitPrefix;
-
-		/**
-		 * Use config map name as prefix for properties. Can't be a primitive, we need to
-		 * know if it was explicitly set or not
-		 */
-		private Boolean useNameAsPrefix;
-
-		/**
-		 * Use profile name to append to a config map name. Can't be a primitive, we need
-		 * to know if it was explicitly set or not
-		 */
-		protected Boolean includeProfileSpecificSources;
-
-		public Source() {
-
-		}
-
-		public String getName() {
-			return this.name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public String getNamespace() {
-			return this.namespace;
-		}
-
-		public void setNamespace(String namespace) {
-			this.namespace = namespace;
-		}
-
-		public Boolean isUseNameAsPrefix() {
-			return useNameAsPrefix;
-		}
-
-		public Boolean getUseNameAsPrefix() {
-			return useNameAsPrefix;
-		}
-
-		public void setUseNameAsPrefix(Boolean useNameAsPrefix) {
-			this.useNameAsPrefix = useNameAsPrefix;
-		}
-
-		public String getExplicitPrefix() {
-			return explicitPrefix;
-		}
-
-		public void setExplicitPrefix(String explicitPrefix) {
-			this.explicitPrefix = explicitPrefix;
-		}
-
-		public Boolean getIncludeProfileSpecificSources() {
-			return includeProfileSpecificSources;
-		}
-
-		public void setIncludeProfileSpecificSources(Boolean includeProfileSpecificSources) {
-			this.includeProfileSpecificSources = includeProfileSpecificSources;
-		}
-
-		public Map<String, String> getLabels() {
-			return labels;
-		}
-
-		public void setLabels(Map<String, String> labels) {
-			this.labels = labels;
-		}
-
-		public boolean isEmpty() {
-			return !StringUtils.hasLength(this.name) && !StringUtils.hasLength(this.namespace);
-		}
+	public record Source(String name, String namespace, @DefaultValue Map<String, String> labels, String explicitPrefix,
+			Boolean useNameAsPrefix, Boolean includeProfileSpecificSources) {
 
 		private Stream<NormalizedSource> normalize(String defaultName, String defaultNamespace,
 				Map<String, String> defaultLabels, boolean defaultIncludeProfileSpecificSources, boolean failFast,
@@ -233,23 +149,6 @@ public class ConfigMapConfigProperties extends AbstractConfigProperties {
 
 			return normalizedSources.build();
 
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			Source other = (Source) o;
-			return Objects.equals(this.name, other.name) && Objects.equals(this.namespace, other.namespace);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(name, namespace);
 		}
 
 	}
