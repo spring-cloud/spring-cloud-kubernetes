@@ -70,17 +70,14 @@ class SecretsConfigPropertiesTests {
 	 */
 	@Test
 	void multipleSources() {
-		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source(
-			"one", "spring-k8s", Collections.singletonMap("one", "1"), null, null, null
-		);
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source("one", "spring-k8s",
+				Collections.singletonMap("one", "1"), null, null, null);
 
-		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source(
-			null, "spring-k8s", Collections.singletonMap("two", "2"), null, null, null
-		);
+		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source(null, "spring-k8s",
+				Collections.singletonMap("two", "2"), null, null, null);
 
-		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(
-			null, "spring-k8s", Collections.singletonMap("three", "3"), null, null, null
-		);
+		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(null, "spring-k8s",
+				Collections.singletonMap("three", "3"), null, null, null);
 
 		properties.setSources(Arrays.asList(one, two, three));
 
@@ -187,9 +184,8 @@ class SecretsConfigPropertiesTests {
 		properties.setUseNameAsPrefix(true);
 		properties.setNamespace("spring-k8s");
 
-		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source(
-			"secret-one", null, Collections.emptyMap(), null, null, null
-		);
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source("secret-one", null,
+				Collections.emptyMap(), null, null, null);
 		properties.setSources(Collections.singletonList(one));
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
@@ -226,17 +222,14 @@ class SecretsConfigPropertiesTests {
 		properties.setUseNameAsPrefix(true);
 		properties.setNamespace("spring-k8s");
 
-		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source(
-			"secret-one", null, Collections.emptyMap(), null, false, null
-		);
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source("secret-one", null,
+				Collections.emptyMap(), null, false, null);
 
-		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source(
-			"secret-two", null, Collections.emptyMap(), null, true, null
-		);
+		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source("secret-two", null,
+				Collections.emptyMap(), null, true, null);
 
-		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(
-			"secret-three", null, Collections.emptyMap(), null, null, null
-		);
+		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source("secret-three", null,
+				Collections.emptyMap(), null, null, null);
 
 		properties.setSources(Arrays.asList(one, two, three));
 
@@ -277,21 +270,17 @@ class SecretsConfigPropertiesTests {
 		properties.setUseNameAsPrefix(false);
 		properties.setNamespace("spring-k8s");
 
-		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source(
-			"secret-one", null, Collections.emptyMap(), "one", false, null
-		);
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source("secret-one", null,
+				Collections.emptyMap(), "one", false, null);
 
-		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source(
-			"secret-two", null, Collections.emptyMap(), "two", true, null
-		);
+		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source("secret-two", null,
+				Collections.emptyMap(), "two", true, null);
 
-		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(
-			"secret-three", null, Collections.emptyMap(), "three", null, null
-		);
+		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source("secret-three", null,
+				Collections.emptyMap(), "three", null, null);
 
-		SecretsConfigProperties.Source four = new SecretsConfigProperties.Source(
-			"secret-four", null, Collections.emptyMap(), null, null, null
-		);
+		SecretsConfigProperties.Source four = new SecretsConfigProperties.Source("secret-four", null,
+				Collections.emptyMap(), null, null, null);
 
 		properties.setSources(Arrays.asList(one, two, three, four));
 
@@ -344,21 +333,17 @@ class SecretsConfigPropertiesTests {
 		properties.setNamespace("spring-k8s");
 		properties.setIncludeProfileSpecificSources(false);
 
-		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source(
-			null, null, Map.of("first-label", "secret-one"), "one", false, null
-		);
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source(null, null,
+				Map.of("first-label", "secret-one"), "one", false, null);
 
-		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source(
-			null, null, Map.of("second-label", "secret-two"), "two", true, true
-		);
+		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source(null, null,
+				Map.of("second-label", "secret-two"), "two", true, true);
 
-		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(
-			null, null, Map.of("third-label", "secret-three"), "three", null, null
-		);
+		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(null, null,
+				Map.of("third-label", "secret-three"), "three", null, null);
 
-		SecretsConfigProperties.Source four = new SecretsConfigProperties.Source(
-			null, null, Map.of("fourth-label", "secret-four"), null, null, null
-		);
+		SecretsConfigProperties.Source four = new SecretsConfigProperties.Source(null, null,
+				Map.of("fourth-label", "secret-four"), null, null, null);
 
 		properties.setSources(Arrays.asList(one, two, three, four));
 

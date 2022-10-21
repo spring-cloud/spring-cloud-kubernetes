@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -115,10 +114,11 @@ public class SecretsConfigProperties extends AbstractConfigProperties {
 	 * @param labels The labels of the Secret to find.
 	 * @param explicitPrefix An explicit prefix to be used for properties.
 	 * @param useNameAsPrefix Use secret name as prefix for properties.
-	 * @param includeProfileSpecificSources Use profile name to append to a config map name.
+	 * @param includeProfileSpecificSources Use profile name to append to a config map
+	 * name.
 	 */
-	public record Source(String name, String namespace, @DefaultValue Map<String, String> labels,
-			String explicitPrefix, Boolean useNameAsPrefix, Boolean includeProfileSpecificSources) {
+	public record Source(String name, String namespace, @DefaultValue Map<String, String> labels, String explicitPrefix,
+			Boolean useNameAsPrefix, Boolean includeProfileSpecificSources) {
 
 		private Stream<NormalizedSource> normalize(String defaultName, String defaultNamespace,
 				Map<String, String> defaultLabels, boolean defaultIncludeProfileSpecificSources, boolean failFast,
