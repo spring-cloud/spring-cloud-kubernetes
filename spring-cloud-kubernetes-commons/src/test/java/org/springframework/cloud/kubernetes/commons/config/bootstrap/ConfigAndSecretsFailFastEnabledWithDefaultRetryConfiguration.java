@@ -59,14 +59,14 @@ public class ConfigAndSecretsFailFastEnabledWithDefaultRetryConfiguration {
 	@Test
 	void retryConfigurationShouldBeDefault() {
 		RetryProperties defaultRetryProperties = RetryProperties.DEFAULT;
-		RetryProperties configMapRetryProperties = configMapConfigProperties.retryProperties();
+		RetryProperties configMapRetryProperties = configMapConfigProperties.retry();
 
 		assertThat(configMapRetryProperties.maxAttempts()).isEqualTo(defaultRetryProperties.maxAttempts());
 		assertThat(configMapRetryProperties.initialInterval()).isEqualTo(defaultRetryProperties.initialInterval());
 		assertThat(configMapRetryProperties.maxInterval()).isEqualTo(defaultRetryProperties.maxInterval());
 		assertThat(configMapRetryProperties.multiplier()).isEqualTo(defaultRetryProperties.multiplier());
 
-		RetryProperties secretsRetryProperties = secretsConfigProperties.retryProperties();
+		RetryProperties secretsRetryProperties = secretsConfigProperties.retry();
 
 		assertThat(secretsRetryProperties.maxAttempts()).isEqualTo(defaultRetryProperties.maxAttempts());
 		assertThat(secretsRetryProperties.initialInterval()).isEqualTo(defaultRetryProperties.initialInterval());

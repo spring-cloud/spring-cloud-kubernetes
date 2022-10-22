@@ -42,7 +42,7 @@ class ConfigFailFastEnabledWithCustomRetryConfiguration {
 
 	@Test
 	void retryConfigurationShouldBeCustomized() {
-		RetryProperties retryProperties = configMapConfigProperties.retryProperties();
+		RetryProperties retryProperties = configMapConfigProperties.retry();
 
 		assertThat(retryProperties.maxAttempts()).isEqualTo(3);
 		assertThat(retryProperties.initialInterval()).isEqualTo(1500L);

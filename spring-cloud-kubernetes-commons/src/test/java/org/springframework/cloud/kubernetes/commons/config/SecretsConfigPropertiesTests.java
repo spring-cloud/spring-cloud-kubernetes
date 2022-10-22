@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -40,9 +39,8 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void emptySourcesSecretName() {
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(
-			false, Map.of(), List.of(), List.of(), true, null, "namespace", false, true, false, RetryProperties.DEFAULT
-		);
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), List.of(), true,
+				null, "namespace", false, true, false, RetryProperties.DEFAULT);
 
 		List<NormalizedSource> source = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(source.size(), 1);
@@ -73,21 +71,17 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void multipleSources() {
 
-		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source(
-			"one", "spring-k8s", Map.of("one", "1"), null, false, false
-		);
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source("one", "spring-k8s", Map.of("one", "1"),
+				null, false, false);
 
-		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source(
-			null, "spring-k8s", Map.of("two", "2"), null, false, false
-		);
+		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source(null, "spring-k8s", Map.of("two", "2"),
+				null, false, false);
 
-		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(
-			null, "spring-k8s", Map.of("three", "3"), null, false, false
-		);
+		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(null, "spring-k8s",
+				Map.of("three", "3"), null, false, false);
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(
-			false, Map.of(), List.of(), List.of(one, two, three), true, null, "namespace", false, true, false, RetryProperties.DEFAULT
-		);
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(),
+				List.of(one, two, three), true, null, "namespace", false, true, false, RetryProperties.DEFAULT);
 
 		List<NormalizedSource> result = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(result.size(), 6);
@@ -131,9 +125,8 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void testUseNameAsPrefixUnsetEmptySources() {
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(
-			false, Map.of(), List.of(), List.of(), true, "secret-a", "namespace", false, true, false, RetryProperties.DEFAULT
-		);
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), List.of(), true,
+				"secret-a", "namespace", false, true, false, RetryProperties.DEFAULT);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
@@ -158,9 +151,8 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void testUseNameAsPrefixSetEmptySources() {
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(
-			false, Map.of(), List.of(), List.of(), true, "secret-a", "namespace", true, true, false, RetryProperties.DEFAULT
-		);
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), List.of(), true,
+				"secret-a", "namespace", true, true, false, RetryProperties.DEFAULT);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
@@ -188,13 +180,11 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void testUseNameAsPrefixUnsetNonEmptySources() {
 
-		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source(
-			"secret-one", "spring-k8s", Map.of(), null, true, false
-		);
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source("secret-one", "spring-k8s", Map.of(),
+				null, true, false);
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(
-			false, Map.of(), List.of(), List.of(one), true, "secret-one", null, false, true, false, RetryProperties.DEFAULT
-		);
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), List.of(one), true,
+				"secret-one", null, false, true, false, RetryProperties.DEFAULT);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "a single NormalizedSource is expected");
@@ -227,21 +217,17 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void testUseNameAsPrefixSetNonEmptySources() {
 
-		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source(
-			"secret-one", "spring-k8s", Map.of(), null, false, false
-		);
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source("secret-one", "spring-k8s", Map.of(),
+				null, false, false);
 
-		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source(
-			"secret-two", "spring-k8s", Map.of(), null, true, false
-		);
+		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source("secret-two", "spring-k8s", Map.of(),
+				null, true, false);
 
-		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(
-			"secret-three", "spring-k8s", Map.of(), null, true, false
-		);
+		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source("secret-three", "spring-k8s",
+				Map.of(), null, true, false);
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(
-			false, Map.of(), List.of(), List.of(one, two, three), true, "secret-one", null, false, true, false, RetryProperties.DEFAULT
-		);
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(),
+				List.of(one, two, three), true, "secret-one", null, false, true, false, RetryProperties.DEFAULT);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 3, "3 NormalizedSources are expected");
@@ -277,26 +263,21 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void testMultipleCases() {
 
-		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source(
-			"secret-one", "spring-k8s", Map.of(), "one", false, false
-		);
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source("secret-one", "spring-k8s", Map.of(),
+				"one", false, false);
 
-		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source(
-			"secret-two", "spring-k8s", Map.of(), "two", true, false
-		);
+		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source("secret-two", "spring-k8s", Map.of(),
+				"two", true, false);
 
-		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(
-			"secret-three", "spring-k8s", Map.of(), "three", false, false
-		);
+		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source("secret-three", "spring-k8s",
+				Map.of(), "three", false, false);
 
-		SecretsConfigProperties.Source four = new SecretsConfigProperties.Source(
-			"secret-four", "spring-k8s", Map.of(), null, false, false
-		);
+		SecretsConfigProperties.Source four = new SecretsConfigProperties.Source("secret-four", "spring-k8s", Map.of(),
+				null, false, false);
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(
-			false, Map.of(), List.of(), List.of(one, two, three, four), true, "secret-one", "spring-k8s",
-			false, false, false, RetryProperties.DEFAULT
-		);
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(),
+				List.of(one, two, three, four), true, "secret-one", "spring-k8s", false, false, false,
+				RetryProperties.DEFAULT);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 4, "4 NormalizedSources are expected");
@@ -342,27 +323,21 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void testLabelsMultipleCases() {
 
-		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source(
-			null, "spring-k8s", Map.of("first-label", "secret-one"), "one", false, false
-		);
+		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source(null, "spring-k8s",
+				Map.of("first-label", "secret-one"), "one", false, false);
 
-		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source(
-			null, "spring-k8s", Map.of("second-label", "secret-two"), "two", true, true
-		);
+		SecretsConfigProperties.Source two = new SecretsConfigProperties.Source(null, "spring-k8s",
+				Map.of("second-label", "secret-two"), "two", true, true);
 
-		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(
-			null, "spring-k8s", Map.of("third-label", "secret-three"), "three", false, false
-		);
+		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(null, "spring-k8s",
+				Map.of("third-label", "secret-three"), "three", false, false);
 
-		SecretsConfigProperties.Source four = new SecretsConfigProperties.Source(
-			null, "spring-k8s", Map.of("fourth-label", "secret-four"), "three", false, false
-		);
+		SecretsConfigProperties.Source four = new SecretsConfigProperties.Source(null, "spring-k8s",
+				Map.of("fourth-label", "secret-four"), null, false, false);
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(
-			false, Map.of(), List.of(), List.of(one, two, three, four), false, null, "spring-k8s",
-			false, false, false, RetryProperties.DEFAULT
-		);
-
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(),
+				List.of(one, two, three, four), false, null, "spring-k8s", false, false, false,
+				RetryProperties.DEFAULT);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		// we get 8 property sources, since "named" ones with "application" are

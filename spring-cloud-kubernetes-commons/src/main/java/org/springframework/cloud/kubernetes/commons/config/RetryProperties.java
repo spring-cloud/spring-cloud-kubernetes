@@ -20,8 +20,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 
 /**
  *
- * @author wind57
- * Kubernetes config retry properties.
+ * @author wind57 Kubernetes config retry properties.
  * @param initialInterval Initial retry interval in milliseconds.
  * @param multiplier Maximum interval for backoff.
  * @param maxInterval Maximum interval
@@ -32,6 +31,9 @@ public record RetryProperties(@DefaultValue("1000") long initialInterval, @Defau
 		@DefaultValue("2000") long maxInterval, @DefaultValue("6") int maxAttempts,
 		@DefaultValue("true") boolean enabled) {
 
+	/**
+	 * Default instance.
+	 */
 	public static final RetryProperties DEFAULT = new RetryProperties(1000, 1.1, 2000, 6, true);
 
 }

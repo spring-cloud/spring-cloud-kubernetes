@@ -53,7 +53,7 @@ class SecretsFailFastEnabled {
 
 	@Test
 	void retryConfigurationShouldBeDefault() {
-		RetryProperties retryProperties = secretsConfigProperties.retryProperties();
+		RetryProperties retryProperties = secretsConfigProperties.retry();
 		RetryProperties defaultRetryProperties = RetryProperties.DEFAULT;
 
 		assertThat(retryProperties.maxAttempts()).isEqualTo(defaultRetryProperties.maxAttempts());

@@ -154,12 +154,12 @@ public abstract class KubernetesConfigDataLocationResolver
 	}
 
 	protected boolean isRetryEnabledForConfigMap(ConfigMapConfigProperties configMapProperties) {
-		return RETRY_IS_PRESENT && configMapProperties != null && configMapProperties.retryProperties().enabled()
+		return RETRY_IS_PRESENT && configMapProperties != null && configMapProperties.retry().enabled()
 				&& configMapProperties.failFast();
 	}
 
 	protected boolean isRetryEnabledForSecrets(SecretsConfigProperties secretsProperties) {
-		return RETRY_IS_PRESENT && secretsProperties != null && secretsProperties.retryProperties().enabled()
+		return RETRY_IS_PRESENT && secretsProperties != null && secretsProperties.retry().enabled()
 				&& secretsProperties.failFast();
 	}
 
