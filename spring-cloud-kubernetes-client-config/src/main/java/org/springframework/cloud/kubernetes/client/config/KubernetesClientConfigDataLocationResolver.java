@@ -70,7 +70,7 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 			registerRetryBeans(configMapProperties, secretsProperties, bootstrapContext, coreV1Api, namespaceProvider);
 		}
 		else {
-			if (configMapProperties != null && configMapProperties.isEnabled()) {
+			if (configMapProperties != null && configMapProperties.enableApi()) {
 				KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator = new KubernetesClientConfigMapPropertySourceLocator(
 						coreV1Api, configMapProperties, namespaceProvider);
 				bootstrapContext.registerIfAbsent(ConfigMapPropertySourceLocator.class,
@@ -80,7 +80,7 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 								event.getBootstrapContext().get(ConfigMapPropertySourceLocator.class)));
 			}
 
-			if (secretsProperties != null && secretsProperties.isEnabled()) {
+			if (secretsProperties != null && secretsProperties.enableApi()) {
 				KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator = new KubernetesClientSecretsPropertySourceLocator(
 						coreV1Api, namespaceProvider, secretsProperties);
 				bootstrapContext.registerIfAbsent(SecretsPropertySourceLocator.class,
@@ -95,7 +95,7 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 	private void registerRetryBeans(ConfigMapConfigProperties configMapProperties,
 			SecretsConfigProperties secretsProperties, ConfigurableBootstrapContext bootstrapContext,
 			CoreV1Api coreV1Api, KubernetesNamespaceProvider namespaceProvider) {
-		if (configMapProperties != null && configMapProperties.isEnabled()) {
+		if (configMapProperties != null && configMapProperties.enableApi()) {
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator = new KubernetesClientConfigMapPropertySourceLocator(
 					coreV1Api, configMapProperties, namespaceProvider);
 			if (isRetryEnabledForConfigMap(configMapProperties)) {
@@ -110,7 +110,7 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 					event.getBootstrapContext().get(ConfigMapPropertySourceLocator.class)));
 		}
 
-		if (secretsProperties != null && secretsProperties.isEnabled()) {
+		if (secretsProperties != null && secretsProperties.enableApi()) {
 			SecretsPropertySourceLocator secretsPropertySourceLocator = new KubernetesClientSecretsPropertySourceLocator(
 					coreV1Api, namespaceProvider, secretsProperties);
 			if (isRetryEnabledForSecrets(secretsProperties)) {
