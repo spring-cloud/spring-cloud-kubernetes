@@ -71,26 +71,6 @@ public record SecretsConfigProperties(boolean enableApi, @DefaultValue Map<Strin
 				.collect(Collectors.toList());
 	}
 
-	// because of this current issue
-	// https://github.com/spring-projects/spring-boot/issues/32660
-	// we need this workaround
-	public static SecretsConfigProperties fromSelfAndRetry(SecretsConfigProperties secretsConfigProperties,
-			RetryProperties retryProperties) {
-		return new SecretsConfigProperties(
-			secretsConfigProperties.enableApi(),
-			secretsConfigProperties.labels(),
-			secretsConfigProperties.paths(),
-			secretsConfigProperties.sources(),
-			secretsConfigProperties.enabled(),
-			secretsConfigProperties.name(),
-			secretsConfigProperties.namespace(),
-			secretsConfigProperties.useNameAsPrefix(),
-			secretsConfigProperties.includeProfileSpecificSources(),
-			secretsConfigProperties.failFast(),
-			retryProperties
-		);
-	}
-
 	public static class Source {
 
 		/**

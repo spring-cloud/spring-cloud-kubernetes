@@ -113,9 +113,14 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
 		configMapConfigProperties.setName("fake-name");
+<<<<<<< HEAD
 		ConfigMapConfigProperties.Source source = new ConfigMapConfigProperties.Source(
 			"bootstrap-640", "default", Collections.emptyMap(), null, null, null
 		);
+=======
+		ConfigMapConfigProperties.Source source = new ConfigMapConfigProperties.Source("bootstrap-640", "default",
+				Collections.emptyMap(), null, null, null);
+>>>>>>> main
 		List<ConfigMapConfigProperties.Source> sources = Collections.singletonList(source);
 		configMapConfigProperties.setSources(sources);
 		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();

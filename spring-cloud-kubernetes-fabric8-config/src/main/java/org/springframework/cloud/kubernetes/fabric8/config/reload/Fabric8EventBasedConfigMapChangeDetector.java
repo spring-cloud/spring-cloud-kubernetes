@@ -74,8 +74,8 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 		super(environment, properties, strategy);
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8ConfigMapPropertySourceLocator = fabric8ConfigMapPropertySourceLocator;
-		this.enableReloadFiltering = properties.isEnableReloadFiltering();
-		monitoringConfigMaps = properties.isMonitoringConfigMaps();
+		this.enableReloadFiltering = properties.enableReloadFiltering();
+		monitoringConfigMaps = properties.monitoringConfigMaps();
 		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "configmap");
 	}
 

@@ -31,15 +31,13 @@ import org.springframework.context.annotation.Configuration;
 class ConfigMapConfigPropertiesBindingTests {
 
 	@Test
-	void testOne() {
+	void testWithDefaults() {
 		new ApplicationContextRunner()
 			.withUserConfiguration(Config.class)
-			.withPropertyValues("spring.cloud.kubernetes.config.name=abc",
-				"spring.cloud.kubernetes.config.alter-name=def")
 			.run(context -> {
 				ConfigMapConfigProperties props = context.getBean(ConfigMapConfigProperties.class);
 				Assertions.assertNotNull(props);
-				Assertions.fail("wind57 : write proper unit tests");
+				Assertions.assertTrue(props.enableApi());
 			});
 	}
 

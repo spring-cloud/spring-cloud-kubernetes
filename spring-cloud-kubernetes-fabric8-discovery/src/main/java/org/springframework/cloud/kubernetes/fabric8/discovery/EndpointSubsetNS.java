@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2019 the original author or authors.
+ * Copyright 2012-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.EndpointSubset;
@@ -24,36 +23,11 @@ import io.fabric8.kubernetes.api.model.EndpointSubset;
 /**
  * @author Haytham Mohamed
  **/
-public class EndpointSubsetNS {
-
-	private String namespace;
-
-	private List<EndpointSubset> endpointSubset = new ArrayList<>();
-
-	public String getNamespace() {
-		return namespace;
-	}
-
-	public void setNamespace(String namespace) {
-		this.namespace = namespace;
-	}
-
-	public List<EndpointSubset> getEndpointSubset() {
-		return endpointSubset;
-	}
-
-	public void setEndpointSubset(List<EndpointSubset> endpointSubset) {
-		this.endpointSubset = endpointSubset;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		return this.endpointSubset.equals(o);
-	}
-
-	@Override
-	public int hashCode() {
-		return this.endpointSubset.hashCode();
+record EndpointSubsetNS(String namespace, List<EndpointSubset> endpointSubset) {
+	EndpointSubsetNS {
+		if (endpointSubset == null) {
+			endpointSubset = List.of();
+		}
 	}
 
 }

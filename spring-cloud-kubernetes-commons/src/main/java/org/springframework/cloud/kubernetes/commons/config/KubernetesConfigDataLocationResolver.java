@@ -154,13 +154,13 @@ public abstract class KubernetesConfigDataLocationResolver
 	}
 
 	protected boolean isRetryEnabledForConfigMap(ConfigMapConfigProperties configMapProperties) {
-		return RETRY_IS_PRESENT && configMapProperties != null && configMapProperties.getRetry().enabled()
-				&& configMapProperties.isFailFast();
+		return RETRY_IS_PRESENT && configMapProperties != null && configMapProperties.retryProperties().enabled()
+				&& configMapProperties.failFast();
 	}
 
 	protected boolean isRetryEnabledForSecrets(SecretsConfigProperties secretsProperties) {
-		return RETRY_IS_PRESENT && secretsProperties != null && secretsProperties.getRetry().enabled()
-				&& secretsProperties.isFailFast();
+		return RETRY_IS_PRESENT && secretsProperties != null && secretsProperties.retryProperties().enabled()
+				&& secretsProperties.failFast();
 	}
 
 	protected KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {
@@ -190,9 +190,8 @@ public abstract class KubernetesConfigDataLocationResolver
 					kubernetesClientProperties);
 		}
 		else {
-			kubernetesClientProperties = binder
-					.bind(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class), bindHandler)
-					.orElseGet(KubernetesClientProperties::new);
+			kubernetesClientProperties = binder.bindOrCreate(KubernetesClientProperties.PREFIX,
+					Bindable.of(KubernetesClientProperties.class), bindHandler);
 		}
 		kubernetesClientProperties.setNamespace(namespace);
 
@@ -201,20 +200,13 @@ public abstract class KubernetesConfigDataLocationResolver
 
 		ConfigMapConfigProperties configMapConfigProperties = null;
 		if (configEnabled) {
-			ConfigMapConfigProperties.RetryProperties properties = binder.bindOrCreate(
-					ConfigMapConfigProperties.PREFIX + ".retry", ConfigMapConfigProperties.RetryProperties.class);
 			configMapConfigProperties = binder.bindOrCreate(ConfigMapConfigProperties.PREFIX,
 					ConfigMapConfigProperties.class);
-			configMapConfigProperties = ConfigMapConfigProperties.fromSelfAndRetry(configMapConfigProperties,
-					properties);
 		}
 
 		SecretsConfigProperties secretsProperties = null;
 		if (secretsEnabled) {
-			SecretsConfigProperties.RetryProperties properties = binder.bindOrCreate(
-					SecretsConfigProperties.PREFIX + ".retry", SecretsConfigProperties.RetryProperties.class);
 			secretsProperties = binder.bindOrCreate(SecretsConfigProperties.PREFIX, SecretsConfigProperties.class);
-			secretsProperties = SecretsConfigProperties.fromSelfAndRetry(secretsProperties, properties);
 		}
 
 		return new PropertyHolder(kubernetesClientProperties, configMapConfigProperties, secretsProperties,

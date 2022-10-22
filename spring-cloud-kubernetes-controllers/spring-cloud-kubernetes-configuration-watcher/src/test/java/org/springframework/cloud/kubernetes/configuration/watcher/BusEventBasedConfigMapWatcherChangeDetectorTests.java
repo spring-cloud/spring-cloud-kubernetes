@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import java.util.Set;
-
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -74,12 +72,10 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 	void setup() {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
-		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
-		configReloadProperties.setNamespaces(Set.of("default"));
 		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		busProperties = new BusProperties();
 		changeDetector = new BusEventBasedConfigMapWatcherChangeDetector(coreV1Api, mockEnvironment,
-				configReloadProperties, UPDATE_STRATEGY, configMapPropertySourceLocator,
+				ConfigReloadProperties.DEFAULT, UPDATE_STRATEGY, configMapPropertySourceLocator,
 				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
 				threadPoolTaskExecutor, new BusRefreshTrigger(applicationEventPublisher, busProperties.getId()));
 	}

@@ -66,7 +66,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 		if (environment instanceof ConfigurableEnvironment env) {
 
 			CompositePropertySource composite = new CompositePropertySource("composite-configmap");
-			if (this.properties.isEnableApi()) {
+			if (this.properties.enableApi()) {
 				Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources(environment));
 				LOG.debug("Config Map normalized sources : " + sources);
 				sources.forEach(s -> composite.addFirstPropertySource(getMapPropertySource(s, env)));
@@ -85,7 +85,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	}
 
 	private void addPropertySourcesFromPaths(Environment environment, CompositePropertySource composite) {
-		Set<String> uniquePaths = new LinkedHashSet<>(properties.getPaths());
+		Set<String> uniquePaths = new LinkedHashSet<>(properties.paths());
 		uniquePaths.stream().map(Paths::get).filter(p -> {
 			boolean exists = Files.exists(p);
 			if (!exists) {

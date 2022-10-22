@@ -69,26 +69,6 @@ public record ConfigMapConfigProperties(@DefaultValue("true") boolean enableApi,
 				.collect(Collectors.toList());
 	}
 
-	// because of this current issue
-	// https://github.com/spring-projects/spring-boot/issues/32660
-	// we need this workaround
-	public static ConfigMapConfigProperties fromSelfAndRetry(ConfigMapConfigProperties configMapConfigProperties,
-			RetryProperties retryProperties) {
-		return new ConfigMapConfigProperties(
-			configMapConfigProperties.enableApi(),
-			configMapConfigProperties.paths(),
-			configMapConfigProperties.sources(),
-			configMapConfigProperties.labels(),
-			configMapConfigProperties.enabled(),
-			configMapConfigProperties.name(),
-			configMapConfigProperties.namespace(),
-			configMapConfigProperties.useNameAsPrefix(),
-			configMapConfigProperties.includeProfileSpecificSources(),
-			configMapConfigProperties.failFast(),
-			retryProperties
-		);
-	}
-
 	/**
 	 * Config map source.
 	 * @param name The name of the ConfigMap.

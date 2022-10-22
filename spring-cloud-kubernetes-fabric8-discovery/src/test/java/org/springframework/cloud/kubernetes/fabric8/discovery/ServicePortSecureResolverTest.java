@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -49,8 +50,8 @@ public class ServicePortSecureResolverTest {
 
 	@Test
 	public void testPortNumbersOnly() {
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties();
-		properties.getKnownSecurePorts().add(12345);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, true, 60, false, null,
+				Set.of(443, 8443, 12345), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
 
@@ -65,7 +66,7 @@ public class ServicePortSecureResolverTest {
 
 	@Test
 	public void testLabelsAndAnnotations() {
-		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(new KubernetesDiscoveryProperties());
+		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
 
 		assertThat(secureResolver.resolve(SECURED_TRUE)).isTrue();
 		assertThat(secureResolver.resolve(SECURED_1)).isTrue();
