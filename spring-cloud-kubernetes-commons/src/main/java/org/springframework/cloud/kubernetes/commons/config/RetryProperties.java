@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 /**
@@ -33,9 +32,6 @@ public record RetryProperties(@DefaultValue("1000") long initialInterval, @Defau
 		@DefaultValue("2000") long maxInterval, @DefaultValue("6") int maxAttempts,
 		@DefaultValue("true") boolean enabled) {
 
-	@ConstructorBinding
-	public RetryProperties {
-		System.out.println("test");
-	}
+	public static final RetryProperties DEFAULT = new RetryProperties(1000, 1.1, 2000, 6, true);
 
 }

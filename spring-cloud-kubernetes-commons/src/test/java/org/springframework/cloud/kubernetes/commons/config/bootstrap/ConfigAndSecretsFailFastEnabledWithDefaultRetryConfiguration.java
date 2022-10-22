@@ -22,9 +22,9 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.commons.config.AbstractConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.App;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.retry.interceptor.RetryOperationsInterceptor;
@@ -58,21 +58,15 @@ public class ConfigAndSecretsFailFastEnabledWithDefaultRetryConfiguration {
 
 	@Test
 	void retryConfigurationShouldBeDefault() {
-<<<<<<< HEAD
-		AbstractConfigProperties.RetryProperties defaultRetryProperties = new AbstractConfigProperties.RetryProperties(
-				1000, 1.1, 2000, 6, true);
-=======
-		AbstractConfigProperties.RetryProperties defaultRetryProperties = AbstractConfigProperties.RetryProperties.DEFAULT;
->>>>>>> main
-
-		AbstractConfigProperties.RetryProperties configMapRetryProperties = configMapConfigProperties.getRetry();
+		RetryProperties defaultRetryProperties = RetryProperties.DEFAULT;
+		RetryProperties configMapRetryProperties = configMapConfigProperties.retryProperties();
 
 		assertThat(configMapRetryProperties.maxAttempts()).isEqualTo(defaultRetryProperties.maxAttempts());
 		assertThat(configMapRetryProperties.initialInterval()).isEqualTo(defaultRetryProperties.initialInterval());
 		assertThat(configMapRetryProperties.maxInterval()).isEqualTo(defaultRetryProperties.maxInterval());
 		assertThat(configMapRetryProperties.multiplier()).isEqualTo(defaultRetryProperties.multiplier());
 
-		AbstractConfigProperties.RetryProperties secretsRetryProperties = secretsConfigProperties.getRetry();
+		RetryProperties secretsRetryProperties = secretsConfigProperties.retryProperties();
 
 		assertThat(secretsRetryProperties.maxAttempts()).isEqualTo(defaultRetryProperties.maxAttempts());
 		assertThat(secretsRetryProperties.initialInterval()).isEqualTo(defaultRetryProperties.initialInterval());

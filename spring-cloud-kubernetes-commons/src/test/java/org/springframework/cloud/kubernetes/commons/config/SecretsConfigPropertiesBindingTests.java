@@ -18,6 +18,9 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author wind57
@@ -28,8 +31,36 @@ import org.junit.jupiter.api.Test;
 class SecretsConfigPropertiesBindingTests {
 
 	@Test
-	void test() {
-		Assertions.fail("wind57 write proper unit tests");
+	void testWithDefaults() {
+		new ApplicationContextRunner()
+			.withUserConfiguration(Config.class)
+			.run(context -> {
+				SecretsConfigProperties props = context.getBean(SecretsConfigProperties.class);
+				Assertions.assertNotNull(props);
+				Assertions.assertFalse(props.enableApi());
+				Assertions.assertTrue(props.paths().isEmpty());
+				Assertions.assertTrue(props.sources().isEmpty());
+				Assertions.assertTrue(props.labels().isEmpty());
+				Assertions.assertTrue(props.enabled());
+				Assertions.assertNull(props.name());
+				Assertions.assertNull(props.namespace());
+				Assertions.assertFalse(props.useNameAsPrefix());
+				Assertions.assertTrue(props.includeProfileSpecificSources());
+				Assertions.assertFalse(props.failFast());
+
+				Assertions.assertNotNull(props.retryProperties());
+				Assertions.assertEquals(props.retryProperties().initialInterval(), 1000L);
+				Assertions.assertEquals(props.retryProperties().multiplier(), 1.1D);
+				Assertions.assertEquals(props.retryProperties().maxInterval(), 2000L);
+				Assertions.assertEquals(props.retryProperties().maxAttempts(), 6);
+				Assertions.assertTrue(props.retryProperties().enabled());
+			});
+	}
+
+	@Configuration
+	@EnableConfigurationProperties(SecretsConfigProperties.class)
+	static class Config {
+
 	}
 
 }

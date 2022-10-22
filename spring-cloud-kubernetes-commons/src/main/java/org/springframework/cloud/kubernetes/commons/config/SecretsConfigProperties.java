@@ -41,7 +41,7 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.ge
 public record SecretsConfigProperties(boolean enableApi, @DefaultValue Map<String, String> labels, @DefaultValue List<String> paths,
 		@DefaultValue List<Source> sources, @DefaultValue("true") boolean enabled, String name, String namespace,
 		boolean useNameAsPrefix, @DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
-		RetryProperties retryProperties) {
+		@DefaultValue RetryProperties retryProperties) {
 
 	/**
 	 * Prefix for Kubernetes secrets configuration properties.
