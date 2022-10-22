@@ -38,7 +38,6 @@ class KubernetesEnabledConfigDisabled {
 	@Autowired
 	private ConfigurableApplicationContext context;
 
-
 	@Test
 	void secretsOnlyPresent() {
 		assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
