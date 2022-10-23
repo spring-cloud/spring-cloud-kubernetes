@@ -108,13 +108,11 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties();
 
-		SecretsConfigProperties.Source source1 = new SecretsConfigProperties.Source(
-			"db-secret", "", Collections.emptyMap(), null, null, null
-		);
+		SecretsConfigProperties.Source source1 = new SecretsConfigProperties.Source("db-secret", "",
+				Collections.emptyMap(), null, null, null);
 
-		SecretsConfigProperties.Source source2 = new SecretsConfigProperties.Source(
-			"rabbit-password", "", Collections.emptyMap(), null, null, null
-		);
+		SecretsConfigProperties.Source source2 = new SecretsConfigProperties.Source("rabbit-password", "",
+				Collections.emptyMap(), null, null, null);
 
 		List<SecretsConfigProperties.Source> sources = new ArrayList<>();
 		sources.add(source1);
