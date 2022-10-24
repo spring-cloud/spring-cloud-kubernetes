@@ -34,13 +34,9 @@ public record KubernetesClientProperties(Boolean trustCerts, String masterUrl, S
 		String clientKeyPassphrase, String username, String password, Duration watchReconnectInterval,
 		Duration watchReconnectLimit, Duration connectionTimeout, Duration requestTimeout, Duration rollingTimeout,
 		Duration loggingInterval, String httpProxy, String httpsProxy, String proxyUsername, String proxyPassword,
-		String oauthToken, String[] noProxy, @DefaultValue(SERVICE_ACCOUNT_NAMESPACE_PATH) String serviceAccountNamespacePath,
+		String oauthToken, String[] noProxy,
+		@DefaultValue(SERVICE_ACCOUNT_NAMESPACE_PATH) String serviceAccountNamespacePath,
 		@DefaultValue(DEFAULT_USER_AGENT) String userAgent) {
-
-	public static final KubernetesClientProperties DEFAULT = new KubernetesClientProperties(
-		null, null, null, null, null, null, null, null, null, null, null, null, null,
-		null, null, null, null, null, null, null, null, null, null, null, null, null
-	);
 
 	/**
 	 * Configuration properties prefix.
@@ -56,5 +52,17 @@ public record KubernetesClientProperties(Boolean trustCerts, String masterUrl, S
 	 * Default path for namespace file.
 	 */
 	public static final String SERVICE_ACCOUNT_NAMESPACE_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/namespace";
+
+	/**
+	 * copy constructor that only changes the namespace.
+	 */
+	public KubernetesClientProperties withNamespace(String namespace) {
+		return new KubernetesClientProperties(this.trustCerts(), this.masterUrl(), this.apiVersion(), namespace,
+				this.caCertFile(), this.caCertData(), this.clientCertData(), this.clientKeyFile(), this.clientKeyData(),
+				this.clientKeyPassphrase(), this.username(), this.password(), this.watchReconnectInterval(),
+				this.watchReconnectLimit(), this.connectionTimeout(), this.requestTimeout(), this.rollingTimeout(),
+				this.loggingInterval(), this.httpProxy(), this.httpsProxy(), this.proxyUsername(), this.proxyPassword(),
+				this.oauthToken(), this.noProxy(), this.serviceAccountNamespacePath(), this.userAgent());
+	}
 
 }

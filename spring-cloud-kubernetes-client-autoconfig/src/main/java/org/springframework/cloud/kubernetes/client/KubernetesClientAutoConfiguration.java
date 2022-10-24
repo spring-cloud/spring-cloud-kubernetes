@@ -44,7 +44,7 @@ public class KubernetesClientAutoConfiguration {
 	@ConditionalOnMissingBean
 	public ApiClient apiClient(KubernetesClientProperties properties) {
 		ApiClient apiClient = kubernetesApiClient();
-		apiClient.setUserAgent(properties.getUserAgent());
+		apiClient.setUserAgent(properties.userAgent());
 		return apiClient;
 	}
 

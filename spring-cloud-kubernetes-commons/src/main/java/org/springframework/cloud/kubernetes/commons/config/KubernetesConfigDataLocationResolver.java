@@ -42,7 +42,6 @@ import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
 
-import static org.springframework.beans.BeanUtils.copyProperties;
 import static org.springframework.boot.cloud.CloudPlatform.KUBERNETES;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.registerSingle;
 import static org.springframework.util.ClassUtils.isPresent;
@@ -170,25 +169,26 @@ public abstract class KubernetesConfigDataLocationResolver
 			String namespace = binder.bind("spring.cloud.kubernetes.client.namespace", String.class)
 					.orElse(binder.bind("kubernetes.namespace", String.class).orElse(""));
 
-			KubernetesClientProperties kubernetesClientProperties = clientProperties(context);
-			kubernetesClientProperties.setNamespace(namespace);
-
+			KubernetesClientProperties kubernetesClientProperties = clientProperties(context, namespace);
 			ConfigMapAndSecrets both = ConfigMapAndSecrets.of(binder);
+
 			return new PropertyHolder(kubernetesClientProperties, both.configMapProperties(),
 					both.secretsConfigProperties(), applicationName);
 		}
 
-		private static KubernetesClientProperties clientProperties(ConfigDataLocationResolverContext context) {
+		private static KubernetesClientProperties clientProperties(ConfigDataLocationResolverContext context,
+				String namespace) {
 			KubernetesClientProperties kubernetesClientProperties;
 
 			if (context.getBootstrapContext().isRegistered(KubernetesClientProperties.class)) {
-				kubernetesClientProperties = KubernetesClientProperties.DEFAULT;
-				copyProperties(context.getBootstrapContext().get(KubernetesClientProperties.class),
-						kubernetesClientProperties);
+				kubernetesClientProperties = context.getBootstrapContext().get(KubernetesClientProperties.class)
+						.withNamespace(namespace);
 			}
 			else {
-				kubernetesClientProperties = context.getBinder().bindOrCreate(KubernetesClientProperties.PREFIX,
-						Bindable.of(KubernetesClientProperties.class));
+				kubernetesClientProperties = context.getBinder()
+						.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class))
+						.withNamespace(namespace);
+
 			}
 
 			return kubernetesClientProperties;

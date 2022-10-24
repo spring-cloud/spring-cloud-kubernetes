@@ -201,9 +201,10 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 		@ConditionalOnMissingBean(KubernetesClientProperties.class)
 		@Bean
 		KubernetesClientProperties kubernetesClientProperties() {
-			KubernetesClientProperties properties = new KubernetesClientProperties();
-			properties.setNamespace("default");
-			return properties;
+			return new KubernetesClientProperties(
+				null, null, null, "default", null, null, null, null, null, null, null, null, null,
+				null, null, null, null, null, null, null, null, null, null, null, null, null
+			);
 		}
 
 		@Bean
