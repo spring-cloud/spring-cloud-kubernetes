@@ -95,7 +95,7 @@ public abstract class KubernetesConfigDataLocationResolver
 		registerProperties(resolverContext, clientProperties, configMapProperties, secretsProperties);
 
 		HashMap<String, Object> kubernetesConfigData = new HashMap<>();
-		kubernetesConfigData.put("spring.cloud.kubernetes.client.namespace", clientProperties.getNamespace());
+		kubernetesConfigData.put("spring.cloud.kubernetes.client.namespace", clientProperties.namespace());
 		if (propertyHolder.applicationName() != null) {
 			// If its null it means sprig.application.name was not set so don't add it to
 			// the property source
@@ -182,7 +182,7 @@ public abstract class KubernetesConfigDataLocationResolver
 			KubernetesClientProperties kubernetesClientProperties;
 
 			if (context.getBootstrapContext().isRegistered(KubernetesClientProperties.class)) {
-				kubernetesClientProperties = new KubernetesClientProperties();
+				kubernetesClientProperties = KubernetesClientProperties.DEFAULT;
 				copyProperties(context.getBootstrapContext().get(KubernetesClientProperties.class),
 						kubernetesClientProperties);
 			}

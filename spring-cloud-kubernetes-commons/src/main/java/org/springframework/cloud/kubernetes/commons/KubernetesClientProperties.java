@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.commons;
 import java.time.Duration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import static org.springframework.cloud.kubernetes.commons.KubernetesClientProperties.PREFIX;
 
@@ -28,7 +29,18 @@ import static org.springframework.cloud.kubernetes.commons.KubernetesClientPrope
  * @author Ioannis Canellos
  */
 @ConfigurationProperties(PREFIX)
-public class KubernetesClientProperties {
+public record KubernetesClientProperties(Boolean trustCerts, String masterUrl, String apiVersion, String namespace,
+		String caCertFile, String caCertData, String clientCertData, String clientKeyFile, String clientKeyData,
+		String clientKeyPassphrase, String username, String password, Duration watchReconnectInterval,
+		Duration watchReconnectLimit, Duration connectionTimeout, Duration requestTimeout, Duration rollingTimeout,
+		Duration loggingInterval, String httpProxy, String httpsProxy, String proxyUsername, String proxyPassword,
+		String oauthToken, String[] noProxy, @DefaultValue(SERVICE_ACCOUNT_NAMESPACE_PATH) String serviceAccountNamespacePath,
+		@DefaultValue(DEFAULT_USER_AGENT) String userAgent) {
+
+	public static final KubernetesClientProperties DEFAULT = new KubernetesClientProperties(
+		null, null, null, null, null, null, null, null, null, null, null, null, null,
+		null, null, null, null, null, null, null, null, null, null, null, null, null
+	);
 
 	/**
 	 * Configuration properties prefix.
@@ -44,289 +56,5 @@ public class KubernetesClientProperties {
 	 * Default path for namespace file.
 	 */
 	public static final String SERVICE_ACCOUNT_NAMESPACE_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/namespace";
-
-	private Boolean trustCerts;
-
-	private String masterUrl;
-
-	private String apiVersion;
-
-	private String namespace;
-
-	private String caCertFile;
-
-	private String caCertData;
-
-	private String clientCertFile;
-
-	private String clientCertData;
-
-	private String clientKeyFile;
-
-	private String clientKeyData;
-
-	private String clientKeyAlgo;
-
-	private String clientKeyPassphrase;
-
-	private String username;
-
-	private String password;
-
-	private Duration watchReconnectInterval;
-
-	private Duration watchReconnectLimit;
-
-	private Duration connectionTimeout;
-
-	private Duration requestTimeout;
-
-	private Duration rollingTimeout;
-
-	private Duration loggingInterval;
-
-	private String httpProxy;
-
-	private String httpsProxy;
-
-	private String proxyUsername;
-
-	private String proxyPassword;
-
-	private String oauthToken;
-
-	private String[] noProxy;
-
-	private String serviceAccountNamespacePath = SERVICE_ACCOUNT_NAMESPACE_PATH;
-
-	private String userAgent = DEFAULT_USER_AGENT;
-
-	public String getServiceAccountNamespacePath() {
-		return serviceAccountNamespacePath;
-	}
-
-	public void setServiceAccountNamespacePath(String serviceAccountNamespacePath) {
-		this.serviceAccountNamespacePath = serviceAccountNamespacePath;
-	}
-
-	public String getClientCertData() {
-		return this.clientCertData;
-	}
-
-	public void setClientCertData(String clientCertData) {
-		this.clientCertData = clientCertData;
-	}
-
-	public Boolean isTrustCerts() {
-		return this.trustCerts;
-	}
-
-	public String getMasterUrl() {
-		return this.masterUrl;
-	}
-
-	public void setMasterUrl(String masterUrl) {
-		this.masterUrl = masterUrl;
-	}
-
-	public String getApiVersion() {
-		return this.apiVersion;
-	}
-
-	public void setApiVersion(String apiVersion) {
-		this.apiVersion = apiVersion;
-	}
-
-	public String getNamespace() {
-		return this.namespace;
-	}
-
-	public void setNamespace(String namespace) {
-		this.namespace = namespace;
-	}
-
-	public String getCaCertFile() {
-		return this.caCertFile;
-	}
-
-	public void setCaCertFile(String caCertFile) {
-		this.caCertFile = caCertFile;
-	}
-
-	public String getCaCertData() {
-		return this.caCertData;
-	}
-
-	public void setCaCertData(String caCertData) {
-		this.caCertData = caCertData;
-	}
-
-	public String getClientCertFile() {
-		return this.clientCertFile;
-	}
-
-	public void setClientCertFile(String clientCertFile) {
-		this.clientCertFile = clientCertFile;
-	}
-
-	public String getClientKeyFile() {
-		return this.clientKeyFile;
-	}
-
-	public void setClientKeyFile(String clientKeyFile) {
-		this.clientKeyFile = clientKeyFile;
-	}
-
-	public String getClientKeyData() {
-		return this.clientKeyData;
-	}
-
-	public void setClientKeyData(String clientKeyData) {
-		this.clientKeyData = clientKeyData;
-	}
-
-	public String getClientKeyAlgo() {
-		return this.clientKeyAlgo;
-	}
-
-	public void setClientKeyAlgo(String clientKeyAlgo) {
-		this.clientKeyAlgo = clientKeyAlgo;
-	}
-
-	public String getClientKeyPassphrase() {
-		return this.clientKeyPassphrase;
-	}
-
-	public void setClientKeyPassphrase(String clientKeyPassphrase) {
-		this.clientKeyPassphrase = clientKeyPassphrase;
-	}
-
-	public String getUsername() {
-		return this.username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return this.password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public Duration getWatchReconnectInterval() {
-		return this.watchReconnectInterval;
-	}
-
-	public void setWatchReconnectInterval(Duration watchReconnectInterval) {
-		this.watchReconnectInterval = watchReconnectInterval;
-	}
-
-	public Duration getWatchReconnectLimit() {
-		return this.watchReconnectLimit;
-	}
-
-	public void setWatchReconnectLimit(Duration watchReconnectLimit) {
-		this.watchReconnectLimit = watchReconnectLimit;
-	}
-
-	public Duration getConnectionTimeout() {
-		return this.connectionTimeout;
-	}
-
-	public void setConnectionTimeout(Duration connectionTimeout) {
-		this.connectionTimeout = connectionTimeout;
-	}
-
-	public Duration getRequestTimeout() {
-		return this.requestTimeout;
-	}
-
-	public void setRequestTimeout(Duration requestTimeout) {
-		this.requestTimeout = requestTimeout;
-	}
-
-	public Duration getRollingTimeout() {
-		return this.rollingTimeout;
-	}
-
-	public void setRollingTimeout(Duration rollingTimeout) {
-		this.rollingTimeout = rollingTimeout;
-	}
-
-	public Duration getLoggingInterval() {
-		return this.loggingInterval;
-	}
-
-	public void setLoggingInterval(Duration loggingInterval) {
-		this.loggingInterval = loggingInterval;
-	}
-
-	public Boolean getTrustCerts() {
-		return this.trustCerts;
-	}
-
-	public void setTrustCerts(Boolean trustCerts) {
-		this.trustCerts = trustCerts;
-	}
-
-	public String getHttpProxy() {
-		return this.httpProxy;
-	}
-
-	public void setHttpProxy(String httpProxy) {
-		this.httpProxy = httpProxy;
-	}
-
-	public String getHttpsProxy() {
-		return this.httpsProxy;
-	}
-
-	public void setHttpsProxy(String httpsProxy) {
-		this.httpsProxy = httpsProxy;
-	}
-
-	public String getProxyUsername() {
-		return this.proxyUsername;
-	}
-
-	public void setProxyUsername(String proxyUsername) {
-		this.proxyUsername = proxyUsername;
-	}
-
-	public String getProxyPassword() {
-		return this.proxyPassword;
-	}
-
-	public void setProxyPassword(String proxyPassword) {
-		this.proxyPassword = proxyPassword;
-	}
-
-	public String[] getNoProxy() {
-		return this.noProxy;
-	}
-
-	public void setNoProxy(String[] noProxy) {
-		this.noProxy = noProxy;
-	}
-
-	public String getOauthToken() {
-		return this.oauthToken;
-	}
-
-	public void setOauthToken(String oauthToken) {
-		this.oauthToken = oauthToken;
-	}
-
-	public String getUserAgent() {
-		return userAgent;
-	}
-
-	public void setUserAgent(String userAgent) {
-		this.userAgent = userAgent;
-	}
 
 }
