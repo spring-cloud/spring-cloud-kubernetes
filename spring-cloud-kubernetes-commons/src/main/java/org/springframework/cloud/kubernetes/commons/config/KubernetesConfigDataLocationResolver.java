@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -24,17 +23,13 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.boot.BootstrapRegistry.InstanceSupplier;
 import org.springframework.boot.ConfigurableBootstrapContext;
-import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
 import org.springframework.boot.context.config.ConfigDataLocationResolver;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.boot.context.config.Profiles;
-import org.springframework.boot.context.properties.bind.BindHandler;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.logging.DeferredLogFactory;
@@ -46,7 +41,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
-import org.springframework.util.ClassUtils;
+
+import static org.springframework.beans.BeanUtils.copyProperties;
+import static org.springframework.boot.cloud.CloudPlatform.KUBERNETES;
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.registerSingle;
+import static org.springframework.util.ClassUtils.isPresent;
 
 /**
  * @author Ryan Baxter
@@ -54,13 +53,7 @@ import org.springframework.util.ClassUtils;
 public abstract class KubernetesConfigDataLocationResolver
 		implements ConfigDataLocationResolver<KubernetesConfigDataResource>, Ordered {
 
-	static final boolean RETRY_IS_PRESENT = ClassUtils.isPresent("org.springframework.retry.annotation.Retryable",
-			null);
-
-	/**
-	 * Prefix for Config Server imports.
-	 */
-	public static final String PREFIX = "kubernetes:";
+	private static final boolean RETRY_IS_PRESENT = isPresent("org.springframework.retry.annotation.Retryable", null);
 
 	private final Log log;
 
@@ -68,58 +61,41 @@ public abstract class KubernetesConfigDataLocationResolver
 		this.log = factory.getLog(KubernetesConfigDataLocationResolver.class);
 	}
 
-	protected String getPrefix() {
-		return PREFIX;
+	protected final String getPrefix() {
+		return "kubernetes:";
 	}
 
 	@Override
-	public boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
-		if (!location.hasPrefix(getPrefix())) {
-			return false;
-		}
-
-		return (CloudPlatform.KUBERNETES.isEnforced(context.getBinder())
-				|| CloudPlatform.KUBERNETES.isDetected(new StandardEnvironment()));
+	public final int getOrder() {
+		return -1;
 	}
 
 	@Override
-	public List<KubernetesConfigDataResource> resolve(ConfigDataLocationResolverContext context,
+	public final boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
+		return location.hasPrefix(getPrefix())
+				&& (KUBERNETES.isEnforced(context.getBinder()) || KUBERNETES.isDetected(new StandardEnvironment()));
+	}
+
+	@Override
+	public final List<KubernetesConfigDataResource> resolve(ConfigDataLocationResolverContext context,
 			ConfigDataLocation location)
 			throws ConfigDataLocationNotFoundException, ConfigDataResourceNotFoundException {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public List<KubernetesConfigDataResource> resolveProfileSpecific(ConfigDataLocationResolverContext resolverContext,
-			ConfigDataLocation location, Profiles profiles) throws ConfigDataLocationNotFoundException {
-		PropertyHolder propertyHolder = loadProperties(resolverContext);
-		KubernetesClientProperties properties = propertyHolder.kubernetesClientProperties();
+	public final List<KubernetesConfigDataResource> resolveProfileSpecific(
+			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
+			throws ConfigDataLocationNotFoundException {
+		PropertyHolder propertyHolder = PropertyHolder.of(resolverContext);
+		KubernetesClientProperties clientProperties = propertyHolder.kubernetesClientProperties();
 		ConfigMapConfigProperties configMapProperties = propertyHolder.configMapConfigProperties();
 		SecretsConfigProperties secretsProperties = propertyHolder.secretsProperties();
 
-		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
-		bootstrapContext.registerIfAbsent(KubernetesClientProperties.class, InstanceSupplier.of(properties));
-		bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory().registerSingleton(
-				"configDataKubernetesClientProperties",
-				event.getBootstrapContext().get(KubernetesClientProperties.class)));
-
-		if (configMapProperties != null) {
-			bootstrapContext.registerIfAbsent(ConfigMapConfigProperties.class,
-					InstanceSupplier.of(configMapProperties));
-			bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory().registerSingleton(
-					"configDataConfigMapConfigProperties",
-					event.getBootstrapContext().get(ConfigMapConfigProperties.class)));
-		}
-
-		if (secretsProperties != null) {
-			bootstrapContext.registerIfAbsent(SecretsConfigProperties.class, InstanceSupplier.of(secretsProperties));
-			bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory().registerSingleton(
-					"configDataSecretsConfigProperties",
-					event.getBootstrapContext().get(SecretsConfigProperties.class)));
-		}
+		registerProperties(resolverContext, clientProperties, configMapProperties, secretsProperties);
 
 		HashMap<String, Object> kubernetesConfigData = new HashMap<>();
-		kubernetesConfigData.put("spring.cloud.kubernetes.client.namespace", properties.getNamespace());
+		kubernetesConfigData.put("spring.cloud.kubernetes.client.namespace", clientProperties.getNamespace());
 		if (propertyHolder.applicationName() != null) {
 			// If its null it means sprig.application.name was not set so don't add it to
 			// the property source
@@ -134,31 +110,28 @@ public abstract class KubernetesConfigDataLocationResolver
 
 		registerBeans(resolverContext, location, profiles, propertyHolder, namespaceProvider);
 
-		KubernetesConfigDataResource resource = new KubernetesConfigDataResource(properties, configMapProperties,
+		KubernetesConfigDataResource resource = new KubernetesConfigDataResource(clientProperties, configMapProperties,
 				secretsProperties, location.isOptional(), profiles, environment);
 		resource.setLog(log);
 
-		List<KubernetesConfigDataResource> locations = new ArrayList<>();
-		locations.add(resource);
-
-		return locations;
+		return List.of(resource);
 	}
 
 	protected abstract void registerBeans(ConfigDataLocationResolverContext resolverContext,
 			ConfigDataLocation location, Profiles profiles, PropertyHolder propertyHolder,
 			KubernetesNamespaceProvider namespaceProvider);
 
-	protected boolean isRetryEnabled(ConfigMapConfigProperties configMapProperties,
+	protected final boolean isRetryEnabled(ConfigMapConfigProperties configMapProperties,
 			SecretsConfigProperties secretsProperties) {
 		return isRetryEnabledForConfigMap(configMapProperties) || isRetryEnabledForSecrets(secretsProperties);
 	}
 
-	protected boolean isRetryEnabledForConfigMap(ConfigMapConfigProperties configMapProperties) {
+	protected final boolean isRetryEnabledForConfigMap(ConfigMapConfigProperties configMapProperties) {
 		return RETRY_IS_PRESENT && configMapProperties != null && configMapProperties.getRetry().enabled()
 				&& configMapProperties.isFailFast();
 	}
 
-	protected boolean isRetryEnabledForSecrets(SecretsConfigProperties secretsProperties) {
+	protected final boolean isRetryEnabledForSecrets(SecretsConfigProperties secretsProperties) {
 		return RETRY_IS_PRESENT && secretsProperties != null && secretsProperties.getRetry().enabled()
 				&& secretsProperties.isFailFast();
 	}
@@ -167,56 +140,89 @@ public abstract class KubernetesConfigDataLocationResolver
 		return new KubernetesNamespaceProvider(environment);
 	}
 
-	@Override
-	public int getOrder() {
-		return -1;
-	}
+	private void registerProperties(ConfigDataLocationResolverContext resolverContext,
+			KubernetesClientProperties clientProperties, ConfigMapConfigProperties configMapProperties,
+			SecretsConfigProperties secretsProperties) {
 
-	private BindHandler getBindHandler(ConfigDataLocationResolverContext context) {
-		return context.getBootstrapContext().getOrElse(BindHandler.class, null);
-	}
+		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
+		registerSingle(bootstrapContext, KubernetesClientProperties.class, clientProperties,
+				"configDataKubernetesClientProperties");
 
-	protected PropertyHolder loadProperties(ConfigDataLocationResolverContext context) {
-		Binder binder = context.getBinder();
-		BindHandler bindHandler = getBindHandler(context);
-		String applicationName = binder.bind("spring.application.name", String.class).orElse(null);
-		String namespace = binder.bind("spring.cloud.kubernetes.client.namespace", String.class)
-				.orElse(binder.bind("kubernetes.namespace", String.class).orElse(""));
-
-		KubernetesClientProperties kubernetesClientProperties;
-		if (context.getBootstrapContext().isRegistered(KubernetesClientProperties.class)) {
-			kubernetesClientProperties = new KubernetesClientProperties();
-			BeanUtils.copyProperties(context.getBootstrapContext().get(KubernetesClientProperties.class),
-					kubernetesClientProperties);
-		}
-		else {
-			kubernetesClientProperties = binder.bindOrCreate(KubernetesClientProperties.PREFIX,
-					Bindable.of(KubernetesClientProperties.class), bindHandler);
-		}
-		kubernetesClientProperties.setNamespace(namespace);
-
-		boolean configEnabled = binder.bind("spring.cloud.kubernetes.config.enabled", boolean.class).orElse(true);
-		boolean secretsEnabled = binder.bind("spring.cloud.kubernetes.secrets.enabled", boolean.class).orElse(true);
-
-		ConfigMapConfigProperties configMapConfigProperties = null;
-		if (configEnabled) {
-			configMapConfigProperties = binder.bindOrCreate(ConfigMapConfigProperties.PREFIX,
-					ConfigMapConfigProperties.class);
+		if (configMapProperties != null) {
+			registerSingle(bootstrapContext, ConfigMapConfigProperties.class, configMapProperties,
+					"configDataConfigMapConfigProperties");
 		}
 
-		SecretsConfigProperties secretsProperties = null;
-		if (secretsEnabled) {
-			secretsProperties = binder.bindOrCreate(SecretsConfigProperties.PREFIX, SecretsConfigProperties.class);
+		if (secretsProperties != null) {
+			registerSingle(bootstrapContext, SecretsConfigProperties.class, secretsProperties,
+					"configDataSecretsConfigProperties");
 		}
-
-		return new PropertyHolder(kubernetesClientProperties, configMapConfigProperties, secretsProperties,
-				applicationName);
-
 	}
 
 	protected record PropertyHolder(KubernetesClientProperties kubernetesClientProperties,
 			ConfigMapConfigProperties configMapConfigProperties, SecretsConfigProperties secretsProperties,
 			String applicationName) {
+
+		private static PropertyHolder of(ConfigDataLocationResolverContext context) {
+			Binder binder = context.getBinder();
+
+			String applicationName = binder.bind("spring.application.name", String.class).orElse(null);
+			String namespace = binder.bind("spring.cloud.kubernetes.client.namespace", String.class)
+					.orElse(binder.bind("kubernetes.namespace", String.class).orElse(""));
+
+			KubernetesClientProperties kubernetesClientProperties = clientProperties(context);
+			kubernetesClientProperties.setNamespace(namespace);
+
+			ConfigMapAndSecrets both = ConfigMapAndSecrets.of(binder);
+			return new PropertyHolder(kubernetesClientProperties, both.configMapProperties(),
+					both.secretsConfigProperties(), applicationName);
+		}
+
+		private static KubernetesClientProperties clientProperties(ConfigDataLocationResolverContext context) {
+			KubernetesClientProperties kubernetesClientProperties;
+
+			if (context.getBootstrapContext().isRegistered(KubernetesClientProperties.class)) {
+				kubernetesClientProperties = new KubernetesClientProperties();
+				copyProperties(context.getBootstrapContext().get(KubernetesClientProperties.class),
+						kubernetesClientProperties);
+			}
+			else {
+				kubernetesClientProperties = context.getBinder().bindOrCreate(KubernetesClientProperties.PREFIX,
+						Bindable.of(KubernetesClientProperties.class));
+			}
+
+			return kubernetesClientProperties;
+
+		}
+
+	}
+
+	/**
+	 * holds ConfigMapConfigProperties and SecretsConfigProperties, both can be null if
+	 * using such sources is disabled.
+	 */
+	private record ConfigMapAndSecrets(ConfigMapConfigProperties configMapProperties,
+			SecretsConfigProperties secretsConfigProperties) {
+
+		private static ConfigMapAndSecrets of(Binder binder) {
+
+			boolean configEnabled = binder.bind("spring.cloud.kubernetes.config.enabled", boolean.class).orElse(true);
+			boolean secretsEnabled = binder.bind("spring.cloud.kubernetes.secrets.enabled", boolean.class).orElse(true);
+
+			ConfigMapConfigProperties configMapConfigProperties = null;
+			if (configEnabled) {
+				configMapConfigProperties = binder.bindOrCreate(ConfigMapConfigProperties.PREFIX,
+						ConfigMapConfigProperties.class);
+			}
+
+			SecretsConfigProperties secretsProperties = null;
+			if (secretsEnabled) {
+				secretsProperties = binder.bindOrCreate(SecretsConfigProperties.PREFIX, SecretsConfigProperties.class);
+			}
+
+			return new ConfigMapAndSecrets(configMapConfigProperties, secretsProperties);
+
+		}
 	}
 
 }

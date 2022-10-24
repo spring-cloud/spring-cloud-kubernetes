@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.core.env.Environment;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.CollectionUtils;
@@ -211,7 +213,7 @@ public final class ConfigUtils {
 			Map<String, String> sourceLabels = one.labels();
 			Map<String, String> labelsToSearchAgainst = sourceLabels == null ? Map.of() : sourceLabels;
 			return labelsToSearchAgainst.entrySet().containsAll((labels.entrySet()));
-		}).collect(Collectors.toList());
+		}).toList();
 
 		// compute profile based source names (based on the ones we found by labels)
 		List<String> sourceNamesByLabelsWithProfile = new ArrayList<>();
@@ -228,7 +230,7 @@ public final class ConfigUtils {
 		// profiles based sources from the above. This would get all sources
 		// we are interested in.
 		List<StrippedSourceContainer> byProfile = containers.stream()
-				.filter(one -> sourceNamesByLabelsWithProfile.contains(one.name())).collect(Collectors.toList());
+				.filter(one -> sourceNamesByLabelsWithProfile.contains(one.name())).toList();
 
 		// this makes sure that we first have "app" and then "app-dev" in the list
 		List<StrippedSourceContainer> all = new ArrayList<>(byLabels.size() + byProfile.size());
@@ -265,6 +267,13 @@ public final class ConfigUtils {
 		Map<String, String> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
 		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));
 		return result;
+	}
+
+	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,
+			String name) {
+		bootstrapContext.registerIfAbsent(cls, BootstrapRegistry.InstanceSupplier.of(instance));
+		bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
+				.registerSingleton(name, event.getBootstrapContext().get(cls)));
 	}
 
 	public static final class Prefix {
