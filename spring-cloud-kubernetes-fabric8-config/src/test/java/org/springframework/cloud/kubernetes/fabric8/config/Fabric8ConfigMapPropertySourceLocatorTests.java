@@ -29,7 +29,11 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.mock.env.MockEnvironment;
+
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -52,14 +56,13 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 	void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
 		String name = "my-config";
 		String namespace = "default";
-		String path = String.format("/api/v1/namespaces/%s/configmaps", namespace);
+		String path = "/api/v1/namespaces/default/configmaps";
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
-		configMapConfigProperties.setName(name);
-		configMapConfigProperties.setNamespace(namespace);
-		configMapConfigProperties.setFailFast(true);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(
+			true, List.of(), List.of(), Map.of(), true, name, namespace, false, true, true, RetryProperties.DEFAULT
+		);
 
 		Fabric8ConfigMapPropertySourceLocator locator = new Fabric8ConfigMapPropertySourceLocator(mockClient,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -72,14 +75,13 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 	void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
 		String name = "my-config";
 		String namespace = "default";
-		String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
+		String path = "/api/v1/namespaces/default/configmaps/my-config";
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
-		configMapConfigProperties.setName(name);
-		configMapConfigProperties.setNamespace(namespace);
-		configMapConfigProperties.setFailFast(false);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(
+			true, List.of(), List.of(), Map.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT
+		);
 
 		Fabric8ConfigMapPropertySourceLocator locator = new Fabric8ConfigMapPropertySourceLocator(mockClient,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -90,10 +92,9 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 	@Test
 	void constructorWithoutClientNamespaceMustFail() {
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
-		configMapConfigProperties.setName("name");
-		configMapConfigProperties.setNamespace(null);
-		configMapConfigProperties.setFailFast(false);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(
+			true, List.of(), List.of(), Map.of(), true, "name", null, false, true, false, RetryProperties.DEFAULT
+		);
 
 		Mockito.when(client.getNamespace()).thenReturn(null);
 		Fabric8ConfigMapPropertySourceLocator source = new Fabric8ConfigMapPropertySourceLocator(client,

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.bootstrap;
+package org.springframework.cloud.kubernetes.fabric8.config.bootstrap.kubernetes_enabled;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
+import org.springframework.cloud.kubernetes.fabric8.config.bootstrap.kubernetes_enabled.KubernetesEnabled;
 
 /**
  * @author wind57
