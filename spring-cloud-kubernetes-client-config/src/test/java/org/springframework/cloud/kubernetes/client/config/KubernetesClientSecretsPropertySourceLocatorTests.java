@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
