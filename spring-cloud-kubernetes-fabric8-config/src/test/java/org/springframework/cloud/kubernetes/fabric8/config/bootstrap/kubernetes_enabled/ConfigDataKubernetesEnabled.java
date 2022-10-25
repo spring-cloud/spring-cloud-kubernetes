@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.fabric8.config.bootstrap.kubernetes
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
-import org.springframework.cloud.kubernetes.fabric8.config.bootstrap.kubernetes_enabled.KubernetesEnabled;
 
 /**
  * @author wind57
