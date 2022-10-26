@@ -22,9 +22,9 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.commons.config.AbstractConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.App;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 
@@ -53,8 +53,8 @@ class ConfigFailFastEnabled {
 
 	@Test
 	void retryConfigurationShouldBeDefault() {
-		AbstractConfigProperties.RetryProperties retryProperties = configMapConfigProperties.getRetry();
-		AbstractConfigProperties.RetryProperties defaultRetryProperties = AbstractConfigProperties.RetryProperties.DEFAULT;
+		RetryProperties retryProperties = configMapConfigProperties.retry();
+		RetryProperties defaultRetryProperties = RetryProperties.DEFAULT;
 
 		assertThat(retryProperties.maxAttempts()).isEqualTo(defaultRetryProperties.maxAttempts());
 		assertThat(retryProperties.initialInterval()).isEqualTo(defaultRetryProperties.initialInterval());

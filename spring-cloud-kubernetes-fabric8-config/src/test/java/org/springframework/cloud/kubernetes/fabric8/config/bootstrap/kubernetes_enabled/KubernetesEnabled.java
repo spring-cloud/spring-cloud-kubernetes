@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.bootstrap;
+package org.springframework.cloud.kubernetes.fabric8.config.bootstrap.kubernetes_enabled;
 
 import org.junit.jupiter.api.Test;
 

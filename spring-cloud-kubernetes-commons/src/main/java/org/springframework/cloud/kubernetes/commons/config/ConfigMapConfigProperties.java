@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,52 +36,16 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.ge
  * @author Isik Erhan
  */
 @ConfigurationProperties(ConfigMapConfigProperties.PREFIX)
-public class ConfigMapConfigProperties extends AbstractConfigProperties {
+public record ConfigMapConfigProperties(@DefaultValue("true") boolean enableApi, @DefaultValue List<String> paths,
+		@DefaultValue List<Source> sources, @DefaultValue Map<String, String> labels,
+		@DefaultValue("true") boolean enabled, String name, String namespace, boolean useNameAsPrefix,
+		@DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
+		@DefaultValue RetryProperties retry) {
 
 	/**
 	 * Prefix for Kubernetes config maps configuration properties.
 	 */
 	public static final String PREFIX = "spring.cloud.kubernetes.config";
-
-	private boolean enableApi = true;
-
-	private List<String> paths = Collections.emptyList();
-
-	private List<Source> sources = Collections.emptyList();
-
-	private Map<String, String> labels = Collections.emptyMap();
-
-	public boolean isEnableApi() {
-		return this.enableApi;
-	}
-
-	public void setEnableApi(boolean enableApi) {
-		this.enableApi = enableApi;
-	}
-
-	public List<String> getPaths() {
-		return this.paths;
-	}
-
-	public void setPaths(List<String> paths) {
-		this.paths = paths;
-	}
-
-	public List<Source> getSources() {
-		return this.sources;
-	}
-
-	public void setSources(List<Source> sources) {
-		this.sources = sources;
-	}
-
-	public Map<String, String> getLabels() {
-		return labels;
-	}
-
-	public void setLabels(Map<String, String> labels) {
-		this.labels = labels;
-	}
 
 	/**
 	 * @return A list of config map source(s) to use.

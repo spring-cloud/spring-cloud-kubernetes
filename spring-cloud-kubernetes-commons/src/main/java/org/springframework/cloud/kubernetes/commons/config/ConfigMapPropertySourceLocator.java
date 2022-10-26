@@ -25,7 +25,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -66,7 +65,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 		if (environment instanceof ConfigurableEnvironment env) {
 
 			CompositePropertySource composite = new CompositePropertySource("composite-configmap");
-			if (this.properties.isEnableApi()) {
+			if (this.properties.enableApi()) {
 				Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources(environment));
 				LOG.debug("Config Map normalized sources : " + sources);
 				sources.forEach(s -> composite.addFirstPropertySource(getMapPropertySource(s, env)));
@@ -85,7 +84,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	}
 
 	private void addPropertySourcesFromPaths(Environment environment, CompositePropertySource composite) {
-		Set<String> uniquePaths = new LinkedHashSet<>(properties.getPaths());
+		Set<String> uniquePaths = new LinkedHashSet<>(properties.paths());
 		uniquePaths.stream().map(Paths::get).filter(p -> {
 			boolean exists = Files.exists(p);
 			if (!exists) {
@@ -99,7 +98,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 				LOG.warn("Configured input path: " + p + " will be ignored because it is not a regular file");
 			}
 			return regular;
-		}).collect(Collectors.toList()).forEach(p -> {
+		}).toList().forEach(p -> {
 			try {
 				String content = new String(Files.readAllBytes(p)).trim();
 				String filename = p.toAbsolutePath().toString().toLowerCase();

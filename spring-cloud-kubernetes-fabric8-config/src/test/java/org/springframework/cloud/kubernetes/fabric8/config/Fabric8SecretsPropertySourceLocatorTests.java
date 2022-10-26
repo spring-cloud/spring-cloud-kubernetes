@@ -16,12 +16,16 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.List;
+import java.util.Map;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -40,17 +44,14 @@ class Fabric8SecretsPropertySourceLocatorTests {
 
 	@Test
 	void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
-		final String name = "my-config";
-		final String namespace = "default";
-		final String path = String.format("/api/v1/namespaces/%s/secrets", namespace);
+		String name = "my-secret";
+		String namespace = "default";
+		String path = "/api/v1/namespaces/default/secrets";
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 
-		SecretsConfigProperties configMapConfigProperties = new SecretsConfigProperties();
-		configMapConfigProperties.setName(name);
-		configMapConfigProperties.setNamespace(namespace);
-		configMapConfigProperties.setEnableApi(true);
-		configMapConfigProperties.setFailFast(true);
+		SecretsConfigProperties configMapConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
+				List.of(), true, name, namespace, false, true, true, RetryProperties.DEFAULT);
 
 		Fabric8SecretsPropertySourceLocator locator = new Fabric8SecretsPropertySourceLocator(mockClient,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -61,17 +62,14 @@ class Fabric8SecretsPropertySourceLocatorTests {
 
 	@Test
 	void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
-		final String name = "my-config";
-		final String namespace = "default";
-		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
+		String name = "my-secret";
+		String namespace = "default";
+		String path = "/api/v1/namespaces/default/secrets/my-secret";
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 
-		SecretsConfigProperties configMapConfigProperties = new SecretsConfigProperties();
-		configMapConfigProperties.setName(name);
-		configMapConfigProperties.setNamespace(namespace);
-		configMapConfigProperties.setEnableApi(true);
-		configMapConfigProperties.setFailFast(false);
+		SecretsConfigProperties configMapConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
+				List.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT);
 
 		Fabric8SecretsPropertySourceLocator locator = new Fabric8SecretsPropertySourceLocator(mockClient,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));

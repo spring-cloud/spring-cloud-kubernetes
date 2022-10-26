@@ -39,9 +39,9 @@ public class ConfigDataRetryableConfigMapPropertySourceLocator extends ConfigMap
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator, ConfigMapConfigProperties properties) {
 		super(properties);
 		this.configMapPropertySourceLocator = configMapPropertySourceLocator;
-		this.retryTemplate = RetryTemplate.builder().maxAttempts(properties.getRetry().maxAttempts())
-				.exponentialBackoff(properties.getRetry().initialInterval(), properties.getRetry().multiplier(),
-						properties.getRetry().maxInterval())
+		this.retryTemplate = RetryTemplate.builder().maxAttempts(properties.retry().maxAttempts())
+				.exponentialBackoff(properties.retry().initialInterval(), properties.retry().multiplier(),
+						properties.retry().maxInterval())
 				.build();
 	}
 

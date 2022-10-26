@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,52 +37,16 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.ge
  * @author Isik Erhan
  */
 @ConfigurationProperties(SecretsConfigProperties.PREFIX)
-public class SecretsConfigProperties extends AbstractConfigProperties {
+public record SecretsConfigProperties(boolean enableApi, @DefaultValue Map<String, String> labels,
+		@DefaultValue List<String> paths, @DefaultValue List<Source> sources, @DefaultValue("true") boolean enabled,
+		String name, String namespace, boolean useNameAsPrefix,
+		@DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
+		@DefaultValue RetryProperties retry) {
 
 	/**
 	 * Prefix for Kubernetes secrets configuration properties.
 	 */
 	public static final String PREFIX = "spring.cloud.kubernetes.secrets";
-
-	private boolean enableApi = false;
-
-	private Map<String, String> labels = Collections.emptyMap();
-
-	private List<String> paths = Collections.emptyList();
-
-	private List<Source> sources = Collections.emptyList();
-
-	public boolean isEnableApi() {
-		return this.enableApi;
-	}
-
-	public void setEnableApi(boolean enableApi) {
-		this.enableApi = enableApi;
-	}
-
-	public Map<String, String> getLabels() {
-		return this.labels;
-	}
-
-	public void setLabels(Map<String, String> labels) {
-		this.labels = labels;
-	}
-
-	public List<String> getPaths() {
-		return this.paths;
-	}
-
-	public void setPaths(List<String> paths) {
-		this.paths = paths;
-	}
-
-	public List<Source> getSources() {
-		return sources;
-	}
-
-	public void setSources(List<Source> sources) {
-		this.sources = sources;
-	}
 
 	/**
 	 * @return A list of Secret source(s) to use.

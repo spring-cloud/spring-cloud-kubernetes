@@ -39,9 +39,9 @@ public class ConfigDataRetryableSecretsPropertySourceLocator extends SecretsProp
 			SecretsConfigProperties secretsConfigProperties) {
 		super(secretsConfigProperties);
 		this.secretsPropertySourceLocator = propertySourceLocator;
-		this.retryTemplate = RetryTemplate.builder().maxAttempts(properties.getRetry().maxAttempts())
-				.exponentialBackoff(properties.getRetry().initialInterval(), properties.getRetry().multiplier(),
-						properties.getRetry().maxInterval())
+		this.retryTemplate = RetryTemplate.builder().maxAttempts(properties.retry().maxAttempts())
+				.exponentialBackoff(properties.retry().initialInterval(), properties.retry().multiplier(),
+						properties.retry().maxInterval())
 				.build();
 	}
 
