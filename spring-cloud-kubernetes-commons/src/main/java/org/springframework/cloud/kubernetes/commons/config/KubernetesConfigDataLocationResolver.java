@@ -188,7 +188,6 @@ public abstract class KubernetesConfigDataLocationResolver
 				kubernetesClientProperties = context.getBinder()
 						.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class))
 						.withNamespace(namespace);
-
 			}
 
 			return kubernetesClientProperties;

@@ -21,10 +21,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -37,7 +37,7 @@ import static org.hamcrest.Matchers.containsString;
 				"management.info.kubernetes.enabled=true" })
 public class Fabric8LeaderAutoConfigurationTests {
 
-	@Value("${local.server.port}")
+	@LocalManagementPort
 	private int port;
 
 	@Autowired
