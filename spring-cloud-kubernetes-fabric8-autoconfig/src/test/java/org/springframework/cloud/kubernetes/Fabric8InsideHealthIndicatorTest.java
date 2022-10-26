@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.example.App;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8HealthIndicator;
@@ -51,7 +51,7 @@ class Fabric8InsideHealthIndicatorTest {
 	@Autowired
 	private WebTestClient webClient;
 
-	@Value("${local.server.port}")
+	@LocalManagementPort
 	private int port;
 
 	/**
