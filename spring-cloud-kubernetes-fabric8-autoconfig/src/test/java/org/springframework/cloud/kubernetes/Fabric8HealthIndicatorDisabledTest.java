@@ -23,8 +23,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.kubernetes.example.App;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -39,7 +39,7 @@ class Fabric8HealthIndicatorDisabledTest {
 	@Autowired
 	private WebTestClient webClient;
 
-	@Value("${local.server.port}")
+	@LocalManagementPort
 	private int port;
 
 	@BeforeAll
