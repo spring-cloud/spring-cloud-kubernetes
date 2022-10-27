@@ -48,8 +48,7 @@ public class KubernetesBootstrapConfiguration {
 	@Import(AopAutoConfiguration.class)
 	public static class RetryConfiguration {
 
-		public static RetryOperationsInterceptor retryOperationsInterceptor(
-				AbstractConfigProperties.RetryProperties retryProperties) {
+		public static RetryOperationsInterceptor retryOperationsInterceptor(RetryProperties retryProperties) {
 			return RetryInterceptorBuilder.stateless().backOffOptions(retryProperties.initialInterval(),
 					retryProperties.multiplier(), retryProperties.maxInterval())
 					.maxAttempts(retryProperties.maxAttempts()).build();
@@ -58,7 +57,7 @@ public class KubernetesBootstrapConfiguration {
 		@Bean
 		@ConditionalOnKubernetesConfigRetryEnabled
 		public RetryOperationsInterceptor kubernetesConfigRetryInterceptor(ConfigMapConfigProperties configProperties) {
-			return retryOperationsInterceptor(configProperties.getRetry());
+			return retryOperationsInterceptor(configProperties.retry());
 		}
 
 		@Bean("kubernetesConfigRetryInterceptor")
@@ -70,7 +69,7 @@ public class KubernetesBootstrapConfiguration {
 		@Bean
 		@ConditionalOnKubernetesSecretsRetryEnabled
 		public RetryOperationsInterceptor kubernetesSecretsRetryInterceptor(SecretsConfigProperties configProperties) {
-			return retryOperationsInterceptor(configProperties.getRetry());
+			return retryOperationsInterceptor(configProperties.retry());
 		}
 
 		@Bean("kubernetesSecretsRetryInterceptor")

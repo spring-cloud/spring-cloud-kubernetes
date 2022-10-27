@@ -127,13 +127,13 @@ public abstract class KubernetesConfigDataLocationResolver
 	}
 
 	protected final boolean isRetryEnabledForConfigMap(ConfigMapConfigProperties configMapProperties) {
-		return RETRY_IS_PRESENT && configMapProperties != null && configMapProperties.getRetry().enabled()
-				&& configMapProperties.isFailFast();
+		return RETRY_IS_PRESENT && configMapProperties != null && configMapProperties.retry().enabled()
+				&& configMapProperties.failFast();
 	}
 
 	protected final boolean isRetryEnabledForSecrets(SecretsConfigProperties secretsProperties) {
-		return RETRY_IS_PRESENT && secretsProperties != null && secretsProperties.getRetry().enabled()
-				&& secretsProperties.isFailFast();
+		return RETRY_IS_PRESENT && secretsProperties != null && secretsProperties.retry().enabled()
+				&& secretsProperties.failFast();
 	}
 
 	protected KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {

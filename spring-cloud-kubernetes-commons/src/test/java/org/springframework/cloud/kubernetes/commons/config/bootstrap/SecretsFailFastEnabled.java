@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.commons.config.AbstractConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.App;
+import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.retry.interceptor.RetryOperationsInterceptor;
@@ -53,9 +53,8 @@ class SecretsFailFastEnabled {
 
 	@Test
 	void retryConfigurationShouldBeDefault() {
-		AbstractConfigProperties.RetryProperties retryProperties = secretsConfigProperties.getRetry();
-		AbstractConfigProperties.RetryProperties defaultRetryProperties = new AbstractConfigProperties.RetryProperties(
-				1000, 1.1, 2000, 6, true);
+		RetryProperties retryProperties = secretsConfigProperties.retry();
+		RetryProperties defaultRetryProperties = RetryProperties.DEFAULT;
 
 		assertThat(retryProperties.maxAttempts()).isEqualTo(defaultRetryProperties.maxAttempts());
 		assertThat(retryProperties.initialInterval()).isEqualTo(defaultRetryProperties.initialInterval());
