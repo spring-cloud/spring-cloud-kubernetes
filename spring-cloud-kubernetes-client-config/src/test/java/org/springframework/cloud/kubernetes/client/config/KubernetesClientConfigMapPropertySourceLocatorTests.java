@@ -159,7 +159,6 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
 				Map.of(), true, "bootstrap-640", null, false, false, false, RetryProperties.DEFAULT);
-
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
 				new KubernetesNamespaceProvider(ENV)).locate(ENV))
 						.isInstanceOf(NamespaceResolutionFailedException.class);
