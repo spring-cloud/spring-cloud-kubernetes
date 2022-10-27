@@ -35,7 +35,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
@@ -139,7 +138,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
-			Map.of(), true, "bootstrap-640", null, false, false, false, RetryProperties.DEFAULT);
+				Map.of(), true, "bootstrap-640", null, false, false, false, RetryProperties.DEFAULT);
 
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
 				new KubernetesNamespaceProvider(new MockEnvironment())).locate(ENV))
@@ -159,7 +158,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
-			Map.of(), true, "bootstrap-640", null, false, false, false, RetryProperties.DEFAULT);
+				Map.of(), true, "bootstrap-640", null, false, false, false, RetryProperties.DEFAULT);
 
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
 				new KubernetesNamespaceProvider(ENV)).locate(ENV))

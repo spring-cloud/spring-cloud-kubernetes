@@ -76,7 +76,7 @@ public class Fabric8AutoConfiguration {
 				.withCaCertFile(or(kubernetesClientProperties.getCaCertFile(), base.getCaCertFile()))
 				.withCaCertData(or(kubernetesClientProperties.getCaCertData(), base.getCaCertData()))
 
-				.withClientKeyFile(or(kubernetesClientProperties.getClientKeyFile(), base.getClientKeyFile()))
+				.withClientKeyFile(or(kubernetesClientProperties.clientKeyFile(), base.getClientKeyFile()))
 				.withClientKeyData(or(kubernetesClientProperties.getClientKeyData(), base.getClientKeyData()))
 
 				.withClientCertFile(or(kubernetesClientProperties.getClientCertFile(), base.getClientCertFile()))

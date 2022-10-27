@@ -57,7 +57,7 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 
 	private String getNamespace() {
 		return kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
-				: kubernetesClientProperties.getNamespace();
+				: kubernetesClientProperties.namespace();
 	}
 
 	@Override
