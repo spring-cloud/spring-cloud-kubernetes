@@ -30,11 +30,11 @@ import static org.springframework.cloud.kubernetes.commons.KubernetesClientPrope
  */
 @ConfigurationProperties(PREFIX)
 public record KubernetesClientProperties(Boolean trustCerts, String masterUrl, String apiVersion, String namespace,
-		String caCertFile, String caCertData, String clientCertData, String clientKeyFile, String clientKeyData,
-		String clientKeyPassphrase, String username, String password, Duration watchReconnectInterval,
-		Duration watchReconnectLimit, Duration connectionTimeout, Duration requestTimeout, Duration rollingTimeout,
-		Duration loggingInterval, String httpProxy, String httpsProxy, String proxyUsername, String proxyPassword,
-		String oauthToken, String[] noProxy,
+		String caCertFile, String caCertData, String clientCertFile, String clientCertData, String clientKeyFile,
+		String clientKeyData, String clientKeyAlgo, String clientKeyPassphrase, String username, String password,
+		Duration watchReconnectInterval, Duration watchReconnectLimit, Duration connectionTimeout,
+		Duration requestTimeout, Duration rollingTimeout, Duration loggingInterval, String httpProxy, String httpsProxy,
+		String proxyUsername, String proxyPassword, String oauthToken, String[] noProxy,
 		@DefaultValue(SERVICE_ACCOUNT_NAMESPACE_PATH) String serviceAccountNamespacePath,
 		@DefaultValue(DEFAULT_USER_AGENT) String userAgent) {
 
@@ -58,11 +58,12 @@ public record KubernetesClientProperties(Boolean trustCerts, String masterUrl, S
 	 */
 	public KubernetesClientProperties withNamespace(String namespace) {
 		return new KubernetesClientProperties(this.trustCerts(), this.masterUrl(), this.apiVersion(), namespace,
-				this.caCertFile(), this.caCertData(), this.clientCertData(), this.clientKeyFile(), this.clientKeyData(),
-				this.clientKeyPassphrase(), this.username(), this.password(), this.watchReconnectInterval(),
-				this.watchReconnectLimit(), this.connectionTimeout(), this.requestTimeout(), this.rollingTimeout(),
-				this.loggingInterval(), this.httpProxy(), this.httpsProxy(), this.proxyUsername(), this.proxyPassword(),
-				this.oauthToken(), this.noProxy(), this.serviceAccountNamespacePath(), this.userAgent());
+				this.caCertFile(), this.caCertData(), this.clientCertFile(), this.clientCertData(),
+				this.clientKeyFile(), this.clientKeyData(), this.clientKeyAlgo(), this.clientKeyPassphrase(),
+				this.username(), this.password(), this.watchReconnectInterval(), this.watchReconnectLimit(),
+				this.connectionTimeout(), this.requestTimeout(), this.rollingTimeout(), this.loggingInterval(),
+				this.httpProxy(), this.httpsProxy(), this.proxyUsername(), this.proxyPassword(), this.oauthToken(),
+				this.noProxy(), this.serviceAccountNamespacePath(), this.userAgent());
 	}
 
 }

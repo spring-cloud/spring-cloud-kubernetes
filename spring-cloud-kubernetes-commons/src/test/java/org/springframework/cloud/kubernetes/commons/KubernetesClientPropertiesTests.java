@@ -42,9 +42,11 @@ class KubernetesClientPropertiesTests {
 			assertThat(properties.namespace()).isNull();
 			assertThat(properties.caCertFile()).isNull();
 			assertThat(properties.caCertData()).isNull();
+			assertThat(properties.clientCertFile()).isNull();
 			assertThat(properties.clientCertData()).isNull();
 			assertThat(properties.clientKeyFile()).isNull();
 			assertThat(properties.clientKeyData()).isNull();
+			assertThat(properties.clientKeyAlgo()).isNull();
 			assertThat(properties.clientKeyPassphrase()).isNull();
 			assertThat(properties.username()).isNull();
 			assertThat(properties.password()).isNull();
@@ -74,9 +76,11 @@ class KubernetesClientPropertiesTests {
 				"spring.cloud.kubernetes.client.namespace=namespace",
 				"spring.cloud.kubernetes.client.ca-cert-file=ca-cert-file",
 				"spring.cloud.kubernetes.client.ca-cert-data=ca-cert-data",
+				"spring.cloud.kubernetes.client.client-cert-file=client-cert-file",
 				"spring.cloud.kubernetes.client.client-cert-data=client-cert-data",
 				"spring.cloud.kubernetes.client.client-key-file=client-key-file",
 				"spring.cloud.kubernetes.client.client-key-data=client-key-data",
+				"spring.cloud.kubernetes.client.client-key-algo=client-key-algo",
 				"spring.cloud.kubernetes.client.client-key-passphrase=client-key-passphrase",
 				"spring.cloud.kubernetes.client.username=username", "spring.cloud.kubernetes.client.password=password",
 				"spring.cloud.kubernetes.client.watch-reconnect-interval=200ms",
@@ -101,9 +105,11 @@ class KubernetesClientPropertiesTests {
 					assertThat(properties.namespace()).isEqualTo("namespace");
 					assertThat(properties.caCertFile()).isEqualTo("ca-cert-file");
 					assertThat(properties.caCertData()).isEqualTo("ca-cert-data");
+					assertThat(properties.clientCertFile()).isEqualTo("client-cert-file");
 					assertThat(properties.clientCertData()).isEqualTo("client-cert-data");
 					assertThat(properties.clientKeyFile()).isEqualTo("client-key-file");
 					assertThat(properties.clientKeyData()).isEqualTo("client-key-data");
+					assertThat(properties.clientKeyAlgo()).isEqualTo("client-key-algo");
 					assertThat(properties.clientKeyPassphrase()).isEqualTo("client-key-passphrase");
 					assertThat(properties.username()).isEqualTo("username");
 					assertThat(properties.password()).isEqualTo("password");
@@ -134,9 +140,11 @@ class KubernetesClientPropertiesTests {
 				"spring.cloud.kubernetes.client.namespace=namespace",
 				"spring.cloud.kubernetes.client.ca-cert-file=ca-cert-file",
 				"spring.cloud.kubernetes.client.ca-cert-data=ca-cert-data",
+				"spring.cloud.kubernetes.client.client-cert-file=client-cert-file",
 				"spring.cloud.kubernetes.client.client-cert-data=client-cert-data",
 				"spring.cloud.kubernetes.client.client-key-file=client-key-file",
 				"spring.cloud.kubernetes.client.client-key-data=client-key-data",
+				"spring.cloud.kubernetes.client.client-key-algo=client-key-algo",
 				"spring.cloud.kubernetes.client.client-key-passphrase=client-key-passphrase",
 				"spring.cloud.kubernetes.client.username=username", "spring.cloud.kubernetes.client.password=password",
 				"spring.cloud.kubernetes.client.watch-reconnect-interval=200ms",
@@ -162,9 +170,11 @@ class KubernetesClientPropertiesTests {
 					assertThat(properties.namespace()).isEqualTo("non-default");
 					assertThat(properties.caCertFile()).isEqualTo("ca-cert-file");
 					assertThat(properties.caCertData()).isEqualTo("ca-cert-data");
+					assertThat(properties.clientCertFile()).isEqualTo("client-cert-file");
 					assertThat(properties.clientCertData()).isEqualTo("client-cert-data");
 					assertThat(properties.clientKeyFile()).isEqualTo("client-key-file");
 					assertThat(properties.clientKeyData()).isEqualTo("client-key-data");
+					assertThat(properties.clientKeyAlgo()).isEqualTo("client-key-algo");
 					assertThat(properties.clientKeyPassphrase()).isEqualTo("client-key-passphrase");
 					assertThat(properties.username()).isEqualTo("username");
 					assertThat(properties.password()).isEqualTo("password");
