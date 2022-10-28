@@ -1,2 +1,0 @@
-org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientConfigClientBootstrapConfiguration
