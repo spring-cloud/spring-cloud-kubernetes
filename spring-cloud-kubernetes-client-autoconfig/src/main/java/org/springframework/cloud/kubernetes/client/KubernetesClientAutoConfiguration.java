@@ -42,9 +42,9 @@ public class KubernetesClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ApiClient apiClient(KubernetesClientProperties properties) {
+	public ApiClient apiClient(Environment environment) {
 		ApiClient apiClient = kubernetesApiClient();
-		apiClient.setUserAgent(properties.userAgent());
+		apiClient.setUserAgent(environment.getProperty("spring.cloud.kubernetes.client.user-agent"));
 		return apiClient;
 	}
 
