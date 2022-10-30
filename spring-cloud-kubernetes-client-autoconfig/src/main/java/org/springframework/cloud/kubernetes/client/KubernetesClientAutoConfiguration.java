@@ -45,7 +45,7 @@ public class KubernetesClientAutoConfiguration {
 	public ApiClient apiClient(Environment environment) {
 		ApiClient apiClient = kubernetesApiClient();
 		// it's too early to inject KubernetesClientProperties here, all its properties
-		// are missing. For th time being work-around with reading from the environment.
+		// are missing. For the time being work-around with reading from the environment.
 		apiClient.setUserAgent(environment.getProperty("spring.cloud.kubernetes.client.user-agent",
 			KubernetesClientProperties.DEFAULT_USER_AGENT));
 		return apiClient;
