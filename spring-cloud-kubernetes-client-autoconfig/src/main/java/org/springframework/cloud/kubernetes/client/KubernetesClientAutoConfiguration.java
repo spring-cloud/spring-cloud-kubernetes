@@ -23,6 +23,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
+import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.context.annotation.Bean;
@@ -43,7 +44,10 @@ public class KubernetesClientAutoConfiguration {
 	@ConditionalOnMissingBean
 	public ApiClient apiClient(Environment environment) {
 		ApiClient apiClient = kubernetesApiClient();
-		apiClient.setUserAgent(environment.getProperty("spring.cloud.kubernetes.client.user-agent"));
+		// it's too early to inject KubernetesClientProperties here, all its properties
+		// are missing. For th time being work-around with reading from the environment.
+		apiClient.setUserAgent(environment.getProperty("spring.cloud.kubernetes.client.user-agent",
+			KubernetesClientProperties.DEFAULT_USER_AGENT));
 		return apiClient;
 	}
 
