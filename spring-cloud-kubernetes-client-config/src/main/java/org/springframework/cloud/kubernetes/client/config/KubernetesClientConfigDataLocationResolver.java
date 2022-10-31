@@ -128,7 +128,7 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 
 	protected ApiClient apiClient(KubernetesClientProperties properties) {
 		ApiClient apiClient = kubernetesApiClient();
-		apiClient.setUserAgent(properties.getUserAgent());
+		apiClient.setUserAgent(properties.userAgent());
 		return apiClient;
 	}
 

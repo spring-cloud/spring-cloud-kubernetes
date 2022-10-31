@@ -46,8 +46,8 @@ public class KubernetesCommonsAutoConfigurationTests {
 
 		KubernetesClientProperties properties = context.getBeansOfType(KubernetesClientProperties.class).values()
 				.stream().findFirst().get();
-		assertThat(properties.getPassword()).isEqualTo("mypassword");
-		assertThat(properties.getProxyPassword()).isEqualTo("myproxypassword");
+		assertThat(properties.password()).isEqualTo("mypassword");
+		assertThat(properties.proxyPassword()).isEqualTo("myproxypassword");
 	}
 
 	@SpringBootApplication
