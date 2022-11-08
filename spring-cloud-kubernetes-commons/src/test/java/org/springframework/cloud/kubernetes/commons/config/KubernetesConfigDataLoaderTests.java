@@ -16,8 +16,12 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.io.IOException;
+import java.util.List;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.DefaultBootstrapContext;
 import org.springframework.boot.context.config.ConfigData;
@@ -27,9 +31,6 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.mock.env.MockPropertySource;
-
-import java.io.IOException;
-import java.util.List;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -49,13 +50,12 @@ class KubernetesConfigDataLoaderTests {
 
 	private static final ConfigurableEnvironment ENVIRONMENT = new MockEnvironment();
 
-	private static final KubernetesConfigDataResource EMPTY_RESOURCE = new KubernetesConfigDataResource(
-		null, null, null, false, PROFILES, ENVIRONMENT
-	);
+	private static final KubernetesConfigDataResource EMPTY_RESOURCE = new KubernetesConfigDataResource(null, null,
+			null, false, PROFILES, ENVIRONMENT);
 
 	/**
-	 * we do not override this method in our implementation, so it should
-	 * report true for any arguments.
+	 * we do not override this method in our implementation, so it should report true for
+	 * any arguments.
 	 */
 	@Test
 	void testIsLoadable() {
@@ -64,9 +64,9 @@ class KubernetesConfigDataLoaderTests {
 	}
 
 	/**
-	 * neither ConfigMapPropertySourceLocator nor SecretsPropertySourceLocator is registered
-	 * in bootstrap context. There are no profiles either, as such PROFILE_SPECIFIC option
-	 * is not present.
+	 * neither ConfigMapPropertySourceLocator nor SecretsPropertySourceLocator is
+	 * registered in bootstrap context. There are no profiles either, as such
+	 * PROFILE_SPECIFIC option is not present.
 	 */
 	@Test
 	void testNeitherIsRegisteredNoProfiles() throws IOException {
@@ -87,9 +87,9 @@ class KubernetesConfigDataLoaderTests {
 	}
 
 	/**
-	 * neither ConfigMapPropertySourceLocator nor SecretsPropertySourceLocator is registered
-	 * in bootstrap context. "dev" profile is accepted, as such PROFILE_SPECIFIC option is
-	 * present.
+	 * neither ConfigMapPropertySourceLocator nor SecretsPropertySourceLocator is
+	 * registered in bootstrap context. "dev" profile is accepted, as such
+	 * PROFILE_SPECIFIC option is present.
 	 */
 	@Test
 	void testNeitherIsRegisteredDevProfilePresent() throws IOException {
@@ -115,7 +115,7 @@ class KubernetesConfigDataLoaderTests {
 	 * both ConfigMapPropertySourceLocator and SecretsPropertySourceLocator are registered
 	 * in bootstrap context.
 	 */
-	@SuppressWarnings({"raw", "unchecked"})
+	@SuppressWarnings({ "raw", "unchecked" })
 	@Test
 	void testBothRegistered() throws IOException {
 
@@ -127,13 +127,11 @@ class KubernetesConfigDataLoaderTests {
 		when(configMapPropertySourceLocator.locate(ENVIRONMENT)).thenReturn(configMapPropertySource);
 		when(secretsPropertySourceLocator.locate(ENVIRONMENT)).thenReturn(secretsPropertySource);
 
-		BOOTSTRAP_CONTEXT_BOTH_REGISTRATIONS.register(
-			ConfigMapPropertySourceLocator.class, BootstrapRegistry.InstanceSupplier.of(configMapPropertySourceLocator)
-		);
+		BOOTSTRAP_CONTEXT_BOTH_REGISTRATIONS.register(ConfigMapPropertySourceLocator.class,
+				BootstrapRegistry.InstanceSupplier.of(configMapPropertySourceLocator));
 
-		BOOTSTRAP_CONTEXT_BOTH_REGISTRATIONS.register(
-			SecretsPropertySourceLocator.class, BootstrapRegistry.InstanceSupplier.of(secretsPropertySourceLocator)
-		);
+		BOOTSTRAP_CONTEXT_BOTH_REGISTRATIONS.register(SecretsPropertySourceLocator.class,
+				BootstrapRegistry.InstanceSupplier.of(secretsPropertySourceLocator));
 
 		KubernetesConfigDataLoader loader = new KubernetesConfigDataLoader();
 		ConfigData configData = loader.load(CONTEXT, EMPTY_RESOURCE);
