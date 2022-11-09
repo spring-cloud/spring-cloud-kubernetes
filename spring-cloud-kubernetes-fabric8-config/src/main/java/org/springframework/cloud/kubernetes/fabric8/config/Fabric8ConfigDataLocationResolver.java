@@ -60,26 +60,26 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 
 		if (configMapProperties != null && configMapProperties.enabled()) {
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator = new Fabric8ConfigMapPropertySourceLocator(
-					kubernetesClient, configMapProperties, namespaceProvider);
+				kubernetesClient, configMapProperties, namespaceProvider);
 			if (isRetryEnabledForConfigMap(configMapProperties)) {
 				configMapPropertySourceLocator = new ConfigDataRetryableConfigMapPropertySourceLocator(
-						configMapPropertySourceLocator, configMapProperties);
+					configMapPropertySourceLocator, configMapProperties);
 			}
 
-			registerSingle(bootstrapContext, ConfigMapPropertySourceLocator.class, configMapPropertySourceLocator,
-					"configDataConfigMapPropertySourceLocator");
+			registerSingle(bootstrapContext, ConfigMapPropertySourceLocator.class,
+				configMapPropertySourceLocator, "configDataConfigMapPropertySourceLocator");
 		}
 
 		if (secretsProperties != null && secretsProperties.enabled()) {
 			SecretsPropertySourceLocator secretsPropertySourceLocator = new Fabric8SecretsPropertySourceLocator(
-					kubernetesClient, secretsProperties, namespaceProvider);
+				kubernetesClient, secretsProperties, namespaceProvider);
 			if (isRetryEnabledForSecrets(secretsProperties)) {
 				secretsPropertySourceLocator = new ConfigDataRetryableSecretsPropertySourceLocator(
-						secretsPropertySourceLocator, secretsProperties);
+					secretsPropertySourceLocator, secretsProperties);
 			}
 
-			registerSingle(bootstrapContext, SecretsPropertySourceLocator.class, secretsPropertySourceLocator,
-					"configDataSecretsPropertySourceLocator");
+			registerSingle(bootstrapContext, SecretsPropertySourceLocator.class,
+				secretsPropertySourceLocator, "configDataSecretsPropertySourceLocator");
 		}
 
 	}
