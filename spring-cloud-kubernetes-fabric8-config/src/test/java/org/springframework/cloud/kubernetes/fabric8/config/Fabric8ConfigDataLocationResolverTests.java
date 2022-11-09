@@ -16,11 +16,14 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
+import java.util.function.Supplier;
+
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
 import org.springframework.boot.DefaultBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
@@ -37,8 +40,6 @@ import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperti
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.mock.env.MockEnvironment;
 
-import java.util.function.Supplier;
-
 /**
  * @author wind57
  */
@@ -47,15 +48,14 @@ class Fabric8ConfigDataLocationResolverTests {
 	private static final DeferredLogFactory FACTORY = Supplier::get;
 
 	private static final ConfigDataLocationResolverContext RESOLVER_CONTEXT = Mockito
-		.mock(ConfigDataLocationResolverContext.class);
+			.mock(ConfigDataLocationResolverContext.class);
 
 	private static final Fabric8ConfigDataLocationResolver RESOLVER = new Fabric8ConfigDataLocationResolver(FACTORY);
 
 	/*
-	 * both ConfigMapConfigProperties and SecretsConfigProperties are null,
-	 * thus they are not registered.
-	 * It also means that ConfigMapPropertySourceLocator and SecretsPropertySourceLocator
-	 * are not registered either.
+	 * both ConfigMapConfigProperties and SecretsConfigProperties are null, thus they are
+	 * not registered. It also means that ConfigMapPropertySourceLocator and
+	 * SecretsPropertySourceLocator are not registered either.
 	 */
 	@Test
 	void testBothMissing() {
@@ -85,9 +85,9 @@ class Fabric8ConfigDataLocationResolverTests {
 	}
 
 	/*
-	 * both ConfigMapConfigProperties and SecretsConfigProperties are enabled (via @Default
-	 * on 'spring.cloud.kubernetes.config.enabled' and 'spring.cloud.kubernetes.secrets.enabled');
-	 * as such they are both registered.
+	 * both ConfigMapConfigProperties and SecretsConfigProperties are enabled
+	 * (via @Default on 'spring.cloud.kubernetes.config.enabled' and
+	 * 'spring.cloud.kubernetes.secrets.enabled'); as such they are both registered.
 	 *
 	 * It also means that ConfigMapPropertySourceLocator and SecretsPropertySourceLocator
 	 * are registered too.
@@ -119,7 +119,8 @@ class Fabric8ConfigDataLocationResolverTests {
 		Assertions.assertTrue(context.isRegistered(ConfigMapPropertySourceLocator.class));
 		Assertions.assertTrue(context.isRegistered(SecretsPropertySourceLocator.class));
 
-		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context.get(ConfigMapPropertySourceLocator.class);
+		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
+				.get(ConfigMapPropertySourceLocator.class);
 		Assertions.assertSame(Fabric8ConfigMapPropertySourceLocator.class, configMapPropertySourceLocator.getClass());
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
@@ -160,7 +161,8 @@ class Fabric8ConfigDataLocationResolverTests {
 		Assertions.assertTrue(context.isRegistered(ConfigMapConfigProperties.class));
 		Assertions.assertTrue(context.isRegistered(SecretsConfigProperties.class));
 
-		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context.get(ConfigMapPropertySourceLocator.class);
+		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
+				.get(ConfigMapPropertySourceLocator.class);
 		Assertions.assertSame(Fabric8ConfigMapPropertySourceLocator.class, configMapPropertySourceLocator.getClass());
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
@@ -168,15 +170,15 @@ class Fabric8ConfigDataLocationResolverTests {
 	}
 
 	/*
-	 * both ConfigMapConfigProperties and SecretsConfigProperties are enabled (via @Default
-	 * on 'spring.cloud.kubernetes.config.enabled' and 'spring.cloud.kubernetes.secrets.enabled');
-	 * as such they are both registered.
+	 * both ConfigMapConfigProperties and SecretsConfigProperties are enabled
+	 * (via @Default on 'spring.cloud.kubernetes.config.enabled' and
+	 * 'spring.cloud.kubernetes.secrets.enabled'); as such they are both registered.
 	 *
 	 * It also means that ConfigMapPropertySourceLocator and SecretsPropertySourceLocator
 	 * are registered too.
 	 *
-	 * Since retry is enabled explicitly, we also assert the types to ensure that
-	 * these are retryable beans.
+	 * Since retry is enabled explicitly, we also assert the types to ensure that these
+	 * are retryable beans.
 	 */
 	@Test
 	void testBothPresentAndRetryEnabled() {
@@ -206,11 +208,14 @@ class Fabric8ConfigDataLocationResolverTests {
 		Assertions.assertTrue(context.isRegistered(ConfigMapPropertySourceLocator.class));
 		Assertions.assertTrue(context.isRegistered(SecretsPropertySourceLocator.class));
 
-		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context.get(ConfigMapPropertySourceLocator.class);
-		Assertions.assertSame(ConfigDataRetryableConfigMapPropertySourceLocator.class, configMapPropertySourceLocator.getClass());
+		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
+				.get(ConfigMapPropertySourceLocator.class);
+		Assertions.assertSame(ConfigDataRetryableConfigMapPropertySourceLocator.class,
+				configMapPropertySourceLocator.getClass());
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
-		Assertions.assertSame(ConfigDataRetryableSecretsPropertySourceLocator.class, secretsPropertySourceLocator.getClass());
+		Assertions.assertSame(ConfigDataRetryableSecretsPropertySourceLocator.class,
+				secretsPropertySourceLocator.getClass());
 
 	}
 
