@@ -19,8 +19,6 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
-import org.springframework.boot.BootstrapRegistry;
-import org.springframework.boot.BootstrapRegistry.InstanceSupplier;
 import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
@@ -38,6 +36,8 @@ import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.core.env.Environment;
 
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.registerSingle;
+
 /**
  * @author Ryan Baxter
  */
@@ -51,91 +51,52 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
 			Profiles profiles, KubernetesConfigDataLocationResolver.PropertyHolder propertyHolder,
 			KubernetesNamespaceProvider namespaceProvider) {
-		KubernetesClientProperties properties = propertyHolder.kubernetesClientProperties();
+		KubernetesClientProperties kubernetesClientProperties = propertyHolder.kubernetesClientProperties();
 		ConfigMapConfigProperties configMapProperties = propertyHolder.configMapConfigProperties();
 		SecretsConfigProperties secretsProperties = propertyHolder.secretsProperties();
 
 		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
-		Config config = config(properties);
-		bootstrapContext.registerIfAbsent(Config.class, InstanceSupplier.of(config));
-		bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
-				.registerSingleton("fabric8Config", event.getBootstrapContext().get(Config.class)));
+		KubernetesClient kubernetesClient = registerConfigAndClient(bootstrapContext, kubernetesClientProperties);
 
-		KubernetesClient kubernetesClient = kubernetesClient(config);
-		bootstrapContext.registerIfAbsent(KubernetesClient.class,
-				BootstrapRegistry.InstanceSupplier.of(kubernetesClient));
-		bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
-				.registerSingleton("configKubernetesClient", event.getBootstrapContext().get(KubernetesClient.class)));
-
-		if (isRetryEnabled(configMapProperties, secretsProperties)) {
-			registerRetryBeans(configMapProperties, secretsProperties, bootstrapContext, kubernetesClient,
-					namespaceProvider);
-		}
-		else {
-			if (configMapProperties != null && configMapProperties.enabled()) {
-				Fabric8ConfigMapPropertySourceLocator configMapPropertySourceLocator = new Fabric8ConfigMapPropertySourceLocator(
-						kubernetesClient, configMapProperties, namespaceProvider);
-				bootstrapContext.registerIfAbsent(ConfigMapPropertySourceLocator.class,
-						InstanceSupplier.of(configMapPropertySourceLocator));
-				bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
-						.registerSingleton("configDataConfigMapPropertySourceLocator",
-								event.getBootstrapContext().get(ConfigMapPropertySourceLocator.class)));
-			}
-			if (secretsProperties != null && secretsProperties.enabled()) {
-				Fabric8SecretsPropertySourceLocator secretsPropertySourceLocator = new Fabric8SecretsPropertySourceLocator(
-						kubernetesClient, secretsProperties, namespaceProvider);
-				bootstrapContext.registerIfAbsent(SecretsPropertySourceLocator.class,
-						InstanceSupplier.of(secretsPropertySourceLocator));
-				bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
-						.registerSingleton("configDataSecretsPropertySourceLocator",
-								event.getBootstrapContext().get(SecretsPropertySourceLocator.class)));
-			}
-		}
-	}
-
-	private void registerRetryBeans(ConfigMapConfigProperties configMapProperties,
-			SecretsConfigProperties secretsProperties, ConfigurableBootstrapContext bootstrapContext,
-			KubernetesClient kubernetesClient, KubernetesNamespaceProvider namespaceProvider) {
 		if (configMapProperties != null && configMapProperties.enabled()) {
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator = new Fabric8ConfigMapPropertySourceLocator(
-					kubernetesClient, configMapProperties, namespaceProvider);
+				kubernetesClient, configMapProperties, namespaceProvider);
 			if (isRetryEnabledForConfigMap(configMapProperties)) {
 				configMapPropertySourceLocator = new ConfigDataRetryableConfigMapPropertySourceLocator(
-						configMapPropertySourceLocator, configMapProperties);
+					configMapPropertySourceLocator, configMapProperties);
 			}
 
-			bootstrapContext.registerIfAbsent(ConfigMapPropertySourceLocator.class,
-					InstanceSupplier.of(configMapPropertySourceLocator));
-			bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory().registerSingleton(
-					"configDataConfigMapPropertySourceLocator",
-					event.getBootstrapContext().get(ConfigMapPropertySourceLocator.class)));
+			registerSingle(bootstrapContext, ConfigMapPropertySourceLocator.class,
+				configMapPropertySourceLocator, "configDataConfigMapPropertySourceLocator");
 		}
 
 		if (secretsProperties != null && secretsProperties.enabled()) {
 			SecretsPropertySourceLocator secretsPropertySourceLocator = new Fabric8SecretsPropertySourceLocator(
-					kubernetesClient, secretsProperties, namespaceProvider);
+				kubernetesClient, secretsProperties, namespaceProvider);
 			if (isRetryEnabledForSecrets(secretsProperties)) {
 				secretsPropertySourceLocator = new ConfigDataRetryableSecretsPropertySourceLocator(
-						secretsPropertySourceLocator, secretsProperties);
+					secretsPropertySourceLocator, secretsProperties);
 			}
-			bootstrapContext.registerIfAbsent(SecretsPropertySourceLocator.class,
-					InstanceSupplier.of(secretsPropertySourceLocator));
-			bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory().registerSingleton(
-					"configDataSecretsPropertySourceLocator",
-					event.getBootstrapContext().get(SecretsPropertySourceLocator.class)));
+
+			registerSingle(bootstrapContext, SecretsPropertySourceLocator.class,
+				secretsPropertySourceLocator, "configDataSecretsPropertySourceLocator");
 		}
+
 	}
 
+	private KubernetesClient registerConfigAndClient(ConfigurableBootstrapContext bootstrapContext,
+			KubernetesClientProperties kubernetesClientProperties) {
+		Config config = new Fabric8AutoConfiguration().kubernetesClientConfig(kubernetesClientProperties);
+		registerSingle(bootstrapContext, Config.class, config, "fabric8Config");
+
+		KubernetesClient kubernetesClient = new Fabric8AutoConfiguration().kubernetesClient(config);
+		registerSingle(bootstrapContext, KubernetesClient.class, kubernetesClient, "configKubernetesClient");
+		return kubernetesClient;
+	}
+
+	@Override
 	protected KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {
 		return new KubernetesNamespaceProvider(environment);
-	}
-
-	private Config config(KubernetesClientProperties properties) {
-		return new Fabric8AutoConfiguration().kubernetesClientConfig(properties);
-	}
-
-	private KubernetesClient kubernetesClient(Config config) {
-		return new Fabric8AutoConfiguration().kubernetesClient(config);
 	}
 
 }
