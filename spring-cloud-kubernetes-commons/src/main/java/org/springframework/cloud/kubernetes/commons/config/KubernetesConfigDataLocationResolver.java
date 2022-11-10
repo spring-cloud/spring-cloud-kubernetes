@@ -120,11 +120,6 @@ public abstract class KubernetesConfigDataLocationResolver
 			ConfigDataLocation location, Profiles profiles, PropertyHolder propertyHolder,
 			KubernetesNamespaceProvider namespaceProvider);
 
-	protected final boolean isRetryEnabled(ConfigMapConfigProperties configMapProperties,
-			SecretsConfigProperties secretsProperties) {
-		return isRetryEnabledForConfigMap(configMapProperties) || isRetryEnabledForSecrets(secretsProperties);
-	}
-
 	protected final boolean isRetryEnabledForConfigMap(ConfigMapConfigProperties configMapProperties) {
 		return RETRY_IS_PRESENT && configMapProperties != null && configMapProperties.retry().enabled()
 				&& configMapProperties.failFast();
