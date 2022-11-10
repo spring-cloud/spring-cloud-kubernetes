@@ -50,7 +50,8 @@ commands:
       - run:
           name: build
           command: |
-            ./mvnw -s .settings.xml -T 1C clean install -U -DskipTests
+            # ignore spring-cloud-kubernetes-examples from the build
+            ./mvnw -pl '!:spring-cloud-kubernetes-examples' -s .settings.xml -T 1C clean install -U -DskipTests
       - run:
           name: save docker images
           command: |
