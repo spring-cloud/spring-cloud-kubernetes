@@ -51,7 +51,7 @@ commands:
           name: build
           command: |
             # ignore everything from spring-cloud-kubernetes-examples from the build
-            # maven can't exclude ModuleA and all of it's submodules, so we need to list them all
+            # maven can't exclude ModuleA and all of its submodules, so we need to list them all
             ./mvnw -pl '-:spring-cloud-kubernetes-example-reload,-:kubernetes-hello-world,-:kubernetes-leader-election-example,-:name-service,-:greeting-service' \
                    -s .settings.xml -T 1C clean install -U -DskipTests
       - run:
