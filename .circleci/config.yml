@@ -260,7 +260,9 @@ jobs:
             echo ${TEST_ARG[@]}
             echo '---------------------------------------------------'
 
+            # this skips all modules related to examples
             ./mvnw -s .settings.xml \
+                  -pl '-:spring-cloud-kubernetes-example-reload,-:kubernetes-hello-world,-:kubernetes-leader-election-example,-:name-service,-:greeting-service' \
                   -DtestsToRun=${TEST_ARG[@]} \
                   -e clean install \
                   -U -P sonar -nsu --batch-mode \
