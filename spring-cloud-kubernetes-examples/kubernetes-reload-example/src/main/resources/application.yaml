@@ -1,8 +1,0 @@
-management:
-  endpoint:
-    restart:
-      enabled: true
-    health:
-      enabled: true
-    info:
-      enabled: true

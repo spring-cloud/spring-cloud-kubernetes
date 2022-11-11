@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-	<include resource="org/springframework/boot/logging/logback/base.xml"/>
-	<logger name="org.hibernate.validator"
-			level="info"/> <!-- Validator prints a lot of debug messages during integration tests -->
-	<logger name="org.springframework.cloud.kubernetes" level="debug"/>
-</configuration>
