@@ -118,7 +118,7 @@ public final class Fabric8ConfigUtils {
 		ConfigMap configMap = client.configMaps().inNamespace(namespace).withName(name).get();
 
 		if (configMap == null) {
-			LOG.warn("config-map with name : '" + name + "' not present in namespace : '" + namespace + "'");
+			LOG.debug("config-map with name : '" + name + "' not present in namespace : '" + namespace + "'");
 			return Collections.emptyMap();
 		}
 
