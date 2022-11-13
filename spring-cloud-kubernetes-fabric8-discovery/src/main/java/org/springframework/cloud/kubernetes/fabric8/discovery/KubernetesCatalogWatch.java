@@ -81,7 +81,7 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 			if (!endpointsPodNames.equals(catalogEndpointsState)) {
 				LOG.debug(() -> "Received endpoints update from kubernetesClient: " + endpointsPodNames);
-				this.publisher.publishEvent(new HeartbeatEvent(this, endpointsPodNames));
+				publisher.publishEvent(new HeartbeatEvent(this, endpointsPodNames));
 			}
 
 			catalogEndpointsState = endpointsPodNames;
