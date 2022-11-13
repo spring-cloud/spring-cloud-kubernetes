@@ -57,12 +57,14 @@ class KubernetesCatalogWatchTest {
 	private final KubernetesCatalogWatch kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT,
 			KubernetesDiscoveryProperties.DEFAULT);
 
-	private static final ApplicationEventPublisher APPLICATION_EVENT_PUBLISHER = Mockito.mock(ApplicationEventPublisher.class);
+	private static final ApplicationEventPublisher APPLICATION_EVENT_PUBLISHER = Mockito
+			.mock(ApplicationEventPublisher.class);
 
-	private static final MixedOperation<Endpoints, EndpointsList, Resource<Endpoints>> MIXED_OPERATION =
-		Mockito.mock(MixedOperation.class);
+	private static final MixedOperation<Endpoints, EndpointsList, Resource<Endpoints>> MIXED_OPERATION = Mockito
+			.mock(MixedOperation.class);
 
-	private static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor.forClass(HeartbeatEvent.class);
+	private static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
+			.forClass(HeartbeatEvent.class);
 
 	@BeforeEach
 	void setUp() {
@@ -76,8 +78,7 @@ class KubernetesCatalogWatchTest {
 
 	@Test
 	void testRandomOrderChangePods() {
-		when(MIXED_OPERATION.list())
-				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
+		when(MIXED_OPERATION.list()).thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
 				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod", "api-pod"));
 		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
 		when(CLIENT.endpoints().withLabels(anyMap())).thenReturn(MIXED_OPERATION);
@@ -91,8 +92,7 @@ class KubernetesCatalogWatchTest {
 
 	@Test
 	void testRandomOrderChangePodsAllNamespaces() {
-		when(MIXED_OPERATION.list())
-				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
+		when(MIXED_OPERATION.list()).thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
 				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod", "api-pod"));
 		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
 		when(CLIENT.endpoints().inAnyNamespace()).thenReturn(MIXED_OPERATION);
@@ -107,8 +107,7 @@ class KubernetesCatalogWatchTest {
 
 	@Test
 	void testRandomOrderChangeServices() {
-		when(MIXED_OPERATION.list())
-				.thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
+		when(MIXED_OPERATION.list()).thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
 				.thenReturn(createEndpointsListByServiceName("other-service", "api-service"));
 		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
 		when(CLIENT.endpoints().withLabels(anyMap())).thenReturn(MIXED_OPERATION);
@@ -122,8 +121,7 @@ class KubernetesCatalogWatchTest {
 
 	@Test
 	void testRandomOrderChangeServicesAllNamespaces() {
-		when(MIXED_OPERATION.list())
-				.thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
+		when(MIXED_OPERATION.list()).thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
 				.thenReturn(createEndpointsListByServiceName("other-service", "api-service"));
 		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
 		when(CLIENT.endpoints().inAnyNamespace()).thenReturn(MIXED_OPERATION);
@@ -138,8 +136,7 @@ class KubernetesCatalogWatchTest {
 
 	@Test
 	void testEventBody() {
-		when(MIXED_OPERATION.list())
-				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
+		when(MIXED_OPERATION.list()).thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
 		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
 		when(CLIENT.endpoints().withLabels(anyMap())).thenReturn(MIXED_OPERATION);
 
@@ -156,8 +153,7 @@ class KubernetesCatalogWatchTest {
 
 	@Test
 	void testEventBodyAllNamespaces() {
-		when(MIXED_OPERATION.list())
-				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
+		when(MIXED_OPERATION.list()).thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
 		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
 		when(CLIENT.endpoints().inAnyNamespace()).thenReturn(MIXED_OPERATION);
 		when(CLIENT.endpoints().inAnyNamespace().withLabels(anyMap())).thenReturn(MIXED_OPERATION);

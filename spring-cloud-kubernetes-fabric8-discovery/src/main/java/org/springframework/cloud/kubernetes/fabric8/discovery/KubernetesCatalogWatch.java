@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -66,17 +65,19 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 			// not all pods participate in the service discovery. only those that have
 			// endpoints.
-			List<Endpoints> endpoints = this.properties.allNamespaces()
-					? this.kubernetesClient.endpoints().inAnyNamespace().withLabels(properties.serviceLabels()).list()
-							.getItems()
-					: this.kubernetesClient.endpoints().withLabels(properties.serviceLabels()).list().getItems();
+			List<Endpoints> endpoints;
+			if (properties.allNamespaces()) {
+				endpoints = kubernetesClient.endpoints().inAnyNamespace().withLabels(properties.serviceLabels()).list()
+						.getItems();
+			}
+			else {
+				endpoints = kubernetesClient.endpoints().withLabels(properties.serviceLabels()).list().getItems();
+			}
+
 			List<String> endpointsPodNames = endpoints.stream().map(Endpoints::getSubsets).filter(Objects::nonNull)
-					.flatMap(Collection::stream).map(EndpointSubset::getAddresses).filter(Objects::nonNull)
-					.flatMap(Collection::stream).map(EndpointAddress::getTargetRef).filter(Objects::nonNull)
-					.map(ObjectReference::getName) // pod name
-													// unique in
-													// namespace
-					.sorted(String::compareTo).collect(Collectors.toList());
+					.flatMap(List::stream).map(EndpointSubset::getAddresses).filter(Objects::nonNull)
+					.flatMap(List::stream).map(EndpointAddress::getTargetRef).filter(Objects::nonNull)
+					.map(ObjectReference::getName).sorted(String::compareTo).collect(Collectors.toList());
 
 			if (!endpointsPodNames.equals(catalogEndpointsState)) {
 				LOG.debug(() -> "Received endpoints update from kubernetesClient: " + endpointsPodNames);
