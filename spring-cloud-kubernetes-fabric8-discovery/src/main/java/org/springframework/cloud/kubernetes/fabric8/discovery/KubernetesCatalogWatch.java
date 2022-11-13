@@ -63,7 +63,6 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 	@Scheduled(fixedDelayString = "${spring.cloud.kubernetes.discovery.catalogServicesWatchDelay:30000}")
 	public void catalogServicesWatch() {
 		try {
-			List<String> previousState = catalogEndpointsState;
 
 			// not all pods participate in the service discovery. only those that have
 			// endpoints.
@@ -79,12 +78,12 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 													// namespace
 					.sorted(String::compareTo).collect(Collectors.toList());
 
-			catalogEndpointsState = endpointsPodNames;
-
-			if (!endpointsPodNames.equals(previousState)) {
+			if (!endpointsPodNames.equals(catalogEndpointsState)) {
 				LOG.debug(() -> "Received endpoints update from kubernetesClient: " + endpointsPodNames);
 				this.publisher.publishEvent(new HeartbeatEvent(this, endpointsPodNames));
 			}
+
+			catalogEndpointsState = endpointsPodNames;
 		}
 		catch (Exception e) {
 			LOG.error(e, () -> "Error watching Kubernetes Services");
