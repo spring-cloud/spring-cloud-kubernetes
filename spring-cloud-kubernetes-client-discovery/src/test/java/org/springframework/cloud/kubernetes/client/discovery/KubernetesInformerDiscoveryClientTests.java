@@ -65,6 +65,11 @@ public class KubernetesInformerDiscoveryClientTests {
 			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(8080))
 					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 
+	private static final V1Endpoints testEndpoints2 = new V1Endpoints()
+			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace2"))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(8080))
+					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
+
 	private static final V1Endpoints testEndpointWithoutReadyAddresses = new V1Endpoints()
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
 			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(8080))
@@ -376,6 +381,24 @@ public class KubernetesInformerDiscoveryClientTests {
 
 		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new DefaultKubernetesServiceInstance("",
 				"test-svc-1", "1.1.1.1", 80, new HashMap<>(), false, "namespace1", null));
+	}
+
+	@Test
+	public void getInstancesShouldReturnInstancesWithTheSameServiceIdFromNamespaces() {
+		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1, testEndpoints2);
+
+		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
+				Set.of(), true, 60, false, null, Set.of(), null, null, null, 0);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(null,
+				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
+
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(
+				new DefaultKubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false,
+						"namespace1", null),
+				new DefaultKubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false,
+						"namespace2", null));
 	}
 
 	private Lister<V1Service> setupServiceLister(V1Service... services) {

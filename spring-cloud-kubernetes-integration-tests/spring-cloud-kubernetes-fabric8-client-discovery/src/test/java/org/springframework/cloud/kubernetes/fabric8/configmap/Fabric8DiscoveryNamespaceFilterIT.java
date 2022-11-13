@@ -112,7 +112,8 @@ class Fabric8DiscoveryNamespaceFilterIT {
 		WebClient clientEndpoints = builder().baseUrl("localhost/endpoints/servicea-wiremock").build();
 
 		List<Endpoints> endpoints = clientEndpoints.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<Endpoints>>() {				}).retryWhen(retrySpec()).block();
+				.bodyToMono(new ParameterizedTypeReference<List<Endpoints>>() {
+				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(endpoints.size(), 1);
 		Assertions.assertEquals(endpoints.get(0).getMetadata().getNamespace(), NAMESPACE_1);
