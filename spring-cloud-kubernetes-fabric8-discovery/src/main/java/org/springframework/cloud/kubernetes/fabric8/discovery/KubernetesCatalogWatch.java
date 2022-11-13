@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private final KubernetesDiscoveryProperties properties;
 
-	private volatile List<String> catalogEndpointsState = List.of();
+	private volatile List<String> catalogEndpointsState = null;
 
 	private ApplicationEventPublisher publisher;
 
