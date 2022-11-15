@@ -16,18 +16,18 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
+import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -45,7 +45,7 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private final KubernetesDiscoveryProperties properties;
 
-	private volatile List<String> catalogEndpointsState = null;
+	private volatile List<EndpointNameAndNamespace> catalogEndpointsState = null;
 
 	private ApplicationEventPublisher publisher;
 
@@ -74,17 +74,18 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 				endpoints = kubernetesClient.endpoints().withLabels(properties.serviceLabels()).list().getItems();
 			}
 
-			List<String> endpointsPodNames = endpoints.stream().map(Endpoints::getSubsets).filter(Objects::nonNull)
-					.flatMap(List::stream).map(EndpointSubset::getAddresses).filter(Objects::nonNull)
-					.flatMap(List::stream).map(EndpointAddress::getTargetRef).filter(Objects::nonNull)
-					.map(ObjectReference::getName).sorted(String::compareTo).collect(Collectors.toList());
+			List<EndpointNameAndNamespace> currentState = endpoints.stream().map(Endpoints::getSubsets)
+					.filter(Objects::nonNull).flatMap(List::stream).map(EndpointSubset::getAddresses)
+					.filter(Objects::nonNull).flatMap(List::stream).map(EndpointAddress::getTargetRef)
+					.filter(Objects::nonNull).map(x -> new EndpointNameAndNamespace(x.getName(), x.getNamespace()))
+					.sorted(Comparator.comparing(EndpointNameAndNamespace::endpointName, String::compareTo)).toList();
 
-			if (!endpointsPodNames.equals(catalogEndpointsState)) {
-				LOG.debug(() -> "Received endpoints update from kubernetesClient: " + endpointsPodNames);
-				publisher.publishEvent(new HeartbeatEvent(this, endpointsPodNames));
+			if (!currentState.equals(catalogEndpointsState)) {
+				LOG.debug(() -> "Received endpoints update from kubernetesClient: " + currentState);
+				publisher.publishEvent(new HeartbeatEvent(this, currentState));
 			}
 
-			catalogEndpointsState = endpointsPodNames;
+			catalogEndpointsState = currentState;
 		}
 		catch (Exception e) {
 			LOG.error(e, () -> "Error watching Kubernetes Services");

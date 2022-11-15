@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,6 +35,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
+import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -136,7 +136,8 @@ class KubernetesCatalogWatchTest {
 
 	@Test
 	void testEventBody() {
-		when(MIXED_OPERATION.list()).thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
+		when(MIXED_OPERATION.list())
+				.thenReturn(createSingleEndpointListWithNamespace("default", "api-pod", "other-pod"));
 		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
 		when(CLIENT.endpoints().withLabels(anyMap())).thenReturn(MIXED_OPERATION);
 
@@ -147,13 +148,15 @@ class KubernetesCatalogWatchTest {
 		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
 		assertThat(event.getValue()).isInstanceOf(List.class);
 
-		List<String> expectedPodsList = Arrays.asList("api-pod", "other-pod");
-		assertThat(event.getValue()).isEqualTo(expectedPodsList);
+		List<EndpointNameAndNamespace> expectedOutput = List.of(new EndpointNameAndNamespace("api-pod", "default"),
+				new EndpointNameAndNamespace("other-pod", "default"));
+		assertThat(event.getValue()).isEqualTo(expectedOutput);
 	}
 
 	@Test
 	void testEventBodyAllNamespaces() {
-		when(MIXED_OPERATION.list()).thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
+		when(MIXED_OPERATION.list())
+				.thenReturn(createSingleEndpointListWithNamespace("default", "api-pod", "other-pod"));
 		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
 		when(CLIENT.endpoints().inAnyNamespace()).thenReturn(MIXED_OPERATION);
 		when(CLIENT.endpoints().inAnyNamespace().withLabels(anyMap())).thenReturn(MIXED_OPERATION);
@@ -165,8 +168,9 @@ class KubernetesCatalogWatchTest {
 		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
 		assertThat(event.getValue()).isInstanceOf(List.class);
 
-		List<String> expectedPodsList = Arrays.asList("api-pod", "other-pod");
-		assertThat(event.getValue()).isEqualTo(expectedPodsList);
+		List<EndpointNameAndNamespace> expectedOutput = List.of(new EndpointNameAndNamespace("api-pod", "default"),
+				new EndpointNameAndNamespace("other-pod", "default"));
+		assertThat(event.getValue()).isEqualTo(expectedOutput);
 	}
 
 	@Test
@@ -298,6 +302,15 @@ class KubernetesCatalogWatchTest {
 		return endpointsList;
 	}
 
+	private EndpointsList createSingleEndpointListWithNamespace(String namespace, String... podNames) {
+		Endpoints endpoints = new Endpoints();
+		endpoints.setSubsets(createSubsetsWithNamespace(namespace, podNames));
+
+		EndpointsList endpointsList = new EndpointsList();
+		endpointsList.setItems(Collections.singletonList(endpoints));
+		return endpointsList;
+	}
+
 	private Endpoints createEndpointsByPodName(String podName) {
 		Endpoints endpoints = new Endpoints();
 		endpoints.setSubsets(createSubsetsByPodName(podName));
@@ -310,10 +323,27 @@ class KubernetesCatalogWatchTest {
 		return Collections.singletonList(endpointSubset);
 	}
 
+	private List<EndpointSubset> createSubsetsWithNamespace(String namespace, String... names) {
+		EndpointSubset endpointSubset = new EndpointSubset();
+		endpointSubset.setAddresses(createEndpointAddressWithNamespace(names, namespace));
+		return Collections.singletonList(endpointSubset);
+	}
+
 	private List<EndpointAddress> createEndpointAddressByPodNames(String[] names) {
 		return stream(names).map(name -> {
 			ObjectReference podRef = new ObjectReference();
 			podRef.setName(name);
+			EndpointAddress endpointAddress = new EndpointAddress();
+			endpointAddress.setTargetRef(podRef);
+			return endpointAddress;
+		}).collect(Collectors.toList());
+	}
+
+	private List<EndpointAddress> createEndpointAddressWithNamespace(String[] names, String namespace) {
+		return stream(names).map(name -> {
+			ObjectReference podRef = new ObjectReference();
+			podRef.setName(name);
+			podRef.setNamespace(namespace);
 			EndpointAddress endpointAddress = new EndpointAddress();
 			endpointAddress.setTargetRef(podRef);
 			return endpointAddress;
