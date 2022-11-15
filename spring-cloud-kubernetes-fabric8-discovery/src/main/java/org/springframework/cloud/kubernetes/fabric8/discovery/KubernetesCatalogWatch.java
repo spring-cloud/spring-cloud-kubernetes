@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,22 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
+import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.scheduling.annotation.Scheduled;
 
 /**
@@ -41,13 +39,13 @@ import org.springframework.scheduling.annotation.Scheduled;
  */
 public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
-	private static final Logger logger = LoggerFactory.getLogger(KubernetesCatalogWatch.class);
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesCatalogWatch.class));
 
 	private final KubernetesClient kubernetesClient;
 
 	private final KubernetesDiscoveryProperties properties;
 
-	private final AtomicReference<List<String>> catalogEndpointsState = new AtomicReference<>();
+	private volatile List<EndpointNameAndNamespace> catalogEndpointsState = null;
 
 	private ApplicationEventPublisher publisher;
 
@@ -64,31 +62,33 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 	@Scheduled(fixedDelayString = "${spring.cloud.kubernetes.discovery.catalogServicesWatchDelay:30000}")
 	public void catalogServicesWatch() {
 		try {
-			List<String> previousState = this.catalogEndpointsState.get();
 
 			// not all pods participate in the service discovery. only those that have
 			// endpoints.
-			List<Endpoints> endpoints = this.properties.allNamespaces()
-					? this.kubernetesClient.endpoints().inAnyNamespace().withLabels(properties.serviceLabels()).list()
-							.getItems()
-					: this.kubernetesClient.endpoints().withLabels(properties.serviceLabels()).list().getItems();
-			List<String> endpointsPodNames = endpoints.stream().map(Endpoints::getSubsets).filter(Objects::nonNull)
-					.flatMap(Collection::stream).map(EndpointSubset::getAddresses).filter(Objects::nonNull)
-					.flatMap(Collection::stream).map(EndpointAddress::getTargetRef).filter(Objects::nonNull)
-					.map(ObjectReference::getName) // pod name
-													// unique in
-													// namespace
-					.sorted(String::compareTo).collect(Collectors.toList());
-
-			this.catalogEndpointsState.set(endpointsPodNames);
-
-			if (!endpointsPodNames.equals(previousState)) {
-				logger.trace("Received endpoints update from kubernetesClient: {}", endpointsPodNames);
-				this.publisher.publishEvent(new HeartbeatEvent(this, endpointsPodNames));
+			List<Endpoints> endpoints;
+			if (properties.allNamespaces()) {
+				endpoints = kubernetesClient.endpoints().inAnyNamespace().withLabels(properties.serviceLabels()).list()
+						.getItems();
 			}
+			else {
+				endpoints = kubernetesClient.endpoints().withLabels(properties.serviceLabels()).list().getItems();
+			}
+
+			List<EndpointNameAndNamespace> currentState = endpoints.stream().map(Endpoints::getSubsets)
+					.filter(Objects::nonNull).flatMap(List::stream).map(EndpointSubset::getAddresses)
+					.filter(Objects::nonNull).flatMap(List::stream).map(EndpointAddress::getTargetRef)
+					.filter(Objects::nonNull).map(x -> new EndpointNameAndNamespace(x.getName(), x.getNamespace()))
+					.sorted(Comparator.comparing(EndpointNameAndNamespace::endpointName, String::compareTo)).toList();
+
+			if (!currentState.equals(catalogEndpointsState)) {
+				LOG.debug(() -> "Received endpoints update from kubernetesClient: " + currentState);
+				publisher.publishEvent(new HeartbeatEvent(this, currentState));
+			}
+
+			catalogEndpointsState = currentState;
 		}
 		catch (Exception e) {
-			logger.error("Error watching Kubernetes Services", e);
+			LOG.error(e, () -> "Error watching Kubernetes Services");
 		}
 	}
 
