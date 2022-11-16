@@ -27,8 +27,10 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.log.LogAccessor;
@@ -45,13 +47,17 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private final KubernetesDiscoveryProperties properties;
 
+	private final KubernetesNamespaceProvider namespaceProvider;
+
 	private volatile List<EndpointNameAndNamespace> catalogEndpointsState = null;
 
 	private ApplicationEventPublisher publisher;
 
-	public KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties) {
+	public KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties,
+			KubernetesNamespaceProvider namespaceProvider) {
 		this.kubernetesClient = kubernetesClient;
 		this.properties = properties;
+		this.namespaceProvider = namespaceProvider;
 	}
 
 	@Override
@@ -71,6 +77,7 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 						.getItems();
 			}
 			else {
+				Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "catalog-watcher", na)
 				endpoints = kubernetesClient.endpoints().withLabels(properties.serviceLabels()).list().getItems();
 			}
 
