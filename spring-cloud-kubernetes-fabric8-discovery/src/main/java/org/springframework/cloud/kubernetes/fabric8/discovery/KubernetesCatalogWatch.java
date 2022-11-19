@@ -73,12 +73,14 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 			// endpoints.
 			List<Endpoints> endpoints;
 			if (properties.allNamespaces()) {
+				LOG.debug(() -> "discovering endpoints in all namespaces");
 				endpoints = kubernetesClient.endpoints().inAnyNamespace().withLabels(properties.serviceLabels()).list()
 						.getItems();
 			}
 			else {
-				Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "catalog-watcher", na)
-				endpoints = kubernetesClient.endpoints().withLabels(properties.serviceLabels()).list().getItems();
+				String namespace = Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "catalog-watcher", namespaceProvider);
+				LOG.debug(() -> "fabric8 catalog watcher will use namespace : " + namespace);
+				endpoints = kubernetesClient.endpoints().inNamespace(namespace).withLabels(properties.serviceLabels()).list().getItems();
 			}
 
 			List<EndpointNameAndNamespace> currentState = endpoints.stream().map(Endpoints::getSubsets)

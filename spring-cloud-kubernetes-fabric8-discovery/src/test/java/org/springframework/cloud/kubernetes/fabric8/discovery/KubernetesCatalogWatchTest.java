@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
@@ -26,7 +27,9 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
 import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +38,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.ApplicationEventPublisher;
@@ -49,13 +53,15 @@ import static org.mockito.Mockito.when;
 /**
  * @author Oleg Vyukov
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked"})
 class KubernetesCatalogWatchTest {
 
 	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
 
+	private final KubernetesNamespaceProvider namespaceProvider = Mockito.mock(KubernetesNamespaceProvider.class);
+
 	private final KubernetesCatalogWatch kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT,
-			KubernetesDiscoveryProperties.DEFAULT);
+			KubernetesDiscoveryProperties.DEFAULT, namespaceProvider);
 
 	private static final ApplicationEventPublisher APPLICATION_EVENT_PUBLISHER = Mockito
 			.mock(ApplicationEventPublisher.class);
@@ -63,12 +69,22 @@ class KubernetesCatalogWatchTest {
 	private static final MixedOperation<Endpoints, EndpointsList, Resource<Endpoints>> MIXED_OPERATION = Mockito
 			.mock(MixedOperation.class);
 
+	private static final NonNamespaceOperation<Endpoints, EndpointsList, Resource<Endpoints>> NON_NAMESPACE_OPERATION =
+		Mockito.mock(NonNamespaceOperation.class);
+
+	private static final FilterWatchListDeletable<Endpoints, EndpointsList> FILTER_WATCH_LIST_DELETABLE =
+		Mockito.mock(FilterWatchListDeletable.class);
+
 	private static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
 			.forClass(HeartbeatEvent.class);
 
 	@BeforeEach
 	void setUp() {
 		kubernetesCatalogWatch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
+
+		Mockito.when(namespaceProvider.getNamespace()).thenReturn("default");
+		when(MIXED_OPERATION.inNamespace("default")).thenReturn(NON_NAMESPACE_OPERATION);
+		when(NON_NAMESPACE_OPERATION.withLabels(Map.of())).thenReturn(FILTER_WATCH_LIST_DELETABLE);
 	}
 
 	@AfterEach
@@ -78,7 +94,7 @@ class KubernetesCatalogWatchTest {
 
 	@Test
 	void testRandomOrderChangePods() {
-		when(MIXED_OPERATION.list()).thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
+		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
 				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod", "api-pod"));
 		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
 		when(CLIENT.endpoints().withLabels(anyMap())).thenReturn(MIXED_OPERATION);
@@ -107,7 +123,7 @@ class KubernetesCatalogWatchTest {
 
 	@Test
 	void testRandomOrderChangeServices() {
-		when(MIXED_OPERATION.list()).thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
+		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
 				.thenReturn(createEndpointsListByServiceName("other-service", "api-service"));
 		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
 		when(CLIENT.endpoints().withLabels(anyMap())).thenReturn(MIXED_OPERATION);
@@ -121,7 +137,7 @@ class KubernetesCatalogWatchTest {
 
 	@Test
 	void testRandomOrderChangeServicesAllNamespaces() {
-		when(MIXED_OPERATION.list()).thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
+		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
 				.thenReturn(createEndpointsListByServiceName("other-service", "api-service"));
 		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
 		when(CLIENT.endpoints().inAnyNamespace()).thenReturn(MIXED_OPERATION);
