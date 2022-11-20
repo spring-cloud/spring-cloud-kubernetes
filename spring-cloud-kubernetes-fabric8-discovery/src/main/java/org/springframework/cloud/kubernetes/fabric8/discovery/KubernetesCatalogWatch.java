@@ -86,12 +86,14 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 			}
 
 			/*
-			 * - An "Endpoints" holds a List of EndpointSubset. - A single EndpointSubset
-			 * holds a List of EndpointAddress
+			 * <pre>
+			 *   - An "Endpoints" holds a List of EndpointSubset.
+			 *   - A single EndpointSubset holds a List of EndpointAddress
 			 *
-			 * - (The union of all EndpointSubsets is the Set of all Endpoints) - Set of
-			 * Endpoints is the cartesian product of : EndpointSubset::getAddresses and
-			 * EndpointSubset::getPorts (each of the above being a List)
+			 *   - (The union of all EndpointSubsets is the Set of all Endpoints)
+			 *   - Set of Endpoints is the cartesian product of :
+			 *     EndpointSubset::getAddresses and EndpointSubset::getPorts (each is a List)
+			 * </pre>
 			 */
 			List<EndpointNameAndNamespace> currentState = endpoints.stream().map(Endpoints::getSubsets)
 					.filter(Objects::nonNull).flatMap(List::stream).map(EndpointSubset::getAddresses)
