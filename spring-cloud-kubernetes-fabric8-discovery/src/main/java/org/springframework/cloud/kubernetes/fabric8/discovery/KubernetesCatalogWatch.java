@@ -78,11 +78,21 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 						.getItems();
 			}
 			else {
-				String namespace = Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "catalog-watcher", namespaceProvider);
+				String namespace = Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "catalog-watcher",
+						namespaceProvider);
 				LOG.debug(() -> "fabric8 catalog watcher will use namespace : " + namespace);
-				endpoints = kubernetesClient.endpoints().inNamespace(namespace).withLabels(properties.serviceLabels()).list().getItems();
+				endpoints = kubernetesClient.endpoints().inNamespace(namespace).withLabels(properties.serviceLabels())
+						.list().getItems();
 			}
 
+			/*
+			 * - An "Endpoints" holds a List of EndpointSubset. - A single EndpointSubset
+			 * holds a List of EndpointAddress
+			 *
+			 * - (The union of all EndpointSubsets is the Set of all Endpoints) - Set of
+			 * Endpoints is the cartesian product of : EndpointSubset::getAddresses and
+			 * EndpointSubset::getPorts (each of the above being a List)
+			 */
 			List<EndpointNameAndNamespace> currentState = endpoints.stream().map(Endpoints::getSubsets)
 					.filter(Objects::nonNull).flatMap(List::stream).map(EndpointSubset::getAddresses)
 					.filter(Objects::nonNull).flatMap(List::stream).map(EndpointAddress::getTargetRef)
