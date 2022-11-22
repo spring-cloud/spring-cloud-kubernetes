@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ServicePortSecureResolverTest {
+class ServicePortSecureResolverTest {
 
 	private static final Map<String, String> SECURED_TRUE_MAP = Collections.singletonMap("secured", "true");
 
@@ -49,6 +49,9 @@ public class ServicePortSecureResolverTest {
 			SECURED_ON_MAP, Collections.emptyMap());
 
 	@Test
+	void testPortNumbersOnly() {
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, true, 60, false, null,
+				Set.of(443, 8443, 12345), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 	public void testPortNumbersOnly() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(443, 8443, 12345), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT,
@@ -66,7 +69,7 @@ public class ServicePortSecureResolverTest {
 	}
 
 	@Test
-	public void testLabelsAndAnnotations() {
+	void testLabelsAndAnnotations() {
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
 
 		assertThat(secureResolver.resolve(SECURED_TRUE)).isTrue();

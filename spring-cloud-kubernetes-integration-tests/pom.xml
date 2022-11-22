@@ -34,37 +34,6 @@
 		</plugins>
 	</build>
 
-	<profiles>
-		<profile>
-			<id>k8s</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.eclipse.jkube</groupId>
-						<artifactId>kubernetes-maven-plugin</artifactId>
-						<configuration>
-							<generator>
-								<includes>
-									<include>spring-boot</include>
-								</includes>
-							</generator>
-						</configuration>
-						<executions>
-							<execution>
-								<id>jkube</id>
-								<goals>
-									<goal>build</goal>
-									<goal>resource</goal>
-								</goals>
-								<phase>package</phase>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
-
 	<dependencyManagement>
 		<dependencies>
 			<dependency>

@@ -20,8 +20,8 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.commons.config.AbstractConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.App;
+import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,12 +42,12 @@ class SecretsFailFastEnabledWithCustomRetryConfiguration {
 
 	@Test
 	void retryConfigurationShouldBeCustomized() {
-		AbstractConfigProperties.RetryProperties retryProperties = secretsConfigProperties.getRetry();
+		RetryProperties retryProperties = secretsConfigProperties.retry();
 
-		assertThat(retryProperties.getMaxAttempts()).isEqualTo(3);
-		assertThat(retryProperties.getInitialInterval()).isEqualTo(1500L);
-		assertThat(retryProperties.getMaxInterval()).isEqualTo(3000L);
-		assertThat(retryProperties.getMultiplier()).isEqualTo(1.5D);
+		assertThat(retryProperties.maxAttempts()).isEqualTo(3);
+		assertThat(retryProperties.initialInterval()).isEqualTo(1500L);
+		assertThat(retryProperties.maxInterval()).isEqualTo(3000L);
+		assertThat(retryProperties.multiplier()).isEqualTo(1.5D);
 	}
 
 }

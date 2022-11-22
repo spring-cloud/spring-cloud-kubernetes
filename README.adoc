@@ -1509,6 +1509,8 @@ To achieve this configuration refresh of a Spring Cloud app running on Kubernete
 Kubernetes Configuration Watcher controller into your Kubernetes cluster.
 
 The application is published as a container and is available on https://hub.docker.com/r/springcloud/spring-cloud-kubernetes-configuration-watcher[Docker Hub].
+  However, if you need to customize the config watcher behavior or prefer to build the image yourself you can easily build your own
+image from the https://github.com/spring-cloud/spring-cloud-kubernetes/tree/main/spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configuration-watcher[source code on GitHub] and use that.
 
 Spring Cloud Kubernetes Configuration Watcher can send refresh notifications to applications in two ways.
 
@@ -1720,8 +1722,8 @@ This is component is completely optional.  However, it allows you to continue to
 you may have stored in existing environment repositories (Git, SVN, Vault, etc) with applications that you are running on Kubernetes.
 
 A default image is located on https://hub.docker.com/r/springcloud/spring-cloud-kubernetes-configserver[Docker Hub] which will allow you to easily get a Config Server deployed on Kubernetes without building
-the code and image yourself.  However, if you need to customize the config server behavior you can easily build your own
-image from the source code on GitHub and use that.
+the code and image yourself.  However, if you need to customize the config server behavior or prefer to build the image yourself you can easily build your own
+image from the https://github.com/spring-cloud/spring-cloud-kubernetes/tree/main/spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configserver[source code on GitHub] and use that.
 
 ### Configuration
 
@@ -1961,6 +1963,8 @@ instance of a given service.  Below is a sample response when a `GET` request is
 ### Deployment YAML
 
 An image of the Spring Cloud Discovery Server is hosted on https://hub.docker.com/r/springcloud/spring-cloud-kubernetes-discoveryserver[Docker Hub].
+However, if you need to customize the discovery server behavior or prefer to build the image yourself you can easily build your own
+image from the https://github.com/spring-cloud/spring-cloud-kubernetes/tree/main/spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-discoveryserver[source code on GitHub] and use that.
 
 Below is a sample deployment YAML you can use to deploy the Kubernetes Configuration Watcher to Kubernetes.
 

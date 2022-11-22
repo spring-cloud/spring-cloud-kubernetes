@@ -73,7 +73,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			// read for secrets mount
 			putPathConfig(composite);
 
-			if (this.properties.isEnableApi()) {
+			if (this.properties.enableApi()) {
 				uniqueSources.forEach(s -> composite.addPropertySource(getMapPropertySourceForSingleSecret(env, s)));
 			}
 
@@ -98,7 +98,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 	protected void putPathConfig(CompositePropertySource composite) {
 
-		this.properties.getPaths().stream().map(Paths::get).filter(Files::exists).flatMap(x -> {
+		this.properties.paths().stream().map(Paths::get).filter(Files::exists).flatMap(x -> {
 			try {
 				return Files.walk(x);
 			}

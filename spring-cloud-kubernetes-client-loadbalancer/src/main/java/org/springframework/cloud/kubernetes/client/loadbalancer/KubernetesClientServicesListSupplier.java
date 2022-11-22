@@ -57,14 +57,14 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 
 	private String getNamespace() {
 		return kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
-				: kubernetesClientProperties.getNamespace();
+				: kubernetesClientProperties.namespace();
 	}
 
 	@Override
 	public Flux<List<ServiceInstance>> get() {
 		LOG.info("Getting services with id " + this.getServiceId());
 		List<ServiceInstance> result = new ArrayList<>();
-		List<V1Service> services = null;
+		List<V1Service> services;
 		try {
 			if (discoveryProperties.allNamespaces()) {
 				services = coreV1Api.listServiceForAllNamespaces(null, null, "metadata.name=" + this.getServiceId(),

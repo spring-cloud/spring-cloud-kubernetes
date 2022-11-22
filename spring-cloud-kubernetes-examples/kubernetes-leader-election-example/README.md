@@ -35,9 +35,90 @@ kubectl apply -f leader-role.yml
 kubectl apply -f leader-rolebinding.yml
 ```
 
-Now build and deploy the application:
+Build an image using the Spring Boot Build Image Plugin
 ```
-mvn clean fabric8:deploy -Pkubernetes
+./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=org/kubernetes-leader-election-example
+```
+
+You can then deploy the application using the following yaml.
+
+```yaml
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: kubernetes-leader-election-example
+      name: kubernetes-leader-election-example
+    spec:
+      ports:
+        - name: http
+          port: 80
+          targetPort: 8080
+      selector:
+        app: kubernetes-leader-election-example
+      type: ClusterIP
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app: kubernetes-leader-election-example
+      name: kubernetes-leader-election-example
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app: kubernetes-leader-election-example
+      name: kubernetes-leader-election-example:view
+    roleRef:
+      kind: Role
+      apiGroup: rbac.authorization.k8s.io
+      name: namespace-reader
+    subjects:
+      - kind: ServiceAccount
+        name: kubernetes-leader-election-example
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      namespace: default
+      name: namespace-reader
+    rules:
+      - apiGroups: ["", "extensions", "apps"]
+        resources: ["configmaps", "pods", "services", "endpoints", "secrets"]
+        verbs: ["get", "list", "watch"]
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: kubernetes-leader-election-example
+    spec:
+      selector:
+        matchLabels:
+          app: kubernetes-leader-election-example
+      template:
+        metadata:
+          labels:
+            app: kubernetes-leader-election-example
+        spec:
+          serviceAccountName: kubernetes-leader-election-example
+          containers:
+          - name: kubernetes-leader-election-example
+            image: org/kubernetes-leader-election-example:latest
+            imagePullPolicy: IfNotPresent
+            readinessProbe:
+              httpGet:
+                port: 8080
+                path: /actuator/health/readiness
+            livenessProbe:
+              httpGet:
+                port: 8080
+                path: /actuator/health/liveness
+            ports:
+            - containerPort: 8080
+
+
 ```
 
 This will deploy a single application instance to the cluster and that instance will automatically become a leader.

@@ -17,7 +17,6 @@
 package org.springframewok.cloud.kubernetes.discoveryserver;
 
 import java.util.List;
-import java.util.Objects;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DiscoveryServerController {
 
-	private KubernetesInformerReactiveDiscoveryClient reactiveDiscoveryClient;
+	private final KubernetesInformerReactiveDiscoveryClient reactiveDiscoveryClient;
 
 	public DiscoveryServerController(KubernetesInformerReactiveDiscoveryClient reactiveDiscoveryClient) {
 		this.reactiveDiscoveryClient = reactiveDiscoveryClient;
@@ -57,53 +56,7 @@ public class DiscoveryServerController {
 				.filter(serviceInstance -> serviceInstance.getInstanceId().equals(instanceId)).singleOrEmpty();
 	}
 
-	public static class Service {
-
-		private String name;
-
-		private List<ServiceInstance> serviceInstances;
-
-		public Service() {
-		}
-
-		public Service(String name, List<ServiceInstance> serviceInstances) {
-			this.name = name;
-			this.serviceInstances = serviceInstances;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public List<ServiceInstance> getServiceInstances() {
-			return serviceInstances;
-		}
-
-		public void setServiceInstances(List<ServiceInstance> serviceInstances) {
-			this.serviceInstances = serviceInstances;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			Service service = (Service) o;
-			return Objects.equals(getName(), service.getName())
-					&& Objects.equals(getServiceInstances(), service.getServiceInstances());
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(getName(), getServiceInstances());
-		}
+	private record Service(String name, List<ServiceInstance> serviceInstances) {
 
 	}
 
