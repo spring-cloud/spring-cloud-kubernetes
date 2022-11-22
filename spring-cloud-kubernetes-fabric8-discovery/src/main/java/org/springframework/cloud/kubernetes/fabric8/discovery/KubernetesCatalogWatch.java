@@ -27,8 +27,10 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.log.LogAccessor;
@@ -45,13 +47,17 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private final KubernetesDiscoveryProperties properties;
 
+	private final KubernetesNamespaceProvider namespaceProvider;
+
 	private volatile List<EndpointNameAndNamespace> catalogEndpointsState = null;
 
 	private ApplicationEventPublisher publisher;
 
-	public KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties) {
+	public KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties,
+			KubernetesNamespaceProvider namespaceProvider) {
 		this.kubernetesClient = kubernetesClient;
 		this.properties = properties;
+		this.namespaceProvider = namespaceProvider;
 	}
 
 	@Override
@@ -67,13 +73,28 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 			// endpoints.
 			List<Endpoints> endpoints;
 			if (properties.allNamespaces()) {
+				LOG.debug(() -> "discovering endpoints in all namespaces");
 				endpoints = kubernetesClient.endpoints().inAnyNamespace().withLabels(properties.serviceLabels()).list()
 						.getItems();
 			}
 			else {
-				endpoints = kubernetesClient.endpoints().withLabels(properties.serviceLabels()).list().getItems();
+				String namespace = Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "catalog-watcher",
+						namespaceProvider);
+				LOG.debug(() -> "fabric8 catalog watcher will use namespace : " + namespace);
+				endpoints = kubernetesClient.endpoints().inNamespace(namespace).withLabels(properties.serviceLabels())
+						.list().getItems();
 			}
 
+			/*
+			 * <pre>
+			 *   - An "Endpoints" holds a List of EndpointSubset.
+			 *   - A single EndpointSubset holds a List of EndpointAddress
+			 *
+			 *   - (The union of all EndpointSubsets is the Set of all Endpoints)
+			 *   - Set of Endpoints is the cartesian product of :
+			 *     EndpointSubset::getAddresses and EndpointSubset::getPorts (each is a List)
+			 * </pre>
+			 */
 			List<EndpointNameAndNamespace> currentState = endpoints.stream().map(Endpoints::getSubsets)
 					.filter(Objects::nonNull).flatMap(List::stream).map(EndpointSubset::getAddresses)
 					.filter(Objects::nonNull).flatMap(List::stream).map(EndpointAddress::getTargetRef)
