@@ -365,8 +365,8 @@ class KubernetesCatalogWatchTest {
 		when(MIXED_OPERATION.withLabels(Map.of())).thenReturn(MIXED_OPERATION);
 
 		// all-namespaces = true
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, true, 60, false, "",
-				Set.of(), Map.of(), "", null, 0);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
+				false, "", Set.of(), Map.of(), "", null, 0);
 
 		kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT, properties, namespaceProvider);
 		kubernetesCatalogWatch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
@@ -375,8 +375,8 @@ class KubernetesCatalogWatchTest {
 	private void createInSpecificNamespaceWatcher() {
 
 		// all-namespaces = false
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, "",
-				Set.of(), Map.of(), "", null, 0);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, "", Set.of(), Map.of(), "", null, 0);
 
 		kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT, properties, namespaceProvider);
 		kubernetesCatalogWatch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
