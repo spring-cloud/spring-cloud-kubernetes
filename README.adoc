@@ -1195,6 +1195,7 @@ field of the `@ConfigurationProperties` annotation are detected and reflected in
 The full example is available in https://github.com/spring-cloud/spring-cloud-kubernetes/tree/main/spring-cloud-kubernetes-examples/kubernetes-reload-example[`spring-cloud-kubernetes-reload-example`].
 
 The reload feature supports two operating modes:
+
 * Event (default): Watches for changes in config maps or secrets by using the Kubernetes API (web socket).
 Any event produces a re-check on the configuration and, in case of changes, a reload.
 The `view` role on the service account is required in order to listen for config map changes. A higher level role (such as `edit`) is required for secrets
@@ -1270,6 +1271,7 @@ What this will do, is watch configmaps/secrets that only have the `spring.cloud.
 |===
 
 Notes:
+
 * You should not use properties under `spring.cloud.kubernetes.reload` in config maps or secrets. Changing such properties at runtime may lead to unexpected results.
 * Deleting a property or the whole config map does not restore the original state of the beans when you use the `refresh` level.
 
@@ -2111,7 +2113,7 @@ build succeed, please raise a ticket to get the settings added to
 source control.
 
 The projects that require middleware (i.e. Redis) for testing generally
-require that a local instance of [Docker](https://www.docker.com/get-started) is installed and running.
+require that a local instance of https://www.docker.com/get-started[Docker] is installed and running.
 
 
 === Documentation

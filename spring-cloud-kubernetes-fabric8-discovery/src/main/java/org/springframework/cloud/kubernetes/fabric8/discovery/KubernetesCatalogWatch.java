@@ -85,7 +85,7 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 						.list().getItems();
 			}
 
-			/*
+			/**
 			 * <pre>
 			 *   - An "Endpoints" holds a List of EndpointSubset.
 			 *   - A single EndpointSubset holds a List of EndpointAddress
