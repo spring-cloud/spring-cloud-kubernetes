@@ -80,7 +80,9 @@ class CatalogWatchIT {
 	/**
 	 * <pre>
 	 *     - we deploy a busybox service with 2 replica pods
-	 *
+	 *     - we receive an event from KubernetesCatalogWatcher, assert what is inside it
+	 *     - delete the busybox service
+	 *     - assert that we receive only spring-cloud-kubernetes-fabric8-client-catalog-watcher pod
 	 * </pre>
 	 */
 	@SuppressWarnings("unchecked")
@@ -90,10 +92,12 @@ class CatalogWatchIT {
 		Commons.validateImage(APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
 
+		Fabric8Utils.setUp(client, "default");
+
 		deployBusyboxManifests();
 		deployApp();
 
-		WebClient client = builder().baseUrl("localhost/both").build();
+		WebClient client = builder().baseUrl("localhost/result").build();
 		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[2];
 		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(List.class, EndpointNameAndNamespace.class);
 
@@ -102,6 +106,8 @@ class CatalogWatchIT {
 					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
 					.retryWhen(retrySpec()).block();
 
+			// we get 3 pods as input, but because they are sorted by name in the catalog watcher implementation
+			// we will get the first busybox instances here.
 			if (result != null) {
 				holder[0] = result.get(0);
 				holder[1] = result.get(1);
@@ -117,10 +123,35 @@ class CatalogWatchIT {
 		Assertions.assertNotNull(resultOne);
 		Assertions.assertNotNull(resultTwo);
 
-		Assertions.assertTrue(resultOne.endpointName().contains("catalog-watch"));
-		// Assertions.assertEquals(resultOne.namespace());
+		Assertions.assertTrue(resultOne.endpointName().contains("busybox"));
+		Assertions.assertTrue(resultTwo.endpointName().contains("busybox"));
+		Assertions.assertEquals("default", resultOne.namespace());
+		Assertions.assertEquals("default", resultTwo.namespace());
 
 		deleteBusyboxApp();
+
+		// what we get after delete
+		EndpointNameAndNamespace[] afterDelete = new EndpointNameAndNamespace[1];
+
+		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
+			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
+				.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
+				.retryWhen(retrySpec()).block();
+
+			// we will only receive one pod here, our own
+			if (result != null) {
+				Assertions.assertEquals(1, result.size());
+				afterDelete[0] = result.get(0);
+				return true;
+			}
+
+			return false;
+		});
+
+		Assertions.assertTrue(afterDelete[0].endpointName().contains(APP_NAME));
+		Assertions.assertEquals("default", afterDelete[0].namespace());
+
+		deleteApp();
 
 	}
 
@@ -164,8 +195,14 @@ class CatalogWatchIT {
 	}
 
 	private void deleteBusyboxApp() {
-		client.apps().deployments().inNamespace(NAMESPACE).withName(busyboxDeploymentName).delete();
-		client.services().inNamespace(NAMESPACE).withName(busyboxServiceName).delete();
+		Fabric8Utils.deleteDeployment(client, NAMESPACE, busyboxDeploymentName);
+		Fabric8Utils.deleteService(client, NAMESPACE, busyboxServiceName);
+	}
+
+	private void deleteApp() {
+		Fabric8Utils.deleteDeployment(client, NAMESPACE, appDeploymentName);
+		Fabric8Utils.deleteService(client, NAMESPACE, appServiceName);
+		client.network().v1().ingresses().withName(appIngressName).delete();
 	}
 
 	private static InputStream getBusyboxService() {

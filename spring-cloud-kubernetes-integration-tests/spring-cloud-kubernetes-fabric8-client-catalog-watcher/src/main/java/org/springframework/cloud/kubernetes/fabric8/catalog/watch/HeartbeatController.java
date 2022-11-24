@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.catalog.watch;
 
+import java.util.List;
+
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,9 +31,9 @@ public class HeartbeatController {
 		this.service = service;
 	}
 
-	@GetMapping("/both")
-	public EndpointNameAndNamespace both() {
-		return service.both();
+	@GetMapping("/result")
+	public List<EndpointNameAndNamespace> result() {
+		return service.result();
 	}
 
 }

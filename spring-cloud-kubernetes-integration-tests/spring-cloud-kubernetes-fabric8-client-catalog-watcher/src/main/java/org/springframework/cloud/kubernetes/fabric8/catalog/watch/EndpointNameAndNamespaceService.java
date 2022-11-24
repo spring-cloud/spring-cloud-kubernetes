@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.catalog.watch;
 
+import java.util.List;
+
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.stereotype.Service;
 
@@ -28,14 +30,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class EndpointNameAndNamespaceService {
 
-	private EndpointNameAndNamespace both;
+	private List<EndpointNameAndNamespace> result;
 
-	public EndpointNameAndNamespace both() {
-		return both;
+	public List<EndpointNameAndNamespace> result() {
+		return result;
 	}
 
-	public void setBoth(EndpointNameAndNamespace both) {
-		this.both = both;
+	public void setResult(List<EndpointNameAndNamespace> result) {
+		this.result = result;
 	}
 
 }

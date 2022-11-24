@@ -26,3 +26,6 @@ spec:
               path: /actuator/health/liveness
           ports:
             - containerPort: 8080
+          env:
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY
+              value: DEBUG

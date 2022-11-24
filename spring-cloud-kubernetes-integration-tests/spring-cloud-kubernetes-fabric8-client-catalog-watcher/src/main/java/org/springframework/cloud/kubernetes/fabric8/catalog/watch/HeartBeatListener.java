@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.catalog.watch;
 
+import java.util.List;
+
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.context.ApplicationEvent;
@@ -37,11 +39,12 @@ public class HeartBeatListener implements ApplicationListener<ApplicationEvent> 
 		this.service = service;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof HeartbeatEvent heartbeatEvent) {
-			EndpointNameAndNamespace both = (EndpointNameAndNamespace) heartbeatEvent.getValue();
-			service.setBoth(both);
+			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) heartbeatEvent.getValue();
+			service.setResult(result);
 		}
 	}
 
