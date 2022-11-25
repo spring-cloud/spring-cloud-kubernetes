@@ -22,8 +22,8 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
@@ -45,34 +45,34 @@ public class KubernetesCatalogServicesWatchConfigurationTest {
 
 	private ConfigurableApplicationContext context;
 
-	@After
-	public void close() {
+	@AfterEach
+	void close() {
 		if (this.context != null) {
 			this.context.close();
 		}
 	}
 
 	@Test
-	public void kubernetesCatalogWatchDisabled() throws Exception {
+	void kubernetesCatalogWatchDisabled() {
 		setup("spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false");
 		assertThat(this.context.containsBean("kubernetesCatalogWatch")).isFalse();
 	}
 
 	@Test
-	public void kubernetesCatalogWatchWhenKubernetesDisabled() throws Exception {
+	void kubernetesCatalogWatchWhenKubernetesDisabled() {
 		setup();
 		assertThat(this.context.containsBean("kubernetesCatalogWatch")).isFalse();
 	}
 
 	@Test
-	public void kubernetesCatalogWatchWhenServiceDiscoveryDisabled() throws Exception {
+	void kubernetesCatalogWatchWhenServiceDiscoveryDisabled() {
 		setup("spring.cloud.discovery.enabled=false");
 		assertThat(this.context.containsBean("kubernetesCatalogWatch")).isFalse();
 	}
 
 	@Test
-	public void kubernetesCatalogWatchDefaultEnabled() throws Exception {
-		setup("spring.main.cloud-platform=KUBERNETES");
+	void kubernetesCatalogWatchDefaultEnabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.use-endpoint-slices=false");
 		assertThat(this.context.containsBean("kubernetesCatalogWatch")).isTrue();
 	}
 
@@ -93,8 +93,9 @@ public class KubernetesCatalogServicesWatchConfigurationTest {
 			return mock(KubernetesClient.class);
 		}
 
+		@SuppressWarnings("unchecked")
 		@Bean
-		PodUtils podUtils() {
+		PodUtils<?> podUtils() {
 			PodUtils<Pod> podPodUtils = mock(PodUtils.class);
 			when(podPodUtils.currentPod()).thenReturn(() -> mock(Pod.class));
 			return podPodUtils;

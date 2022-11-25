@@ -48,12 +48,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Some tests that use the fabric8 mock client.
+ * Some tests that use the fabric8 mock client, using Endpoints
  *
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-class Fabric8KubernetesCatalogWatchTests {
+class Fabric8KubernetesCatalogWatchEndpointsTests {
 
 	private final KubernetesNamespaceProvider namespaceProvider = Mockito.mock(KubernetesNamespaceProvider.class);
 
@@ -246,10 +246,11 @@ class Fabric8KubernetesCatalogWatchTests {
 
 		// all-namespaces = false
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, "",
-				Set.of(), labels, "", null, 0);
+				Set.of(), labels, "", null, 0, false);
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
 		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
+		watch.postConstruct();
 		return watch;
 
 	}
@@ -258,10 +259,11 @@ class Fabric8KubernetesCatalogWatchTests {
 
 		// all-namespaces = true
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, true, 60, false, "",
-				Set.of(), labels, "", null, 0);
+				Set.of(), labels, "", null, 0, false);
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
 		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
+		watch.postConstruct();
 		return watch;
 
 	}

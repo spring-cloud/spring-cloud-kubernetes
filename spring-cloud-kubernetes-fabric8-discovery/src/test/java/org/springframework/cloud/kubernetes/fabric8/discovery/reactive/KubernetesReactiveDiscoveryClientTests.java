@@ -53,7 +53,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 class KubernetesReactiveDiscoveryClientTests {
 
 	@BeforeEach
-	public void setup(@KubernetesExtension.Client KubernetesClient kubernetesClient) {
+	void setup(@KubernetesExtension.Client KubernetesClient kubernetesClient) {
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
 				kubernetesClient.getConfiguration().getMasterUrl());
@@ -64,7 +64,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	}
 
 	@Test
-	public void verifyDefaults(@KubernetesExtension.Client KubernetesClient kubernetesClient) {
+	void verifyDefaults(@KubernetesExtension.Client KubernetesClient kubernetesClient) {
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services);
 		assertThat(client.description()).isEqualTo("Kubernetes Reactive Discovery Client");
@@ -72,7 +72,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	}
 
 	@Test
-	public void shouldReturnFluxOfServices(@KubernetesExtension.Client KubernetesClient kubernetesClient,
+	void shouldReturnFluxOfServices(@KubernetesExtension.Client KubernetesClient kubernetesClient,
 			@KubernetesExtension.Server KubernetesServer kubernetesServer) {
 		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
 				.andReturn(200, new ServiceListBuilder().addNewItem().withNewMetadata().withName("s1")
@@ -96,7 +96,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	}
 
 	@Test
-	public void shouldReturnEmptyFluxOfServicesWhenNoInstancesFound(
+	void shouldReturnEmptyFluxOfServicesWhenNoInstancesFound(
 			@KubernetesExtension.Client KubernetesClient kubernetesClient,
 			@KubernetesExtension.Server KubernetesServer kubernetesServer) {
 		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
@@ -109,8 +109,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	}
 
 	@Test
-	public void shouldReturnEmptyFluxForNonExistingService(
-			@KubernetesExtension.Client KubernetesClient kubernetesClient,
+	void shouldReturnEmptyFluxForNonExistingService(@KubernetesExtension.Client KubernetesClient kubernetesClient,
 			@KubernetesExtension.Server KubernetesServer kubernetesServer) {
 		kubernetesServer.expect().get()
 				.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dnonexistent-service")
@@ -123,8 +122,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	}
 
 	@Test
-	public void shouldReturnEmptyFluxWhenServiceHasNoSubsets(
-			@KubernetesExtension.Client KubernetesClient kubernetesClient,
+	void shouldReturnEmptyFluxWhenServiceHasNoSubsets(@KubernetesExtension.Client KubernetesClient kubernetesClient,
 			@KubernetesExtension.Server KubernetesServer kubernetesServer) {
 		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
 				.andReturn(200, new ServiceListBuilder().addNewItem().withNewMetadata().withName("existing-service")
@@ -146,7 +144,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	}
 
 	@Test
-	public void shouldReturnFlux(@KubernetesExtension.Client KubernetesClient kubernetesClient,
+	void shouldReturnFlux(@KubernetesExtension.Client KubernetesClient kubernetesClient,
 			@KubernetesExtension.Server KubernetesServer kubernetesServer) {
 		ServiceList services = new ServiceListBuilder().addNewItem().withNewMetadata().withName("existing-service")
 				.withNamespace("test").withLabels(new HashMap<String, String>() {
@@ -184,7 +182,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	}
 
 	@Test
-	public void shouldReturnFluxWithPrefixedMetadata(@KubernetesExtension.Client KubernetesClient kubernetesClient,
+	void shouldReturnFluxWithPrefixedMetadata(@KubernetesExtension.Client KubernetesClient kubernetesClient,
 			@KubernetesExtension.Server KubernetesServer kubernetesServer) {
 		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
 				.andReturn(200, new ServiceListBuilder().addNewItem().withNewMetadata().withName("existing-service")
@@ -226,7 +224,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	}
 
 	@Test
-	public void shouldReturnFluxWhenServiceHasMultiplePortsAndPrimaryPortNameIsSet(
+	void shouldReturnFluxWhenServiceHasMultiplePortsAndPrimaryPortNameIsSet(
 			@KubernetesExtension.Client KubernetesClient kubernetesClient,
 			@KubernetesExtension.Server KubernetesServer kubernetesServer) {
 		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
@@ -269,8 +267,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	}
 
 	@Test
-	public void shouldReturnFluxOfServicesAcrossAllNamespaces(
-			@KubernetesExtension.Client KubernetesClient kubernetesClient,
+	void shouldReturnFluxOfServicesAcrossAllNamespaces(@KubernetesExtension.Client KubernetesClient kubernetesClient,
 			@KubernetesExtension.Server KubernetesServer kubernetesServer) {
 		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
 				.andReturn(200, new ServiceListBuilder().addNewItem().withNewMetadata().withName("existing-service")
@@ -302,7 +299,7 @@ class KubernetesReactiveDiscoveryClientTests {
 				.once();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, true, 60, false, null,
-				Set.of(), Map.of(), "https_tcp", Metadata.DEFAULT, 0);
+				Set.of(), Map.of(), "https_tcp", Metadata.DEFAULT, 0, true);
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient, properties,
 				KubernetesClient::services);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");

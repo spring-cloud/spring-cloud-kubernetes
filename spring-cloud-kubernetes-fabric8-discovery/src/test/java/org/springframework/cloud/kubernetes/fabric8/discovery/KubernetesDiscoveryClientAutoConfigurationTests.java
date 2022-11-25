@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -25,20 +24,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClient;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false" })
-public class KubernetesDiscoveryClientAutoConfigurationTests {
+class KubernetesDiscoveryClientAutoConfigurationTests {
 
 	@Autowired(required = false)
 	private DiscoveryClient discoveryClient;
 
 	@Test
-	public void kubernetesDiscoveryClientCreated() {
+	void kubernetesDiscoveryClientCreated() {
 		assertThat(this.discoveryClient).isNotNull().isInstanceOf(CompositeDiscoveryClient.class);
 
 		CompositeDiscoveryClient composite = (CompositeDiscoveryClient) this.discoveryClient;

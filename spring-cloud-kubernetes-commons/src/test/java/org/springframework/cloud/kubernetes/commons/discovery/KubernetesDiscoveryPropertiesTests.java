@@ -51,6 +51,7 @@ class KubernetesDiscoveryPropertiesTests {
 					assertThat(props.serviceLabels()).isEmpty();
 					assertThat(props.primaryPortName()).isNull();
 					assertThat(props.order()).isZero();
+					assertThat(props.useEndpointSlices()).isTrue();
 				});
 	}
 
@@ -59,7 +60,8 @@ class KubernetesDiscoveryPropertiesTests {
 		new ApplicationContextRunner().withUserConfiguration(KubernetesDiscoveryPropertiesMetadataTests.Config.class)
 				.withPropertyValues("spring.cloud.kubernetes.discovery.filter=some-filter",
 						"spring.cloud.kubernetes.discovery.knownSecurePorts[0]=222",
-						"spring.cloud.kubernetes.discovery.metadata.labelsPrefix=labelsPrefix")
+						"spring.cloud.kubernetes.discovery.metadata.labelsPrefix=labelsPrefix",
+						"spring.cloud.kubernetes.discovery.use-endpoint-slices=false")
 				.run(context -> {
 					KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
 					assertThat(props).isNotNull();
@@ -77,6 +79,7 @@ class KubernetesDiscoveryPropertiesTests {
 					assertThat(props.serviceLabels()).isEmpty();
 					assertThat(props.primaryPortName()).isNull();
 					assertThat(props.order()).isZero();
+					assertThat(props.useEndpointSlices()).isFalse();
 				});
 	}
 

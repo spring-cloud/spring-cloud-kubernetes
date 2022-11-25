@@ -16,21 +16,20 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
+import java.util.function.Function;
 
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointSubset;
-import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.APIResource;
+import io.fabric8.kubernetes.api.model.APIResourceList;
+import io.fabric8.kubernetes.api.model.GroupVersionForDiscovery;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.log.LogAccessor;
@@ -41,13 +40,15 @@ import org.springframework.scheduling.annotation.Scheduled;
  */
 public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
+	private static final String DISCOVERY_GROUP_VERSION = "discovery.k8s.io/v1";
+
+	private static final String ENDPOINT_SLICE = "EndpointSlice";
+
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesCatalogWatch.class));
 
-	private final KubernetesClient kubernetesClient;
+	private final Fabric8CatalogWatchContext context;
 
-	private final KubernetesDiscoveryProperties properties;
-
-	private final KubernetesNamespaceProvider namespaceProvider;
+	private Function<Fabric8CatalogWatchContext, List<EndpointNameAndNamespace>> stateGenerator;
 
 	private volatile List<EndpointNameAndNamespace> catalogEndpointsState = null;
 
@@ -55,9 +56,7 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	public KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties,
 			KubernetesNamespaceProvider namespaceProvider) {
-		this.kubernetesClient = kubernetesClient;
-		this.properties = properties;
-		this.namespaceProvider = namespaceProvider;
+		context = new Fabric8CatalogWatchContext(kubernetesClient, properties, namespaceProvider);
 	}
 
 	@Override
@@ -69,37 +68,7 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 	public void catalogServicesWatch() {
 		try {
 
-			// not all pods participate in the service discovery. only those that have
-			// endpoints.
-			List<Endpoints> endpoints;
-			if (properties.allNamespaces()) {
-				LOG.debug(() -> "discovering endpoints in all namespaces");
-				endpoints = kubernetesClient.endpoints().inAnyNamespace().withLabels(properties.serviceLabels()).list()
-						.getItems();
-			}
-			else {
-				String namespace = Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "catalog-watcher",
-						namespaceProvider);
-				LOG.debug(() -> "fabric8 catalog watcher will use namespace : " + namespace);
-				endpoints = kubernetesClient.endpoints().inNamespace(namespace).withLabels(properties.serviceLabels())
-						.list().getItems();
-			}
-
-			/**
-			 * <pre>
-			 *   - An "Endpoints" holds a List of EndpointSubset.
-			 *   - A single EndpointSubset holds a List of EndpointAddress
-			 *
-			 *   - (The union of all EndpointSubsets is the Set of all Endpoints)
-			 *   - Set of Endpoints is the cartesian product of :
-			 *     EndpointSubset::getAddresses and EndpointSubset::getPorts (each is a List)
-			 * </pre>
-			 */
-			List<EndpointNameAndNamespace> currentState = endpoints.stream().map(Endpoints::getSubsets)
-					.filter(Objects::nonNull).flatMap(List::stream).map(EndpointSubset::getAddresses)
-					.filter(Objects::nonNull).flatMap(List::stream).map(EndpointAddress::getTargetRef)
-					.filter(Objects::nonNull).map(x -> new EndpointNameAndNamespace(x.getName(), x.getNamespace()))
-					.sorted(Comparator.comparing(EndpointNameAndNamespace::endpointName, String::compareTo)).toList();
+			List<EndpointNameAndNamespace> currentState = stateGenerator.apply(context);
 
 			if (!currentState.equals(catalogEndpointsState)) {
 				LOG.debug(() -> "Received endpoints update from kubernetesClient: " + currentState);
@@ -110,6 +79,34 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 		}
 		catch (Exception e) {
 			LOG.error(e, () -> "Error watching Kubernetes Services");
+		}
+	}
+
+	@PostConstruct
+	void postConstruct() {
+
+		if (context.properties().useEndpointSlices()) {
+			try (KubernetesClient client = context.kubernetesClient()) {
+				// this emulates : 'kubectl api-resources | grep -i EndpointSlice'
+				boolean found = client.getApiGroups().getGroups().stream().flatMap(x -> x.getVersions().stream())
+						.map(GroupVersionForDiscovery::getGroupVersion).filter(DISCOVERY_GROUP_VERSION::equals)
+						.findFirst().map(client::getApiResources).map(APIResourceList::getResources)
+						.map(x -> x.stream().map(APIResource::getKind))
+						.flatMap(x -> x.filter(y -> y.equals(ENDPOINT_SLICE)).findFirst()).isPresent();
+
+				if (!found) {
+					LOG.warn(() -> "use-endpoint-slices is enabled, but EndpointSlice is not supported on the cluster."
+							+ "Will default to Endpoints");
+					stateGenerator = new Fabric8EndpointsCatalogWatch();
+				}
+				else {
+					stateGenerator = new Fabric8EndpointSliceV1CatalogWatch();
+
+				}
+			}
+		}
+		else {
+			stateGenerator = new Fabric8EndpointsCatalogWatch();
 		}
 	}
 
