@@ -59,7 +59,7 @@ class Fabric8IstioIT {
 
 	private static final String ISTIO_PILOT = "istio/pilot";
 
-	private static final String ISTIO_VERSION = "1.13.3";
+	private static final String ISTIO_VERSION = "1.16.0";
 
 	private static final String LOCAL_ISTIO_BIN_PATH = "../../istio-cli/istio-" + ISTIO_VERSION + "/bin";
 
