@@ -33,6 +33,11 @@ public final class KubernetesDiscoveryConstants {
 	public static final String PRIMARY_PORT_NAME_LABEL_KEY = "primary-port-name";
 
 	/**
+	 * Secured annotation/label
+	 */
+	public static final String SECURED_KEY = "secured";
+
+	/**
 	 * Https scheme.
 	 */
 	public static final String HTTPS = "https";
