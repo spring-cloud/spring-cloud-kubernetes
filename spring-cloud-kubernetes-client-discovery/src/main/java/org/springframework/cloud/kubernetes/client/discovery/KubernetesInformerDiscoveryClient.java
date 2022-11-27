@@ -56,6 +56,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 	private static final String PRIMARY_PORT_NAME_LABEL_KEY = "primary-port-name";
 
+	private static final String SECURED_KEY = "secured";
+
 	private static final String HTTPS_PORT_NAME = "https";
 
 	private static final String HTTP_PORT_NAME = "http";
@@ -145,6 +147,9 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		}
 		final String primaryPortName = discoveredPrimaryPortName.orElse(this.properties.getPrimaryPortName());
 
+		//reading secured value from svcMetadata, so we can read from service annotations and labels both (as per documentation)
+		boolean secured = svcMetadata.containsKey(SECURED_KEY) ? Boolean.valueOf(svcMetadata.get(SECURED_KEY)) : false;
+
 		return ep.getSubsets().stream().filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
 				.flatMap(subset -> {
 					Map<String, String> metadata = new HashMap<>(svcMetadata);
@@ -167,7 +172,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 					return addresses.stream()
 							.map(addr -> new KubernetesServiceInstance(
 									addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
-									addr.getIp(), port, metadata, false, service.getMetadata().getNamespace(),
+									addr.getIp(), port, metadata, secured, service.getMetadata().getNamespace(),
 									service.getMetadata().getClusterName()));
 				}).collect(Collectors.toList());
 	}
