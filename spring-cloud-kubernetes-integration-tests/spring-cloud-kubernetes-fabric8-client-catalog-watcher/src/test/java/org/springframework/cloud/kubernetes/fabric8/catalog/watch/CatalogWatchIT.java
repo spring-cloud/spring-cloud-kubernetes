@@ -30,6 +30,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -55,8 +57,8 @@ class CatalogWatchIT {
 	private static final String APP_NAME = "spring-cloud-kubernetes-fabric8-client-catalog-watcher";
 
 	private static final String NAMESPACE = "default";
-
-	private static final K3sContainer K3S = Commons.container();
+	
+	private static final K3sContainer K3S = Commons.container().withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger(CatalogWatchIT.class)));
 
 	private static KubernetesClient client;
 
@@ -106,7 +108,8 @@ class CatalogWatchIT {
 					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
 					.retryWhen(retrySpec()).block();
 
-			// we get 3 pods as input, but because they are sorted by name in the catalog watcher implementation
+			// we get 3 pods as input, but because they are sorted by name in the catalog
+			// watcher implementation
 			// we will get the first busybox instances here.
 			if (result != null) {
 				holder[0] = result.get(0);
@@ -135,8 +138,8 @@ class CatalogWatchIT {
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-				.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-				.retryWhen(retrySpec()).block();
+					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
+					.retryWhen(retrySpec()).block();
 
 			// we will only receive one pod here, our own
 			if (result != null) {
