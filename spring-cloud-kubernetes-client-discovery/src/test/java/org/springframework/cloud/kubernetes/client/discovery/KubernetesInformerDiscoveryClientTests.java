@@ -53,12 +53,13 @@ public class KubernetesInformerDiscoveryClientTests {
 			.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1")).status(new V1ServiceStatus());
 
 	private static final V1Service testServiceSecuredAnnotation1 = new V1Service()
-		.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1").putAnnotationsItem("secured", "true"))
-		.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1")).status(new V1ServiceStatus());
+			.metadata(
+					new V1ObjectMeta().name("test-svc-1").namespace("namespace1").putAnnotationsItem("secured", "true"))
+			.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1")).status(new V1ServiceStatus());
 
 	private static final V1Service testServiceSecuredLabel1 = new V1Service()
-		.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1").putLabelsItem("secured", "true"))
-		.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1")).status(new V1ServiceStatus());
+			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1").putLabelsItem("secured", "true"))
+			.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1")).status(new V1ServiceStatus());
 
 	private static final V1Service testService2 = new V1Service()
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace2"))
@@ -185,10 +186,13 @@ public class KubernetesInformerDiscoveryClientTests {
 		Lister<V1Service> serviceLister = setupServiceLister(testServiceSecuredAnnotation1);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
-			sharedInformerFactory, serviceLister, endpointsLister, null, null, KubernetesDiscoveryProperties.DEFAULT);
+				sharedInformerFactory, serviceLister, endpointsLister, null, null,
+				KubernetesDiscoveryProperties.DEFAULT);
 
-		assertThat(discoveryClient.getServices().toArray()).containsOnly(testServiceSecuredAnnotation1.getMetadata().getName());
-		ServiceInstance serviceInstance = discoveryClient.getInstances(testServiceSecuredAnnotation1.getMetadata().getName()).get(0);
+		assertThat(discoveryClient.getServices().toArray())
+				.containsOnly(testServiceSecuredAnnotation1.getMetadata().getName());
+		ServiceInstance serviceInstance = discoveryClient
+				.getInstances(testServiceSecuredAnnotation1.getMetadata().getName()).get(0);
 		assertThat(serviceInstance.isSecure()).isTrue();
 	}
 
@@ -197,10 +201,13 @@ public class KubernetesInformerDiscoveryClientTests {
 		Lister<V1Service> serviceLister = setupServiceLister(testServiceSecuredLabel1);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
-			sharedInformerFactory, serviceLister, endpointsLister, null, null, KubernetesDiscoveryProperties.DEFAULT);
+				sharedInformerFactory, serviceLister, endpointsLister, null, null,
+				KubernetesDiscoveryProperties.DEFAULT);
 
-		assertThat(discoveryClient.getServices().toArray()).containsOnly(testServiceSecuredLabel1.getMetadata().getName());
-		ServiceInstance serviceInstance = discoveryClient.getInstances(testServiceSecuredLabel1.getMetadata().getName()).get(0);
+		assertThat(discoveryClient.getServices().toArray())
+				.containsOnly(testServiceSecuredLabel1.getMetadata().getName());
+		ServiceInstance serviceInstance = discoveryClient.getInstances(testServiceSecuredLabel1.getMetadata().getName())
+				.get(0);
 		assertThat(serviceInstance.isSecure()).isTrue();
 	}
 
