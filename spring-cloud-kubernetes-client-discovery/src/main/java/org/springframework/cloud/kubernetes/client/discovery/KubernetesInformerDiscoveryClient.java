@@ -147,7 +147,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		}
 		final String primaryPortName = discoveredPrimaryPortName.orElse(this.properties.getPrimaryPortName());
 
-		//reading secured value from svcMetadata, so we can read from service annotations and labels both (as per documentation)
+		// reading secured value from svcMetadata, so we can read from service annotations
+		// and labels both (as per documentation)
 		boolean secured = svcMetadata.containsKey(SECURED_KEY) ? Boolean.valueOf(svcMetadata.get(SECURED_KEY)) : false;
 
 		return ep.getSubsets().stream().filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
