@@ -19,12 +19,15 @@ package org.springframework.cloud.kubernetes.integration.tests.commons;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
@@ -171,6 +174,42 @@ public final class Fabric8Utils {
 		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
 			ConfigMap configMap = client.configMaps().inNamespace(namespace).withName(name).get();
 			return configMap == null;
+		});
+	}
+
+	/**
+	 * delete a deployment and every pod by spec.select.matchLabels, waits until
+	 * everything is deleted.
+	 */
+	public static void deleteDeployment(KubernetesClient client, String namespace, String name) {
+
+		Deployment deployment = client.apps().deployments().inNamespace(namespace).withName(name).get();
+		Map<String, String> matchLabels = deployment.getSpec().getSelector().getMatchLabels();
+
+		client.apps().deployments().inNamespace(namespace).delete(deployment);
+
+		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+			Deployment inner = client.apps().deployments().inNamespace(namespace).withName(name).get();
+			return inner == null;
+		});
+
+		await().pollInterval(Duration.ofSeconds(1)).atMost(60, TimeUnit.SECONDS).until(() -> {
+			List<Pod> podList = client.pods().inNamespace(namespace).withLabels(matchLabels).list().getItems();
+			return podList == null || podList.isEmpty();
+		});
+
+	}
+
+	/**
+	 * delete the service and wait for it to be deleted.
+	 */
+	public static void deleteService(KubernetesClient client, String namespace, String name) {
+
+		client.services().inNamespace(namespace).withName(name).delete();
+
+		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+			Service service = client.services().inNamespace(namespace).withName(name).get();
+			return service == null;
 		});
 	}
 
