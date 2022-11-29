@@ -17,6 +17,6 @@ spec:
       containers:
         - name: busybox
           # image: arm64/busybox:latest
-          image: busybox:latest
+          image: busybox:1.35
           command: ["/bin/sh"]
           args: ["-c", "sleep 100000"]

@@ -24,6 +24,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
+import com.github.dockerjava.api.command.ListImagesCmd;
+import com.github.dockerjava.api.command.PullImageCmd;
+import com.github.dockerjava.api.command.SaveImageCmd;
 import com.github.dockerjava.api.model.Image;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
@@ -78,14 +81,17 @@ public final class Commons {
 
 	public static void loadImage(String image, String tag, String tarName, K3sContainer container) throws Exception {
 		// save image
-		InputStream imageStream = container.getDockerClient().saveImageCmd(image).withTag(tag).exec();
+		try (SaveImageCmd saveImageCmd = container.getDockerClient().saveImageCmd(image)) {
+			InputStream imageStream = saveImageCmd.withTag(tag).exec();
 
-		Path imagePath = Paths.get(TEMP_FOLDER + "/" + tarName + ".tar");
-		Files.deleteIfExists(imagePath);
-		Files.copy(imageStream, imagePath);
-		// import image with ctr. this works because TEMP_FOLDER is mounted in the
-		// container
-		container.execInContainer("ctr", "i", "import", TEMP_FOLDER + "/" + tarName + ".tar");
+			Path imagePath = Paths.get(TEMP_FOLDER + "/" + tarName + ".tar");
+			Files.deleteIfExists(imagePath);
+			Files.copy(imageStream, imagePath);
+			// import image with ctr. this works because TEMP_FOLDER is mounted in the
+			// container
+			container.execInContainer("ctr", "i", "import", TEMP_FOLDER + "/" + tarName + ".tar");
+		}
+
 	}
 
 	public static void cleanUp(String image, K3sContainer container) throws Exception {
@@ -101,16 +107,21 @@ public final class Commons {
 	 * validates that the provided image does exist in the local docker registry.
 	 */
 	public static void validateImage(String image, K3sContainer container) {
-		List<Image> images = container.getDockerClient().listImagesCmd().exec();
-		images.stream()
-				.filter(x -> Arrays.stream(x.getRepoTags() == null ? new String[] {} : x.getRepoTags())
-						.anyMatch(y -> y.contains(image)))
-				.findFirst().orElseThrow(() -> new IllegalArgumentException("Image : " + image + " not build locally. "
-						+ "You need to build it first, and then run the test"));
+		try (ListImagesCmd listImagesCmd = container.getDockerClient().listImagesCmd()) {
+			List<Image> images = listImagesCmd.exec();
+			images.stream()
+					.filter(x -> Arrays.stream(x.getRepoTags() == null ? new String[] {} : x.getRepoTags())
+							.anyMatch(y -> y.contains(image)))
+					.findFirst().orElseThrow(() -> new IllegalArgumentException("Image : " + image
+							+ " not build locally. " + "You need to build it first, and then run the test"));
+		}
 	}
 
 	public static void pullImage(String image, String tag, K3sContainer container) throws InterruptedException {
-		container.getDockerClient().pullImageCmd(image).withTag(tag).start().awaitCompletion();
+		try (PullImageCmd pullImageCmd = container.getDockerClient().pullImageCmd(image)) {
+			pullImageCmd.withTag(tag).start().awaitCompletion();
+		}
+
 	}
 
 	public static String processExecResult(Container.ExecResult execResult) {

@@ -59,25 +59,32 @@ class CatalogWatchIT {
 	private static final String NAMESPACE = "default";
 
 	private static final K3sContainer K3S = Commons.container()
-		.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger(CatalogWatchIT.class)));
+			.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger(CatalogWatchIT.class)));
 
 	private static KubernetesClient client;
 
-	private String busyboxServiceName;
+	private static String busyboxServiceName;
 
-	private String busyboxDeploymentName;
+	private static String busyboxDeploymentName;
 
-	private String appDeploymentName;
+	private static String appDeploymentName;
 
-	private String appServiceName;
+	private static String appServiceName;
 
-	private String appIngressName;
+	private static String appIngressName;
 
 	@BeforeAll
-	static void beforeAll() {
+	static void beforeAll() throws Exception {
 		K3S.start();
 		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
 		client = new DefaultKubernetesClient(config);
+
+		Commons.validateImage(APP_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
+
+		Fabric8Utils.setUp(client, "default");
+
+		deployBusyboxManifests();
 	}
 
 	/**
@@ -88,17 +95,19 @@ class CatalogWatchIT {
 	 *     - assert that we receive only spring-cloud-kubernetes-fabric8-client-catalog-watcher pod
 	 * </pre>
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
-	void testCatalogWatchWithEndpoints() throws Exception {
+	void testCatalogWatchWithEndpoints() {
+		deployApp(false);
+		test();
+		deleteApp();
+	}
 
-		Commons.validateImage(APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
-
-		Fabric8Utils.setUp(client, "default");
-
-		deployBusyboxManifests();
-		deployApp();
+	/**
+	 * the test is the same for both endpoints and endpoint slices, the set-up for them is
+	 * different.
+	 */
+	@SuppressWarnings("unchecked")
+	private void test() {
 
 		WebClient client = builder().baseUrl("localhost/result").build();
 		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[2];
@@ -106,8 +115,8 @@ class CatalogWatchIT {
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-				.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-				.retryWhen(retrySpec()).block();
+					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
+					.retryWhen(retrySpec()).block();
 
 			// we get 3 pods as input, but because they are sorted by name in the catalog
 			// watcher implementation
@@ -139,8 +148,8 @@ class CatalogWatchIT {
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-				.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-				.retryWhen(retrySpec()).block();
+					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
+					.retryWhen(retrySpec()).block();
 
 			// we will only receive one pod here, our own
 			if (result != null) {
@@ -155,13 +164,16 @@ class CatalogWatchIT {
 		Assertions.assertTrue(afterDelete[0].endpointName().contains(APP_NAME));
 		Assertions.assertEquals("default", afterDelete[0].namespace());
 
-		deleteApp();
-
 	}
 
-	private void deployBusyboxManifests() {
+	private static void deployBusyboxManifests() throws Exception {
 
 		Deployment deployment = client.apps().deployments().load(getBusyboxDeployment()).get();
+
+		String[] image = K8SUtils.getImageFromDeployment(deployment).split(":");
+		Commons.pullImage(image[0], image[1], K3S);
+		Commons.loadImage(image[0], image[1], "busybox", K3S);
+
 		client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
 		busyboxDeploymentName = deployment.getMetadata().getName();
 
@@ -173,9 +185,10 @@ class CatalogWatchIT {
 
 	}
 
-	private void deployApp() {
+	private static void deployApp(boolean useEndpointSlices) {
 
-		Deployment appDeployment = client.apps().deployments().load(getAppDeployment()).get();
+		InputStream deployment = useEndpointSlices ? getEndpointSlicesAppDeployment() : getEndpointsAppDeployment();
+		Deployment appDeployment = client.apps().deployments().load(deployment).get();
 
 		String version = K8SUtils.getPomVersion();
 		String currentImage = appDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
@@ -217,8 +230,15 @@ class CatalogWatchIT {
 		return Fabric8Utils.inputStream("busybox/deployment.yaml");
 	}
 
-	private static InputStream getAppDeployment() {
+	/**
+	 * deployment where support for endpoint slices is equal to false
+	 */
+	private static InputStream getEndpointsAppDeployment() {
 		return Fabric8Utils.inputStream("app/watcher-endpoints-deployment.yaml");
+	}
+
+	private static InputStream getEndpointSlicesAppDeployment() {
+		return Fabric8Utils.inputStream("app/watcher-endpoint-slices-deployment.yaml");
 	}
 
 	private static InputStream getAppIngress() {
