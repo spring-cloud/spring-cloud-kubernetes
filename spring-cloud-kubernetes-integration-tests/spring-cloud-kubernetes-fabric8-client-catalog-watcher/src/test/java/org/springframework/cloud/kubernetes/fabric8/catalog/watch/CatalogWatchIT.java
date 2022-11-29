@@ -57,8 +57,9 @@ class CatalogWatchIT {
 	private static final String APP_NAME = "spring-cloud-kubernetes-fabric8-client-catalog-watcher";
 
 	private static final String NAMESPACE = "default";
-	
-	private static final K3sContainer K3S = Commons.container().withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger(CatalogWatchIT.class)));
+
+	private static final K3sContainer K3S = Commons.container()
+		.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger(CatalogWatchIT.class)));
 
 	private static KubernetesClient client;
 
@@ -105,8 +106,8 @@ class CatalogWatchIT {
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-					.retryWhen(retrySpec()).block();
+				.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
+				.retryWhen(retrySpec()).block();
 
 			// we get 3 pods as input, but because they are sorted by name in the catalog
 			// watcher implementation
@@ -138,8 +139,8 @@ class CatalogWatchIT {
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-					.retryWhen(retrySpec()).block();
+				.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
+				.retryWhen(retrySpec()).block();
 
 			// we will only receive one pod here, our own
 			if (result != null) {
