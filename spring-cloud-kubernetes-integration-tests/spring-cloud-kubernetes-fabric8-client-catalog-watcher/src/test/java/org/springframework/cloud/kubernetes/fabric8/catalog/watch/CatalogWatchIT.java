@@ -27,11 +27,11 @@ import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -58,8 +58,7 @@ class CatalogWatchIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static final K3sContainer K3S = Commons.container()
-			.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger(CatalogWatchIT.class)));
+	private static final K3sContainer K3S = Commons.container();
 
 	private static KubernetesClient client;
 
@@ -83,8 +82,16 @@ class CatalogWatchIT {
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
 
 		Fabric8Utils.setUp(client, "default");
+	}
 
+	@BeforeEach
+	void beforeEach() throws Exception {
 		deployBusyboxManifests();
+	}
+
+	@AfterEach
+	void afterEach() {
+		deleteApp();
 	}
 
 	/**
@@ -99,7 +106,12 @@ class CatalogWatchIT {
 	void testCatalogWatchWithEndpoints() {
 		deployApp(false);
 		test();
-		deleteApp();
+	}
+
+	@Test
+	void testCatalogWatchWithEndpointSlices() {
+		deployApp(true);
+		test();
 	}
 
 	/**
@@ -151,9 +163,16 @@ class CatalogWatchIT {
 					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
 					.retryWhen(retrySpec()).block();
 
+			// we need to get the event from KubernetesCatalogWatch, but that happens
+			// on periodic bases. So in order to be sure we got the event we care about
+			// we wait until the result has a single entry, which means busybox was deleted
+			// + KubernetesCatalogWatch received the new update.
+			if (result != null && result.size() != 1) {
+				return false;
+			}
+
 			// we will only receive one pod here, our own
 			if (result != null) {
-				Assertions.assertEquals(1, result.size());
 				afterDelete[0] = result.get(0);
 				return true;
 			}
@@ -166,7 +185,7 @@ class CatalogWatchIT {
 
 	}
 
-	private static void deployBusyboxManifests() throws Exception {
+	private void deployBusyboxManifests() throws Exception {
 
 		Deployment deployment = client.apps().deployments().load(getBusyboxDeployment()).get();
 
@@ -219,7 +238,7 @@ class CatalogWatchIT {
 	private void deleteApp() {
 		Fabric8Utils.deleteDeployment(client, NAMESPACE, appDeploymentName);
 		Fabric8Utils.deleteService(client, NAMESPACE, appServiceName);
-		client.network().v1().ingresses().withName(appIngressName).delete();
+		Fabric8Utils.deleteIngress(client, NAMESPACE, appIngressName);
 	}
 
 	private static InputStream getBusyboxService() {

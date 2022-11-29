@@ -213,6 +213,19 @@ public final class Fabric8Utils {
 		});
 	}
 
+	/**
+	 * delete ingress and wait for it to be deleted.
+	 */
+	public static void deleteIngress(KubernetesClient client, String namespace, String name) {
+		client.network().v1().ingresses().inNamespace(namespace).withName(name).delete();
+
+		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+			Ingress ingress = client.network().v1().ingresses().inNamespace(namespace).withName(name).get();
+			return ingress == null;
+		});
+
+	}
+
 	private static void innerSetup(KubernetesClient client, String namespace, InputStream serviceAccountAsStream,
 			InputStream roleBindingAsStream, InputStream roleAsStream) {
 		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).get();
