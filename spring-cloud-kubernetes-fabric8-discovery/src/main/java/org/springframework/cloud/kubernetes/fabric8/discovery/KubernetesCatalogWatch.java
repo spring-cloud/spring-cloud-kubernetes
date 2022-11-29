@@ -108,6 +108,8 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 		else {
 			stateGenerator = new Fabric8EndpointsCatalogWatch();
 		}
+
+		LOG.debug(() -> "stateGenerator is of type: " + stateGenerator.getClass().getSimpleName());
 	}
 
 }

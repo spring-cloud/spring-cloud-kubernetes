@@ -90,7 +90,7 @@ class CatalogWatchIT {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	void testCatalogWatch() throws Exception {
+	void testCatalogWatchWithEndpoints() throws Exception {
 
 		Commons.validateImage(APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
@@ -218,7 +218,7 @@ class CatalogWatchIT {
 	}
 
 	private static InputStream getAppDeployment() {
-		return Fabric8Utils.inputStream("app/watcher-deployment.yaml");
+		return Fabric8Utils.inputStream("app/watcher-endpoints-deployment.yaml");
 	}
 
 	private static InputStream getAppIngress() {
