@@ -63,21 +63,29 @@ class CatalogWatchIT {
 
 	private static KubernetesClient client;
 
-	private String busyboxServiceName;
+	private static String busyboxServiceName;
 
-	private String busyboxDeploymentName;
+	private static String busyboxDeploymentName;
 
-	private String appDeploymentName;
+	private static String appDeploymentName;
 
-	private String appServiceName;
+	private static String appServiceName;
 
-	private String appIngressName;
+	private static String appIngressName;
 
 	@BeforeAll
-	static void beforeAll() {
+	static void beforeAll() throws Exception {
 		K3S.start();
 		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
 		client = new DefaultKubernetesClient(config);
+
+		Commons.validateImage(APP_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
+
+		Fabric8Utils.setUp(client, "default");
+
+		deployBusyboxManifests();
+		deployApp();
 	}
 
 	/**
@@ -90,15 +98,7 @@ class CatalogWatchIT {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	void testCatalogWatch() throws Exception {
-
-		Commons.validateImage(APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
-
-		Fabric8Utils.setUp(client, "default");
-
-		deployBusyboxManifests();
-		deployApp();
+	void testCatalogWatch() {
 
 		WebClient client = builder().baseUrl("localhost/result").build();
 		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[2];
@@ -106,8 +106,8 @@ class CatalogWatchIT {
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-				.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-				.retryWhen(retrySpec()).block();
+					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
+					.retryWhen(retrySpec()).block();
 
 			// we get 3 pods as input, but because they are sorted by name in the catalog
 			// watcher implementation
@@ -139,8 +139,8 @@ class CatalogWatchIT {
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-				.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-				.retryWhen(retrySpec()).block();
+					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
+					.retryWhen(retrySpec()).block();
 
 			// we will only receive one pod here, our own
 			if (result != null) {
@@ -159,9 +159,14 @@ class CatalogWatchIT {
 
 	}
 
-	private void deployBusyboxManifests() {
+	private static void deployBusyboxManifests() throws Exception {
 
 		Deployment deployment = client.apps().deployments().load(getBusyboxDeployment()).get();
+
+		String[] image = K8SUtils.getImageFromDeployment(deployment).split(":");
+		Commons.pullImage(image[0], image[1], K3S);
+		Commons.loadImage(image[0], image[1], "busybox", K3S);
+
 		client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
 		busyboxDeploymentName = deployment.getMetadata().getName();
 
@@ -173,7 +178,7 @@ class CatalogWatchIT {
 
 	}
 
-	private void deployApp() {
+	private static void deployApp() {
 
 		Deployment appDeployment = client.apps().deployments().load(getAppDeployment()).get();
 
