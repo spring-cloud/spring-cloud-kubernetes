@@ -59,7 +59,7 @@ class CatalogWatchIT {
 	private static final String NAMESPACE = "default";
 
 	private static final K3sContainer K3S = Commons.container()
-			.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger(CatalogWatchIT.class)));
+		.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger(CatalogWatchIT.class)));
 
 	private static KubernetesClient client;
 
