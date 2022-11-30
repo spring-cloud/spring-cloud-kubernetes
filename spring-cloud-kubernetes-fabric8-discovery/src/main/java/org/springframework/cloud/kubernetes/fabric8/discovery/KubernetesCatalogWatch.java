@@ -101,7 +101,6 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 				}
 				else {
 					stateGenerator = new Fabric8EndpointSliceV1CatalogWatch();
-
 				}
 			}
 		}

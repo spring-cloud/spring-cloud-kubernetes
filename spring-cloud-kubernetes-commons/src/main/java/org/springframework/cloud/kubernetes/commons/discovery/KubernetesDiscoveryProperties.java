@@ -53,7 +53,7 @@ public record KubernetesDiscoveryProperties(
 		@DefaultValue Map<String, String> serviceLabels, String primaryPortName,
 		@DefaultValue Metadata metadata,
 		@DefaultValue("" + DEFAULT_ORDER) int order,
-		@DefaultValue("true") boolean useEndpointSlices) {
+		boolean useEndpointSlices) {
 // @formatter:on
 
 	/**
