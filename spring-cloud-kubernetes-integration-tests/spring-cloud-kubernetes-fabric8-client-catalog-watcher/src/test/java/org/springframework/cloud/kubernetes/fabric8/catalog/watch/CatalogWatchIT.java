@@ -165,7 +165,8 @@ class CatalogWatchIT {
 
 			// we need to get the event from KubernetesCatalogWatch, but that happens
 			// on periodic bases. So in order to be sure we got the event we care about
-			// we wait until the result has a single entry, which means busybox was deleted
+			// we wait until the result has a single entry, which means busybox was
+			// deleted
 			// + KubernetesCatalogWatch received the new update.
 			if (result != null && result.size() != 1) {
 				return false;
