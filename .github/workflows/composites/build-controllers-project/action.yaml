@@ -7,5 +7,5 @@ runs:
       shell: bash
       run: |
         cd spring-cloud-kubernetes-controllers
-        .././mvnw -T 1C clean install
+        .././mvnw -T 1C -U clean install
         cd ..
