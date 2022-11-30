@@ -117,12 +117,15 @@ class CatalogWatchIT {
 	}
 
 	/**
-	 * we log in debug mode the type of the StateGenerator we use, be that Endpoints or EndpointSlices.
-	 * Here we make sure that in the test we actually use the correct type.
+	 * we log in debug mode the type of the StateGenerator we use, be that Endpoints or
+	 * EndpointSlices. Here we make sure that in the test we actually use the correct
+	 * type.
 	 */
 	private void assertLogStatement(String log) throws Exception {
-		String appPodName = K3S.execInContainer("kubectl", "get", "pods", "-l", "app=spring-cloud-kubernetes-fabric8-client-catalog-watcher", "-o=name", "--no-headers")
-			.getStdout();
+		String appPodName = K3S
+				.execInContainer("kubectl", "get", "pods", "-l",
+						"app=spring-cloud-kubernetes-fabric8-client-catalog-watcher", "-o=name", "--no-headers")
+				.getStdout();
 		String allLogs = K3S.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
 		Assertions.assertTrue(allLogs.contains(log));
 	}

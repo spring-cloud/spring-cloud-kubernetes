@@ -27,9 +27,8 @@ import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryCl
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT,
-		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.kubernetes.discovery.use-endpoint-slices=false" })
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = { "spring.main.cloud-platform=KUBERNETES",
+		"spring.cloud.config.enabled=false", "spring.cloud.kubernetes.discovery.use-endpoint-slices=false" })
 class KubernetesDiscoveryClientAutoConfigurationTests {
 
 	@Autowired(required = false)
