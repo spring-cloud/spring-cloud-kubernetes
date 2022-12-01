@@ -271,8 +271,8 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 		when(namespaceProvider.getNamespace()).thenReturn(namespace);
 
 		// all-namespaces = false
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, "",
-				Set.of(), labels, "", null, 0, true);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, "", Set.of(), labels, "", null, 0, true);
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
 		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
@@ -286,8 +286,8 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 		createEndpointSlicesApiGroup();
 
 		// all-namespaces = true
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, true, 60, false, "",
-				Set.of(), labels, "", null, 0, true);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
+				false, "", Set.of(), labels, "", null, 0, true);
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
 		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);

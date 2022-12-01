@@ -62,10 +62,8 @@ public record KubernetesDiscoveryProperties(
 	/**
 	 * Default instance.
 	 */
-	public static final KubernetesDiscoveryProperties DEFAULT = new KubernetesDiscoveryProperties(
-		true, false, Set.of(), true, 60, false, null, Set.of(), Map.of(), null,
-		KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false
-	);
+	public static final KubernetesDiscoveryProperties DEFAULT = new KubernetesDiscoveryProperties(true, false, Set.of(),
+			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
 	/**
 	 * @param addLabels include labels as metadata
