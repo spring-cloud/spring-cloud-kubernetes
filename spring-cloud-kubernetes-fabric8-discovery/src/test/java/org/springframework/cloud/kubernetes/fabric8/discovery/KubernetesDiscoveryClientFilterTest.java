@@ -66,8 +66,8 @@ public class KubernetesDiscoveryClientFilterTest {
 		when(this.serviceOperation.list()).thenReturn(serviceList);
 		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false,
-				"metadata.additionalProperties['spring-boot']", Set.of(), Map.of(), null,
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, "metadata.additionalProperties['spring-boot']", Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
 				this.kubernetesClientServicesFunction);
@@ -94,8 +94,8 @@ public class KubernetesDiscoveryClientFilterTest {
 		when(this.serviceOperation.list()).thenReturn(serviceList);
 		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false,
-				"metadata.name.startsWith('service')", Set.of(), Map.of(), null,
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, "metadata.name.startsWith('service')", Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
 				this.kubernetesClientServicesFunction);
@@ -115,8 +115,8 @@ public class KubernetesDiscoveryClientFilterTest {
 		when(this.serviceOperation.list()).thenReturn(serviceList);
 		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, true, 60, false, "",
-				Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, "", Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0);
 		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
 				this.kubernetesClientServicesFunction);
 

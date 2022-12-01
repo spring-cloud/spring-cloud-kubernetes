@@ -59,7 +59,8 @@
 |spring.cloud.kubernetes.config.sources |  | 
 |spring.cloud.kubernetes.config.use-name-as-prefix | `+++false+++` | 
 |spring.cloud.kubernetes.discovery.all-namespaces | `+++false+++` | 
-|spring.cloud.kubernetes.discovery.cache-loading-timeout-seconds | `+++60+++` | 
+|spring.cloud.kubernetes.discovery.namespaces | `+++[]+++` |
+|spring.cloud.kubernetes.discovery.cache-loading-timeout-seconds | `+++60+++` |
 |spring.cloud.kubernetes.discovery.enabled | `+++true+++` | 
 |spring.cloud.kubernetes.discovery.filter |  | 
 |spring.cloud.kubernetes.discovery.include-not-ready-addresses | `+++false+++` | 

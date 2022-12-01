@@ -78,6 +78,16 @@ spring.cloud.kubernetes.discovery.all-namespaces=true
 ----
 ====
 
+To discover services and endpoints only from specified namespaces you should set property `all-namespaces` to `false` and set the following property in `application.properties` (in this example namespaces are: `ns1` and `ns2`).
+
+====
+[source]
+----
+spring.cloud.kubernetes.discovery.namespaces[0]=ns1
+spring.cloud.kubernetes.discovery.namespaces[1]=ns2
+----
+====
+
 To discover service endpoint addresses that are not marked as "ready" by the kubernetes api server, you can set the following property in `application.properties` (default: false):
 
 ====
