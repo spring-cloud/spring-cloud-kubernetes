@@ -180,7 +180,7 @@ class DiscoveryClientFilterNamespaceIT {
 		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE_RIGHT, null, null, null, null,
 				null, null);
 
-		authApi.deleteClusterRole("admin-default", null, null, null, null, null, null);
+		authApi.deleteClusterRole("cluster-admin", null, null, null, null, null, null);
 
 	}
 
@@ -240,7 +240,7 @@ class DiscoveryClientFilterNamespaceIT {
 				.readYamlFromClasspath("client/spring-cloud-kubernetes-discoveryclient-it-deployment.yaml");
 
 		// add namespaces filter property for left namespace
-		var env = new V1EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES[0]")
+		var env = new V1EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
 				.withValue(NAMESPACE_LEFT).build();
 		var container = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
 		container.setEnv(List.of(env));
@@ -325,7 +325,7 @@ class DiscoveryClientFilterNamespaceIT {
 
 	private static V1ClusterRoleBinding getClusterRoleBinding() throws Exception {
 		return (V1ClusterRoleBinding) K8SUtils
-				.readYamlFromClasspath("namespace-filter/cluster-admin-account-role.yaml");
+				.readYamlFromClasspath("namespace-filter/cluster-admin-serviceaccount-role.yaml");
 	}
 
 	private static V1Deployment getMockServiceDeployment() throws Exception {
