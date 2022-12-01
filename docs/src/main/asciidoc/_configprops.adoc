@@ -70,6 +70,7 @@
 |spring.cloud.kubernetes.discovery.metadata.annotations-prefix |  | 
 |spring.cloud.kubernetes.discovery.metadata.labels-prefix |  | 
 |spring.cloud.kubernetes.discovery.metadata.ports-prefix | `+++port.+++` | 
+|spring.cloud.kubernetes.discovery.namespaces |  | 
 |spring.cloud.kubernetes.discovery.order | `+++0+++` | 
 |spring.cloud.kubernetes.discovery.primary-port-name |  | 
 |spring.cloud.kubernetes.discovery.service-labels |  | 

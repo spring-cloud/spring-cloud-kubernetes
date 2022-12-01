@@ -27,6 +27,8 @@ import static org.springframework.cloud.client.discovery.DiscoveryClient.DEFAULT
 /**
  * @param enabled if kubernetes discovery is enabled
  * @param allNamespaces if discover is enabled for all namespaces
+ * @param namespaces If set and allNamespaces is false, then only the services and
+ * endpoints matching these namespaces will be fetched from the Kubernetes API server.
  * @param waitCacheReady wait for the discovery cache (service and endpoints) to be fully
  * loaded, otherwise aborts the application on starting
  * @param cacheLoadingTimeoutSeconds timeout for initializing discovery cache, will abort
@@ -46,6 +48,7 @@ import static org.springframework.cloud.client.discovery.DiscoveryClient.DEFAULT
 @ConfigurationProperties("spring.cloud.kubernetes.discovery")
 public record KubernetesDiscoveryProperties(
 		@DefaultValue("true") boolean enabled, boolean allNamespaces,
+		@DefaultValue Set<String> namespaces,
 		@DefaultValue("true") boolean waitCacheReady,
 		@DefaultValue("60") long cacheLoadingTimeoutSeconds,
 		boolean includeNotReadyAddresses, String filter,
@@ -59,8 +62,10 @@ public record KubernetesDiscoveryProperties(
 	/**
 	 * Default instance.
 	 */
-	public static final KubernetesDiscoveryProperties DEFAULT = new KubernetesDiscoveryProperties(true, false, true, 60,
-			false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+	public static final KubernetesDiscoveryProperties DEFAULT = new KubernetesDiscoveryProperties(
+		true, false, Set.of(), true, 60, false, null, Set.of(), Map.of(), null,
+		KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false
+	);
 
 	/**
 	 * @param addLabels include labels as metadata

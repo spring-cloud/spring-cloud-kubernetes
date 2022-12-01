@@ -184,6 +184,16 @@ spring.cloud.kubernetes.discovery.all-namespaces=true
 ----
 ====
 
+To discover services and endpoints only from specified namespaces you should set property `all-namespaces` to `false` and set the following property in `application.properties` (in this example namespaces are: `ns1` and `ns2`).
+
+====
+[source]
+----
+spring.cloud.kubernetes.discovery.namespaces[0]=ns1
+spring.cloud.kubernetes.discovery.namespaces[1]=ns2
+----
+====
+
 To discover service endpoint addresses that are not marked as "ready" by the kubernetes api server, you can set the following property in `application.properties` (default: false):
 
 ====
@@ -223,7 +233,17 @@ this to work, you need to align the Kubernetes service name with the `spring.app
 NOTE:  `spring.application.name` has no effect as far as the name registered for the application within Kubernetes
 
 Spring Cloud Kubernetes can also watch the Kubernetes service catalog for changes and update the
-`DiscoveryClient` implementation accordingly.  In order to enable this functionality you need to add
+`DiscoveryClient` implementation accordingly. By "watch" we mean that we will publish a heartbeat event every `spring.cloud.kubernetes.discovery.catalog-services-watch-delay`
+milliseconds (by default it is `30000`). The heartbeat event will contain the target references (and their namespaces of the addresses of all endpoints
+(for the exact details of what will get returned you can take a look inside `KubernetesCatalogWatch`). This is an implementation detail, and listeners of the heartbeat event
+should not rely on the details. Instead, they should see if there are differences between two subsequent heartbeats via `equals` method. We will take care to return a correct implementation that adheres to the equals contract.
+The endpoints will be queried in either all namespaces (enabled via `spring.cloud.kubernetes.discovery.all-namespaces=true`), or
+we will use: xref:property-source-config.adoc#namespace-resolution[Namespace Resolution].
+
+
+
+
+In order to enable this functionality you need to add
 `@EnableScheduling` on a configuration class in your application.
 
 == Kubernetes native service discovery

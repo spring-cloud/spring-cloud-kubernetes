@@ -78,7 +78,7 @@ class Fabric8ServiceInstanceMapperTests {
 	@Test
 	void testMapperSecureNullLabelsAndAnnotations() {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
-		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, true, true, 60,
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 		List<ServicePort> ports = new ArrayList<>();
 		ports.add(new ServicePortBuilder().withPort(443).build());

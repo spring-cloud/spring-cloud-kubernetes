@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.kubernetes.client.extended.wait.Wait;
 import io.kubernetes.client.informer.SharedInformer;
@@ -98,14 +99,17 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 			log.warn("Namespace is null or empty, this may cause issues looking up services");
 		}
 
-		V1Service service = properties.allNamespaces() ? this.serviceLister.list().stream()
-				.filter(svc -> serviceId.equals(svc.getMetadata().getName())).findFirst().orElse(null)
-				: this.serviceLister.namespace(this.namespace).get(serviceId);
-		if (service == null || !matchServiceLabels(service)) {
+		List<V1Service> services = properties.allNamespaces() ? this.serviceLister.list().stream()
+				.filter(svc -> serviceId.equals(svc.getMetadata().getName())).toList()
+				: List.of(this.serviceLister.namespace(this.namespace).get(serviceId));
+		if (services.size() == 0 || !services.stream().anyMatch(this::matchServiceLabels)) {
 			// no such service present in the cluster
 			return new ArrayList<>();
 		}
+		return services.stream().flatMap(s -> getServiceInstanceDetails(s, serviceId)).toList();
+	}
 
+	private Stream<ServiceInstance> getServiceInstanceDetails(V1Service service, String serviceId) {
 		Map<String, String> svcMetadata = new HashMap<>();
 		if (this.properties.metadata() != null) {
 			if (this.properties.metadata().addLabels()) {
@@ -132,7 +136,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 				.get(service.getMetadata().getName());
 		if (ep == null || ep.getSubsets() == null) {
 			// no available endpoints in the cluster
-			return new ArrayList<>();
+			return Stream.empty();
 		}
 
 		Optional<String> discoveredPrimaryPortName = Optional.empty();
@@ -166,7 +170,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 									addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
 									addr.getIp(), port, metadata, false, service.getMetadata().getNamespace(),
 									service.getMetadata().getClusterName()));
-				}).collect(Collectors.toList());
+				});
 	}
 
 	private int findEndpointPort(List<V1EndpointPort> endpointPorts, String primaryPortName, String serviceId) {
