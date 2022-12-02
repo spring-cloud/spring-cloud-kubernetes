@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: servicea-wiremock-deployment
+  name: wiremock-deployment
 spec:
   selector:
     matchLabels:
-      app: servicea-wiremock
+      app: wiremock
   template:
     metadata:
       labels:
-        app: servicea-wiremock
+        app: wiremock
     spec:
       containers:
-        - name: servicea-wiremock
+        - name: wiremock
           image: wiremock/wiremock:2.32.0
           imagePullPolicy: IfNotPresent
           readinessProbe:

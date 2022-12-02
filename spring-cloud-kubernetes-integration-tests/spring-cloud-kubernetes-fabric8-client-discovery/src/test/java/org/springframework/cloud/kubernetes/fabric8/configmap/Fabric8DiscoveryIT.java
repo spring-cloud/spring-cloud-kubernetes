@@ -100,7 +100,7 @@ class Fabric8DiscoveryIT {
 		Assertions.assertEquals(result.size(), 3);
 		Assertions.assertTrue(result.contains("kubernetes"));
 		Assertions.assertTrue(result.contains("spring-cloud-kubernetes-fabric8-client-discovery"));
-		Assertions.assertTrue(result.contains("servicea-wiremock"));
+		Assertions.assertTrue(result.contains("wiremock"));
 	}
 
 	private static void deleteManifests() {
@@ -168,7 +168,7 @@ class Fabric8DiscoveryIT {
 			mockServiceName = service.getMetadata().getName();
 			client.services().inNamespace(NAMESPACE).create(service);
 
-			Fabric8Utils.waitForDeployment(client, "servicea-wiremock-deployment", NAMESPACE, 2, 600);
+			Fabric8Utils.waitForDeployment(client, "wiremock-deployment", NAMESPACE, 2, 600);
 
 		}
 		catch (Exception e) {
@@ -190,11 +190,11 @@ class Fabric8DiscoveryIT {
 	}
 
 	private static InputStream getMockService() {
-		return Fabric8Utils.inputStream("wiremock/fabric8-discovery-wiremock-service.yaml");
+		return Fabric8Utils.inputStream("wiremock/wiremock-service.yaml");
 	}
 
 	private static InputStream getMockDeployment() {
-		return Fabric8Utils.inputStream("wiremock/fabric8-discovery-wiremock-deployment.yaml");
+		return Fabric8Utils.inputStream("wiremock/wiremock-deployment.yaml");
 	}
 
 	private WebClient.Builder builder() {
