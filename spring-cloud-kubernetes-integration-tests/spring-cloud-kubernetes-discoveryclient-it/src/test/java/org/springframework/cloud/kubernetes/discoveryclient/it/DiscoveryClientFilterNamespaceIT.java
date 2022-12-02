@@ -175,10 +175,8 @@ class DiscoveryClientFilterNamespaceIT {
 		api.deleteNamespacedService(MOCK_CLIENT_APP_NAME, NAMESPACE_LEFT, null, null, null, null, null, null);
 		api.deleteNamespacedService(MOCK_CLIENT_APP_NAME, NAMESPACE_RIGHT, null, null, null, null, null, null);
 
-		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE_LEFT, null, null, null, null, null,
-				null);
-		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE_RIGHT, null, null, null, null,
-				null, null);
+		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE_LEFT, null, null, null, null, null, null);
+		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE_RIGHT, null, null, null, null, null, null);
 
 		authApi.deleteClusterRole("cluster-admin", null, null, null, null, null, null);
 
@@ -197,8 +195,8 @@ class DiscoveryClientFilterNamespaceIT {
 		assertThat(result).containsAnyOf("wiremock");
 
 		// ServiceInstance
-		WebClient serviceInstanceClient = builder
-				.baseUrl("http://localhost:80/discoveryclient-it/service/wiremock").build();
+		WebClient serviceInstanceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/service/wiremock")
+				.build();
 		List<KubernetesServiceInstance> serviceInstances = serviceInstanceClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<KubernetesServiceInstance>>() {
 				}).retryWhen(retrySpec()).block();
