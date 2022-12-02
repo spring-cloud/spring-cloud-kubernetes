@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -55,14 +56,16 @@ final class Fabric8EndpointsCatalogWatch
 			}
 
 		}
+		else if (!context.properties().namespaces().isEmpty()) {
+			List<Endpoints> inner = new ArrayList<>(context.properties().namespaces().size());
+			context.properties().namespaces().forEach(namespace -> inner.addAll(endpoints(context, namespace)));
+			endpoints = inner;
+		}
 		else {
 			String namespace = Fabric8Utils.getApplicationNamespace(context.kubernetesClient(), null, "catalog-watcher",
 					context.namespaceProvider());
 			LOG.debug(() -> "fabric8 catalog watcher will use namespace : " + namespace);
-			try (KubernetesClient client = context.kubernetesClient()) {
-				endpoints = client.endpoints().inNamespace(namespace).withLabels(context.properties().serviceLabels())
-						.list().getItems();
-			}
+			endpoints = endpoints(context, namespace);
 		}
 
 		/**
@@ -80,6 +83,13 @@ final class Fabric8EndpointsCatalogWatch
 				.map(EndpointAddress::getTargetRef);
 
 		return Fabric8CatalogWatchContext.state(references);
+	}
+
+	private List<Endpoints> endpoints(Fabric8CatalogWatchContext context, String namespace) {
+		try (KubernetesClient client = context.kubernetesClient()) {
+			return client.endpoints().inNamespace(namespace).withLabels(context.properties().serviceLabels()).list()
+					.getItems();
+		}
 	}
 
 }

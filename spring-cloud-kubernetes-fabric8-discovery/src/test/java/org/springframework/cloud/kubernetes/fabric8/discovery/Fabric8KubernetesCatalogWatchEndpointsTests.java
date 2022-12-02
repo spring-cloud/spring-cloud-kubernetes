@@ -180,7 +180,7 @@ class Fabric8KubernetesCatalogWatchEndpointsTests {
 	@Test
 	void testEndpointsInAllNamespacesWithServiceLabels() {
 
-		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(Map.of("color", "blue"));
+		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(Map.of("color", "blue"), Set.of());
 
 		createSingleEndpoints("namespaceA", Map.of(), "podA");
 		createSingleEndpoints("namespaceA", Map.of("color", "blue"), "podB");
@@ -218,7 +218,7 @@ class Fabric8KubernetesCatalogWatchEndpointsTests {
 	@Test
 	void testEndpointsInAllNamespacesWithoutServiceLabels() {
 
-		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(Map.of());
+		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(Map.of(), Set.of());
 
 		createSingleEndpoints("namespaceA", Map.of(), "podA");
 		createSingleEndpoints("namespaceA", Map.of("color", "blue"), "podB");
@@ -239,6 +239,171 @@ class Fabric8KubernetesCatalogWatchEndpointsTests {
 		assertThat(event.getValue()).isEqualTo(expectedOutput);
 	}
 
+	/**
+	 * <pre>
+	 *     - all-namespaces = true
+	 *     - namespaces = [namespaceB]
+	 *
+	 *     - we have 5 pods involved in this test
+	 * 	   - podA in namespaceA with no labels
+	 * 	   - podB in namespaceA with labels {color=blue}
+	 * 	   - podC in namespaceA with labels {color=red}
+	 * 	   - podD in namespaceB with labels {color=blue}
+	 * 	   - podE in namespaceB with no labels
+	 *
+	 *     We search with labels = {color = blue}
+	 *     Even if namespaces = [namespaceB], we still take podB and podD, because all-namespace=true
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testAllNamespacesTrueOtherBranchesNotCalled() {
+
+		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(Map.of("color", "blue"), Set.of("B"));
+
+		createSingleEndpoints("namespaceA", Map.of(), "podA");
+		createSingleEndpoints("namespaceA", Map.of("color", "blue"), "podB");
+		createSingleEndpoints("namespaceA", Map.of("color", "red"), "podC");
+		createSingleEndpoints("namespaceB", Map.of("color", "blue"), "podD");
+		createSingleEndpoints("namespaceB", Map.of(), "podE");
+
+		watch.catalogServicesWatch();
+
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
+
+		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
+		assertThat(event.getValue()).isInstanceOf(List.class);
+
+		List<EndpointNameAndNamespace> expectedOutput = List.of(new EndpointNameAndNamespace("podB", "namespaceA"),
+				new EndpointNameAndNamespace("podD", "namespaceB"));
+		assertThat(event.getValue()).isEqualTo(expectedOutput);
+	}
+
+	/**
+	 * <pre>
+	 *     - all-namespaces = false
+	 *     - namespaces = [namespaceA]
+	 *
+	 *     - we have 5 pods involved in this test
+	 * 	   - podA in namespaceA with no labels
+	 * 	   - podB in namespaceA with labels {color=blue}
+	 * 	   - podC in namespaceA with labels {color=red}
+	 * 	   - podD in namespaceB with labels {color=blue}
+	 * 	   - podE in namespaceB with no labels
+	 *
+	 *     We search with labels = {color = blue}
+	 *     Since namespaces = [namespaceA], we wil take podB, because all-namespace=false (podD is not part of the response)
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testAllNamespacesFalseNamespacesPresent() {
+
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesAndLabels(Set.of("namespaceA"),
+				Map.of("color", "blue"));
+
+		createSingleEndpoints("namespaceA", Map.of(), "podA");
+		createSingleEndpoints("namespaceA", Map.of("color", "blue"), "podB");
+		createSingleEndpoints("namespaceA", Map.of("color", "red"), "podC");
+		createSingleEndpoints("namespaceB", Map.of("color", "blue"), "podD");
+		createSingleEndpoints("namespaceB", Map.of(), "podE");
+
+		watch.catalogServicesWatch();
+
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
+
+		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
+		assertThat(event.getValue()).isInstanceOf(List.class);
+
+		List<EndpointNameAndNamespace> expectedOutput = List.of(new EndpointNameAndNamespace("podB", "namespaceA"));
+		assertThat(event.getValue()).isEqualTo(expectedOutput);
+	}
+
+	/**
+	 * <pre>
+	 *     - all-namespaces = false
+	 *     - namespaces = []
+	 *
+	 *     - we have 5 pods involved in this test
+	 * 	   - podA in namespaceA with no labels
+	 * 	   - podB in namespaceA with labels {color=blue}
+	 * 	   - podC in namespaceA with labels {color=red}
+	 * 	   - podD in namespaceB with labels {color=blue}
+	 * 	   - podE in namespaceB with no labels
+	 *
+	 *     We search with labels = {color = blue}
+	 *     Since namespaces = [], we wil take podB, because all-namespace=false (podD is not part of the response)
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testAllNamespacesFalseNamespacesNotPresent() {
+
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceAndLabels("namespaceA", Map.of("color", "blue"));
+
+		createSingleEndpoints("namespaceA", Map.of(), "podA");
+		createSingleEndpoints("namespaceA", Map.of("color", "blue"), "podB");
+		createSingleEndpoints("namespaceA", Map.of("color", "red"), "podC");
+		createSingleEndpoints("namespaceB", Map.of("color", "blue"), "podD");
+		createSingleEndpoints("namespaceB", Map.of(), "podE");
+
+		watch.catalogServicesWatch();
+
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
+
+		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
+		assertThat(event.getValue()).isInstanceOf(List.class);
+
+		List<EndpointNameAndNamespace> expectedOutput = List.of(new EndpointNameAndNamespace("podB", "namespaceA"));
+		assertThat(event.getValue()).isEqualTo(expectedOutput);
+	}
+
+	/**
+	 * <pre>
+	 *     - all-namespaces = false
+	 *     - namespaces = [namespaceA, namespaceB]
+	 *
+	 *     - we have 7 pods involved in this test
+	 * 	   - podA in namespaceA with no labels
+	 * 	   - podB in namespaceA with labels {color=blue}
+	 * 	   - podC in namespaceA with labels {color=red}
+	 * 	   - podD in namespaceB with labels {color=blue}
+	 * 	   - podE in namespaceB with no labels
+	 * 	   - podF in namespaceB with labels {color=blue}
+	 * 	   - podO in namespaceC with labels {color=blue}
+	 *
+	 *     We search with labels = {color = blue}
+	 *     Since namespaces = [namespaceA, namespaceB], we wil take podB, podD and podF,
+	 *     but will not take podO
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testTwoNamespacesOutOfThree() {
+
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesAndLabels(Set.of("namespaceA", "namespaceB"),
+				Map.of("color", "blue"));
+
+		createSingleEndpoints("namespaceA", Map.of(), "podA");
+		createSingleEndpoints("namespaceA", Map.of("color", "blue"), "podB");
+		createSingleEndpoints("namespaceA", Map.of("color", "red"), "podC");
+		createSingleEndpoints("namespaceB", Map.of("color", "blue"), "podD");
+		createSingleEndpoints("namespaceB", Map.of(), "podE");
+		createSingleEndpoints("namespaceB", Map.of("color", "blue"), "podF");
+		createSingleEndpoints("namespaceC", Map.of("color", "blue"), "podO");
+
+		watch.catalogServicesWatch();
+
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
+
+		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
+		assertThat(event.getValue()).isInstanceOf(List.class);
+
+		List<EndpointNameAndNamespace> expectedOutput = List.of(new EndpointNameAndNamespace("podB", "namespaceA"),
+				new EndpointNameAndNamespace("podD", "namespaceB"), new EndpointNameAndNamespace("podF", "namespaceB"));
+		assertThat(event.getValue()).isEqualTo(expectedOutput);
+	}
+
 	private KubernetesCatalogWatch createWatcherInSpecificNamespaceAndLabels(String namespace,
 			Map<String, String> labels) {
 
@@ -254,10 +419,24 @@ class Fabric8KubernetesCatalogWatchEndpointsTests {
 
 	}
 
-	private KubernetesCatalogWatch createWatcherInAllNamespacesAndLabels(Map<String, String> labels) {
+	private KubernetesCatalogWatch createWatcherInSpecificNamespacesAndLabels(Set<String> namespaces,
+			Map<String, String> labels) {
+
+		// all-namespaces = false
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, namespaces, true, 60,
+				false, "", Set.of(), labels, "", null, 0, false);
+		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
+		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
+		watch.postConstruct();
+		return watch;
+
+	}
+
+	private KubernetesCatalogWatch createWatcherInAllNamespacesAndLabels(Map<String, String> labels,
+			Set<String> namespaces) {
 
 		// all-namespaces = true
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, namespaces, true, 60,
 				false, "", Set.of(), labels, "", null, 0, false);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
 		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
