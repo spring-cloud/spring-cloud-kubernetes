@@ -75,17 +75,17 @@ class DiscoveryClientFilterNamespaceIT {
 
 	private static final String SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME = "spring-cloud-kubernetes-discoveryclient-it";
 
-	private static final String MOCK_DEPLOYMENT_NAME = "servicea-wiremock-deployment";
+	private static final String MOCK_DEPLOYMENT_NAME = "wiremock-deployment";
 
-	private static final String MOCK_CLIENT_APP_NAME = "servicea-wiremock";
+	private static final String MOCK_CLIENT_APP_NAME = "wiremock";
 
 	private static final String MOCK_IMAGE_NAME = "wiremock";
 
 	private static final String NAMESPACE = "default";
 
-	private static final String NAMESPACE_1 = "namespace1";
+	private static final String NAMESPACE_LEFT = "left-namespace";
 
-	private static final String NAMESPACE_2 = "namespace2";
+	private static final String NAMESPACE_RIGHT = "right-namespace";
 
 	private static CoreV1Api api;
 
@@ -99,7 +99,6 @@ class DiscoveryClientFilterNamespaceIT {
 
 	private static final K3sContainer K3S = Commons.container();
 
-	@SuppressWarnings("checkstyle:WhitespaceAround")
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
@@ -152,8 +151,8 @@ class DiscoveryClientFilterNamespaceIT {
 
 	@Test
 	void testDiscoveryClient() throws Exception {
-		deploySampleAppInNamespace(NAMESPACE_1);
-		deploySampleAppInNamespace(NAMESPACE_2);
+		deploySampleAppInNamespace(NAMESPACE_LEFT);
+		deploySampleAppInNamespace(NAMESPACE_RIGHT);
 		deployDiscoveryIt();
 
 		testLoadBalancer();
@@ -168,18 +167,20 @@ class DiscoveryClientFilterNamespaceIT {
 				null);
 		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
 
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE_1, null, null, null,
+		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE_LEFT, null, null, null,
 				"metadata.name=" + MOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE_2, null, null, null,
+		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE_RIGHT, null, null, null,
 				"metadata.name=" + MOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
 
-		api.deleteNamespacedService(MOCK_CLIENT_APP_NAME, NAMESPACE_1, null, null, null, null, null, null);
-		api.deleteNamespacedService(MOCK_CLIENT_APP_NAME, NAMESPACE_2, null, null, null, null, null, null);
+		api.deleteNamespacedService(MOCK_CLIENT_APP_NAME, NAMESPACE_LEFT, null, null, null, null, null, null);
+		api.deleteNamespacedService(MOCK_CLIENT_APP_NAME, NAMESPACE_RIGHT, null, null, null, null, null, null);
 
-		networkingApi.deleteNamespacedIngress("servicea-wiremock-ingress", NAMESPACE_1, null, null, null, null, null,
+		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE_LEFT, null, null, null, null, null,
 				null);
-		networkingApi.deleteNamespacedIngress("servicea-wiremock-ingress", NAMESPACE_2, null, null, null, null, null,
-				null);
+		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE_RIGHT, null, null, null, null,
+				null, null);
+
+		authApi.deleteClusterRole("cluster-admin", null, null, null, null, null, null);
 
 	}
 
@@ -193,17 +194,18 @@ class DiscoveryClientFilterNamespaceIT {
 		String[] result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String[].class)
 				.retryWhen(retrySpec()).block();
 		LOG.info("Services: " + Arrays.toString(result));
-		assertThat(result).containsAnyOf("servicea-wiremock");
+		assertThat(result).containsAnyOf("wiremock");
 
 		// ServiceInstance
 		WebClient serviceInstanceClient = builder
-				.baseUrl("http://localhost:80/discoveryclient-it/service/servicea-wiremock").build();
+				.baseUrl("http://localhost:80/discoveryclient-it/service/wiremock").build();
 		List<KubernetesServiceInstance> serviceInstances = serviceInstanceClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<KubernetesServiceInstance>>() {
 				}).retryWhen(retrySpec()).block();
 
+		assertThat(serviceInstances).isNotNull();
 		assertThat(serviceInstances.size()).isEqualTo(1);
-		assertThat(serviceInstances.get(0).getNamespace()).isEqualTo(NAMESPACE_1);
+		assertThat(serviceInstances.get(0).getNamespace()).isEqualTo(NAMESPACE_LEFT);
 
 	}
 
@@ -234,12 +236,12 @@ class DiscoveryClientFilterNamespaceIT {
 	}
 
 	private static V1Deployment getDiscoveryItDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils
+		V1Deployment deployment = (V1Deployment) K8SUtils
 				.readYamlFromClasspath("client/spring-cloud-kubernetes-discoveryclient-it-deployment.yaml");
 
-		// add namespaces filter property for namespace1
-		var env = new V1EnvVarBuilder().withName("JAVA_OPTS")
-				.withValue("-Dspring.cloud.kubernetes.discovery.namespaces[0]=" + NAMESPACE_1).build();
+		// add namespaces filter property for left namespace
+		var env = new V1EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
+				.withValue(NAMESPACE_LEFT).build();
 		var container = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
 		container.setEnv(List.of(env));
 
@@ -264,12 +266,12 @@ class DiscoveryClientFilterNamespaceIT {
 
 	private static void deploySampleAppInNamespace(final String namespace) throws Exception {
 
-		V1Namespace namespace1 = new V1Namespace();
+		V1Namespace v1Namespace = new V1Namespace();
 		V1ObjectMeta meta = new V1ObjectMeta();
 		meta.setName(namespace);
-		namespace1.setMetadata(meta);
+		v1Namespace.setMetadata(meta);
 
-		api.createNamespace(namespace1, null, null, null);
+		api.createNamespace(v1Namespace, null, null, null);
 
 		V1Deployment deployment = getMockServiceDeployment();
 		deployment.getMetadata().setNamespace(namespace);
@@ -287,14 +289,14 @@ class DiscoveryClientFilterNamespaceIT {
 	}
 
 	private static V1Deployment getDiscoveryServerDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) k8SUtils
+		V1Deployment deployment = (V1Deployment) K8SUtils
 				.readYamlFromClasspath("server/spring-cloud-kubernetes-discoveryserver-deployment.yaml");
 		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
 				+ getPomVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
 		// setup all-namespaces property
-		V1EnvVar env = new V1EnvVarBuilder().withName("JAVA_OPTS")
-				.withValue("-Dspring.cloud.kubernetes.discovery.all-namespaces=true").build();
+		V1EnvVar env = new V1EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES")
+				.withValue("TRUE").build();
 		V1Container container = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
 		container.setEnv(List.of(env));
 
@@ -327,7 +329,7 @@ class DiscoveryClientFilterNamespaceIT {
 	}
 
 	private static V1Deployment getMockServiceDeployment() throws Exception {
-		return (V1Deployment) k8SUtils.readYamlFromClasspath("wiremock/discovery-wiremock-deployment.yaml");
+		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock/discovery-wiremock-deployment.yaml");
 	}
 
 	private static V1Service getMockServiceService() throws Exception {
