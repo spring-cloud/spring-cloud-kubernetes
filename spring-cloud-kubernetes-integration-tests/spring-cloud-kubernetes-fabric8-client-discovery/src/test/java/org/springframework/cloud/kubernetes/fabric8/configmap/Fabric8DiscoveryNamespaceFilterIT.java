@@ -55,9 +55,9 @@ class Fabric8DiscoveryNamespaceFilterIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static final String NAMESPACE_1 = "namespace1";
+	private static final String NAMESPACE_LEFT = "namespace-left";
 
-	private static final String NAMESPACE_2 = "namespace2";
+	private static final String NAMESPACE_RIGHT = "namespace-right";
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-discovery";
 
@@ -107,16 +107,16 @@ class Fabric8DiscoveryNamespaceFilterIT {
 				.retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(services.size(), 1);
-		Assertions.assertTrue(services.contains("servicea-wiremock"));
+		Assertions.assertTrue(services.contains("wiremock"));
 
-		WebClient clientEndpoints = builder().baseUrl("localhost/endpoints/servicea-wiremock").build();
+		WebClient clientEndpoints = builder().baseUrl("localhost/endpoints/wiremock").build();
 
 		List<Endpoints> endpoints = clientEndpoints.method(HttpMethod.GET).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<Endpoints>>() {
 				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(endpoints.size(), 1);
-		Assertions.assertEquals(endpoints.get(0).getMetadata().getNamespace(), NAMESPACE_1);
+		Assertions.assertEquals(endpoints.get(0).getMetadata().getNamespace(), NAMESPACE_LEFT);
 
 	}
 
@@ -128,11 +128,15 @@ class Fabric8DiscoveryNamespaceFilterIT {
 			client.services().inNamespace(NAMESPACE).withName(serviceName).delete();
 			client.network().v1().ingresses().inNamespace(NAMESPACE).withName(ingressName).delete();
 
-			client.services().inNamespace(NAMESPACE_1).withName(mockServiceName).delete();
-			client.apps().deployments().inNamespace(NAMESPACE_1).withName(mockDeploymentName).delete();
+			client.services().inNamespace(NAMESPACE_LEFT).withName(mockServiceName).delete();
+			client.apps().deployments().inNamespace(NAMESPACE_LEFT).withName(mockDeploymentName).delete();
 
-			client.services().inNamespace(NAMESPACE_2).withName(mockServiceName).delete();
-			client.apps().deployments().inNamespace(NAMESPACE_2).withName(mockDeploymentName).delete();
+			client.services().inNamespace(NAMESPACE_RIGHT).withName(mockServiceName).delete();
+			client.apps().deployments().inNamespace(NAMESPACE_RIGHT).withName(mockDeploymentName).delete();
+
+			client.rbac().clusterRoleBindings().withName("admin-default").delete();
+			client.namespaces().withName(NAMESPACE_LEFT).delete();
+			client.namespaces().withName(NAMESPACE_RIGHT).delete();
 
 		}
 		catch (Exception e) {
@@ -151,7 +155,7 @@ class Fabric8DiscoveryNamespaceFilterIT {
 			String currentImage = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(currentImage + ":" + version);
 			List<EnvVar> env = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv();
-			env.add(new EnvVar("JAVA_OPTS", "-Dspring.cloud.kubernetes.discovery.namespaces[0]=" + NAMESPACE_1, null));
+			env.add(new EnvVar("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0", NAMESPACE_LEFT, null));
 
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(env);
 
@@ -181,8 +185,8 @@ class Fabric8DiscoveryNamespaceFilterIT {
 	private static void deployMockManifests() {
 
 		try {
-			deployInMockInNamespace(NAMESPACE_1);
-			deployInMockInNamespace(NAMESPACE_2);
+			deployInMockInNamespace(NAMESPACE_LEFT);
+			deployInMockInNamespace(NAMESPACE_RIGHT);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -211,7 +215,7 @@ class Fabric8DiscoveryNamespaceFilterIT {
 		mockServiceName = service.getMetadata().getName();
 		client.services().inNamespace(namespace).create(service);
 
-		Fabric8Utils.waitForDeployment(client, "servicea-wiremock-deployment", namespace, 2, 600);
+		Fabric8Utils.waitForDeployment(client, "wiremock-deployment", namespace, 2, 600);
 	}
 
 	private static InputStream getService() {
@@ -231,11 +235,11 @@ class Fabric8DiscoveryNamespaceFilterIT {
 	}
 
 	private static InputStream getMockService() {
-		return Fabric8Utils.inputStream("wiremock/fabric8-discovery-wiremock-service.yaml");
+		return Fabric8Utils.inputStream("wiremock/wiremock-service.yaml");
 	}
 
 	private static InputStream getMockDeployment() {
-		return Fabric8Utils.inputStream("wiremock/fabric8-discovery-wiremock-deployment.yaml");
+		return Fabric8Utils.inputStream("wiremock/wiremock-deployment.yaml");
 	}
 
 	private WebClient.Builder builder() {

@@ -83,9 +83,9 @@ class DiscoveryClientFilterNamespaceIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static final String NAMESPACE_LEFT = "left-namespace";
+	private static final String NAMESPACE_LEFT = "left-namespace-k8s-client";
 
-	private static final String NAMESPACE_RIGHT = "right-namespace";
+	private static final String NAMESPACE_RIGHT = "right-namespace-k8s-client";
 
 	private static CoreV1Api api;
 
@@ -178,7 +178,10 @@ class DiscoveryClientFilterNamespaceIT {
 		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE_LEFT, null, null, null, null, null, null);
 		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE_RIGHT, null, null, null, null, null, null);
 
-		authApi.deleteClusterRole("cluster-admin", null, null, null, null, null, null);
+		authApi.deleteClusterRoleBinding("admin-default-k8s-client", null, null, null, null, null, null);
+
+		api.deleteNamespace(NAMESPACE_LEFT, null, null, null, null, null, null);
+		api.deleteNamespace(NAMESPACE_RIGHT, null, null, null, null, null, null);
 
 	}
 
