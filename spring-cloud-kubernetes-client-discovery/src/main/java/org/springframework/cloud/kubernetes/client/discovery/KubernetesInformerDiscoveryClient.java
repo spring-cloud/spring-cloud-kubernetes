@@ -181,7 +181,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		if (service.getMetadata() != null && service.getMetadata().getAnnotations() != null) {
 			securedOpt = Optional.ofNullable(service.getMetadata().getAnnotations().get(SECURED_KEY));
 		}
-		if (securedOpt.isEmpty() && service.getMetadata() != null && service.getMetadata().getLabels() != null) {
+		if (!securedOpt.isPresent() && service.getMetadata() != null && service.getMetadata().getLabels() != null) {
 			securedOpt = Optional.ofNullable(service.getMetadata().getLabels().get(SECURED_KEY));
 		}
 		return Boolean.parseBoolean(securedOpt.orElse("false"));
