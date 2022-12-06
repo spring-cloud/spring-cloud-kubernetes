@@ -95,8 +95,9 @@ class KubernetesServiceListSupplierTests {
 		ServiceList serviceList = new ServiceList();
 		serviceList.getItems().add(buildService("test-service", 8080));
 		when(this.multiDeletable.list()).thenReturn(serviceList);
-		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, true, Set.of(),
+				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+				false);
 		KubernetesServicesListSupplier supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
 				discoveryProperties);
 		List<ServiceInstance> instances = supplier.get().blockFirst();
