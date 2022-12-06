@@ -60,6 +60,10 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 	private static final Log log = LogFactory.getLog(KubernetesInformerDiscoveryClient.class);
 
+	private static final String PRIMARY_PORT_NAME_LABEL_KEY = "primary-port-name";
+
+	private static final String SECURED_KEY = "secured";
+
 	private final SharedInformerFactory sharedInformerFactory;
 
 	private final Lister<V1Service> serviceLister;
@@ -146,6 +150,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		}
 		final String primaryPortName = discoveredPrimaryPortName.orElse(this.properties.primaryPortName());
 
+		final boolean secured = isSecured(service);
+
 		return ep.getSubsets().stream().filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
 				.flatMap(subset -> {
 					Map<String, String> metadata = new HashMap<>(svcMetadata);
@@ -168,9 +174,20 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 					return addresses.stream()
 							.map(addr -> new DefaultKubernetesServiceInstance(
 									addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
-									addr.getIp(), port, metadata, false, service.getMetadata().getNamespace(),
+									addr.getIp(), port, metadata, secured, service.getMetadata().getNamespace(),
 									service.getMetadata().getClusterName()));
 				});
+	}
+
+	private static boolean isSecured(V1Service service) {
+		Optional<String> securedOpt = Optional.empty();
+		if (service.getMetadata() != null && service.getMetadata().getAnnotations() != null) {
+			securedOpt = Optional.ofNullable(service.getMetadata().getAnnotations().get(SECURED_KEY));
+		}
+		if (!securedOpt.isPresent() && service.getMetadata() != null && service.getMetadata().getLabels() != null) {
+			securedOpt = Optional.ofNullable(service.getMetadata().getLabels().get(SECURED_KEY));
+		}
+		return Boolean.parseBoolean(securedOpt.orElse("false"));
 	}
 
 	private int findEndpointPort(List<V1EndpointPort> endpointPorts, String primaryPortName, String serviceId) {
