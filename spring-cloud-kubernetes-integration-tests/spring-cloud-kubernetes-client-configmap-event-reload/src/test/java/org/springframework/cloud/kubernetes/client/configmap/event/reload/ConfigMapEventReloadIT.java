@@ -269,16 +269,16 @@ class ConfigMapEventReloadIT {
 
 			V1ConfigMap leftConfigMap = leftConfigMap();
 			leftConfigMapName = leftConfigMap.getMetadata().getName();
-			api.createNamespacedConfigMap("left", leftConfigMap, null, null, null);
+			api.createNamespacedConfigMap("left", leftConfigMap, null, null, null, null);
 
 			V1ConfigMap rightConfigMap = rightConfigMap();
 			rightConfigMapName = rightConfigMap.getMetadata().getName();
-			api.createNamespacedConfigMap("right", rightConfigMap, null, null, null);
+			api.createNamespacedConfigMap("right", rightConfigMap, null, null, null, null);
 
 			if ("three".equals(deploymentRoot)) {
 				V1ConfigMap rightWithLabelConfigMap = rightWithLabelConfigMap();
 				rightWithLabelConfigMapName = rightWithLabelConfigMap.getMetadata().getName();
-				api.createNamespacedConfigMap("right", rightWithLabelConfigMap, null, null, null);
+				api.createNamespacedConfigMap("right", rightWithLabelConfigMap, null, null, null, null);
 			}
 
 			V1Deployment deployment = getDeployment(deploymentRoot);
@@ -286,15 +286,15 @@ class ConfigMapEventReloadIT {
 			String currentImage = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(currentImage + ":" + version);
 			deploymentName = deployment.getMetadata().getName();
-			appsApi.createNamespacedDeployment(NAMESPACE, deployment, null, null, null);
+			appsApi.createNamespacedDeployment(NAMESPACE, deployment, null, null, null, null);
 
 			V1Service service = getService();
 			serviceName = service.getMetadata().getName();
-			api.createNamespacedService(NAMESPACE, service, null, null, null);
+			api.createNamespacedService(NAMESPACE, service, null, null, null, null);
 
 			V1Ingress ingress = getIngress();
 			ingressName = ingress.getMetadata().getName();
-			networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+			networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
 
 			k8SUtils.waitForIngress(ingressName, NAMESPACE);
 			k8SUtils.waitForDeployment("spring-cloud-kubernetes-client-configmap-deployment-event-reload", NAMESPACE);
@@ -362,7 +362,7 @@ class ConfigMapEventReloadIT {
 
 	@SuppressWarnings({ "unchecked", "raw" })
 	private static void replaceConfigMap(V1ConfigMap configMap, String name) throws ApiException {
-		api.replaceNamespacedConfigMap(name, "right", configMap, null, null, null);
+		api.replaceNamespacedConfigMap(name, "right", configMap, null, null, null, null);
 	}
 
 }

@@ -141,7 +141,7 @@ class ConfigMapAndSecretIT {
 		Map<String, String> data = configMap.getData();
 		data.replace("application.yaml", data.get("application.yaml").replace("from-config-map", "from-unit-test"));
 		configMap.data(data);
-		api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null);
+		api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null, null);
 		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
 				.until(() -> propertyClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block()
 						.equals("from-unit-test"));
@@ -149,30 +149,30 @@ class ConfigMapAndSecretIT {
 		Map<String, byte[]> secretData = v1Secret.getData();
 		secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
 		v1Secret.setData(secretData);
-		api.replaceNamespacedSecret(APP_NAME, NAMESPACE, v1Secret, null, null, null);
+		api.replaceNamespacedSecret(APP_NAME, NAMESPACE, v1Secret, null, null, null, null);
 		Awaitility.await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2)).until(() -> secretClient
 				.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("p455w1rd"));
 	}
 
 	private static void deployConfigK8sClientIt() throws Exception {
 		k8SUtils.waitForDeploymentToBeDeleted(K8S_CONFIG_CLIENT_IT_NAME, NAMESPACE);
-		api.createNamespacedSecret(NAMESPACE, getConfigK8sClientItCSecret(), null, null, null);
-		api.createNamespacedConfigMap(NAMESPACE, getConfigK8sClientItConfigMap(), null, null, null);
-		appsApi.createNamespacedDeployment(NAMESPACE, getConfigK8sClientItDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getConfigK8sClientItService(), null, null, null);
+		api.createNamespacedSecret(NAMESPACE, getConfigK8sClientItCSecret(), null, null, null, null);
+		api.createNamespacedConfigMap(NAMESPACE, getConfigK8sClientItConfigMap(), null, null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getConfigK8sClientItDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getConfigK8sClientItService(), null, null, null, null);
 
 		V1Ingress ingress = getConfigK8sClientItIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
 		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
 	private static void deployConfigK8sClientPollingIt() throws Exception {
 		k8SUtils.waitForDeploymentToBeDeleted(K8S_CONFIG_CLIENT_IT_NAME, NAMESPACE);
-		api.createNamespacedSecret(NAMESPACE, getConfigK8sClientItCSecret(), null, null, null);
-		api.createNamespacedConfigMap(NAMESPACE, getConfigK8sClientItConfigMap(), null, null, null);
-		appsApi.createNamespacedDeployment(NAMESPACE, getConfigK8sClientItPollingDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getConfigK8sClientItService(), null, null, null);
-		networkingApi.createNamespacedIngress(NAMESPACE, getConfigK8sClientItIngress(), null, null, null);
+		api.createNamespacedSecret(NAMESPACE, getConfigK8sClientItCSecret(), null, null, null, null);
+		api.createNamespacedConfigMap(NAMESPACE, getConfigK8sClientItConfigMap(), null, null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getConfigK8sClientItPollingDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getConfigK8sClientItService(), null, null, null, null);
+		networkingApi.createNamespacedIngress(NAMESPACE, getConfigK8sClientItIngress(), null, null, null, null);
 	}
 
 	private static V1Deployment getConfigK8sClientItDeployment() throws Exception {

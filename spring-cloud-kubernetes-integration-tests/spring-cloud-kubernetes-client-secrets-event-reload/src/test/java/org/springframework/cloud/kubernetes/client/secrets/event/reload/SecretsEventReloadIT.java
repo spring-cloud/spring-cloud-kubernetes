@@ -120,7 +120,7 @@ class SecretsEventReloadIT {
 		Map<String, byte[]> secretData = v1Secret.getData();
 		secretData.replace("application.properties", "from.properties.key: after-change".getBytes());
 		v1Secret.setData(secretData);
-		api.replaceNamespacedSecret("event-reload", NAMESPACE, v1Secret, null, null, null);
+		api.replaceNamespacedSecret("event-reload", NAMESPACE, v1Secret, null, null, null, null);
 
 		Awaitility.await().timeout(Duration.ofSeconds(120)).pollInterval(Duration.ofSeconds(2))
 				.until(() -> secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
@@ -129,12 +129,12 @@ class SecretsEventReloadIT {
 
 	private static void deployConfigK8sClientIt() throws Exception {
 		k8SUtils.waitForDeploymentToBeDeleted(SPRING_CLOUD_CLIENT_CONFIG_IT_DEPLOYMENT_NAME, NAMESPACE);
-		api.createNamespacedSecret(NAMESPACE, getConfigK8sClientItCSecret(), null, null, null);
-		appsApi.createNamespacedDeployment(NAMESPACE, getConfigK8sClientItDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getConfigK8sClientItService(), null, null, null);
+		api.createNamespacedSecret(NAMESPACE, getConfigK8sClientItCSecret(), null, null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getConfigK8sClientItDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getConfigK8sClientItService(), null, null, null, null);
 
 		V1Ingress ingress = getConfigK8sClientItIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
 		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 

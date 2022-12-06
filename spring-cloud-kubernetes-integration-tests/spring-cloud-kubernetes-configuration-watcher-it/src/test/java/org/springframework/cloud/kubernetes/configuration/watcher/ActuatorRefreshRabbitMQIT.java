@@ -120,7 +120,7 @@ class ActuatorRefreshRabbitMQIT {
 		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName(CONFIG_WATCHER_IT_IMAGE)
 				.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "hello world")
 				.build();
-		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
+		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null, null);
 
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/it").build();
@@ -170,27 +170,28 @@ class ActuatorRefreshRabbitMQIT {
 	}
 
 	private void deployTestApp() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getItDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getItAppService(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getItDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getItAppService(), null, null, null, null);
 
 		V1Ingress ingress = getItIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
 		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
 	private void deployConfigWatcher() throws Exception {
-		api.createNamespacedConfigMap(NAMESPACE, getConfigWatcherConfigMap(), null, null, null);
-		appsApi.createNamespacedDeployment(NAMESPACE, getConfigWatcherDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getConfigWatcherService(), null, null, null);
+		api.createNamespacedConfigMap(NAMESPACE, getConfigWatcherConfigMap(), null, null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getConfigWatcherDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getConfigWatcherService(), null, null, null, null);
 	}
 
 	private void deployRabbitMQ() throws Exception {
-		api.createNamespacedService(NAMESPACE, getRabbitMQService(), null, null, null);
+		api.createNamespacedService(NAMESPACE, getRabbitMQService(), null, null, null, null);
 		String[] image = getRabbitMQReplicationController().getSpec().getTemplate().getSpec().getContainers().get(0)
 				.getImage().split(":");
 		Commons.pullImage(image[0], image[1], K3S);
 		Commons.loadImage(image[0], image[1], "rabbitmq", K3S);
-		api.createNamespacedReplicationController(NAMESPACE, getRabbitMQReplicationController(), null, null, null);
+		api.createNamespacedReplicationController(NAMESPACE, getRabbitMQReplicationController(), null, null, null,
+				null);
 	}
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {

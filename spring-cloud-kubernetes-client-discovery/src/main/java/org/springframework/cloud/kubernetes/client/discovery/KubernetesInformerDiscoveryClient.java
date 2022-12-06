@@ -30,8 +30,8 @@ import io.kubernetes.client.extended.wait.Wait;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
-import io.kubernetes.client.openapi.models.V1EndpointPort;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.logging.Log;
@@ -48,7 +48,6 @@ import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
 
 /**
@@ -155,7 +154,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		return ep.getSubsets().stream().filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
 				.flatMap(subset -> {
 					Map<String, String> metadata = new HashMap<>(svcMetadata);
-					List<V1EndpointPort> endpointPorts = subset.getPorts();
+					List<CoreV1EndpointPort> endpointPorts = subset.getPorts();
 					if (this.properties.metadata() != null && this.properties.metadata().addPorts()) {
 						endpointPorts.forEach(
 								p -> metadata.put(StringUtils.hasText(p.getName()) ? p.getName() : UNSET_PORT_NAME,
@@ -190,13 +189,13 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		return Boolean.parseBoolean(securedOpt.orElse("false"));
 	}
 
-	private int findEndpointPort(List<V1EndpointPort> endpointPorts, String primaryPortName, String serviceId) {
+	private int findEndpointPort(List<CoreV1EndpointPort> endpointPorts, String primaryPortName, String serviceId) {
 		if (endpointPorts.size() == 1) {
 			return endpointPorts.get(0).getPort();
 		}
 		else {
 			Map<String, Integer> ports = endpointPorts.stream().filter(p -> StringUtils.hasText(p.getName()))
-					.collect(Collectors.toMap(V1EndpointPort::getName, V1EndpointPort::getPort));
+					.collect(Collectors.toMap(CoreV1EndpointPort::getName, CoreV1EndpointPort::getPort));
 			// This oneliner is looking for a port with a name equal to the primary port
 			// name specified in the service label
 			// or in spring.cloud.kubernetes.discovery.primary-port-name, equal to https,

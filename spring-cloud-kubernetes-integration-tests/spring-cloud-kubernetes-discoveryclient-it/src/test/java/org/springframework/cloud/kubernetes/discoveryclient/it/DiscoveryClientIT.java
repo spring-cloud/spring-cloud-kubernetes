@@ -171,11 +171,11 @@ class DiscoveryClientIT {
 	}
 
 	private void deployDiscoveryIt() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getDiscoveryItDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getDiscoveryService(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getDiscoveryItDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getDiscoveryService(), null, null, null, null);
 
 		V1Ingress ingress = getDiscoveryItIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
 		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
@@ -189,11 +189,11 @@ class DiscoveryClientIT {
 	}
 
 	private static void deployDiscoveryServer() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getDiscoveryServerDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getDiscoveryServerService(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getDiscoveryServerDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getDiscoveryServerService(), null, null, null, null);
 
 		V1Ingress ingress = getDiscoveryServerIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
 		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 

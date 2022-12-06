@@ -23,8 +23,8 @@ import java.util.Set;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Cache;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
-import io.kubernetes.client.openapi.models.V1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -72,17 +72,17 @@ public class KubernetesInformerDiscoveryClientTests {
 
 	private static final V1Endpoints testEndpoints1 = new V1Endpoints()
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(8080))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
 					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 
 	private static final V1Endpoints testEndpoints2 = new V1Endpoints()
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace2"))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(8080))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
 					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 
 	private static final V1Endpoints testEndpointWithoutReadyAddresses = new V1Endpoints()
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(8080))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
 					.addNotReadyAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 
 	private static final V1Endpoints testEndpointWithoutPorts = new V1Endpoints()
@@ -91,30 +91,30 @@ public class KubernetesInformerDiscoveryClientTests {
 
 	private static final V1Endpoints testEndpointWithUnsetPortName = new V1Endpoints()
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(80))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(80))
 					.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
 
 	private static final V1Endpoints testEndpointWithMultiplePorts = new V1Endpoints()
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().name("http").port(80))
-					.addPortsItem(new V1EndpointPort().name("https").port(443))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().name("http").port(80))
+					.addPortsItem(new CoreV1EndpointPort().name("https").port(443))
 					.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
 
 	private static final V1Endpoints testEndpointWithMultiplePortsWithoutHttps = new V1Endpoints()
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().name("http").port(80))
-					.addPortsItem(new V1EndpointPort().name("tcp").port(443))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().name("http").port(80))
+					.addPortsItem(new CoreV1EndpointPort().name("tcp").port(443))
 					.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
 
 	private static final V1Endpoints testEndpointWithMultiplePortsWithoutSupportedPortNames = new V1Endpoints()
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().name("tcp1").port(80))
-					.addPortsItem(new V1EndpointPort().name("tcp2").port(443))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().name("tcp1").port(80))
+					.addPortsItem(new CoreV1EndpointPort().name("tcp2").port(443))
 					.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
 
 	private static final V1Endpoints testEndpoints3 = new V1Endpoints()
 			.metadata(new V1ObjectMeta().name("test-svc-3").namespace("namespace1"))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new V1EndpointPort().port(8080))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
 					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 
 	@Test
