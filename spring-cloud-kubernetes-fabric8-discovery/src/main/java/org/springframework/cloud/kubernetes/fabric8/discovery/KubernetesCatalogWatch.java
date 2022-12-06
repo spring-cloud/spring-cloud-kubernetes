@@ -95,9 +95,7 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 						.flatMap(x -> x.filter(y -> y.equals(ENDPOINT_SLICE)).findFirst()).isPresent();
 
 				if (!found) {
-					LOG.warn(() -> "use-endpoint-slices is enabled, but EndpointSlice is not supported on the cluster."
-							+ "Will default to Endpoints");
-					stateGenerator = new Fabric8EndpointsCatalogWatch();
+					throw new IllegalArgumentException("EndpointSlices are not supported on the cluster");
 				}
 				else {
 					stateGenerator = new Fabric8EndpointSliceV1CatalogWatch();
