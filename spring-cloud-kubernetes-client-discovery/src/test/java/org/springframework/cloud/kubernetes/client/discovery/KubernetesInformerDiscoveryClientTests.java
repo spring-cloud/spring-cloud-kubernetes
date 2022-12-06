@@ -192,7 +192,7 @@ public class KubernetesInformerDiscoveryClientTests {
 		Lister<V1Service> serviceLister = setupServiceLister(testServiceSecuredAnnotation1);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
-				Set.of(), true, 60, false, null, Set.of(), new HashMap<>(), null, null, 0);
+				Set.of(), true, 60, false, null, Set.of(), new HashMap<>(), null, null, 0, false);
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 		assertThat(discoveryClient.getServices().toArray())
@@ -207,7 +207,7 @@ public class KubernetesInformerDiscoveryClientTests {
 		Lister<V1Service> serviceLister = setupServiceLister(testServiceSecuredLabel1);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
-				Set.of(), true, 60, false, null, Set.of(), new HashMap<>(), null, null, 0);
+				Set.of(), true, 60, false, null, Set.of(), new HashMap<>(), null, null, 0, false);
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 				sharedInformerFactory, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
