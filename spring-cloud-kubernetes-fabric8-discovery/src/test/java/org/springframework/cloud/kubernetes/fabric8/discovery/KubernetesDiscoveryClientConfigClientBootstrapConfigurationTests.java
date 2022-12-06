@@ -18,8 +18,9 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.Collections;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.test.util.TestPropertyValues;
@@ -34,7 +35,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import static junit.framework.TestCase.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
@@ -43,11 +43,11 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Zhanwei Wang
  */
-public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
+class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 
 	private AnnotationConfigApplicationContext context;
 
-	@After
+	@AfterEach
 	public void close() {
 		if (this.context != null) {
 			if (this.context.getParent() != null) {
@@ -58,15 +58,15 @@ public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 	}
 
 	@Test
-	public void onWhenRequested() throws Exception {
+	void onWhenRequested() {
 		setup("server.port=7000", "spring.cloud.config.discovery.enabled=true",
 				"spring.cloud.kubernetes.discovery.enabled:true", "spring.application.name:test",
 				"spring.cloud.config.discovery.service-id:configserver");
-		assertEquals(1, this.context.getParent().getBeanNamesForType(DiscoveryClient.class).length);
+		Assertions.assertEquals(1, this.context.getParent().getBeanNamesForType(DiscoveryClient.class).length);
 		DiscoveryClient client = this.context.getParent().getBean(DiscoveryClient.class);
 		verify(client, atLeast(2)).getInstances("configserver");
 		ConfigClientProperties locator = this.context.getBean(ConfigClientProperties.class);
-		assertEquals("http://fake:8888/", locator.getUri()[0]);
+		Assertions.assertEquals("http://fake:8888/", locator.getUri()[0]);
 	}
 
 	private void setup(String... env) {

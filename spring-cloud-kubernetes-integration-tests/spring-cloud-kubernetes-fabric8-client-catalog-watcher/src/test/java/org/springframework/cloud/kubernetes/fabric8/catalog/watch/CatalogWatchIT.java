@@ -27,11 +27,11 @@ import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -58,8 +58,7 @@ class CatalogWatchIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static final K3sContainer K3S = Commons.container()
-			.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger(CatalogWatchIT.class)));
+	private static final K3sContainer K3S = Commons.container();
 
 	private static KubernetesClient client;
 
@@ -83,9 +82,16 @@ class CatalogWatchIT {
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
 
 		Fabric8Utils.setUp(client, "default");
+	}
 
+	@BeforeEach
+	void beforeEach() throws Exception {
 		deployBusyboxManifests();
-		deployApp();
+	}
+
+	@AfterEach
+	void afterEach() {
+		deleteApp();
 	}
 
 	/**
@@ -96,9 +102,40 @@ class CatalogWatchIT {
 	 *     - assert that we receive only spring-cloud-kubernetes-fabric8-client-catalog-watcher pod
 	 * </pre>
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
-	void testCatalogWatch() {
+	void testCatalogWatchWithEndpoints() throws Exception {
+		deployApp(false);
+		assertLogStatement("stateGenerator is of type: Fabric8EndpointsCatalogWatch");
+		test();
+	}
+
+	@Test
+	void testCatalogWatchWithEndpointSlices() throws Exception {
+		deployApp(true);
+		assertLogStatement("stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch");
+		test();
+	}
+
+	/**
+	 * we log in debug mode the type of the StateGenerator we use, be that Endpoints or
+	 * EndpointSlices. Here we make sure that in the test we actually use the correct
+	 * type.
+	 */
+	private void assertLogStatement(String log) throws Exception {
+		String appPodName = K3S
+				.execInContainer("kubectl", "get", "pods", "-l",
+						"app=spring-cloud-kubernetes-fabric8-client-catalog-watcher", "-o=name", "--no-headers")
+				.getStdout();
+		String allLogs = K3S.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
+		Assertions.assertTrue(allLogs.contains(log));
+	}
+
+	/**
+	 * the test is the same for both endpoints and endpoint slices, the set-up for them is
+	 * different.
+	 */
+	@SuppressWarnings("unchecked")
+	private void test() {
 
 		WebClient client = builder().baseUrl("localhost/result").build();
 		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[2];
@@ -142,9 +179,17 @@ class CatalogWatchIT {
 					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
 					.retryWhen(retrySpec()).block();
 
+			// we need to get the event from KubernetesCatalogWatch, but that happens
+			// on periodic bases. So in order to be sure we got the event we care about
+			// we wait until the result has a single entry, which means busybox was
+			// deleted
+			// + KubernetesCatalogWatch received the new update.
+			if (result != null && result.size() != 1) {
+				return false;
+			}
+
 			// we will only receive one pod here, our own
 			if (result != null) {
-				Assertions.assertEquals(1, result.size());
 				afterDelete[0] = result.get(0);
 				return true;
 			}
@@ -155,11 +200,9 @@ class CatalogWatchIT {
 		Assertions.assertTrue(afterDelete[0].endpointName().contains(APP_NAME));
 		Assertions.assertEquals("default", afterDelete[0].namespace());
 
-		deleteApp();
-
 	}
 
-	private static void deployBusyboxManifests() throws Exception {
+	private void deployBusyboxManifests() throws Exception {
 
 		Deployment deployment = client.apps().deployments().load(getBusyboxDeployment()).get();
 
@@ -178,9 +221,10 @@ class CatalogWatchIT {
 
 	}
 
-	private static void deployApp() {
+	private static void deployApp(boolean useEndpointSlices) {
 
-		Deployment appDeployment = client.apps().deployments().load(getAppDeployment()).get();
+		InputStream deployment = useEndpointSlices ? getEndpointSlicesAppDeployment() : getEndpointsAppDeployment();
+		Deployment appDeployment = client.apps().deployments().load(deployment).get();
 
 		String version = K8SUtils.getPomVersion();
 		String currentImage = appDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
@@ -211,7 +255,7 @@ class CatalogWatchIT {
 	private void deleteApp() {
 		Fabric8Utils.deleteDeployment(client, NAMESPACE, appDeploymentName);
 		Fabric8Utils.deleteService(client, NAMESPACE, appServiceName);
-		client.network().v1().ingresses().withName(appIngressName).delete();
+		Fabric8Utils.deleteIngress(client, NAMESPACE, appIngressName);
 	}
 
 	private static InputStream getBusyboxService() {
@@ -222,8 +266,15 @@ class CatalogWatchIT {
 		return Fabric8Utils.inputStream("busybox/deployment.yaml");
 	}
 
-	private static InputStream getAppDeployment() {
-		return Fabric8Utils.inputStream("app/watcher-deployment.yaml");
+	/**
+	 * deployment where support for endpoint slices is equal to false
+	 */
+	private static InputStream getEndpointsAppDeployment() {
+		return Fabric8Utils.inputStream("app/watcher-endpoints-deployment.yaml");
+	}
+
+	private static InputStream getEndpointSlicesAppDeployment() {
+		return Fabric8Utils.inputStream("app/watcher-endpoint-slices-deployment.yaml");
 	}
 
 	private static InputStream getAppIngress() {
