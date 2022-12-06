@@ -91,6 +91,11 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 	}
 
 	@AfterEach
+	void beforeEach() {
+		mockServer.clearExpectations();
+	}
+
+	@AfterEach
 	void afterEach() {
 		Mockito.reset(APPLICATION_EVENT_PUBLISHER);
 	}
@@ -274,15 +279,13 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 	@Test
 	void testEndpointSlicesEnabledButNotSupportedViaApiGroups() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-			false, "", Set.of(), Map.of(), "", null, 0, true);
+				false, "", Set.of(), Map.of(), "", null, 0, true);
 
 		APIGroupList groupList = new APIGroupListBuilder().build();
 		mockServer.expect().withPath("/apis").andReturn(200, groupList).always();
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
-		IllegalArgumentException ex = Assertions.assertThrows(
-			IllegalArgumentException.class, watch::postConstruct
-		);
+		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class, watch::postConstruct);
 		Assertions.assertEquals("EndpointSlices are not supported on the cluster", ex.getMessage());
 	}
 
@@ -296,21 +299,19 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 	@Test
 	void testEndpointSlicesEnabledButNotSupportedViaApiVersions() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-			false, "", Set.of(), Map.of(), "", null, 0, true);
+				false, "", Set.of(), Map.of(), "", null, 0, true);
 
 		GroupVersionForDiscovery forDiscovery = new GroupVersionForDiscoveryBuilder()
-			.withGroupVersion("discovery.k8s.io/v1").build();
+				.withGroupVersion("discovery.k8s.io/v1").build();
 		APIGroup apiGroup = new APIGroupBuilder().withApiVersion("v1").withVersions(forDiscovery).build();
 		APIGroupList groupList = new APIGroupListBuilder().withGroups(apiGroup).build();
 		mockServer.expect().withPath("/apis").andReturn(200, groupList).always();
 
 		APIResourceList apiResourceList = new APIResourceListBuilder().build();
-		mockServer.expect().withPath("/apis/discovery.k8s.io/v1").andReturn(200, apiResourceList).always();;
+		mockServer.expect().withPath("/apis/discovery.k8s.io/v1").andReturn(200, apiResourceList).always();
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
-		IllegalArgumentException ex = Assertions.assertThrows(
-			IllegalArgumentException.class, watch::postConstruct
-		);
+		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class, watch::postConstruct);
 		Assertions.assertEquals("EndpointSlices are not supported on the cluster", ex.getMessage());
 	}
 
