@@ -88,6 +88,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
+
 	}
 
 	@AfterEach
@@ -120,7 +121,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 
 		mockServer.expect()
 				.withPath("/apis/discovery.k8s.io/v1/namespaces/namespaceA/endpointslices?labelSelector=color%3Dblue")
-				.andReturn(200, listInNamespaceA).once();
+				.andReturn(200, listInNamespaceA).always();
 
 		// this is mocked, but never supposed to be called
 		EndpointSlice sliceD = createSingleEndpointWithEndpointSlices("namespaceB", Map.of("color", "blue"), "podD");
