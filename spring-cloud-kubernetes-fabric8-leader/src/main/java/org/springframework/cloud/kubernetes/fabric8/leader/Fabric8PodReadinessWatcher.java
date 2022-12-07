@@ -22,7 +22,7 @@ import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.PodResource;
-import io.fabric8.kubernetes.client.internal.readiness.Readiness;
+import io.fabric8.kubernetes.client.readiness.Readiness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +60,7 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 			synchronized (this.lock) {
 				if (this.watch == null) {
 					LOGGER.debug("Starting pod readiness watcher for '{}'", this.podName);
-					PodResource<Pod> podResource = this.kubernetesClient.pods().withName(this.podName);
+					PodResource podResource = this.kubernetesClient.pods().withName(this.podName);
 					this.previousState = podResource.isReady();
 					this.watch = podResource.watch(this);
 				}

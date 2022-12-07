@@ -86,20 +86,20 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 	void postConstruct() {
 
 		if (context.properties().useEndpointSlices()) {
-			try (KubernetesClient client = context.kubernetesClient()) {
-				// this emulates : 'kubectl api-resources | grep -i EndpointSlice'
-				boolean found = client.getApiGroups().getGroups().stream().flatMap(x -> x.getVersions().stream())
-						.map(GroupVersionForDiscovery::getGroupVersion).filter(DISCOVERY_GROUP_VERSION::equals)
-						.findFirst().map(client::getApiResources).map(APIResourceList::getResources)
-						.map(x -> x.stream().map(APIResource::getKind))
-						.flatMap(x -> x.filter(y -> y.equals(ENDPOINT_SLICE)).findFirst()).isPresent();
+			// can't use try with resources here as it will close the client
+			KubernetesClient client = context.kubernetesClient();
+			// this emulates : 'kubectl api-resources | grep -i EndpointSlice'
+			boolean found = client.getApiGroups().getGroups().stream().flatMap(x -> x.getVersions().stream())
+					.map(GroupVersionForDiscovery::getGroupVersion).filter(DISCOVERY_GROUP_VERSION::equals).findFirst()
+					.map(client::getApiResources).map(APIResourceList::getResources)
+					.map(x -> x.stream().map(APIResource::getKind))
+					.flatMap(x -> x.filter(y -> y.equals(ENDPOINT_SLICE)).findFirst()).isPresent();
 
-				if (!found) {
-					throw new IllegalArgumentException("EndpointSlices are not supported on the cluster");
-				}
-				else {
-					stateGenerator = new Fabric8EndpointSliceV1CatalogWatch();
-				}
+			if (!found) {
+				throw new IllegalArgumentException("EndpointSlices are not supported on the cluster");
+			}
+			else {
+				stateGenerator = new Fabric8EndpointSliceV1CatalogWatch();
 			}
 		}
 		else {
