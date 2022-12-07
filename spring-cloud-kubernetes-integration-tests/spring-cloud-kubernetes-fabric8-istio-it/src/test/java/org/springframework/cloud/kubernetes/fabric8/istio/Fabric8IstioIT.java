@@ -158,16 +158,16 @@ class Fabric8IstioIT {
 			String currentImage = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(currentImage + ":" + version);
 
-			client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
+			client.apps().deployments().inNamespace(NAMESPACE).resource(deployment).create();
 			deploymentName = deployment.getMetadata().getName();
 
 			Service service = client.services().load(getService()).get();
 			serviceName = service.getMetadata().getName();
-			client.services().inNamespace(NAMESPACE).create(service);
+			client.services().inNamespace(NAMESPACE).resource(service).create();
 
 			Ingress ingress = client.network().v1().ingresses().load(getIngress()).get();
 			ingressName = ingress.getMetadata().getName();
-			client.network().v1().ingresses().inNamespace(NAMESPACE).create(ingress);
+			client.network().v1().ingresses().inNamespace(NAMESPACE).resource(ingress).create();
 
 			Fabric8Utils.waitForIngress(client, ingressName, NAMESPACE);
 			Fabric8Utils.waitForDeployment(client, "spring-cloud-kubernetes-fabric8-istio-it-deployment", NAMESPACE, 2,

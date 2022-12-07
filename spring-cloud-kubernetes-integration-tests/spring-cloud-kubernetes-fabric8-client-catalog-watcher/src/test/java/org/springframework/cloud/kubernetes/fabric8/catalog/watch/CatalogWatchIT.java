@@ -210,12 +210,12 @@ class CatalogWatchIT {
 		Commons.pullImage(image[0], image[1], K3S);
 		Commons.loadImage(image[0], image[1], "busybox", K3S);
 
-		client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
+		client.apps().deployments().inNamespace(NAMESPACE).resource(deployment).create();
 		busyboxDeploymentName = deployment.getMetadata().getName();
 
 		Service busyboxService = client.services().load(getBusyboxService()).get();
 		busyboxServiceName = busyboxService.getMetadata().getName();
-		client.services().inNamespace(NAMESPACE).create(busyboxService);
+		client.services().inNamespace(NAMESPACE).resource(busyboxService).create();
 
 		Fabric8Utils.waitForDeployment(client, busyboxDeploymentName, NAMESPACE, 2, 600);
 
@@ -230,18 +230,18 @@ class CatalogWatchIT {
 		String currentImage = appDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 		appDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(currentImage + ":" + version);
 
-		client.apps().deployments().inNamespace(NAMESPACE).create(appDeployment);
+		client.apps().deployments().inNamespace(NAMESPACE).resource(appDeployment).create();
 		appDeploymentName = appDeployment.getMetadata().getName();
 
 		Service appService = client.services().load(getAppService()).get();
 		appServiceName = appService.getMetadata().getName();
-		client.services().inNamespace(NAMESPACE).create(appService);
+		client.services().inNamespace(NAMESPACE).resource(appService).create();
 
 		Fabric8Utils.waitForDeployment(client, appDeploymentName, NAMESPACE, 2, 600);
 
 		Ingress appIngress = client.network().v1().ingresses().load(getAppIngress()).get();
 		appIngressName = appIngress.getMetadata().getName();
-		client.network().v1().ingresses().inNamespace(NAMESPACE).create(appIngress);
+		client.network().v1().ingresses().inNamespace(NAMESPACE).resource(appIngress).create();
 
 		Fabric8Utils.waitForIngress(client, appIngressName, NAMESPACE);
 
