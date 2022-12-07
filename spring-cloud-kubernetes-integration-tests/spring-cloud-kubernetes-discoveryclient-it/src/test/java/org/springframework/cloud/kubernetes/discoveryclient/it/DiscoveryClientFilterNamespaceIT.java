@@ -228,11 +228,11 @@ class DiscoveryClientFilterNamespaceIT {
 	}
 
 	private void deployDiscoveryIt() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getDiscoveryItDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getDiscoveryService(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getDiscoveryItDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getDiscoveryService(), null, null, null, null);
 
 		V1Ingress ingress = getDiscoveryItIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
 		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
@@ -255,13 +255,13 @@ class DiscoveryClientFilterNamespaceIT {
 	private static void deployDiscoveryServer() throws Exception {
 
 		V1ClusterRoleBinding clusterRoleBinding = getClusterRoleBinding();
-		authApi.createClusterRoleBinding(clusterRoleBinding, null, null, null);
+		authApi.createClusterRoleBinding(clusterRoleBinding, null, null, null, null);
 
-		appsApi.createNamespacedDeployment(NAMESPACE, getDiscoveryServerDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getDiscoveryServerService(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getDiscoveryServerDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getDiscoveryServerService(), null, null, null, null);
 
 		V1Ingress ingress = getDiscoveryServerIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
 		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
@@ -272,20 +272,20 @@ class DiscoveryClientFilterNamespaceIT {
 		meta.setName(namespace);
 		v1Namespace.setMetadata(meta);
 
-		api.createNamespace(v1Namespace, null, null, null);
+		api.createNamespace(v1Namespace, null, null, null, null);
 
 		V1Deployment deployment = getMockServiceDeployment();
 		deployment.getMetadata().setNamespace(namespace);
 
-		appsApi.createNamespacedDeployment(namespace, deployment, null, null, null);
+		appsApi.createNamespacedDeployment(namespace, deployment, null, null, null, null);
 		V1Service service = getMockServiceService();
 		service.getMetadata().setNamespace(namespace);
-		api.createNamespacedService(namespace, service, null, null, null);
+		api.createNamespacedService(namespace, service, null, null, null, null);
 		V1Ingress ingress = getMockIngress();
 		ingress.getMetadata().setNamespace(namespace);
 
 		ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).setPath("/wiremock-" + namespace);
-		networkingApi.createNamespacedIngress(namespace, ingress, null, null, null);
+		networkingApi.createNamespacedIngress(namespace, ingress, null, null, null, null);
 		k8SUtils.waitForIngress(ingress.getMetadata().getName(), namespace);
 	}
 

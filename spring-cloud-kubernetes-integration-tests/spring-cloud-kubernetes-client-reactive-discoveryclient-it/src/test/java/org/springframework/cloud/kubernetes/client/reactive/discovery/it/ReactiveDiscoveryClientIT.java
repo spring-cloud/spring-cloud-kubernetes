@@ -157,13 +157,13 @@ class ReactiveDiscoveryClientIT {
 	}
 
 	private void deployIngress(V1Ingress ingress) throws Exception {
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
 		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
 	private void deployReactiveDiscoveryIt() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getReactiveDiscoveryItDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getReactiveDiscoveryService(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getReactiveDiscoveryItDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getReactiveDiscoveryService(), null, null, null, null);
 		deployIngress(getReactiveDiscoveryItIngress());
 	}
 

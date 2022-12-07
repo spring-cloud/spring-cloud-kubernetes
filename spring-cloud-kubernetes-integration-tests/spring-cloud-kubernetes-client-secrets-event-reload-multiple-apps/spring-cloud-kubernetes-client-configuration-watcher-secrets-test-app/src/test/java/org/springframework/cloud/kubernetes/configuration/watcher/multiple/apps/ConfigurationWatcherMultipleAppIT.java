@@ -149,7 +149,7 @@ class ConfigurationWatcherMultipleAppIT {
 						"spring-cloud-kubernetes-client-configuration-watcher-secret-app-a, "
 								+ "spring-cloud-kubernetes-client-configuration-watcher-secret-app-b")
 				.endMetadata().build();
-		api.createNamespacedSecret(NAMESPACE, secret, null, null, null);
+		api.createNamespacedSecret(NAMESPACE, secret, null, null, null, null);
 
 		WebClient.Builder builderA = builder();
 		WebClient serviceClientA = builderA.baseUrl("http://localhost:80/app-a").build();
@@ -185,12 +185,12 @@ class ConfigurationWatcherMultipleAppIT {
 	 </pre>
 	 */
 	private void deployRabbitMq() throws Exception {
-		api.createNamespacedService(NAMESPACE, getRabbitMqService(), null, null, null);
+		api.createNamespacedService(NAMESPACE, getRabbitMqService(), null, null, null, null);
 		String[] image = getRabbitMQReplicationController().getSpec().getTemplate().getSpec().getContainers().get(0)
 				.getImage().split(":");
 		Commons.pullImage(image[0], image[1], K3S);
 		Commons.loadImage(image[0], image[1], "rabbitmq", K3S);
-		api.createNamespacedReplicationController(NAMESPACE, getRabbitMQReplicationController(), null, null, null);
+		api.createNamespacedReplicationController(NAMESPACE, getRabbitMQReplicationController(), null, null, null, null);
 	}
 
 	private V1ReplicationController getRabbitMQReplicationController() throws Exception {
@@ -210,8 +210,8 @@ class ConfigurationWatcherMultipleAppIT {
 	 </pre>
 	 */
 	private void deployAppA() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getAppADeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getAppAService(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getAppADeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getAppAService(), null, null, null, null);
 	}
 
 	private V1Deployment getAppADeployment() throws Exception {
@@ -235,8 +235,8 @@ class ConfigurationWatcherMultipleAppIT {
 	 </pre>
 	 */
 	private void deployAppB() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getAppBDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getAppBService(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getAppBDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getAppBService(), null, null, null, null);
 	}
 
 	private V1Deployment getAppBDeployment() throws Exception {
@@ -260,8 +260,8 @@ class ConfigurationWatcherMultipleAppIT {
 	 </pre>
 	 */
 	private void deployConfigWatcher() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getConfigWatcherDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getConfigWatcherService(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getConfigWatcherDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getConfigWatcherService(), null, null, null, null);
 	}
 
 	private V1Deployment getConfigWatcherDeployment() throws Exception {
@@ -290,7 +290,7 @@ class ConfigurationWatcherMultipleAppIT {
 		V1Ingress ingress = (V1Ingress) K8SUtils.readYamlFromClasspath(
 				"ingress/spring-cloud-kubernetes-configuration-watcher-multiple-apps-ingress.yaml");
 
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
 		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
