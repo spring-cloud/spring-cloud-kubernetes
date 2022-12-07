@@ -29,8 +29,8 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.internal.HasMetadataOperation;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -77,7 +77,7 @@ class SecretsEventsReloadIT {
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
-		client = new DefaultKubernetesClient(config);
+		client = new KubernetesClientBuilder().withConfig(config).build();
 		Fabric8Utils.setUp(client, NAMESPACE);
 		deployManifests();
 	}
