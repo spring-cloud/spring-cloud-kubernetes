@@ -276,7 +276,7 @@ class Fabric8KubernetesCatalogWatchEndpointsTests {
 		Endpoints endpoints = new EndpointsBuilder()
 				.withMetadata(new ObjectMetaBuilder().withLabels(labels).withName("endpoints-" + podName).build())
 				.withSubsets(List.of(endpointSubset)).build();
-		mockClient.endpoints().inNamespace(namespace).create(endpoints);
+		mockClient.endpoints().inNamespace(namespace).resource(endpoints).create();
 	}
 
 }

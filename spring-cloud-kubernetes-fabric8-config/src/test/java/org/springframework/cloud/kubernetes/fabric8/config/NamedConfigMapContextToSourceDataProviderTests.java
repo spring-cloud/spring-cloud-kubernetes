@@ -81,7 +81,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
 				.addToData(COLOR_REALLY_RED).build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("blue", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
@@ -107,7 +107,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
 				.addToData(COLOR_REALLY_RED).build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
@@ -137,8 +137,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		ConfigMap redWithProfile = new ConfigMapBuilder().withNewMetadata().withName("red-with-profile").endMetadata()
 				.addToData("taste", "mango").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(red);
-		mockClient.configMaps().inNamespace(NAMESPACE).create(redWithProfile);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(red).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(redWithProfile).create();
 
 		// add one more profile and specify that we want profile based config maps
 		MockEnvironment env = new MockEnvironment();
@@ -175,8 +175,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		ConfigMap redWithProfile = new ConfigMapBuilder().withNewMetadata().withName("red-with-profile").endMetadata()
 				.addToData("taste", "mango").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(red);
-		mockClient.configMaps().inNamespace(NAMESPACE).create(redWithProfile);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(red).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(redWithProfile).create();
 
 		// add one more profile and specify that we want profile based config maps
 		// also append prefix
@@ -216,9 +216,9 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		ConfigMap redWithShape = new ConfigMapBuilder().withNewMetadata().withName("red-with-shape").endMetadata()
 				.addToData("shape", "round").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(red);
-		mockClient.configMaps().inNamespace(NAMESPACE).create(redWithTaste);
-		mockClient.configMaps().inNamespace(NAMESPACE).create(redWithShape);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(red).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(redWithTaste).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(redWithShape).create();
 
 		// add one more profile and specify that we want profile based config maps
 		// also append prefix
@@ -250,7 +250,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("application").endMetadata()
 				.addToData("color", "red").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("application", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
@@ -276,7 +276,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
 				.addToData(COLOR_REALLY_RED).build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
 		String wrongNamespace = NAMESPACE + "nope";
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", wrongNamespace, true, false);
@@ -300,7 +300,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
 				.addToData("single.yaml", "key: value").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
@@ -326,7 +326,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("one").endMetadata()
 				.addToData("key", "value").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("k8s");
 

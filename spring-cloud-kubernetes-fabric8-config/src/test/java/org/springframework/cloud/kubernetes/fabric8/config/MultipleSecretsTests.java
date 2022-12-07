@@ -61,7 +61,7 @@ abstract class MultipleSecretsTests {
 		Secret secret1 = new SecretBuilder().withNewMetadata().withName("name1").withLabels(metadata1).endMetadata()
 				.addToData("secrets.secret1", Base64.getEncoder().encodeToString(SECRET_VALUE_1.getBytes())).build();
 
-		mockClient.secrets().inNamespace(DEFAULT_NAMESPACE).create(secret1);
+		mockClient.secrets().inNamespace(DEFAULT_NAMESPACE).resource(secret1).create();
 
 		Map<String, String> metadata2 = new HashMap<>();
 		metadata2.put("env", "env2");
@@ -70,7 +70,7 @@ abstract class MultipleSecretsTests {
 		Secret secret2 = new SecretBuilder().withNewMetadata().withName("name2").withLabels(metadata2).endMetadata()
 				.addToData("secrets.secret2", Base64.getEncoder().encodeToString(SECRET_VALUE_2.getBytes())).build();
 
-		mockClient.secrets().inNamespace(ANOTHER_NAMESPACE).create(secret2);
+		mockClient.secrets().inNamespace(ANOTHER_NAMESPACE).resource(secret2).create();
 	}
 
 	@Test

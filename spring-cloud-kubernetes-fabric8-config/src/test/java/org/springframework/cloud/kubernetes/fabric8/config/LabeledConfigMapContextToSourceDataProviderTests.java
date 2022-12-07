@@ -88,7 +88,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("test-configmap").withLabels(LABELS)
 				.endMetadata().addToData("name", "value").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE, LABELS, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
@@ -118,9 +118,9 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		ConfigMap blue = new ConfigMapBuilder().withNewMetadata().withName("blue-configmap").withLabels(BLUE_LABEL)
 				.endMetadata().addToData("color", "blue").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(redOne);
-		mockClient.configMaps().inNamespace(NAMESPACE).create(redTwo);
-		mockClient.configMaps().inNamespace(NAMESPACE).create(blue);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(redOne).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(redTwo).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(blue).create();
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE, RED_LABEL, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
@@ -145,7 +145,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		ConfigMap pink = new ConfigMapBuilder().withNewMetadata().withName("pink-configmap").withLabels(PINK_LABEL)
 				.endMetadata().addToData("color", "pink").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(pink);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(pink).create();
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
@@ -170,7 +170,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("test-configmap").withLabels(LABELS)
 				.endMetadata().addToData("name", "value").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
 		// different namespace
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE + "nope", LABELS, true,
@@ -197,7 +197,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 				.withLabels(Collections.singletonMap("color", "blue")).endMetadata()
 				.addToData("what-color", "blue-color").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(configMap);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
 		ConfigUtils.Prefix mePrefix = ConfigUtils.findPrefix("me", false, false, "irrelevant");
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
@@ -231,8 +231,8 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 				.withLabels(Collections.singletonMap("color", "blue")).endMetadata().addToData("second", "blue")
 				.build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(blueConfigMap);
-		mockClient.configMaps().inNamespace(NAMESPACE).create(anotherBlue);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(blueConfigMap).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(anotherBlue).create();
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED, false);
@@ -273,8 +273,8 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		ConfigMap colorConfigmapK8s = new ConfigMapBuilder().withNewMetadata().withName("color-configmap-k8s")
 				.endMetadata().addToData("two", "2").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(colorConfigmap);
-		mockClient.configMaps().inNamespace(NAMESPACE).create(colorConfigmapK8s);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmapK8s).create();
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("k8s");
 
@@ -303,8 +303,8 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		ConfigMap shapeConfigmap = new ConfigMapBuilder().withNewMetadata().withName("shape-configmap").endMetadata()
 				.addToData("two", "2").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(colorConfigmap);
-		mockClient.configMaps().inNamespace(NAMESPACE).create(shapeConfigmap);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(shapeConfigmap).create();
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("k8s");
 
@@ -335,8 +335,8 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		ConfigMap colorConfigmapK8s = new ConfigMapBuilder().withNewMetadata().withName("color-configmap-k8s")
 				.withLabels(Collections.singletonMap("color", "red")).endMetadata().addToData("two", "2").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(colorConfigmap);
-		mockClient.configMaps().inNamespace(NAMESPACE).create(colorConfigmapK8s);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmapK8s).create();
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("k8s");
 
@@ -380,11 +380,11 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		ConfigMap shapeConfigmapK8s = new ConfigMapBuilder().withNewMetadata().withName("shape-configmap-k8s")
 				.withLabels(Map.of("shape", "triangle")).endMetadata().addToData("five", "5").build();
 
-		mockClient.configMaps().inNamespace(NAMESPACE).create(colorConfigMap);
-		mockClient.configMaps().inNamespace(NAMESPACE).create(shapeConfigmap);
-		mockClient.configMaps().inNamespace(NAMESPACE).create(noFit);
-		mockClient.configMaps().inNamespace(NAMESPACE).create(colorConfigmapK8s);
-		mockClient.configMaps().inNamespace(NAMESPACE).create(shapeConfigmapK8s);
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigMap).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(shapeConfigmap).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(noFit).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmapK8s).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(shapeConfigmapK8s).create();
 
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("k8s");

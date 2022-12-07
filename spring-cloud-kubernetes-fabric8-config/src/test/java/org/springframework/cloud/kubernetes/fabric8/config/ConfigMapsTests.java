@@ -56,8 +56,8 @@ abstract class ConfigMapsTests {
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("bean.greeting", "Hello ConfigMap, %s!");
-		mockClient.configMaps().inNamespace("test").create(new ConfigMapBuilder().withNewMetadata()
-				.withName(APPLICATION_NAME).endMetadata().addToData(data).build());
+		mockClient.configMaps().inNamespace("test").resource(new ConfigMapBuilder().withNewMetadata()
+			.withName(APPLICATION_NAME).endMetadata().addToData(data).build()).create();
 	}
 
 	@Test
