@@ -105,8 +105,8 @@ class ConfigMapPollingReloadIT {
 
 		// the weird cast comes from :
 		// https://github.com/fabric8io/kubernetes-client/issues/2445
-		((HasMetadataOperation) client.configMaps().inNamespace("default").withName("poll-reload"))
-			.resource(map).createOrReplace();
+		((HasMetadataOperation) client.configMaps().inNamespace("default").withName("poll-reload")).resource(map)
+				.createOrReplace();
 
 		await().timeout(Duration.ofSeconds(60)).until(() -> webClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("after-change"));

@@ -68,11 +68,11 @@ public class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase 
 
 		ConfigMap configMap1 = new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
 				.addToData(data).build();
-		mockClient.configMaps().inNamespace("test").create(configMap1);
+		mockClient.configMaps().inNamespace("test").resource(configMap1).create();
 
 		ConfigMap configMap2 = new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
 				.addToData(data).build();
-		mockClient.configMaps().inNamespace("spring").create(configMap2);
+		mockClient.configMaps().inNamespace("spring").resource(configMap2).create();
 	}
 
 	@BeforeEach

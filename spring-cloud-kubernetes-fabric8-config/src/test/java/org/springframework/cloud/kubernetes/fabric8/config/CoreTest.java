@@ -44,14 +44,16 @@ abstract class CoreTest {
 		CoreTest.mockClient = mockClient;
 		Map<String, String> data1 = new HashMap<>();
 		data1.put("spring.kubernetes.test.value", "value1");
-		mockClient.configMaps().inNamespace("testns").create(
-				new ConfigMapBuilder().withNewMetadata().withName("testapp").endMetadata().addToData(data1).build());
+		mockClient.configMaps().inNamespace("testns").resource(
+				new ConfigMapBuilder().withNewMetadata().withName("testapp").endMetadata().addToData(data1).build())
+				.create();
 
 		Map<String, String> data2 = new HashMap<>();
 		data2.put("amq.user", "YWRtaW4K");
 		data2.put("amq.pwd", "MWYyZDFlMmU2N2Rm");
-		mockClient.secrets().inNamespace("testns").create(
-				new SecretBuilder().withNewMetadata().withName("testapp").endMetadata().addToData(data2).build());
+		mockClient.secrets().inNamespace("testns").resource(
+				new SecretBuilder().withNewMetadata().withName("testapp").endMetadata().addToData(data2).build())
+				.create();
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());

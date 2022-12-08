@@ -56,7 +56,7 @@ abstract class Fabric8SecretsPropertySourceTest {
 		Secret secret = new SecretBuilder().withNewMetadata().withName("test-secret")
 				.withLabels(singletonMap("foo", "bar")).endMetadata()
 				.addToData("secretName", Base64.getEncoder().encodeToString(SECRET_VALUE.getBytes())).build();
-		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
 	}
 

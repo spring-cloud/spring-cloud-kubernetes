@@ -170,7 +170,8 @@ class Fabric8DiscoveryNamespaceFilterIT {
 			ingressName = ingress.getMetadata().getName();
 			client.network().v1().ingresses().inNamespace(NAMESPACE).resource(ingress).create();
 
-			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).get()).create();
+			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).get())
+					.create();
 
 			Fabric8Utils.waitForDeployment(client, "spring-cloud-kubernetes-fabric8-client-discovery-deployment",
 					NAMESPACE, 2, 600);

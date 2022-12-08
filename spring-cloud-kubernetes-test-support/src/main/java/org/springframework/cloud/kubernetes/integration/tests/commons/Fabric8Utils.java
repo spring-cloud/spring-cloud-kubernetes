@@ -104,14 +104,14 @@ public final class Fabric8Utils {
 
 		ClusterRole clusterRole = client.rbac().clusterRoles().load(clusterRoleBindingAsStream).get();
 		if (client.rbac().clusterRoles().withName(clusterRole.getMetadata().getName()).get() == null) {
-			client.rbac().clusterRoles().create(clusterRole);
+			client.rbac().clusterRoles().resource(clusterRole).create();
 		}
 
 		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).get();
 		serviceAccountFromStream.getMetadata().setNamespace(serviceAccountNamespace);
 		if (client.serviceAccounts().inNamespace(serviceAccountNamespace)
 				.withName(serviceAccountFromStream.getMetadata().getName()).get() == null) {
-			client.serviceAccounts().inNamespace(serviceAccountNamespace).create(serviceAccountFromStream);
+			client.serviceAccounts().inNamespace(serviceAccountNamespace).resource(serviceAccountFromStream).create();
 		}
 
 		RoleBinding roleBindingFromStream = client.rbac().roleBindings().load(roleBindingAsStream).get();
@@ -120,7 +120,7 @@ public final class Fabric8Utils {
 
 			if (client.rbac().roleBindings().inNamespace(namespace)
 					.withName(roleBindingFromStream.getMetadata().getName()).get() == null) {
-				client.rbac().roleBindings().inNamespace(namespace).create(roleBindingFromStream);
+				client.rbac().roleBindings().inNamespace(namespace).resource(roleBindingFromStream).create();
 			}
 		});
 
@@ -186,7 +186,7 @@ public final class Fabric8Utils {
 		Deployment deployment = client.apps().deployments().inNamespace(namespace).withName(name).get();
 		Map<String, String> matchLabels = deployment.getSpec().getSelector().getMatchLabels();
 
-		client.apps().deployments().inNamespace(namespace).delete(deployment);
+		client.apps().deployments().inNamespace(namespace).resource(deployment).delete();
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
 			Deployment inner = client.apps().deployments().inNamespace(namespace).withName(name).get();
@@ -231,19 +231,19 @@ public final class Fabric8Utils {
 		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).get();
 		if (client.serviceAccounts().inNamespace(namespace).withName(serviceAccountFromStream.getMetadata().getName())
 				.get() == null) {
-			client.serviceAccounts().inNamespace(namespace).create(serviceAccountFromStream);
+			client.serviceAccounts().inNamespace(namespace).resource(serviceAccountFromStream).create();
 		}
 
 		RoleBinding roleBindingFromStream = client.rbac().roleBindings().load(roleBindingAsStream).get();
 		if (client.rbac().roleBindings().inNamespace(namespace).withName(roleBindingFromStream.getMetadata().getName())
 				.get() == null) {
-			client.rbac().roleBindings().inNamespace(namespace).create(roleBindingFromStream);
+			client.rbac().roleBindings().inNamespace(namespace).resource(roleBindingFromStream).create();
 		}
 
 		Role roleFromStream = client.rbac().roles().load(roleAsStream).get();
 		if (client.rbac().roles().inNamespace(namespace).withName(roleFromStream.getMetadata().getName())
 				.get() == null) {
-			client.rbac().roles().inNamespace(namespace).create(roleFromStream);
+			client.rbac().roles().inNamespace(namespace).resource(roleFromStream).create();
 		}
 	}
 

@@ -153,7 +153,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 
 		this.kubernetesClient.configMaps()
 				.inNamespace(this.leaderProperties.getNamespace(this.kubernetesClient.getNamespace()))
-				.create(newConfigMap);
+				.resource(newConfigMap).create();
 	}
 
 	private void updateConfigMapEntry(ConfigMap configMap, Map<String, String> newData) {
@@ -175,8 +175,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 	private void updateConfigMap(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
 		this.kubernetesClient.configMaps()
 				.inNamespace(this.leaderProperties.getNamespace(this.kubernetesClient.getNamespace()))
-				.withName(this.leaderProperties.getConfigMapName())
-				.lockResourceVersion(oldConfigMap.getMetadata().getResourceVersion()).replace(newConfigMap);
+				.resource(newConfigMap).lockResourceVersion(oldConfigMap.getMetadata().getResourceVersion()).replace();
 	}
 
 }
