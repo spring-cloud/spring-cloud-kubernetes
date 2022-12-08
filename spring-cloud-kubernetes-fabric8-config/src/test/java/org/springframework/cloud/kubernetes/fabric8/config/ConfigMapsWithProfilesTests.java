@@ -52,7 +52,7 @@ abstract class ConfigMapsWithProfilesTests {
 		HashMap<String, String> data = new HashMap<>();
 		data.put("application.yml", ConfigMapTestUtil.readResourceFile("application-with-profiles.yaml"));
 		mockClient.configMaps().inNamespace("test").resource(new ConfigMapBuilder().withNewMetadata()
-			.withName(APPLICATION_NAME).endMetadata().addToData(data).build()).create();
+				.withName(APPLICATION_NAME).endMetadata().addToData(data).build()).create();
 	}
 
 	@Test

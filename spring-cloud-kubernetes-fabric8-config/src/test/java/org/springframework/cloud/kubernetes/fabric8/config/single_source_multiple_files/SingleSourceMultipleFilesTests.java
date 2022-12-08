@@ -62,8 +62,9 @@ abstract class SingleSourceMultipleFilesTests {
 	}
 
 	static void createConfigmap(Map<String, String> data) {
-		mockClient.configMaps().inNamespace("spring-k8s").resource(new ConfigMapBuilder().withNewMetadata()
-			.withName("my-configmap").endMetadata().addToData(data).build()).create();
+		mockClient.configMaps().inNamespace("spring-k8s").resource(
+				new ConfigMapBuilder().withNewMetadata().withName("my-configmap").endMetadata().addToData(data).build())
+				.create();
 	}
 
 	/**

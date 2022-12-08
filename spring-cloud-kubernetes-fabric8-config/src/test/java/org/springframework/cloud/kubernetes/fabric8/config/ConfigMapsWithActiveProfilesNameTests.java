@@ -53,12 +53,14 @@ abstract class ConfigMapsWithActiveProfilesNameTests {
 		HashMap<String, String> data = new HashMap<>();
 		data.put("application.yml", readResourceFile("application-with-profiles.yaml"));
 		mockClient.configMaps().inNamespace("test").resource(new ConfigMapBuilder().withNewMetadata()
-			.withName(APPLICATION_NAME).endMetadata().addToData(data).build()).create();
+				.withName(APPLICATION_NAME).endMetadata().addToData(data).build()).create();
 
 		HashMap<String, String> dataWithName = new HashMap<>();
 		dataWithName.put("application.yml", readResourceFile("application-with-active-profiles-name.yaml"));
-		mockClient.configMaps().inNamespace("test").resource(new ConfigMapBuilder().withNewMetadata()
-			.withName(APPLICATION_NAME + "-development").endMetadata().addToData(dataWithName).build()).create();
+		mockClient
+				.configMaps().inNamespace("test").resource(new ConfigMapBuilder().withNewMetadata()
+						.withName(APPLICATION_NAME + "-development").endMetadata().addToData(dataWithName).build())
+				.create();
 	}
 
 	@Test

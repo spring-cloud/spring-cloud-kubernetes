@@ -63,8 +63,8 @@ abstract class LabeledConfigMapWithPrefixTests {
 	}
 
 	private static void createConfigMap(String name, Map<String, String> data, Map<String, String> labels) {
-		mockClient.configMaps().inNamespace("spring-k8s").resource(new ConfigMapBuilder().withNewMetadata().withName(name)
-			.withLabels(labels).endMetadata().addToData(data).build()).create();
+		mockClient.configMaps().inNamespace("spring-k8s").resource(new ConfigMapBuilder().withNewMetadata()
+				.withName(name).withLabels(labels).endMetadata().addToData(data).build()).create();
 	}
 
 	/**

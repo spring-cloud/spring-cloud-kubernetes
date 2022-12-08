@@ -62,8 +62,8 @@ abstract class SecretsWithLabelsTests {
 
 	private static void createSecret(String name, Map<String, String> data) {
 		mockClient.secrets().inNamespace("spring-k8s")
-			.resource(new SecretBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build())
-			.create();
+				.resource(new SecretBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build())
+				.create();
 	}
 
 	/**
