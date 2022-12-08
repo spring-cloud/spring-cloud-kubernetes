@@ -91,7 +91,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Secret secret = new SecretBuilder().withNewMetadata().withName("test-secret").withLabels(LABELS).endMetadata()
 				.addToData("secretName", Base64.getEncoder().encodeToString("secretValue".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, LABELS, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
@@ -122,9 +122,9 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Secret blue = new SecretBuilder().withNewMetadata().withName("blue-secret").withLabels(BLUE_LABEL).endMetadata()
 				.addToData("color", Base64.getEncoder().encodeToString("blue".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(redOne);
-		mockClient.secrets().inNamespace(NAMESPACE).create(redTwo);
-		mockClient.secrets().inNamespace(NAMESPACE).create(blue);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(redOne).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(redTwo).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(blue).create();
 
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, RED_LABEL, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
@@ -149,7 +149,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Secret pink = new SecretBuilder().withNewMetadata().withName("pink-secret").withLabels(PINK_LABEL).endMetadata()
 				.addToData("color", Base64.getEncoder().encodeToString("pink".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(pink);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(pink).create();
 
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, BLUE_LABEL, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
@@ -174,7 +174,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Secret secret = new SecretBuilder().withNewMetadata().withName("test-secret").withLabels(LABELS).endMetadata()
 				.addToData("secretName", Base64.getEncoder().encodeToString("secretValue".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
 		// different namespace
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE + "nope", LABELS, true, false);
@@ -200,7 +200,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 				.withLabels(Collections.singletonMap("color", "blue")).endMetadata()
 				.addToData("what-color", Base64.getEncoder().encodeToString("blue-color".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
 		ConfigUtils.Prefix mePrefix = ConfigUtils.findPrefix("me", false, false, "irrelevant");
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
@@ -234,8 +234,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 				.withLabels(Collections.singletonMap("color", "blue")).endMetadata()
 				.addToData("second", Base64.getEncoder().encodeToString("blue".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(blueSecret);
-		mockClient.secrets().inNamespace(NAMESPACE).create(anotherBlue);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(blueSecret).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(anotherBlue).create();
 
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED, false);
@@ -277,8 +277,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Secret colorSecretK8s = new SecretBuilder().withNewMetadata().withName("color-secret-k8s").endMetadata()
 				.addToData("two", Base64.getEncoder().encodeToString("2".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(colorSecret);
-		mockClient.secrets().inNamespace(NAMESPACE).create(colorSecretK8s);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecret).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecretK8s).create();
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("k8s");
 
@@ -308,8 +308,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Secret shapeSecret = new SecretBuilder().withNewMetadata().withName("shape-secret").endMetadata()
 				.addToData("two", Base64.getEncoder().encodeToString("2".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(colorSecret);
-		mockClient.secrets().inNamespace(NAMESPACE).create(shapeSecret);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecret).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(shapeSecret).create();
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("k8s");
 
@@ -342,8 +342,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 				.withLabels(Collections.singletonMap("color", "red")).endMetadata()
 				.addToData("two", Base64.getEncoder().encodeToString("2".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(colorSecret);
-		mockClient.secrets().inNamespace(NAMESPACE).create(colorSecretK8s);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecret).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecretK8s).create();
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("k8s");
 
@@ -391,11 +391,11 @@ class LabeledSecretContextToSourceDataProviderTests {
 				.withLabels(Map.of("shape", "triangle")).endMetadata()
 				.addToData("five", Base64.getEncoder().encodeToString("5".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(colorSecret);
-		mockClient.secrets().inNamespace(NAMESPACE).create(shapeSecret);
-		mockClient.secrets().inNamespace(NAMESPACE).create(noFit);
-		mockClient.secrets().inNamespace(NAMESPACE).create(colorSecretK8s);
-		mockClient.secrets().inNamespace(NAMESPACE).create(shapeSecretK8s);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecret).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(shapeSecret).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(noFit).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecretK8s).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(shapeSecretK8s).create();
 
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("k8s");
@@ -431,7 +431,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 				.withLabels(Collections.singletonMap("color", "blue")).endMetadata()
 				.addToData("test.yaml", Base64.getEncoder().encodeToString("color: blue".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(colorSecret);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecret).create();
 
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DEFAULT, true);

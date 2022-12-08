@@ -67,7 +67,8 @@ abstract class NamedSecretWithPrefixTests {
 
 	private static void createSecret(String name, Map<String, String> data) {
 		mockClient.secrets().inNamespace("spring-k8s")
-				.create(new SecretBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build());
+				.resource(new SecretBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build())
+				.create();
 	}
 
 	/**

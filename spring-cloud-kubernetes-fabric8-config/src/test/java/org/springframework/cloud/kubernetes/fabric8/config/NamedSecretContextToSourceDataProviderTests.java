@@ -77,7 +77,7 @@ class NamedSecretContextToSourceDataProviderTests {
 		Secret secret = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
 				.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
 		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
@@ -107,9 +107,9 @@ class NamedSecretContextToSourceDataProviderTests {
 		Secret yellow = new SecretBuilder().withNewMetadata().withName("yellow").endMetadata()
 				.addToData("color", Base64.getEncoder().encodeToString("really-yellow".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(red);
-		mockClient.secrets().inNamespace(NAMESPACE).create(blue);
-		mockClient.secrets().inNamespace(NAMESPACE).create(yellow);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(red).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(blue).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(yellow).create();
 
 		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
@@ -133,7 +133,7 @@ class NamedSecretContextToSourceDataProviderTests {
 		Secret pink = new SecretBuilder().withNewMetadata().withName("pink").endMetadata()
 				.addToData("color", Base64.getEncoder().encodeToString("pink".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(pink);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(pink).create();
 
 		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("blue", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
@@ -158,7 +158,7 @@ class NamedSecretContextToSourceDataProviderTests {
 		Secret secret = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
 				.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
 		// different namespace
 		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE + "nope", true, false);
@@ -185,8 +185,8 @@ class NamedSecretContextToSourceDataProviderTests {
 		Secret redWithProfile = new SecretBuilder().withNewMetadata().withName("red-with-profile").endMetadata()
 				.addToData("taste", Base64.getEncoder().encodeToString("mango".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(red);
-		mockClient.secrets().inNamespace(NAMESPACE).create(redWithProfile);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(red).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(redWithProfile).create();
 
 		// add one more profile and specify that we want profile based config maps
 		MockEnvironment env = new MockEnvironment();
@@ -219,8 +219,8 @@ class NamedSecretContextToSourceDataProviderTests {
 		Secret redWithProfile = new SecretBuilder().withNewMetadata().withName("red-with-profile").endMetadata()
 				.addToData("taste", Base64.getEncoder().encodeToString("mango".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(red);
-		mockClient.secrets().inNamespace(NAMESPACE).create(redWithProfile);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(red).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(redWithProfile).create();
 
 		// add one more profile and specify that we want profile based config maps
 		// also append prefix
@@ -258,9 +258,9 @@ class NamedSecretContextToSourceDataProviderTests {
 		Secret redWithShape = new SecretBuilder().withNewMetadata().withName("red-with-shape").endMetadata()
 				.addToData("shape", Base64.getEncoder().encodeToString("round".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(red);
-		mockClient.secrets().inNamespace(NAMESPACE).create(redWithTaste);
-		mockClient.secrets().inNamespace(NAMESPACE).create(redWithShape);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(red).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(redWithTaste).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(redWithShape).create();
 
 		// add one more profile and specify that we want profile based config maps
 		// also append prefix
@@ -292,7 +292,7 @@ class NamedSecretContextToSourceDataProviderTests {
 		Secret secret = new SecretBuilder().withNewMetadata().withName("single-yaml").endMetadata()
 				.addToData("single.yaml", Base64.getEncoder().encodeToString("key: value".getBytes())).build();
 
-		mockClient.secrets().inNamespace(NAMESPACE).create(secret);
+		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
 		// different namespace
 		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("single-yaml", NAMESPACE, true, false);

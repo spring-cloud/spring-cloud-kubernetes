@@ -73,7 +73,8 @@ abstract class NamedConfigMapWithProfileTests {
 
 	static void createConfigmap(String name, Map<String, String> data) {
 		mockClient.configMaps().inNamespace("spring-k8s")
-				.create(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build());
+				.resource(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build())
+				.create();
 	}
 
 	/**
