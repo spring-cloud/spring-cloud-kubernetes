@@ -156,8 +156,8 @@ public class KubernetesInformerDiscoveryClientTests {
 		labels.put("k8s", "true");
 		labels.put("spring", "true");
 
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(
-			true, true, Set.of(), true, 60, false, null, Set.of(), labels, null, null, 0, true);
+		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
+				Set.of(), true, 60, false, null, Set.of(), labels, null, null, 0, true);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("",
 				sharedInformerFactory, serviceLister, null, null, null, kubernetesDiscoveryProperties);

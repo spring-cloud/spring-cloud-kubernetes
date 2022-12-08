@@ -50,8 +50,8 @@ final class Fabric8EndpointsCatalogWatch
 
 		if (context.properties().allNamespaces()) {
 			LOG.debug(() -> "discovering endpoints in all namespaces");
-				endpoints = client.endpoints().inAnyNamespace().withLabels(context.properties().serviceLabels()).list()
-						.getItems();
+			endpoints = client.endpoints().inAnyNamespace().withLabels(context.properties().serviceLabels()).list()
+					.getItems();
 		}
 		else if (!context.properties().namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering endpoints in " + context.properties().namespaces());
@@ -85,7 +85,7 @@ final class Fabric8EndpointsCatalogWatch
 
 	private List<Endpoints> endpoints(Fabric8CatalogWatchContext context, String namespace, KubernetesClient client) {
 		return client.endpoints().inNamespace(namespace).withLabels(context.properties().serviceLabels()).list()
-			.getItems();
+				.getItems();
 	}
 
 }
