@@ -159,18 +159,18 @@ class Fabric8DiscoveryNamespaceFilterIT {
 
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(env);
 
-			client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
+			client.apps().deployments().inNamespace(NAMESPACE).resource(deployment).create();
 			deploymentName = deployment.getMetadata().getName();
 
 			Service service = client.services().load(getService()).get();
 			serviceName = service.getMetadata().getName();
-			client.services().inNamespace(NAMESPACE).create(service);
+			client.services().inNamespace(NAMESPACE).resource(service).create();
 
 			Ingress ingress = client.network().v1().ingresses().load(getIngress()).get();
 			ingressName = ingress.getMetadata().getName();
-			client.network().v1().ingresses().inNamespace(NAMESPACE).create(ingress);
+			client.network().v1().ingresses().inNamespace(NAMESPACE).resource(ingress).create();
 
-			client.rbac().clusterRoleBindings().create(client.rbac().clusterRoleBindings().load(getAdminRole()).get());
+			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).get()).create();
 
 			Fabric8Utils.waitForDeployment(client, "spring-cloud-kubernetes-fabric8-client-discovery-deployment",
 					NAMESPACE, 2, 600);
@@ -201,19 +201,19 @@ class Fabric8DiscoveryNamespaceFilterIT {
 		meta.setName(namespace);
 		meta.setNamespace(namespace);
 		namespaceDef.setMetadata(meta);
-		client.namespaces().create(namespaceDef);
+		client.namespaces().resource(namespaceDef).create();
 
 		Deployment deployment = client.apps().deployments().load(getMockDeployment()).get();
 		String[] image = K8SUtils.getImageFromDeployment(deployment).split(":");
 		Commons.pullImage(image[0], image[1], K3S);
 		Commons.loadImage(image[0], image[1], "wiremock", K3S);
-		client.apps().deployments().inNamespace(namespace).create(deployment);
+		client.apps().deployments().inNamespace(namespace).resource(deployment).create();
 		mockDeploymentName = deployment.getMetadata().getName();
 		mockDeploymentImage = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 
 		Service service = client.services().load(getMockService()).get();
 		mockServiceName = service.getMetadata().getName();
-		client.services().inNamespace(namespace).create(service);
+		client.services().inNamespace(namespace).resource(service).create();
 
 		Fabric8Utils.waitForDeployment(client, "wiremock-deployment", namespace, 2, 600);
 	}
