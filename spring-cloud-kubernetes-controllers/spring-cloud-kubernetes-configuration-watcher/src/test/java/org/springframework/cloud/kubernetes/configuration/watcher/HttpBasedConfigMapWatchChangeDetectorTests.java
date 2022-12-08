@@ -25,9 +25,9 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
-import io.kubernetes.client.openapi.models.V1EndpointPort;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
@@ -159,7 +159,7 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		V1EndpointAddress fooEndpointAddress = new V1EndpointAddress();
 		fooEndpointAddress.setIp("127.0.0.1");
 		fooEndpointAddress.setHostname("localhost");
-		V1EndpointPort fooEndpointPort = new V1EndpointPort();
+		CoreV1EndpointPort fooEndpointPort = new CoreV1EndpointPort();
 		fooEndpointPort.setPort(port);
 		List<ServiceInstance> instances = new ArrayList<>();
 		DefaultKubernetesServiceInstance fooServiceInstance = new DefaultKubernetesServiceInstance("foo", "foo",
@@ -183,7 +183,7 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		fooEndpointAddress.setIp("127.0.0.1");
 		fooEndpointAddress.setHostname("localhost");
 
-		V1EndpointPort fooEndpointPort = new V1EndpointPort();
+		CoreV1EndpointPort fooEndpointPort = new CoreV1EndpointPort();
 		fooEndpointPort.setPort(WIRE_MOCK_SERVER.port());
 
 		List<ServiceInstance> instances = new ArrayList<>();

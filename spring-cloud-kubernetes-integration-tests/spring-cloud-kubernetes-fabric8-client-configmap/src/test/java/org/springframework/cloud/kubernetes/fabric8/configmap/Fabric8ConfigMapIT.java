@@ -25,8 +25,8 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -67,7 +67,7 @@ class Fabric8ConfigMapIT {
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
-		client = new DefaultKubernetesClient(config);
+		client = new KubernetesClientBuilder().withConfig(config).build();
 		Fabric8Utils.setUp(client, NAMESPACE);
 		deployManifests();
 	}
@@ -110,7 +110,7 @@ class Fabric8ConfigMapIT {
 
 			ConfigMap configMap = client.configMaps().load(getConfigMap()).get();
 			configMapName = configMap.getMetadata().getName();
-			client.configMaps().create(configMap);
+			client.configMaps().resource(configMap).create();
 
 			Deployment deployment = client.apps().deployments().load(getDeployment()).get();
 
@@ -118,16 +118,16 @@ class Fabric8ConfigMapIT {
 			String currentImage = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(currentImage + ":" + version);
 
-			client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
+			client.apps().deployments().inNamespace(NAMESPACE).resource(deployment).create();
 			deploymentName = deployment.getMetadata().getName();
 
 			Service service = client.services().load(getService()).get();
 			serviceName = service.getMetadata().getName();
-			client.services().inNamespace(NAMESPACE).create(service);
+			client.services().inNamespace(NAMESPACE).resource(service).create();
 
 			Ingress ingress = client.network().v1().ingresses().load(getIngress()).get();
 			ingressName = ingress.getMetadata().getName();
-			client.network().v1().ingresses().inNamespace(NAMESPACE).create(ingress);
+			client.network().v1().ingresses().inNamespace(NAMESPACE).resource(ingress).create();
 
 			Fabric8Utils.waitForDeployment(client, "spring-cloud-kubernetes-fabric8-client-configmap-deployment",
 					NAMESPACE, 2, 600);

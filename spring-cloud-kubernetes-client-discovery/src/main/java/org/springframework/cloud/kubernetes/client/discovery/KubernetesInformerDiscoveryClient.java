@@ -30,8 +30,8 @@ import io.kubernetes.client.extended.wait.Wait;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
-import io.kubernetes.client.openapi.models.V1EndpointPort;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.logging.Log;
@@ -48,7 +48,6 @@ import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
 
 /**
@@ -59,6 +58,10 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 public class KubernetesInformerDiscoveryClient implements DiscoveryClient, InitializingBean {
 
 	private static final Log log = LogFactory.getLog(KubernetesInformerDiscoveryClient.class);
+
+	private static final String PRIMARY_PORT_NAME_LABEL_KEY = "primary-port-name";
+
+	private static final String SECURED_KEY = "secured";
 
 	private final SharedInformerFactory sharedInformerFactory;
 
@@ -146,10 +149,12 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		}
 		final String primaryPortName = discoveredPrimaryPortName.orElse(this.properties.primaryPortName());
 
+		final boolean secured = isSecured(service);
+
 		return ep.getSubsets().stream().filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
 				.flatMap(subset -> {
 					Map<String, String> metadata = new HashMap<>(svcMetadata);
-					List<V1EndpointPort> endpointPorts = subset.getPorts();
+					List<CoreV1EndpointPort> endpointPorts = subset.getPorts();
 					if (this.properties.metadata() != null && this.properties.metadata().addPorts()) {
 						endpointPorts.forEach(
 								p -> metadata.put(StringUtils.hasText(p.getName()) ? p.getName() : UNSET_PORT_NAME,
@@ -168,18 +173,29 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 					return addresses.stream()
 							.map(addr -> new DefaultKubernetesServiceInstance(
 									addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
-									addr.getIp(), port, metadata, false, service.getMetadata().getNamespace(),
+									addr.getIp(), port, metadata, secured, service.getMetadata().getNamespace(),
 									service.getMetadata().getClusterName()));
 				});
 	}
 
-	private int findEndpointPort(List<V1EndpointPort> endpointPorts, String primaryPortName, String serviceId) {
+	private static boolean isSecured(V1Service service) {
+		Optional<String> securedOpt = Optional.empty();
+		if (service.getMetadata() != null && service.getMetadata().getAnnotations() != null) {
+			securedOpt = Optional.ofNullable(service.getMetadata().getAnnotations().get(SECURED_KEY));
+		}
+		if (!securedOpt.isPresent() && service.getMetadata() != null && service.getMetadata().getLabels() != null) {
+			securedOpt = Optional.ofNullable(service.getMetadata().getLabels().get(SECURED_KEY));
+		}
+		return Boolean.parseBoolean(securedOpt.orElse("false"));
+	}
+
+	private int findEndpointPort(List<CoreV1EndpointPort> endpointPorts, String primaryPortName, String serviceId) {
 		if (endpointPorts.size() == 1) {
 			return endpointPorts.get(0).getPort();
 		}
 		else {
 			Map<String, Integer> ports = endpointPorts.stream().filter(p -> StringUtils.hasText(p.getName()))
-					.collect(Collectors.toMap(V1EndpointPort::getName, V1EndpointPort::getPort));
+					.collect(Collectors.toMap(CoreV1EndpointPort::getName, CoreV1EndpointPort::getPort));
 			// This oneliner is looking for a port with a name equal to the primary port
 			// name specified in the service label
 			// or in spring.cloud.kubernetes.discovery.primary-port-name, equal to https,

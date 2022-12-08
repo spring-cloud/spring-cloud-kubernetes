@@ -28,9 +28,9 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.base.HasMetadataOperation;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import io.fabric8.kubernetes.client.dsl.internal.HasMetadataOperation;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -76,7 +76,7 @@ class ConfigMapPollingReloadIT {
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
-		client = new DefaultKubernetesClient(config);
+		client = new KubernetesClientBuilder().withConfig(config).build();
 		Fabric8Utils.setUp(client, NAMESPACE);
 		deployManifests();
 	}
@@ -106,9 +106,9 @@ class ConfigMapPollingReloadIT {
 		// the weird cast comes from :
 		// https://github.com/fabric8io/kubernetes-client/issues/2445
 		((HasMetadataOperation) client.configMaps().inNamespace("default").withName("poll-reload"))
-				.createOrReplace(map);
+			.resource(map).createOrReplace();
 
-		await().timeout(Duration.ofSeconds(30)).until(() -> webClient.method(HttpMethod.GET).retrieve()
+		await().timeout(Duration.ofSeconds(60)).until(() -> webClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("after-change"));
 
 	}
@@ -135,7 +135,7 @@ class ConfigMapPollingReloadIT {
 
 			ConfigMap configMap = client.configMaps().load(getConfigMap()).get();
 			configMapName = configMap.getMetadata().getName();
-			client.configMaps().create(configMap);
+			client.configMaps().resource(configMap).create();
 
 			Deployment deployment = client.apps().deployments().load(getDeployment()).get();
 
@@ -148,11 +148,11 @@ class ConfigMapPollingReloadIT {
 
 			Service service = client.services().load(getService()).get();
 			serviceName = service.getMetadata().getName();
-			client.services().inNamespace(NAMESPACE).create(service);
+			client.services().inNamespace(NAMESPACE).resource(service).create();
 
 			Ingress ingress = client.network().v1().ingresses().load(getIngress()).get();
 			ingressName = ingress.getMetadata().getName();
-			client.network().v1().ingresses().inNamespace(NAMESPACE).create(ingress);
+			client.network().v1().ingresses().inNamespace(NAMESPACE).resource(ingress).create();
 
 			Fabric8Utils.waitForDeployment(client,
 					"spring-cloud-kubernetes-fabric8-client-configmap-deployment-polling-reload", NAMESPACE, 2, 600);

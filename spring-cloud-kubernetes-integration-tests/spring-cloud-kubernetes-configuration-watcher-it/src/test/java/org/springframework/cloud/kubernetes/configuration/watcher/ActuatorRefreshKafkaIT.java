@@ -146,7 +146,7 @@ class ActuatorRefreshKafkaIT {
 		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName(CONFIG_WATCHER_IT_IMAGE)
 				.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "hello world")
 				.build();
-		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
+		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null, null);
 
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/it").build();
@@ -167,36 +167,36 @@ class ActuatorRefreshKafkaIT {
 	}
 
 	private void deployTestApp() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getItDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getItAppService(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getItDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getItAppService(), null, null, null, null);
 
 		V1Ingress ingress = getItIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
 		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
 	private void deployConfigWatcher() throws Exception {
-		api.createNamespacedConfigMap(NAMESPACE, getConfigWatcherConfigMap(), null, null, null);
-		appsApi.createNamespacedDeployment(NAMESPACE, getConfigWatcherDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getConfigWatcherService(), null, null, null);
+		api.createNamespacedConfigMap(NAMESPACE, getConfigWatcherConfigMap(), null, null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getConfigWatcherDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getConfigWatcherService(), null, null, null, null);
 	}
 
 	private void deployZookeeper() throws Exception {
-		api.createNamespacedService(NAMESPACE, getZookeeperService(), null, null, null);
+		api.createNamespacedService(NAMESPACE, getZookeeperService(), null, null, null, null);
 		V1Deployment deployment = getZookeeperDeployment();
 		String[] image = K8SUtils.getImageFromDeployment(deployment).split(":");
 		Commons.pullImage(image[0], image[1], K3S);
 		Commons.loadImage(image[0], image[1], "zookeeper", K3S);
-		appsApi.createNamespacedDeployment(NAMESPACE, deployment, null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, deployment, null, null, null, null);
 	}
 
 	private void deployKafka() throws Exception {
-		api.createNamespacedService(NAMESPACE, getKafkaService(), null, null, null);
+		api.createNamespacedService(NAMESPACE, getKafkaService(), null, null, null, null);
 		V1Deployment deployment = getKafkaDeployment();
 		String[] image = K8SUtils.getImageFromDeployment(deployment).split(":");
 		Commons.pullImage(image[0], image[1], K3S);
 		Commons.loadImage(image[0], image[1], "kafka", K3S);
-		appsApi.createNamespacedDeployment(NAMESPACE, getKafkaDeployment(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getKafkaDeployment(), null, null, null, null);
 	}
 
 	private void cleanUpKafka() throws Exception {

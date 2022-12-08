@@ -142,20 +142,20 @@ class LoadBalancerIT {
 	}
 
 	private void deployLoadbalancerServiceIt() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getLoadbalancerServiceItDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getLoadbalancerItService(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getLoadbalancerServiceItDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getLoadbalancerItService(), null, null, null, null);
 		deployIngress();
 	}
 
 	private void deployLoadbalancerPodIt() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getLoadbalancerPodItDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getLoadbalancerItService(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getLoadbalancerPodItDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getLoadbalancerItService(), null, null, null, null);
 		deployIngress();
 	}
 
 	private void deployIngress() throws Exception {
 		V1Ingress ingress = getLoadbalancerItIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
 		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 

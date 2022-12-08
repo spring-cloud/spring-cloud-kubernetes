@@ -129,7 +129,7 @@ class ActuatorRefreshIT {
 		// Create new configmap to trigger controller to signal app to refresh
 		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName("servicea-wiremock")
 				.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "bar").build();
-		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
+		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null, null);
 
 		// Wait a bit before we verify
 		await().atMost(Duration.ofSeconds(30))
@@ -141,9 +141,9 @@ class ActuatorRefreshIT {
 	private void deployConfigWatcher() throws Exception {
 		V1ConfigMap configMap = getConfigWatcherConfigMap();
 		configWatcherConfigMapName = configMap.getMetadata().getName();
-		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null);
-		appsApi.createNamespacedDeployment(NAMESPACE, getConfigWatcherDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getConfigWatcherService(), null, null, null);
+		api.createNamespacedConfigMap(NAMESPACE, configMap, null, null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getConfigWatcherDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getConfigWatcherService(), null, null, null, null);
 
 		// Check to make sure the controller deployment is ready
 		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_CONFIG_WATCHER_DEPLOYMENT_NAME, NAMESPACE);

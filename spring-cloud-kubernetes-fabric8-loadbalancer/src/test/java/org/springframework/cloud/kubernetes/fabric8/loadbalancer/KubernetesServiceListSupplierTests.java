@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.FilterWatchListMultiDeletable;
+import io.fabric8.kubernetes.client.dsl.AnyNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
@@ -65,7 +65,7 @@ class KubernetesServiceListSupplierTests {
 	ServiceResource<Service> serviceResource;
 
 	@Mock
-	FilterWatchListMultiDeletable<Service, ServiceList> multiDeletable;
+	AnyNamespaceOperation<Service, ServiceList, ServiceResource<Service>> multiDeletable;
 
 	@Test
 	void testPositiveMatch() {

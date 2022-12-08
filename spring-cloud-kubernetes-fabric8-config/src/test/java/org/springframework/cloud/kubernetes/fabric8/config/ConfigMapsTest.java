@@ -35,29 +35,29 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Charles Moulliard
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-public class ConfigMapsTest {
+class ConfigMapsTest {
 
 	private static KubernetesClient mockClient;
 
 	@Test
 	public void testConfigMapList() {
 		mockClient.configMaps().inNamespace("ns1")
-				.create(new ConfigMapBuilder().withNewMetadata().withName("empty").endMetadata().build());
+				.resource(new ConfigMapBuilder().withNewMetadata().withName("empty").endMetadata().build()).create();
 
 		ConfigMapList configMapList = mockClient.configMaps().inNamespace("ns1").list();
 		assertThat(configMapList).isNotNull();
 		// metadata is an element
 		assertThat(configMapList.getItems().size()).isEqualTo(1);
-		assertThat(configMapList.getItems().get(0).getData()).isNull();
+		assertThat(configMapList.getItems().get(0).getData()).isEmpty();
 	}
 
 	@Test
-	public void testConfigMapGet() {
+	void testConfigMapGet() {
 
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("reload-example").endMetadata()
 				.addToData("KEY", "123").build();
 
-		mockClient.configMaps().inNamespace("ns2").create(configMap);
+		mockClient.configMaps().inNamespace("ns2").resource(configMap).create();
 
 		ConfigMapList configMapList = mockClient.configMaps().inNamespace("ns2").list();
 		assertThat(configMapList).isNotNull();
@@ -68,13 +68,13 @@ public class ConfigMapsTest {
 	}
 
 	@Test
-	public void testConfigMapFromSingleApplicationProperties() {
+	void testConfigMapFromSingleApplicationProperties() {
 		String configMapName = "app-properties-test";
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
 				.addToData("application.properties", ConfigMapTestUtil.readResourceFile("application.properties"))
 				.build();
 
-		mockClient.configMaps().inNamespace("test").create(configMap);
+		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
@@ -86,12 +86,12 @@ public class ConfigMapsTest {
 	}
 
 	@Test
-	public void testConfigMapFromSingleApplicationYaml() {
+	void testConfigMapFromSingleApplicationYaml() {
 		String configMapName = "app-yaml-test";
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
 				.addToData("application.yaml", ConfigMapTestUtil.readResourceFile("application.yaml")).build();
 
-		mockClient.configMaps().inNamespace("test").create(configMap);
+		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
@@ -103,12 +103,12 @@ public class ConfigMapsTest {
 	}
 
 	@Test
-	public void testConfigMapFromSingleNonStandardFileName() {
+	void testConfigMapFromSingleNonStandardFileName() {
 		String configMapName = "single-non-standard-test";
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
 				.addToData("adhoc.yml", ConfigMapTestUtil.readResourceFile("adhoc.yml")).build();
 
-		mockClient.configMaps().inNamespace("test").create(configMap);
+		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
@@ -120,12 +120,12 @@ public class ConfigMapsTest {
 	}
 
 	@Test
-	public void testConfigMapFromSingleInvalidPropertiesContent() {
+	void testConfigMapFromSingleInvalidPropertiesContent() {
 		String configMapName = "single-unparseable-properties-test";
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
 				.addToData("application.properties", "somevalue").build();
 
-		mockClient.configMaps().inNamespace("test").create(configMap);
+		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "namespace", false, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
@@ -135,12 +135,12 @@ public class ConfigMapsTest {
 	}
 
 	@Test
-	public void testConfigMapFromSingleInvalidYamlContent() {
+	void testConfigMapFromSingleInvalidYamlContent() {
 		String configMapName = "single-unparseable-yaml-test";
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
 				.addToData("application.yaml", "somevalue").build();
 
-		mockClient.configMaps().inNamespace("test").create(configMap);
+		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "namespace", false, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 
@@ -150,13 +150,13 @@ public class ConfigMapsTest {
 	}
 
 	@Test
-	public void testConfigMapFromMultipleApplicationProperties() {
+	void testConfigMapFromMultipleApplicationProperties() {
 		String configMapName = "app-multiple-properties-test";
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
 				.addToData("application.properties", ConfigMapTestUtil.readResourceFile("application.properties"))
 				.addToData("adhoc.properties", ConfigMapTestUtil.readResourceFile("adhoc.properties")).build();
 
-		mockClient.configMaps().inNamespace("test").create(configMap);
+		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
 

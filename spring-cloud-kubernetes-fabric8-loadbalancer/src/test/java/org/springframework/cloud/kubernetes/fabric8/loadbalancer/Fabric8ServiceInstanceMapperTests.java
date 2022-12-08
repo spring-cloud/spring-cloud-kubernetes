@@ -114,7 +114,7 @@ class Fabric8ServiceInstanceMapperTests {
 
 	private Service buildService(String name, String uid, List<ServicePort> ports, Map<String, String> labels,
 			Map<String, String> annotations) {
-		return new ServiceBuilder().withNewMetadata().withName(name).withNewUid(uid).addToLabels(labels)
+		return new ServiceBuilder().withNewMetadata().withName(name).withUid(uid).addToLabels(labels)
 				.withAnnotations(annotations).endMetadata().withNewSpec().addAllToPorts(ports).endSpec().build();
 	}
 

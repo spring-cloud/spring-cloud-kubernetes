@@ -82,7 +82,7 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 	private V1Pod internalGetPod() {
 		try {
 			if (isServiceHostEnvVarPresent() && isHostNameEnvVarPresent() && isServiceAccountFound()) {
-				return client.readNamespacedPod(hostName, namespace, null, null, null);
+				return client.readNamespacedPod(hostName, namespace, null);
 			}
 		}
 		catch (Throwable t) {

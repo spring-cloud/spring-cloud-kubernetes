@@ -153,11 +153,11 @@ class ActuatorEndpointIT {
 	}
 
 	private static void deployCoreK8sClientIt() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getCoreK8sClientItDeployment(), null, null, null);
-		api.createNamespacedService(NAMESPACE, getCoreK8sClientItService(), null, null, null);
+		appsApi.createNamespacedDeployment(NAMESPACE, getCoreK8sClientItDeployment(), null, null, null, null);
+		api.createNamespacedService(NAMESPACE, getCoreK8sClientItService(), null, null, null, null);
 
 		V1Ingress ingress = getCoreK8sClientItIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null);
+		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
 		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
 	}
 
