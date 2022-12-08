@@ -20,67 +20,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
-import io.fabric8.kubernetes.api.model.EndpointSubset;
-import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
-import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.EndpointsBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
-import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.context.ApplicationEventPublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
- * Some tests that use the fabric8 mock client, using Endpoints
+ * Tests for endpoints based catalog watch
  *
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-class Fabric8KubernetesCatalogWatchEndpointsTests {
+class Fabric8KubernetesCatalogWatchEndpointsTests extends EndpointsAndEndpointSlicesTests {
 
-	private final KubernetesNamespaceProvider namespaceProvider = Mockito.mock(KubernetesNamespaceProvider.class);
-
-	private static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
-			.forClass(HeartbeatEvent.class);
-
-	private static final ApplicationEventPublisher APPLICATION_EVENT_PUBLISHER = Mockito
-			.mock(ApplicationEventPublisher.class);
+	private static final Boolean ENDPOINT_SLICES = false;
 
 	private static KubernetesClient mockClient;
-
-	@BeforeAll
-	static void setUp() {
-		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
-		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
-		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
-	}
-
-	@AfterEach
-	void afterEach() {
-		Mockito.reset(APPLICATION_EVENT_PUBLISHER);
-		mockClient.endpoints().inAnyNamespace().delete();
-	}
 
 	/**
 	 * <pre>
@@ -98,9 +58,11 @@ class Fabric8KubernetesCatalogWatchEndpointsTests {
 	 * </pre>
 	 */
 	@Test
-	void testEndpointsInSpecificNamespaceWithServiceLabels() {
+	@Override
+	void testInSpecificNamespaceWithServiceLabels() {
 
-		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceAndLabels("namespaceA", Map.of("color", "blue"));
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceAndLabels(
+			"namespaceA", Map.of("color", "blue"), ENDPOINT_SLICES);
 
 		createSingleEndpoints("namespaceA", Map.of(), "podA");
 		createSingleEndpoints("namespaceA", Map.of("color", "blue"), "podB");
@@ -138,9 +100,11 @@ class Fabric8KubernetesCatalogWatchEndpointsTests {
 	 * </pre>
 	 */
 	@Test
-	void testEndpointsInSpecificNamespaceWithoutServiceLabels() {
+	@Override
+	void testInSpecificNamespaceWithoutServiceLabels() {
 
-		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceAndLabels("namespaceA", Map.of());
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceAndLabels(
+			"namespaceA", Map.of(), ENDPOINT_SLICES);
 
 		createSingleEndpoints("namespaceA", Map.of(), "podA");
 		createSingleEndpoints("namespaceA", Map.of("color", "blue"), "podB");
@@ -178,9 +142,11 @@ class Fabric8KubernetesCatalogWatchEndpointsTests {
 	 * </pre>
 	 */
 	@Test
-	void testEndpointsInAllNamespacesWithServiceLabels() {
+	@Override
+	void testInAllNamespacesWithServiceLabels() {
 
-		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(Map.of("color", "blue"), Set.of());
+		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(
+			Map.of("color", "blue"), Set.of(), ENDPOINT_SLICES);
 
 		createSingleEndpoints("namespaceA", Map.of(), "podA");
 		createSingleEndpoints("namespaceA", Map.of("color", "blue"), "podB");
@@ -216,9 +182,11 @@ class Fabric8KubernetesCatalogWatchEndpointsTests {
 	 * </pre>
 	 */
 	@Test
-	void testEndpointsInAllNamespacesWithoutServiceLabels() {
+	@Override
+	void testInAllNamespacesWithoutServiceLabels() {
 
-		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(Map.of(), Set.of());
+		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(
+			Map.of(), Set.of(), ENDPOINT_SLICES);
 
 		createSingleEndpoints("namespaceA", Map.of(), "podA");
 		createSingleEndpoints("namespaceA", Map.of("color", "blue"), "podB");
@@ -257,9 +225,11 @@ class Fabric8KubernetesCatalogWatchEndpointsTests {
 	 * </pre>
 	 */
 	@Test
+	@Override
 	void testAllNamespacesTrueOtherBranchesNotCalled() {
 
-		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(Map.of("color", "blue"), Set.of("B"));
+		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(
+			Map.of("color", "blue"), Set.of("B"), ENDPOINT_SLICES);
 
 		createSingleEndpoints("namespaceA", Map.of(), "podA");
 		createSingleEndpoints("namespaceA", Map.of("color", "blue"), "podB");
@@ -339,7 +309,8 @@ class Fabric8KubernetesCatalogWatchEndpointsTests {
 	@Test
 	void testAllNamespacesFalseNamespacesNotPresent() {
 
-		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceAndLabels("namespaceA", Map.of("color", "blue"));
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceAndLabels(
+			"namespaceA", Map.of("color", "blue"), ENDPOINT_SLICES);
 
 		createSingleEndpoints("namespaceA", Map.of(), "podA");
 		createSingleEndpoints("namespaceA", Map.of("color", "blue"), "podB");
@@ -404,58 +375,9 @@ class Fabric8KubernetesCatalogWatchEndpointsTests {
 		assertThat(event.getValue()).isEqualTo(expectedOutput);
 	}
 
-	private KubernetesCatalogWatch createWatcherInSpecificNamespaceAndLabels(String namespace,
-			Map<String, String> labels) {
-
-		when(namespaceProvider.getNamespace()).thenReturn(namespace);
-
-		// all-namespaces = false
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, "", Set.of(), labels, "", null, 0, false);
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
-		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
-		watch.postConstruct();
-		return watch;
-
-	}
-
-	private KubernetesCatalogWatch createWatcherInSpecificNamespacesAndLabels(Set<String> namespaces,
-			Map<String, String> labels) {
-
-		// all-namespaces = false
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, namespaces, true, 60,
-				false, "", Set.of(), labels, "", null, 0, false);
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
-		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
-		watch.postConstruct();
-		return watch;
-
-	}
-
-	private KubernetesCatalogWatch createWatcherInAllNamespacesAndLabels(Map<String, String> labels,
-			Set<String> namespaces) {
-
-		// all-namespaces = true
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, namespaces, true, 60,
-				false, "", Set.of(), labels, "", null, 0, false);
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
-		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
-		watch.postConstruct();
-		return watch;
-
-	}
-
-	private static void createSingleEndpoints(String namespace, Map<String, String> labels, String podName) {
-
-		EndpointAddress endpointAddress = new EndpointAddressBuilder()
-				.withTargetRef(new ObjectReferenceBuilder().withName(podName).withNamespace(namespace).build()).build();
-
-		EndpointSubset endpointSubset = new EndpointSubsetBuilder().withAddresses(List.of(endpointAddress)).build();
-
-		Endpoints endpoints = new EndpointsBuilder()
-				.withMetadata(new ObjectMetaBuilder().withLabels(labels).withName("endpoints-" + podName).build())
-				.withSubsets(List.of(endpointSubset)).build();
-		mockClient.endpoints().inNamespace(namespace).create(endpoints);
+	// work-around for : https://github.com/fabric8io/kubernetes-client/issues/4649
+	static KubernetesClient endpointsMockClient() {
+		return mockClient;
 	}
 
 }

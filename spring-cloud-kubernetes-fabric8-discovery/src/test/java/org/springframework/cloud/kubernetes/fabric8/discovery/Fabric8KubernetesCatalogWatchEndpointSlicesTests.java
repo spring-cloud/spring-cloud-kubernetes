@@ -24,40 +24,26 @@ import io.fabric8.kubernetes.api.model.APIGroup;
 import io.fabric8.kubernetes.api.model.APIGroupBuilder;
 import io.fabric8.kubernetes.api.model.APIGroupList;
 import io.fabric8.kubernetes.api.model.APIGroupListBuilder;
-import io.fabric8.kubernetes.api.model.APIResource;
-import io.fabric8.kubernetes.api.model.APIResourceBuilder;
 import io.fabric8.kubernetes.api.model.APIResourceList;
 import io.fabric8.kubernetes.api.model.APIResourceListBuilder;
 import io.fabric8.kubernetes.api.model.GroupVersionForDiscovery;
 import io.fabric8.kubernetes.api.model.GroupVersionForDiscoveryBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
-import io.fabric8.kubernetes.api.model.discovery.v1.Endpoint;
-import io.fabric8.kubernetes.api.model.discovery.v1.EndpointBuilder;
 import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSlice;
-import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSliceBuilder;
 import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSliceList;
 import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSliceListBuilder;
-import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.context.ApplicationEventPublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Some tests that use the fabric8 mock client, using EndpointSlices
@@ -65,40 +51,17 @@ import static org.mockito.Mockito.when;
  * @author wind57
  */
 @EnableKubernetesMockClient
-class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
+class Fabric8KubernetesCatalogWatchEndpointSlicesTests extends EndpointsAndEndpointSlicesTests {
 
-	private final KubernetesNamespaceProvider namespaceProvider = Mockito.mock(KubernetesNamespaceProvider.class);
-
-	private static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
-			.forClass(HeartbeatEvent.class);
-
-	private static final ApplicationEventPublisher APPLICATION_EVENT_PUBLISHER = Mockito
-			.mock(ApplicationEventPublisher.class);
-
-	private static KubernetesClient mockClient;
+	private static final Boolean ENDPOINT_SLICES = true;
 
 	private static KubernetesMockServer mockServer;
 
-	@BeforeAll
-	static void setUp() {
-		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
-		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
-		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
-
-	}
-
-	@AfterEach
-	void beforeEach() {
-		mockServer.clearExpectations();
-	}
+	private static KubernetesClient mockClient;
 
 	@AfterEach
 	void afterEach() {
-		Mockito.reset(APPLICATION_EVENT_PUBLISHER);
+		endpointSlicesMockServer().clearExpectations();
 	}
 
 	/**
@@ -112,23 +75,17 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 	 * </pre>
 	 */
 	@Test
-	void testEndpointSlicesInSpecificNamespaceWithServiceLabels() {
+	@Override
+	void testInSpecificNamespaceWithServiceLabels() {
 
-		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceAndLabels("namespaceA", Map.of("color", "blue"));
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceAndLabels(
+			"namespaceA", Map.of("color", "blue"), ENDPOINT_SLICES);
 
-		EndpointSlice sliceB = createSingleEndpointWithEndpointSlices("namespaceA", Map.of("color", "blue"), "podB");
-		EndpointSliceList listInNamespaceA = new EndpointSliceListBuilder().withItems(sliceB).build();
-
-		mockServer.expect()
-				.withPath("/apis/discovery.k8s.io/v1/namespaces/namespaceA/endpointslices?labelSelector=color%3Dblue")
-				.andReturn(200, listInNamespaceA).once();
-
-		// this is mocked, but never supposed to be called
-		EndpointSlice sliceD = createSingleEndpointWithEndpointSlices("namespaceB", Map.of("color", "blue"), "podD");
-		EndpointSliceList listInNamespaceB = new EndpointSliceListBuilder().withItems(sliceD).build();
-		mockServer.expect()
-				.withPath("/apis/discovery.k8s.io/v1/namespaces/namespaceB/endpointslices?labelSelector=color%3Dblue")
-				.andReturn(200, listInNamespaceB);
+		createEndpointSlice("namespaceA", Map.of(), "podA");
+		createEndpointSlice("namespaceA", Map.of("color", "blue"), "podB");
+		createEndpointSlice("namespaceA", Map.of("color", "red"), "podC");
+		createEndpointSlice("namespaceB", Map.of("color", "blue"), "podD");
+		createEndpointSlice("namespaceB", Map.of(), "podE");
 
 		watch.catalogServicesWatch();
 
@@ -160,34 +117,36 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 	 * </pre>
 	 */
 	@Test
-	void testEndpointsInSpecificNamespaceWithoutServiceLabels() {
+	@Override
+	void testInSpecificNamespaceWithoutServiceLabels() {
 
-		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceAndLabels("namespaceA", Map.of());
-
-		EndpointSlice sliceA = createSingleEndpointWithEndpointSlices("namespaceA", Map.of(), "podA");
-		EndpointSlice sliceB = createSingleEndpointWithEndpointSlices("namespaceA", Map.of("color", "blue"), "podB");
-		EndpointSlice sliceC = createSingleEndpointWithEndpointSlices("namespaceA", Map.of("color", "red"), "podC");
-		EndpointSliceList listInNamespaceA = new EndpointSliceListBuilder().withItems(sliceA, sliceB, sliceC).build();
-		mockServer.expect().withPath("/apis/discovery.k8s.io/v1/namespaces/namespaceA/endpointslices")
-				.andReturn(200, listInNamespaceA).once();
-
-		// this is mocked, but never supposed to be called
-		EndpointSlice sliceD = createSingleEndpointWithEndpointSlices("namespaceB", Map.of("color", "blue"), "podD");
-		EndpointSlice sliceE = createSingleEndpointWithEndpointSlices("namespaceB", Map.of(), "podE");
-		EndpointSliceList listInNamespaceB = new EndpointSliceListBuilder().withItems(sliceD, sliceE).build();
-		mockServer.expect().withPath("/apis/discovery.k8s.io/v1/namespaces/namespaceB/endpointslices")
-				.andReturn(200, listInNamespaceB).once();
-
-		watch.catalogServicesWatch();
-
-		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
-
-		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
-		assertThat(event.getValue()).isInstanceOf(List.class);
-
-		List<EndpointNameAndNamespace> expectedOutput = List.of(new EndpointNameAndNamespace("podA", "namespaceA"),
-				new EndpointNameAndNamespace("podB", "namespaceA"), new EndpointNameAndNamespace("podC", "namespaceA"));
-		assertThat(event.getValue()).isEqualTo(expectedOutput);
+//		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceAndLabels(
+//			"namespaceA", Map.of(), ENDPOINT_SLICES);
+//
+//		EndpointSlice sliceA = createSingleEndpointWithEndpointSlices("namespaceA", Map.of(), "podA");
+//		EndpointSlice sliceB = createSingleEndpointWithEndpointSlices("namespaceA", Map.of("color", "blue"), "podB");
+//		EndpointSlice sliceC = createSingleEndpointWithEndpointSlices("namespaceA", Map.of("color", "red"), "podC");
+//		EndpointSliceList listInNamespaceA = new EndpointSliceListBuilder().withItems(sliceA, sliceB, sliceC).build();
+//		endpointSlicesMockServer().expect().withPath("/apis/discovery.k8s.io/v1/namespaces/namespaceA/endpointslices")
+//				.andReturn(200, listInNamespaceA).once();
+//
+//		// this is mocked, but never supposed to be called
+//		EndpointSlice sliceD = createSingleEndpointWithEndpointSlices("namespaceB", Map.of("color", "blue"), "podD");
+//		EndpointSlice sliceE = createSingleEndpointWithEndpointSlices("namespaceB", Map.of(), "podE");
+//		EndpointSliceList listInNamespaceB = new EndpointSliceListBuilder().withItems(sliceD, sliceE).build();
+//		endpointSlicesMockServer().expect().withPath("/apis/discovery.k8s.io/v1/namespaces/namespaceB/endpointslices")
+//				.andReturn(200, listInNamespaceB).once();
+//
+//		watch.catalogServicesWatch();
+//
+//		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
+//
+//		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
+//		assertThat(event.getValue()).isInstanceOf(List.class);
+//
+//		List<EndpointNameAndNamespace> expectedOutput = List.of(new EndpointNameAndNamespace("podA", "namespaceA"),
+//				new EndpointNameAndNamespace("podB", "namespaceA"), new EndpointNameAndNamespace("podC", "namespaceA"));
+//		assertThat(event.getValue()).isEqualTo(expectedOutput);
 	}
 
 	/**
@@ -205,26 +164,28 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 	 * </pre>
 	 */
 	@Test
-	void testEndpointsInAllNamespacesWithServiceLabels() {
+	@Override
+	void testInAllNamespacesWithServiceLabels() {
 
-		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(Map.of("color", "blue"));
-
-		EndpointSlice sliceB = createSingleEndpointWithEndpointSlices("namespaceA", Map.of("color", "blue"), "podB");
-		EndpointSlice sliceD = createSingleEndpointWithEndpointSlices("namespaceB", Map.of("color", "blue"), "podD");
-		EndpointSliceList listInAllNamespaces = new EndpointSliceListBuilder().withItems(sliceB, sliceD).build();
-		mockServer.expect().withPath("/apis/discovery.k8s.io/v1/endpointslices?labelSelector=color%3Dblue")
-				.andReturn(200, listInAllNamespaces).once();
-
-		watch.catalogServicesWatch();
-
-		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
-
-		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
-		assertThat(event.getValue()).isInstanceOf(List.class);
-
-		List<EndpointNameAndNamespace> expectedOutput = List.of(new EndpointNameAndNamespace("podB", "namespaceA"),
-				new EndpointNameAndNamespace("podD", "namespaceB"));
-		assertThat(event.getValue()).isEqualTo(expectedOutput);
+//		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(
+//			Map.of("color", "blue"), Set.of(), ENDPOINT_SLICES);
+//
+//		EndpointSlice sliceB = createSingleEndpointWithEndpointSlices("namespaceA", Map.of("color", "blue"), "podB");
+//		EndpointSlice sliceD = createSingleEndpointWithEndpointSlices("namespaceB", Map.of("color", "blue"), "podD");
+//		EndpointSliceList listInAllNamespaces = new EndpointSliceListBuilder().withItems(sliceB, sliceD).build();
+//		endpointSlicesMockServer().expect().withPath("/apis/discovery.k8s.io/v1/endpointslices?labelSelector=color%3Dblue")
+//				.andReturn(200, listInAllNamespaces).once();
+//
+//		watch.catalogServicesWatch();
+//
+//		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
+//
+//		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
+//		assertThat(event.getValue()).isInstanceOf(List.class);
+//
+//		List<EndpointNameAndNamespace> expectedOutput = List.of(new EndpointNameAndNamespace("podB", "namespaceA"),
+//				new EndpointNameAndNamespace("podD", "namespaceB"));
+//		assertThat(event.getValue()).isEqualTo(expectedOutput);
 	}
 
 	/**
@@ -243,31 +204,83 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 	 * </pre>
 	 */
 	@Test
-	void testEndpointsInAllNamespacesWithoutServiceLabels() {
+	@Override
+	void testInAllNamespacesWithoutServiceLabels() {
 
-		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(Map.of());
+//		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(
+//			Map.of(), Set.of(), ENDPOINT_SLICES);
+//
+//		EndpointSlice sliceA = createSingleEndpointWithEndpointSlices("namespaceA", Map.of(), "podA");
+//		EndpointSlice sliceB = createSingleEndpointWithEndpointSlices("namespaceA", Map.of("color", "blue"), "podB");
+//		EndpointSlice sliceC = createSingleEndpointWithEndpointSlices("namespaceA", Map.of("color", "red"), "podC");
+//		EndpointSlice sliceD = createSingleEndpointWithEndpointSlices("namespaceB", Map.of("color", "blue"), "podD");
+//		EndpointSlice sliceE = createSingleEndpointWithEndpointSlices("namespaceB", Map.of(), "podE");
+//		EndpointSliceList listInAllNamespaces = new EndpointSliceListBuilder()
+//				.withItems(sliceA, sliceB, sliceC, sliceD, sliceE).build();
+//		endpointSlicesMockServer().expect().withPath("/apis/discovery.k8s.io/v1/endpointslices").andReturn(200, listInAllNamespaces)
+//				.once();
+//
+//		watch.catalogServicesWatch();
+//
+//		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
+//
+//		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
+//		assertThat(event.getValue()).isInstanceOf(List.class);
+//
+//		List<EndpointNameAndNamespace> expectedOutput = List.of(new EndpointNameAndNamespace("podA", "namespaceA"),
+//				new EndpointNameAndNamespace("podB", "namespaceA"), new EndpointNameAndNamespace("podC", "namespaceA"),
+//				new EndpointNameAndNamespace("podD", "namespaceB"), new EndpointNameAndNamespace("podE", "namespaceB"));
+//		assertThat(event.getValue()).isEqualTo(expectedOutput);
+	}
 
-		EndpointSlice sliceA = createSingleEndpointWithEndpointSlices("namespaceA", Map.of(), "podA");
-		EndpointSlice sliceB = createSingleEndpointWithEndpointSlices("namespaceA", Map.of("color", "blue"), "podB");
-		EndpointSlice sliceC = createSingleEndpointWithEndpointSlices("namespaceA", Map.of("color", "red"), "podC");
-		EndpointSlice sliceD = createSingleEndpointWithEndpointSlices("namespaceB", Map.of("color", "blue"), "podD");
-		EndpointSlice sliceE = createSingleEndpointWithEndpointSlices("namespaceB", Map.of(), "podE");
-		EndpointSliceList listInAllNamespaces = new EndpointSliceListBuilder()
-				.withItems(sliceA, sliceB, sliceC, sliceD, sliceE).build();
-		mockServer.expect().withPath("/apis/discovery.k8s.io/v1/endpointslices").andReturn(200, listInAllNamespaces)
-				.once();
 
-		watch.catalogServicesWatch();
+	/**
+	 * <pre>
+	 *     - all-namespaces = true
+	 *     - namespaces = [namespaceB]
+	 *
+	 *     - we have 5 pods involved in this test
+	 * 	   - podA in namespaceA with no labels
+	 * 	   - podB in namespaceA with labels {color=blue}
+	 * 	   - podC in namespaceA with labels {color=red}
+	 * 	   - podD in namespaceB with labels {color=blue}
+	 * 	   - podE in namespaceB with no labels
+	 *
+	 *     We search with labels = {color = blue}
+	 *     Even if namespaces = [namespaceB], we still take podB and podD, because all-namespace=true
+	 *
+	 * </pre>
+	 */
+	@Test
+	@Override
+	void testAllNamespacesTrueOtherBranchesNotCalled() {
 
-		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
-
-		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
-		assertThat(event.getValue()).isInstanceOf(List.class);
-
-		List<EndpointNameAndNamespace> expectedOutput = List.of(new EndpointNameAndNamespace("podA", "namespaceA"),
-				new EndpointNameAndNamespace("podB", "namespaceA"), new EndpointNameAndNamespace("podC", "namespaceA"),
-				new EndpointNameAndNamespace("podD", "namespaceB"), new EndpointNameAndNamespace("podE", "namespaceB"));
-		assertThat(event.getValue()).isEqualTo(expectedOutput);
+//		KubernetesCatalogWatch watch = createWatcherInAllNamespacesAndLabels(
+//			Map.of("color", "blue"), Set.of("B"), ENDPOINT_SLICES);
+//
+//		EndpointSlice sliceA = createSingleEndpointWithEndpointSlices("namespaceA", Map.of(), "podA");
+//		EndpointSlice sliceB = createSingleEndpointWithEndpointSlices("namespaceA", Map.of("color", "blue"), "podB");
+//		EndpointSlice sliceC = createSingleEndpointWithEndpointSlices("namespaceA", Map.of("color", "red"), "podC");
+//		EndpointSlice sliceD = createSingleEndpointWithEndpointSlices("namespaceB", Map.of("color", "blue"), "podD");
+//		EndpointSlice sliceE = createSingleEndpointWithEndpointSlices("namespaceB", Map.of(), "podE");
+//		EndpointSliceList listInAllNamespaces = new EndpointSliceListBuilder()
+//			.withItems(sliceA, sliceB, sliceC, sliceD, sliceE).build();
+//		endpointSlicesMockServer().expect().withPath("/apis/discovery.k8s.io/v1/endpointslices?labelSelector=color%3Dblue")
+//			.andReturn(200, listInAllNamespaces)
+//			.once();
+//
+//		watch.catalogServicesWatch();
+//
+//		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
+//
+//		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
+//		assertThat(event.getValue()).isInstanceOf(List.class);
+//
+//		List<EndpointNameAndNamespace> expectedOutput = List.of(
+//			new EndpointNameAndNamespace("podB", "namespaceA"),
+//			new EndpointNameAndNamespace("podD", "namespaceB")
+//		);
+//		assertThat(event.getValue()).isEqualTo(expectedOutput);
 	}
 
 	/**
@@ -285,7 +298,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 		APIGroupList groupList = new APIGroupListBuilder().build();
 		mockServer.expect().withPath("/apis").andReturn(200, groupList).always();
 
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
+		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(endpointSlicesMockClient(), properties, NAMESPACE_PROVIDER);
 		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class, watch::postConstruct);
 		Assertions.assertEquals("EndpointSlices are not supported on the cluster", ex.getMessage());
 	}
@@ -311,68 +324,18 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 		APIResourceList apiResourceList = new APIResourceListBuilder().build();
 		mockServer.expect().withPath("/apis/discovery.k8s.io/v1").andReturn(200, apiResourceList).always();
 
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
+		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(endpointSlicesMockClient(), properties, NAMESPACE_PROVIDER);
 		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class, watch::postConstruct);
 		Assertions.assertEquals("EndpointSlices are not supported on the cluster", ex.getMessage());
 	}
 
-	private KubernetesCatalogWatch createWatcherInSpecificNamespaceAndLabels(String namespace,
-			Map<String, String> labels) {
-
-		createEndpointSlicesApiGroup();
-
-		when(namespaceProvider.getNamespace()).thenReturn(namespace);
-
-		// all-namespaces = false
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, "", Set.of(), labels, "", null, 0, true);
-
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
-		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
-		watch.postConstruct();
-		return watch;
-
+	// work-around for : https://github.com/fabric8io/kubernetes-client/issues/4649
+	static KubernetesClient endpointSlicesMockClient() {
+		return mockClient;
 	}
 
-	private KubernetesCatalogWatch createWatcherInAllNamespacesAndLabels(Map<String, String> labels) {
-
-		createEndpointSlicesApiGroup();
-
-		// all-namespaces = true
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), labels, "", null, 0, true);
-
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
-		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
-		watch.postConstruct();
-		return watch;
-
-	}
-
-	private static EndpointSlice createSingleEndpointWithEndpointSlices(String namespace, Map<String, String> labels,
-			String podName) {
-
-		Endpoint endpoint = new EndpointBuilder()
-				.withTargetRef(new ObjectReferenceBuilder().withName(podName).withNamespace(namespace).build()).build();
-
-		return new EndpointSliceBuilder().withMetadata(new ObjectMetaBuilder().withLabels(labels).build())
-				.withEndpoints(endpoint).build();
-
-	}
-
-	// mock KubernetesCatalogWatch::postConstruct
-	private static void createEndpointSlicesApiGroup() {
-
-		GroupVersionForDiscovery forDiscovery = new GroupVersionForDiscoveryBuilder()
-				.withGroupVersion("discovery.k8s.io/v1").build();
-		APIGroup apiGroup = new APIGroupBuilder().withApiVersion("v1").withVersions(forDiscovery).build();
-		APIGroupList groupList = new APIGroupListBuilder().withGroups(apiGroup).build();
-		mockServer.expect().withPath("/apis").andReturn(200, groupList).always();
-
-		APIResource apiResource = new APIResourceBuilder().withKind("EndpointSlice").build();
-		APIResourceList apiResourceList = new APIResourceListBuilder().withResources(apiResource).build();
-		mockServer.expect().withPath("/apis/discovery.k8s.io/v1").andReturn(200, apiResourceList).always();
-
+	static KubernetesMockServer endpointSlicesMockServer() {
+		return mockServer;
 	}
 
 }

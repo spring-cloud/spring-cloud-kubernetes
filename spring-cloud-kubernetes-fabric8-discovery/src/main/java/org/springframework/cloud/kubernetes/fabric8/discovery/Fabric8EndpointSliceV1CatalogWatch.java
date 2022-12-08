@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -44,23 +45,24 @@ final class Fabric8EndpointSliceV1CatalogWatch
 	public List<EndpointNameAndNamespace> apply(Fabric8CatalogWatchContext context) {
 		// take only pods that have endpoints
 		List<EndpointSlice> endpointSlices;
+		KubernetesClient client = context.kubernetesClient();
+
 		if (context.properties().allNamespaces()) {
 			LOG.debug(() -> "discovering endpoints in all namespaces");
-
-			// can't use try with resources here as it will close the client
-			KubernetesClient client = context.kubernetesClient();
 			endpointSlices = client.discovery().v1().endpointSlices().inAnyNamespace()
 					.withLabels(context.properties().serviceLabels()).list().getItems();
+		}
+		else if (!context.properties().namespaces().isEmpty()) {
+			LOG.debug(() -> "discovering endpoints in " + context.properties().namespaces());
+			List<EndpointSlice> inner = new ArrayList<>(context.properties().namespaces().size());
+			context.properties().namespaces().forEach(namespace -> inner.addAll(endpointSlices(context, namespace, client)));
+			endpointSlices = inner;
 		}
 		else {
 			String namespace = Fabric8Utils.getApplicationNamespace(context.kubernetesClient(), null, "catalog-watcher",
 					context.namespaceProvider());
-			LOG.debug(() -> "fabric8 catalog watcher will use namespace : " + namespace);
-
-			// can't use try with resources here as it will close the client
-			KubernetesClient client = context.kubernetesClient();
-			endpointSlices = client.discovery().v1().endpointSlices().inNamespace(namespace)
-					.withLabels(context.properties().serviceLabels()).list().getItems();
+			LOG.debug(() -> "discovering endpoints in namespace : " + namespace);
+			endpointSlices = endpointSlices(context, namespace, client);
 		}
 
 		Stream<ObjectReference> references = endpointSlices.stream().map(EndpointSlice::getEndpoints)
@@ -68,6 +70,11 @@ final class Fabric8EndpointSliceV1CatalogWatch
 
 		return Fabric8CatalogWatchContext.state(references);
 
+	}
+
+	private List<EndpointSlice> endpointSlices(Fabric8CatalogWatchContext context, String namespace, KubernetesClient client) {
+		return client.discovery().v1().endpointSlices().inNamespace(namespace)
+			.withLabels(context.properties().serviceLabels()).list().getItems();
 	}
 
 }
