@@ -16,8 +16,20 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.reactive;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.util.HashMap;
 import java.util.Set;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.mock.env.MockEnvironment;
 
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Cache;
@@ -27,22 +39,12 @@ import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import io.kubernetes.client.openapi.models.V1ServiceStatus;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+
 import reactor.test.StepVerifier;
-
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.mock.env.MockEnvironment;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Ryan Baxter
@@ -66,13 +68,16 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
 					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 
+	private static final V1Pod testV1pod = new V1Pod()
+		.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"));
+
 	@Test
 	public void testDiscoveryGetServicesAllNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				new KubernetesNamespaceProvider(new MockEnvironment()), sharedInformerFactory, serviceLister, null,
-				null, null, KubernetesDiscoveryProperties.DEFAULT);
+				null, null, null, KubernetesDiscoveryProperties.DEFAULT);
 
 		StepVerifier.create(discoveryClient.getServices())
 				.expectNext(testService1.getMetadata().getName(), testService2.getMetadata().getName()).expectComplete()
@@ -87,7 +92,7 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("namespace1");
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, null, null, null,
+				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, null, null, null, null,
 				KubernetesDiscoveryProperties.DEFAULT);
 
 		StepVerifier.create(discoveryClient.getServices()).expectNext(testService1.getMetadata().getName())
@@ -99,13 +104,14 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 	public void testDiscoveryGetInstanceAllNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
+		Lister<V1Pod> v1PodLister = setupPodsLister(testV1pod);
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
 				Set.of(), true, 60, false, null, Set.of(), null, null, null, 0, false);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				new KubernetesNamespaceProvider(new MockEnvironment()), sharedInformerFactory, serviceLister,
-				endpointsLister, null, null, kubernetesDiscoveryProperties);
+				endpointsLister, null, v1PodLister, null, kubernetesDiscoveryProperties);
 
 		StepVerifier
 				.create(discoveryClient.getInstances("test-svc-1")).expectNext(new DefaultKubernetesServiceInstance("",
@@ -118,6 +124,7 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 	public void testDiscoveryGetInstanceOneNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
+		Lister<V1Pod> v1PodLister = setupPodsLister(testV1pod);
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, false,
 				Set.of(), true, 60, false, null, Set.of(), null, null, null, 0, false);
@@ -125,7 +132,7 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("namespace1");
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, endpointsLister, null, null,
+				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, endpointsLister, null, v1PodLister, null,
 				kubernetesDiscoveryProperties);
 
 		StepVerifier
@@ -151,6 +158,15 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 			endpointsCache.add(ep);
 		}
 		return endpointsLister;
+	}
+
+	private Lister<V1Pod> setupPodsLister(V1Pod... v1Pods) {
+		Cache<V1Pod> v1PodCache = new Cache<>();
+		Lister<V1Pod> v1PodLister = new Lister<>(v1PodCache);
+		for (V1Pod ep : v1Pods) {
+			v1PodCache.add(ep);
+		}
+		return v1PodLister;
 	}
 
 }

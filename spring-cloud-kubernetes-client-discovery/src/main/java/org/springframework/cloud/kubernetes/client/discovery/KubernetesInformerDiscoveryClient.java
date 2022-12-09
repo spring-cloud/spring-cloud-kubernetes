@@ -16,26 +16,24 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import io.kubernetes.client.extended.wait.Wait;
-import io.kubernetes.client.informer.SharedInformer;
-import io.kubernetes.client.informer.SharedInformerFactory;
-import io.kubernetes.client.informer.cache.Lister;
-import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
-import io.kubernetes.client.openapi.models.V1EndpointAddress;
-import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1Service;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cloud.client.ServiceInstance;
@@ -44,11 +42,20 @@ import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesS
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
+import io.kubernetes.client.extended.wait.Wait;
+import io.kubernetes.client.informer.SharedInformer;
+import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
+import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1ObjectReference;
+import io.kubernetes.client.openapi.models.V1Pod;
+import io.kubernetes.client.openapi.models.V1Service;
 
 /**
  * @author Min Kim
@@ -71,21 +78,24 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 	private final Lister<V1Endpoints> endpointsLister;
 
+	private final Lister<V1Pod> podLister;
+
 	private final KubernetesDiscoveryProperties properties;
 
 	private final String namespace;
 
 	public KubernetesInformerDiscoveryClient(String namespace, SharedInformerFactory sharedInformerFactory,
-			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
-			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
-			KubernetesDiscoveryProperties properties) {
+		Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
+		SharedInformer<V1Service> serviceInformer,
+		Lister<V1Pod> podLister, SharedInformer<V1Endpoints> endpointsInformer,
+		KubernetesDiscoveryProperties properties) {
 		this.namespace = namespace;
 		this.sharedInformerFactory = sharedInformerFactory;
 
 		this.serviceLister = serviceLister;
 		this.endpointsLister = endpointsLister;
 		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
-
+		this.podLister = podLister;
 		this.properties = properties;
 	}
 
@@ -135,6 +145,9 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 			}
 		}
 
+		Map<String, V1ObjectMeta> podMap =
+			properties.allNamespaces() ? getPodMetaMap(this.podLister.list(), serviceId) : getPodMetaMap(this.podLister.namespace(this.namespace).list(), serviceId);
+
 		V1Endpoints ep = this.endpointsLister.namespace(service.getMetadata().getNamespace())
 				.get(service.getMetadata().getName());
 		if (ep == null || ep.getSubsets() == null) {
@@ -171,10 +184,27 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 					final int port = findEndpointPort(endpointPorts, primaryPortName, serviceId);
 					return addresses.stream()
-							.map(addr -> new DefaultKubernetesServiceInstance(
+							.map(addr -> {
+								Map<String, String> newMetaData = new HashMap<>(metadata);
+								if (!CollectionUtils.isEmpty(podMap)) {
+									V1ObjectReference targetRef = addr.getTargetRef();
+									if (!ObjectUtils.isEmpty(targetRef)) {
+										String name = targetRef.getName();
+										if (!ObjectUtils.isEmpty(name)) {
+											Optional.ofNullable(podMap.get(name)).ifPresent(podMetaData ->
+											{
+												if (!CollectionUtils.isEmpty(podMetaData.getLabels())) {
+													newMetaData.putAll(podMetaData.getLabels());
+												}
+											});
+										}
+									}
+								}
+								return new DefaultKubernetesServiceInstance(
 									addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
-									addr.getIp(), port, metadata, secured, service.getMetadata().getNamespace(),
-									service.getMetadata().getClusterName()));
+									addr.getIp(), port, newMetaData, secured, service.getMetadata().getNamespace(),
+									service.getMetadata().getClusterName());
+							});
 				});
 	}
 
@@ -273,6 +303,13 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 				.allMatch(k -> service.getMetadata().getLabels() != null
 						&& service.getMetadata().getLabels().containsKey(k)
 						&& service.getMetadata().getLabels().get(k).equals(properties.serviceLabels().get(k)));
+	}
+
+	private Map<String, V1ObjectMeta> getPodMetaMap(List<V1Pod> pods, String serviceId) {
+		return pods.stream()
+			.map(V1Pod::getMetadata)
+			.filter(metadata -> Objects.requireNonNull(Objects.requireNonNull(metadata).getName()).contains(serviceId))
+			.collect(Collectors.toMap(V1ObjectMeta::getName, Function.identity()));
 	}
 
 }

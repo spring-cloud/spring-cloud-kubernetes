@@ -16,17 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.reactive;
 
-import io.kubernetes.client.informer.SharedInformer;
-import io.kubernetes.client.informer.SharedInformerFactory;
-import io.kubernetes.client.informer.cache.Lister;
-import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1EndpointsList;
-import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceList;
-import io.kubernetes.client.spring.extended.controller.annotation.GroupVersionResource;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformer;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformers;
-
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -50,6 +39,18 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import io.kubernetes.client.informer.SharedInformer;
+import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1EndpointsList;
+import io.kubernetes.client.openapi.models.V1Pod;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceList;
+import io.kubernetes.client.spring.extended.controller.annotation.GroupVersionResource;
+import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformer;
+import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformers;
+
 /**
  * @author Ryan Baxter
  */
@@ -70,10 +71,10 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 	public KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, SharedInformerFactory sharedInformerFactory,
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
-			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
+			SharedInformer<V1Service> serviceInformer, Lister<V1Pod> podLister, SharedInformer<V1Endpoints> endpointsInformer,
 			KubernetesDiscoveryProperties properties) {
 		return new KubernetesInformerReactiveDiscoveryClient(kubernetesNamespaceProvider, sharedInformerFactory,
-				serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
+				serviceLister, endpointsLister, serviceInformer, podLister, endpointsInformer, properties);
 	}
 
 	@Bean
