@@ -55,7 +55,8 @@ final class Fabric8EndpointSliceV1CatalogWatch
 		else if (!context.properties().namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering endpoints in " + context.properties().namespaces());
 			List<EndpointSlice> inner = new ArrayList<>(context.properties().namespaces().size());
-			context.properties().namespaces().forEach(namespace -> inner.addAll(endpointSlices(context, namespace, client)));
+			context.properties().namespaces()
+					.forEach(namespace -> inner.addAll(endpointSlices(context, namespace, client)));
 			endpointSlices = inner;
 		}
 		else {
@@ -72,9 +73,10 @@ final class Fabric8EndpointSliceV1CatalogWatch
 
 	}
 
-	private List<EndpointSlice> endpointSlices(Fabric8CatalogWatchContext context, String namespace, KubernetesClient client) {
+	private List<EndpointSlice> endpointSlices(Fabric8CatalogWatchContext context, String namespace,
+			KubernetesClient client) {
 		return client.discovery().v1().endpointSlices().inNamespace(namespace)
-			.withLabels(context.properties().serviceLabels()).list().getItems();
+				.withLabels(context.properties().serviceLabels()).list().getItems();
 	}
 
 }
