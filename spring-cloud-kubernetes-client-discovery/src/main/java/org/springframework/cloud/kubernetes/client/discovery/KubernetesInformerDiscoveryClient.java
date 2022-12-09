@@ -205,6 +205,10 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 									addr.getIp(), port, newMetaData, secured, service.getMetadata().getNamespace(),
 									service.getMetadata().getClusterName());
 							});
+									addr.getIp(), port, metadata, secured, service.getMetadata().getNamespace(),
+									// TODO find out how to get cluster name possibly from
+									// KubeConfig
+									null));
 				});
 	}
 

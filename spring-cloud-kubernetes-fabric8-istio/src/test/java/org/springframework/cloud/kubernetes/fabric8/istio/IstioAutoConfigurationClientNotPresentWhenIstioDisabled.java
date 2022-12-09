@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.istio;
 
-import me.snowdrop.istio.client.IstioClient;
+import io.fabric8.istio.client.IstioClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;

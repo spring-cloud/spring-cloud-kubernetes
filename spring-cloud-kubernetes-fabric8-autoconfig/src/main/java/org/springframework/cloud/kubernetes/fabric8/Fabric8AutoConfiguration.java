@@ -20,8 +20,8 @@ import java.time.Duration;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
@@ -107,7 +107,7 @@ public class Fabric8AutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public KubernetesClient kubernetesClient(Config config) {
-		return new DefaultKubernetesClient(config);
+		return new KubernetesClientBuilder().withConfig(config).build();
 	}
 
 	@Bean

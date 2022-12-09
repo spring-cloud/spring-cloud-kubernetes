@@ -190,7 +190,8 @@ class ConfigurationWatcherMultipleAppIT {
 				.getImage().split(":");
 		Commons.pullImage(image[0], image[1], K3S);
 		Commons.loadImage(image[0], image[1], "rabbitmq", K3S);
-		api.createNamespacedReplicationController(NAMESPACE, getRabbitMQReplicationController(), null, null, null, null);
+		api.createNamespacedReplicationController(NAMESPACE, getRabbitMQReplicationController(), null, null, null,
+				null);
 	}
 
 	private V1ReplicationController getRabbitMQReplicationController() throws Exception {

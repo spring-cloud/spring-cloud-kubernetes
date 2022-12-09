@@ -47,8 +47,10 @@ class Fabric8ConfigUtilsTests {
 	// "color=red" and do not find it.
 	@Test
 	void testSecretDataByLabelsSecretNotFound() {
-		client.secrets().inNamespace("spring-k8s").create(
-				new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build()).build());
+		client.secrets().inNamespace("spring-k8s")
+				.resource(
+						new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build()).build())
+				.create();
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "red"), new MockEnvironment(), Set.of());
 		Assertions.assertEquals(Map.of(), result.data());
@@ -59,9 +61,10 @@ class Fabric8ConfigUtilsTests {
 	// label and find it.
 	@Test
 	void testSecretDataByLabelsSecretFound() {
-		client.secrets().inNamespace("spring-k8s").create(new SecretBuilder()
+		client.secrets().inNamespace("spring-k8s").resource(new SecretBuilder()
 				.withMetadata(new ObjectMetaBuilder().withName("my-secret").withLabels(Map.of("color", "pink")).build())
-				.addToData(Map.of("property", Base64.getEncoder().encodeToString("value".getBytes()))).build());
+				.addToData(Map.of("property", Base64.getEncoder().encodeToString("value".getBytes()))).build())
+				.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), Set.of());
@@ -74,10 +77,10 @@ class Fabric8ConfigUtilsTests {
 	// it gets some special treatment.
 	@Test
 	void testSecretDataByLabelsSecretFoundWithPropertyFile() {
-		client.secrets().inNamespace("spring-k8s").create(new SecretBuilder()
+		client.secrets().inNamespace("spring-k8s").resource(new SecretBuilder()
 				.withMetadata(new ObjectMetaBuilder().withName("my-secret").withLabels(Map.of("color", "pink")).build())
 				.addToData(Map.of("application.yaml", Base64.getEncoder().encodeToString("key1: value1".getBytes())))
-				.build());
+				.build()).create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), Set.of());
@@ -89,14 +92,16 @@ class Fabric8ConfigUtilsTests {
 	// we search for them by same label and find them.
 	@Test
 	void testSecretDataByLabelsTwoSecretsFound() {
-		client.secrets().inNamespace("spring-k8s").create(new SecretBuilder()
+		client.secrets().inNamespace("spring-k8s").resource(new SecretBuilder()
 				.withMetadata(new ObjectMetaBuilder().withName("my-secret").withLabels(Map.of("color", "pink")).build())
-				.addToData(Map.of("property", Base64.getEncoder().encodeToString("value".getBytes()))).build());
+				.addToData(Map.of("property", Base64.getEncoder().encodeToString("value".getBytes()))).build())
+				.create();
 
-		client.secrets().inNamespace("spring-k8s").create(new SecretBuilder()
+		client.secrets().inNamespace("spring-k8s").resource(new SecretBuilder()
 				.withMetadata(
 						new ObjectMetaBuilder().withName("my-secret-2").withLabels(Map.of("color", "pink")).build())
-				.addToData(Map.of("property-2", Base64.getEncoder().encodeToString("value-2".getBytes()))).build());
+				.addToData(Map.of("property-2", Base64.getEncoder().encodeToString("value-2".getBytes()))).build())
+				.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), Set.of());
@@ -124,28 +129,32 @@ class Fabric8ConfigUtilsTests {
 	@Test
 	void testSecretDataByLabelsThreeSecretsFound() {
 		client.secrets().inNamespace("spring-k8s")
-				.create(new SecretBuilder()
+				.resource(new SecretBuilder()
 						.withMetadata(new ObjectMetaBuilder().withName("blue-circle-secret")
 								.withLabels(Map.of("color", "blue", "shape", "circle", "tag", "fit")).build())
-						.addToData(Map.of("one", Base64.getEncoder().encodeToString("1".getBytes()))).build());
+						.addToData(Map.of("one", Base64.getEncoder().encodeToString("1".getBytes()))).build())
+				.create();
 
 		client.secrets().inNamespace("spring-k8s")
-				.create(new SecretBuilder()
+				.resource(new SecretBuilder()
 						.withMetadata(new ObjectMetaBuilder().withName("blue-square-secret")
 								.withLabels(Map.of("color", "blue", "shape", "square", "tag", "fit")).build())
-						.addToData(Map.of("two", Base64.getEncoder().encodeToString("2".getBytes()))).build());
+						.addToData(Map.of("two", Base64.getEncoder().encodeToString("2".getBytes()))).build())
+				.create();
 
 		client.secrets().inNamespace("spring-k8s")
-				.create(new SecretBuilder()
+				.resource(new SecretBuilder()
 						.withMetadata(new ObjectMetaBuilder().withName("blue-triangle-secret")
 								.withLabels(Map.of("color", "blue", "shape", "triangle", "tag", "no-fit")).build())
-						.addToData(Map.of("three", Base64.getEncoder().encodeToString("3".getBytes()))).build());
+						.addToData(Map.of("three", Base64.getEncoder().encodeToString("3".getBytes()))).build())
+				.create();
 
 		client.secrets().inNamespace("spring-k8s")
-				.create(new SecretBuilder()
+				.resource(new SecretBuilder()
 						.withMetadata(new ObjectMetaBuilder().withName("blue-square-secret-k8s")
 								.withLabels(Map.of("color", "blue", "shape", "triangle", "tag", "no-fit")).build())
-						.addToData(Map.of("four", Base64.getEncoder().encodeToString("4".getBytes()))).build());
+						.addToData(Map.of("four", Base64.getEncoder().encodeToString("4".getBytes()))).build())
+				.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("tag", "fit", "color", "blue"), new MockEnvironment(), Set.of("k8s"));
@@ -163,8 +172,10 @@ class Fabric8ConfigUtilsTests {
 	// secret "my-secret" is deployed; we search for it by name and do not find it.
 	@Test
 	void testSecretDataByNameSecretNotFound() {
-		client.secrets().inNamespace("spring-k8s").create(
-				new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build()).build());
+		client.secrets().inNamespace("spring-k8s")
+				.resource(
+						new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build()).build())
+				.create();
 		LinkedHashSet<String> names = new LinkedHashSet<>();
 		names.add("nope");
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
@@ -177,8 +188,9 @@ class Fabric8ConfigUtilsTests {
 	@Test
 	void testSecretDataByNameSecretFound() {
 		client.secrets().inNamespace("spring-k8s")
-				.create(new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build())
-						.addToData(Map.of("property", Base64.getEncoder().encodeToString("value".getBytes()))).build());
+				.resource(new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build())
+						.addToData(Map.of("property", Base64.getEncoder().encodeToString("value".getBytes()))).build())
+				.create();
 		LinkedHashSet<String> names = new LinkedHashSet<>();
 		names.add("my-secret");
 
@@ -193,13 +205,15 @@ class Fabric8ConfigUtilsTests {
 	@Test
 	void testSecretDataByNameTwoSecretsFound() {
 		client.secrets().inNamespace("spring-k8s")
-				.create(new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build())
-						.addToData(Map.of("property", Base64.getEncoder().encodeToString("value".getBytes()))).build());
+				.resource(new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build())
+						.addToData(Map.of("property", Base64.getEncoder().encodeToString("value".getBytes()))).build())
+				.create();
 
 		client.secrets().inNamespace("spring-k8s")
-				.create(new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret-2").build())
+				.resource(new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret-2").build())
 						.addToData(Map.of("property-2", Base64.getEncoder().encodeToString("value-2".getBytes())))
-						.build());
+						.build())
+				.create();
 		LinkedHashSet<String> names = new LinkedHashSet<>();
 		names.add("my-secret");
 		names.add("my-secret-2");
@@ -218,8 +232,9 @@ class Fabric8ConfigUtilsTests {
 	// and find it; but it has no data.
 	@Test
 	void testConfigMapsDataByNameFoundNoData() {
-		client.configMaps().inNamespace("spring-k8s").create(
-				new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build()).build());
+		client.configMaps().inNamespace("spring-k8s").resource(
+				new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build()).build())
+				.create();
 		LinkedHashSet<String> names = new LinkedHashSet<>();
 		names.add("my-config-map");
 
@@ -232,8 +247,9 @@ class Fabric8ConfigUtilsTests {
 	// config-map "my-config-map" is deployed; we search for it and do not find it.
 	@Test
 	void testConfigMapsDataByNameNotFound() {
-		client.configMaps().inNamespace("spring-k8s").create(
-				new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build()).build());
+		client.configMaps().inNamespace("spring-k8s").resource(
+				new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build()).build())
+				.create();
 		LinkedHashSet<String> names = new LinkedHashSet<>();
 		names.add("my-config-map-not-found");
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
@@ -246,8 +262,9 @@ class Fabric8ConfigUtilsTests {
 	@Test
 	void testConfigMapDataByNameFound() {
 		client.configMaps().inNamespace("spring-k8s")
-				.create(new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build())
-						.addToData(Map.of("property", "value")).build());
+				.resource(new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build())
+						.addToData(Map.of("property", "value")).build())
+				.create();
 
 		LinkedHashSet<String> names = new LinkedHashSet<>();
 		names.add("my-config-map");
@@ -263,8 +280,9 @@ class Fabric8ConfigUtilsTests {
 	@Test
 	void testConfigMapDataByNameFoundWithPropertyFile() {
 		client.configMaps().inNamespace("spring-k8s")
-				.create(new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build())
-						.addToData(Map.of("application.yaml", "key1: value1")).build());
+				.resource(new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build())
+						.addToData(Map.of("application.yaml", "key1: value1")).build())
+				.create();
 
 		LinkedHashSet<String> names = new LinkedHashSet<>();
 		names.add("my-config-map");
@@ -280,12 +298,15 @@ class Fabric8ConfigUtilsTests {
 	@Test
 	void testConfigMapDataByNameTwoFound() {
 		client.configMaps().inNamespace("spring-k8s")
-				.create(new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build())
-						.addToData(Map.of("property", "value")).build());
+				.resource(new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build())
+						.addToData(Map.of("property", "value")).build())
+				.create();
 
 		client.configMaps().inNamespace("spring-k8s")
-				.create(new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map-2").build())
-						.addToData(Map.of("property-2", "value-2")).build());
+				.resource(
+						new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map-2").build())
+								.addToData(Map.of("property-2", "value-2")).build())
+				.create();
 
 		LinkedHashSet<String> names = new LinkedHashSet<>();
 		names.add("my-config-map");

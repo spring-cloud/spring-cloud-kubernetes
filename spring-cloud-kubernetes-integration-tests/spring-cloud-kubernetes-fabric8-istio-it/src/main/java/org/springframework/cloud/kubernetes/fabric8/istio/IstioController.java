@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.istio;
 import java.util.Arrays;
 import java.util.List;
 
-import me.snowdrop.istio.client.IstioClient;
+import io.fabric8.istio.client.IstioClient;
 
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;

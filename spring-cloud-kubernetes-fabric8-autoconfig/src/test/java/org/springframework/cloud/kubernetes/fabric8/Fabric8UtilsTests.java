@@ -16,17 +16,14 @@
 
 package org.springframework.cloud.kubernetes.fabric8;
 
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author wind57
@@ -35,8 +32,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class Fabric8UtilsTests {
 
 	private KubernetesClient client;
-
-	private final DefaultKubernetesClient mockClient = Mockito.mock(DefaultKubernetesClient.class);
 
 	private final KubernetesNamespaceProvider provider = Mockito.mock(KubernetesNamespaceProvider.class);
 
@@ -63,19 +58,6 @@ class Fabric8UtilsTests {
 		Mockito.when(provider.getNamespace()).thenReturn("def");
 		String result = Fabric8Utils.getApplicationNamespace(client, "", "target", provider);
 		assertThat(result).isEqualTo("def");
-	}
-
-	@Test
-	void testNamespaceFromClient() {
-		Mockito.when(mockClient.getNamespace()).thenReturn("qwe");
-		String result = Fabric8Utils.getApplicationNamespace(mockClient, "", "target", null);
-		assertThat(result).isEqualTo("qwe");
-	}
-
-	@Test
-	void testNamespaceResolutionFailed() {
-		assertThatThrownBy(() -> Fabric8Utils.getApplicationNamespace(mockClient, "", "target", null))
-				.isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 }

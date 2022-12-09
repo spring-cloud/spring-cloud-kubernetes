@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
+import io.fabric8.kubernetes.client.dsl.ServiceResource;
 
 /**
  * A regular java.util.function that is used to hide the complexity of the
@@ -42,6 +43,6 @@ import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
  * @author Georgios Andrianakis
  */
 public interface KubernetesClientServicesFunction
-		extends Function<KubernetesClient, FilterWatchListDeletable<Service, ServiceList>> {
+		extends Function<KubernetesClient, FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>>> {
 
 }

@@ -47,20 +47,20 @@ final class Fabric8EndpointSliceV1CatalogWatch
 		if (context.properties().allNamespaces()) {
 			LOG.debug(() -> "discovering endpoints in all namespaces");
 
-			try (KubernetesClient client = context.kubernetesClient()) {
-				endpointSlices = client.discovery().v1().endpointSlices().inAnyNamespace()
-						.withLabels(context.properties().serviceLabels()).list().getItems();
-			}
-
+			// can't use try with resources here as it will close the client
+			KubernetesClient client = context.kubernetesClient();
+			endpointSlices = client.discovery().v1().endpointSlices().inAnyNamespace()
+					.withLabels(context.properties().serviceLabels()).list().getItems();
 		}
 		else {
 			String namespace = Fabric8Utils.getApplicationNamespace(context.kubernetesClient(), null, "catalog-watcher",
 					context.namespaceProvider());
 			LOG.debug(() -> "fabric8 catalog watcher will use namespace : " + namespace);
-			try (KubernetesClient client = context.kubernetesClient()) {
-				endpointSlices = client.discovery().v1().endpointSlices().inNamespace(namespace)
-						.withLabels(context.properties().serviceLabels()).list().getItems();
-			}
+
+			// can't use try with resources here as it will close the client
+			KubernetesClient client = context.kubernetesClient();
+			endpointSlices = client.discovery().v1().endpointSlices().inNamespace(namespace)
+					.withLabels(context.properties().serviceLabels()).list().getItems();
 		}
 
 		Stream<ObjectReference> references = endpointSlices.stream().map(EndpointSlice::getEndpoints)

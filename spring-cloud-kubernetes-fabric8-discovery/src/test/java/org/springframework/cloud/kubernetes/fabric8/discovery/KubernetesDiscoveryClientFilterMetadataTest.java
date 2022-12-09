@@ -72,7 +72,7 @@ public class KubernetesDiscoveryClientFilterMetadataTest {
 	private ServiceResource<Service> serviceResource;
 
 	@Mock
-	FilterWatchListDeletable<Endpoints, EndpointsList> filter;
+	FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>> filter;
 
 	@Test
 	public void testAllExtraMetadataDisabled() {

@@ -26,7 +26,7 @@
 			<artifactId>spring-web</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>me.snowdrop</groupId>
+			<groupId>io.fabric8</groupId>
 			<artifactId>istio-client</artifactId>
 		</dependency>
 		<dependency>

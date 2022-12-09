@@ -70,7 +70,7 @@ class KubernetesCatalogWatchTest {
 	private static final NonNamespaceOperation<Endpoints, EndpointsList, Resource<Endpoints>> NON_NAMESPACE_OPERATION = Mockito
 			.mock(NonNamespaceOperation.class);
 
-	private static final FilterWatchListDeletable<Endpoints, EndpointsList> FILTER_WATCH_LIST_DELETABLE = Mockito
+	private static final FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>> FILTER_WATCH_LIST_DELETABLE = Mockito
 			.mock(FilterWatchListDeletable.class);
 
 	private static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
