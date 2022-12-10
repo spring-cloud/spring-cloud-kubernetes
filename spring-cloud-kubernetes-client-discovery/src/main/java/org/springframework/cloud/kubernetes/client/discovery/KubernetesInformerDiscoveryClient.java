@@ -143,11 +143,12 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 				}
 			}
 		}
-
-		Map<String, V1ObjectMeta> podMap =
-			properties.allNamespaces() ? getPodMetaMap(this.podLister.list(), serviceId) :
-				getPodMetaMap(this.podLister.namespace(this.namespace).list(), serviceId);
-
+		Map<String, V1ObjectMeta> podMap = null;
+		if (properties.initPodMetaData()) {
+			podMap =
+				properties.allNamespaces() ? getPodMetaMap(this.podLister.list(), serviceId) :
+					getPodMetaMap(this.podLister.namespace(this.namespace).list(), serviceId);
+		}
 		V1Endpoints ep = this.endpointsLister.namespace(service.getMetadata().getNamespace())
 			.get(service.getMetadata().getName());
 		if (ep == null || ep.getSubsets() == null) {
@@ -164,6 +165,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 		final boolean secured = isSecured(service);
 
+		Map<String, V1ObjectMeta> finalPodMap = podMap;
 		return ep.getSubsets().stream()
 			.filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
 			.flatMap(subset -> {
@@ -185,15 +187,13 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 				final int port = findEndpointPort(endpointPorts, primaryPortName, serviceId);
 				return addresses.stream()
-					.map(addr -> {
-						return new DefaultKubernetesServiceInstance(
-							addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
-							addr.getIp(), port, properties.initPodMetaData() ? initPodMetaData(addr, metadata, podMap) : metadata, secured, service.getMetadata()
-							.getNamespace(),
-							// TODO find out how to get cluster name possibly from
-							// KubeConfig
-							null);
-					});
+					.map(addr -> new DefaultKubernetesServiceInstance(
+						addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
+						addr.getIp(), port, properties.initPodMetaData() ? initPodMetaData(addr, metadata, finalPodMap) : metadata, secured, service.getMetadata()
+						.getNamespace(),
+						// TODO find out how to get cluster name possibly from
+						// KubeConfig
+						null));
 
 			});
 	}
