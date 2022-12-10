@@ -106,7 +106,7 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 		Lister<V1Pod> v1PodLister = setupPodsLister(testV1pod);
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
-				Set.of(), true, 60, false, null, Set.of(), null, null, null, 0, false);
+				Set.of(), true, 60, false, null, Set.of(), null, null, null, 0, false, true);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				new KubernetesNamespaceProvider(new MockEnvironment()), sharedInformerFactory, serviceLister,
@@ -126,7 +126,7 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 		Lister<V1Pod> v1PodLister = setupPodsLister(testV1pod);
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, false,
-				Set.of(), true, 60, false, null, Set.of(), null, null, null, 0, false);
+				Set.of(), true, 60, false, null, Set.of(), null, null, null, 0, false, true);
 
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("namespace1");

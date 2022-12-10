@@ -164,7 +164,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 		final boolean secured = isSecured(service);
 
-		return ep.getSubsets().stream().filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
+		return ep.getSubsets().stream()
+			.filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
 			.flatMap(subset -> {
 				Map<String, String> metadata = new HashMap<>(svcMetadata);
 				List<CoreV1EndpointPort> endpointPorts = subset.getPorts();
@@ -185,30 +186,34 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 				final int port = findEndpointPort(endpointPorts, primaryPortName, serviceId);
 				return addresses.stream()
 					.map(addr -> {
-						Map<String, String> newMetaData = new HashMap<>(metadata);
-						if (!CollectionUtils.isEmpty(podMap)) {
-							V1ObjectReference targetRef = addr.getTargetRef();
-							if (!ObjectUtils.isEmpty(targetRef)) {
-								String name = targetRef.getName();
-								if (!ObjectUtils.isEmpty(name)) {
-									Optional.ofNullable(podMap.get(name)).ifPresent(podMetaData ->
-									{
-										if (!CollectionUtils.isEmpty(podMetaData.getLabels())) {
-											newMetaData.putAll(podMetaData.getLabels());
-										}
-									});
-								}
-							}
-						}
 						return new DefaultKubernetesServiceInstance(
 							addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
-							addr.getIp(), port, newMetaData, secured, service.getMetadata().getNamespace(),
+							addr.getIp(), port, properties.initPodMetaData() ? initPodMetaData(addr, metadata, podMap) : metadata, secured, service.getMetadata()
+							.getNamespace(),
 							// TODO find out how to get cluster name possibly from
 							// KubeConfig
 							null);
 					});
 
 			});
+	}
+
+	private Map<String, String> initPodMetaData(V1EndpointAddress addr, Map<String, String> metadata, Map<String, V1ObjectMeta> podMap) {
+		Map<String, String> newMetaData = new HashMap<>(metadata);
+		if (!CollectionUtils.isEmpty(podMap)) {
+			V1ObjectReference targetRef = addr.getTargetRef();
+			if (!ObjectUtils.isEmpty(targetRef)) {
+				String name = targetRef.getName();
+				if (!ObjectUtils.isEmpty(name)) {
+					Optional.ofNullable(podMap.get(name)).ifPresent(podMetaData -> {
+						if (!CollectionUtils.isEmpty(podMetaData.getLabels())) {
+							newMetaData.putAll(podMetaData.getLabels());
+						}
+					});
+				}
+			}
+		}
+		return newMetaData;
 	}
 
 	private static boolean isSecured(V1Service service) {
