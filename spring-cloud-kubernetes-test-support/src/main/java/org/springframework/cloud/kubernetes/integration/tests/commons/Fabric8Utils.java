@@ -126,6 +126,44 @@ public final class Fabric8Utils {
 
 	}
 
+	public static void cleanUpClusterWide(KubernetesClient client, String serviceAccountNamespace,
+			Set<String> namespaces) {
+
+		InputStream clusterRoleBindingAsStream = inputStream("cluster/cluster-role.yaml");
+		InputStream serviceAccountAsStream = inputStream("cluster/service-account.yaml");
+		InputStream roleBindingAsStream = inputStream("cluster/role-binding.yaml");
+
+		ClusterRole clusterRole = client.rbac().clusterRoles().load(clusterRoleBindingAsStream).get();
+		client.rbac().clusterRoles().withName(clusterRole.getMetadata().getName()).delete();
+
+		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+			ClusterRole innerClusterRole = client.rbac().clusterRoles().withName(clusterRole.getMetadata().getName())
+					.get();
+			return innerClusterRole == null;
+		});
+
+		ServiceAccount serviceAccount = client.serviceAccounts().load(serviceAccountAsStream).get();
+		client.serviceAccounts().inNamespace(serviceAccountNamespace).withName(serviceAccount.getMetadata().getName())
+				.delete();
+		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+			ServiceAccount innerServiceAccount = client.serviceAccounts().inNamespace(serviceAccountNamespace)
+					.withName(serviceAccount.getMetadata().getName()).get();
+			return innerServiceAccount == null;
+		});
+
+		RoleBinding roleBinding = client.rbac().roleBindings().load(roleBindingAsStream).get();
+		namespaces.forEach(namespace -> {
+			client.rbac().roleBindings().inNamespace(namespace).withName(roleBinding.getMetadata().getName()).delete();
+
+			await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+				RoleBinding innerRoleBinding = client.rbac().roleBindings().inNamespace(namespace)
+						.withName(roleBinding.getMetadata().getName()).get();
+				return innerRoleBinding == null;
+			});
+		});
+
+	}
+
 	public static void setUpIstio(KubernetesClient client, String namespace) {
 		InputStream serviceAccountAsStream = inputStream("istio/service-account.yaml");
 		InputStream roleBindingAsStream = inputStream("istio/role-binding.yaml");
