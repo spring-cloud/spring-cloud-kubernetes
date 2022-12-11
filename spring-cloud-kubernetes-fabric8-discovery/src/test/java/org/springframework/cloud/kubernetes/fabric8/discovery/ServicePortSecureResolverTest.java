@@ -52,7 +52,7 @@ class ServicePortSecureResolverTest {
 	void testPortNumbersOnly() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(443, 8443, 12345), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT,
-				0, true);
+				0, true, true);
 
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
 

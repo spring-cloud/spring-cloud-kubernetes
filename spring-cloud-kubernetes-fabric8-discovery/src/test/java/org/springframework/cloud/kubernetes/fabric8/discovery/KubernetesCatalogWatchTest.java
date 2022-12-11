@@ -366,7 +366,7 @@ class KubernetesCatalogWatchTest {
 
 		// all-namespaces = true
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, false);
+				false, "", Set.of(), Map.of(), "", null, 0, false, true);
 
 		kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT, properties, namespaceProvider);
 		kubernetesCatalogWatch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
@@ -377,7 +377,7 @@ class KubernetesCatalogWatchTest {
 
 		// all-namespaces = false
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, false);
+				false, "", Set.of(), Map.of(), "", null, 0, false, true);
 
 		kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT, properties, namespaceProvider);
 		kubernetesCatalogWatch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
