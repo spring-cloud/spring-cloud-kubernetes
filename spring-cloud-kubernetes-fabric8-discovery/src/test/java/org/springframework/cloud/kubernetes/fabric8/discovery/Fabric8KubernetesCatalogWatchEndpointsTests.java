@@ -246,7 +246,7 @@ class Fabric8KubernetesCatalogWatchEndpointsTests {
 
 		// all-namespaces = false
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, "", Set.of(), labels, "", null, 0, false);
+				false, "", Set.of(), labels, "", null, 0, false, true);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
 		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
 		watch.postConstruct();
@@ -258,7 +258,7 @@ class Fabric8KubernetesCatalogWatchEndpointsTests {
 
 		// all-namespaces = true
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), labels, "", null, 0, false);
+				false, "", Set.of(), labels, "", null, 0, false, true);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
 		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
 		watch.postConstruct();

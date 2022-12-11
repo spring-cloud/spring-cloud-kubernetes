@@ -280,7 +280,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 	@Test
 	void testEndpointSlicesEnabledButNotSupportedViaApiGroups() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, true);
+				false, "", Set.of(), Map.of(), "", null, 0, true, true);
 
 		APIGroupList groupList = new APIGroupListBuilder().build();
 		mockServer.expect().withPath("/apis").andReturn(200, groupList).always();
@@ -300,7 +300,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 	@Test
 	void testEndpointSlicesEnabledButNotSupportedViaApiVersions() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, true);
+				false, "", Set.of(), Map.of(), "", null, 0, true, true);
 
 		GroupVersionForDiscovery forDiscovery = new GroupVersionForDiscoveryBuilder()
 				.withGroupVersion("discovery.k8s.io/v1").build();
@@ -325,7 +325,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 
 		// all-namespaces = false
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, "", Set.of(), labels, "", null, 0, true);
+				false, "", Set.of(), labels, "", null, 0, true, true);
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
 		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
@@ -340,7 +340,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests {
 
 		// all-namespaces = true
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), labels, "", null, 0, true);
+				false, "", Set.of(), labels, "", null, 0, true, true);
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, namespaceProvider);
 		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
