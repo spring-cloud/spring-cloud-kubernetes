@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,38 +14,37 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery;
+package org.springframework.cloud.kubernetes.client.discovery.catalog;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
+import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesCatalogEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 /**
- * Auto configuration for catalog watcher.
+ * Auto configuration for catalog watcher
  *
- * @author Tim Ysewyn
+ * @author wind57
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-@AutoConfigureAfter({ Fabric8AutoConfiguration.class })
+@AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
 public class KubernetesCatalogWatchAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnKubernetesCatalogEnabled
-	public KubernetesCatalogWatch kubernetesCatalogWatch(KubernetesClient client,
+	public KubernetesCatalogWatch kubernetesCatalogWatch(CoreV1Api client,
 			KubernetesDiscoveryProperties properties, Environment environment) {
 		return new KubernetesCatalogWatch(client, properties, new KubernetesNamespaceProvider(environment));
 	}
