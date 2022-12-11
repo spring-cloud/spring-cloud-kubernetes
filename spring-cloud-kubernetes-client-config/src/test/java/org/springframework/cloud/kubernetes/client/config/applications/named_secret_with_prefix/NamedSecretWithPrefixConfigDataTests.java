@@ -22,6 +22,7 @@ import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
@@ -50,6 +51,9 @@ class NamedSecretWithPrefixConfigDataTests extends NamedSecretWithPrefixTests {
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
 				.thenReturn(new ClientBuilder().setBasePath(server.baseUrl()).build());
+		clientUtilsMock
+				.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn("spring-k8s");
 		stubData();
 	}
 

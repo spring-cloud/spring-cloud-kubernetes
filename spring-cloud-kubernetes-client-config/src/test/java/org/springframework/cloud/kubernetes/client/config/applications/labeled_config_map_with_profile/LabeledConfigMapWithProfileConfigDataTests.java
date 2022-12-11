@@ -22,6 +22,7 @@ import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
@@ -39,8 +40,7 @@ import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.
 		classes = LabeledConfigMapWithProfileApp.class,
 		properties = { "spring.cloud.application.name=labeled-configmap-with-profile",
 				"labeled.config.map.with.profile.stub=true", "spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:,classpath:./labeled-configmap-with-profile.yaml",
-				"spring.cloud.kubernetes.client.namespace=spring-k8s" })
+				"spring.config.import=kubernetes:,classpath:./labeled-configmap-with-profile.yaml" })
 class LabeledConfigMapWithProfileConfigDataTests extends LabeledConfigMapWithProfileTests {
 
 	private static MockedStatic<KubernetesClientUtils> clientUtilsMock;
@@ -53,6 +53,9 @@ class LabeledConfigMapWithProfileConfigDataTests extends LabeledConfigMapWithPro
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
 				.thenReturn(new ClientBuilder().setBasePath(server.baseUrl()).build());
+		clientUtilsMock
+				.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn("spring-k8s");
 		stubData();
 	}
 

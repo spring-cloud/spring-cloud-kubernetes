@@ -27,6 +27,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
@@ -67,6 +68,9 @@ abstract class ConfigRetryDisabledButSecretsRetryEnabled {
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
 				.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
+		clientUtilsMock
+				.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn("default");
 		stubConfigMapAndSecretsDefaults();
 	}
 
