@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
+import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
@@ -261,7 +262,15 @@ public final class Fabric8Utils {
 			Ingress ingress = client.network().v1().ingresses().inNamespace(namespace).withName(name).get();
 			return ingress == null;
 		});
+	}
 
+	public static void deleteNamespace(KubernetesClient client, String name) {
+		client.namespaces().withName(name).delete();
+
+		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+			Namespace namespace = client.namespaces().withName(name).get();
+			return namespace == null;
+		});
 	}
 
 	private static void innerSetup(KubernetesClient client, String namespace, InputStream serviceAccountAsStream,

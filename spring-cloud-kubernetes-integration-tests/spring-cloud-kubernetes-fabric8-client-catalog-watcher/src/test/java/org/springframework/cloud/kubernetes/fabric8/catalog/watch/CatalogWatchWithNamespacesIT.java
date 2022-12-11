@@ -97,12 +97,8 @@ class CatalogWatchWithNamespacesIT {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		client.namespaces()
-				.resource(new NamespaceBuilder().withNewMetadata().withName(NAMESPACE_A).endMetadata().build())
-				.create();
-		client.namespaces()
-				.resource(new NamespaceBuilder().withNewMetadata().withName(NAMESPACE_B).endMetadata().build())
-				.create();
+		client.namespaces().resource(new NamespaceBuilder().withNewMetadata().withName(NAMESPACE_A).and().build()).create();
+		client.namespaces().resource(new NamespaceBuilder().withNewMetadata().withName(NAMESPACE_B).and().build()).create();
 		Fabric8Utils.setUpClusterWide(client, NAMESPACE_DEFAULT, Set.of(NAMESPACE_DEFAULT, NAMESPACE_A, NAMESPACE_B));
 		deployBusyboxManifests();
 	}
@@ -110,10 +106,8 @@ class CatalogWatchWithNamespacesIT {
 	@AfterEach
 	void afterEach() {
 		Fabric8Utils.cleanUpClusterWide(client, NAMESPACE_DEFAULT, Set.of(NAMESPACE_DEFAULT, NAMESPACE_A, NAMESPACE_B));
-		client.namespaces().resource(new NamespaceBuilder().withNewMetadata().withName(NAMESPACE_A).and().build())
-				.delete();
-		client.namespaces().resource(new NamespaceBuilder().withNewMetadata().withName(NAMESPACE_B).and().build())
-				.delete();
+		Fabric8Utils.deleteNamespace(client, NAMESPACE_A);
+		Fabric8Utils.deleteNamespace(client, NAMESPACE_B);
 		deleteApp();
 	}
 
@@ -123,7 +117,7 @@ class CatalogWatchWithNamespacesIT {
 	 *     - we deploy one busybox service with 2 replica pods in namespace namespaceb
 	 *     - we enable the search to be made in namespacea and default ones
 	 *     - we receive an event from KubernetesCatalogWatcher, assert what is inside it
-	 *     - delete both busybox services in namespace_a and namespaceb
+	 *     - delete both busybox services in namespacea and namespaceb
 	 *     - assert that we receive only spring-cloud-kubernetes-fabric8-client-catalog-watcher pod
 	 * </pre>
 	 */
@@ -295,11 +289,11 @@ class CatalogWatchWithNamespacesIT {
 	}
 
 	private void deleteBusyboxApp() {
-		// namespace_a
+		// namespacea
 		Fabric8Utils.deleteDeployment(client, NAMESPACE_A, busyboxDeploymentNameA);
 		Fabric8Utils.deleteService(client, NAMESPACE_A, busyboxServiceNameA);
 
-		// namespace_b
+		// namespaceb
 		Fabric8Utils.deleteDeployment(client, NAMESPACE_B, busyboxDeploymentNameB);
 		Fabric8Utils.deleteService(client, NAMESPACE_B, busyboxServiceNameB);
 	}
