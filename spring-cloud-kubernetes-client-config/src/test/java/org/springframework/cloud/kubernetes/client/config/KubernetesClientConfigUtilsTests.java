@@ -21,41 +21,15 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.mock.env.MockEnvironment;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author wind57
  */
 class KubernetesClientConfigUtilsTests {
-
-	private final KubernetesNamespaceProvider provider = Mockito.mock(KubernetesNamespaceProvider.class);
-
-	@Test
-	void testNamespaceFromNormalizedSource() {
-		String result = KubernetesClientConfigUtils.getApplicationNamespace("abc", "target", null);
-		assertThat(result).isEqualTo("abc");
-	}
-
-	@Test
-	void testNamespaceFromProvider() {
-		Mockito.when(provider.getNamespace()).thenReturn("def");
-		String result = KubernetesClientConfigUtils.getApplicationNamespace("", "target", provider);
-		assertThat(result).isEqualTo("def");
-	}
-
-	@Test
-	void testNamespaceResolutionFailed() {
-		assertThatThrownBy(() -> KubernetesClientConfigUtils.getApplicationNamespace("", "target", null))
-				.isInstanceOf(NamespaceResolutionFailedException.class);
-	}
 
 	@Test
 	void testNamespacesFromProperties() {
