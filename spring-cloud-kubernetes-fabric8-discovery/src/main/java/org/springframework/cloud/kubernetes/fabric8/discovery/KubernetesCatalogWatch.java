@@ -84,6 +84,12 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	@PostConstruct
 	void postConstruct() {
+		stateGenerator = stateGenerator();
+	}
+
+	Function<Fabric8CatalogWatchContext, List<EndpointNameAndNamespace>> stateGenerator() {
+
+		Function<Fabric8CatalogWatchContext, List<EndpointNameAndNamespace>> localStateGenerator;
 
 		if (context.properties().useEndpointSlices()) {
 			// can't use try with resources here as it will close the client
@@ -99,14 +105,16 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 				throw new IllegalArgumentException("EndpointSlices are not supported on the cluster");
 			}
 			else {
-				stateGenerator = new Fabric8EndpointSliceV1CatalogWatch();
+				localStateGenerator = new Fabric8EndpointSliceV1CatalogWatch();
 			}
 		}
 		else {
-			stateGenerator = new Fabric8EndpointsCatalogWatch();
+			localStateGenerator = new Fabric8EndpointsCatalogWatch();
 		}
 
-		LOG.debug(() -> "stateGenerator is of type: " + stateGenerator.getClass().getSimpleName());
+		LOG.debug(() -> "stateGenerator is of type: " + localStateGenerator.getClass().getSimpleName());
+
+		return localStateGenerator;
 	}
 
 }
