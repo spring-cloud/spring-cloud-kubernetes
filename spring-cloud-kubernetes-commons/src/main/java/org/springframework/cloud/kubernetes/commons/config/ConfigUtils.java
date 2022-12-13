@@ -48,14 +48,15 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRI
  */
 public final class ConfigUtils {
 
-	private static final Log LOG = LogFactory.getLog(ConfigUtils.class);
+	// not final on purpose, as we override it via reflection when using config-data
+	private static Log logger = LogFactory.getLog(ConfigUtils.class);
 
 	private ConfigUtils() {
 	}
 
 	public static String getApplicationName(Environment env, String configName, String configurationTarget) {
 		if (!StringUtils.hasLength(configName)) {
-			LOG.debug(configurationTarget + " name has not been set, taking it from property/env "
+			logger.debug(configurationTarget + " name has not been set, taking it from property/env "
 					+ SPRING_APPLICATION_NAME + " (default=" + FALLBACK_APPLICATION_NAME + ")");
 			configName = env.getProperty(SPRING_APPLICATION_NAME, FALLBACK_APPLICATION_NAME);
 		}
@@ -140,7 +141,7 @@ public final class ConfigUtils {
 		if (failFast) {
 			throw new IllegalStateException(e.getMessage(), e);
 		}
-		LOG.warn(e.getMessage() + ". Ignoring.", e);
+		logger.warn(e.getMessage() + ". Ignoring.", e);
 	}
 
 	/*
@@ -182,7 +183,7 @@ public final class ConfigUtils {
 		sourceNames.forEach(source -> {
 			StrippedSourceContainer stripped = hashByName.get(source);
 			if (stripped != null) {
-				LOG.debug("Found source with name : '" + source + " in namespace: '" + namespace + "'");
+				logger.debug("Found source with name : '" + source + " in namespace: '" + namespace + "'");
 				foundSourceNames.add(source);
 				// see if data is a single yaml/properties file and if it needs decoding
 				Map<String, String> rawData = stripped.data();
@@ -242,7 +243,7 @@ public final class ConfigUtils {
 
 		all.forEach(source -> {
 			String foundSourceName = source.name();
-			LOG.debug("Loaded source with name : '" + foundSourceName + " in namespace: '" + namespace + "'");
+			logger.debug("Loaded source with name : '" + foundSourceName + " in namespace: '" + namespace + "'");
 			sourceNames.add(foundSourceName);
 
 			Map<String, String> rawData = source.data();
@@ -257,7 +258,7 @@ public final class ConfigUtils {
 
 	public static boolean noSources(List<?> sources, String namespace) {
 		if (sources == null || sources.isEmpty()) {
-			LOG.debug("No sources in namespace '" + namespace + "'");
+			logger.debug("No sources in namespace '" + namespace + "'");
 			return true;
 		}
 		return false;

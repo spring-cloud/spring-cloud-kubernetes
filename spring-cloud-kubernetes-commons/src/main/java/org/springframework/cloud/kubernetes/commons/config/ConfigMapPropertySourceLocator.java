@@ -49,7 +49,8 @@ import static org.springframework.cloud.kubernetes.commons.config.PropertySource
  */
 public abstract class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 
-	private static final Log LOG = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
+	// not final on purpose, as we override it via reflection when using config-data
+	private static Log logger = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
 
 	protected final ConfigMapConfigProperties properties;
 
@@ -62,12 +63,13 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 
 	@Override
 	public PropertySource<?> locate(Environment environment) {
+		logger.debug("finding property sources from configmaps");
 		if (environment instanceof ConfigurableEnvironment env) {
 
 			CompositePropertySource composite = new CompositePropertySource("composite-configmap");
 			if (this.properties.enableApi()) {
 				Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources(environment));
-				LOG.debug("Config Map normalized sources : " + sources);
+				logger.debug("Config Map normalized sources : " + sources);
 				sources.forEach(s -> composite.addFirstPropertySource(getMapPropertySource(s, env)));
 			}
 
@@ -88,14 +90,14 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 		uniquePaths.stream().map(Paths::get).filter(p -> {
 			boolean exists = Files.exists(p);
 			if (!exists) {
-				LOG.warn("Configured input path: " + p
+				logger.warn("Configured input path: " + p
 						+ " will be ignored because it does not exist on the file system");
 			}
 			return exists;
 		}).filter(p -> {
 			boolean regular = Files.isRegularFile(p);
 			if (!regular) {
-				LOG.warn("Configured input path: " + p + " will be ignored because it is not a regular file");
+				logger.warn("Configured input path: " + p + " will be ignored because it is not a regular file");
 			}
 			return regular;
 		}).toList().forEach(p -> {
@@ -112,7 +114,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 				}
 			}
 			catch (IOException e) {
-				LOG.warn("Error reading input file", e);
+				logger.warn("Error reading input file", e);
 			}
 		});
 	}
@@ -122,7 +124,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 
 		Map<String, Object> map = new HashMap<>(contentToMapFunction.apply(content));
 		if (map.isEmpty()) {
-			LOG.warn("Property source: " + name + "will be ignored because no properties could be found");
+			logger.warn("Property source: " + name + "will be ignored because no properties could be found");
 		}
 		else {
 			composite.addFirstPropertySource(new MapPropertySource(name, map));

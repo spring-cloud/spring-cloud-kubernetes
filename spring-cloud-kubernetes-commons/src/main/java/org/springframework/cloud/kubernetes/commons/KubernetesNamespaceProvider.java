@@ -76,7 +76,7 @@ public class KubernetesNamespaceProvider {
 
 			try {
 				namespace = new String(Files.readAllBytes((serviceAccountNamespacePath)));
-				LOG.debug("Service account namespace value: " + serviceAccountNamespacePath);
+				LOG.debug("namespace from service account : " + serviceAccountNamespacePath);
 			}
 			catch (IOException ioe) {
 				LOG.error("Error reading service account namespace from: [" + serviceAccountNamespacePath + "].", ioe);

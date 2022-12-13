@@ -54,7 +54,8 @@ import org.springframework.core.env.PropertySource;
  */
 public abstract class SecretsPropertySourceLocator implements PropertySourceLocator {
 
-	private static final Log LOG = LogFactory.getLog(SecretsPropertySourceLocator.class);
+	// not final on purpose, as we override it via reflection when using config-data
+	private static Log logger = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
 
 	protected final SecretsConfigProperties properties;
 
@@ -68,7 +69,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 			List<NormalizedSource> sources = this.properties.determineSources(environment);
 			Set<NormalizedSource> uniqueSources = new HashSet<>(sources);
-			LOG.debug("Secrets normalized sources : " + sources);
+			logger.debug("Secrets normalized sources : " + sources);
 			CompositePropertySource composite = new CompositePropertySource("composite-secrets");
 			// read for secrets mount
 			putPathConfig(composite);
@@ -103,7 +104,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 				return Files.walk(x);
 			}
 			catch (IOException e) {
-				LOG.warn("Error walking properties files", e);
+				logger.warn("Error walking properties files", e);
 				return null;
 			}
 		}).filter(Objects::nonNull).filter(Files::isRegularFile).collect(new MapPropertySourceCollector())
@@ -158,7 +159,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 				return new MapPropertySource(fileName.toLowerCase(), Collections.singletonMap(fileName, content));
 			}
 			catch (IOException e) {
-				LOG.warn("Error reading properties file", e);
+				logger.warn("Error reading properties file", e);
 				return null;
 			}
 		}

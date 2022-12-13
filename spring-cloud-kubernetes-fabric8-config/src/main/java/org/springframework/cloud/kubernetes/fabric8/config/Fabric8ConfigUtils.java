@@ -29,6 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
@@ -43,7 +44,8 @@ import org.springframework.core.env.Environment;
  */
 public final class Fabric8ConfigUtils {
 
-	private static final Log LOG = LogFactory.getLog(Fabric8ConfigUtils.class);
+	// not final on purpose, as we override it via reflection when using config-data
+	private static Log logger = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
 
 	private Fabric8ConfigUtils() {
 	}
@@ -57,7 +59,7 @@ public final class Fabric8ConfigUtils {
 		if (namespaces.isEmpty()) {
 			namespaces = Set.of(Fabric8Utils.getApplicationNamespace(client, null, target, provider));
 		}
-		LOG.debug("informer namespaces : " + namespaces);
+		logger.debug("informer namespaces : " + namespaces);
 		return namespaces;
 	}
 
@@ -148,12 +150,12 @@ public final class Fabric8ConfigUtils {
 	// ******** non-exposed methods *******
 
 	private static List<Secret> secretsSearch(KubernetesClient client, String namespace) {
-		LOG.debug("Loading all secrets in namespace '" + namespace + "'");
+		logger.debug("Loading all secrets in namespace '" + namespace + "'");
 		return client.secrets().inNamespace(namespace).list().getItems();
 	}
 
 	private static List<ConfigMap> configMapsSearch(KubernetesClient client, String namespace) {
-		LOG.debug("Loading all config maps in namespace '" + namespace + "'");
+		logger.debug("Loading all config maps in namespace '" + namespace + "'");
 		return client.configMaps().inNamespace(namespace).list().getItems();
 	}
 

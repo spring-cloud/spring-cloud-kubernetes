@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
+import org.apache.commons.logging.Log;
 import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
@@ -43,8 +44,11 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.re
  */
 public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocationResolver {
 
+	private final Log log;
+
 	public Fabric8ConfigDataLocationResolver(DeferredLogFactory factory) {
 		super(factory);
+		log = factory.getLog(Fabric8ConfigDataLocationResolver.class);
 	}
 
 	@Override
@@ -66,6 +70,8 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 						configMapPropertySourceLocator, configMapProperties);
 			}
 
+			log.debug("registering configmap locator of type: "
+				+ configMapPropertySourceLocator.getClass().getSimpleName());
 			registerSingle(bootstrapContext, ConfigMapPropertySourceLocator.class, configMapPropertySourceLocator,
 					"configDataConfigMapPropertySourceLocator");
 		}
@@ -78,6 +84,8 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 						secretsPropertySourceLocator, secretsProperties);
 			}
 
+			log.debug(
+				"registering secrets locator of type: " + secretsPropertySourceLocator.getClass().getSimpleName());
 			registerSingle(bootstrapContext, SecretsPropertySourceLocator.class, secretsPropertySourceLocator,
 					"configDataSecretsPropertySourceLocator");
 		}

@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ import org.springframework.boot.DefaultBootstrapContext;
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.Profiles;
+import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
@@ -53,13 +55,15 @@ class KubernetesConfigDataLoaderTests {
 	private static final KubernetesConfigDataResource EMPTY_RESOURCE = new KubernetesConfigDataResource(null, null,
 			null, false, PROFILES, ENVIRONMENT);
 
+	private static final DeferredLogFactory FACTORY = Supplier::get;
+
 	/**
 	 * we do not override this method in our implementation, so it should report true for
 	 * any arguments.
 	 */
 	@Test
 	void testIsLoadable() {
-		KubernetesConfigDataLoader loader = new KubernetesConfigDataLoader();
+		KubernetesConfigDataLoader loader = new KubernetesConfigDataLoader(FACTORY);
 		Assertions.assertTrue(loader.isLoadable(null, null));
 	}
 
@@ -71,7 +75,7 @@ class KubernetesConfigDataLoaderTests {
 	@Test
 	void testNeitherIsRegisteredNoProfiles() throws IOException {
 		when(CONTEXT.getBootstrapContext()).thenReturn(BOOTSTRAP_CONTEXT_NO_REGISTRATIONS);
-		KubernetesConfigDataLoader loader = new KubernetesConfigDataLoader();
+		KubernetesConfigDataLoader loader = new KubernetesConfigDataLoader(FACTORY);
 		ConfigData configData = loader.load(CONTEXT, EMPTY_RESOURCE);
 
 		MockPropertySource propertySource = new MockPropertySource("k8s");
@@ -96,7 +100,7 @@ class KubernetesConfigDataLoaderTests {
 		when(CONTEXT.getBootstrapContext()).thenReturn(BOOTSTRAP_CONTEXT_NO_REGISTRATIONS);
 		when(PROFILES.getAccepted()).thenReturn(List.of("dev"));
 
-		KubernetesConfigDataLoader loader = new KubernetesConfigDataLoader();
+		KubernetesConfigDataLoader loader = new KubernetesConfigDataLoader(FACTORY);
 		ConfigData configData = loader.load(CONTEXT, EMPTY_RESOURCE);
 
 		MockPropertySource propertySource = new MockPropertySource("k8s-dev");
@@ -133,7 +137,7 @@ class KubernetesConfigDataLoaderTests {
 		BOOTSTRAP_CONTEXT_BOTH_REGISTRATIONS.register(SecretsPropertySourceLocator.class,
 				BootstrapRegistry.InstanceSupplier.of(secretsPropertySourceLocator));
 
-		KubernetesConfigDataLoader loader = new KubernetesConfigDataLoader();
+		KubernetesConfigDataLoader loader = new KubernetesConfigDataLoader(FACTORY);
 		ConfigData configData = loader.load(CONTEXT, EMPTY_RESOURCE);
 		Assertions.assertNotNull(configData);
 		Assertions.assertEquals(2, configData.getPropertySources().size());

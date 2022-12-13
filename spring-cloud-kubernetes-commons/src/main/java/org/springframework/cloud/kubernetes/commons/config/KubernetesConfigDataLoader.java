@@ -20,34 +20,57 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+
 import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigData.Option;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
+import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
+
+import static org.springframework.cloud.kubernetes.commons.config.KubernetesConfigDataLoaderLoggerReconfigurer.reconfigureLoggers;
 
 /**
  * @author Ryan Baxter
  */
 public class KubernetesConfigDataLoader implements ConfigDataLoader<KubernetesConfigDataResource>, Ordered {
 
+	private final Log log;
+
+	public KubernetesConfigDataLoader(DeferredLogFactory factory) {
+		log = factory.getLog(getClass());
+		reconfigureLoggers(factory);
+	}
+
 	@Override
 	public ConfigData load(ConfigDataLoaderContext context, KubernetesConfigDataResource resource)
 			throws IOException, ConfigDataResourceNotFoundException {
+
+		log.debug("Kicking off ConfigDataLoader processing");
 
 		List<PropertySource<?>> propertySources = new ArrayList<>(2);
 		ConfigurableBootstrapContext bootstrapContext = context.getBootstrapContext();
 		Environment env = resource.getEnvironment();
 
 		if (bootstrapContext.isRegistered(ConfigMapPropertySourceLocator.class)) {
+			log.debug("ConfigMapPropertySourceLocator is registered");
 			propertySources.add(bootstrapContext.get(ConfigMapPropertySourceLocator.class).locate(env));
 		}
+		else {
+			log.debug("ConfigMapPropertySourceLocator is not registered, no configmaps will be looked up");
+		}
+
 		if (bootstrapContext.isRegistered(SecretsPropertySourceLocator.class)) {
+			log.debug("SecretsPropertySourceLocator is registered");
 			propertySources.add(bootstrapContext.get(SecretsPropertySourceLocator.class).locate(env));
+		}
+		else {
+			log.debug("SecretsPropertySourceLocator is not registered, no secrets will be looked up");
 		}
 
 		// boot 2.4.5+

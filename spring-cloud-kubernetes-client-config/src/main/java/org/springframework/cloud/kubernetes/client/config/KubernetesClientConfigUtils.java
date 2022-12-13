@@ -43,7 +43,8 @@ import org.springframework.util.StringUtils;
  */
 public final class KubernetesClientConfigUtils {
 
-	private static final Log LOG = LogFactory.getLog(KubernetesClientConfigUtils.class);
+	// not final on purpose, as we override it via reflection when using config-data
+	private static Log logger = LogFactory.getLog(KubernetesClientSecretsPropertySourceLocator.class);
 
 	// k8s-native client already returns data from secrets as being decoded
 	// this flags makes sure we use it everywhere
@@ -61,7 +62,7 @@ public final class KubernetesClientConfigUtils {
 		if (namespaces.isEmpty()) {
 			namespaces = Set.of(getApplicationNamespace(null, target, provider));
 		}
-		LOG.debug("informer namespaces : " + namespaces);
+		logger.debug("informer namespaces : " + namespaces);
 		return namespaces;
 	}
 
@@ -88,14 +89,14 @@ public final class KubernetesClientConfigUtils {
 	static String getApplicationNamespace(String namespace, String configurationTarget,
 			KubernetesNamespaceProvider provider) {
 		if (StringUtils.hasText(namespace)) {
-			LOG.debug(configurationTarget + " namespace : " + namespace);
+			logger.debug(configurationTarget + " namespace : " + namespace);
 			return namespace;
 		}
 
 		if (provider != null) {
 			String providerNamespace = provider.getNamespace();
 			if (StringUtils.hasText(providerNamespace)) {
-				LOG.debug(configurationTarget + " namespace from provider : " + namespace);
+				logger.debug(configurationTarget + " namespace from provider : " + namespace);
 				return providerNamespace;
 			}
 		}
@@ -188,7 +189,7 @@ public final class KubernetesClientConfigUtils {
 	}
 
 	private static List<V1Secret> secretsSearch(CoreV1Api client, String namespace) {
-		LOG.debug("Loading all secrets in namespace '" + namespace + "'");
+		logger.debug("Loading all secrets in namespace '" + namespace + "'");
 		try {
 			return client.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
 					.getItems();
@@ -199,7 +200,7 @@ public final class KubernetesClientConfigUtils {
 	}
 
 	private static List<V1ConfigMap> configMapsSearch(CoreV1Api client, String namespace) {
-		LOG.debug("Loading all config maps in namespace '" + namespace + "'");
+		logger.debug("Loading all config maps in namespace '" + namespace + "'");
 		try {
 			return client.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null, null)
 					.getItems();

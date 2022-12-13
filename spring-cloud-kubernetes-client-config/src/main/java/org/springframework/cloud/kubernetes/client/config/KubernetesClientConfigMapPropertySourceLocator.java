@@ -17,6 +17,8 @@
 package org.springframework.cloud.kubernetes.client.config;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
@@ -32,6 +34,9 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
  * @author Isik Erhan
  */
 public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPropertySourceLocator {
+
+	// not final on purpose, as we override it via reflection when using config-data
+	private static Log logger = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
 
 	private final CoreV1Api coreV1Api;
 
@@ -49,6 +54,8 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 
 		String normalizedNamespace = source.namespace().orElse(null);
 		String namespace = getApplicationNamespace(normalizedNamespace, source.target(), kubernetesNamespaceProvider);
+
+		logger.debug("using namespace : " + namespace + " for source : " + source.name());
 
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, source, namespace,
 				environment);

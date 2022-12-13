@@ -45,7 +45,8 @@ import static org.springframework.cloud.kubernetes.commons.config.PropertySource
  */
 public class SourceDataEntriesProcessor extends MapPropertySource {
 
-	private static final Log LOG = LogFactory.getLog(SourceDataEntriesProcessor.class);
+	// not final on purpose, as we override it via reflection when using config-data
+	private static Log logger = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
 
 	public SourceDataEntriesProcessor(SourceData sourceData) {
 		super(sourceData.sourceName(), sourceData.sourceData());
@@ -55,21 +56,24 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 
 		Set<Map.Entry<String, String>> entrySet = input.entrySet();
 		if (entrySet.size() == 1) {
+			logger.debug("found single entry");
 			// we handle the case where the configmap contains a single "file"
 			// in this case we don't care what the name of the file is
 			Map.Entry<String, String> singleEntry = entrySet.iterator().next();
 			String propertyName = singleEntry.getKey();
 			String propertyValue = singleEntry.getValue();
 			if (propertyName.endsWith(".yml") || propertyName.endsWith(".yaml")) {
-				LOG.debug("The single property with name: [" + propertyName + "] will be treated as a yaml file");
+				logger.debug("The single property with name: [" + propertyName + "] will be treated as a yaml file");
 				return yamlParserGenerator(environment).andThen(PROPERTIES_TO_MAP).apply(propertyValue);
 			}
 			else if (propertyName.endsWith(".properties")) {
-				LOG.debug("The single property with name: [" + propertyName + "] will be treated as a properties file");
+				logger.debug(
+						"The single property with name: [" + propertyName + "] will be treated as a properties file");
 				return KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(propertyValue);
 			}
 		}
 
+		logger.debug("default processing for all entries");
 		return defaultProcessAllEntries(input, environment);
 	}
 
@@ -98,16 +102,16 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 
 			if (fileNames.contains(resourceName.split("\\.", 2)[0])) {
 				if (resourceName.endsWith(".properties")) {
-					LOG.debug("entry : " + resourceName + " will be treated as a single properties file");
+					logger.debug("entry : " + resourceName + " will be treated as a single properties file");
 					return KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(content);
 				}
 				else {
-					LOG.debug("entry : " + resourceName + " will be treated as a single yml/yaml file");
+					logger.debug("entry : " + resourceName + " will be treated as a single yml/yaml file");
 					return yamlParserGenerator(environment).andThen(PROPERTIES_TO_MAP).apply(content);
 				}
 			}
 			else {
-				LOG.warn("entry : " + resourceName + " will be skipped");
+				logger.warn("entry : " + resourceName + " will be skipped");
 				return Collections.emptyMap();
 			}
 		}
