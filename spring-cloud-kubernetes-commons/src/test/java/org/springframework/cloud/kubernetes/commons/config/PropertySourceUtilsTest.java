@@ -40,18 +40,27 @@ public class PropertySourceUtilsTest {
 
 	@Test
 	void yamlParserGenerator_noProfile() {
-		final Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		final Properties properties = function.apply("spring:\n  application:\n    name: myTestApp\n");
+		Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
+		Properties properties = function.apply("spring:\n  application:\n    name: myTestApp\n");
 		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myTestApp");
 		assertThat(properties.getProperty("spring.profiles")).isNull();
 		assertThat(properties.getProperty("spring.config.activate.on-profile")).isNull();
 	}
 
 	@Test
+	void yamlParserGenerator_simpleProperties() {
+		Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
+		Properties properties = function.apply("propA: A\npropB: B");
+		assertThat(properties.getProperty("propA")).isEqualTo("A");
+		assertThat(properties.getProperty("propB")).isEqualTo("B");
+		assertThat(properties.getProperty("spring.config.activate.on-profile")).isNull();
+	}
+
+	@Test
 	void yamlParserGenerator_springProfiles_matchProfile() {
 		willReturn(Boolean.TRUE).given(environment).acceptsProfiles(any(Profiles.class));
-		final Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		final Properties properties = function.apply(
+		Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
+		Properties properties = function.apply(
 				"spring:\n  application:\n    name: myTestApp\n---\nspring:\n  profiles: dummy\n  application:\n    name: myDummyApp");
 		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myDummyApp");
 		assertThat(properties.getProperty("spring.profiles")).isEqualTo("dummy");
@@ -61,8 +70,8 @@ public class PropertySourceUtilsTest {
 	@Test
 	void yamlParserGenerator_springProfiles_mismatchProfile() {
 		willReturn(Boolean.FALSE).given(environment).acceptsProfiles(any(Profiles.class));
-		final Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		final Properties properties = function.apply(
+		Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
+		Properties properties = function.apply(
 				"spring:\n  application:\n    name: myTestApp\n---\nspring:\n  profiles: dummy\n  application:\n    name: myDummyApp");
 		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myTestApp");
 		assertThat(properties.getProperty("spring.profiles")).isNull();
@@ -72,8 +81,8 @@ public class PropertySourceUtilsTest {
 	@Test
 	void yamlParserGenerator_springConfigActivateOnProfile_matchProfile() {
 		willReturn(Boolean.TRUE).given(environment).acceptsProfiles(any(Profiles.class));
-		final Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		final Properties properties = function.apply(
+		Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
+		Properties properties = function.apply(
 				"spring:\n  application:\n    name: myTestApp\n---\nspring:\n  config:\n    activate:\n      on-profile: dummy\n  application:\n    name: myDummyApp");
 		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myDummyApp");
 		assertThat(properties.getProperty("spring.profiles")).isNull();
@@ -83,8 +92,8 @@ public class PropertySourceUtilsTest {
 	@Test
 	void yamlParserGenerator_springConfigActivateOnProfile_mismatchProfile() {
 		willReturn(Boolean.FALSE).given(environment).acceptsProfiles(any(Profiles.class));
-		final Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		final Properties properties = function.apply(
+		Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
+		Properties properties = function.apply(
 				"spring:\n  application:\n    name: myTestApp\n---\nspring:\n  config:\n    activate:\n      on-profile: dummy\n  application:\n    name: myDummyApp");
 		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myTestApp");
 		assertThat(properties.getProperty("spring.profiles")).isNull();
