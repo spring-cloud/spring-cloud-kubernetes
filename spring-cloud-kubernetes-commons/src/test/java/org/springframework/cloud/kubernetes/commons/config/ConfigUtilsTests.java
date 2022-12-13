@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.mock.env.MockEnvironment;
 
 /**
@@ -177,20 +178,17 @@ class ConfigUtilsTests {
 	@Test
 	void testMerge() {
 
-		StrippedSourceContainer configMapOne = new StrippedSourceContainer(Map.of(), "configmap-one", Map.of(
-			"application.yaml", "propA: A\npropB: B"
-		));
+		StrippedSourceContainer configMapOne = new StrippedSourceContainer(Map.of(), "configmap-one",
+				Map.of("application.yaml", "propA: A\npropB: B"));
 
-		StrippedSourceContainer configMapOneK8s = new StrippedSourceContainer(Map.of(), "configmap-one-kubernetes", Map.of(
-			"application.yaml", "propA: AA\npropC: C"
-		));
+		StrippedSourceContainer configMapOneK8s = new StrippedSourceContainer(Map.of(), "configmap-one-kubernetes",
+				Map.of("application.yaml", "propA: AA\npropC: C"));
 
-		LinkedHashSet<String> sourceNames =
-			Stream.of("configmap-one", "configmap-one-kubernetes").collect(Collectors.toCollection(LinkedHashSet::new));
+		LinkedHashSet<String> sourceNames = Stream.of("configmap-one", "configmap-one-kubernetes")
+				.collect(Collectors.toCollection(LinkedHashSet::new));
 
-		MultipleSourcesContainer result = ConfigUtils.processNamedData(
-			List.of(configMapOne, configMapOneK8s), new MockEnvironment(), sourceNames, "default", false
-		);
+		MultipleSourcesContainer result = ConfigUtils.processNamedData(List.of(configMapOne, configMapOneK8s),
+				new MockEnvironment(), sourceNames, "default", false);
 
 		Assertions.assertEquals(result.data().size(), 3);
 		Assertions.assertEquals(result.data().get("propA"), "AA");
