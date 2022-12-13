@@ -32,11 +32,11 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
-import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.core.env.Environment;
-import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
 
 /**
  * @author Ryan Baxter
@@ -64,44 +64,6 @@ public final class KubernetesClientConfigUtils {
 		}
 		logger.debug("informer namespaces : " + namespaces);
 		return namespaces;
-	}
-
-	/**
-	 * this method does the namespace resolution for both config map and secrets
-	 * implementations. It tries these places to find the namespace:
-	 *
-	 * <pre>
-	 *     1. from a normalized source (which can be null)
-	 *     2. from a property 'spring.cloud.kubernetes.client.namespace', if such is present
-	 *     3. from a String residing in a file denoted by `spring.cloud.kubernetes.client.serviceAccountNamespacePath`
-	 * 	      property, if such is present
-	 * 	   4. from a String residing in `/var/run/secrets/kubernetes.io/serviceaccount/namespace` file,
-	 * 	  	  if such is present (kubernetes default path)
-	 * </pre>
-	 *
-	 * If any of the above fail, we throw a NamespaceResolutionFailedException.
-	 * @param namespace normalized namespace
-	 * @param configurationTarget Config Map/Secret
-	 * @param provider the provider which computes the namespace
-	 * @return application namespace
-	 * @throws NamespaceResolutionFailedException when namespace could not be resolved
-	 */
-	static String getApplicationNamespace(String namespace, String configurationTarget,
-			KubernetesNamespaceProvider provider) {
-		if (StringUtils.hasText(namespace)) {
-			logger.debug(configurationTarget + " namespace : " + namespace);
-			return namespace;
-		}
-
-		if (provider != null) {
-			String providerNamespace = provider.getNamespace();
-			if (StringUtils.hasText(providerNamespace)) {
-				logger.debug(configurationTarget + " namespace from provider : " + namespace);
-				return providerNamespace;
-			}
-		}
-
-		throw new NamespaceResolutionFailedException("unresolved namespace");
 	}
 
 	/**

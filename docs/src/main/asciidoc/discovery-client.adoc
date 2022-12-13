@@ -131,8 +131,23 @@ Spring Cloud Kubernetes can also watch the Kubernetes service catalog for change
 milliseconds (by default it is `30000`). The heartbeat event will contain the target references (and their namespaces of the addresses of all endpoints
 (for the exact details of what will get returned you can take a look inside `KubernetesCatalogWatch`). This is an implementation detail, and listeners of the heartbeat event
 should not rely on the details. Instead, they should see if there are differences between two subsequent heartbeats via `equals` method. We will take care to return a correct implementation that adheres to the equals contract.
-The endpoints will be queried in either all namespaces (enabled via `spring.cloud.kubernetes.discovery.all-namespaces=true`), or
-we will use: xref:property-source-config.adoc#namespace-resolution[Namespace Resolution].
+The endpoints will be queried in either :
+
+ - all namespaces (enabled via `spring.cloud.kubernetes.discovery.all-namespaces=true`)
+
+ - specific namespaces (enabled via `spring.cloud.kubernetes.discovery.namespaces`), for example:
+
+```
+spring:
+  cloud:
+    kubernetes:
+      discovery:
+        namespaces:
+          - namespace-a
+          - namespace-b
+```
+
+- we will use: xref:property-source-config.adoc#namespace-resolution[Namespace Resolution] if the above two paths are not taken.
 
 In order to enable this functionality you need to add
 `@EnableScheduling` on a configuration class in your application.

@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
@@ -108,6 +109,9 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::createApiClientForInformerClient)
 				.thenReturn(new ClientBuilder().setBasePath(WIRE_MOCK_SERVER.baseUrl()).build());
+		clientUtilsMock
+				.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn("default");
 	}
 
 	@AfterAll

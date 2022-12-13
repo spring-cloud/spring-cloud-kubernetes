@@ -25,7 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 		classes = LabeledConfigMapWithPrefixApp.class,
 		properties = { "spring.cloud.bootstrap.name=labeled-configmap-with-prefix",
 				"labeled.config.map.with.prefix.stub=true", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.client.namespace=spring-k8s" })
+				"spring.cloud.bootstrap.enabled=true" })
 class LabeledConfigMapWithPrefixBootstrapTests extends LabeledConfigMapWithPrefixTests {
 
 }

@@ -27,7 +27,7 @@ import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
-import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.getApplicationNamespace;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
 
 /**
  * @author Ryan Baxter
