@@ -16,11 +16,17 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import org.springframework.mock.env.MockEnvironment;
 
 /**
  * @author wind57
@@ -157,6 +163,37 @@ class ConfigUtilsTests {
 
 		Assertions.assertEquals(result.sourceData().get("prefix.a"), "b");
 		Assertions.assertEquals(result.sourceData().get("prefix.c"), "d");
+	}
+
+	/**
+	 * <pre>
+	 *
+	 *     - we have configmap-one with an application.yaml with two properties propA = A, prop = B
+	 *     - we have configmap-one-kubernetes with an application.yaml with two properties propA = AA, probC = C
+	 *
+	 *     As a result we should get three properties as output.
+	 *
+	 * </pre>
+	 */
+	@Test
+	void testMerge() {
+
+		StrippedSourceContainer configMapOne = new StrippedSourceContainer(Map.of(), "configmap-one",
+				Map.of("application.yaml", "propA: A\npropB: B"));
+
+		StrippedSourceContainer configMapOneK8s = new StrippedSourceContainer(Map.of(), "configmap-one-kubernetes",
+				Map.of("application.yaml", "propA: AA\npropC: C"));
+
+		LinkedHashSet<String> sourceNames = Stream.of("configmap-one", "configmap-one-kubernetes")
+				.collect(Collectors.toCollection(LinkedHashSet::new));
+
+		MultipleSourcesContainer result = ConfigUtils.processNamedData(List.of(configMapOne, configMapOneK8s),
+				new MockEnvironment(), sourceNames, "default", false);
+
+		Assertions.assertEquals(result.data().size(), 3);
+		Assertions.assertEquals(result.data().get("propA"), "AA");
+		Assertions.assertEquals(result.data().get("propB"), "B");
+		Assertions.assertEquals(result.data().get("propC"), "C");
 	}
 
 }
