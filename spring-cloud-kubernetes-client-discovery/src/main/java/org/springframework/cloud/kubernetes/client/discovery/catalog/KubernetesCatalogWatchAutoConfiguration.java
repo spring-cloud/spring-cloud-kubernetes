@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.catalog;
 
+import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
@@ -44,9 +45,9 @@ public class KubernetesCatalogWatchAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnKubernetesCatalogEnabled
-	public KubernetesCatalogWatch kubernetesCatalogWatch(CoreV1Api client,
+	public KubernetesCatalogWatch kubernetesCatalogWatch(CoreV1Api client, ApiClient apiClient,
 			KubernetesDiscoveryProperties properties, Environment environment) {
-		return new KubernetesCatalogWatch(client, properties, new KubernetesNamespaceProvider(environment));
+		return new KubernetesCatalogWatch(client, apiClient, properties, new KubernetesNamespaceProvider(environment));
 	}
 
 }

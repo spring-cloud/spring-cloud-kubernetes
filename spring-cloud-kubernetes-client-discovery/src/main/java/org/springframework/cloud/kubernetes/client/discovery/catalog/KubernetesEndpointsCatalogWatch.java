@@ -1,60 +1,84 @@
+/*
+ * Copyright 2012-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.kubernetes.client.discovery.catalog;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1EndpointsList;
+import io.kubernetes.client.openapi.models.V1ObjectReference;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.core.log.LogAccessor;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
-
+/**
+ * Implementation that is based on V1Endpoints.
+ *
+ * @author wind57
+ */
 final class KubernetesEndpointsCatalogWatch
-	implements Function<KubernetesCatalogWatch, List<EndpointNameAndNamespace>> {
+	implements Function<KubernetesCatalogWatchContext, List<EndpointNameAndNamespace>> {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesEndpointsCatalogWatch.class));
 
 	@Override
 	public List<EndpointNameAndNamespace> apply(KubernetesCatalogWatchContext context) {
-		// take only pods that have endpoints
 		List<V1Endpoints> endpoints;
+		CoreV1Api coreV1Api = context.client();
 		if (context.properties().allNamespaces()) {
 			LOG.debug(() -> "discovering endpoints in all namespaces");
-
-			// can't use try with resources here as it will close the client
-			CoreV1Api client = context.client();
-			endpoints = endpoints(client);
-		} else {
-			String namespace = KubernetesClientUtils
-			LOG.debug(() -> "fabric8 catalog watcher will use namespace : " + namespace);
-
-			// can't use try with resources here as it will close the client
-			KubernetesClient client = context.kubernetesClient();
-			endpoints = client.endpoints().inNamespace(namespace).withLabels(context.properties().serviceLabels())
-				.list().getItems();
+			endpoints = endpoints(coreV1Api);
+		}
+		else if (!context.properties().namespaces().isEmpty()) {
+			LOG.debug(() -> "discovering endpoints in " + context.properties().namespaces());
+			List<V1Endpoints> inner = new ArrayList<>(context.properties().namespaces().size());
+			context.properties().namespaces().forEach(namespace -> inner.addAll(namespacedEndpoints(coreV1Api, namespace)));
+			endpoints = inner;
+		}
+		else {
+			String namespace = KubernetesClientUtils.getApplicationNamespace(null, "catalog-watch", context.namespaceProvider());
+			LOG.debug(() -> "discovering endpoints in namespace : " + namespace);
+			endpoints = namespacedEndpoints(coreV1Api, namespace);
 		}
 
 		/**
 		 * <pre>
-		 *   - An "Endpoints" holds a List of EndpointSubset.
-		 *   - A single EndpointSubset holds a List of EndpointAddress
+		 *   - An "V1Endpoints" holds a List of V1EndpointSubset.
+		 *   - A single V1EndpointSubset holds a List of V1EndpointAddress
 		 *
-		 *   - (The union of all EndpointSubsets is the Set of all Endpoints)
-		 *   - Set of Endpoints is the cartesian product of :
-		 *     EndpointSubset::getAddresses and EndpointSubset::getPorts (each is a List)
+		 *   - (The union of all V1EndpointSubsets is the Set of all V1Endpoints)
+		 *   - Set of V1Endpoints is the cartesian product of :
+		 *     V1EndpointSubset::getAddresses and V1EndpointSubset::getPorts (each is a List)
 		 * </pre>
 		 */
-		Stream<ObjectReference> references = endpoints.stream().map(Endpoints::getSubsets).filter(Objects::nonNull)
-			.flatMap(List::stream).map(EndpointSubset::getAddresses).filter(Objects::nonNull).flatMap(List::stream)
-			.map(EndpointAddress::getTargetRef);
+		Stream<V1ObjectReference> references = endpoints.stream().map(V1Endpoints::getSubsets).filter(Objects::nonNull).flatMap(List::stream)
+			.map(V1EndpointSubset::getAddresses).filter(Objects::nonNull).flatMap(List::stream)
+			.map(V1EndpointAddress::getTargetRef);
 
-		return Fabric8CatalogWatchContext.state(references);
+		return KubernetesCatalogWatchContext.state(references);
 
 	}
 
@@ -64,6 +88,16 @@ final class KubernetesEndpointsCatalogWatch
 				.getItems();
 		} catch (ApiException e) {
 			LOG.warn(e, () -> "can not list endpoints in all namespaces");
+			return Collections.emptyList();
+		}
+	}
+
+	private List<V1Endpoints> namespacedEndpoints(CoreV1Api client, String namespace) {
+		try {
+			return client.listNamespacedEndpoints(namespace, null, null, null, null, null, null, null, null, null, null)
+				.getItems();
+		} catch (ApiException e) {
+			LOG.warn(e, () -> "can not list endpoints in namespace " + namespace);
 			return Collections.emptyList();
 		}
 	}

@@ -16,9 +16,17 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.catalog;
 
+import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ObjectReference;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * A simple holder for some instances needed for either Endpoints or EndpointSlice catalog
@@ -26,6 +34,12 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
  *
  * @author wind57
  */
-record KubernetesCatalogWatchContext(CoreV1Api client, KubernetesDiscoveryProperties properties,
-	KubernetesNamespaceProvider namespaceProvider) {
+record KubernetesCatalogWatchContext(CoreV1Api client, ApiClient apiClient,
+	KubernetesDiscoveryProperties properties, KubernetesNamespaceProvider namespaceProvider) {
+
+	static List<EndpointNameAndNamespace> state(Stream<V1ObjectReference> references) {
+		return references.filter(Objects::nonNull).map(x -> new EndpointNameAndNamespace(x.getName(), x.getNamespace()))
+			.sorted(Comparator.comparing(EndpointNameAndNamespace::endpointName, String::compareTo)).toList();
+	}
+
 }
