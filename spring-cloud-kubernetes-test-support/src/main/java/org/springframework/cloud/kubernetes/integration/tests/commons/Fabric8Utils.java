@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
+import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
@@ -122,6 +123,44 @@ public final class Fabric8Utils {
 					.withName(roleBindingFromStream.getMetadata().getName()).get() == null) {
 				client.rbac().roleBindings().inNamespace(namespace).resource(roleBindingFromStream).create();
 			}
+		});
+
+	}
+
+	public static void cleanUpClusterWide(KubernetesClient client, String serviceAccountNamespace,
+			Set<String> namespaces) {
+
+		InputStream clusterRoleBindingAsStream = inputStream("cluster/cluster-role.yaml");
+		InputStream serviceAccountAsStream = inputStream("cluster/service-account.yaml");
+		InputStream roleBindingAsStream = inputStream("cluster/role-binding.yaml");
+
+		ClusterRole clusterRole = client.rbac().clusterRoles().load(clusterRoleBindingAsStream).get();
+		client.rbac().clusterRoles().withName(clusterRole.getMetadata().getName()).delete();
+
+		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+			ClusterRole innerClusterRole = client.rbac().clusterRoles().withName(clusterRole.getMetadata().getName())
+					.get();
+			return innerClusterRole == null;
+		});
+
+		ServiceAccount serviceAccount = client.serviceAccounts().load(serviceAccountAsStream).get();
+		client.serviceAccounts().inNamespace(serviceAccountNamespace).withName(serviceAccount.getMetadata().getName())
+				.delete();
+		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+			ServiceAccount innerServiceAccount = client.serviceAccounts().inNamespace(serviceAccountNamespace)
+					.withName(serviceAccount.getMetadata().getName()).get();
+			return innerServiceAccount == null;
+		});
+
+		RoleBinding roleBinding = client.rbac().roleBindings().load(roleBindingAsStream).get();
+		namespaces.forEach(namespace -> {
+			client.rbac().roleBindings().inNamespace(namespace).withName(roleBinding.getMetadata().getName()).delete();
+
+			await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+				RoleBinding innerRoleBinding = client.rbac().roleBindings().inNamespace(namespace)
+						.withName(roleBinding.getMetadata().getName()).get();
+				return innerRoleBinding == null;
+			});
 		});
 
 	}
@@ -223,7 +262,15 @@ public final class Fabric8Utils {
 			Ingress ingress = client.network().v1().ingresses().inNamespace(namespace).withName(name).get();
 			return ingress == null;
 		});
+	}
 
+	public static void deleteNamespace(KubernetesClient client, String name) {
+		client.namespaces().withName(name).delete();
+
+		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+			Namespace namespace = client.namespaces().withName(name).get();
+			return namespace == null;
+		});
 	}
 
 	private static void innerSetup(KubernetesClient client, String namespace, InputStream serviceAccountAsStream,

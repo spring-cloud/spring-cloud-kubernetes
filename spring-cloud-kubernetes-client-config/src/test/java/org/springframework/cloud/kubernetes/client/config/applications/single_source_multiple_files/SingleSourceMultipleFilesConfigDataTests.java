@@ -22,6 +22,7 @@ import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
@@ -36,10 +37,8 @@ import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.
  */
 @ActiveProfiles("color")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = SingleSourceMultipleFilesApp.class,
-		properties = { "spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:,classpath:./single-source-multiple-files.yaml",
-				"spring.cloud.kubernetes.client.namespace=spring-k8s" })
+		classes = SingleSourceMultipleFilesApp.class, properties = { "spring.main.cloud-platform=KUBERNETES",
+				"spring.config.import=kubernetes:,classpath:./single-source-multiple-files.yaml" })
 class SingleSourceMultipleFilesConfigDataTests extends SingleSourceMultipleFilesTests {
 
 	private static MockedStatic<KubernetesClientUtils> clientUtilsMock;
@@ -52,6 +51,9 @@ class SingleSourceMultipleFilesConfigDataTests extends SingleSourceMultipleFiles
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
 				.thenReturn(new ClientBuilder().setBasePath(server.baseUrl()).build());
+		clientUtilsMock
+				.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn("spring-k8s");
 		stubData();
 	}
 
