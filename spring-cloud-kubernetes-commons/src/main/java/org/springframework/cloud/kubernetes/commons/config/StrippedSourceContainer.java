@@ -24,5 +24,5 @@ import java.util.Map;
  * Container for some of the source's fields, it holds its labels (nullable), name and
  * data.
  */
-public final record StrippedSourceContainer(Map<String, String> labels, String name, Map<String, String> data) {
+public record StrippedSourceContainer(Map<String, String> labels, String name, Map<String, String> data) {
 }

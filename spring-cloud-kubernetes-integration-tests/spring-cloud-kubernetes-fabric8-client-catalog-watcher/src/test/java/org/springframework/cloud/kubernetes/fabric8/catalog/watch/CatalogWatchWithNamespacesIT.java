@@ -97,8 +97,10 @@ class CatalogWatchWithNamespacesIT {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		client.namespaces().resource(new NamespaceBuilder().withNewMetadata().withName(NAMESPACE_A).and().build()).create();
-		client.namespaces().resource(new NamespaceBuilder().withNewMetadata().withName(NAMESPACE_B).and().build()).create();
+		client.namespaces().resource(new NamespaceBuilder().withNewMetadata().withName(NAMESPACE_A).and().build())
+				.create();
+		client.namespaces().resource(new NamespaceBuilder().withNewMetadata().withName(NAMESPACE_B).and().build())
+				.create();
 		Fabric8Utils.setUpClusterWide(client, NAMESPACE_DEFAULT, Set.of(NAMESPACE_DEFAULT, NAMESPACE_A, NAMESPACE_B));
 		deployBusyboxManifests();
 	}
