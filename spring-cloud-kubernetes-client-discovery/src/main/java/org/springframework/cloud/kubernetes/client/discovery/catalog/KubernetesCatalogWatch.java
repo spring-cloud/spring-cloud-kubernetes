@@ -26,6 +26,7 @@ import io.kubernetes.client.openapi.apis.CustomObjectsApi;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
@@ -35,9 +36,9 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.ENDPOINT_SLICE;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.DISCOVERY_GROUP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.DISCOVERY_VERSION;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.ENDPOINT_SLICE;
 
 /**
  * Catalog watch implementation for kubernetes native client.
@@ -56,8 +57,8 @@ final class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private ApplicationEventPublisher publisher;
 
-	public KubernetesCatalogWatch(CoreV1Api client, ApiClient apiClient,
-		KubernetesDiscoveryProperties properties, KubernetesNamespaceProvider namespaceProvider) {
+	KubernetesCatalogWatch(CoreV1Api client, ApiClient apiClient, KubernetesDiscoveryProperties properties,
+			KubernetesNamespaceProvider namespaceProvider) {
 		context = new KubernetesCatalogWatchContext(client, apiClient, properties, namespaceProvider);
 	}
 
@@ -98,16 +99,17 @@ final class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 			ApiClient apiClient = context.apiClient();
 			CustomObjectsApi customObjectsApi = new CustomObjectsApi(apiClient);
 			try {
-				List<V1APIResource> resources = customObjectsApi.getAPIResources(DISCOVERY_GROUP, DISCOVERY_VERSION).getResources();
-				boolean found =
-					resources.stream().map(V1APIResource::getName).anyMatch(ENDPOINT_SLICE::equals);
+				List<V1APIResource> resources = customObjectsApi.getAPIResources(DISCOVERY_GROUP, DISCOVERY_VERSION)
+						.getResources();
+				boolean found = resources.stream().map(V1APIResource::getName).anyMatch(ENDPOINT_SLICE::equals);
 				if (!found) {
 					throw new IllegalArgumentException("EndpointSlices are not supported on the cluster");
 				}
 				else {
 					localStateGenerator = new KubernetesEndpointSlicesCatalogWatch();
 				}
-			} catch (ApiException e) {
+			}
+			catch (ApiException e) {
 				throw new RuntimeException(e);
 			}
 
@@ -120,4 +122,5 @@ final class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 		return localStateGenerator;
 	}
+
 }

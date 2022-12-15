@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
@@ -41,7 +42,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.ENDPOINT_SLICE;
 
 /**
@@ -54,7 +54,7 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 	public static WireMockServer wireMockServer;
 
 	private static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = Mockito
-		.mock(KubernetesNamespaceProvider.class);
+			.mock(KubernetesNamespaceProvider.class);
 
 	private static ApiClient apiClient;
 
@@ -88,11 +88,11 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 	void testEndpointSlicesEnabledButNotSupported() {
 		boolean useEndpointSlices = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-			false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
+				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
 
 		V1APIResourceList list = new V1APIResourceListBuilder().addToResources(new V1APIResource()).build();
 		stubFor(get("/apis/discovery.k8s.io/v1")
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(null, apiClient, properties, NAMESPACE_PROVIDER);
 		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class, watch::postConstruct);
@@ -110,12 +110,12 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 	void testEndpointSlicesEnabledButNotSupportedViaApiVersions() {
 		boolean useEndpointSlices = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-			false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
+				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
 
-		V1APIResourceList list = new V1APIResourceListBuilder().addToResources(
-			new V1APIResourceBuilder().withName("not-the-one").build()).build();
+		V1APIResourceList list = new V1APIResourceListBuilder()
+				.addToResources(new V1APIResourceBuilder().withName("not-the-one").build()).build();
 		stubFor(get("/apis/discovery.k8s.io/v1")
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(null, apiClient, properties, NAMESPACE_PROVIDER);
 		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class, watch::postConstruct);
@@ -130,7 +130,7 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 	void testEndpointsSupport() {
 		boolean useEndpointSlices = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-			false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
+				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(null, apiClient, properties, NAMESPACE_PROVIDER);
 
 		Assertions.assertEquals(KubernetesEndpointsCatalogWatch.class, watch.stateGenerator().getClass());
@@ -144,12 +144,12 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 	void testEndpointSlicesSupport() {
 		boolean useEndpointSlices = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-			false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
+				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
 
-		V1APIResourceList list = new V1APIResourceListBuilder().addToResources(
-			new V1APIResourceBuilder().withName(ENDPOINT_SLICE).build()).build();
+		V1APIResourceList list = new V1APIResourceListBuilder()
+				.addToResources(new V1APIResourceBuilder().withName(ENDPOINT_SLICE).build()).build();
 		stubFor(get("/apis/discovery.k8s.io/v1")
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(null, apiClient, properties, NAMESPACE_PROVIDER);
 		Assertions.assertEquals(KubernetesEndpointSlicesCatalogWatch.class, watch.stateGenerator().getClass());

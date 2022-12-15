@@ -16,13 +16,12 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.catalog;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1APIResourceBuilder;
-import io.kubernetes.client.openapi.models.V1APIResourceList;
-import io.kubernetes.client.openapi.models.V1APIResourceListBuilder;
-import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointAddressBuilder;
-import io.kubernetes.client.openapi.models.V1EndpointBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointSubsetBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointsBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
@@ -30,15 +29,12 @@ import io.kubernetes.client.openapi.models.V1EndpointsListBuilder;
 import io.kubernetes.client.openapi.models.V1ObjectReferenceBuilder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.ApplicationEventPublisher;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -54,42 +50,42 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 	static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = Mockito.mock(KubernetesNamespaceProvider.class);
 
 	static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
-		.forClass(HeartbeatEvent.class);
+			.forClass(HeartbeatEvent.class);
 
 	static final ApplicationEventPublisher APPLICATION_EVENT_PUBLISHER = Mockito.mock(ApplicationEventPublisher.class);
 
 	/**
-	 * 	test in all namespaces with service labels being empty
+	 * test in all namespaces with service labels being empty
 	 */
 	abstract void testInAllNamespacesEmptyServiceLabels();
 
 	/**
-	 * 	test in all namespaces with service labels having a single label present
+	 * test in all namespaces with service labels having a single label present
 	 */
 	abstract void testInAllNamespacesWithSingleLabel();
 
 	/**
-	 * 	test in all namespaces with service labels having two labels
+	 * test in all namespaces with service labels having two labels
 	 */
 	abstract void testInAllNamespacesWithDoubleLabel();
 
 	/**
-	 * 	test in some specific namespaces with service labels being empty
+	 * test in some specific namespaces with service labels being empty
 	 */
 	abstract void testInSpecificNamespacesEmptyServiceLabels();
 
 	/**
-	 * 	test in some specific namespaces with service labels having a single label present
+	 * test in some specific namespaces with service labels having a single label present
 	 */
 	abstract void testInSpecificNamespacesWithSingleLabel();
 
 	/**
-	 * 	test in some specific namespaces with service labels having two labels
+	 * test in some specific namespaces with service labels having two labels
 	 */
 	abstract void testInSpecificNamespacesWithDoubleLabel();
 
 	/**
-	 * 	test in one namespace with service labels being empty
+	 * test in one namespace with service labels being empty
 	 */
 	abstract void testInOneNamespaceEmptyServiceLabels();
 
@@ -108,7 +104,7 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 
 		boolean allNamespaces = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-			true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices);
+				true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(coreV1Api, null, properties, NAMESPACE_PROVIDER);
 
 		if (endpointSlices) {
@@ -126,8 +122,8 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 			Map<String, String> labels, CoreV1Api coreV1Api, boolean endpointSlices) {
 
 		boolean allNamespaces = false;
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces, true, 60,
-			false, "", Set.of(), labels, "", null, 0, false);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
+				true, 60, false, "", Set.of(), labels, "", null, 0, false);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(coreV1Api, null, properties, NAMESPACE_PROVIDER);
 
 		if (endpointSlices) {
@@ -147,8 +143,8 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 		when(NAMESPACE_PROVIDER.getNamespace()).thenReturn(namespace);
 
 		boolean allNamespaces = false;
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces,
-			Set.of(), true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
+				true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(coreV1Api, null, properties, NAMESPACE_PROVIDER);
 
 		if (endpointSlices) {
@@ -163,11 +159,11 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 	}
 
 	V1EndpointsList endpoints(String name, String namespace) {
-		return new V1EndpointsListBuilder().addToItems(new V1EndpointsBuilder().addToSubsets(
-			new V1EndpointSubsetBuilder().addToAddresses(new V1EndpointAddressBuilder().withTargetRef(
-				new V1ObjectReferenceBuilder().withName(name).withNamespace(namespace).build()
-			).build()
-		).build()).build()).build();
+		return new V1EndpointsListBuilder().addToItems(new V1EndpointsBuilder()
+				.addToSubsets(new V1EndpointSubsetBuilder().addToAddresses(new V1EndpointAddressBuilder()
+						.withTargetRef(new V1ObjectReferenceBuilder().withName(name).withNamespace(namespace).build())
+						.build()).build())
+				.build()).build();
 	}
 
 	static void invokeAndAssert(KubernetesCatalogWatch watch, List<EndpointNameAndNamespace> state) {
