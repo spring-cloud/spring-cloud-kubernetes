@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.discovery.catalog;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -82,7 +83,7 @@ final class KubernetesEndpointsCatalogWatch
 
 	}
 
-	private List<V1Endpoints> endpoints(CoreV1Api client) {
+	private List<V1Endpoints> endpoints(CoreV1Api client, Map<String, String> labels) {
 		try {
 			return client.listEndpointsForAllNamespaces(null, null, null, null, null, null, null, null, null, null)
 				.getItems();
@@ -92,7 +93,7 @@ final class KubernetesEndpointsCatalogWatch
 		}
 	}
 
-	private List<V1Endpoints> namespacedEndpoints(CoreV1Api client, String namespace) {
+	private List<V1Endpoints> namespacedEndpoints(CoreV1Api client, String namespace, Map<String, String> labels) {
 		try {
 			return client.listNamespacedEndpoints(namespace, null, null, null, null, null, null, null, null, null, null)
 				.getItems();
