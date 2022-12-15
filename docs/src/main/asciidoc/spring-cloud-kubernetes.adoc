@@ -50,3 +50,7 @@ include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/maste
 == Contributing
 
 include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/contributing.adoc[]
+
+== AOT and native image support
+
+At this point, Spring Cloud Kubernetes does not support Spring Boot AOT transformations or native images. Partial support might be added in future releases.
