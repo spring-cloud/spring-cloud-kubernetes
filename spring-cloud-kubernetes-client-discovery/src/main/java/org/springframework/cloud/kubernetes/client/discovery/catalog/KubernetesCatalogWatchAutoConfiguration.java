@@ -46,9 +46,9 @@ public class KubernetesCatalogWatchAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnKubernetesCatalogEnabled
-	public KubernetesCatalogWatch kubernetesCatalogWatch(CoreV1Api client, ApiClient apiClient,
+	public KubernetesCatalogWatch kubernetesCatalogWatch(CoreV1Api coreV1Api, ApiClient apiClient,
 			KubernetesDiscoveryProperties properties, Environment environment) {
-		return new KubernetesCatalogWatch(client, apiClient, properties, new KubernetesNamespaceProvider(environment));
+		return new KubernetesCatalogWatch(coreV1Api, apiClient, properties, new KubernetesNamespaceProvider(environment));
 	}
 
 }

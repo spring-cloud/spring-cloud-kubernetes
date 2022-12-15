@@ -37,7 +37,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
  *
  * @author wind57
  */
-record KubernetesCatalogWatchContext(CoreV1Api client, ApiClient apiClient, KubernetesDiscoveryProperties properties,
+record KubernetesCatalogWatchContext(CoreV1Api coreV1Api, ApiClient apiClient, KubernetesDiscoveryProperties properties,
 		KubernetesNamespaceProvider namespaceProvider) {
 
 	static List<EndpointNameAndNamespace> state(Stream<V1ObjectReference> references) {

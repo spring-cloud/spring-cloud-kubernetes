@@ -57,9 +57,9 @@ class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private ApplicationEventPublisher publisher;
 
-	KubernetesCatalogWatch(CoreV1Api client, ApiClient apiClient, KubernetesDiscoveryProperties properties,
+	KubernetesCatalogWatch(CoreV1Api coreV1Api, ApiClient apiClient, KubernetesDiscoveryProperties properties,
 			KubernetesNamespaceProvider namespaceProvider) {
-		context = new KubernetesCatalogWatchContext(client, apiClient, properties, namespaceProvider);
+		context = new KubernetesCatalogWatchContext(coreV1Api, apiClient, properties, namespaceProvider);
 	}
 
 	@Override

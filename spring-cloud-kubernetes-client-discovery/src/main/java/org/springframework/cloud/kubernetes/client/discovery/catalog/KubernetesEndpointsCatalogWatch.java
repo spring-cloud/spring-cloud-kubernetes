@@ -51,7 +51,7 @@ final class KubernetesEndpointsCatalogWatch
 	@Override
 	public List<EndpointNameAndNamespace> apply(KubernetesCatalogWatchContext context) {
 		List<V1Endpoints> endpoints;
-		CoreV1Api coreV1Api = context.client();
+		CoreV1Api coreV1Api = context.coreV1Api();
 		if (context.properties().allNamespaces()) {
 			LOG.debug(() -> "discovering endpoints in all namespaces");
 			endpoints = endpoints(coreV1Api, context.properties().serviceLabels());
