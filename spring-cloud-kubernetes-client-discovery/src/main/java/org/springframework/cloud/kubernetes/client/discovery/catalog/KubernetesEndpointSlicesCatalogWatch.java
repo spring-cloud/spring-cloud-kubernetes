@@ -84,7 +84,7 @@ final class KubernetesEndpointSlicesCatalogWatch
 					null, null, null).getItems();
 		}
 		catch (ApiException e) {
-			LOG.warn(e, () -> "can not list endpoints in all namespaces");
+			LOG.warn(e, () -> "can not list endpoint slices in all namespaces");
 			return Collections.emptyList();
 		}
 	}
@@ -96,7 +96,7 @@ final class KubernetesEndpointSlicesCatalogWatch
 					null, null, null).getItems();
 		}
 		catch (ApiException e) {
-			LOG.warn(e, () -> "can not list endpoints in namespace " + namespace);
+			LOG.warn(e, () -> "can not list endpoint slices in namespace " + namespace);
 			return Collections.emptyList();
 		}
 	}

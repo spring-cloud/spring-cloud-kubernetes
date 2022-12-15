@@ -20,8 +20,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1EndpointAddressBuilder;
+import io.kubernetes.client.openapi.models.V1EndpointBuilder;
+import io.kubernetes.client.openapi.models.V1EndpointSliceBuilder;
+import io.kubernetes.client.openapi.models.V1EndpointSliceList;
+import io.kubernetes.client.openapi.models.V1EndpointSliceListBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointSubsetBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointsBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
@@ -100,12 +105,12 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 	abstract void testInOneNamespaceWithDoubleLabel();
 
 	KubernetesCatalogWatch createWatcherInAllNamespacesWithLabels(Map<String, String> labels, Set<String> namespaces,
-			CoreV1Api coreV1Api, boolean endpointSlices) {
+			CoreV1Api coreV1Api, ApiClient apiClient, boolean endpointSlices) {
 
 		boolean allNamespaces = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
 				true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices);
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(coreV1Api, null, properties, NAMESPACE_PROVIDER);
+		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(coreV1Api, apiClient, properties, NAMESPACE_PROVIDER);
 
 		if (endpointSlices) {
 			watch = Mockito.spy(watch);
@@ -119,12 +124,12 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 	}
 
 	KubernetesCatalogWatch createWatcherInSpecificNamespacesWithLabels(Set<String> namespaces,
-			Map<String, String> labels, CoreV1Api coreV1Api, boolean endpointSlices) {
+			Map<String, String> labels, CoreV1Api coreV1Api, ApiClient apiClient, boolean endpointSlices) {
 
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
 				true, 60, false, "", Set.of(), labels, "", null, 0, false);
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(coreV1Api, null, properties, NAMESPACE_PROVIDER);
+		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(coreV1Api, apiClient, properties, NAMESPACE_PROVIDER);
 
 		if (endpointSlices) {
 			watch = Mockito.spy(watch);
@@ -138,14 +143,14 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 	}
 
 	KubernetesCatalogWatch createWatcherInSpecificNamespaceWithLabels(String namespace, Map<String, String> labels,
-			CoreV1Api coreV1Api, boolean endpointSlices) {
+			CoreV1Api coreV1Api, ApiClient apiClient, boolean endpointSlices) {
 
 		when(NAMESPACE_PROVIDER.getNamespace()).thenReturn(namespace);
 
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
 				true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices);
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(coreV1Api, null, properties, NAMESPACE_PROVIDER);
+		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(coreV1Api, apiClient, properties, NAMESPACE_PROVIDER);
 
 		if (endpointSlices) {
 			watch = Mockito.spy(watch);
@@ -164,6 +169,14 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 						.withTargetRef(new V1ObjectReferenceBuilder().withName(name).withNamespace(namespace).build())
 						.build()).build())
 				.build()).build();
+	}
+
+	V1EndpointSliceList endpointSlices(String name, String namespace) {
+		return new V1EndpointSliceListBuilder()
+				.addToItems(new V1EndpointSliceBuilder().addToEndpoints(new V1EndpointBuilder()
+						.withTargetRef(new V1ObjectReferenceBuilder().withName(name).withNamespace(namespace).build())
+						.build()).build())
+				.build();
 	}
 
 	static void invokeAndAssert(KubernetesCatalogWatch watch, List<EndpointNameAndNamespace> state) {

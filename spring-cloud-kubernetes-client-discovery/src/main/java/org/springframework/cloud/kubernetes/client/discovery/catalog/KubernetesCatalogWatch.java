@@ -45,7 +45,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  *
  * @author wind57
  */
-final class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
+class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesCatalogWatch.class));
 
