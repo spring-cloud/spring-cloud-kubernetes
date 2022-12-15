@@ -13,8 +13,11 @@ import org.springframework.core.log.LogAccessor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import static org.springframework.cloud.kubernetes.client.discovery.catalog.KubernetesCatalogWatchContext.labelSelector;
 
 /**
  * Implementation that is based on EndpointSlice V1.
@@ -33,19 +36,19 @@ final class KubernetesEndpointSlicesCatalogWatch implements Function<KubernetesC
 
 		if (context.properties().allNamespaces()) {
 			LOG.debug(() -> "discovering endpoint slices in all namespaces");
-			endpointSlices = endpointSlices(api);
+			endpointSlices = endpointSlices(api, context.properties().serviceLabels());
 		}
 		else if (!context.properties().namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering endpoint slices in " + context.properties().namespaces());
 			List<V1EndpointSlice> inner = new ArrayList<>(context.properties().namespaces().size());
 			context.properties().namespaces()
-				.forEach(namespace -> inner.addAll(namespacedEndpointSlices(api, namespace)));
+				.forEach(namespace -> inner.addAll(namespacedEndpointSlices(api, namespace, context.properties().serviceLabels())));
 			endpointSlices = inner;
 		}
 		else {
 			String namespace = KubernetesClientUtils.getApplicationNamespace(null, "catalog-watch", context.namespaceProvider());
 			LOG.debug(() -> "discovering endpoint slices in namespace : " + namespace);
-			endpointSlices = namespacedEndpointSlices(api, namespace);
+			endpointSlices = namespacedEndpointSlices(api, namespace, context.properties().serviceLabels());
 		}
 
 		Stream<V1ObjectReference> references = endpointSlices.stream().map(V1EndpointSlice::getEndpoints)
@@ -55,19 +58,19 @@ final class KubernetesEndpointSlicesCatalogWatch implements Function<KubernetesC
 
 	}
 
-	private List<V1EndpointSlice> endpointSlices(DiscoveryV1Api api) {
+	private List<V1EndpointSlice> endpointSlices(DiscoveryV1Api api, Map<String, String> labels) {
 		try {
-			return api.listEndpointSliceForAllNamespaces(null, null, null, null, null, null, null, null, null, null).getItems();
+			return api.listEndpointSliceForAllNamespaces(null, null, null, labelSelector(labels), null, null, null, null, null, null).getItems();
 		} catch (ApiException e) {
 			LOG.warn(e, () -> "can not list endpoints in all namespaces");
 			return Collections.emptyList();
 		}
 	}
 
-	private List<V1EndpointSlice> namespacedEndpointSlices(DiscoveryV1Api api, String namespace) {
+	private List<V1EndpointSlice> namespacedEndpointSlices(DiscoveryV1Api api, String namespace, Map<String, String> labels) {
 		try {
-			return api.listNamespacedEndpointSlice(namespace, null, null, null, null, null, null, null, null, null, null)
-				.getItems();
+			return api.listNamespacedEndpointSlice(namespace, null, null, null, null, labelSelector(labels),
+					null, null, null, null, null).getItems();
 		} catch (ApiException e) {
 			LOG.warn(e, () -> "can not list endpoints in namespace " + namespace);
 			return Collections.emptyList();

@@ -16,11 +16,27 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.catalog;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import io.kubernetes.client.openapi.JSON;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.util.ClientBuilder;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 /**
  * Test cases for the Endpoints support
@@ -29,55 +45,141 @@ import java.util.Map;
  */
 class KubernetesCatalogWatchEndpointsTests extends KubernetesEndpointsAndEndpointSlicesTests {
 
-	@Override
+	private static final Boolean USE_ENDPOINT_SLICES = false;
+
+	private static CoreV1Api coreV1Api;
+
+	public static WireMockServer wireMockServer;
+
+	@BeforeAll
+	static void beforeAll() {
+		wireMockServer = new WireMockServer(options().dynamicPort());
+		wireMockServer.start();
+		WireMock.configureFor(wireMockServer.port());
+		coreV1Api = new CoreV1Api(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
+	}
+
+	@AfterAll
+	public static void after() {
+		wireMockServer.stop();
+	}
+
+	@AfterEach
+	public void afterEach() {
+		WireMock.reset();
+		Mockito.reset(APPLICATION_EVENT_PUBLISHER);
+	}
+
 	@Test
-	void testInSpecificNamespaceWithServiceLabels() {
+	@Override
+	void testInAllNamespacesEmptyServiceLabels() {
+		stubFor(get("/api/v1/endpoints?labelSelector=")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("a", "default")))));
+		KubernetesCatalogWatch watch = createWatcherInAllNamespacesWithLabels(
+			Map.of(), Set.of(), coreV1Api, USE_ENDPOINT_SLICES);
 
-		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("namespaceA", Map.of("color", "blue"),
-			ENDPOINT_SLICES);
-
-		endpoints("namespaceA", Map.of(), "podA");
-		endpoints("namespaceA", Map.of("color", "blue"), "podB");
-		endpoints("namespaceA", Map.of("color", "red"), "podC");
-		endpoints("namespaceB", Map.of("color", "blue"), "podD");
-		endpoints("namespaceB", Map.of(), "podE");
-
-		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("podB", "namespaceA")));
-
+		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("a", "default")));
 	}
 
+	@Test
 	@Override
-	void testInSpecificNamespaceWithoutServiceLabels() {
+	void testInAllNamespacesWithSingleLabel() {
+		stubFor(get("/api/v1/endpoints?labelSelector=a%3Db")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("a", "default")))));
+		KubernetesCatalogWatch watch = createWatcherInAllNamespacesWithLabels(
+			Map.of("a", "b"), Set.of(), coreV1Api, USE_ENDPOINT_SLICES);
 
+		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("a", "default")));
 	}
 
+	@Test
 	@Override
-	void testInAllNamespacesWithServiceLabels() {
+	void testInAllNamespacesWithDoubleLabel() {
+		stubFor(get("/api/v1/endpoints?labelSelector=a%3Db%26c%3Dd")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("a", "default")))));
+		// otherwise the stub might fail
+		LinkedHashMap<String, String> map = new LinkedHashMap<>();
+		map.put("a", "b");
+		map.put("c", "d");
+		KubernetesCatalogWatch watch = createWatcherInAllNamespacesWithLabels(map, Set.of(), coreV1Api, USE_ENDPOINT_SLICES);
 
+		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("a", "default")));
 	}
 
+	@Test
 	@Override
-	void testInAllNamespacesWithoutServiceLabels() {
+	void testInSpecificNamespacesEmptyServiceLabels() {
+		stubFor(get("/api/v1/namespaces/b/endpoints?labelSelector=")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("a", "b")))));
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("b"), Map.of(), coreV1Api, USE_ENDPOINT_SLICES);
 
+		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("a", "b")));
 	}
 
+	@Test
 	@Override
-	void testAllNamespacesTrueOtherBranchesNotCalled() {
+	void testInSpecificNamespacesWithSingleLabel() {
+		stubFor(get("/api/v1/namespaces/one/endpoints?labelSelector=a%3Db")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("aa", "a")))));
+		stubFor(get("/api/v1/namespaces/two/endpoints?labelSelector=a%3Db")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("bb", "b")))));
 
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("one", "two"), Map.of("a", "b"),
+			coreV1Api, USE_ENDPOINT_SLICES);
+
+		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("aa", "a"), new EndpointNameAndNamespace("bb", "b")));
 	}
 
+	@Test
 	@Override
-	void testAllNamespacesFalseNamespacesPresent() {
+	void testInSpecificNamespacesWithDoubleLabel() {
+		stubFor(get("/api/v1/namespaces/one/endpoints?labelSelector=a%3Db%26c%3Dd")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("aa", "a")))));
+		stubFor(get("/api/v1/namespaces/two/endpoints?labelSelector=a%3Db%26c%3Dd")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("bb", "b")))));
 
+		// otherwise the stub might fail
+		LinkedHashMap<String, String> map = new LinkedHashMap<>();
+		map.put("a", "b");
+		map.put("c", "d");
+
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("one", "two"), map,
+			coreV1Api, USE_ENDPOINT_SLICES);
+
+		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("aa", "a"), new EndpointNameAndNamespace("bb", "b")));
 	}
 
+	@Test
 	@Override
-	void testAllNamespacesFalseNamespacesNotPresent() {
+	void testInOneNamespaceEmptyServiceLabels() {
+		stubFor(get("/api/v1/namespaces/b/endpoints?labelSelector=")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("a", "b")))));
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("b", Map.of(), coreV1Api, USE_ENDPOINT_SLICES);
 
+		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("a", "b")));
 	}
 
+	@Test
 	@Override
-	void testTwoNamespacesOutOfThree() {
+	void testInOneNamespaceWithSingleLabel() {
+		stubFor(get("/api/v1/namespaces/b/endpoints?labelSelector=key%3Dvalue")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("a", "b")))));
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("b", Map.of("key", "value"), coreV1Api, USE_ENDPOINT_SLICES);
 
+		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("a", "b")));
+	}
+
+	@Test
+	@Override
+	void testInOneNamespaceWithDoubleLabel() {
+		stubFor(get("/api/v1/namespaces/b/endpoints?labelSelector=key%3Dvalue%26key1%3Dvalue1")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("a", "b")))));
+		// otherwise the stub might fail
+		LinkedHashMap<String, String> map = new LinkedHashMap<>();
+		map.put("key", "value");
+		map.put("key1", "value1");
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("b", map, coreV1Api, USE_ENDPOINT_SLICES);
+
+		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("a", "b")));
 	}
 }

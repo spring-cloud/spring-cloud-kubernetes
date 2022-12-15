@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -44,7 +45,8 @@ record KubernetesCatalogWatchContext(CoreV1Api client, ApiClient apiClient,
 	}
 
 	static String labelSelector(Map<String, String> labels) {
-
+		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue())
+			.collect(Collectors.joining("&"));
 	}
 
 }

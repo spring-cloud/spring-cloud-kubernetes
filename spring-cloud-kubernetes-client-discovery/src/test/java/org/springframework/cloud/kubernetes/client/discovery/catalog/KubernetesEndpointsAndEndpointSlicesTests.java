@@ -16,16 +16,32 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.catalog;
 
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1APIResourceBuilder;
+import io.kubernetes.client.openapi.models.V1APIResourceList;
+import io.kubernetes.client.openapi.models.V1APIResourceListBuilder;
+import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1EndpointAddressBuilder;
+import io.kubernetes.client.openapi.models.V1EndpointBuilder;
+import io.kubernetes.client.openapi.models.V1EndpointSubsetBuilder;
+import io.kubernetes.client.openapi.models.V1EndpointsBuilder;
+import io.kubernetes.client.openapi.models.V1EndpointsList;
+import io.kubernetes.client.openapi.models.V1EndpointsListBuilder;
+import io.kubernetes.client.openapi.models.V1ObjectReferenceBuilder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -43,170 +59,61 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 	static final ApplicationEventPublisher APPLICATION_EVENT_PUBLISHER = Mockito.mock(ApplicationEventPublisher.class);
 
 	/**
-	 * <pre>
-	 *
-	 *     - we have 5 pods involved in this test
-	 *     - podA in namespaceA with no labels
-	 *     - podB in namespaceA with labels {color=blue}
-	 *     - podC in namespaceA with labels {color=red}
-	 *     - podD in namespaceB with labels {color=blue}
-	 *     - podE in namespaceB with no labels
-	 *
-	 *     We set the namespace to be "namespaceA" and search for labels {color=blue}
-	 *     As a result only one pod is taken: podB
-	 *
-	 * </pre>
+	 * 	test in all namespaces with service labels being empty
 	 */
-	abstract void testInSpecificNamespaceWithServiceLabels();
+	abstract void testInAllNamespacesEmptyServiceLabels();
 
 	/**
-	 * <pre>
-	 *
-	 *     - we have 5 pods involved in this test
-	 *     - podA in namespaceA with no labels
-	 *     - podB in namespaceA with labels {color=blue}
-	 *     - podC in namespaceA with labels {color=red}
-	 *     - podD in namespaceB with labels {color=blue}
-	 *     - podE in namespaceB with no labels
-	 *
-	 *     We set the namespace to be "namespaceA" and search without labels
-	 *     As a result we get three pods:
-	 *       - podA in namespaceA
-	 *       - podB in namespaceA
-	 *       - pocC in namespaceA
-	 *
-	 * </pre>
+	 * 	test in all namespaces with service labels having a single label present
 	 */
-	abstract void testInSpecificNamespaceWithoutServiceLabels();
+	abstract void testInAllNamespacesWithSingleLabel();
 
 	/**
-	 * <pre>
-	 *
-	 *     - we have 5 pods involved in this test
-	 *     - podA in namespaceA with no labels
-	 *     - podB in namespaceA with labels {color=blue}
-	 *     - podC in namespaceA with labels {color=red}
-	 *     - podD in namespaceB with labels {color=blue}
-	 *     - podE in namespaceB with no labels
-	 *
-	 *     We search in all namespaces with labels {color=blue}
-	 *     As a result two pods are taken:
-	 *       - podB in namespaceA
-	 *       - podD in namespaceB
-	 *
-	 * </pre>
+	 * 	test in all namespaces with service labels having two labels
 	 */
-	abstract void testInAllNamespacesWithServiceLabels();
+	abstract void testInAllNamespacesWithDoubleLabel();
 
 	/**
-	 * <pre>
-	 *
-	 *     - we have 5 pods involved in this test
-	 *     - podA in namespaceA with no labels
-	 *     - podB in namespaceA with labels {color=blue}
-	 *     - podC in namespaceA with labels {color=red}
-	 *     - podD in namespaceB with labels {color=blue}
-	 *     - podE in namespaceB with no labels
-	 *
-	 *     We search in all namespaces without labels
-	 *     As a result we get all 5 pods
-	 *
-	 * </pre>
+	 * 	test in some specific namespaces with service labels being empty
 	 */
-	abstract void testInAllNamespacesWithoutServiceLabels();
+	abstract void testInSpecificNamespacesEmptyServiceLabels();
 
 	/**
-	 * <pre>
-	 *     - all-namespaces = true
-	 *     - namespaces = [namespaceB]
-	 *
-	 *     - we have 5 pods involved in this test
-	 * 	   - podA in namespaceA with no labels
-	 * 	   - podB in namespaceA with labels {color=blue}
-	 * 	   - podC in namespaceA with labels {color=red}
-	 * 	   - podD in namespaceB with labels {color=blue}
-	 * 	   - podE in namespaceB with no labels
-	 *
-	 *     We search with labels = {color = blue}
-	 *     Even if namespaces = [namespaceB], we still take podB and podD, because all-namespace=true
-	 *
-	 * </pre>
+	 * 	test in some specific namespaces with service labels having a single label present
 	 */
-	abstract void testAllNamespacesTrueOtherBranchesNotCalled();
+	abstract void testInSpecificNamespacesWithSingleLabel();
 
 	/**
-	 * <pre>
-	 *     - all-namespaces = false
-	 *     - namespaces = [namespaceA]
-	 *
-	 *     - we have 5 pods involved in this test
-	 * 	   - podA in namespaceA with no labels
-	 * 	   - podB in namespaceA with labels {color=blue}
-	 * 	   - podC in namespaceA with labels {color=red}
-	 * 	   - podD in namespaceB with labels {color=blue}
-	 * 	   - podE in namespaceB with no labels
-	 *
-	 *     We search with labels = {color = blue}
-	 *     Since namespaces = [namespaceA], we wil take podB, because all-namespace=false (podD is not part of the response)
-	 *
-	 * </pre>
+	 * 	test in some specific namespaces with service labels having two labels
 	 */
-	abstract void testAllNamespacesFalseNamespacesPresent();
+	abstract void testInSpecificNamespacesWithDoubleLabel();
 
 	/**
-	 * <pre>
-	 *     - all-namespaces = false
-	 *     - namespaces = []
-	 *
-	 *     - we have 5 pods involved in this test
-	 * 	   - podA in namespaceA with no labels
-	 * 	   - podB in namespaceA with labels {color=blue}
-	 * 	   - podC in namespaceA with labels {color=red}
-	 * 	   - podD in namespaceB with labels {color=blue}
-	 * 	   - podE in namespaceB with no labels
-	 *
-	 *     We search with labels = {color = blue}
-	 *     Since namespaces = [], we wil take podB, because all-namespace=false (podD is not part of the response)
-	 *
-	 * </pre>
+	 * 	test in one namespace with service labels being empty
 	 */
-	abstract void testAllNamespacesFalseNamespacesNotPresent();
+	abstract void testInOneNamespaceEmptyServiceLabels();
 
 	/**
-	 * <pre>
-	 *     - all-namespaces = false
-	 *     - namespaces = [namespaceA, namespaceB]
-	 *
-	 *     - we have 7 pods involved in this test
-	 * 	   - podA in namespaceA with no labels
-	 * 	   - podB in namespaceA with labels {color=blue}
-	 * 	   - podC in namespaceA with labels {color=red}
-	 * 	   - podD in namespaceB with labels {color=blue}
-	 * 	   - podE in namespaceB with no labels
-	 * 	   - podF in namespaceB with labels {color=blue}
-	 * 	   - podO in namespaceC with labels {color=blue}
-	 *
-	 *     We search with labels = {color = blue}
-	 *     Since namespaces = [namespaceA, namespaceB], we wil take podB, podD and podF,
-	 *     but will not take podO
-	 *
-	 * </pre>
+	 * test in one namespace with service labels having a single label present
 	 */
-	abstract void testTwoNamespacesOutOfThree();
+	abstract void testInOneNamespaceWithSingleLabel();
 
-	KubernetesCatalogWatch createWatcherInSpecificNamespaceWithLabels(String namespace, Map<String, String> labels,
-			boolean endpointSlices) {
+	/**
+	 * test in one namespace with service labels having two labels
+	 */
+	abstract void testInOneNamespaceWithDoubleLabel();
 
-		when(NAMESPACE_PROVIDER.getNamespace()).thenReturn(namespace);
+	KubernetesCatalogWatch createWatcherInAllNamespacesWithLabels(Map<String, String> labels, Set<String> namespaces,
+			CoreV1Api coreV1Api, boolean endpointSlices) {
 
-		boolean allNamespaces = false;
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces,
-			Set.of(namespace), true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices);
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient(), properties, NAMESPACE_PROVIDER);
+		boolean allNamespaces = true;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
+			true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices);
+		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(coreV1Api, null, properties, NAMESPACE_PROVIDER);
 
 		if (endpointSlices) {
 			watch = Mockito.spy(watch);
-			Mockito.doReturn(new Fabric8EndpointSliceV1CatalogWatch()).when(watch).stateGenerator();
+			Mockito.doReturn(new KubernetesEndpointSlicesCatalogWatch()).when(watch).stateGenerator();
 		}
 
 		watch.postConstruct();
@@ -214,4 +121,64 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 		return watch;
 
 	}
+
+	KubernetesCatalogWatch createWatcherInSpecificNamespacesWithLabels(Set<String> namespaces,
+			Map<String, String> labels, CoreV1Api coreV1Api, boolean endpointSlices) {
+
+		boolean allNamespaces = false;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces, true, 60,
+			false, "", Set.of(), labels, "", null, 0, false);
+		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(coreV1Api, null, properties, NAMESPACE_PROVIDER);
+
+		if (endpointSlices) {
+			watch = Mockito.spy(watch);
+			Mockito.doReturn(new KubernetesEndpointSlicesCatalogWatch()).when(watch).stateGenerator();
+		}
+
+		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
+		watch.postConstruct();
+		return watch;
+
+	}
+
+	KubernetesCatalogWatch createWatcherInSpecificNamespaceWithLabels(String namespace, Map<String, String> labels,
+			CoreV1Api coreV1Api, boolean endpointSlices) {
+
+		when(NAMESPACE_PROVIDER.getNamespace()).thenReturn(namespace);
+
+		boolean allNamespaces = false;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces,
+			Set.of(), true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices);
+		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(coreV1Api, null, properties, NAMESPACE_PROVIDER);
+
+		if (endpointSlices) {
+			watch = Mockito.spy(watch);
+			Mockito.doReturn(new KubernetesEndpointSlicesCatalogWatch()).when(watch).stateGenerator();
+		}
+
+		watch.postConstruct();
+		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
+		return watch;
+
+	}
+
+	V1EndpointsList endpoints(String name, String namespace) {
+		return new V1EndpointsListBuilder().addToItems(new V1EndpointsBuilder().addToSubsets(
+			new V1EndpointSubsetBuilder().addToAddresses(new V1EndpointAddressBuilder().withTargetRef(
+				new V1ObjectReferenceBuilder().withName(name).withNamespace(namespace).build()
+			).build()
+		).build()).build()).build();
+	}
+
+	static void invokeAndAssert(KubernetesCatalogWatch watch, List<EndpointNameAndNamespace> state) {
+		watch.catalogServicesWatch();
+
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
+
+		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
+		assertThat(event.getValue()).isInstanceOf(List.class);
+
+		assertThat(event.getValue()).isEqualTo(state);
+	}
+
 }

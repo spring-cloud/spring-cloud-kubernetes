@@ -35,6 +35,8 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.core.log.LogAccessor;
 
+import static org.springframework.cloud.kubernetes.client.discovery.catalog.KubernetesCatalogWatchContext.labelSelector;
+
 /**
  * Implementation that is based on V1Endpoints.
  *
@@ -51,18 +53,19 @@ final class KubernetesEndpointsCatalogWatch
 		CoreV1Api coreV1Api = context.client();
 		if (context.properties().allNamespaces()) {
 			LOG.debug(() -> "discovering endpoints in all namespaces");
-			endpoints = endpoints(coreV1Api);
+			endpoints = endpoints(coreV1Api, context.properties().serviceLabels());
 		}
 		else if (!context.properties().namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering endpoints in " + context.properties().namespaces());
 			List<V1Endpoints> inner = new ArrayList<>(context.properties().namespaces().size());
-			context.properties().namespaces().forEach(namespace -> inner.addAll(namespacedEndpoints(coreV1Api, namespace)));
+			context.properties().namespaces().forEach(namespace -> inner.addAll(
+				namespacedEndpoints(coreV1Api, namespace, context.properties().serviceLabels())));
 			endpoints = inner;
 		}
 		else {
 			String namespace = KubernetesClientUtils.getApplicationNamespace(null, "catalog-watch", context.namespaceProvider());
 			LOG.debug(() -> "discovering endpoints in namespace : " + namespace);
-			endpoints = namespacedEndpoints(coreV1Api, namespace);
+			endpoints = namespacedEndpoints(coreV1Api, namespace, context.properties().serviceLabels());
 		}
 
 		/**
@@ -85,7 +88,7 @@ final class KubernetesEndpointsCatalogWatch
 
 	private List<V1Endpoints> endpoints(CoreV1Api client, Map<String, String> labels) {
 		try {
-			return client.listEndpointsForAllNamespaces(null, null, null, null, null, null, null, null, null, null)
+			return client.listEndpointsForAllNamespaces(null, null, null, labelSelector(labels), null, null, null, null, null, null)
 				.getItems();
 		} catch (ApiException e) {
 			LOG.warn(e, () -> "can not list endpoints in all namespaces");
@@ -95,8 +98,8 @@ final class KubernetesEndpointsCatalogWatch
 
 	private List<V1Endpoints> namespacedEndpoints(CoreV1Api client, String namespace, Map<String, String> labels) {
 		try {
-			return client.listNamespacedEndpoints(namespace, null, null, null, null, null, null, null, null, null, null)
-				.getItems();
+			return client.listNamespacedEndpoints(namespace, null, null, null, null,
+					labelSelector(labels), null, null, null, null, null).getItems();
 		} catch (ApiException e) {
 			LOG.warn(e, () -> "can not list endpoints in namespace " + namespace);
 			return Collections.emptyList();
