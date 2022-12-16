@@ -25,9 +25,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -42,11 +40,9 @@ import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1ClusterRole;
 import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1DeploymentBuilder;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
-import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1LoadBalancerIngress;
 import io.kubernetes.client.openapi.models.V1LoadBalancerStatus;
@@ -56,7 +52,6 @@ import io.kubernetes.client.openapi.models.V1Role;
 import io.kubernetes.client.openapi.models.V1RoleBinding;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceAccount;
-import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.Yaml;
 import org.apache.commons.logging.Log;
@@ -160,33 +155,6 @@ public class K8SUtils {
 		String file = new BufferedReader(new InputStreamReader(classLoader.getResourceAsStream(fileName))).lines()
 				.collect(Collectors.joining("\n"));
 		return Yaml.load(file);
-	}
-
-	public V1Service createService(String name, Map<String, String> labels, Map<String, String> specSelectors,
-			String type, String portName, int port, int targetPort, String namespace) throws ApiException {
-		V1Service wiremockService = new V1ServiceBuilder().editOrNewMetadata().withName(name).addToLabels(labels)
-				.endMetadata().editOrNewSpec().addToSelector(specSelectors).withType(type).addNewPort()
-				.withName(portName).withPort(port).withNewTargetPort(targetPort).endPort().endSpec().build();
-		return api.createNamespacedService(namespace, wiremockService, null, null, null, null);
-	}
-
-	public V1Deployment createDeployment(String name, Map<String, String> selectorMatchLabels,
-			Map<String, String> templateMetadataLabels, String containerName, String image, String pullPolicy,
-			int containerPort, int readinessProbePort, String readinessProbePath, int livenessProbePort,
-			String livenessProbePath, String serviceAccountName, Collection<V1EnvVar> envVars, String namespace)
-			throws ApiException {
-
-		V1Deployment wiremockDeployment = new V1DeploymentBuilder().editOrNewMetadata().withName(name).endMetadata()
-				.editOrNewSpec().withNewSelector().addToMatchLabels(selectorMatchLabels).endSelector()
-				.editOrNewTemplate().editOrNewMetadata().addToLabels(templateMetadataLabels).endMetadata()
-				.editOrNewSpec().withServiceAccountName(serviceAccountName).addNewContainer().withName(containerName)
-				.withImage(image).withImagePullPolicy(pullPolicy).addNewPort().withContainerPort(containerPort)
-				.endPort().editOrNewReadinessProbe().editOrNewHttpGet().withNewPort(readinessProbePort)
-				.withPath(readinessProbePath).endHttpGet().endReadinessProbe().editOrNewLivenessProbe()
-				.editOrNewHttpGet().withNewPort(livenessProbePort).withPath(livenessProbePath).endHttpGet()
-				.endLivenessProbe().addAllToEnv(envVars).endContainer().endSpec().endTemplate().endSpec().build();
-		return appsApi.createNamespacedDeployment(namespace, wiremockDeployment, null, null, null, null);
-
 	}
 
 	public void waitForEndpointReady(String name, String namespace) {
@@ -307,14 +275,6 @@ public class K8SUtils {
 		V1Role role = getConfigK8sClientItRole();
 		notExistsHandler(() -> rbacApi.readNamespacedRole(role.getMetadata().getName(), namespace, null),
 				() -> rbacApi.createNamespacedRole(namespace, role, null, null, null, null));
-	}
-
-	public void deleteNamespace(String name) throws Exception {
-		api.deleteNamespace(name, null, null, null, null, null, null);
-
-		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS)
-				.until(() -> api.listNamespace(null, null, null, null, null, null, null, null, null, null).getItems()
-						.stream().noneMatch(x -> x.getMetadata().getName().equals(name)));
 	}
 
 	public void setUpClusterWide(String serviceAccountNamespace, Set<String> namespaces) throws Exception {
