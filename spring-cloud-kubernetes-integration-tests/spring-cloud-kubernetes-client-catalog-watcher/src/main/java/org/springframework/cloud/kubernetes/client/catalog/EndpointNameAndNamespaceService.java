@@ -16,10 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client.catalog;
 
+import java.util.List;
+
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * holds an EndpointNameAndNamespace object, needed so that the controller can poll to see

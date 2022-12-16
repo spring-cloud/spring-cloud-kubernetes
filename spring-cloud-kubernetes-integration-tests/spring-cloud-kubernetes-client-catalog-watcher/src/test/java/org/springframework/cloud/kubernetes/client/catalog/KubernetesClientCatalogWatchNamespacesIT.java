@@ -17,14 +17,19 @@
 package org.springframework.cloud.kubernetes.client.catalog;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1EnvVar;
+import io.kubernetes.client.openapi.models.V1EnvVarBuilder;
 import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1NamespaceBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -48,14 +53,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
 
-/**
- * @author wind57
- */
-class KubernetesClientCatalogWatchIT {
+public class KubernetesClientCatalogWatchNamespacesIT {
 
 	private static final String APP_NAME = "spring-cloud-kubernetes-client-catalog-watcher";
 
-	private static final String NAMESPACE = "default";
+	private static final String NAMESPACE_A = "namespacea";
+
+	private static final String NAMESPACE_B = "namespaceb";
+
+	private static final String NAMESPACE_DEFAULT = "default";
 
 	private static final K3sContainer K3S = Commons.container();
 
@@ -67,9 +73,13 @@ class KubernetesClientCatalogWatchIT {
 
 	private static K8SUtils k8SUtils;
 
-	private static String busyboxServiceName;
+	private static String busyboxServiceNameA;
 
-	private static String busyboxDeploymentName;
+	private static String busyboxServiceNameB;
+
+	private static String busyboxDeploymentNameA;
+
+	private static String busyboxDeploymentNameB;
 
 	private static String appDeploymentName;
 
@@ -89,24 +99,33 @@ class KubernetesClientCatalogWatchIT {
 		appsApi = new AppsV1Api();
 		networkingApi = new NetworkingV1Api();
 		k8SUtils = new K8SUtils(api, appsApi);
-		k8SUtils.setUp(NAMESPACE);
+		k8SUtils.setUp(NAMESPACE_DEFAULT);
 	}
 
 	@BeforeEach
 	void beforeEach() throws Exception {
+		api.createNamespace(new V1NamespaceBuilder().withNewMetadata().withName(NAMESPACE_A).and().build(), null, null,
+				null, null);
+		api.createNamespace(new V1NamespaceBuilder().withNewMetadata().withName(NAMESPACE_B).and().build(), null, null,
+				null, null);
+		k8SUtils.setUpClusterWide(NAMESPACE_DEFAULT, Set.of(NAMESPACE_A, NAMESPACE_B));
 		deployBusyboxManifests();
 	}
 
 	@AfterEach
 	void afterEach() throws Exception {
 		deleteApp();
+		k8SUtils.deleteNamespace(NAMESPACE_A);
+		k8SUtils.deleteNamespace(NAMESPACE_B);
 	}
 
 	/**
 	 * <pre>
-	 *     - we deploy a busybox service with 2 replica pods
+	 *     - we deploy one busybox service with 2 replica pods in namespace namespacea
+	 *     - we deploy one busybox service with 2 replica pods in namespace namespaceb
+	 *     - we enable the search to be made in namespacea and default ones
 	 *     - we receive an event from KubernetesCatalogWatcher, assert what is inside it
-	 *     - delete the busybox service
+	 *     - delete both busybox services in namespacea and namespaceb
 	 *     - assert that we receive only spring-cloud-kubernetes-client-catalog-watcher pod
 	 * </pre>
 	 */
@@ -130,8 +149,10 @@ class KubernetesClientCatalogWatchIT {
 	 * type.
 	 */
 	private void assertLogStatement(String log) throws Exception {
-		String appPodName = K3S.execInContainer("kubectl", "get", "pods", "-l",
-				"app=spring-cloud-kubernetes-client-catalog-watcher", "-o=name", "--no-headers").getStdout();
+		String appPodName = K3S
+				.execInContainer("kubectl", "get", "pods", "-l",
+						"app=spring-cloud-kubernetes-client-catalog-watcher", "-o=name", "--no-headers")
+				.getStdout();
 		String allLogs = K3S.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
 		Assertions.assertTrue(allLogs.contains(log));
 	}
@@ -172,8 +193,8 @@ class KubernetesClientCatalogWatchIT {
 
 		Assertions.assertTrue(resultOne.endpointName().contains("busybox"));
 		Assertions.assertTrue(resultTwo.endpointName().contains("busybox"));
-		Assertions.assertEquals("default", resultOne.namespace());
-		Assertions.assertEquals("default", resultTwo.namespace());
+		Assertions.assertEquals(NAMESPACE_A, resultOne.namespace());
+		Assertions.assertEquals(NAMESPACE_A, resultTwo.namespace());
 
 		deleteBusyboxApp();
 
@@ -216,14 +237,25 @@ class KubernetesClientCatalogWatchIT {
 		Commons.pullImage(image[0], image[1], K3S);
 		Commons.loadImage(image[0], image[1], "busybox", K3S);
 
-		appsApi.createNamespacedDeployment(NAMESPACE, busyboxDeployment, null, null, null, null);
-		busyboxDeploymentName = busyboxDeployment.getMetadata().getName();
+		// namespace_a
+		appsApi.createNamespacedDeployment(NAMESPACE_A, busyboxDeployment, null, null, null, null);
+		busyboxDeploymentNameA = busyboxDeployment.getMetadata().getName();
 
-		V1Service busyboxService = (V1Service) K8SUtils.readYamlFromClasspath(getBusyboxService());
-		busyboxServiceName = busyboxService.getMetadata().getName();
-		api.createNamespacedService(NAMESPACE, busyboxService, null, null, null, null);
+		V1Service busyboxServiceA = (V1Service) K8SUtils.readYamlFromClasspath(getBusyboxService());
+		busyboxServiceNameA = busyboxServiceA.getMetadata().getName();
+		api.createNamespacedService(NAMESPACE_A, busyboxServiceA, null, null, null, null);
 
-		k8SUtils.waitForDeployment(busyboxDeploymentName, NAMESPACE);
+		k8SUtils.waitForDeployment(busyboxDeploymentNameA, NAMESPACE_A);
+
+		// namespace_b
+		appsApi.createNamespacedDeployment(NAMESPACE_B, busyboxDeployment, null, null, null, null);
+		busyboxDeploymentNameB = busyboxDeployment.getMetadata().getName();
+
+		V1Service busyboxServiceB = (V1Service) K8SUtils.readYamlFromClasspath(getBusyboxService());
+		busyboxServiceNameB = busyboxServiceB.getMetadata().getName();
+		api.createNamespacedService(NAMESPACE_B, busyboxServiceB, null, null, null, null);
+
+		k8SUtils.waitForDeployment(busyboxDeploymentNameA, NAMESPACE_A);
 
 	}
 
@@ -237,33 +269,50 @@ class KubernetesClientCatalogWatchIT {
 		String currentImage = appDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 		appDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(currentImage + ":" + version);
 
-		appsApi.createNamespacedDeployment(NAMESPACE, appDeployment, null, null, null, null);
+		List<V1EnvVar> envVars = new ArrayList<>(
+				appDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
+		V1EnvVar namespaceAEnvVar = new V1EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
+				.withValue(NAMESPACE_A).build();
+		V1EnvVar namespaceDefaultEnvVar = new V1EnvVarBuilder()
+				.withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1").withValue(NAMESPACE_DEFAULT).build();
+		envVars.add(namespaceAEnvVar);
+		envVars.add(namespaceDefaultEnvVar);
+
+		appDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
+
+		appsApi.createNamespacedDeployment(NAMESPACE_DEFAULT, appDeployment, null, null, null, null);
 		appDeploymentName = appDeployment.getMetadata().getName();
 
 		V1Service appService = (V1Service) K8SUtils.readYamlFromClasspath(getAppService());
 		appServiceName = appService.getMetadata().getName();
-		api.createNamespacedService(NAMESPACE, appService, null, null, null, null);
+		api.createNamespacedService(NAMESPACE_DEFAULT, appService, null, null, null, null);
 
-		k8SUtils.waitForDeployment(appDeploymentName, NAMESPACE);
+		k8SUtils.waitForDeployment(appDeploymentName, NAMESPACE_DEFAULT);
 
 		V1Ingress appIngress = (V1Ingress) K8SUtils.readYamlFromClasspath(getAppIngress());
 		appIngressName = appIngress.getMetadata().getName();
-		networkingApi.createNamespacedIngress(NAMESPACE, appIngress, null, null, null, null);
-		k8SUtils.waitForIngress(appIngressName, NAMESPACE);
+		networkingApi.createNamespacedIngress(NAMESPACE_DEFAULT, appIngress, null, null, null, null);
+
+		k8SUtils.waitForIngress(appIngressName, NAMESPACE_DEFAULT);
 
 	}
 
 	private void deleteBusyboxApp() throws Exception {
-		appsApi.deleteNamespacedDeployment(busyboxDeploymentName, NAMESPACE, null, null, null, null, null, null);
-		api.deleteNamespacedService(busyboxServiceName, NAMESPACE, null, null, null, null, null, null);
-		k8SUtils.waitForDeploymentToBeDeleted(busyboxDeploymentName, NAMESPACE);
+		// namespacea
+		appsApi.deleteNamespacedDeployment(busyboxDeploymentNameA, NAMESPACE_A, null, null, null, null, null, null);
+		api.deleteNamespacedService(busyboxServiceNameA, NAMESPACE_A, null, null, null, null, null, null);
+		k8SUtils.waitForDeploymentToBeDeleted(busyboxDeploymentNameA, NAMESPACE_A);
+
+		// namespaceb
+		appsApi.deleteNamespacedDeployment(busyboxDeploymentNameB, NAMESPACE_B, null, null, null, null, null, null);
+		api.deleteNamespacedService(busyboxServiceNameB, NAMESPACE_B, null, null, null, null, null, null);
+		k8SUtils.waitForDeploymentToBeDeleted(busyboxDeploymentNameB, NAMESPACE_B);
 	}
 
 	private void deleteApp() throws Exception {
-		appsApi.deleteNamespacedDeployment(appDeploymentName, NAMESPACE, null, null, null, null, null, null);
-		api.deleteNamespacedService(appServiceName, NAMESPACE, null, null, null, null, null, null);
-		networkingApi.deleteNamespacedIngress(appIngressName, NAMESPACE, null, null, null, null, null, null);
-		k8SUtils.waitForDeploymentToBeDeleted(busyboxDeploymentName, NAMESPACE);
+		appsApi.deleteNamespacedDeployment(appDeploymentName, NAMESPACE_DEFAULT, null, null, null, null, null, null);
+		api.deleteNamespacedService(appServiceName, NAMESPACE_DEFAULT, null, null, null, null, null, null);
+		networkingApi.deleteNamespacedIngress(appIngressName, NAMESPACE_DEFAULT, null, null, null, null, null, null);
 	}
 
 	private static String getBusyboxService() {

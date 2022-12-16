@@ -16,13 +16,13 @@
 
 package org.springframework.cloud.kubernetes.client.catalog;
 
+import java.util.List;
+
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * Listener that will catch events from KubernetesCatalogWatch.

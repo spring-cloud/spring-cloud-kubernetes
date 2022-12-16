@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.kubernetes.client.catalog;
 
+import java.util.List;
+
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 public class HeartbeatController {

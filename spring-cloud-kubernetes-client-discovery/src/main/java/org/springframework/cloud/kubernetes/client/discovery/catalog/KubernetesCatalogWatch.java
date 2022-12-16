@@ -101,7 +101,7 @@ class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 			try {
 				List<V1APIResource> resources = customObjectsApi.getAPIResources(DISCOVERY_GROUP, DISCOVERY_VERSION)
 						.getResources();
-				boolean found = resources.stream().map(V1APIResource::getName).anyMatch(ENDPOINT_SLICE::equals);
+				boolean found = resources.stream().map(V1APIResource::getKind).anyMatch(ENDPOINT_SLICE::equals);
 				if (!found) {
 					throw new IllegalArgumentException("EndpointSlices are not supported on the cluster");
 				}

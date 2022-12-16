@@ -147,7 +147,8 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
 
 		V1APIResourceList list = new V1APIResourceListBuilder()
-				.addToResources(new V1APIResourceBuilder().withName(ENDPOINT_SLICE).build()).build();
+				.addToResources(new V1APIResourceBuilder().withName("endpointslices").withKind(ENDPOINT_SLICE).build())
+				.build();
 		stubFor(get("/apis/discovery.k8s.io/v1")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 
