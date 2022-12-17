@@ -37,6 +37,7 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1ClusterRole;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
 import io.kubernetes.client.openapi.models.V1Ingress;
@@ -45,6 +46,7 @@ import io.kubernetes.client.openapi.models.V1LoadBalancerStatus;
 import io.kubernetes.client.openapi.models.V1NamespaceBuilder;
 import io.kubernetes.client.openapi.models.V1Role;
 import io.kubernetes.client.openapi.models.V1RoleBinding;
+import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import io.kubernetes.client.util.Config;
@@ -54,6 +56,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testcontainers.k3s.K3sContainer;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StreamUtils;
@@ -131,6 +134,40 @@ public final class Util {
 			}
 		}
 		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void createAndWait(String namespace, V1ConfigMap configMap, @Nullable V1Secret secret) {
+		try {
+			coreV1Api.createNamespacedConfigMap(namespace, configMap, null, null, null, null);
+			waitForConfigMap(namespace, configMap, Phase.CREATE);
+
+			if (secret != null) {
+				coreV1Api.createNamespacedSecret(namespace, secret, null, null, null, null);
+				waitForSecret(namespace, secret, Phase.CREATE);
+			}
+
+		}
+		catch (ApiException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void deleteAndWait(String namespace, V1ConfigMap configMap, @Nullable V1Secret secret) {
+		try {
+			String configMapName = configMapName(configMap);
+			coreV1Api.deleteNamespacedConfigMap(configMapName, namespace, null, null, null, null, null, null);
+			waitForConfigMap(namespace, configMap, Phase.DELETE);
+
+			if (secret != null) {
+				String secretName = secretName(secret);
+				coreV1Api.deleteNamespacedSecret(secretName, namespace, null, null, null, null, null, null);
+				waitForSecret(namespace, secret, Phase.DELETE);
+			}
+
+		}
+		catch (ApiException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -265,6 +302,14 @@ public final class Util {
 		return ingress.getMetadata().getName();
 	}
 
+	private String configMapName(V1ConfigMap configMap) {
+		return configMap.getMetadata().getName();
+	}
+
+	private String secretName(V1Secret secret) {
+		return secret.getMetadata().getName();
+	}
+
 	private String pomVersion() {
 		try (InputStream in = new ClassPathResource(KUBERNETES_VERSION_FILE).getInputStream()) {
 			String version = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
@@ -284,6 +329,40 @@ public final class Util {
 		String deploymentName = deploymentName(deployment);
 		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS)
 				.until(() -> isDeploymentReady(deploymentName, namespace));
+	}
+
+	private void waitForConfigMap(String namespace, V1ConfigMap configMap, Phase phase) {
+		String configMapName = configMapName(configMap);
+		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
+			try {
+				coreV1Api.readNamespacedConfigMap(configMapName, namespace, null);
+				return phase.equals(Phase.CREATE);
+				// return phase.equals(Phase.CREATE);
+			}
+			catch (ApiException e) {
+				if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+					return !phase.equals(Phase.CREATE);
+
+				}
+				throw new RuntimeException(e);
+			}
+		});
+	}
+
+	private void waitForSecret(String namespace, V1Secret secret, Phase phase) {
+		String secretName = secretName(secret);
+		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
+			try {
+				coreV1Api.readNamespacedConfigMap(secretName, namespace, null);
+				return phase.equals(Phase.CREATE);
+			}
+			catch (ApiException e) {
+				if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+					return !phase.equals(Phase.CREATE);
+				}
+				throw new RuntimeException(e);
+			}
+		});
 	}
 
 	private void waitForIngress(String namespace, V1Ingress ingress) {

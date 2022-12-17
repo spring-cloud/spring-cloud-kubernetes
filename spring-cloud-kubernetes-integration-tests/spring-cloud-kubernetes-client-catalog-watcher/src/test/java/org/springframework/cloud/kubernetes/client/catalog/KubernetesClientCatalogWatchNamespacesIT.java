@@ -34,8 +34,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -43,6 +41,8 @@ import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
@@ -120,10 +120,8 @@ public class KubernetesClientCatalogWatchNamespacesIT {
 	 * type.
 	 */
 	private void assertLogStatement(String log) throws Exception {
-		String appPodName = K3S
-				.execInContainer("kubectl", "get", "pods", "-l",
-						"app=spring-cloud-kubernetes-client-catalog-watcher", "-o=name", "--no-headers")
-				.getStdout();
+		String appPodName = K3S.execInContainer("kubectl", "get", "pods", "-l",
+				"app=spring-cloud-kubernetes-client-catalog-watcher", "-o=name", "--no-headers").getStdout();
 		String allLogs = K3S.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
 		Assertions.assertTrue(allLogs.contains(log));
 	}
@@ -167,8 +165,8 @@ public class KubernetesClientCatalogWatchNamespacesIT {
 		Assertions.assertTrue(resultThree.endpointName().contains("busybox"));
 		Assertions.assertTrue(resultFour.endpointName().contains("busybox"));
 
-		List<EndpointNameAndNamespace> sorted =
-			Arrays.stream(holder).sorted(Comparator.comparing(EndpointNameAndNamespace::namespace)).toList();
+		List<EndpointNameAndNamespace> sorted = Arrays.stream(holder)
+				.sorted(Comparator.comparing(EndpointNameAndNamespace::namespace)).toList();
 
 		Assertions.assertEquals(NAMESPACE_A, sorted.get(0).namespace());
 		Assertions.assertEquals(NAMESPACE_A, sorted.get(1).namespace());
@@ -182,10 +180,10 @@ public class KubernetesClientCatalogWatchNamespacesIT {
 					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
 					.retryWhen(retrySpec()).block();
 
-			// there is no update to receive anymore, as there is nothing in namespacea and namespaceb
+			// there is no update to receive anymore, as there is nothing in namespacea
+			// and namespaceb
 			return result.size() == 0;
 		});
-
 
 	}
 
@@ -204,19 +202,20 @@ public class KubernetesClientCatalogWatchNamespacesIT {
 
 	private void app(boolean useEndpointSlices, Phase phase) {
 		V1Deployment deployment = useEndpointSlices
-			? (V1Deployment) util.yaml("app/watcher-endpoint-slices-deployment.yaml")
-			: (V1Deployment) util.yaml("app/watcher-endpoints-deployment.yaml");
+				? (V1Deployment) util.yaml("app/watcher-endpoint-slices-deployment.yaml")
+				: (V1Deployment) util.yaml("app/watcher-endpoints-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("app/watcher-service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("app/watcher-ingress.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
 			V1EnvVar one = new V1EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
-				.withValue(NAMESPACE_A).build();
+					.withValue(NAMESPACE_A).build();
 
 			V1EnvVar two = new V1EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1")
-				.withValue(NAMESPACE_B).build();
+					.withValue(NAMESPACE_B).build();
 
-			List<V1EnvVar> existing = new ArrayList<>(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
+			List<V1EnvVar> existing = new ArrayList<>(
+					deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
 			existing.add(one);
 			existing.add(two);
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
