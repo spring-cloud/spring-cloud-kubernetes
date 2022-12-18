@@ -138,10 +138,12 @@ public final class Util {
 		}
 	}
 
-	public void createAndWait(String namespace, V1ConfigMap configMap, @Nullable V1Secret secret) {
+	public void createAndWait(String namespace, @Nullable V1ConfigMap configMap, @Nullable V1Secret secret) {
 		try {
-			coreV1Api.createNamespacedConfigMap(namespace, configMap, null, null, null, null);
-			waitForConfigMap(namespace, configMap, Phase.CREATE);
+			if (configMap != null) {
+				coreV1Api.createNamespacedConfigMap(namespace, configMap, null, null, null, null);
+				waitForConfigMap(namespace, configMap, Phase.CREATE);
+			}
 
 			if (secret != null) {
 				coreV1Api.createNamespacedSecret(namespace, secret, null, null, null, null);
@@ -154,11 +156,13 @@ public final class Util {
 		}
 	}
 
-	public void deleteAndWait(String namespace, V1ConfigMap configMap, @Nullable V1Secret secret) {
+	public void deleteAndWait(String namespace, @Nullable V1ConfigMap configMap, @Nullable V1Secret secret) {
 		try {
-			String configMapName = configMapName(configMap);
-			coreV1Api.deleteNamespacedConfigMap(configMapName, namespace, null, null, null, null, null, null);
-			waitForConfigMap(namespace, configMap, Phase.DELETE);
+			if (configMap != null) {
+				String configMapName = configMapName(configMap);
+				coreV1Api.deleteNamespacedConfigMap(configMapName, namespace, null, null, null, null, null, null);
+				waitForConfigMap(namespace, configMap, Phase.DELETE);
+			}
 
 			if (secret != null) {
 				String secretName = secretName(secret);
@@ -290,6 +294,26 @@ public final class Util {
 						.getItems().stream().noneMatch(x -> x.getMetadata().getName().equals(name)));
 	}
 
+	public void wiremock(String namespace, boolean rootPath, Phase phase) {
+		V1Deployment deployment = (V1Deployment) yaml("wiremock/wiremock-deployment.yaml");
+		V1Service service = (V1Service) yaml("wiremock/wiremock-service.yaml");
+		V1Ingress ingress;
+		if (rootPath) {
+			ingress = (V1Ingress) yaml("wiremock/wiremock-root-path-ingress.yaml");
+		}
+		else {
+			ingress = (V1Ingress) yaml("wiremock/wiremock-ingress.yaml");
+		}
+
+		if (phase.equals(Phase.CREATE)) {
+			createAndWait(namespace, "wiremock", deployment, service, ingress, false);
+		}
+		else {
+			deleteAndWait(namespace, deployment, service, ingress);
+		}
+
+	}
+
 	private String deploymentName(V1Deployment deployment) {
 		return deployment.getMetadata().getName();
 	}
@@ -337,7 +361,6 @@ public final class Util {
 			try {
 				coreV1Api.readNamespacedConfigMap(configMapName, namespace, null);
 				return phase.equals(Phase.CREATE);
-				// return phase.equals(Phase.CREATE);
 			}
 			catch (ApiException e) {
 				if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
@@ -353,7 +376,7 @@ public final class Util {
 		String secretName = secretName(secret);
 		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
 			try {
-				coreV1Api.readNamespacedConfigMap(secretName, namespace, null);
+				coreV1Api.readNamespacedSecret(secretName, namespace, null);
 				return phase.equals(Phase.CREATE);
 			}
 			catch (ApiException e) {
