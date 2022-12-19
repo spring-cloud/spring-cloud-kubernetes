@@ -22,6 +22,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
+import io.kubernetes.client.openapi.models.V1ClusterRole;
+import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
 import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1EnvVar;
@@ -68,6 +71,8 @@ class DiscoveryClientFilterNamespaceIT {
 
 	private static Util util;
 
+	private static RbacAuthorizationV1Api rbacApi;
+
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
@@ -79,10 +84,13 @@ class DiscoveryClientFilterNamespaceIT {
 		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 
 		util = new Util(K3S);
+		rbacApi = new RbacAuthorizationV1Api();
 		util.createNamespace(NAMESPACE_LEFT);
 		util.createNamespace(NAMESPACE_RIGHT);
-		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_LEFT, NAMESPACE_RIGHT));
+		util.setUp(NAMESPACE);
 
+		V1ClusterRoleBinding clusterRole = (V1ClusterRoleBinding) util.yaml("namespace-filter/cluster-admin-serviceaccount-role.yaml");
+		rbacApi.createClusterRoleBinding(clusterRole, null, null, null, null);
 		discoveryServer(Phase.CREATE);
 	}
 
@@ -105,7 +113,7 @@ class DiscoveryClientFilterNamespaceIT {
 	@Test
 	void testDiscoveryClient() {
 		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.CREATE);
-		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_RIGHT, Phase.CREATE);
+		util.wiremock(NAMESPACE_RIGHT, "/wiremock-" + NAMESPACE_RIGHT, Phase.CREATE);
 		discoveryIt(Phase.CREATE);
 
 		testLoadBalancer();
