@@ -83,7 +83,7 @@ class ActuatorRefreshIT {
 	}
 
 	/*
-	 * this test loads uses two services: wiremock on port 8080 and configuration-watcher
+	 * this test loads two services: wiremock on port 8080 and configuration-watcher
 	 * on port 8888. we deploy configuration-watcher first and configure it via a
 	 * configmap with the same name. then, we mock the call to actuator/refresh endpoint
 	 * and deploy a new configmap: "service-wiremock", this in turn will trigger that
