@@ -81,7 +81,7 @@ class DiscoveryClientFilterNamespaceIT {
 		util = new Util(K3S);
 		util.createNamespace(NAMESPACE_LEFT);
 		util.createNamespace(NAMESPACE_RIGHT);
-		util.setUpClusterWide(NAMESPACE_LEFT, Set.of(NAMESPACE, NAMESPACE_LEFT, NAMESPACE_RIGHT));
+		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_LEFT, NAMESPACE_RIGHT));
 
 		discoveryServer(Phase.CREATE);
 	}
@@ -188,10 +188,10 @@ class DiscoveryClientFilterNamespaceIT {
 			V1Container container = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
 			container.setEnv(List.of(env));
 
-			util.createAndWait(NAMESPACE_LEFT, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE_LEFT, deployment, service, ingress);
+			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 	}
 
