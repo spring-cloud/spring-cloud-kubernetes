@@ -127,7 +127,7 @@ class DiscoveryClientFilterNamespaceIT {
 
 		String[] result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String[].class)
 				.retryWhen(retrySpec()).block();
-		assertThat(result).containsAnyOf("wiremock");
+		assertThat(result).containsAnyOf("service-wiremock");
 
 		// ServiceInstance
 		WebClient serviceInstanceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/service/wiremock")
@@ -173,10 +173,10 @@ class DiscoveryClientFilterNamespaceIT {
 			var container = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
 			container.setEnv(List.of(env));
 
-			util.createAndWait(NAMESPACE_LEFT, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE_LEFT, deployment, service, ingress);
+			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 
 	}
