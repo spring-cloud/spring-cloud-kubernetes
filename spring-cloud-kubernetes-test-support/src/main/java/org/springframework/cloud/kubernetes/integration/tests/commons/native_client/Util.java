@@ -207,6 +207,53 @@ public final class Util {
 		}
 	}
 
+	public void busybox(String namespace, Phase phase) {
+		V1Deployment deployment = (V1Deployment) yaml("busybox/deployment.yaml");
+		V1Service service = (V1Service) yaml("busybox/service.yaml");
+		if (phase.equals(Phase.CREATE)) {
+			createAndWait(namespace, "busybox", deployment, service, null, false);
+		}
+		else if (phase.equals(Phase.DELETE)) {
+			deleteAndWait(namespace, deployment, service, null);
+		}
+	}
+
+	public void kafka(String namespace, Phase phase) {
+		V1Deployment deployment = (V1Deployment) yaml("kafka/kafka-deployment.yaml");
+		V1Service service = (V1Service) yaml("kafka/kafka-service.yaml");
+
+		if (phase.equals(Phase.CREATE)) {
+			createAndWait(namespace, "kafka", deployment, service, null, false);
+		}
+		else if (phase.equals(Phase.DELETE)) {
+			deleteAndWait(namespace, deployment, service, null);
+		}
+	}
+
+	public void rabbitMq(String namespace, Phase phase) {
+		V1Deployment deployment = (V1Deployment) yaml("rabbitmq/rabbitmq-deployment.yaml");
+		V1Service service = (V1Service) yaml("rabbitmq/rabbitmq-service.yaml");
+
+		if (phase.equals(Phase.CREATE)) {
+			createAndWait(namespace, "rabbitmq", deployment, service, null, false);
+		}
+		else if (phase.equals(Phase.DELETE)) {
+			deleteAndWait(namespace, deployment, service, null);
+		}
+	}
+
+	public void zookeeper(String namespace, Phase phase) {
+		V1Deployment deployment = (V1Deployment) yaml("zookeeper/zookeeper-deployment.yaml");
+		V1Service service = (V1Service) yaml("zookeeper/zookeeper-service.yaml");
+
+		if (phase.equals(Phase.CREATE)) {
+			createAndWait(namespace, "zookeeper", deployment, service, null, false);
+		}
+		else if (phase.equals(Phase.DELETE)) {
+			deleteAndWait(namespace, deployment, service, null);
+		}
+	}
+
 	/**
 	 * reads a yaml from classpath, fails if not found.
 	 */

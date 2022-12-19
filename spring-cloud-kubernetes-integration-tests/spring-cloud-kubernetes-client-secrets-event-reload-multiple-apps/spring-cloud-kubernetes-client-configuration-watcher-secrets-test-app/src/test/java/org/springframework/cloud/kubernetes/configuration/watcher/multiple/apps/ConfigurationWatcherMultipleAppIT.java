@@ -89,7 +89,7 @@ class ConfigurationWatcherMultipleAppIT {
 
 	@BeforeEach
 	void setup() {
-		rabbitMq(Phase.CREATE);
+		util.rabbitMq(NAMESPACE, Phase.CREATE);
 		appA(Phase.CREATE);
 		appB(Phase.CREATE);
 		configWatcher(Phase.CREATE);
@@ -97,7 +97,7 @@ class ConfigurationWatcherMultipleAppIT {
 
 	@AfterEach
 	void after() {
-		rabbitMq(Phase.DELETE);
+		util.rabbitMq(NAMESPACE, Phase.DELETE);
 		appA(Phase.DELETE);
 		appB(Phase.DELETE);
 		configWatcher(Phase.DELETE);
@@ -140,18 +140,6 @@ class ConfigurationWatcherMultipleAppIT {
 
 		Assertions.assertTrue(valueB[0]);
 		util.deleteAndWait(NAMESPACE, null, secret);
-	}
-
-	private void rabbitMq(Phase phase) {
-		V1Deployment deployment = (V1Deployment) util.yaml("rabbitmq/rabbitmq-deployment.yaml");
-		V1Service service = (V1Service) util.yaml("rabbitmq/rabbitmq-service.yaml");
-
-		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, "rabbitmq", deployment, service, null, false);
-		}
-		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE, deployment, service, null);
-		}
 	}
 
 	private void appA(Phase phase) {

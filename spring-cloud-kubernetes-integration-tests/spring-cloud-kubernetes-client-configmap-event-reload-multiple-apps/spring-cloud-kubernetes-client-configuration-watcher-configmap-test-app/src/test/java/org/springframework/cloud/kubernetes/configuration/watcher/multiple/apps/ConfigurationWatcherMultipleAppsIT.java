@@ -90,8 +90,8 @@ class ConfigurationWatcherMultipleAppsIT {
 
 	@BeforeEach
 	void setup() {
-		zookeeper(Phase.CREATE);
-		kafka(Phase.CREATE);
+		util.zookeeper(NAMESPACE, Phase.CREATE);
+		util.kafka(NAMESPACE, Phase.CREATE);
 		appA(Phase.CREATE);
 		appB(Phase.CREATE);
 		configWatcher(Phase.CREATE);
@@ -99,8 +99,8 @@ class ConfigurationWatcherMultipleAppsIT {
 
 	@AfterEach
 	void afterEach() {
-		zookeeper(Phase.DELETE);
-		kafka(Phase.DELETE);
+		util.zookeeper(NAMESPACE, Phase.DELETE);
+		util.kafka(NAMESPACE, Phase.DELETE);
 		appA(Phase.DELETE);
 		appB(Phase.DELETE);
 		configWatcher(Phase.DELETE);
@@ -143,30 +143,6 @@ class ConfigurationWatcherMultipleAppsIT {
 
 		Assertions.assertTrue(valueB[0]);
 		util.deleteAndWait(NAMESPACE, configMap, null);
-	}
-
-	private void zookeeper(Phase phase) {
-		V1Deployment deployment = (V1Deployment) util.yaml("zookeeper/zookeeper-deployment.yaml");
-		V1Service service = (V1Service) util.yaml("zookeeper/zookeeper-service.yaml");
-
-		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, "zookeeper", deployment, service, null, false);
-		}
-		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE, deployment, service, null);
-		}
-	}
-
-	private void kafka(Phase phase) {
-		V1Deployment deployment = (V1Deployment) util.yaml("kafka/kafka-deployment.yaml");
-		V1Service service = (V1Service) util.yaml("kafka/kafka-service.yaml");
-
-		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, "kafka", deployment, service, null, false);
-		}
-		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE, deployment, service, null);
-		}
 	}
 
 	private void appA(Phase phase) {

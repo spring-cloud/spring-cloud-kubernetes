@@ -68,7 +68,7 @@ class KubernetesClientCatalogWatchIT {
 
 	@BeforeEach
 	void beforeEach() {
-		busyboxApp(Phase.CREATE);
+		util.busybox(NAMESPACE, Phase.CREATE);
 	}
 
 	/**
@@ -146,7 +146,7 @@ class KubernetesClientCatalogWatchIT {
 		Assertions.assertEquals("default", resultOne.namespace());
 		Assertions.assertEquals("default", resultTwo.namespace());
 
-		busyboxApp(Phase.DELETE);
+		util.busybox(NAMESPACE, Phase.DELETE);
 
 		// what we get after delete
 		EndpointNameAndNamespace[] afterDelete = new EndpointNameAndNamespace[1];
@@ -177,17 +177,6 @@ class KubernetesClientCatalogWatchIT {
 		Assertions.assertTrue(afterDelete[0].endpointName().contains(APP_NAME));
 		Assertions.assertEquals("default", afterDelete[0].namespace());
 
-	}
-
-	private void busyboxApp(Phase phase) {
-		V1Deployment deployment = (V1Deployment) util.yaml("busybox/deployment.yaml");
-		V1Service service = (V1Service) util.yaml("busybox/service.yaml");
-		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, "busybox", deployment, service, null, false);
-		}
-		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE, deployment, service, null);
-		}
 	}
 
 	private static void app(boolean useEndpointSlices, Phase phase) {

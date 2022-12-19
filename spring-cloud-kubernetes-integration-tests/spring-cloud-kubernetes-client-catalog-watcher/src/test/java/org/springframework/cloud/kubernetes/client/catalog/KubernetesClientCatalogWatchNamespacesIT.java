@@ -79,7 +79,8 @@ public class KubernetesClientCatalogWatchNamespacesIT {
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);
 		util.setUpClusterWide(NAMESPACE_DEFAULT, Set.of(NAMESPACE_A, NAMESPACE_B));
-		busybox(Phase.CREATE);
+		util.busybox(NAMESPACE_A, Phase.CREATE);
+		util.busybox(NAMESPACE_B, Phase.CREATE);
 	}
 
 	@AfterEach
@@ -173,7 +174,8 @@ public class KubernetesClientCatalogWatchNamespacesIT {
 		Assertions.assertEquals(NAMESPACE_B, sorted.get(2).namespace());
 		Assertions.assertEquals(NAMESPACE_B, sorted.get(3).namespace());
 
-		busybox(Phase.DELETE);
+		util.busybox(NAMESPACE_A, Phase.DELETE);
+		util.busybox(NAMESPACE_B, Phase.DELETE);
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
@@ -185,19 +187,6 @@ public class KubernetesClientCatalogWatchNamespacesIT {
 			return result.size() == 0;
 		});
 
-	}
-
-	private void busybox(Phase phase) {
-		V1Deployment deployment = (V1Deployment) util.yaml("busybox/deployment.yaml");
-		V1Service service = (V1Service) util.yaml("busybox/service.yaml");
-		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE_A, "busybox", deployment, service, null, false);
-			util.createAndWait(NAMESPACE_B, "busybox", deployment, service, null, false);
-		}
-		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE_A, deployment, service, null);
-			util.deleteAndWait(NAMESPACE_B, deployment, service, null);
-		}
 	}
 
 	private void app(boolean useEndpointSlices, Phase phase) {
