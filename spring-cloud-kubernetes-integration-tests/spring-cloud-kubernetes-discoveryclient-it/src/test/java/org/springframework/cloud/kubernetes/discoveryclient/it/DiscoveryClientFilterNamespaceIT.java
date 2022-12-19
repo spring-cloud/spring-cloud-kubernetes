@@ -106,7 +106,7 @@ class DiscoveryClientFilterNamespaceIT {
 	@AfterEach
 	void afterEach() {
 		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.DELETE);
-		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_RIGHT, Phase.DELETE);
+		util.wiremock(NAMESPACE_RIGHT, "/wiremock-" + NAMESPACE_RIGHT, Phase.DELETE);
 		discoveryIt(Phase.DELETE);
 	}
 
@@ -130,7 +130,7 @@ class DiscoveryClientFilterNamespaceIT {
 		assertThat(result).containsAnyOf("service-wiremock");
 
 		// ServiceInstance
-		WebClient serviceInstanceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/service/wiremock")
+		WebClient serviceInstanceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/service/service-wiremock")
 				.build();
 		List<KubernetesServiceInstance> serviceInstances = serviceInstanceClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<KubernetesServiceInstance>>() {
