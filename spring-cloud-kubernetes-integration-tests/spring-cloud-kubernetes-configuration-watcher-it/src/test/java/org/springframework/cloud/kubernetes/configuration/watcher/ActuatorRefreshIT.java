@@ -73,13 +73,13 @@ class ActuatorRefreshIT {
 	@BeforeEach
 	void setup(){
 		configWatcher(Phase.CREATE);
-		util.wiremock(NAMESPACE, false, Phase.CREATE);
+		util.wiremock(NAMESPACE, true, Phase.CREATE);
 	}
 
 	@AfterEach
 	void after() {
 		configWatcher(Phase.DELETE);
-		util.wiremock(NAMESPACE, false, Phase.DELETE);
+		util.wiremock(NAMESPACE, true, Phase.DELETE);
 	}
 
 	/*
@@ -89,11 +89,12 @@ class ActuatorRefreshIT {
 	 * and deploy a new configmap: "service-wiremock", this in turn will trigger that
 	 * refresh that we capture and assert for.
 	 */
+	// curl <WIREMOCK_POD_IP>:8080/__admin/mappings
 	@Test
 	void testActuatorRefresh() {
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
 		await().timeout(Duration.ofSeconds(60)).ignoreException(VerificationException.class)
-			.until(() -> WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh")).willReturn(WireMock.aResponse().withStatus(200)))
+			.until(() -> WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh")).willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
 				.getResponse().wasConfigured());
 
 		// Create new configmap to trigger controller to signal app to refresh
