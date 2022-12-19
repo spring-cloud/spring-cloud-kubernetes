@@ -18,11 +18,9 @@ package org.springframework.cloud.kubernetes.integration.tests.commons.native_cl
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
@@ -57,21 +55,16 @@ import org.apache.commons.logging.LogFactory;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StreamUtils;
-import org.springframework.util.StringUtils;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.fail;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.loadImage;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pullImage;
 
 public final class Util {
 
 	private static final Log LOG = LogFactory.getLog(Util.class);
-
-	private static final String KUBERNETES_VERSION_FILE = "META-INF/springcloudkubernetes-version.txt";
 
 	private final CoreV1Api coreV1Api;
 
@@ -341,18 +334,16 @@ public final class Util {
 						.getItems().stream().noneMatch(x -> x.getMetadata().getName().equals(name)));
 	}
 
-	public void wiremock(String namespace, boolean rootPath, Phase phase) {
+	public void wiremock(String namespace, String path, Phase phase) {
 		V1Deployment deployment = (V1Deployment) yaml("wiremock/wiremock-deployment.yaml");
 		V1Service service = (V1Service) yaml("wiremock/wiremock-service.yaml");
-		V1Ingress ingress;
-		if (rootPath) {
-			ingress = (V1Ingress) yaml("wiremock/wiremock-root-path-ingress.yaml");
-		}
-		else {
-			ingress = (V1Ingress) yaml("wiremock/wiremock-ingress.yaml");
-		}
+		V1Ingress ingress = (V1Ingress) yaml("wiremock/wiremock-ingress.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
+			deployment.getMetadata().setNamespace(namespace);
+			service.getMetadata().setNamespace(namespace);
+			ingress.getMetadata().setNamespace(namespace);
+			ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).setPath(path);
 			createAndWait(namespace, "wiremock", deployment, service, ingress, false);
 		}
 		else {
@@ -379,21 +370,6 @@ public final class Util {
 
 	private String secretName(V1Secret secret) {
 		return secret.getMetadata().getName();
-	}
-
-	private String pomVersion() {
-		try (InputStream in = new ClassPathResource(KUBERNETES_VERSION_FILE).getInputStream()) {
-			String version = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
-			if (StringUtils.hasText(version)) {
-				version = version.trim();
-			}
-			return version;
-		}
-		catch (IOException e) {
-			ReflectionUtils.rethrowRuntimeException(e);
-		}
-		// not reachable since exception rethrown at runtime
-		return null;
 	}
 
 	private void waitForDeployment(String namespace, V1Deployment deployment) {

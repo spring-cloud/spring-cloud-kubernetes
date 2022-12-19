@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: service-wiremock
-          image: wiremock/wiremock:2.32.0
+          image: wiremock/wiremock:2.35.0
           args: ["--verbose"]
           imagePullPolicy: IfNotPresent
           readinessProbe:

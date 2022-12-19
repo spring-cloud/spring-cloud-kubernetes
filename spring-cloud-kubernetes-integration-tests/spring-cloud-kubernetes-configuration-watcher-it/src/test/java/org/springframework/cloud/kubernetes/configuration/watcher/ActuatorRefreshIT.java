@@ -71,15 +71,15 @@ class ActuatorRefreshIT {
 	}
 
 	@BeforeEach
-	void setup(){
+	void setup() {
 		configWatcher(Phase.CREATE);
-		util.wiremock(NAMESPACE, true, Phase.CREATE);
+		util.wiremock(NAMESPACE, "/", Phase.CREATE);
 	}
 
 	@AfterEach
 	void after() {
 		configWatcher(Phase.DELETE);
-		util.wiremock(NAMESPACE, true, Phase.DELETE);
+		util.wiremock(NAMESPACE, "/", Phase.DELETE);
 	}
 
 	/*
@@ -94,29 +94,31 @@ class ActuatorRefreshIT {
 	void testActuatorRefresh() {
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
 		await().timeout(Duration.ofSeconds(60)).ignoreException(VerificationException.class)
-			.until(() -> WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh")).willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
-				.getResponse().wasConfigured());
+				.until(() -> WireMock
+						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+								.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
+						.getResponse().wasConfigured());
 
 		// Create new configmap to trigger controller to signal app to refresh
 		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName("service-wiremock")
-			.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "bar").build();
+				.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "bar").build();
 		util.createAndWait(NAMESPACE, configMap, null);
 
 		// Wait a bit before we verify
-		await().atMost(Duration.ofSeconds(30))
-			.until(() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh"))).isEmpty());
+		await().atMost(Duration.ofSeconds(30)).until(
+				() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh"))).isEmpty());
 
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 		util.deleteAndWait(NAMESPACE, configMap, null);
 	}
 
 	private void configWatcher(Phase phase) {
-		V1ConfigMap configMap = (V1ConfigMap) util.yaml(
-			"config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
-		V1Deployment deployment = (V1Deployment) util.yaml(
-			"config-watcher/spring-cloud-kubernetes-configuration-watcher-http-deployment.yaml");
-		V1Service service = (V1Service) util.yaml(
-			"config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
+		V1ConfigMap configMap = (V1ConfigMap) util
+				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
+		V1Deployment deployment = (V1Deployment) util
+				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-http-deployment.yaml");
+		V1Service service = (V1Service) util
+				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, configMap, null);

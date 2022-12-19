@@ -76,12 +76,12 @@ class ReactiveDiscoveryClientIT {
 
 	@BeforeEach
 	void setup() {
-		util.wiremock(NAMESPACE, false, Phase.CREATE);
+		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE);
 	}
 
 	@AfterEach
 	void after() {
-		util.wiremock(NAMESPACE, false, Phase.DELETE);
+		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE);
 		reactiveDiscoveryIt(Phase.DELETE);
 	}
 
