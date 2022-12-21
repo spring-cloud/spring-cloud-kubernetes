@@ -63,7 +63,7 @@ final class Fabric8DiscoveryServicesAdapter implements Function<KubernetesClient
 			);
 			return services;
 		}
-		return function.apply(client).list().getItems();
+		return function.apply(client).list().getItems().stream().filter(filter).toList();
 	}
 
 	private Predicate<Service> filter() {

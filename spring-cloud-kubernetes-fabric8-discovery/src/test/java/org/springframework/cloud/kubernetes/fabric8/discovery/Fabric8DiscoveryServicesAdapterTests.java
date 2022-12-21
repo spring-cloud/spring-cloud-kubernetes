@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -36,6 +37,11 @@ import org.springframework.mock.env.MockEnvironment;
 class Fabric8DiscoveryServicesAdapterTests {
 
 	private static KubernetesClient client;
+
+	@AfterEach
+	void afterEach() {
+		client.services().inAnyNamespace().delete();
+	}
 
 	/**
 	 * <pre>
@@ -127,11 +133,11 @@ class Fabric8DiscoveryServicesAdapterTests {
 	 * </pre>
 	 */
 	@Test
-	void testAllNamespacesWithoutLabelsWithFilter() {
+	void testAllNamespacesWithoutLabelsWithNamespaceFilter() {
 		boolean allNamespaces = true;
 		Map<String, String> labels = Map.of();
 		String spelFilter = """
-			#root.metadata.namespace matches "namespaceA"
+			#root.metadata.namespace matches "^.+A$"
 			""";
 
 		MockEnvironment environment = new MockEnvironment();
@@ -149,6 +155,50 @@ class Fabric8DiscoveryServicesAdapterTests {
 
 		List<Service> result = adapter.apply(client);
 		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
+		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
+	}
+
+	/**
+	 * <pre>
+	 *     - all-namespaces = true
+	 *     - labels = {}
+	 *     - filter = "#root.metadata.namespace matches '^namespace[A|B]$'"
+	 *       (namespaceA or namespaceB)
+	 *
+	 *     - serviceA exists in namespaceA with labels = {color=red}
+	 *     - serviceB exists in namespaceB with labels = {color=blue}
+	 *     - serviceC exists in namespaceC with labels = {color=purple}
+	 *
+	 *     - we get only serviceA and serviceB as a result.
+	 * </pre>
+	 */
+	@Test
+	void testAllNamespacesWithoutLabelsWithBothNamespacesFilter() {
+		boolean allNamespaces = true;
+		Map<String, String> labels = Map.of();
+		String spelFilter = """
+			#root.metadata.namespace matches "^namespace[A|B]$"
+			""";
+
+		MockEnvironment environment = new MockEnvironment();
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(
+			false, allNamespaces, Set.of(), true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false
+		);
+
+		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
+			new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties
+		);
+
+		service("namespaceA", "serviceA", Map.of("color", "red"));
+		service("namespaceB", "serviceB", Map.of("color", "blue"));
+		service("namespaceC", "serviceC", Map.of("color", "purple"));
+
+		List<Service> result = adapter.apply(client);
+		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
+		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
 	}
