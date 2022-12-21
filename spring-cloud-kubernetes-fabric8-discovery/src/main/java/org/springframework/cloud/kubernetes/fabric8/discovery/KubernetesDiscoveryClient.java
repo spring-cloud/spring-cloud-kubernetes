@@ -36,9 +36,6 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -63,12 +60,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private final ServicePortSecureResolver servicePortSecureResolver;
 
-	private final KubernetesClientServicesFunction kubernetesClientServicesFunction;
-
-	private final SpelExpressionParser parser = new SpelExpressionParser();
-
-	private final SimpleEvaluationContext evalCtxt = SimpleEvaluationContext.forReadOnlyDataBinding()
-			.withInstanceMethods().build();
+	//TODO remove me
+	//private final KubernetesClientServicesFunction kubernetesClientServicesFunction;
 
 	private KubernetesClient client;
 
@@ -86,7 +79,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
-		this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
+		//TODO
+		//this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
 		this.servicePortSecureResolver = servicePortSecureResolver;
 	}
 
@@ -291,35 +285,25 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
-		String spelExpression = this.properties.filter();
-		Predicate<Service> filteredServices;
-		if (spelExpression == null || spelExpression.isEmpty()) {
-			filteredServices = (Service instance) -> true;
-		}
-		else {
-			Expression filterExpr = this.parser.parseExpression(spelExpression);
-			filteredServices = (Service instance) -> {
-				Boolean include = filterExpr.getValue(this.evalCtxt, instance, Boolean.class);
-				if (include == null) {
-					return false;
-				}
-				return include;
-			};
-		}
-		return getServices(filteredServices);
+		return null;
+
+		//TODO
+		//return getServices(filteredServices);
 	}
 
 	public List<String> getServices(Predicate<Service> filter) {
-		if (properties.namespaces().isEmpty()) {
-			return this.kubernetesClientServicesFunction.apply(this.client).list().getItems().stream().filter(filter)
-					.map(s -> s.getMetadata().getName()).collect(Collectors.toList());
-		}
-		List<String> services = new ArrayList<>();
-		for (String ns : properties.namespaces()) {
-			services.addAll(getClient().services().inNamespace(ns).list().getItems().stream().filter(filter)
-					.map(s -> s.getMetadata().getName()).toList());
-		}
-		return services;
+		return null;
+		// TODO remove me
+//		if (properties.namespaces().isEmpty()) {
+//			return this.kubernetesClientServicesFunction.apply(this.client).list().getItems().stream().filter(filter)
+//					.map(s -> s.getMetadata().getName()).collect(Collectors.toList());
+//		}
+//		List<String> services = new ArrayList<>();
+//		for (String ns : properties.namespaces()) {
+//			services.addAll(getClient().services().inNamespace(ns).list().getItems().stream().filter(filter)
+//					.map(s -> s.getMetadata().getName()).toList());
+//		}
+//		return services;
 	}
 
 	@Override
