@@ -174,7 +174,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 	 * </pre>
 	 */
 	@Test
-	void testAllNamespacesWithoutLabelsWithBothNamespacesFilter() {
+	void testAllNamespacesWithoutLabelsWithNamespacesFilter() {
 		boolean allNamespaces = true;
 		Map<String, String> labels = Map.of();
 		String spelFilter = """
