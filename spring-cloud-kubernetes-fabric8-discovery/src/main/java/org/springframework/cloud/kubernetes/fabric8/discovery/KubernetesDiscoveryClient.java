@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
@@ -60,8 +59,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private final ServicePortSecureResolver servicePortSecureResolver;
 
-	//TODO remove me
-	//private final KubernetesClientServicesFunction kubernetesClientServicesFunction;
+	private final Fabric8DiscoveryServicesAdapter adapter;
 
 	private KubernetesClient client;
 
@@ -79,8 +77,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
-		//TODO
-		//this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
+		this.adapter = new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction,
+				kubernetesDiscoveryProperties);
 		this.servicePortSecureResolver = servicePortSecureResolver;
 	}
 
@@ -285,25 +283,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
-		return null;
-
-		//TODO
-		//return getServices(filteredServices);
-	}
-
-	public List<String> getServices(Predicate<Service> filter) {
-		return null;
-		// TODO remove me
-//		if (properties.namespaces().isEmpty()) {
-//			return this.kubernetesClientServicesFunction.apply(this.client).list().getItems().stream().filter(filter)
-//					.map(s -> s.getMetadata().getName()).collect(Collectors.toList());
-//		}
-//		List<String> services = new ArrayList<>();
-//		for (String ns : properties.namespaces()) {
-//			services.addAll(getClient().services().inNamespace(ns).list().getItems().stream().filter(filter)
-//					.map(s -> s.getMetadata().getName()).toList());
-//		}
-//		return services;
+		return adapter.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
 	}
 
 	@Override

@@ -67,7 +67,7 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 
 		return client -> {
 			String namespace = Fabric8Utils.getApplicationNamespace(client, null, "discovery-service",
-				new KubernetesNamespaceProvider(environment));
+					new KubernetesNamespaceProvider(environment));
 			return client.services().inNamespace(namespace).withLabels(properties.serviceLabels());
 		};
 	}

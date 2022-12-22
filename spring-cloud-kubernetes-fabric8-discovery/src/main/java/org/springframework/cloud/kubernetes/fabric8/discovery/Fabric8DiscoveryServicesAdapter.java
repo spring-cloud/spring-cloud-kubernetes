@@ -24,14 +24,16 @@ import java.util.function.Predicate;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
+
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 
 /**
- * Adapts a {@link KubernetesClientServicesFunction} to a Function that takes a KubernetesClient
- * as input and returns a List of Services(s), plus adds functionality not supported by it.
+ * Adapts a {@link KubernetesClientServicesFunction} to a Function that takes a
+ * KubernetesClient as input and returns a List of Services(s), plus adds functionality
+ * not supported by it.
  *
  * @author wind57
  */
@@ -40,7 +42,7 @@ final class Fabric8DiscoveryServicesAdapter implements Function<KubernetesClient
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private static final SimpleEvaluationContext EVALUATION_CONTEXT = SimpleEvaluationContext.forReadOnlyDataBinding()
-		.withInstanceMethods().build();
+			.withInstanceMethods().build();
 
 	private final KubernetesClientServicesFunction function;
 
@@ -48,7 +50,8 @@ final class Fabric8DiscoveryServicesAdapter implements Function<KubernetesClient
 
 	private final Predicate<Service> filter;
 
-	Fabric8DiscoveryServicesAdapter(KubernetesClientServicesFunction function, KubernetesDiscoveryProperties properties) {
+	Fabric8DiscoveryServicesAdapter(KubernetesClientServicesFunction function,
+			KubernetesDiscoveryProperties properties) {
 		this.function = function;
 		this.properties = properties;
 		this.filter = filter();
@@ -58,9 +61,8 @@ final class Fabric8DiscoveryServicesAdapter implements Function<KubernetesClient
 	public List<Service> apply(KubernetesClient client) {
 		if (!properties.namespaces().isEmpty()) {
 			List<Service> services = new ArrayList<>();
-			properties.namespaces().forEach(namespace ->
-				services.addAll(client.services().inNamespace(namespace).list().getItems().stream().filter(filter).toList())
-			);
+			properties.namespaces().forEach(namespace -> services.addAll(client.services().inNamespace(namespace)
+					.withLabels(properties.serviceLabels()).list().getItems().stream().filter(filter).toList()));
 			return services;
 		}
 		return function.apply(client).list().getItems().stream().filter(filter).toList();
