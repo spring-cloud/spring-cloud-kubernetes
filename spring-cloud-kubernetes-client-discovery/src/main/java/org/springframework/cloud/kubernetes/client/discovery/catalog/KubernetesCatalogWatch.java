@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery;
+package org.springframework.cloud.kubernetes.client.discovery.catalog;
 
 import java.util.List;
 import java.util.function.Function;
 
-import io.fabric8.kubernetes.api.model.APIResource;
-import io.fabric8.kubernetes.api.model.APIResourceList;
-import io.fabric8.kubernetes.api.model.GroupVersionForDiscovery;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.apis.CustomObjectsApi;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.LogFactory;
 
@@ -40,25 +41,25 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.ENDPOINT_SLICE;
 
 /**
- * @author Oleg Vyukov
+ * Catalog watch implementation for kubernetes native client.
+ *
+ * @author wind57
  */
-public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
-
-	private static final String DISCOVERY_GROUP_VERSION = DISCOVERY_GROUP + "/" + DISCOVERY_VERSION;
+class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesCatalogWatch.class));
 
-	private final Fabric8CatalogWatchContext context;
+	private final KubernetesCatalogWatchContext context;
 
-	private Function<Fabric8CatalogWatchContext, List<EndpointNameAndNamespace>> stateGenerator;
+	private Function<KubernetesCatalogWatchContext, List<EndpointNameAndNamespace>> stateGenerator;
 
 	private volatile List<EndpointNameAndNamespace> catalogEndpointsState = null;
 
 	private ApplicationEventPublisher publisher;
 
-	public KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties,
+	KubernetesCatalogWatch(CoreV1Api coreV1Api, ApiClient apiClient, KubernetesDiscoveryProperties properties,
 			KubernetesNamespaceProvider namespaceProvider) {
-		context = new Fabric8CatalogWatchContext(kubernetesClient, properties, namespaceProvider);
+		context = new KubernetesCatalogWatchContext(coreV1Api, apiClient, properties, namespaceProvider);
 	}
 
 	@Override
@@ -89,29 +90,32 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 		stateGenerator = stateGenerator();
 	}
 
-	Function<Fabric8CatalogWatchContext, List<EndpointNameAndNamespace>> stateGenerator() {
+	Function<KubernetesCatalogWatchContext, List<EndpointNameAndNamespace>> stateGenerator() {
 
-		Function<Fabric8CatalogWatchContext, List<EndpointNameAndNamespace>> localStateGenerator;
+		Function<KubernetesCatalogWatchContext, List<EndpointNameAndNamespace>> localStateGenerator;
 
 		if (context.properties().useEndpointSlices()) {
-			// can't use try with resources here as it will close the client
-			KubernetesClient client = context.kubernetesClient();
 			// this emulates : 'kubectl api-resources | grep -i EndpointSlice'
-			boolean found = client.getApiGroups().getGroups().stream().flatMap(x -> x.getVersions().stream())
-					.map(GroupVersionForDiscovery::getGroupVersion).filter(DISCOVERY_GROUP_VERSION::equals).findFirst()
-					.map(client::getApiResources).map(APIResourceList::getResources)
-					.map(x -> x.stream().map(APIResource::getKind))
-					.flatMap(x -> x.filter(y -> y.equals(ENDPOINT_SLICE)).findFirst()).isPresent();
+			ApiClient apiClient = context.apiClient();
+			CustomObjectsApi customObjectsApi = new CustomObjectsApi(apiClient);
+			try {
+				List<V1APIResource> resources = customObjectsApi.getAPIResources(DISCOVERY_GROUP, DISCOVERY_VERSION)
+						.getResources();
+				boolean found = resources.stream().map(V1APIResource::getKind).anyMatch(ENDPOINT_SLICE::equals);
+				if (!found) {
+					throw new IllegalArgumentException("EndpointSlices are not supported on the cluster");
+				}
+				else {
+					localStateGenerator = new KubernetesEndpointSlicesCatalogWatch();
+				}
+			}
+			catch (ApiException e) {
+				throw new RuntimeException(e);
+			}
 
-			if (!found) {
-				throw new IllegalArgumentException("EndpointSlices are not supported on the cluster");
-			}
-			else {
-				localStateGenerator = new Fabric8EndpointSliceV1CatalogWatch();
-			}
 		}
 		else {
-			localStateGenerator = new Fabric8EndpointsCatalogWatch();
+			localStateGenerator = new KubernetesEndpointsCatalogWatch();
 		}
 
 		LOG.debug(() -> "stateGenerator is of type: " + localStateGenerator.getClass().getSimpleName());

@@ -91,5 +91,6 @@
         <module>spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps</module>
         <module>spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps</module>
         <module>spring-cloud-kubernetes-fabric8-client-catalog-watcher</module>
+        <module>spring-cloud-kubernetes-client-catalog-watcher</module>
     </modules>
 </project>
