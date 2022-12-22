@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps</artifactId>
 		<groupId>org.springframework.cloud</groupId>
-		<version>3.0.0-SNAPSHOT</version>
+		<version>3.0.1-SNAPSHOT</version>
 		<relativePath>../../spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
