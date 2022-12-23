@@ -16,6 +16,14 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
+
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,20 +36,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.kubernetes.client.extended.wait.Wait;
-import io.kubernetes.client.informer.SharedInformer;
-import io.kubernetes.client.informer.SharedInformerFactory;
-import io.kubernetes.client.informer.cache.Lister;
-import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
-import io.kubernetes.client.openapi.models.V1EndpointAddress;
-import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1ObjectReference;
-import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1Service;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -52,9 +46,17 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
+import io.kubernetes.client.informer.SharedInformer;
+import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
+import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1ObjectReference;
+import io.kubernetes.client.openapi.models.V1Pod;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.util.wait.Wait;
 
 /**
  * @author Min Kim
@@ -112,8 +114,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		}
 
 		List<V1Service> services = properties.allNamespaces() ? this.serviceLister.list().stream()
-			.filter(svc -> serviceId.equals(svc.getMetadata().getName())).toList()
-			: List.of(this.serviceLister.namespace(this.namespace).get(serviceId));
+				.filter(svc -> serviceId.equals(svc.getMetadata().getName())).toList()
+				: List.of(this.serviceLister.namespace(this.namespace).get(serviceId));
 		if (services.size() == 0 || !services.stream().anyMatch(this::matchServiceLabels)) {
 			// no such service present in the cluster
 			return new ArrayList<>();
@@ -127,19 +129,19 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 			if (this.properties.metadata().addLabels()) {
 				if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
 					String labelPrefix = this.properties.metadata().labelsPrefix() != null
-						? this.properties.metadata().labelsPrefix() : "";
+							? this.properties.metadata().labelsPrefix() : "";
 					service.getMetadata().getLabels().entrySet().stream()
-						.filter(e -> e.getKey().startsWith(labelPrefix))
-						.forEach(e -> svcMetadata.put(e.getKey(), e.getValue()));
+							.filter(e -> e.getKey().startsWith(labelPrefix))
+							.forEach(e -> svcMetadata.put(e.getKey(), e.getValue()));
 				}
 			}
 			if (this.properties.metadata().addAnnotations()) {
 				if (service.getMetadata() != null && service.getMetadata().getAnnotations() != null) {
 					String annotationPrefix = this.properties.metadata().annotationsPrefix() != null
-						? this.properties.metadata().annotationsPrefix() : "";
+							? this.properties.metadata().annotationsPrefix() : "";
 					service.getMetadata().getAnnotations().entrySet().stream()
-						.filter(e -> e.getKey().startsWith(annotationPrefix))
-						.forEach(e -> svcMetadata.put(e.getKey(), e.getValue()));
+							.filter(e -> e.getKey().startsWith(annotationPrefix))
+							.forEach(e -> svcMetadata.put(e.getKey(), e.getValue()));
 				}
 			}
 		}
@@ -159,7 +161,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		Optional<String> discoveredPrimaryPortName = Optional.empty();
 		if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
 			discoveredPrimaryPortName = Optional
-				.ofNullable(service.getMetadata().getLabels().get(PRIMARY_PORT_NAME_LABEL_KEY));
+					.ofNullable(service.getMetadata().getLabels().get(PRIMARY_PORT_NAME_LABEL_KEY));
 		}
 		final String primaryPortName = discoveredPrimaryPortName.orElse(this.properties.primaryPortName());
 
@@ -233,7 +235,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		}
 		else {
 			Map<String, Integer> ports = endpointPorts.stream().filter(p -> StringUtils.hasText(p.getName()))
-				.collect(Collectors.toMap(CoreV1EndpointPort::getName, CoreV1EndpointPort::getPort));
+					.collect(Collectors.toMap(CoreV1EndpointPort::getName, CoreV1EndpointPort::getPort));
 			// This oneliner is looking for a port with a name equal to the primary port
 			// name specified in the service label
 			// or in spring.cloud.kubernetes.discovery.primary-port-name, equal to https,
@@ -241,18 +243,18 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 			// In case no port has been found return -1 to log a warning and fall back to
 			// the first port in the list.
 			int discoveredPort = ports.getOrDefault(primaryPortName,
-				ports.getOrDefault(HTTPS, ports.getOrDefault(HTTP, -1)));
+					ports.getOrDefault(HTTPS, ports.getOrDefault(HTTP, -1)));
 
 			if (discoveredPort == -1) {
 				if (StringUtils.hasText(primaryPortName)) {
 					log.warn("Could not find a port named '" + primaryPortName + "', 'https', or 'http' for service '"
-						+ serviceId + "'.");
+							+ serviceId + "'.");
 				}
 				else {
 					log.warn("Could not find a port named 'https' or 'http' for service '" + serviceId + "'.");
 				}
 				log.warn(
-					"Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
+						"Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
 				log.warn("Alternatively name the primary port 'https' or 'http'");
 				log.warn("An incorrect configuration may result in non-deterministic behaviour.");
 				discoveredPort = endpointPorts.get(0).getPort();
@@ -264,9 +266,9 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 	@Override
 	public List<String> getServices() {
 		List<V1Service> services = this.properties.allNamespaces() ? this.serviceLister.list()
-			: this.serviceLister.namespace(this.namespace).list();
+				: this.serviceLister.namespace(this.namespace).list();
 		return services.stream().filter(this::matchServiceLabels).map(s -> s.getMetadata().getName())
-			.collect(Collectors.toList());
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -278,15 +280,15 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 		})) {
 			if (this.properties.waitCacheReady()) {
 				throw new IllegalStateException(
-					"Timeout waiting for informers cache to be ready, is the kubernetes service up?");
+						"Timeout waiting for informers cache to be ready, is the kubernetes service up?");
 			}
 			else {
 				log.warn(
-					"Timeout waiting for informers cache to be ready, ignoring the failure because waitForInformerCacheReady property is false");
+						"Timeout waiting for informers cache to be ready, ignoring the failure because waitForInformerCacheReady property is false");
 			}
 		}
 		log.info("Cache fully loaded (total " + serviceLister.list().size()
-			+ " services) , discovery client is now available");
+				+ " services) , discovery client is now available");
 	}
 
 	private boolean matchServiceLabels(V1Service service) {
