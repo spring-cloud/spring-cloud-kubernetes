@@ -26,6 +26,3 @@ spec:
               path: /actuator/health/liveness
           ports:
             - containerPort: 8080
-          env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: one

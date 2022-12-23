@@ -25,7 +25,6 @@ import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
@@ -37,6 +36,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -44,8 +45,6 @@ import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Fabric8Utils;
-import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
@@ -71,46 +70,33 @@ class Fabric8CatalogWatchWithNamespacesIT {
 
 	private static KubernetesClient client;
 
-	private static String busyboxServiceNameA;
-
-	private static String busyboxServiceNameB;
-
-	private static String busyboxDeploymentNameA;
-
-	private static String busyboxDeploymentNameB;
-
-	private static String appDeploymentName;
-
-	private static String appServiceName;
-
-	private static String appIngressName;
+	private static Util util;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
-		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
-		client = new KubernetesClientBuilder().withConfig(config).build();
+		util = new Util(K3S);
+		client = util.client();
 
 		Commons.validateImage(APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
+
+		util.setUpClusterWide(NAMESPACE_DEFAULT, Set.of(NAMESPACE_DEFAULT, NAMESPACE_A, NAMESPACE_B));
 	}
 
 	@BeforeEach
-	void beforeEach() throws Exception {
-		client.namespaces().resource(new NamespaceBuilder().withNewMetadata().withName(NAMESPACE_A).and().build())
-				.create();
-		client.namespaces().resource(new NamespaceBuilder().withNewMetadata().withName(NAMESPACE_B).and().build())
-				.create();
-		Fabric8Utils.setUpClusterWide(client, NAMESPACE_DEFAULT, Set.of(NAMESPACE_DEFAULT, NAMESPACE_A, NAMESPACE_B));
-		deployBusyboxManifests();
+	void beforeEach() {
+		util.createNamespace(NAMESPACE_A);
+		util.createNamespace(NAMESPACE_B);
+
+		util.busybox(NAMESPACE_A, Phase.CREATE);
+		util.busybox(NAMESPACE_B, Phase.CREATE);
 	}
 
 	@AfterEach
 	void afterEach() {
-		Fabric8Utils.cleanUpClusterWide(client, NAMESPACE_DEFAULT, Set.of(NAMESPACE_DEFAULT, NAMESPACE_A, NAMESPACE_B));
-		Fabric8Utils.deleteNamespace(client, NAMESPACE_A);
-		Fabric8Utils.deleteNamespace(client, NAMESPACE_B);
-		deleteApp();
+		util.deleteNamespace(NAMESPACE_A);
+		util.deleteNamespace(NAMESPACE_B);
 	}
 
 	/**
@@ -125,16 +111,18 @@ class Fabric8CatalogWatchWithNamespacesIT {
 	 */
 	@Test
 	void testCatalogWatchWithEndpoints() throws Exception {
-		deployApp(false);
+		app(false, Phase.CREATE);
 		assertLogStatement("stateGenerator is of type: Fabric8EndpointsCatalogWatch");
 		test();
+		app(false, Phase.DELETE);
 	}
 
 	@Test
 	void testCatalogWatchWithEndpointSlices() throws Exception {
-		deployApp(true);
+		app(true, Phase.CREATE);
 		assertLogStatement("stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch");
 		test();
+		app(true, Phase.DELETE);
 	}
 
 	/**
@@ -190,7 +178,8 @@ class Fabric8CatalogWatchWithNamespacesIT {
 		Assertions.assertEquals(NAMESPACE_A, resultOne.namespace());
 		Assertions.assertEquals(NAMESPACE_A, resultTwo.namespace());
 
-		deleteBusyboxApp();
+		util.busybox(NAMESPACE_A, Phase.DELETE);
+		util.busybox(NAMESPACE_B, Phase.DELETE);
 
 		// what we get after delete
 		EndpointNameAndNamespace[] afterDelete = new EndpointNameAndNamespace[1];
@@ -223,114 +212,38 @@ class Fabric8CatalogWatchWithNamespacesIT {
 
 	}
 
-	private void deployBusyboxManifests() throws Exception {
+	private static void app(boolean useEndpointSlices, Phase phase) {
 
-		Deployment deployment = client.apps().deployments().load(getBusyboxDeployment()).get();
+		InputStream endpointsDeploymentStream = util.inputStream("app/watcher-endpoints-deployment.yaml");
+		InputStream endpointSlicesDeploymentStream = util.inputStream("app/watcher-endpoint-slices-deployment.yaml");
+		InputStream serviceStream = util.inputStream("app/watcher-service.yaml");
+		InputStream ingressStream = util.inputStream("app/watcher-ingress.yaml");
 
-		String[] image = K8SUtils.getImageFromDeployment(deployment).split(":");
-		Commons.pullImage(image[0], image[1], K3S);
-		Commons.loadImage(image[0], image[1], "busybox", K3S);
-
-		// namespace_a
-		client.apps().deployments().inNamespace(NAMESPACE_A).resource(deployment).create();
-		busyboxDeploymentNameA = deployment.getMetadata().getName();
-
-		Service busyboxServiceA = client.services().load(getBusyboxService()).get();
-		busyboxServiceNameA = busyboxServiceA.getMetadata().getName();
-		client.services().inNamespace(NAMESPACE_A).resource(busyboxServiceA).create();
-
-		Fabric8Utils.waitForDeployment(client, busyboxDeploymentNameA, NAMESPACE_A, 2, 600);
-
-		// namespace_b
-		client.apps().deployments().inNamespace(NAMESPACE_B).resource(deployment).create();
-		busyboxDeploymentNameB = deployment.getMetadata().getName();
-
-		Service busyboxServiceB = client.services().load(getBusyboxService()).get();
-		busyboxServiceNameB = busyboxServiceB.getMetadata().getName();
-		client.services().inNamespace(NAMESPACE_B).resource(busyboxServiceB).create();
-
-		Fabric8Utils.waitForDeployment(client, busyboxDeploymentNameB, NAMESPACE_B, 2, 600);
-
-	}
-
-	private static void deployApp(boolean useEndpointSlices) {
-
-		InputStream deployment = useEndpointSlices ? getEndpointSlicesAppDeployment() : getEndpointsAppDeployment();
-		Deployment appDeployment = client.apps().deployments().load(deployment).get();
+		Deployment deployment = useEndpointSlices
+			? client.apps().deployments().load(endpointSlicesDeploymentStream).get()
+			: client.apps().deployments().load(endpointsDeploymentStream).get();
 
 		List<EnvVar> envVars = new ArrayList<>(
-				appDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
+			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
 		EnvVar namespaceAEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
-				.withValue(NAMESPACE_A).build();
+			.withValue(NAMESPACE_A).build();
 		EnvVar namespaceDefaultEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1")
-				.withValue(NAMESPACE_DEFAULT).build();
+			.withValue(NAMESPACE_DEFAULT).build();
 		envVars.add(namespaceAEnvVar);
 		envVars.add(namespaceDefaultEnvVar);
 
-		appDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-		String version = K8SUtils.getPomVersion();
-		String currentImage = appDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
-		appDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(currentImage + ":" + version);
+		Service service = client.services().load(serviceStream).get();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
 
-		client.apps().deployments().inNamespace(NAMESPACE_DEFAULT).resource(appDeployment).create();
-		appDeploymentName = appDeployment.getMetadata().getName();
+		if (phase.equals(Phase.CREATE)) {
+			util.createAndWait(Fabric8CatalogWatchWithNamespacesIT.NAMESPACE_DEFAULT, null, deployment, service, ingress, true);
+		}
+		else {
+			util.deleteAndWait(Fabric8CatalogWatchWithNamespacesIT.NAMESPACE_DEFAULT, deployment, service, ingress);
+		}
 
-		Service appService = client.services().load(getAppService()).get();
-		appServiceName = appService.getMetadata().getName();
-		client.services().inNamespace(NAMESPACE_DEFAULT).resource(appService).create();
-
-		Fabric8Utils.waitForDeployment(client, appDeploymentName, NAMESPACE_DEFAULT, 2, 600);
-
-		Ingress appIngress = client.network().v1().ingresses().load(getAppIngress()).get();
-		appIngressName = appIngress.getMetadata().getName();
-		client.network().v1().ingresses().inNamespace(NAMESPACE_DEFAULT).resource(appIngress).create();
-
-		Fabric8Utils.waitForIngress(client, appIngressName, NAMESPACE_DEFAULT);
-
-	}
-
-	private void deleteBusyboxApp() {
-		// namespacea
-		Fabric8Utils.deleteDeployment(client, NAMESPACE_A, busyboxDeploymentNameA);
-		Fabric8Utils.deleteService(client, NAMESPACE_A, busyboxServiceNameA);
-
-		// namespaceb
-		Fabric8Utils.deleteDeployment(client, NAMESPACE_B, busyboxDeploymentNameB);
-		Fabric8Utils.deleteService(client, NAMESPACE_B, busyboxServiceNameB);
-	}
-
-	private void deleteApp() {
-		Fabric8Utils.deleteDeployment(client, NAMESPACE_DEFAULT, appDeploymentName);
-		Fabric8Utils.deleteService(client, NAMESPACE_DEFAULT, appServiceName);
-		Fabric8Utils.deleteIngress(client, NAMESPACE_DEFAULT, appIngressName);
-	}
-
-	private static InputStream getBusyboxService() {
-		return Fabric8Utils.inputStream("busybox/service.yaml");
-	}
-
-	private static InputStream getBusyboxDeployment() {
-		return Fabric8Utils.inputStream("busybox/deployment.yaml");
-	}
-
-	/**
-	 * deployment where support for endpoint slices is equal to false
-	 */
-	private static InputStream getEndpointsAppDeployment() {
-		return Fabric8Utils.inputStream("app/watcher-endpoints-deployment.yaml");
-	}
-
-	private static InputStream getEndpointSlicesAppDeployment() {
-		return Fabric8Utils.inputStream("app/watcher-endpoint-slices-deployment.yaml");
-	}
-
-	private static InputStream getAppIngress() {
-		return Fabric8Utils.inputStream("app/watcher-ingress.yaml");
-	}
-
-	private static InputStream getAppService() {
-		return Fabric8Utils.inputStream("app/watcher-service.yaml");
 	}
 
 	private WebClient.Builder builder() {

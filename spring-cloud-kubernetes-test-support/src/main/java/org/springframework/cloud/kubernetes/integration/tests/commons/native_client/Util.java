@@ -62,6 +62,9 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pullImage;
 
+/**
+ * @author wind57
+ */
 public final class Util {
 
 	private static final Log LOG = LogFactory.getLog(Util.class);
