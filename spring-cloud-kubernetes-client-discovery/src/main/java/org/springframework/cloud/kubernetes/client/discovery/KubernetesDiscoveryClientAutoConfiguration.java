@@ -16,21 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
-import io.kubernetes.client.informer.SharedInformer;
-import io.kubernetes.client.informer.SharedInformerFactory;
-import io.kubernetes.client.informer.cache.Lister;
-import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1EndpointsList;
-import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1PodList;
-import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceList;
-import io.kubernetes.client.spring.extended.controller.annotation.GroupVersionResource;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformer;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformers;
-import io.kubernetes.client.spring.extended.controller.config.KubernetesInformerAutoConfiguration;
-
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -55,18 +40,33 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
+import io.kubernetes.client.informer.SharedInformer;
+import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1EndpointsList;
+import io.kubernetes.client.openapi.models.V1Pod;
+import io.kubernetes.client.openapi.models.V1PodList;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceList;
+import io.kubernetes.client.spring.extended.controller.annotation.GroupVersionResource;
+import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformer;
+import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformers;
+import io.kubernetes.client.spring.extended.controller.config.KubernetesInformerAutoConfiguration;
+
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-@AutoConfigureBefore({SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class,
-	// So that CatalogSharedInformerFactory can be processed in prior to the default
-	// factory
-	KubernetesInformerAutoConfiguration.class})
-@AutoConfigureAfter({KubernetesClientAutoConfiguration.class})
+@AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class,
+		// So that CatalogSharedInformerFactory can be processed in prior to the default
+		// factory
+		KubernetesInformerAutoConfiguration.class })
+@AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 public class KubernetesDiscoveryClientAutoConfiguration {
 
-	@ConditionalOnClass({HealthIndicator.class})
+	@ConditionalOnClass({ HealthIndicator.class })
 	@ConditionalOnDiscoveryEnabled
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	@Configuration
@@ -74,7 +74,7 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 
 		@Bean
 		public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
-			ApplicationEventPublisher applicationEventPublisher, PodUtils podUtils) {
+				ApplicationEventPublisher applicationEventPublisher, PodUtils podUtils) {
 			return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 		}
 
@@ -87,15 +87,15 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		@Bean
 		@ConditionalOnMissingBean
 		public SpringCloudKubernetesInformerFactoryProcessor discoveryInformerConfigurer(
-			KubernetesNamespaceProvider kubernetesNamespaceProvider, ApiClient apiClient,
-			CatalogSharedInformerFactory sharedInformerFactory, Environment environment) {
+				KubernetesNamespaceProvider kubernetesNamespaceProvider, ApiClient apiClient,
+				CatalogSharedInformerFactory sharedInformerFactory, Environment environment) {
 			// Injecting KubernetesDiscoveryProperties here would cause it to be
 			// initialize too early
 			// Instead get the all-namespaces property value from the Environment directly
 			boolean allNamespaces = environment.getProperty("spring.cloud.kubernetes.discovery.all-namespaces",
-				Boolean.class, false);
+					Boolean.class, false);
 			return new SpringCloudKubernetesInformerFactoryProcessor(kubernetesNamespaceProvider, apiClient,
-				sharedInformerFactory, allNamespaces);
+					sharedInformerFactory, allNamespaces);
 		}
 
 		@Bean
@@ -117,12 +117,12 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		}
 
 		@KubernetesInformers({
-			@KubernetesInformer(apiTypeClass = V1Service.class, apiListTypeClass = V1ServiceList.class,
-				groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
-					resourcePlural = "services")),
-			@KubernetesInformer(apiTypeClass = V1Endpoints.class, apiListTypeClass = V1EndpointsList.class,
-				groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
-					resourcePlural = "endpoints")),
+				@KubernetesInformer(apiTypeClass = V1Service.class, apiListTypeClass = V1ServiceList.class,
+						groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
+								resourcePlural = "services")),
+				@KubernetesInformer(apiTypeClass = V1Endpoints.class, apiListTypeClass = V1EndpointsList.class,
+						groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
+								resourcePlural = "endpoints")),
 			@KubernetesInformer(apiTypeClass = V1Pod.class, apiListTypeClass = V1PodList.class,
 				groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
 					resourcePlural = "pods"))})
