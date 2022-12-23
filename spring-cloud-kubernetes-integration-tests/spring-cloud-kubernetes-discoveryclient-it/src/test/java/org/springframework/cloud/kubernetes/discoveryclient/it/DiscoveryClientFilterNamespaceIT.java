@@ -20,10 +20,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
-import io.kubernetes.client.openapi.models.V1ClusterRole;
 import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
 import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1Deployment;
@@ -89,7 +87,8 @@ class DiscoveryClientFilterNamespaceIT {
 		util.createNamespace(NAMESPACE_RIGHT);
 		util.setUp(NAMESPACE);
 
-		V1ClusterRoleBinding clusterRole = (V1ClusterRoleBinding) util.yaml("namespace-filter/cluster-admin-serviceaccount-role.yaml");
+		V1ClusterRoleBinding clusterRole = (V1ClusterRoleBinding) util
+				.yaml("namespace-filter/cluster-admin-serviceaccount-role.yaml");
 		rbacApi.createClusterRoleBinding(clusterRole, null, null, null, null);
 		discoveryServer(Phase.CREATE);
 	}
@@ -130,8 +129,8 @@ class DiscoveryClientFilterNamespaceIT {
 		assertThat(result).containsAnyOf("service-wiremock");
 
 		// ServiceInstance
-		WebClient serviceInstanceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/service/service-wiremock")
-				.build();
+		WebClient serviceInstanceClient = builder
+				.baseUrl("http://localhost:80/discoveryclient-it/service/service-wiremock").build();
 		List<KubernetesServiceInstance> serviceInstances = serviceInstanceClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<KubernetesServiceInstance>>() {
 				}).retryWhen(retrySpec()).block();
