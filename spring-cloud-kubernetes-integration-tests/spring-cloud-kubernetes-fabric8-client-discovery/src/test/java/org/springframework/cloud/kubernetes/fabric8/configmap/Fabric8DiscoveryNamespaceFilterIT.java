@@ -33,7 +33,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.ParameterizedTypeReference;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -42,6 +41,7 @@ import reactor.util.retry.RetryBackoffSpec;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -98,7 +98,7 @@ class Fabric8DiscoveryNamespaceFilterIT {
 
 		@SuppressWarnings("unchecked")
 		List<String> services = (List<String>) clientServices.method(HttpMethod.GET).retrieve().bodyToMono(List.class)
-			.retryWhen(retrySpec()).block();
+				.retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(services.size(), 1);
 		Assertions.assertTrue(services.contains("service-wiremock"));
@@ -106,8 +106,8 @@ class Fabric8DiscoveryNamespaceFilterIT {
 		WebClient clientEndpoints = builder().baseUrl("localhost/endpoints/wiremock").build();
 
 		List<Endpoints> endpoints = clientEndpoints.method(HttpMethod.GET).retrieve()
-			.bodyToMono(new ParameterizedTypeReference<List<Endpoints>>() {
-			}).retryWhen(retrySpec()).block();
+				.bodyToMono(new ParameterizedTypeReference<List<Endpoints>>() {
+				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(endpoints.size(), 1);
 		Assertions.assertEquals(endpoints.get(0).getMetadata().getNamespace(), NAMESPACE_LEFT);
@@ -122,9 +122,9 @@ class Fabric8DiscoveryNamespaceFilterIT {
 
 		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
 		List<EnvVar> envVars = new ArrayList<>(
-			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
+				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
 		EnvVar activeProfileProperty = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
-			.withValue(NAMESPACE_LEFT).build();
+				.withValue(NAMESPACE_LEFT).build();
 		envVars.add(activeProfileProperty);
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
@@ -133,7 +133,7 @@ class Fabric8DiscoveryNamespaceFilterIT {
 
 		if (phase.equals(Phase.CREATE)) {
 			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).get())
-				.create();
+					.create();
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
 		else {
