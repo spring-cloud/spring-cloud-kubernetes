@@ -107,13 +107,13 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		@Bean
 		@ConditionalOnMissingBean
 		public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient(
-			KubernetesNamespaceProvider kubernetesNamespaceProvider,
-			CatalogSharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
-			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer, Lister<V1Pod> podLister,
-			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
+				KubernetesNamespaceProvider kubernetesNamespaceProvider,
+				CatalogSharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
+				Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer, Lister<V1Pod> podLister,
+				SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
 			return new KubernetesInformerDiscoveryClient(kubernetesNamespaceProvider.getNamespace(),
-				sharedInformerFactory, serviceLister, endpointsLister, serviceInformer, podLister, endpointsInformer,
-				properties);
+					sharedInformerFactory, serviceLister, endpointsLister, serviceInformer, podLister, endpointsInformer,
+					properties);
 		}
 
 		@KubernetesInformers({
