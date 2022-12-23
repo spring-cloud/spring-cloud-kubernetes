@@ -250,9 +250,9 @@ class ConfigMapEventReloadIT {
 		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
 
 		List<EnvVar> envVars = new ArrayList<>(
-			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
-		EnvVar activeProfileProperty = new EnvVarBuilder().withName("SPRING_PROFILES_ACTIVE")
-			.withValue(activeProfile).build();
+				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
+		EnvVar activeProfileProperty = new EnvVarBuilder().withName("SPRING_PROFILES_ACTIVE").withValue(activeProfile)
+				.build();
 		envVars.add(activeProfileProperty);
 
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);

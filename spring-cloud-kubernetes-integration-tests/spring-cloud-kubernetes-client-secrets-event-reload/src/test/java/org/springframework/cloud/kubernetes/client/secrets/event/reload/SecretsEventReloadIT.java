@@ -92,8 +92,8 @@ class SecretsEventReloadIT {
 		WebClient secretClient = builder.baseUrl(PROPERTY_URL).build();
 
 		await().timeout(Duration.ofSeconds(120)).pollInterval(Duration.ofSeconds(2))
-			.until(() -> secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block().equals("initial"));
+				.until(() -> secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+						.retryWhen(retrySpec()).block().equals("initial"));
 
 		V1Secret v1Secret = (V1Secret) util.yaml("secret.yaml");
 		Map<String, byte[]> secretData = v1Secret.getData();

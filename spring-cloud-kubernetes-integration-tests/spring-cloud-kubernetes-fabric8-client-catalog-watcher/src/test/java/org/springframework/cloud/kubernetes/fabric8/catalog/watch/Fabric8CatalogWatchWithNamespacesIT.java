@@ -28,16 +28,12 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -45,6 +41,8 @@ import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
@@ -220,15 +218,15 @@ class Fabric8CatalogWatchWithNamespacesIT {
 		InputStream ingressStream = util.inputStream("app/watcher-ingress.yaml");
 
 		Deployment deployment = useEndpointSlices
-			? client.apps().deployments().load(endpointSlicesDeploymentStream).get()
-			: client.apps().deployments().load(endpointsDeploymentStream).get();
+				? client.apps().deployments().load(endpointSlicesDeploymentStream).get()
+				: client.apps().deployments().load(endpointsDeploymentStream).get();
 
 		List<EnvVar> envVars = new ArrayList<>(
-			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
+				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
 		EnvVar namespaceAEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
-			.withValue(NAMESPACE_A).build();
+				.withValue(NAMESPACE_A).build();
 		EnvVar namespaceDefaultEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1")
-			.withValue(NAMESPACE_DEFAULT).build();
+				.withValue(NAMESPACE_DEFAULT).build();
 		envVars.add(namespaceAEnvVar);
 		envVars.add(namespaceDefaultEnvVar);
 
@@ -238,7 +236,8 @@ class Fabric8CatalogWatchWithNamespacesIT {
 		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(Fabric8CatalogWatchWithNamespacesIT.NAMESPACE_DEFAULT, null, deployment, service, ingress, true);
+			util.createAndWait(Fabric8CatalogWatchWithNamespacesIT.NAMESPACE_DEFAULT, null, deployment, service,
+					ingress, true);
 		}
 		else {
 			util.deleteAndWait(Fabric8CatalogWatchWithNamespacesIT.NAMESPACE_DEFAULT, deployment, service, ingress);
