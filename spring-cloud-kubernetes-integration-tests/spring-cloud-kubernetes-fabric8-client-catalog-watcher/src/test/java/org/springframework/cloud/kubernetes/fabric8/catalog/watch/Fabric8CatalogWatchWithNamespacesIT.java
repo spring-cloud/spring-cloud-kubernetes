@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -79,20 +80,20 @@ class Fabric8CatalogWatchWithNamespacesIT {
 		Commons.validateImage(APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
 
+		util.createNamespace(NAMESPACE_A);
+		util.createNamespace(NAMESPACE_B);
+
 		util.setUpClusterWide(NAMESPACE_DEFAULT, Set.of(NAMESPACE_DEFAULT, NAMESPACE_A, NAMESPACE_B));
 	}
 
 	@BeforeEach
 	void beforeEach() {
-		util.createNamespace(NAMESPACE_A);
-		util.createNamespace(NAMESPACE_B);
-
 		util.busybox(NAMESPACE_A, Phase.CREATE);
 		util.busybox(NAMESPACE_B, Phase.CREATE);
 	}
 
-	@AfterEach
-	void afterEach() {
+	@AfterAll
+	static void afterAll() {
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
 	}

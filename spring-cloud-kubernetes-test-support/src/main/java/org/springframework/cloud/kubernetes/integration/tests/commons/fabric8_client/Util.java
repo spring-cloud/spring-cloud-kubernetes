@@ -149,6 +149,9 @@ public final class Util {
 		try {
 			client.namespaces().resource(new NamespaceBuilder().withNewMetadata().withName(name).and().build())
 					.create();
+
+			await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> client.namespaces()
+					.list().getItems().stream().anyMatch(x -> x.getMetadata().getName().equals(name)));
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
