@@ -211,6 +211,9 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 						if (!CollectionUtils.isEmpty(podMetaData.getLabels())) {
 							newMetaData.putAll(podMetaData.getLabels());
 						}
+						if (!CollectionUtils.isEmpty(podMetaData.getAnnotations())) {
+							newMetaData.putAll(podMetaData.getAnnotations());
+						}
 					});
 				}
 			}
