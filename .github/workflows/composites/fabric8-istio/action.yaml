@@ -9,10 +9,6 @@ runs:
     - name: build fabric8 istio project
       shell: bash
       run: |
-        cd spring-cloud-kubernetes-test-support
-        .././mvnw clean install
-        cd ..
-        
         cd spring-cloud-kubernetes-fabric8-istio
         .././mvnw -s ../.settings.xml clean install -U
         cd ..
