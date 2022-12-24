@@ -67,6 +67,7 @@ class ReactiveDiscoveryClientIT {
 		Commons.validateImage(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME, K3S);
 		util = new Util(K3S);
+		util.setUp(NAMESPACE);
 	}
 
 	@AfterAll
