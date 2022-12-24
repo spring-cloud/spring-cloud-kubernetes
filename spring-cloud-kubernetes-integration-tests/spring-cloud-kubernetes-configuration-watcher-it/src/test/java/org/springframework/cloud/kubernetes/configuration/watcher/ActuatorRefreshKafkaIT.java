@@ -113,6 +113,8 @@ class ActuatorRefreshKafkaIT {
 		});
 
 		Assertions.assertTrue(value[0]);
+
+		util.deleteAndWait(NAMESPACE, configMap, null);
 	}
 
 	private void testApp(Phase phase) {
