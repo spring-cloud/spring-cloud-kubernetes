@@ -153,8 +153,7 @@ public final class Fabric8ConfigUtils {
 	}
 
 	private static List<ConfigMap> configMapsSearch(KubernetesClient client, String namespace) {
-		LOG.debug("Loading all config maps in namespace '" + namespace + "'");
-		return client.configMaps().inNamespace(namespace).list().getItems();
+		return Fabric8ConfigMapsCache.byNamespace(client, namespace);
 	}
 
 	private static List<StrippedSourceContainer> strippedSecrets(List<Secret> secrets) {

@@ -63,7 +63,7 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 					kubernetesClient, configMapProperties, namespaceProvider);
 			if (isRetryEnabledForConfigMap(configMapProperties)) {
 				configMapPropertySourceLocator = new ConfigDataRetryableConfigMapPropertySourceLocator(
-						configMapPropertySourceLocator, configMapProperties);
+						configMapPropertySourceLocator, configMapProperties, new Fabric8ConfigMapsCache());
 			}
 
 			registerSingle(bootstrapContext, ConfigMapPropertySourceLocator.class, configMapPropertySourceLocator,

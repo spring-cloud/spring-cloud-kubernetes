@@ -35,6 +35,11 @@ public class ConfigDataRetryableConfigMapPropertySourceLocator extends ConfigMap
 
 	private ConfigMapPropertySourceLocator configMapPropertySourceLocator;
 
+	/**
+	 * This constructor is deprecated, and we do not use it anymore internally.
+	 * It will be removed in the next major release.
+	 */
+	@Deprecated(forRemoval = true)
 	public ConfigDataRetryableConfigMapPropertySourceLocator(
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator, ConfigMapConfigProperties properties) {
 		super(properties);
@@ -43,6 +48,17 @@ public class ConfigDataRetryableConfigMapPropertySourceLocator extends ConfigMap
 				.exponentialBackoff(properties.retry().initialInterval(), properties.retry().multiplier(),
 						properties.retry().maxInterval())
 				.build();
+	}
+
+	public ConfigDataRetryableConfigMapPropertySourceLocator(
+		ConfigMapPropertySourceLocator configMapPropertySourceLocator, ConfigMapConfigProperties properties,
+		ConfigMapCache cache) {
+		super(properties, cache);
+		this.configMapPropertySourceLocator = configMapPropertySourceLocator;
+		this.retryTemplate = RetryTemplate.builder().maxAttempts(properties.retry().maxAttempts())
+			.exponentialBackoff(properties.retry().initialInterval(), properties.retry().multiplier(),
+				properties.retry().maxInterval())
+			.build();
 	}
 
 	@Override

@@ -161,14 +161,7 @@ public final class KubernetesClientConfigUtils {
 	}
 
 	private static List<V1ConfigMap> configMapsSearch(CoreV1Api client, String namespace) {
-		LOG.debug("Loading all config maps in namespace '" + namespace + "'");
-		try {
-			return client.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null, null)
-					.getItems();
-		}
-		catch (ApiException apiException) {
-			throw new RuntimeException(apiException.getResponseBody(), apiException);
-		}
+		return KubernetesClientConfigMapsCache.byNamespace(client, namespace);
 	}
 
 	private static List<StrippedSourceContainer> strippedSecrets(List<V1Secret> secrets) {
