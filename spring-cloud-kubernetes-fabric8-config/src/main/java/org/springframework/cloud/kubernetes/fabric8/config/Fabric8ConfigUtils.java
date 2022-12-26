@@ -20,10 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -73,14 +70,11 @@ public final class Fabric8ConfigUtils {
 	 */
 	static MultipleSourcesContainer secretsDataByLabels(KubernetesClient client, String namespace,
 			Map<String, String> labels, Environment environment, Set<String> profiles) {
-		List<Secret> secrets = secretsSearch(client, namespace);
-		if (ConfigUtils.noSources(secrets, namespace)) {
+		List<StrippedSourceContainer> strippedSecrets = strippedSecrets(client, namespace);
+		if (strippedSecrets.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
-
-		List<StrippedSourceContainer> strippedSources = strippedSecrets(secrets);
-		return ConfigUtils.processLabeledData(strippedSources, environment, labels, namespace, profiles, true);
-
+		return ConfigUtils.processLabeledData(strippedSecrets, environment, labels, namespace, profiles, true);
 	}
 
 	/**
@@ -95,14 +89,12 @@ public final class Fabric8ConfigUtils {
 	 */
 	static MultipleSourcesContainer configMapsDataByLabels(KubernetesClient client, String namespace,
 			Map<String, String> labels, Environment environment, Set<String> profiles) {
-
-		List<ConfigMap> configMaps = configMapsSearch(client, namespace);
-		if (ConfigUtils.noSources(configMaps, namespace)) {
+		List<StrippedSourceContainer> strippedConfigMaps = strippedConfigMaps(client, namespace);
+		if (strippedConfigMaps.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
 
-		List<StrippedSourceContainer> strippedSources = strippedConfigMaps(configMaps);
-		return ConfigUtils.processLabeledData(strippedSources, environment, labels, namespace, profiles, false);
+		return ConfigUtils.processLabeledData(strippedConfigMaps, environment, labels, namespace, profiles, false);
 	}
 
 	/**
@@ -115,14 +107,11 @@ public final class Fabric8ConfigUtils {
 	 */
 	static MultipleSourcesContainer secretsDataByName(KubernetesClient client, String namespace,
 			LinkedHashSet<String> sourceNames, Environment environment) {
-		List<Secret> secrets = secretsSearch(client, namespace);
-		if (ConfigUtils.noSources(secrets, namespace)) {
+		List<StrippedSourceContainer> strippedSecrets = strippedSecrets(client, namespace);
+		if (strippedSecrets.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
-
-		List<StrippedSourceContainer> strippedSources = strippedSecrets(secrets);
-		return ConfigUtils.processNamedData(strippedSources, environment, sourceNames, namespace, true);
-
+		return ConfigUtils.processNamedData(strippedSecrets, environment, sourceNames, namespace, true);
 	}
 
 	/**
@@ -135,34 +124,29 @@ public final class Fabric8ConfigUtils {
 	 */
 	static MultipleSourcesContainer configMapsDataByName(KubernetesClient client, String namespace,
 			LinkedHashSet<String> sourceNames, Environment environment) {
-		List<ConfigMap> configMaps = configMapsSearch(client, namespace);
-		if (ConfigUtils.noSources(configMaps, namespace)) {
+		List<StrippedSourceContainer> strippedConfigMaps = strippedConfigMaps(client, namespace);
+		if (strippedConfigMaps.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
-
-		List<StrippedSourceContainer> strippedSources = strippedConfigMaps(configMaps);
-		return ConfigUtils.processNamedData(strippedSources, environment, sourceNames, namespace, false);
-
+		return ConfigUtils.processNamedData(strippedConfigMaps, environment, sourceNames, namespace, false);
 	}
 
-	// ******** non-exposed methods *******
+	private static List<StrippedSourceContainer> strippedConfigMaps(KubernetesClient client, String namespace) {
+		List<StrippedSourceContainer> strippedConfigMaps = Fabric8ConfigMapsCache.byNamespace(client, namespace);
+		if (strippedConfigMaps.isEmpty()) {
+			LOG.debug("No configmaps in namespace '" + namespace + "'");
+		}
 
-	private static List<Secret> secretsSearch(KubernetesClient client, String namespace) {
-		return Fabric8SecretsCache.byNamespace(client, namespace);
+		return strippedConfigMaps;
 	}
 
-	private static List<ConfigMap> configMapsSearch(KubernetesClient client, String namespace) {
-		return Fabric8ConfigMapsCache.byNamespace(client, namespace);
-	}
+	private static List<StrippedSourceContainer> strippedSecrets(KubernetesClient client, String namespace) {
+		List<StrippedSourceContainer> strippedSecrets = Fabric8SecretsCache.byNamespace(client, namespace);
+		if (strippedSecrets.isEmpty()) {
+			LOG.debug("No secrets in namespace '" + namespace + "'");
+		}
 
-	private static List<StrippedSourceContainer> strippedSecrets(List<Secret> secrets) {
-		return secrets.stream().map(secret -> new StrippedSourceContainer(secret.getMetadata().getLabels(),
-				secret.getMetadata().getName(), secret.getData())).collect(Collectors.toList());
-	}
-
-	private static List<StrippedSourceContainer> strippedConfigMaps(List<ConfigMap> configMaps) {
-		return configMaps.stream().map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
-				configMap.getMetadata().getName(), configMap.getData())).collect(Collectors.toList());
+		return strippedSecrets;
 	}
 
 }

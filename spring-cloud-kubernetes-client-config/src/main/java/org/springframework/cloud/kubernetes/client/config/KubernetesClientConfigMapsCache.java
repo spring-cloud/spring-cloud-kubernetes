@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.client.config;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -25,6 +26,7 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapCache;
+import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.core.log.LogAccessor;
 
 /**
@@ -41,16 +43,21 @@ final class KubernetesClientConfigMapsCache implements ConfigMapCache {
 	 * at the moment our loading of config maps is using a single thread, but might change
 	 * in the future, thus a thread safe structure.
 	 */
-	private static final ConcurrentHashMap<String, List<V1ConfigMap>> CACHE = new ConcurrentHashMap<>();
+	private static final ConcurrentHashMap<String, List<StrippedSourceContainer>> CACHE = new ConcurrentHashMap<>();
 
-	static List<V1ConfigMap> byNamespace(CoreV1Api coreV1Api, String namespace) {
+	@Override
+	public void discardAll() {
+		CACHE.clear();
+	}
+
+	static List<StrippedSourceContainer> byNamespace(CoreV1Api coreV1Api, String namespace) {
 		boolean[] b = new boolean[1];
-		List<V1ConfigMap> result = CACHE.computeIfAbsent(namespace, x -> {
+		List<StrippedSourceContainer> result = CACHE.computeIfAbsent(namespace, x -> {
 			try {
 				b[0] = true;
-				return coreV1Api
+				return strippedConfigMaps(coreV1Api
 						.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null, null)
-						.getItems();
+						.getItems());
 			}
 			catch (ApiException apiException) {
 				throw new RuntimeException(apiException.getResponseBody(), apiException);
@@ -67,9 +74,9 @@ final class KubernetesClientConfigMapsCache implements ConfigMapCache {
 		return result;
 	}
 
-	@Override
-	public void discardAll() {
-		CACHE.clear();
+	private static List<StrippedSourceContainer> strippedConfigMaps(List<V1ConfigMap> configMaps) {
+		return configMaps.stream().map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
+				configMap.getMetadata().getName(), configMap.getData())).collect(Collectors.toList());
 	}
 
 }

@@ -18,12 +18,14 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapCache;
+import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.core.log.LogAccessor;
 
 /**
@@ -40,13 +42,18 @@ final class Fabric8ConfigMapsCache implements ConfigMapCache {
 	 * at the moment our loading of config maps is using a single thread, but might change
 	 * in the future, thus a thread safe structure.
 	 */
-	private static final ConcurrentHashMap<String, List<ConfigMap>> CACHE = new ConcurrentHashMap<>();
+	private static final ConcurrentHashMap<String, List<StrippedSourceContainer>> CACHE = new ConcurrentHashMap<>();
 
-	static List<ConfigMap> byNamespace(KubernetesClient client, String namespace) {
+	@Override
+	public void discardAll() {
+		CACHE.clear();
+	}
+
+	static List<StrippedSourceContainer> byNamespace(KubernetesClient client, String namespace) {
 		boolean[] b = new boolean[1];
-		List<ConfigMap> result = CACHE.computeIfAbsent(namespace, x -> {
+		List<StrippedSourceContainer> result = CACHE.computeIfAbsent(namespace, x -> {
 			b[0] = true;
-			return client.configMaps().inNamespace(namespace).list().getItems();
+			return strippedConfigMaps(client.configMaps().inNamespace(namespace).list().getItems());
 		});
 
 		if (b[0]) {
@@ -59,9 +66,9 @@ final class Fabric8ConfigMapsCache implements ConfigMapCache {
 		return result;
 	}
 
-	@Override
-	public void discardAll() {
-		CACHE.clear();
+	private static List<StrippedSourceContainer> strippedConfigMaps(List<ConfigMap> configMaps) {
+		return configMaps.stream().map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
+				configMap.getMetadata().getName(), configMap.getData())).collect(Collectors.toList());
 	}
 
 }
