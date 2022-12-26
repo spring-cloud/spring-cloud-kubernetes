@@ -18,12 +18,14 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.SecretsCache;
+import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.core.log.LogAccessor;
 
 /**
@@ -40,13 +42,18 @@ final class Fabric8SecretsCache implements SecretsCache {
 	 * at the moment our loading of config maps is using a single thread, but might change
 	 * in the future, thus a thread safe structure.
 	 */
-	private static final ConcurrentHashMap<String, List<Secret>> CACHE = new ConcurrentHashMap<>();
+	private static final ConcurrentHashMap<String, List<StrippedSourceContainer>> CACHE = new ConcurrentHashMap<>();
 
-	static List<Secret> byNamespace(KubernetesClient client, String namespace) {
+	@Override
+	public void discardAll() {
+		CACHE.clear();
+	}
+
+	static List<StrippedSourceContainer> byNamespace(KubernetesClient client, String namespace) {
 		boolean[] b = new boolean[1];
-		List<Secret> result = CACHE.computeIfAbsent(namespace, x -> {
+		List<StrippedSourceContainer> result = CACHE.computeIfAbsent(namespace, x -> {
 			b[0] = true;
-			return client.secrets().inNamespace(namespace).list().getItems();
+			return strippedSecrets(client.secrets().inNamespace(namespace).list().getItems());
 		});
 
 		if (b[0]) {
@@ -59,9 +66,9 @@ final class Fabric8SecretsCache implements SecretsCache {
 		return result;
 	}
 
-	@Override
-	public void discardAll() {
-		CACHE.clear();
+	private static List<StrippedSourceContainer> strippedSecrets(List<Secret> secrets) {
+		return secrets.stream().map(secret -> new StrippedSourceContainer(secret.getMetadata().getLabels(),
+				secret.getMetadata().getName(), secret.getData())).collect(Collectors.toList());
 	}
 
 }
