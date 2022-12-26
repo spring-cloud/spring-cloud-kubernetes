@@ -21,10 +21,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapCache;
+import org.springframework.cloud.kubernetes.commons.config.SecretsCache;
 import org.springframework.core.log.LogAccessor;
 
 /**
@@ -33,7 +33,7 @@ import org.springframework.core.log.LogAccessor;
  *
  * @author wind57
  */
-final class KubernetesClientConfigMapsCache implements ConfigMapCache {
+public class KubernetesClientSecretsCache implements SecretsCache {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesClientConfigMapsCache.class));
 
@@ -41,15 +41,15 @@ final class KubernetesClientConfigMapsCache implements ConfigMapCache {
 	 * at the moment our loading of config maps is using a single thread, but might change
 	 * in the future, thus a thread safe structure.
 	 */
-	private static final ConcurrentHashMap<String, List<V1ConfigMap>> CACHE = new ConcurrentHashMap<>();
+	private static final ConcurrentHashMap<String, List<V1Secret>> CACHE = new ConcurrentHashMap<>();
 
-	static List<V1ConfigMap> byNamespace(CoreV1Api coreV1Api, String namespace) {
+	static List<V1Secret> byNamespace(CoreV1Api coreV1Api, String namespace) {
 		boolean[] b = new boolean[1];
-		List<V1ConfigMap> result = CACHE.computeIfAbsent(namespace, x -> {
+		List<V1Secret> result = CACHE.computeIfAbsent(namespace, x -> {
 			try {
 				b[0] = true;
 				return coreV1Api
-						.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null, null)
+						.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
 						.getItems();
 			}
 			catch (ApiException apiException) {
@@ -58,10 +58,10 @@ final class KubernetesClientConfigMapsCache implements ConfigMapCache {
 		});
 
 		if (b[0]) {
-			LOG.debug(() -> "Loaded all config maps in namespace '" + namespace + "'");
+			LOG.debug(() -> "Loaded all secrets in namespace '" + namespace + "'");
 		}
 		else {
-			LOG.debug(() -> "Loaded (from cache) all config maps in namespace '" + namespace + "'");
+			LOG.debug(() -> "Loaded (from cache) all secrets in namespace '" + namespace + "'");
 		}
 
 		return result;

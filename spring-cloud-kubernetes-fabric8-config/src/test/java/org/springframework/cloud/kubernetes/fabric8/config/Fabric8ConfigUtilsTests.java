@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -42,6 +43,12 @@ import org.springframework.mock.env.MockEnvironment;
 class Fabric8ConfigUtilsTests {
 
 	private KubernetesClient client;
+
+	@AfterEach
+	void afterEach() {
+		new Fabric8ConfigMapsCache().discardAll();
+		new Fabric8SecretsCache().discardAll();
+	}
 
 	// secret "my-secret" is deployed without any labels; we search for it by labels
 	// "color=red" and do not find it.

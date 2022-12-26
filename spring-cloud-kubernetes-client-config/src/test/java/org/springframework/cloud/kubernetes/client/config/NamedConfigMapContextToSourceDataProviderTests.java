@@ -34,7 +34,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -49,6 +52,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 /**
  * @author wind57
  */
+@ExtendWith(OutputCaptureExtension.class)
 class NamedConfigMapContextToSourceDataProviderTests {
 
 	private static final String NAMESPACE = "default";
@@ -78,6 +82,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
+		new KubernetesClientConfigMapsCache().discardAll();
 	}
 
 	/**
@@ -377,6 +382,61 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.one.default");
 		Assertions.assertEquals(sourceData.sourceData(), Map.of("key", "value"));
+	}
+
+	/**
+	 * <pre>
+	 *     - one configmap is deployed with name "red"
+	 *     - one configmap is deployed with name "green"
+	 *
+	 *     - we first search for "red" and find it, and it is retrieved from the cluster via the client.
+	 * 	   - we then search for the "green" one, and it is retrieved from the cache this time.
+	 * </pre>
+	 */
+	@Test
+	void cache(CapturedOutput output) {
+		V1ConfigMap red = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("red").withNamespace(NAMESPACE).build())
+				.addToData("color", "red").build();
+
+		V1ConfigMap green = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("green").withNamespace(NAMESPACE).build())
+				.addToData("color", "green").build();
+
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(red).addItemsItem(green);
+
+		stubCall(configMapList);
+		CoreV1Api api = new CoreV1Api();
+
+		MockEnvironment environment = new MockEnvironment();
+
+		NormalizedSource redSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, false);
+		KubernetesClientConfigContext redContext = new KubernetesClientConfigContext(api, redSource, NAMESPACE,
+				environment);
+		KubernetesClientContextToSourceData redData = new NamedConfigMapContextToSourceDataProvider().get();
+		SourceData redSourceData = redData.apply(redContext);
+
+		Assertions.assertEquals(redSourceData.sourceName(), "configmap.red.default");
+		Assertions.assertEquals(redSourceData.sourceData(), Map.of("color", "red"));
+		Assertions.assertTrue(output.getAll().contains("Loaded all config maps in namespace '" + NAMESPACE + "'"));
+
+		NormalizedSource greenSource = new NamedConfigMapNormalizedSource("green", NAMESPACE, true, true);
+		KubernetesClientConfigContext greenContext = new KubernetesClientConfigContext(api, greenSource, NAMESPACE,
+				environment);
+		KubernetesClientContextToSourceData greenData = new NamedConfigMapContextToSourceDataProvider().get();
+		SourceData greenSourceData = greenData.apply(greenContext);
+
+		Assertions.assertEquals(greenSourceData.sourceName(), "configmap.green.default");
+		Assertions.assertEquals(greenSourceData.sourceData(), Map.of("color", "green"));
+
+		// meaning there is a single entry with such a log statement
+		String[] out = output.getAll().split("Loaded all config maps in namespace");
+		Assertions.assertEquals(out.length, 2);
+
+		// meaning that the second read was done from the cache
+		out = output.getAll().split("Loaded \\(from cache\\) all config maps in namespace");
+		Assertions.assertEquals(out.length, 2);
+
 	}
 
 	private void stubCall(V1ConfigMapList list) {

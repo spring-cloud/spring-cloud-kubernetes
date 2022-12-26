@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Secret;
@@ -149,19 +148,12 @@ public final class KubernetesClientConfigUtils {
 
 	}
 
-	private static List<V1Secret> secretsSearch(CoreV1Api client, String namespace) {
-		LOG.debug("Loading all secrets in namespace '" + namespace + "'");
-		try {
-			return client.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
-					.getItems();
-		}
-		catch (ApiException apiException) {
-			throw new RuntimeException(apiException.getResponseBody(), apiException);
-		}
+	private static List<V1Secret> secretsSearch(CoreV1Api coreV1Api, String namespace) {
+		return KubernetesClientSecretsCache.byNamespace(coreV1Api, namespace);
 	}
 
-	private static List<V1ConfigMap> configMapsSearch(CoreV1Api client, String namespace) {
-		return KubernetesClientConfigMapsCache.byNamespace(client, namespace);
+	private static List<V1ConfigMap> configMapsSearch(CoreV1Api coreV1Api, String namespace) {
+		return KubernetesClientConfigMapsCache.byNamespace(coreV1Api, namespace);
 	}
 
 	private static List<StrippedSourceContainer> strippedSecrets(List<V1Secret> secrets) {

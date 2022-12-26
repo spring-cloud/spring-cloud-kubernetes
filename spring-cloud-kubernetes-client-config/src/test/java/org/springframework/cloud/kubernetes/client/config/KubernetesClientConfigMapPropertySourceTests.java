@@ -93,6 +93,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 	@AfterEach
 	public void afterEach() {
 		WireMock.reset();
+		new KubernetesClientConfigMapsCache().discardAll();
 	}
 
 	@Test

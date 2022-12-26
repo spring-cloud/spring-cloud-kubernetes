@@ -148,8 +148,7 @@ public final class Fabric8ConfigUtils {
 	// ******** non-exposed methods *******
 
 	private static List<Secret> secretsSearch(KubernetesClient client, String namespace) {
-		LOG.debug("Loading all secrets in namespace '" + namespace + "'");
-		return client.secrets().inNamespace(namespace).list().getItems();
+		return Fabric8SecretsCache.byNamespace(client, namespace);
 	}
 
 	private static List<ConfigMap> configMapsSearch(KubernetesClient client, String namespace) {

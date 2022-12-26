@@ -30,7 +30,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.LabeledConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -41,6 +44,7 @@ import org.springframework.mock.env.MockEnvironment;
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
+@ExtendWith(OutputCaptureExtension.class)
 class LabeledConfigMapContextToSourceDataProviderTests {
 
 	private static final String NAMESPACE = "default";
@@ -76,6 +80,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		mockClient.configMaps().inNamespace(NAMESPACE).delete();
+		new Fabric8ConfigMapsCache().discardAll();
 	}
 
 	/**
@@ -408,6 +413,58 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceName(),
 				"configmap.color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.default");
+
+	}
+
+	/**
+	 * <pre>
+	 *     - configmap "red-configmap" with label "{color:red}"
+	 *     - configmap "green-configmap" with labels "{color:green}"
+	 *     - we first search for "red" and find it, and it is retrieved from the cluster via the client.
+	 * 	   - we then search for the "green" one, and it is retrieved from the cache this time.
+	 * </pre>
+	 */
+	@Test
+	void cache(CapturedOutput output) {
+		ConfigMap redConfigMap = new ConfigMapBuilder().withNewMetadata().withName("red-configmap")
+				.withLabels(Collections.singletonMap("color", "red")).endMetadata().addToData("one", "1").build();
+
+		ConfigMap greenConfigmap = new ConfigMapBuilder().withNewMetadata().withName("green-configmap")
+				.withLabels(Map.of("color", "green")).endMetadata().addToData("two", "2").build();
+
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(redConfigMap).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(greenConfigmap).create();
+
+		MockEnvironment environment = new MockEnvironment();
+
+		NormalizedSource redNormalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
+				Collections.singletonMap("color", "red"), true, ConfigUtils.Prefix.DELAYED, true);
+		Fabric8ConfigContext redContext = new Fabric8ConfigContext(mockClient, redNormalizedSource, NAMESPACE,
+				environment);
+		Fabric8ContextToSourceData redData = new LabeledConfigMapContextToSourceDataProvider().get();
+		SourceData redSourceData = redData.apply(redContext);
+
+		Assertions.assertEquals(redSourceData.sourceData().size(), 1);
+		Assertions.assertEquals(redSourceData.sourceData().get("red-configmap.one"), "1");
+		Assertions.assertTrue(output.getAll().contains("Loaded all config maps in namespace '" + NAMESPACE + "'"));
+
+		NormalizedSource greenNormalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
+				Collections.singletonMap("color", "green"), true, ConfigUtils.Prefix.DELAYED, true);
+		Fabric8ConfigContext greenContext = new Fabric8ConfigContext(mockClient, greenNormalizedSource, NAMESPACE,
+				environment);
+		Fabric8ContextToSourceData greenData = new LabeledConfigMapContextToSourceDataProvider().get();
+		SourceData greenSourceData = greenData.apply(greenContext);
+
+		Assertions.assertEquals(greenSourceData.sourceData().size(), 1);
+		Assertions.assertEquals(greenSourceData.sourceData().get("green-configmap.two"), "2");
+
+		// meaning there is a single entry with such a log statement
+		String[] out = output.getAll().split("Loaded all config maps in namespace");
+		Assertions.assertEquals(out.length, 2);
+
+		// meaning that the second read was done from the cache
+		out = output.getAll().split("Loaded \\(from cache\\) all config maps in namespace");
+		Assertions.assertEquals(out.length, 2);
 
 	}
 

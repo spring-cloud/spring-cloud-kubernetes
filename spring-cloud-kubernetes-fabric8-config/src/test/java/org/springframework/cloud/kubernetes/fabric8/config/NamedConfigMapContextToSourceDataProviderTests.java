@@ -28,7 +28,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -41,6 +44,7 @@ import org.springframework.mock.env.MockEnvironment;
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
+@ExtendWith(OutputCaptureExtension.class)
 class NamedConfigMapContextToSourceDataProviderTests {
 
 	private static final String NAMESPACE = "default";
@@ -67,6 +71,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		mockClient.configMaps().inNamespace(NAMESPACE).delete();
+		new Fabric8ConfigMapsCache().discardAll();
 	}
 
 	/**
@@ -338,6 +343,57 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.one.default");
 		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("key", "value"));
+	}
+
+	/**
+	 * <pre>
+	 *     - two configmaps are deployed : "red", "green", in the same namespace.
+	 *     - we first search for "red" and find it, and it is retrieved from the cluster via the client.
+	 *     - we then search for the "green" one, and it is retrieved from the cache this time.
+	 * </pre>
+	 */
+	@Test
+	void cache(CapturedOutput output) {
+
+		ConfigMap red = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
+				.addToData(COLOR_REALLY_RED).build();
+
+		ConfigMap green = new ConfigMapBuilder().withNewMetadata().withName("green").endMetadata()
+				.addToData("taste", "mango").build();
+
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(red).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(green).create();
+
+		MockEnvironment env = new MockEnvironment();
+		NormalizedSource redNormalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, PREFIX,
+				false);
+		Fabric8ConfigContext redContext = new Fabric8ConfigContext(mockClient, redNormalizedSource, NAMESPACE, env);
+		Fabric8ContextToSourceData redData = new NamedConfigMapContextToSourceDataProvider().get();
+		SourceData redSourceData = redData.apply(redContext);
+
+		Assertions.assertEquals(redSourceData.sourceName(), "configmap.red.default");
+		Assertions.assertEquals(redSourceData.sourceData().size(), 1);
+		Assertions.assertEquals(redSourceData.sourceData().get("some.color"), "really-red");
+		Assertions.assertTrue(output.getAll().contains("Loaded all config maps in namespace '" + NAMESPACE + "'"));
+
+		NormalizedSource greenNormalizedSource = new NamedConfigMapNormalizedSource("green", NAMESPACE, true, PREFIX,
+				false);
+		Fabric8ConfigContext greenContext = new Fabric8ConfigContext(mockClient, greenNormalizedSource, NAMESPACE, env);
+		Fabric8ContextToSourceData greenData = new NamedConfigMapContextToSourceDataProvider().get();
+		SourceData greenSourceData = greenData.apply(greenContext);
+
+		Assertions.assertEquals(greenSourceData.sourceName(), "configmap.green.default");
+		Assertions.assertEquals(greenSourceData.sourceData().size(), 1);
+		Assertions.assertEquals(greenSourceData.sourceData().get("some.taste"), "mango");
+
+		// meaning there is a single entry with such a log statement
+		String[] out = output.getAll().split("Loaded all config maps in namespace");
+		Assertions.assertEquals(out.length, 2);
+
+		// meaning that the second read was done from the cache
+		out = output.getAll().split("Loaded \\(from cache\\) all config maps in namespace");
+		Assertions.assertEquals(out.length, 2);
+
 	}
 
 }

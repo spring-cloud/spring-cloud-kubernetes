@@ -19,11 +19,11 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapCache;
+import org.springframework.cloud.kubernetes.commons.config.SecretsCache;
 import org.springframework.core.log.LogAccessor;
 
 /**
@@ -32,28 +32,28 @@ import org.springframework.core.log.LogAccessor;
  *
  * @author wind57
  */
-final class Fabric8ConfigMapsCache implements ConfigMapCache {
+final class Fabric8SecretsCache implements SecretsCache {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8ConfigMapsCache.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8SecretsCache.class));
 
 	/**
 	 * at the moment our loading of config maps is using a single thread, but might change
 	 * in the future, thus a thread safe structure.
 	 */
-	private static final ConcurrentHashMap<String, List<ConfigMap>> CACHE = new ConcurrentHashMap<>();
+	private static final ConcurrentHashMap<String, List<Secret>> CACHE = new ConcurrentHashMap<>();
 
-	static List<ConfigMap> byNamespace(KubernetesClient client, String namespace) {
+	static List<Secret> byNamespace(KubernetesClient client, String namespace) {
 		boolean[] b = new boolean[1];
-		List<ConfigMap> result = CACHE.computeIfAbsent(namespace, x -> {
+		List<Secret> result = CACHE.computeIfAbsent(namespace, x -> {
 			b[0] = true;
-			return client.configMaps().inNamespace(namespace).list().getItems();
+			return client.secrets().inNamespace(namespace).list().getItems();
 		});
 
 		if (b[0]) {
-			LOG.debug(() -> "Loaded all config maps in namespace '" + namespace + "'");
+			LOG.debug(() -> "Loaded all secrets in namespace '" + namespace + "'");
 		}
 		else {
-			LOG.debug(() -> "Loaded (from cache) all config maps in namespace '" + namespace + "'");
+			LOG.debug(() -> "Loaded (from cache) all secrets in namespace '" + namespace + "'");
 		}
 
 		return result;
