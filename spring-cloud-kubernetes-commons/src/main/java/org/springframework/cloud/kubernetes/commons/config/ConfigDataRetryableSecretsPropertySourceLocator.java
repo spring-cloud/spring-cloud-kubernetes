@@ -35,21 +35,6 @@ public class ConfigDataRetryableSecretsPropertySourceLocator extends SecretsProp
 
 	private SecretsPropertySourceLocator secretsPropertySourceLocator;
 
-	/**
-	 * This constructor is deprecated, and we do not use it anymore internally. It will be
-	 * removed in the next major release.
-	 */
-	@Deprecated(forRemoval = true)
-	public ConfigDataRetryableSecretsPropertySourceLocator(SecretsPropertySourceLocator propertySourceLocator,
-			SecretsConfigProperties secretsConfigProperties) {
-		super(secretsConfigProperties);
-		this.secretsPropertySourceLocator = propertySourceLocator;
-		this.retryTemplate = RetryTemplate.builder().maxAttempts(properties.retry().maxAttempts())
-				.exponentialBackoff(properties.retry().initialInterval(), properties.retry().multiplier(),
-						properties.retry().maxInterval())
-				.build();
-	}
-
 	public ConfigDataRetryableSecretsPropertySourceLocator(SecretsPropertySourceLocator propertySourceLocator,
 			SecretsConfigProperties secretsConfigProperties, SecretsCache cache) {
 		super(secretsConfigProperties, cache);

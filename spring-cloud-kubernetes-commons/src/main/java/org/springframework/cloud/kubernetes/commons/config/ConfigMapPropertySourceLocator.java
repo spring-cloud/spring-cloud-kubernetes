@@ -55,16 +55,6 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 
 	protected final ConfigMapConfigProperties properties;
 
-	/**
-	 * This constructor is deprecated, and we do not use it anymore internally. It will be
-	 * removed in the next major release.
-	 */
-	@Deprecated(forRemoval = true)
-	public ConfigMapPropertySourceLocator(ConfigMapConfigProperties properties) {
-		this.properties = properties;
-		this.cache = new ConfigMapCache.NOOPCache();
-	}
-
 	public ConfigMapPropertySourceLocator(ConfigMapConfigProperties properties, ConfigMapCache cache) {
 		this.properties = properties;
 		this.cache = cache;
