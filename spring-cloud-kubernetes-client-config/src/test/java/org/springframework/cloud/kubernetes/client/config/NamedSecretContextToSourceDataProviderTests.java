@@ -74,6 +74,7 @@ class NamedSecretContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
+		new KubernetesClientSecretsCache().discardAll();
 	}
 
 	/**
