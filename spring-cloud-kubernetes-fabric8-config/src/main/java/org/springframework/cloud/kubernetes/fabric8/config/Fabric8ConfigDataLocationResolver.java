@@ -56,7 +56,7 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 		SecretsConfigProperties secretsProperties = propertyHolder.secretsProperties();
 
 		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
-		KubernetesClient kubernetesClient = registerConfigAndClient(bootstrapContext, kubernetesClientProperties);
+		KubernetesClient kubernetesClient = registerClient(bootstrapContext, kubernetesClientProperties);
 
 		if (configMapProperties != null && configMapProperties.enabled()) {
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator = new Fabric8ConfigMapPropertySourceLocator(
@@ -84,11 +84,9 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 
 	}
 
-	private KubernetesClient registerConfigAndClient(ConfigurableBootstrapContext bootstrapContext,
+	private KubernetesClient registerClient(ConfigurableBootstrapContext bootstrapContext,
 			KubernetesClientProperties kubernetesClientProperties) {
 		Config config = new Fabric8AutoConfiguration().kubernetesClientConfig(kubernetesClientProperties);
-		registerSingle(bootstrapContext, Config.class, config, "fabric8Config");
-
 		KubernetesClient kubernetesClient = new Fabric8AutoConfiguration().kubernetesClient(config);
 		registerSingle(bootstrapContext, KubernetesClient.class, kubernetesClient, "configKubernetesClient");
 		return kubernetesClient;
