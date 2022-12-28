@@ -55,7 +55,7 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 		SecretsConfigProperties secretsProperties = propertyHolder.secretsProperties();
 
 		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
-		CoreV1Api coreV1Api = registerClientAndCoreV1Api(bootstrapContext, kubernetesClientProperties);
+		CoreV1Api coreV1Api = registerCoreV1Api(bootstrapContext, kubernetesClientProperties);
 
 		if (configMapProperties != null && configMapProperties.enabled()) {
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator = new KubernetesClientConfigMapPropertySourceLocator(
@@ -82,7 +82,7 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 		}
 	}
 
-	private CoreV1Api registerClientAndCoreV1Api(ConfigurableBootstrapContext bootstrapContext,
+	private CoreV1Api registerCoreV1Api(ConfigurableBootstrapContext bootstrapContext,
 			KubernetesClientProperties kubernetesClientProperties) {
 		ApiClient apiClient = kubernetesApiClient();
 		apiClient.setUserAgent(kubernetesClientProperties.userAgent());
