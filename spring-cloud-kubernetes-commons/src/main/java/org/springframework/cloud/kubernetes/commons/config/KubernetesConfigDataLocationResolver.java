@@ -130,7 +130,7 @@ public abstract class KubernetesConfigDataLocationResolver
 				&& secretsProperties.failFast();
 	}
 
-	protected KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {
+	private KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {
 		return new KubernetesNamespaceProvider(environment);
 	}
 

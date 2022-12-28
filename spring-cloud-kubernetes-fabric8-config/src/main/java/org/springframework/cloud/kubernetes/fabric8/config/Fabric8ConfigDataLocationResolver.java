@@ -94,9 +94,4 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 		return kubernetesClient;
 	}
 
-	@Override
-	protected KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {
-		return new KubernetesNamespaceProvider(environment);
-	}
-
 }

@@ -94,9 +94,4 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 
 		return coreV1Api;
 	}
-
-	protected KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {
-		return new KubernetesNamespaceProvider(environment);
-	}
-
 }
