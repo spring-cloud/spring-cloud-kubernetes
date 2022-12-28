@@ -76,7 +76,7 @@ class KubernetesClientConfigDataLocationResolverTests {
 
 		Assertions.assertTrue(context.isRegistered(KubernetesClientProperties.class));
 		Assertions.assertTrue(context.isRegistered(CoreV1Api.class));
-		Assertions.assertTrue(context.isRegistered(ApiClient.class));
+		Assertions.assertFalse(context.isRegistered(ApiClient.class));
 
 		Assertions.assertFalse(context.isRegistered(ConfigMapConfigProperties.class));
 		Assertions.assertFalse(context.isRegistered(SecretsConfigProperties.class));
@@ -112,7 +112,7 @@ class KubernetesClientConfigDataLocationResolverTests {
 
 		Assertions.assertTrue(context.isRegistered(KubernetesClientProperties.class));
 		Assertions.assertTrue(context.isRegistered(CoreV1Api.class));
-		Assertions.assertTrue(context.isRegistered(ApiClient.class));
+		Assertions.assertFalse(context.isRegistered(ApiClient.class));
 
 		Assertions.assertTrue(context.isRegistered(ConfigMapConfigProperties.class));
 		Assertions.assertTrue(context.isRegistered(SecretsConfigProperties.class));
@@ -159,7 +159,7 @@ class KubernetesClientConfigDataLocationResolverTests {
 
 		Assertions.assertTrue(context.isRegistered(KubernetesClientProperties.class));
 		Assertions.assertTrue(context.isRegistered(CoreV1Api.class));
-		Assertions.assertTrue(context.isRegistered(ApiClient.class));
+		Assertions.assertFalse(context.isRegistered(ApiClient.class));
 
 		Assertions.assertTrue(context.isRegistered(ConfigMapConfigProperties.class));
 		Assertions.assertTrue(context.isRegistered(SecretsConfigProperties.class));
@@ -205,7 +205,7 @@ class KubernetesClientConfigDataLocationResolverTests {
 
 		Assertions.assertTrue(context.isRegistered(KubernetesClientProperties.class));
 		Assertions.assertTrue(context.isRegistered(CoreV1Api.class));
-		Assertions.assertTrue(context.isRegistered(ApiClient.class));
+		Assertions.assertFalse(context.isRegistered(ApiClient.class));
 
 		Assertions.assertTrue(context.isRegistered(ConfigMapConfigProperties.class));
 		Assertions.assertTrue(context.isRegistered(SecretsConfigProperties.class));
