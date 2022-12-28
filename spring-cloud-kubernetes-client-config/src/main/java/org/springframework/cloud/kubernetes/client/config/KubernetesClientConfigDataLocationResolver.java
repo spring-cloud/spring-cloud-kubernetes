@@ -33,7 +33,6 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySour
 import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigDataLocationResolver;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
-import org.springframework.core.env.Environment;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.kubernetesApiClient;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.registerSingle;
@@ -87,7 +86,6 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 			KubernetesClientProperties kubernetesClientProperties) {
 		ApiClient apiClient = kubernetesApiClient();
 		apiClient.setUserAgent(kubernetesClientProperties.userAgent());
-		registerSingle(bootstrapContext, ApiClient.class, apiClient, "configDataApiClient");
 
 		CoreV1Api coreV1Api = new CoreV1Api(apiClient);
 		registerSingle(bootstrapContext, CoreV1Api.class, coreV1Api, "configCoreV1Api");

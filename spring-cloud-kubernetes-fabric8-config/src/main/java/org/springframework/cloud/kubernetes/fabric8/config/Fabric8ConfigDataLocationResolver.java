@@ -34,7 +34,6 @@ import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigDataL
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
-import org.springframework.core.env.Environment;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.registerSingle;
 
