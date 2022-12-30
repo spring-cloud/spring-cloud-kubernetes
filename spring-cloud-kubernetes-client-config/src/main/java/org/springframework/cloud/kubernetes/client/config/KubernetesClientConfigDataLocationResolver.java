@@ -33,7 +33,6 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySour
 import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigDataLocationResolver;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
-import org.springframework.core.env.Environment;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.kubernetesApiClient;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.registerSingle;
@@ -93,10 +92,6 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 		registerSingle(bootstrapContext, CoreV1Api.class, coreV1Api, "configCoreV1Api");
 
 		return coreV1Api;
-	}
-
-	protected KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {
-		return new KubernetesNamespaceProvider(environment);
 	}
 
 }
