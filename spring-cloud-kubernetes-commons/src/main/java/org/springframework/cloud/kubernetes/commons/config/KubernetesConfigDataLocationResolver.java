@@ -140,7 +140,7 @@ public abstract class KubernetesConfigDataLocationResolver
 
 		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
 		registerSingle(bootstrapContext, KubernetesClientProperties.class, clientProperties,
-				"configDataKubernetesClientProperties");
+				"kubernetesClientProperties");
 
 		if (configMapProperties != null) {
 			registerSingle(bootstrapContext, ConfigMapConfigProperties.class, configMapProperties,
