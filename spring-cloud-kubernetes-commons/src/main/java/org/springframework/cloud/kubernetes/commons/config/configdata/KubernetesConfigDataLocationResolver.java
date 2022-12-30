@@ -21,15 +21,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
 import org.springframework.boot.context.config.ConfigDataLocationResolver;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.boot.context.config.Profiles;
-import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
@@ -50,12 +47,6 @@ public abstract class KubernetesConfigDataLocationResolver
 		implements ConfigDataLocationResolver<KubernetesConfigDataResource>, Ordered {
 
 	private static final boolean RETRY_IS_PRESENT = isPresent("org.springframework.retry.annotation.Retryable", null);
-
-	private final Log log;
-
-	public KubernetesConfigDataLocationResolver(DeferredLogFactory factory) {
-		this.log = factory.getLog(KubernetesConfigDataLocationResolver.class);
-	}
 
 	protected final String getPrefix() {
 		return "kubernetes:";
