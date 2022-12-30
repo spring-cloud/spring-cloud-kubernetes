@@ -115,7 +115,7 @@ public abstract class KubernetesConfigDataLocationResolver
 
 	private Environment environment(Map<String, Object> kubernetesConfigData, Profiles profiles) {
 		PropertySource<Map<String, Object>> propertySource = new MapPropertySource("kubernetesConfigData",
-			kubernetesConfigData);
+				kubernetesConfigData);
 		ConfigurableEnvironment environment = new StandardEnvironment();
 		environment.getPropertySources().addLast(propertySource);
 		environment.setActiveProfiles(profiles.getAccepted().toArray(new String[0]));

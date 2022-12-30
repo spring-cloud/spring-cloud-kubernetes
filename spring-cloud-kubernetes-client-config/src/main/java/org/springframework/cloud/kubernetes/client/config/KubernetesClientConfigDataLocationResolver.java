@@ -23,7 +23,6 @@ import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.Profiles;
-import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableConfigMapPropertySourceLocator;
@@ -42,10 +41,6 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.re
  * @author Ryan Baxter
  */
 public class KubernetesClientConfigDataLocationResolver extends KubernetesConfigDataLocationResolver {
-
-	public KubernetesClientConfigDataLocationResolver(DeferredLogFactory factory) {
-		super(factory);
-	}
 
 	@Override
 	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
