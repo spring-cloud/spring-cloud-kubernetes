@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.config;
+package org.springframework.cloud.kubernetes.commons.config.configdata;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,8 +35,8 @@ import org.springframework.boot.context.properties.source.ConfigurationPropertyS
 import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.configdata.KubernetesConfigDataLocationResolver;
-import org.springframework.cloud.kubernetes.commons.config.configdata.KubernetesConfigDataResource;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.mock.env.MockEnvironment;
 
 /**
@@ -51,7 +51,7 @@ class KubernetesConfigDataLocationResolverTests {
 			FACTORY) {
 		@Override
 		protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
-				Profiles profiles, PropertyHolder propertyHolder, KubernetesNamespaceProvider namespaceProvider) {
+				Profiles profiles, ConfigDataProperties properties, KubernetesNamespaceProvider namespaceProvider) {
 		}
 	};
 

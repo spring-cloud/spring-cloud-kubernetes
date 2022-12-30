@@ -30,9 +30,10 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableCo
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.config.configdata.KubernetesConfigDataLocationResolver;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.configdata.ConfigDataProperties;
+import org.springframework.cloud.kubernetes.commons.config.configdata.KubernetesConfigDataLocationResolver;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.registerSingle;
@@ -48,11 +49,10 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 
 	@Override
 	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
-			Profiles profiles, KubernetesConfigDataLocationResolver.PropertyHolder propertyHolder,
-			KubernetesNamespaceProvider namespaceProvider) {
-		KubernetesClientProperties kubernetesClientProperties = propertyHolder.kubernetesClientProperties();
-		ConfigMapConfigProperties configMapProperties = propertyHolder.configMapConfigProperties();
-		SecretsConfigProperties secretsProperties = propertyHolder.secretsProperties();
+			Profiles profiles, ConfigDataProperties properties, KubernetesNamespaceProvider namespaceProvider) {
+		KubernetesClientProperties kubernetesClientProperties = properties.clientProperties();
+		ConfigMapConfigProperties configMapProperties = properties.configMapProperties();
+		SecretsConfigProperties secretsProperties = properties.secretsProperties();
 
 		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
 		KubernetesClient kubernetesClient = registerConfigAndClient(bootstrapContext, kubernetesClientProperties);

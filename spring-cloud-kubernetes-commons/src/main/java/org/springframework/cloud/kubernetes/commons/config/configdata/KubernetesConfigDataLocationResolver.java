@@ -90,9 +90,7 @@ public abstract class KubernetesConfigDataLocationResolver
 		kubernetesConfigData.put("spring.cloud.kubernetes.client.namespace", properties.clientProperties().namespace());
 		String applicationName = resolverContext.getBinder().bind("spring.application.name", String.class).orElse(null);
 		if (applicationName != null) {
-			// If its null it means sprig.application.name was not set so don't add it to
-			// the property source
-			kubernetesConfigData.put("spring.application.name", propertyHolder.applicationName());
+			kubernetesConfigData.put("spring.application.name", applicationName);
 		}
 		PropertySource<Map<String, Object>> propertySource = new MapPropertySource("kubernetesConfigData",
 				kubernetesConfigData);
@@ -101,17 +99,18 @@ public abstract class KubernetesConfigDataLocationResolver
 		environment.setActiveProfiles(profiles.getAccepted().toArray(new String[0]));
 		KubernetesNamespaceProvider namespaceProvider = kubernetesNamespaceProvider(environment);
 
-		registerBeans(resolverContext, location, profiles, propertyHolder, namespaceProvider);
+		registerBeans(resolverContext, location, profiles, properties, namespaceProvider);
 
-		KubernetesConfigDataResource resource = new KubernetesConfigDataResource(clientProperties, configMapProperties,
-				secretsProperties, location.isOptional(), profiles, environment);
+		KubernetesConfigDataResource resource = new KubernetesConfigDataResource(properties.clientProperties(),
+				properties.configMapProperties(), properties.secretsProperties(), location.isOptional(), profiles,
+				environment);
 		resource.setLog(log);
 
 		return List.of(resource);
 	}
 
 	protected abstract void registerBeans(ConfigDataLocationResolverContext resolverContext,
-			ConfigDataLocation location, Profiles profiles, PropertyHolder propertyHolder,
+			ConfigDataLocation location, Profiles profiles, ConfigDataProperties properties,
 			KubernetesNamespaceProvider namespaceProvider);
 
 	protected final boolean isRetryEnabledForConfigMap(ConfigMapConfigProperties configMapProperties) {
