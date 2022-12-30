@@ -142,15 +142,11 @@ public abstract class KubernetesConfigDataLocationResolver
 		registerSingle(bootstrapContext, KubernetesClientProperties.class, clientProperties,
 				"configDataKubernetesClientProperties");
 
-		if (configMapProperties != null) {
-			registerSingle(bootstrapContext, ConfigMapConfigProperties.class, configMapProperties,
-					"configDataConfigMapConfigProperties");
-		}
+		registerSingle(bootstrapContext, ConfigMapConfigProperties.class, configMapProperties,
+				"configDataConfigMapConfigProperties");
 
-		if (secretsProperties != null) {
-			registerSingle(bootstrapContext, SecretsConfigProperties.class, secretsProperties,
-					"configDataSecretsConfigProperties");
-		}
+		registerSingle(bootstrapContext, SecretsConfigProperties.class, secretsProperties,
+				"configDataSecretsConfigProperties");
 	}
 
 	protected record PropertyHolder(KubernetesClientProperties kubernetesClientProperties,
