@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.config;
+package org.springframework.cloud.kubernetes.commons.config.configdata;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,6 +26,8 @@ import org.springframework.boot.context.config.ConfigData.Option;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;

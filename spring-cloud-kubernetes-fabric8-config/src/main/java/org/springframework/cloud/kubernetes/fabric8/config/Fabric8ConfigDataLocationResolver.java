@@ -30,7 +30,7 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableCo
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigDataLocationResolver;
+import org.springframework.cloud.kubernetes.commons.config.configdata.KubernetesConfigDataLocationResolver;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;

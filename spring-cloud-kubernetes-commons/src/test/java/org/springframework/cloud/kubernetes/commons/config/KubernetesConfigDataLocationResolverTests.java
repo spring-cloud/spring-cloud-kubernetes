@@ -35,6 +35,8 @@ import org.springframework.boot.context.properties.source.ConfigurationPropertyS
 import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.configdata.KubernetesConfigDataLocationResolver;
+import org.springframework.cloud.kubernetes.commons.config.configdata.KubernetesConfigDataResource;
 import org.springframework.mock.env.MockEnvironment;
 
 /**

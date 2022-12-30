@@ -27,6 +27,8 @@ import org.springframework.boot.DefaultBootstrapContext;
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.Profiles;
+import org.springframework.cloud.kubernetes.commons.config.configdata.KubernetesConfigDataLoader;
+import org.springframework.cloud.kubernetes.commons.config.configdata.KubernetesConfigDataResource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;

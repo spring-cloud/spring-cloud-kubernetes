@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.config;
+package org.springframework.cloud.kubernetes.commons.config.configdata;
 
 import java.util.List;
 import java.util.Objects;
@@ -24,6 +24,8 @@ import org.apache.commons.logging.Log;
 import org.springframework.boot.context.config.ConfigDataResource;
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.core.env.Environment;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.StringUtils;
