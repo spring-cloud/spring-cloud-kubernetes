@@ -86,25 +86,20 @@ public abstract class KubernetesConfigDataLocationResolver
 
 		ConfigDataProperties properties = ConfigDataProperties.of(resolverContext).register();
 
-		HashMap<String, Object> kubernetesConfigData = new HashMap<>();
+		Map<String, Object> kubernetesConfigData = new HashMap<>();
 		kubernetesConfigData.put("spring.cloud.kubernetes.client.namespace", properties.clientProperties().namespace());
 		String applicationName = resolverContext.getBinder().bind("spring.application.name", String.class).orElse(null);
 		if (applicationName != null) {
 			kubernetesConfigData.put("spring.application.name", applicationName);
 		}
-		PropertySource<Map<String, Object>> propertySource = new MapPropertySource("kubernetesConfigData",
-				kubernetesConfigData);
-		ConfigurableEnvironment environment = new StandardEnvironment();
-		environment.getPropertySources().addLast(propertySource);
-		environment.setActiveProfiles(profiles.getAccepted().toArray(new String[0]));
-		KubernetesNamespaceProvider namespaceProvider = kubernetesNamespaceProvider(environment);
 
+		Environment environment = environment(kubernetesConfigData, profiles);
+		KubernetesNamespaceProvider namespaceProvider = kubernetesNamespaceProvider(environment);
 		registerBeans(resolverContext, location, profiles, properties, namespaceProvider);
 
 		KubernetesConfigDataResource resource = new KubernetesConfigDataResource(properties.clientProperties(),
 				properties.configMapProperties(), properties.secretsProperties(), location.isOptional(), profiles,
 				environment);
-		resource.setLog(log);
 
 		return List.of(resource);
 	}
@@ -125,6 +120,15 @@ public abstract class KubernetesConfigDataLocationResolver
 
 	private KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {
 		return new KubernetesNamespaceProvider(environment);
+	}
+
+	private Environment environment(Map<String, Object> kubernetesConfigData, Profiles profiles) {
+		PropertySource<Map<String, Object>> propertySource = new MapPropertySource("kubernetesConfigData",
+			kubernetesConfigData);
+		ConfigurableEnvironment environment = new StandardEnvironment();
+		environment.getPropertySources().addLast(propertySource);
+		environment.setActiveProfiles(profiles.getAccepted().toArray(new String[0]));
+		return environment;
 	}
 
 }

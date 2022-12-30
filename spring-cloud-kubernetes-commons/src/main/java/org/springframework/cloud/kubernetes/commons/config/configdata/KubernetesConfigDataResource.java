@@ -19,8 +19,6 @@ package org.springframework.cloud.kubernetes.commons.config.configdata;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.logging.Log;
-
 import org.springframework.boot.context.config.ConfigDataResource;
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
@@ -44,8 +42,6 @@ public class KubernetesConfigDataResource extends ConfigDataResource {
 	private final boolean optional;
 
 	private final Profiles profiles;
-
-	private Log log;
 
 	private Environment environment;
 
@@ -88,14 +84,6 @@ public class KubernetesConfigDataResource extends ConfigDataResource {
 
 	List<String> getAcceptedProfiles() {
 		return this.profiles.getAccepted();
-	}
-
-	public void setLog(Log log) {
-		this.log = log;
-	}
-
-	public Log getLog() {
-		return this.log;
 	}
 
 	public Environment getEnvironment() {
