@@ -42,15 +42,18 @@ public class KubernetesConfigDataLoader implements ConfigDataLoader<KubernetesCo
 
 	private final Log log;
 
+	private final DeferredLogFactory factory;
+
 	public KubernetesConfigDataLoader(DeferredLogFactory factory) {
 		log = factory.getLog(getClass());
-		reconfigureLoggers(factory);
+		this.factory = factory;
 	}
 
 	@Override
 	public ConfigData load(ConfigDataLoaderContext context, KubernetesConfigDataResource resource)
 			throws IOException, ConfigDataResourceNotFoundException {
 
+		reconfigureLoggers(factory);
 		log.debug("Kicking off ConfigDataLoader processing");
 
 		List<PropertySource<?>> propertySources = new ArrayList<>(2);
