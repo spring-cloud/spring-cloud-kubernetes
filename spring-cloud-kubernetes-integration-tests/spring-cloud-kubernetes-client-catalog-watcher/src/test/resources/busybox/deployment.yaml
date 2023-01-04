@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busybox
+spec:
+  selector:
+    matchLabels:
+      app: busybox
+      version: v1
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: busybox
+        version: v1
+    spec:
+      containers:
+        - name: busybox
+          # image: arm64/busybox:latest
+          image: busybox:1.35
+          command: ["/bin/sh"]
+          args: ["-c", "sleep 100000"]

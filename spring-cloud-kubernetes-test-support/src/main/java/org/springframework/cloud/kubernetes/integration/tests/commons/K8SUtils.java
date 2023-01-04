@@ -309,6 +309,14 @@ public class K8SUtils {
 				() -> rbacApi.createNamespacedRole(namespace, role, null, null, null, null));
 	}
 
+	public void deleteNamespace(String name) throws Exception {
+		api.deleteNamespace(name, null, null, null, null, null, null);
+
+		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS)
+				.until(() -> api.listNamespace(null, null, null, null, null, null, null, null, null, null).getItems()
+						.stream().noneMatch(x -> x.getMetadata().getName().equals(name)));
+	}
+
 	public void setUpClusterWide(String serviceAccountNamespace, Set<String> namespaces) throws Exception {
 
 		V1ServiceAccount serviceAccount = getConfigK8sClientItClusterServiceAccount();
