@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
@@ -79,25 +80,24 @@ final class KubernetesConfigDataLoaderLoggerReconfigurer {
 			for (Resource resource : resources) {
 				String fqdn = base.replaceAll("/", "\\.") + "." + resource.getFilename().replaceFirst("\\.class", "");
 				Class<?> cls = forName(fqdn);
-				MethodHandles.Lookup privateLookup = MethodHandles.privateLookupIn(cls, MethodHandles.lookup());
-				MethodHandles.Lookup lookup = privateLookup.defineHiddenClass(cls.getClassLoader()
-						.getResourceAsStream(hiddenClass.getName().replace('.', '/') + ".class").readAllBytes(), true,
-						MethodHandles.Lookup.ClassOption.NESTMATE);
 
-				Arrays.stream(lookup.lookupClass().getNestHost().getDeclaredMethods())
+				Method methodWeCareAbout = Arrays.stream(cls.getDeclaredMethods())
 						.filter(method -> Modifier.isStatic(method.getModifiers()))
 						.filter(method -> method.getParameters().length == 1)
-						.filter(method -> method.getParameterTypes()[0] == Log.class).findFirst().ifPresent(method -> {
-							log.debug("will reconfigure logger for : " + fqdn);
-							try {
-								lookup.findStatic(lookup.lookupClass().getNestHost(), method.getName(),
-										MethodType.methodType(method.getReturnType(), Log.class))
-										.invokeExact(logFactory.getLog(cls));
-							}
-							catch (Throwable e) {
-								throw new RuntimeException(e);
-							}
-						});
+						.filter(method -> method.getParameterTypes()[0] == Log.class).findFirst().orElse(null);
+
+				if (methodWeCareAbout != null) {
+					System.out.println("will reconfigure logger for : " + fqdn);
+					MethodHandles.Lookup privateLookup = MethodHandles.privateLookupIn(cls, MethodHandles.lookup());
+					MethodHandles.Lookup lookup = privateLookup.defineHiddenClass(cls.getClassLoader()
+							.getResourceAsStream(hiddenClass.getName().replace('.', '/') + ".class").readAllBytes(),
+							true, MethodHandles.Lookup.ClassOption.NESTMATE);
+
+					lookup.findStatic(lookup.lookupClass().getNestHost(), methodWeCareAbout.getName(),
+							MethodType.methodType(methodWeCareAbout.getReturnType(), Log.class))
+							.invokeExact(logFactory.getLog(cls));
+				}
+
 			}
 		}
 		catch (Throwable t) {
