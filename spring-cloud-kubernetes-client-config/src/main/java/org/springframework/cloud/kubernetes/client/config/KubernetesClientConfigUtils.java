@@ -189,4 +189,5 @@ public final class KubernetesClientConfigUtils {
 	private static void logger(Log logger) {
 		KubernetesClientConfigUtils.logger = logger;
 	}
+
 }
