@@ -11,7 +11,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: servicea-wiremock
+                name: service-wiremock
                 port:
                   number: 8080
 
