@@ -131,7 +131,6 @@ public class KubernetesClientCatalogWatchNamespacesIT {
 	 * the test is the same for both endpoints and endpoint slices, the set-up for them is
 	 * different.
 	 */
-	@SuppressWarnings("unchecked")
 	private void test() {
 
 		WebClient client = builder().baseUrl("localhost/result").build();
