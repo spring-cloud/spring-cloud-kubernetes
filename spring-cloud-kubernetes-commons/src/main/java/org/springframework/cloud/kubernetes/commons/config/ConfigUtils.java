@@ -48,7 +48,6 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRI
  */
 public final class ConfigUtils {
 
-	// not final on purpose, as we override it via reflection when using config-data
 	private static Log logger = LogFactory.getLog(ConfigUtils.class);
 
 	private ConfigUtils() {
@@ -264,17 +263,22 @@ public final class ConfigUtils {
 		return false;
 	}
 
+	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,
+			String name) {
+		bootstrapContext.registerIfAbsent(cls, BootstrapRegistry.InstanceSupplier.of(instance));
+		bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
+				.registerSingleton(name, event.getBootstrapContext().get(cls)));
+	}
+
 	private static Map<String, String> decodeData(Map<String, String> data) {
 		Map<String, String> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
 		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));
 		return result;
 	}
 
-	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,
-			String name) {
-		bootstrapContext.registerIfAbsent(cls, BootstrapRegistry.InstanceSupplier.of(instance));
-		bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
-				.registerSingleton(name, event.getBootstrapContext().get(cls)));
+	// called from config-data loader
+	private static void logger(Log logger) {
+		ConfigUtils.logger = logger;
 	}
 
 	public static final class Prefix {

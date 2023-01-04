@@ -49,7 +49,6 @@ import static org.springframework.cloud.kubernetes.commons.config.PropertySource
  */
 public abstract class ConfigMapPropertySourceLocator implements PropertySourceLocator {
 
-	// not final on purpose, as we override it via reflection when using config-data
 	private static Log logger = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
 
 	protected final ConfigMapConfigProperties properties;
@@ -129,6 +128,11 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 		else {
 			composite.addFirstPropertySource(new MapPropertySource(name, map));
 		}
+	}
+
+	// called from config-data loader
+	private static void logger(Log logger) {
+		ConfigMapPropertySourceLocator.logger = logger;
 	}
 
 }

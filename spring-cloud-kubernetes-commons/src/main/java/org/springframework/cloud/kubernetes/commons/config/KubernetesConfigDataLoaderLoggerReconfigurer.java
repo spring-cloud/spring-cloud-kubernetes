@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,19 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.lang.reflect.Field;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Modifier;
-import java.util.List;
-import java.util.Optional;
+import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 
 import org.springframework.boot.logging.DeferredLogFactory;
+import org.springframework.cloud.kubernetes.client.config.K8sNativeKubernetesConfigDataLoggerHidden;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8KubernetesConfigDataLoggerHidden;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 
 /**
  *
@@ -37,6 +40,14 @@ import org.springframework.util.ReflectionUtils;
  */
 final class KubernetesConfigDataLoaderLoggerReconfigurer {
 
+	private static final String COMMONS_PACKAGE = "org/springframework/cloud/kubernetes/commons/config";
+
+	private static final String FABRIC8_PACKAGE = "org/springframework/cloud/kubernetes/fabric8/config";
+
+	private static final String K8S_NATIVE_PACKAGE = "org/springframework/cloud/kubernetes/client/config";
+
+	private static final PathMatchingResourcePatternResolver RESOLVER = new PathMatchingResourcePatternResolver();
+
 	private static Log log;
 
 	private KubernetesConfigDataLoaderLoggerReconfigurer() {
@@ -46,43 +57,61 @@ final class KubernetesConfigDataLoaderLoggerReconfigurer {
 
 		log = logFactory.getLog(KubernetesConfigDataLoaderLoggerReconfigurer.class);
 
-		List<Optional<Class<?>>> loggers = List.of(Optional.of(ConfigMapPropertySourceLocator.class),
-				Optional.of(SecretsPropertySourceLocator.class), Optional.of(SourceDataEntriesProcessor.class),
-				Optional.of(ConfigUtils.class),
-				forName("org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator"),
-				forName("org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator"),
-				forName("org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils"),
-				forName("org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils"));
+		try {
+			Resource[] commonResources = RESOLVER.getResources("classpath*:" + COMMONS_PACKAGE + "/*.class");
+			Resource[] fabric8Resources = RESOLVER.getResources("classpath*:" + FABRIC8_PACKAGE + "/*.class");
+			Resource[] k8sNativeResources = RESOLVER.getResources("classpath*:" + K8S_NATIVE_PACKAGE + "/*.class");
 
-		loggers.forEach(logger -> {
-			logger.ifPresent(loggerClass -> {
-				log.debug("reconfiguring logger for " + loggerClass);
-				reconfigureLogger(loggerClass, logFactory);
-			});
-		});
+			reconfigure(commonResources, logFactory, COMMONS_PACKAGE, KubernetesConfigDataLoggerHidden.class);
+			reconfigure(fabric8Resources, logFactory, FABRIC8_PACKAGE, Fabric8KubernetesConfigDataLoggerHidden.class);
+			reconfigure(k8sNativeResources, logFactory, K8S_NATIVE_PACKAGE,
+					K8sNativeKubernetesConfigDataLoggerHidden.class);
+
+		}
+		catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
 	}
 
-	private static Optional<Class<?>> forName(String name) {
+	private static void reconfigure(Resource[] resources, DeferredLogFactory logFactory, String base,
+			Class<?> hiddenClass) {
 		try {
-			return Optional.of(ClassUtils.forName(name, KubernetesConfigDataLoader.class.getClassLoader()));
+			for (Resource resource : resources) {
+				String fqdn = base.replaceAll("/", "\\.") + "." + resource.getFilename().replaceFirst("\\.class", "");
+				Class<?> cls = forName(fqdn);
+				MethodHandles.Lookup privateLookup = MethodHandles.privateLookupIn(cls, MethodHandles.lookup());
+				MethodHandles.Lookup lookup = privateLookup.defineHiddenClass(cls.getClassLoader()
+						.getResourceAsStream(hiddenClass.getName().replace('.', '/') + ".class").readAllBytes(), true,
+						MethodHandles.Lookup.ClassOption.NESTMATE);
+
+				Arrays.stream(lookup.lookupClass().getNestHost().getDeclaredMethods())
+						.filter(method -> Modifier.isStatic(method.getModifiers()))
+						.filter(method -> method.getParameters().length == 1)
+						.filter(method -> method.getParameterTypes()[0] == Log.class).findFirst().ifPresent(method -> {
+							log.debug("will reconfigure logger for : " + fqdn);
+							try {
+								lookup.findStatic(lookup.lookupClass().getNestHost(), method.getName(),
+										MethodType.methodType(method.getReturnType(), Log.class))
+										.invokeExact(logFactory.getLog(cls));
+							}
+							catch (Throwable e) {
+								throw new RuntimeException(e);
+							}
+						});
+			}
+		}
+		catch (Throwable t) {
+			throw new RuntimeException(t);
+		}
+	}
+
+	private static Class<?> forName(String name) {
+		try {
+			return ClassUtils.forName(name, KubernetesConfigDataLoader.class.getClassLoader());
 		}
 		catch (ClassNotFoundException e) {
-			return Optional.empty();
+			throw new RuntimeException(e);
 		}
-	}
-
-	static void reconfigureLogger(Class<?> type, DeferredLogFactory logFactory) {
-
-		ReflectionUtils.doWithFields(type, field -> {
-
-			field.setAccessible(true);
-			field.set(null, logFactory.getLog(type));
-
-		}, KubernetesConfigDataLoaderLoggerReconfigurer::isUpdatableLogField);
-	}
-
-	private static boolean isUpdatableLogField(Field field) {
-		return !Modifier.isFinal(field.getModifiers()) && field.getType().isAssignableFrom(Log.class);
 	}
 
 }

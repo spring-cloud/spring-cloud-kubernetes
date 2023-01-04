@@ -35,7 +35,6 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
  */
 public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropertySourceLocator {
 
-	// not final on purpose, as we override it via reflection when using config-data
 	private static Log logger = LogFactory.getLog(KubernetesClientSecretsPropertySourceLocator.class);
 
 	private final CoreV1Api coreV1Api;
@@ -61,6 +60,11 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 				environment);
 
 		return new KubernetesClientSecretsPropertySource(context);
+	}
+
+	// called from config-data loader
+	private static void logger(Log logger) {
+		KubernetesClientSecretsPropertySourceLocator.logger = logger;
 	}
 
 }

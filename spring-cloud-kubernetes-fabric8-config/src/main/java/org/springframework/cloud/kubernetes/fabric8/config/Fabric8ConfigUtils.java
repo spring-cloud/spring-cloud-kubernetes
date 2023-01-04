@@ -44,7 +44,6 @@ import org.springframework.core.env.Environment;
  */
 public final class Fabric8ConfigUtils {
 
-	// not final on purpose, as we override it via reflection when using config-data
 	private static Log logger = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
 
 	private Fabric8ConfigUtils() {
@@ -167,6 +166,11 @@ public final class Fabric8ConfigUtils {
 	private static List<StrippedSourceContainer> strippedConfigMaps(List<ConfigMap> configMaps) {
 		return configMaps.stream().map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
 				configMap.getMetadata().getName(), configMap.getData())).collect(Collectors.toList());
+	}
+
+	// called from config-data loader
+	private static void logger(Log logger) {
+		Fabric8ConfigUtils.logger = logger;
 	}
 
 }

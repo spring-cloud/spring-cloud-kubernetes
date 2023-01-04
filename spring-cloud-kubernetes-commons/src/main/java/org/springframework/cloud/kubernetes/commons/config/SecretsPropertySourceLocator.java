@@ -54,7 +54,6 @@ import org.springframework.core.env.PropertySource;
  */
 public abstract class SecretsPropertySourceLocator implements PropertySourceLocator {
 
-	// not final on purpose, as we override it via reflection when using config-data
 	private static Log logger = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
 
 	protected final SecretsConfigProperties properties;
@@ -109,6 +108,11 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			}
 		}).filter(Objects::nonNull).filter(Files::isRegularFile).collect(new MapPropertySourceCollector())
 				.forEach(composite::addPropertySource);
+	}
+
+	// called from config-data loader
+	private static void logger(Log logger) {
+		SecretsPropertySourceLocator.logger = logger;
 	}
 
 	/**

@@ -24,6 +24,7 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.SourceDataEntriesProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
@@ -35,7 +36,6 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
  */
 public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPropertySourceLocator {
 
-	// not final on purpose, as we override it via reflection when using config-data
 	private static Log logger = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
 
 	private final CoreV1Api coreV1Api;
@@ -60,6 +60,11 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, source, namespace,
 				environment);
 		return new KubernetesClientConfigMapPropertySource(context);
+	}
+
+	// called from config-data loader
+	private static void logger(Log logger) {
+		KubernetesClientConfigMapPropertySourceLocator.logger = logger;
 	}
 
 }

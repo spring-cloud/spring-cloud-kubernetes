@@ -45,7 +45,6 @@ import static org.springframework.cloud.kubernetes.commons.config.PropertySource
  */
 public class SourceDataEntriesProcessor extends MapPropertySource {
 
-	// not final on purpose, as we override it via reflection when using config-data
 	private static Log logger = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
 
 	public SourceDataEntriesProcessor(SourceData sourceData) {
@@ -118,6 +117,11 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 
 		return Collections.singletonMap(resourceName, content);
 
+	}
+
+	// called from config-data loader
+	private static void logger(Log logger) {
+		SourceDataEntriesProcessor.logger = logger;
 	}
 
 }
