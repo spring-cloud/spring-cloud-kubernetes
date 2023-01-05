@@ -165,7 +165,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 					getPodMetaMap(this.podLister.namespace(this.namespace).list(), serviceId);
 		}
 		V1Endpoints ep = this.endpointsLister.namespace(service.getMetadata().getNamespace())
-			.get(service.getMetadata().getName());
+				.get(service.getMetadata().getName());
 		if (ep == null || ep.getSubsets() == null) {
 			// no available endpoints in the cluster
 			return Stream.empty();
