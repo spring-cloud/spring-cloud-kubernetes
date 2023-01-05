@@ -101,7 +101,13 @@ final class KubernetesConfigDataLoaderLoggerReconfigurer {
 			}
 		}
 		catch (Throwable t) {
-			throw new RuntimeException(t);
+			// retry might not be on the classpath as it is optional
+			if (t.getMessage().contains("org/springframework/retry")) {
+				log.debug("will ignore exception with message : " + t.getMessage());
+			}
+			else {
+				throw new RuntimeException(t);
+			}
 		}
 	}
 
