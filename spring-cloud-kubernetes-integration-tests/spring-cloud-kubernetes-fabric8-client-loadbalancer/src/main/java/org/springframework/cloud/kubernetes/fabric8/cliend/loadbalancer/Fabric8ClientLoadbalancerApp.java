@@ -54,7 +54,7 @@ public class Fabric8ClientLoadbalancerApp {
 
 	@GetMapping("/servicea")
 	public Mono<Map> greeting() {
-		return builder().build().method(HttpMethod.GET).uri(URI.create("http://servicea-wiremock/__admin/mappings"))
+		return builder().build().method(HttpMethod.GET).uri(URI.create("http://service-wiremock/__admin/mappings"))
 				.retrieve().bodyToMono(Map.class);
 	}
 

@@ -40,7 +40,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @RestController
 public class KubernetesClientLoadBalancerApplicationIt {
 
-	private static final String URL = "http://servicea-wiremock/__admin/mappings";
+	private static final String URL = "http://service-wiremock/__admin/mappings";
 
 	private final DiscoveryClient discoveryClient;
 
@@ -58,7 +58,7 @@ public class KubernetesClientLoadBalancerApplicationIt {
 		return WebClient.builder();
 	}
 
-	@GetMapping("/loadbalancer-it/servicea")
+	@GetMapping("/loadbalancer-it/service")
 	@SuppressWarnings("unchecked")
 	public Map<String, Object> greeting() {
 		return (Map<String, Object>) client().clientConnector(new ReactorClientHttpConnector(HttpClient.create()))

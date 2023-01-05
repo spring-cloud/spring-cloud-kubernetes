@@ -17,7 +17,9 @@
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,7 +34,10 @@ import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.utility.DockerImageName;
 
-import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.getPomVersion;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * A few commons things that can be re-used across clients. This is meant to be used for
@@ -45,6 +50,8 @@ public final class Commons {
 	private Commons() {
 		throw new AssertionError("No instance provided");
 	}
+
+	private static final String KUBERNETES_VERSION_FILE = "META-INF/springcloudkubernetes-version.txt";
 
 	/**
 	 * Rancher version to use for test-containers.
@@ -76,7 +83,7 @@ public final class Commons {
 	}
 
 	public static void loadSpringCloudKubernetesImage(String project, K3sContainer container) throws Exception {
-		loadImage("springcloud/" + project, getPomVersion(), project, container);
+		loadImage("springcloud/" + project, pomVersion(), project, container);
 	}
 
 	public static void loadImage(String image, String tag, String tarName, K3sContainer container) throws Exception {
@@ -95,7 +102,7 @@ public final class Commons {
 	}
 
 	public static void cleanUp(String image, K3sContainer container) throws Exception {
-		container.execInContainer("crictl", "rmi", "docker.io/springcloud/" + image + ":" + getPomVersion());
+		container.execInContainer("crictl", "rmi", "docker.io/springcloud/" + image + ":" + pomVersion());
 		container.execInContainer("rm", TEMP_FOLDER + "/" + image + ".tar");
 	}
 
@@ -130,6 +137,21 @@ public final class Commons {
 		}
 
 		return execResult.getStdout();
+	}
+
+	public static String pomVersion() {
+		try (InputStream in = new ClassPathResource(KUBERNETES_VERSION_FILE).getInputStream()) {
+			String version = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
+			if (StringUtils.hasText(version)) {
+				version = version.trim();
+			}
+			return version;
+		}
+		catch (IOException e) {
+			ReflectionUtils.rethrowRuntimeException(e);
+		}
+		// not reachable since exception rethrown at runtime
+		return null;
 	}
 
 	/**
