@@ -13,5 +13,5 @@ spec:
       name: http-stats
       targetPort: 15672
   selector:
-    app: taskQueue
+    app: taskqueue
     component: rabbitmq

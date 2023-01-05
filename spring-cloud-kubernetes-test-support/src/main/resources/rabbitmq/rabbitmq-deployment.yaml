@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  labels:
+    app: taskqueue
+    component: rabbitmq
+spec:
+  selector:
+    matchLabels:
+      app: taskqueue
+      component: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: taskqueue
+        component: rabbitmq
+    spec:
+      containers:
+        - name: taskqueue
+          image: rabbitmq:3-management
+          imagePullPolicy: IfNotPresent
+
+
