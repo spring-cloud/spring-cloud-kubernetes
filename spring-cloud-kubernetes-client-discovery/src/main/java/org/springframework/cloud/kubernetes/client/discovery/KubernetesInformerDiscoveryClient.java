@@ -79,11 +79,24 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 	private final Lister<V1Endpoints> endpointsLister;
 
-	private final Lister<V1Pod> podLister;
+	private Lister<V1Pod> podLister;
 
 	private final KubernetesDiscoveryProperties properties;
 
 	private final String namespace;
+
+	public KubernetesInformerDiscoveryClient(String namespace, SharedInformerFactory sharedInformerFactory,
+		Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
+		SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
+		KubernetesDiscoveryProperties properties) {
+		this.namespace = namespace;
+		this.sharedInformerFactory = sharedInformerFactory;
+
+		this.serviceLister = serviceLister;
+		this.endpointsLister = endpointsLister;
+		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
+		this.properties = properties;
+	}
 
 	public KubernetesInformerDiscoveryClient(String namespace, SharedInformerFactory sharedInformerFactory,
 		Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,

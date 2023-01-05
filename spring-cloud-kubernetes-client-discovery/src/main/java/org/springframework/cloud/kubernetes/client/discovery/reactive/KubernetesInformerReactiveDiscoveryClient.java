@@ -40,6 +40,15 @@ public class KubernetesInformerReactiveDiscoveryClient implements ReactiveDiscov
 	private final KubernetesInformerDiscoveryClient kubernetesDiscoveryClient;
 
 	public KubernetesInformerReactiveDiscoveryClient(KubernetesNamespaceProvider kubernetesNamespaceProvider,
+			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
+			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
+			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
+		this.kubernetesDiscoveryClient = new KubernetesInformerDiscoveryClient(
+				kubernetesNamespaceProvider.getNamespace(), sharedInformerFactory, serviceLister, endpointsLister,
+				serviceInformer, endpointsInformer, properties);
+	}
+
+	public KubernetesInformerReactiveDiscoveryClient(KubernetesNamespaceProvider kubernetesNamespaceProvider,
 		SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
 		Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer, Lister<V1Pod> podLister,
 		SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
@@ -57,13 +66,13 @@ public class KubernetesInformerReactiveDiscoveryClient implements ReactiveDiscov
 	public Flux<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId, "[Assertion failed] - the object argument must not be null");
 		return Flux.defer(() -> Flux.fromIterable(kubernetesDiscoveryClient.getInstances(serviceId)))
-			.subscribeOn(Schedulers.boundedElastic());
+				.subscribeOn(Schedulers.boundedElastic());
 	}
 
 	@Override
 	public Flux<String> getServices() {
 		return Flux.defer(() -> Flux.fromIterable(kubernetesDiscoveryClient.getServices()))
-			.subscribeOn(Schedulers.boundedElastic());
+				.subscribeOn(Schedulers.boundedElastic());
 	}
 
 }
