@@ -35,14 +35,16 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.DISCOVERY_GROUP;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.DISCOVERY_VERSION;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.ENDPOINT_SLICE;
+
 /**
  * @author Oleg Vyukov
  */
 public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
-	private static final String DISCOVERY_GROUP_VERSION = "discovery.k8s.io/v1";
-
-	private static final String ENDPOINT_SLICE = "EndpointSlice";
+	private static final String DISCOVERY_GROUP_VERSION = DISCOVERY_GROUP + "/" + DISCOVERY_VERSION;
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesCatalogWatch.class));
 
