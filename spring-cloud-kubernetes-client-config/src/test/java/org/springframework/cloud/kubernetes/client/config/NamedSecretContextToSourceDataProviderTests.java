@@ -35,7 +35,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -47,6 +50,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
+@ExtendWith(OutputCaptureExtension.class)
 class NamedSecretContextToSourceDataProviderTests {
 
 	private static final ConfigUtils.Prefix PREFIX = ConfigUtils.findPrefix("some", false, false, "irrelevant");
@@ -70,6 +74,7 @@ class NamedSecretContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
+		new KubernetesClientSecretsCache().discardAll();
 	}
 
 	/**
@@ -331,6 +336,61 @@ class NamedSecretContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.single-yaml.default");
 		Assertions.assertEquals(sourceData.sourceData(), Map.of("key", "value"));
+	}
+
+	/**
+	 * <pre>
+	 *     - one secret is deployed with name "red"
+	 *     - one secret is deployed with name "green"
+	 *
+	 *     - we first search for "red" and find it, and it is retrieved from the cluster via the client.
+	 * 	   - we then search for the "green" one, and it is retrieved from the cache this time.
+	 * </pre>
+	 */
+	@Test
+	void cache(CapturedOutput output) {
+		V1Secret red = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("red").withNamespace(NAMESPACE).build())
+				.addToData("color", "red".getBytes()).build();
+
+		V1Secret green = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("green").withNamespace(NAMESPACE).build())
+				.addToData("color", "green".getBytes()).build();
+
+		V1SecretList configMapList = new V1SecretList().addItemsItem(red).addItemsItem(green);
+
+		stubCall(configMapList);
+		CoreV1Api api = new CoreV1Api();
+
+		MockEnvironment environment = new MockEnvironment();
+
+		NormalizedSource redSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, false);
+		KubernetesClientConfigContext redContext = new KubernetesClientConfigContext(api, redSource, NAMESPACE,
+				environment);
+		KubernetesClientContextToSourceData redData = new NamedSecretContextToSourceDataProvider().get();
+		SourceData redSourceData = redData.apply(redContext);
+
+		Assertions.assertEquals(redSourceData.sourceName(), "secret.red.default");
+		Assertions.assertEquals(redSourceData.sourceData(), Map.of("color", "red"));
+		Assertions.assertTrue(output.getAll().contains("Loaded all secrets in namespace '" + NAMESPACE + "'"));
+
+		NormalizedSource greenSource = new NamedSecretNormalizedSource("green", NAMESPACE, true, true);
+		KubernetesClientConfigContext greenContext = new KubernetesClientConfigContext(api, greenSource, NAMESPACE,
+				environment);
+		KubernetesClientContextToSourceData greenData = new NamedSecretContextToSourceDataProvider().get();
+		SourceData greenSourceData = greenData.apply(greenContext);
+
+		Assertions.assertEquals(greenSourceData.sourceName(), "secret.green.default");
+		Assertions.assertEquals(greenSourceData.sourceData(), Map.of("color", "green"));
+
+		// meaning there is a single entry with such a log statement
+		String[] out = output.getAll().split("Loaded all secrets in namespace");
+		Assertions.assertEquals(out.length, 2);
+
+		// meaning that the second read was done from the cache
+		out = output.getAll().split("Loaded \\(from cache\\) all secrets in namespace");
+		Assertions.assertEquals(out.length, 2);
+
 	}
 
 	private void stubCall(V1SecretList list) {

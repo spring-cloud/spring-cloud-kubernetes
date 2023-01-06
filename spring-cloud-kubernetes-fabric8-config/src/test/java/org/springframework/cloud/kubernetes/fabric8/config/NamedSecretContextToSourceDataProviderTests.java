@@ -29,7 +29,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -42,6 +45,7 @@ import org.springframework.mock.env.MockEnvironment;
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
+@ExtendWith(OutputCaptureExtension.class)
 class NamedSecretContextToSourceDataProviderTests {
 
 	private static final String NAMESPACE = "default";
@@ -66,6 +70,7 @@ class NamedSecretContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		mockClient.secrets().inNamespace(NAMESPACE).delete();
+		new Fabric8SecretsCache().discardAll();
 	}
 
 	/**
@@ -304,6 +309,56 @@ class NamedSecretContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.single-yaml.default");
 		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("key", "value"));
+	}
+
+	/**
+	 * <pre>
+	 *     - two secrets are deployed : "red", "green", in the same namespace.
+	 *     - we first search for "red" and find it, and it is retrieved from the cluster via the client.
+	 *     - we then search for the "green" one, and it is retrieved from the cache this time.
+	 * </pre>
+	 */
+	@Test
+	void cache(CapturedOutput output) {
+
+		Secret red = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
+				.addToData("color", Base64.getEncoder().encodeToString("red".getBytes())).build();
+
+		Secret green = new SecretBuilder().withNewMetadata().withName("green").endMetadata()
+				.addToData("taste", Base64.getEncoder().encodeToString("mango".getBytes())).build();
+
+		mockClient.secrets().inNamespace(NAMESPACE).resource(red).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(green).create();
+
+		MockEnvironment env = new MockEnvironment();
+		NormalizedSource redNormalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, PREFIX, false);
+		Fabric8ConfigContext redContext = new Fabric8ConfigContext(mockClient, redNormalizedSource, NAMESPACE, env);
+		Fabric8ContextToSourceData redData = new NamedSecretContextToSourceDataProvider().get();
+		SourceData redSourceData = redData.apply(redContext);
+
+		Assertions.assertEquals(redSourceData.sourceName(), "secret.red.default");
+		Assertions.assertEquals(redSourceData.sourceData().size(), 1);
+		Assertions.assertEquals(redSourceData.sourceData().get("some.color"), "red");
+		Assertions.assertTrue(output.getAll().contains("Loaded all secrets in namespace '" + NAMESPACE + "'"));
+
+		NormalizedSource greenNormalizedSource = new NamedSecretNormalizedSource("green", NAMESPACE, true, PREFIX,
+				false);
+		Fabric8ConfigContext greenContext = new Fabric8ConfigContext(mockClient, greenNormalizedSource, NAMESPACE, env);
+		Fabric8ContextToSourceData greenData = new NamedSecretContextToSourceDataProvider().get();
+		SourceData greenSourceData = greenData.apply(greenContext);
+
+		Assertions.assertEquals(greenSourceData.sourceName(), "secret.green.default");
+		Assertions.assertEquals(greenSourceData.sourceData().size(), 1);
+		Assertions.assertEquals(greenSourceData.sourceData().get("some.taste"), "mango");
+
+		// meaning there is a single entry with such a log statement
+		String[] out = output.getAll().split("Loaded all secrets in namespace");
+		Assertions.assertEquals(out.length, 2);
+
+		// meaning that the second read was done from the cache
+		out = output.getAll().split("Loaded \\(from cache\\) all secrets in namespace");
+		Assertions.assertEquals(out.length, 2);
+
 	}
 
 }

@@ -44,7 +44,7 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 
 	public KubernetesClientConfigMapPropertySourceLocator(CoreV1Api coreV1Api, ConfigMapConfigProperties properties,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		super(properties);
+		super(properties, new KubernetesClientConfigMapsCache());
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
 	}

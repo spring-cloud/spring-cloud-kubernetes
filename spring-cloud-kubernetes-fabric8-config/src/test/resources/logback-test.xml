@@ -4,4 +4,6 @@
 	<logger name="org.hibernate.validator"
 			level="info"/> <!-- Validator prints a lot of debug messages during integration tests -->
 	<logger name="okhttp3.mockwebserver" level="debug"/>
+	<!-- needed for CapturedOutput -->
+	<logger name="org.springframework.cloud.kubernetes.fabric8.config" level="DEBUG"/>
 </configuration>

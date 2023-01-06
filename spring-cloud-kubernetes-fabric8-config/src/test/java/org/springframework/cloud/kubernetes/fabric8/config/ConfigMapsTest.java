@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
@@ -38,6 +39,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ConfigMapsTest {
 
 	private static KubernetesClient mockClient;
+
+	@AfterEach
+	void afterEach() {
+		new Fabric8ConfigMapsCache().discardAll();
+	}
 
 	@Test
 	public void testConfigMapList() {

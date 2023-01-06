@@ -256,14 +256,6 @@ public final class ConfigUtils {
 		return new MultipleSourcesContainer(sourceNames, result);
 	}
 
-	public static boolean noSources(List<?> sources, String namespace) {
-		if (sources == null || sources.isEmpty()) {
-			logger.debug("No sources in namespace '" + namespace + "'");
-			return true;
-		}
-		return false;
-	}
-
 	private static Map<String, String> decodeData(Map<String, String> data) {
 		Map<String, String> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
 		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));

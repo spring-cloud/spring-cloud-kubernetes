@@ -52,10 +52,23 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	// not final on purpose, as we override it via reflection when using config-data
 	private static Log logger = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
 
+	private final ConfigMapCache cache;
+
 	protected final ConfigMapConfigProperties properties;
 
+	/**
+	 * This constructor is deprecated, and we do not use it anymore internally. It will be
+	 * removed in the next major release.
+	 */
+	@Deprecated(forRemoval = true)
 	public ConfigMapPropertySourceLocator(ConfigMapConfigProperties properties) {
 		this.properties = properties;
+		this.cache = new ConfigMapCache.NOOPCache();
+	}
+
+	public ConfigMapPropertySourceLocator(ConfigMapConfigProperties properties, ConfigMapCache cache) {
+		this.properties = properties;
+		this.cache = cache;
 	}
 
 	protected abstract MapPropertySource getMapPropertySource(NormalizedSource normalizedSource,
@@ -75,6 +88,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 
 			addPropertySourcesFromPaths(environment, composite);
 
+			cache.discardAll();
 			return composite;
 		}
 		return null;
