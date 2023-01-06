@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
@@ -40,6 +41,11 @@ class Fabric8ConfigMapPropertySourceTests {
 	private KubernetesClient mockClient;
 
 	private static final ConfigUtils.Prefix DEFAULT = ConfigUtils.findPrefix("default", false, false, "irrelevant");
+
+	@AfterEach
+	void afterEach() {
+		new Fabric8ConfigMapsCache().discardAll();
+	}
 
 	@Test
 	void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {

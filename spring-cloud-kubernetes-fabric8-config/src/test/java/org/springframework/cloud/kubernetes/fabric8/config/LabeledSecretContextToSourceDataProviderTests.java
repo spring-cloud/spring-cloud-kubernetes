@@ -31,7 +31,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -44,6 +47,7 @@ import org.springframework.mock.env.MockEnvironment;
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
+@ExtendWith(OutputCaptureExtension.class)
 class LabeledSecretContextToSourceDataProviderTests {
 
 	private static final String NAMESPACE = "default";
@@ -79,6 +83,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		mockClient.secrets().inNamespace(NAMESPACE).delete();
+		new Fabric8SecretsCache().discardAll();
 	}
 
 	/**
@@ -444,6 +449,59 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Assertions.assertEquals(sourceData.sourceData().size(), 1);
 		Assertions.assertEquals(sourceData.sourceData().get("color"), "blue");
 		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.default");
+	}
+
+	/**
+	 * <pre>
+	 *     - secret "red" with label "{color:red}"
+	 *     - secret "green" with labels "{color:green}"
+	 *     - we first search for "red" and find it, and it is retrieved from the cluster via the client.
+	 * 	   - we then search for the "green" one, and it is retrieved from the cache this time.
+	 * </pre>
+	 */
+	@Test
+	void cache(CapturedOutput output) {
+		Secret red = new SecretBuilder().withNewMetadata().withName("red")
+				.withLabels(Collections.singletonMap("color", "red")).endMetadata()
+				.addToData("one", Base64.getEncoder().encodeToString("1".getBytes())).build();
+
+		Secret green = new SecretBuilder().withNewMetadata().withName("green").withLabels(Map.of("color", "green"))
+				.endMetadata().addToData("two", Base64.getEncoder().encodeToString("2".getBytes())).build();
+
+		mockClient.secrets().inNamespace(NAMESPACE).resource(red).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(green).create();
+
+		MockEnvironment environment = new MockEnvironment();
+
+		NormalizedSource redNormalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
+				Collections.singletonMap("color", "red"), true, ConfigUtils.Prefix.DELAYED, true);
+		Fabric8ConfigContext redContext = new Fabric8ConfigContext(mockClient, redNormalizedSource, NAMESPACE,
+				environment);
+		Fabric8ContextToSourceData redData = new LabeledSecretContextToSourceDataProvider().get();
+		SourceData redSourceData = redData.apply(redContext);
+
+		Assertions.assertEquals(redSourceData.sourceData().size(), 1);
+		Assertions.assertEquals(redSourceData.sourceData().get("red.one"), "1");
+		Assertions.assertTrue(output.getAll().contains("Loaded all secrets in namespace '" + NAMESPACE + "'"));
+
+		NormalizedSource greenNormalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
+				Collections.singletonMap("color", "green"), true, ConfigUtils.Prefix.DELAYED, true);
+		Fabric8ConfigContext greenContext = new Fabric8ConfigContext(mockClient, greenNormalizedSource, NAMESPACE,
+				environment);
+		Fabric8ContextToSourceData greenData = new LabeledSecretContextToSourceDataProvider().get();
+		SourceData greenSourceData = greenData.apply(greenContext);
+
+		Assertions.assertEquals(greenSourceData.sourceData().size(), 1);
+		Assertions.assertEquals(greenSourceData.sourceData().get("green.two"), "2");
+
+		// meaning there is a single entry with such a log statement
+		String[] out = output.getAll().split("Loaded all secrets in namespace");
+		Assertions.assertEquals(out.length, 2);
+
+		// meaning that the second read was done from the cache
+		out = output.getAll().split("Loaded \\(from cache\\) all secrets in namespace");
+		Assertions.assertEquals(out.length, 2);
+
 	}
 
 }
