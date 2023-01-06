@@ -17,15 +17,10 @@
 package org.springframework.cloud.kubernetes.discoveryclient.it;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.AppsV1Api;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
 import io.kubernetes.client.openapi.models.V1Container;
@@ -33,11 +28,7 @@ import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1EnvVarBuilder;
 import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.openapi.models.V1Namespace;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -49,7 +40,8 @@ import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
@@ -57,47 +49,27 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.getPomVersion;
 
 /**
  * @author mbialkowski1
  */
 class DiscoveryClientFilterNamespaceIT {
 
-	private static final Log LOG = LogFactory.getLog(DiscoveryClientFilterNamespaceIT.class);
-
-	private static final String DISCOVERY_SERVER_DEPLOYMENT_NAME = "spring-cloud-kubernetes-discoveryserver-deployment";
-
 	private static final String DISCOVERY_SERVER_APP_NAME = "spring-cloud-kubernetes-discoveryserver";
-
-	private static final String SPRING_CLOUD_K8S_DISCOVERY_CLIENT_DEPLOYMENT_NAME = "spring-cloud-kubernetes-discoveryclient-it-deployment";
 
 	private static final String SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME = "spring-cloud-kubernetes-discoveryclient-it";
 
-	private static final String MOCK_DEPLOYMENT_NAME = "wiremock-deployment";
-
-	private static final String MOCK_CLIENT_APP_NAME = "wiremock";
-
-	private static final String MOCK_IMAGE_NAME = "wiremock";
-
 	private static final String NAMESPACE = "default";
 
-	private static final String NAMESPACE_LEFT = "left-namespace-k8s-client";
+	private static final String NAMESPACE_LEFT = "left";
 
-	private static final String NAMESPACE_RIGHT = "right-namespace-k8s-client";
-
-	private static CoreV1Api api;
-
-	private static AppsV1Api appsApi;
-
-	private static NetworkingV1Api networkingApi;
-
-	private static RbacAuthorizationV1Api authApi;
-
-	private static K8SUtils k8SUtils;
+	private static final String NAMESPACE_RIGHT = "right";
 
 	private static final K3sContainer K3S = Commons.container();
+
+	private static Util util;
+
+	private static RbacAuthorizationV1Api rbacApi;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -109,97 +81,56 @@ class DiscoveryClientFilterNamespaceIT {
 		Commons.validateImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 
-		String[] mockImage = K8SUtils.getImageFromDeployment(getMockServiceDeployment()).split(":");
-		Commons.pullImage(mockImage[0], mockImage[1], K3S);
-		Commons.loadImage(mockImage[0], mockImage[1], MOCK_IMAGE_NAME, K3S);
+		util = new Util(K3S);
+		rbacApi = new RbacAuthorizationV1Api();
+		util.createNamespace(NAMESPACE_LEFT);
+		util.createNamespace(NAMESPACE_RIGHT);
+		util.setUp(NAMESPACE);
 
-		createApiClient(K3S.getKubeConfigYaml());
-		api = new CoreV1Api();
-		appsApi = new AppsV1Api();
-		networkingApi = new NetworkingV1Api();
-		authApi = new RbacAuthorizationV1Api();
-		k8SUtils = new K8SUtils(api, appsApi);
-		k8SUtils.setUp(NAMESPACE);
-
-		deployDiscoveryServer();
-
-		// Check to make sure the discovery server deployment is ready
-		k8SUtils.waitForDeployment(DISCOVERY_SERVER_DEPLOYMENT_NAME, NAMESPACE);
-
-		// Check to see if endpoint is ready
-		k8SUtils.waitForEndpointReady(DISCOVERY_SERVER_APP_NAME, NAMESPACE);
+		V1ClusterRoleBinding clusterRole = (V1ClusterRoleBinding) util
+				.yaml("namespace-filter/cluster-admin-serviceaccount-role.yaml");
+		rbacApi.createClusterRoleBinding(clusterRole, null, null, null, null);
+		discoveryServer(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() throws Exception {
 		Commons.cleanUp(DISCOVERY_SERVER_APP_NAME, K3S);
 		Commons.cleanUp(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
-		Commons.cleanUpDownloadedImage(MOCK_IMAGE_NAME);
-
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + DISCOVERY_SERVER_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null,
-				null);
-
-		api.deleteNamespacedService(DISCOVERY_SERVER_APP_NAME, NAMESPACE, null, null, null, null, null, null);
-		networkingApi.deleteNamespacedIngress("discoveryserver-ingress", NAMESPACE, null, null, null, null, null, null);
+		discoveryServer(Phase.DELETE);
+		util.deleteNamespace(NAMESPACE_LEFT);
+		util.deleteNamespace(NAMESPACE_RIGHT);
 	}
 
 	@AfterEach
-	void afterEach() throws ApiException {
-		cleanup();
+	void afterEach() {
+		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.DELETE);
+		util.wiremock(NAMESPACE_RIGHT, "/wiremock-" + NAMESPACE_RIGHT, Phase.DELETE);
+		discoveryIt(Phase.DELETE);
 	}
 
 	@Test
-	void testDiscoveryClient() throws Exception {
-		deploySampleAppInNamespace(NAMESPACE_LEFT);
-		deploySampleAppInNamespace(NAMESPACE_RIGHT);
-		deployDiscoveryIt();
+	void testDiscoveryClient() {
+		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.CREATE);
+		util.wiremock(NAMESPACE_RIGHT, "/wiremock-" + NAMESPACE_RIGHT, Phase.CREATE);
+		discoveryIt(Phase.CREATE);
 
 		testLoadBalancer();
 		testHealth();
 	}
 
-	private void cleanup() throws ApiException {
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE, null, null, null,
-				"metadata.name=" + SPRING_CLOUD_K8S_DISCOVERY_CLIENT_DEPLOYMENT_NAME, null, null, null, null, null,
-				null, null, null, null);
-		api.deleteNamespacedService(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, NAMESPACE, null, null, null, null, null,
-				null);
-		networkingApi.deleteNamespacedIngress("it-ingress", NAMESPACE, null, null, null, null, null, null);
-
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE_LEFT, null, null, null,
-				"metadata.name=" + MOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
-		appsApi.deleteCollectionNamespacedDeployment(NAMESPACE_RIGHT, null, null, null,
-				"metadata.name=" + MOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null);
-
-		api.deleteNamespacedService(MOCK_CLIENT_APP_NAME, NAMESPACE_LEFT, null, null, null, null, null, null);
-		api.deleteNamespacedService(MOCK_CLIENT_APP_NAME, NAMESPACE_RIGHT, null, null, null, null, null, null);
-
-		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE_LEFT, null, null, null, null, null, null);
-		networkingApi.deleteNamespacedIngress("wiremock-ingress", NAMESPACE_RIGHT, null, null, null, null, null, null);
-
-		authApi.deleteClusterRoleBinding("admin-default-k8s-client", null, null, null, null, null, null);
-
-		api.deleteNamespace(NAMESPACE_LEFT, null, null, null, null, null, null);
-		api.deleteNamespace(NAMESPACE_RIGHT, null, null, null, null, null, null);
-
-	}
-
 	private void testLoadBalancer() {
 
-		// Check to make sure the controller deployment is ready
-		k8SUtils.waitForDeployment(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_DEPLOYMENT_NAME, NAMESPACE);
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/services").build();
 
 		String[] result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String[].class)
 				.retryWhen(retrySpec()).block();
-		LOG.info("Services: " + Arrays.toString(result));
-		assertThat(result).containsAnyOf("wiremock");
+		assertThat(result).containsAnyOf("service-wiremock");
 
 		// ServiceInstance
-		WebClient serviceInstanceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/service/wiremock")
-				.build();
+		WebClient serviceInstanceClient = builder
+				.baseUrl("http://localhost:80/discoveryclient-it/service/service-wiremock").build();
 		List<KubernetesServiceInstance> serviceInstances = serviceInstanceClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<KubernetesServiceInstance>>() {
 				}).retryWhen(retrySpec()).block();
@@ -227,119 +158,48 @@ class DiscoveryClientFilterNamespaceIT {
 		assertThat(discoveryComposite.get("status")).isEqualTo("UP");
 	}
 
-	private void deployDiscoveryIt() throws Exception {
-		appsApi.createNamespacedDeployment(NAMESPACE, getDiscoveryItDeployment(), null, null, null, null);
-		api.createNamespacedService(NAMESPACE, getDiscoveryService(), null, null, null, null);
+	private void discoveryIt(Phase phase) {
 
-		V1Ingress ingress = getDiscoveryItIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
-		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
+		V1Deployment deployment = (V1Deployment) util
+				.yaml("client/spring-cloud-kubernetes-discoveryclient-it-deployment.yaml");
+		V1Service service = (V1Service) util.yaml("client/spring-cloud-kubernetes-discoveryclient-it-service.yaml");
+		V1Ingress ingress = (V1Ingress) util.yaml("client/spring-cloud-kubernetes-discoveryclient-it-ingress.yaml");
+
+		if (phase.equals(Phase.CREATE)) {
+			// add namespaces filter property for left namespace
+			var env = new V1EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
+					.withValue(NAMESPACE_LEFT).build();
+			var container = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
+			container.setEnv(List.of(env));
+
+			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+		}
+		else {
+			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+		}
+
 	}
 
-	private static V1Deployment getDiscoveryItDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) K8SUtils
-				.readYamlFromClasspath("client/spring-cloud-kubernetes-discoveryclient-it-deployment.yaml");
+	private static void discoveryServer(Phase phase) {
 
-		// add namespaces filter property for left namespace
-		var env = new V1EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
-				.withValue(NAMESPACE_LEFT).build();
-		var container = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
-		container.setEnv(List.of(env));
+		V1Deployment deployment = (V1Deployment) util
+				.yaml("server/spring-cloud-kubernetes-discoveryserver-deployment.yaml");
+		V1Service service = (V1Service) util.yaml("server/spring-cloud-kubernetes-discoveryserver-service.yaml");
+		V1Ingress ingress = (V1Ingress) util.yaml("server/spring-cloud-kubernetes-discoveryserver-ingress.yaml");
 
-		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
-				+ getPomVersion();
-		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
-		return deployment;
-	}
+		if (phase.equals(Phase.CREATE)) {
+			// add namespaces filter property for left namespace
+			// setup all-namespaces property
+			V1EnvVar env = new V1EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES")
+					.withValue("TRUE").build();
+			V1Container container = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
+			container.setEnv(List.of(env));
 
-	private static void deployDiscoveryServer() throws Exception {
-
-		V1ClusterRoleBinding clusterRoleBinding = getClusterRoleBinding();
-		authApi.createClusterRoleBinding(clusterRoleBinding, null, null, null, null);
-
-		appsApi.createNamespacedDeployment(NAMESPACE, getDiscoveryServerDeployment(), null, null, null, null);
-		api.createNamespacedService(NAMESPACE, getDiscoveryServerService(), null, null, null, null);
-
-		V1Ingress ingress = getDiscoveryServerIngress();
-		networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
-		k8SUtils.waitForIngress(ingress.getMetadata().getName(), NAMESPACE);
-	}
-
-	private static void deploySampleAppInNamespace(final String namespace) throws Exception {
-
-		V1Namespace v1Namespace = new V1Namespace();
-		V1ObjectMeta meta = new V1ObjectMeta();
-		meta.setName(namespace);
-		v1Namespace.setMetadata(meta);
-
-		api.createNamespace(v1Namespace, null, null, null, null);
-
-		V1Deployment deployment = getMockServiceDeployment();
-		deployment.getMetadata().setNamespace(namespace);
-
-		appsApi.createNamespacedDeployment(namespace, deployment, null, null, null, null);
-		V1Service service = getMockServiceService();
-		service.getMetadata().setNamespace(namespace);
-		api.createNamespacedService(namespace, service, null, null, null, null);
-		V1Ingress ingress = getMockIngress();
-		ingress.getMetadata().setNamespace(namespace);
-
-		ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).setPath("/wiremock-" + namespace);
-		networkingApi.createNamespacedIngress(namespace, ingress, null, null, null, null);
-		k8SUtils.waitForIngress(ingress.getMetadata().getName(), namespace);
-	}
-
-	private static V1Deployment getDiscoveryServerDeployment() throws Exception {
-		V1Deployment deployment = (V1Deployment) K8SUtils
-				.readYamlFromClasspath("server/spring-cloud-kubernetes-discoveryserver-deployment.yaml");
-		String image = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage() + ":"
-				+ getPomVersion();
-		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(image);
-		// setup all-namespaces property
-		V1EnvVar env = new V1EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES")
-				.withValue("TRUE").build();
-		V1Container container = deployment.getSpec().getTemplate().getSpec().getContainers().get(0);
-		container.setEnv(List.of(env));
-
-		return deployment;
-	}
-
-	private static V1Ingress getDiscoveryServerIngress() throws Exception {
-		return (V1Ingress) K8SUtils
-				.readYamlFromClasspath("server/spring-cloud-kubernetes-discoveryserver-ingress.yaml");
-	}
-
-	private static V1Service getDiscoveryServerService() throws Exception {
-		return (V1Service) K8SUtils
-				.readYamlFromClasspath("server/spring-cloud-kubernetes-discoveryserver-service.yaml");
-	}
-
-	private static V1Ingress getDiscoveryItIngress() throws Exception {
-		return (V1Ingress) K8SUtils
-				.readYamlFromClasspath("client/spring-cloud-kubernetes-discoveryclient-it-ingress.yaml");
-	}
-
-	private static V1Service getDiscoveryService() throws Exception {
-		return (V1Service) K8SUtils
-				.readYamlFromClasspath("client/spring-cloud-kubernetes-discoveryclient-it-service.yaml");
-	}
-
-	private static V1ClusterRoleBinding getClusterRoleBinding() throws Exception {
-		return (V1ClusterRoleBinding) K8SUtils
-				.readYamlFromClasspath("namespace-filter/cluster-admin-serviceaccount-role.yaml");
-	}
-
-	private static V1Deployment getMockServiceDeployment() throws Exception {
-		return (V1Deployment) K8SUtils.readYamlFromClasspath("wiremock/discovery-wiremock-deployment.yaml");
-	}
-
-	private static V1Service getMockServiceService() throws Exception {
-
-		return (V1Service) K8SUtils.readYamlFromClasspath("wiremock/discovery-wiremock-service.yaml");
-	}
-
-	private static V1Ingress getMockIngress() throws Exception {
-		return (V1Ingress) K8SUtils.readYamlFromClasspath("wiremock/discovery-wiremock-ingress.yaml");
+			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+		}
+		else {
+			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+		}
 	}
 
 	private WebClient.Builder builder() {

@@ -52,4 +52,19 @@ public final class KubernetesDiscoveryConstants {
 	 */
 	public static final String UNSET_PORT_NAME = "<unset>";
 
+	/**
+	 * Discovery group for Catalog Watch.
+	 */
+	public static final String DISCOVERY_GROUP = "discovery.k8s.io";
+
+	/**
+	 * Discovery version for Catalog Watch.
+	 */
+	public static final String DISCOVERY_VERSION = "v1";
+
+	/**
+	 * Endpoint slice name.
+	 */
+	public static final String ENDPOINT_SLICE = "EndpointSlice";
+
 }
