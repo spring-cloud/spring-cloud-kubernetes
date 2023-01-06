@@ -296,7 +296,7 @@ Currently you can not specify a ConfigMap or Secret to load using `spring.config
 will load a ConfigMap and/or Secret based on the `spring.application.name` property.  If `spring.application.name` is not set it will
 load a ConfigMap and/or Secret with the name `application`.
 
-If you would like to load Kubernetes `PropertySource`s during the bootstrap phase like it worked prior to the 3.0.x release
+If you would like to load Kubernetes ``PropertySource``s during the bootstrap phase like it worked prior to the 3.0.x release
 you can either add `spring-cloud-starter-bootstrap` to your application's classpath or set `spring.cloud.bootstrap.enabled=true`
 as an environment variable.
 
