@@ -30,8 +30,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.boot.BootstrapRegistry;
-import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.core.env.Environment;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.CollectionUtils;
@@ -253,21 +251,6 @@ public final class ConfigUtils {
 		});
 
 		return new MultipleSourcesContainer(sourceNames, result);
-	}
-
-	public static boolean noSources(List<?> sources, String namespace) {
-		if (sources == null || sources.isEmpty()) {
-			logger.debug("No sources in namespace '" + namespace + "'");
-			return true;
-		}
-		return false;
-	}
-
-	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,
-			String name) {
-		bootstrapContext.registerIfAbsent(cls, BootstrapRegistry.InstanceSupplier.of(instance));
-		bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
-				.registerSingleton(name, event.getBootstrapContext().get(cls)));
 	}
 
 	private static Map<String, String> decodeData(Map<String, String> data) {

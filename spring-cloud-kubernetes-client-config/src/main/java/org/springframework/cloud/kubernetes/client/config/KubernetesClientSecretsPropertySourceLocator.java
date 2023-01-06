@@ -43,7 +43,7 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 
 	public KubernetesClientSecretsPropertySourceLocator(CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, SecretsConfigProperties secretsConfigProperties) {
-		super(secretsConfigProperties);
+		super(secretsConfigProperties, new KubernetesClientSecretsCache());
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
 	}

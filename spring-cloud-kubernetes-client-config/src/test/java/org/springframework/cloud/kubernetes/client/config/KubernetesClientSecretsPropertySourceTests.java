@@ -112,6 +112,7 @@ class KubernetesClientSecretsPropertySourceTests {
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
+		new KubernetesClientSecretsCache().discardAll();
 	}
 
 	@Test

@@ -67,7 +67,7 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 					kubernetesClient, configMapProperties, namespaceProvider);
 			if (isRetryEnabledForConfigMap(configMapProperties)) {
 				configMapPropertySourceLocator = new ConfigDataRetryableConfigMapPropertySourceLocator(
-						configMapPropertySourceLocator, configMapProperties);
+						configMapPropertySourceLocator, configMapProperties, new Fabric8ConfigMapsCache());
 			}
 
 			log.debug("registering configmap locator of type: "
@@ -81,7 +81,7 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 					kubernetesClient, secretsProperties, namespaceProvider);
 			if (isRetryEnabledForSecrets(secretsProperties)) {
 				secretsPropertySourceLocator = new ConfigDataRetryableSecretsPropertySourceLocator(
-						secretsPropertySourceLocator, secretsProperties);
+						secretsPropertySourceLocator, secretsProperties, new Fabric8SecretsCache());
 			}
 
 			log.debug(
