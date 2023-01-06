@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.core.env.Environment;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.CollectionUtils;
@@ -257,6 +259,13 @@ public final class ConfigUtils {
 		Map<String, String> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
 		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));
 		return result;
+	}
+
+	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,
+			String name) {
+		bootstrapContext.registerIfAbsent(cls, BootstrapRegistry.InstanceSupplier.of(instance));
+		bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
+				.registerSingleton(name, event.getBootstrapContext().get(cls)));
 	}
 
 	// called from config-data loader
