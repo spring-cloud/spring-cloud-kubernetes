@@ -286,6 +286,20 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return adapter.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
 	}
 
+	public List<String> getServices(Predicate<Service> filter) {
+		if (properties.namespaces().isEmpty()) {
+			return this.kubernetesClientServicesFunction.apply(this.client).list().getItems().stream().filter(filter)
+				.map(s -> s.getMetadata().getName()).collect(Collectors.toList());
+		}
+		List<String> services = new ArrayList<>();
+		for (String ns : properties.namespaces()) {
+			services.addAll(getClient().services().inNamespace(ns).list().getItems().stream().filter(filter)
+				.map(s -> s.getMetadata().getName()).toList());
+		}
+		return services;
+		return adapter.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
+	}
+
 	@Override
 	public int getOrder() {
 		return this.properties.order();
