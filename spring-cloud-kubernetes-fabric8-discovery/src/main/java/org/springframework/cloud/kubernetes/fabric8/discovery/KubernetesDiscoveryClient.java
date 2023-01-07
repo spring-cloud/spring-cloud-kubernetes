@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -27,6 +30,9 @@ import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ObjectReference;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
@@ -41,6 +47,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import static java.util.stream.Collectors.toMap;
@@ -147,6 +154,12 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		List<ServiceInstance> instances = new ArrayList<>();
 		if (!subsets.isEmpty()) {
 			final Service service = this.client.services().inNamespace(namespace).withName(serviceId).get();
+
+			List<Pod> pods = this.client.pods().inNamespace(namespace).list().getItems();
+			Map<String, ObjectMeta> podMap = null;
+			if (properties.initPodMetaData()) {
+				podMap = getPodMetaMap(pods, serviceId);
+			}
 			final Map<String, String> serviceMetadata = this.getServiceMetadata(service);
 			KubernetesDiscoveryProperties.Metadata metadataProps = this.properties.metadata();
 
@@ -191,7 +204,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 						instanceId = endpointAddress.getTargetRef().getUid();
 					}
 					instances.add(new DefaultKubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
-							endpointPort, endpointMetadata,
+							endpointPort, properties.initPodMetaData() ? initPodMetaData(endpointAddress, endpointMetadata, podMap) : endpointMetadata,
 							this.servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(endpointPort,
 									service.getMetadata().getName(), service.getMetadata().getLabels(),
 									service.getMetadata().getAnnotations()))));
@@ -325,6 +338,34 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	@Override
 	public int getOrder() {
 		return this.properties.order();
+	}
+
+	private Map<String, String> initPodMetaData(EndpointAddress addr, Map<String, String> metadata, Map<String, ObjectMeta> podMap) {
+		Map<String, String> newMetaData = new HashMap<>(metadata);
+		if (!CollectionUtils.isEmpty(podMap)) {
+			ObjectReference targetRef = addr.getTargetRef();
+			if (!ObjectUtils.isEmpty(targetRef)) {
+				String name = targetRef.getName();
+				if (!ObjectUtils.isEmpty(name)) {
+					Optional.ofNullable(podMap.get(name)).ifPresent(podMetaData -> {
+						if (!CollectionUtils.isEmpty(podMetaData.getLabels())) {
+							newMetaData.putAll(podMetaData.getLabels());
+						}
+						if (!CollectionUtils.isEmpty(podMetaData.getAnnotations())) {
+							newMetaData.putAll(podMetaData.getAnnotations());
+						}
+					});
+				}
+			}
+		}
+		return newMetaData;
+	}
+
+	private Map<String, ObjectMeta> getPodMetaMap(List<Pod> pods, String serviceId) {
+		return pods.stream()
+			.map(Pod::getMetadata)
+			.filter(metadata -> Objects.requireNonNull(Objects.requireNonNull(metadata).getName()).contains(serviceId))
+			.collect(Collectors.toMap(ObjectMeta::getName, Function.identity()));
 	}
 
 }
