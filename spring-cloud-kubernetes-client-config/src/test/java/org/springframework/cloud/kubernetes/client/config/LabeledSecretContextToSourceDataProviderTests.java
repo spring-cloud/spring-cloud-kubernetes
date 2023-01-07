@@ -37,7 +37,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -52,6 +55,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 /**
  * @author wind57
  */
+@ExtendWith(OutputCaptureExtension.class)
 class LabeledSecretContextToSourceDataProviderTests {
 
 	private static final Map<String, String> LABELS = new LinkedHashMap<>();
@@ -80,6 +84,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
+		new KubernetesClientSecretsCache().discardAll();
 	}
 
 	/**
@@ -437,6 +442,61 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Assertions.assertEquals(sourceData.sourceData().size(), 1);
 		Assertions.assertEquals(sourceData.sourceData().get("color"), "blue");
 		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.default");
+	}
+
+	/**
+	 * <pre>
+	 *     - one secret is deployed with label {"color", "red"}
+	 *     - one secret is deployed with label {"color", "green"}
+	 *
+	 *     - we first search for "red" and find it, and it is retrieved from the cluster via the client.
+	 * 	   - we then search for the "green" one, and it is retrieved from the cache this time.
+	 * </pre>
+	 */
+	@Test
+	void cache(CapturedOutput output) {
+		V1Secret red = new V1SecretBuilder().withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "red"))
+				.withNamespace(NAMESPACE).withName("red").build()).addToData("color", "red".getBytes()).build();
+
+		V1Secret green = new V1SecretBuilder().withMetadata(new V1ObjectMetaBuilder()
+				.withLabels(Map.of("color", "green")).withNamespace(NAMESPACE).withName("green").build())
+				.addToData("color", "green".getBytes()).build();
+
+		V1SecretList secretList = new V1SecretList().addItemsItem(red).addItemsItem(green);
+
+		stubCall(secretList);
+		CoreV1Api api = new CoreV1Api();
+
+		NormalizedSource redSource = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "red"), false,
+				ConfigUtils.Prefix.DEFAULT, false);
+		KubernetesClientConfigContext redContext = new KubernetesClientConfigContext(api, redSource, NAMESPACE,
+				new MockEnvironment());
+		KubernetesClientContextToSourceData redData = new LabeledSecretContextToSourceDataProvider().get();
+		SourceData redSourceData = redData.apply(redContext);
+
+		Assertions.assertEquals(redSourceData.sourceData().size(), 1);
+		Assertions.assertEquals(redSourceData.sourceData().get("color"), "red");
+		Assertions.assertEquals(redSourceData.sourceName(), "secret.red.default");
+		Assertions.assertTrue(output.getAll().contains("Loaded all secrets in namespace '" + NAMESPACE + "'"));
+
+		NormalizedSource greenSource = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "green"), false,
+				ConfigUtils.Prefix.DEFAULT, false);
+		KubernetesClientConfigContext greenContext = new KubernetesClientConfigContext(api, greenSource, NAMESPACE,
+				new MockEnvironment());
+		KubernetesClientContextToSourceData greenData = new LabeledSecretContextToSourceDataProvider().get();
+		SourceData greenSourceData = greenData.apply(greenContext);
+
+		Assertions.assertEquals(greenSourceData.sourceData().size(), 1);
+		Assertions.assertEquals(greenSourceData.sourceData().get("color"), "green");
+		Assertions.assertEquals(greenSourceData.sourceName(), "secret.green.default");
+
+		// meaning there is a single entry with such a log statement
+		String[] out = output.getAll().split("Loaded all secrets in namespace");
+		Assertions.assertEquals(out.length, 2);
+
+		// meaning that the second read was done from the cache
+		out = output.getAll().split("Loaded \\(from cache\\) all secrets in namespace");
+		Assertions.assertEquals(out.length, 2);
 	}
 
 	private void stubCall(V1SecretList list) {

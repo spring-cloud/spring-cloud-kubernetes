@@ -20,13 +20,9 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
-import io.kubernetes.client.openapi.apis.AppsV1Api;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +34,8 @@ import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
@@ -46,7 +43,6 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
 
 /**
  * @author wind57
@@ -59,47 +55,20 @@ class KubernetesClientCatalogWatchIT {
 
 	private static final K3sContainer K3S = Commons.container();
 
-	private static CoreV1Api api;
-
-	private static AppsV1Api appsApi;
-
-	private static NetworkingV1Api networkingApi;
-
-	private static K8SUtils k8SUtils;
-
-	private static String busyboxServiceName;
-
-	private static String busyboxDeploymentName;
-
-	private static String appDeploymentName;
-
-	private static String appServiceName;
-
-	private static String appIngressName;
+	private static Util util;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
-
 		Commons.validateImage(APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
-
-		createApiClient(K3S.getKubeConfigYaml());
-		api = new CoreV1Api();
-		appsApi = new AppsV1Api();
-		networkingApi = new NetworkingV1Api();
-		k8SUtils = new K8SUtils(api, appsApi);
-		k8SUtils.setUp(NAMESPACE);
+		util = new Util(K3S);
+		util.setUp(NAMESPACE);
 	}
 
 	@BeforeEach
-	void beforeEach() throws Exception {
-		deployBusyboxManifests();
-	}
-
-	@AfterEach
-	void afterEach() throws Exception {
-		deleteApp();
+	void beforeEach() {
+		util.busybox(NAMESPACE, Phase.CREATE);
 	}
 
 	/**
@@ -112,16 +81,18 @@ class KubernetesClientCatalogWatchIT {
 	 */
 	@Test
 	void testCatalogWatchWithEndpoints() throws Exception {
-		deployApp(false);
+		app(false, Phase.CREATE);
 		assertLogStatement("stateGenerator is of type: KubernetesEndpointsCatalogWatch");
 		test();
+		app(false, Phase.DELETE);
 	}
 
 	@Test
 	void testCatalogWatchWithEndpointSlices() throws Exception {
-		deployApp(true);
+		app(true, Phase.CREATE);
 		assertLogStatement("stateGenerator is of type: KubernetesEndpointSlicesCatalogWatch");
 		test();
+		app(true, Phase.DELETE);
 	}
 
 	/**
@@ -140,9 +111,7 @@ class KubernetesClientCatalogWatchIT {
 	 * the test is the same for both endpoints and endpoint slices, the set-up for them is
 	 * different.
 	 */
-	@SuppressWarnings("unchecked")
-	private void test() throws Exception {
-
+	private void test() {
 		WebClient client = builder().baseUrl("localhost/result").build();
 		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[2];
 		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(List.class, EndpointNameAndNamespace.class);
@@ -175,8 +144,7 @@ class KubernetesClientCatalogWatchIT {
 		Assertions.assertEquals("default", resultOne.namespace());
 		Assertions.assertEquals("default", resultTwo.namespace());
 
-		deleteBusyboxApp();
-
+		util.busybox(NAMESPACE, Phase.DELETE);
 		// what we get after delete
 		EndpointNameAndNamespace[] afterDelete = new EndpointNameAndNamespace[1];
 
@@ -208,89 +176,19 @@ class KubernetesClientCatalogWatchIT {
 
 	}
 
-	private void deployBusyboxManifests() throws Exception {
+	private static void app(boolean useEndpointSlices, Phase phase) {
+		V1Deployment deployment = useEndpointSlices
+				? (V1Deployment) util.yaml("app/watcher-endpoint-slices-deployment.yaml")
+				: (V1Deployment) util.yaml("app/watcher-endpoints-deployment.yaml");
+		V1Service service = (V1Service) util.yaml("app/watcher-service.yaml");
+		V1Ingress ingress = (V1Ingress) util.yaml("app/watcher-ingress.yaml");
 
-		V1Deployment busyboxDeployment = (V1Deployment) K8SUtils.readYamlFromClasspath(getBusyboxDeployment());
-
-		String[] image = K8SUtils.getImageFromDeployment(busyboxDeployment).split(":");
-		Commons.pullImage(image[0], image[1], K3S);
-		Commons.loadImage(image[0], image[1], "busybox", K3S);
-
-		appsApi.createNamespacedDeployment(NAMESPACE, busyboxDeployment, null, null, null, null);
-		busyboxDeploymentName = busyboxDeployment.getMetadata().getName();
-
-		V1Service busyboxService = (V1Service) K8SUtils.readYamlFromClasspath(getBusyboxService());
-		busyboxServiceName = busyboxService.getMetadata().getName();
-		api.createNamespacedService(NAMESPACE, busyboxService, null, null, null, null);
-
-		k8SUtils.waitForDeployment(busyboxDeploymentName, NAMESPACE);
-
-	}
-
-	private static void deployApp(boolean useEndpointSlices) throws Exception {
-
-		V1Deployment appDeployment = useEndpointSlices
-				? (V1Deployment) K8SUtils.readYamlFromClasspath(getEndpointSlicesAppDeployment())
-				: (V1Deployment) K8SUtils.readYamlFromClasspath(getEndpointsAppDeployment());
-
-		String version = K8SUtils.getPomVersion();
-		String currentImage = appDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
-		appDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(currentImage + ":" + version);
-
-		appsApi.createNamespacedDeployment(NAMESPACE, appDeployment, null, null, null, null);
-		appDeploymentName = appDeployment.getMetadata().getName();
-
-		V1Service appService = (V1Service) K8SUtils.readYamlFromClasspath(getAppService());
-		appServiceName = appService.getMetadata().getName();
-		api.createNamespacedService(NAMESPACE, appService, null, null, null, null);
-
-		k8SUtils.waitForDeployment(appDeploymentName, NAMESPACE);
-
-		V1Ingress appIngress = (V1Ingress) K8SUtils.readYamlFromClasspath(getAppIngress());
-		appIngressName = appIngress.getMetadata().getName();
-		networkingApi.createNamespacedIngress(NAMESPACE, appIngress, null, null, null, null);
-		k8SUtils.waitForIngress(appIngressName, NAMESPACE);
-
-	}
-
-	private void deleteBusyboxApp() throws Exception {
-		appsApi.deleteNamespacedDeployment(busyboxDeploymentName, NAMESPACE, null, null, null, null, null, null);
-		api.deleteNamespacedService(busyboxServiceName, NAMESPACE, null, null, null, null, null, null);
-		k8SUtils.waitForDeploymentToBeDeleted(busyboxDeploymentName, NAMESPACE);
-	}
-
-	private void deleteApp() throws Exception {
-		appsApi.deleteNamespacedDeployment(appDeploymentName, NAMESPACE, null, null, null, null, null, null);
-		api.deleteNamespacedService(appServiceName, NAMESPACE, null, null, null, null, null, null);
-		networkingApi.deleteNamespacedIngress(appIngressName, NAMESPACE, null, null, null, null, null, null);
-		k8SUtils.waitForDeploymentToBeDeleted(busyboxDeploymentName, NAMESPACE);
-	}
-
-	private static String getBusyboxService() {
-		return "busybox/service.yaml";
-	}
-
-	private static String getBusyboxDeployment() {
-		return "busybox/deployment.yaml";
-	}
-
-	/**
-	 * deployment where support for endpoint slices is equal to false
-	 */
-	private static String getEndpointsAppDeployment() {
-		return "app/watcher-endpoints-deployment.yaml";
-	}
-
-	private static String getEndpointSlicesAppDeployment() {
-		return "app/watcher-endpoint-slices-deployment.yaml";
-	}
-
-	private static String getAppIngress() {
-		return "app/watcher-ingress.yaml";
-	}
-
-	private static String getAppService() {
-		return "app/watcher-service.yaml";
+		if (phase.equals(Phase.CREATE)) {
+			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+		}
+		else if (phase.equals(Phase.DELETE)) {
+			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+		}
 	}
 
 	private WebClient.Builder builder() {

@@ -24,9 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
@@ -34,6 +32,7 @@ import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
@@ -42,15 +41,13 @@ import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.processExecResult;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.createApiClient;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
@@ -61,46 +58,28 @@ class ConfigMapEventReloadIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static String deploymentName;
+	private static final K3sContainer K3S = Commons.container();
 
-	private static String serviceName;
-
-	private static String ingressName;
-
-	private static String leftConfigMapName;
-
-	private static String rightConfigMapName;
-
-	private static String rightWithLabelConfigMapName;
+	private static Util util;
 
 	private static CoreV1Api api;
-
-	private static AppsV1Api appsApi;
-
-	private static NetworkingV1Api networkingApi;
-
-	private static K8SUtils k8SUtils;
-
-	private static final K3sContainer K3S = Commons.container();
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
-		createApiClient(K3S.getKubeConfigYaml());
-		createNamespaces();
+		util = new Util(K3S);
+		util.createNamespace("left");
+		util.createNamespace("right");
+		util.setUpClusterWide(NAMESPACE, Set.of("left", "right"));
 		api = new CoreV1Api();
-		appsApi = new AppsV1Api();
-		networkingApi = new NetworkingV1Api();
-		k8SUtils = new K8SUtils(api, appsApi);
-
-		k8SUtils.setUpClusterWide(NAMESPACE, Set.of("left", "right"));
 	}
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		deleteNamespaces();
+		util.deleteNamespace("left");
+		util.deleteNamespace("right");
 		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
@@ -114,19 +93,19 @@ class ConfigMapEventReloadIT {
 	 */
 	@Test
 	void testInformFromOneNamespaceEventNotTriggered() throws Exception {
-		deployManifests("one");
+		manifests("one", Phase.CREATE);
 
 		WebClient webClient = builder().baseUrl("localhost/left").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
 		// we first read the initial value from the left-configmap
-		assertThat("left-initial").isEqualTo(result);
+		Assertions.assertEquals("left-initial", result);
 
 		// then read the value from the right-configmap
 		webClient = builder().baseUrl("localhost/right").build();
 		result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec()).block();
-		assertThat("right-initial").isEqualTo(result);
+		Assertions.assertEquals("right-initial", result);
 
 		// then deploy a new version of right-configmap
 		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
@@ -141,9 +120,9 @@ class ConfigMapEventReloadIT {
 		webClient = builder().baseUrl("localhost/left").build();
 		result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec()).block();
 		// left configmap has not changed, no restart of app has happened
-		assertThat("left-initial").isEqualTo(result);
+		Assertions.assertEquals("left-initial", result);
 
-		deleteManifests();
+		manifests("one", Phase.DELETE);
 	}
 
 	/**
@@ -156,13 +135,13 @@ class ConfigMapEventReloadIT {
 	 */
 	@Test
 	void testInformFromOneNamespaceEventTriggered() throws Exception {
-		deployManifests("two");
+		manifests("two", Phase.CREATE);
 
 		// read the value from the right-configmap
 		WebClient webClient = builder().baseUrl("localhost/right").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
-		assertThat("right-initial").isEqualTo(result);
+		Assertions.assertEquals("right-initial", result);
 
 		// then deploy a new version of right-configmap
 		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
@@ -180,9 +159,9 @@ class ConfigMapEventReloadIT {
 			resultAfterChange[0] = innerResult;
 			return innerResult != null;
 		});
-		assertThat("right-after-change").isEqualTo(resultAfterChange[0]);
+		Assertions.assertEquals("right-after-change", resultAfterChange[0]);
 
-		deleteManifests();
+		manifests("two", Phase.DELETE);
 	}
 
 	/**
@@ -196,19 +175,19 @@ class ConfigMapEventReloadIT {
 	 */
 	@Test
 	void testInform() throws Exception {
-		deployManifests("three");
+		manifests("three", Phase.CREATE);
 
 		// read the initial value from the right-configmap
 		WebClient rightWebClient = builder().baseUrl("localhost/right").build();
 		String rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 				.retryWhen(retrySpec()).block();
-		assertThat("right-initial").isEqualTo(rightResult);
+		Assertions.assertEquals("right-initial", rightResult);
 
 		// then read the initial value from the right-with-label-configmap
 		WebClient rightWithLabelWebClient = builder().baseUrl("localhost/with-label").build();
 		String rightWithLabelResult = rightWithLabelWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 				.retryWhen(retrySpec()).block();
-		assertThat("right-with-label-initial").isEqualTo(rightWithLabelResult);
+		Assertions.assertEquals("right-with-label-initial", rightWithLabelResult);
 
 		// then deploy a new version of right-configmap
 		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
@@ -223,7 +202,7 @@ class ConfigMapEventReloadIT {
 		// nothing changes in our app, because we are watching only labeled configmaps
 		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
-		assertThat("right-initial").isEqualTo(rightResult);
+		Assertions.assertEquals("right-initial", rightResult);
 
 		// then deploy a new version of right-with-label-configmap
 		V1ConfigMap rightWithLabelConfigMapAfterChange = new V1ConfigMapBuilder()
@@ -242,114 +221,53 @@ class ConfigMapEventReloadIT {
 			resultAfterChange[0] = innerResult;
 			return innerResult != null;
 		});
-		assertThat("right-with-label-after-change").isEqualTo(resultAfterChange[0]);
+		Assertions.assertEquals("right-with-label-after-change", resultAfterChange[0]);
 
 		// right-configmap now will see the new value also, but only because the other
 		// configmap has triggered the restart
 		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
-		assertThat("right-after-change").isEqualTo(rightResult);
+		Assertions.assertEquals("right-after-change", rightResult);
 
-		deleteManifests();
+		manifests("three", Phase.DELETE);
 	}
 
-	private static void createNamespaces() throws Exception {
-		processExecResult(K3S.execInContainer("sh", "-c", "kubectl create namespace left"));
-		processExecResult(K3S.execInContainer("sh", "-c", "kubectl create namespace right"));
-	}
-
-	private static void deleteNamespaces() throws Exception {
-		processExecResult(K3S.execInContainer("sh", "-c", "kubectl delete namespace left"));
-		processExecResult(K3S.execInContainer("sh", "-c", "kubectl delete namespace right"));
-	}
-
-	private static void deployManifests(String deploymentRoot) {
+	private static void manifests(String deploymentRoot, Phase phase) {
 
 		try {
 
-			V1ConfigMap leftConfigMap = leftConfigMap();
-			leftConfigMapName = leftConfigMap.getMetadata().getName();
-			api.createNamespacedConfigMap("left", leftConfigMap, null, null, null, null);
+			V1ConfigMap leftConfigMap = (V1ConfigMap) util.yaml("left-configmap.yaml");
+			V1ConfigMap rightConfigMap = (V1ConfigMap) util.yaml("right-configmap.yaml");
+			V1ConfigMap rightWithLabelConfigMap = (V1ConfigMap) util.yaml("right-configmap-with-label.yaml");
 
-			V1ConfigMap rightConfigMap = rightConfigMap();
-			rightConfigMapName = rightConfigMap.getMetadata().getName();
-			api.createNamespacedConfigMap("right", rightConfigMap, null, null, null, null);
+			V1Deployment deployment = (V1Deployment) util.yaml(deploymentRoot + "/deployment.yaml");
+			V1Service service = (V1Service) util.yaml("service.yaml");
+			V1Ingress ingress = (V1Ingress) util.yaml("ingress.yaml");
 
-			if ("three".equals(deploymentRoot)) {
-				V1ConfigMap rightWithLabelConfigMap = rightWithLabelConfigMap();
-				rightWithLabelConfigMapName = rightWithLabelConfigMap.getMetadata().getName();
-				api.createNamespacedConfigMap("right", rightWithLabelConfigMap, null, null, null, null);
+			if (phase.equals(Phase.CREATE)) {
+				util.createAndWait("left", leftConfigMap, null);
+				util.createAndWait("right", rightConfigMap, null);
+
+				if ("three".equals(deploymentRoot)) {
+					util.createAndWait("right", rightWithLabelConfigMap, null);
+				}
+				util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 			}
 
-			V1Deployment deployment = getDeployment(deploymentRoot);
-			String version = K8SUtils.getPomVersion();
-			String currentImage = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
-			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(currentImage + ":" + version);
-			deploymentName = deployment.getMetadata().getName();
-			appsApi.createNamespacedDeployment(NAMESPACE, deployment, null, null, null, null);
-
-			V1Service service = getService();
-			serviceName = service.getMetadata().getName();
-			api.createNamespacedService(NAMESPACE, service, null, null, null, null);
-
-			V1Ingress ingress = getIngress();
-			ingressName = ingress.getMetadata().getName();
-			networkingApi.createNamespacedIngress(NAMESPACE, ingress, null, null, null, null);
-
-			k8SUtils.waitForIngress(ingressName, NAMESPACE);
-			k8SUtils.waitForDeployment("spring-cloud-kubernetes-client-configmap-deployment-event-reload", NAMESPACE);
+			if (phase.equals(Phase.DELETE)) {
+				util.deleteAndWait("left", leftConfigMap, null);
+				util.deleteAndWait("right", rightConfigMap, null);
+				if ("three".equals(deploymentRoot)) {
+					util.deleteAndWait("right", rightWithLabelConfigMap, null);
+				}
+				util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			}
 
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 
-	}
-
-	private static void deleteManifests() {
-
-		try {
-
-			api.deleteNamespacedConfigMap(leftConfigMapName, "left", null, null, null, null, null, null);
-			api.deleteNamespacedConfigMap(rightConfigMapName, "right", null, null, null, null, null, null);
-
-			if (rightWithLabelConfigMapName != null) {
-				api.deleteNamespacedConfigMap(rightWithLabelConfigMapName, "right", null, null, null, null, null, null);
-			}
-
-			appsApi.deleteNamespacedDeployment(deploymentName, NAMESPACE, null, null, null, null, null, null);
-			api.deleteNamespacedService(serviceName, NAMESPACE, null, null, null, null, null, null);
-			networkingApi.deleteNamespacedIngress(ingressName, NAMESPACE, null, null, null, null, null, null);
-
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-	}
-
-	private static V1ConfigMap leftConfigMap() throws Exception {
-		return (V1ConfigMap) K8SUtils.readYamlFromClasspath("left-configmap.yaml");
-	}
-
-	private static V1ConfigMap rightConfigMap() throws Exception {
-		return (V1ConfigMap) K8SUtils.readYamlFromClasspath("right-configmap.yaml");
-	}
-
-	private static V1ConfigMap rightWithLabelConfigMap() throws Exception {
-		return (V1ConfigMap) K8SUtils.readYamlFromClasspath("right-configmap-with-label.yaml");
-	}
-
-	private static V1Deployment getDeployment(String root) throws Exception {
-		return (V1Deployment) K8SUtils.readYamlFromClasspath(root + "/deployment.yaml");
-	}
-
-	private static V1Service getService() throws Exception {
-		return (V1Service) K8SUtils.readYamlFromClasspath("service.yaml");
-	}
-
-	private static V1Ingress getIngress() throws Exception {
-		return (V1Ingress) K8SUtils.readYamlFromClasspath("ingress.yaml");
 	}
 
 	private WebClient.Builder builder() {
