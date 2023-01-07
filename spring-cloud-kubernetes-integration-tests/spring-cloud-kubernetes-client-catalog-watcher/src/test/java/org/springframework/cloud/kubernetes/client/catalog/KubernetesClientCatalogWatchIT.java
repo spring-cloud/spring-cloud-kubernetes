@@ -112,6 +112,7 @@ class KubernetesClientCatalogWatchIT {
 	 * different.
 	 */
 	private void test() {
+
 		WebClient client = builder().baseUrl("localhost/result").build();
 		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[2];
 		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(List.class, EndpointNameAndNamespace.class);
@@ -145,6 +146,7 @@ class KubernetesClientCatalogWatchIT {
 		Assertions.assertEquals("default", resultTwo.namespace());
 
 		util.busybox(NAMESPACE, Phase.DELETE);
+
 		// what we get after delete
 		EndpointNameAndNamespace[] afterDelete = new EndpointNameAndNamespace[1];
 

@@ -180,6 +180,7 @@ public class KubernetesClientCatalogWatchNamespacesIT {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
 					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
 					.retryWhen(retrySpec()).block();
+
 			// there is no update to receive anymore, as there is nothing in namespacea
 			// and namespaceb
 			return result.size() == 0;
