@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery;
+package org.springframework.cloud.kubernetes.fabric8.discovery.catalog;
 
 import java.util.ArrayList;
 import java.util.List;

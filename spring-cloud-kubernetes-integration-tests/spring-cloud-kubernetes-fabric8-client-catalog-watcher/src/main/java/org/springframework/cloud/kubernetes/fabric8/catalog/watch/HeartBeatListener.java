@@ -25,8 +25,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 /**
- * Listener that will catch events from
- * {@link org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesCatalogWatch}
+ * Listener that will catch events from Fabric8KubernetesCatalogWatch
  *
  * @author wind57
  */

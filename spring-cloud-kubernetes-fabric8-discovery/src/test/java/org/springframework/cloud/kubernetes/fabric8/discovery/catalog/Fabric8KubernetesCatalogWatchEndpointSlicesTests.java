@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery;
+package org.springframework.cloud.kubernetes.fabric8.discovery.catalog;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +25,8 @@ import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
+import org.springframework.cloud.kubernetes.fabric8.discovery.catalog.Fabric8EndpointsAndEndpointSlicesTests;
+import org.springframework.cloud.kubernetes.fabric8.discovery.catalog.Fabric8KubernetesCatalogWatch;
 
 /**
  * Some tests that use the fabric8 mock client, using EndpointSlices
@@ -42,7 +44,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests extends Fabric8EndpointsA
 	@Override
 	void testInSpecificNamespaceWithServiceLabels() {
 
-		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("namespaceA", Map.of("color", "blue"),
+		Fabric8KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("namespaceA", Map.of("color", "blue"),
 				ENDPOINT_SLICES);
 
 		endpointSlice("namespaceA", Map.of(), "podA");
@@ -58,7 +60,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests extends Fabric8EndpointsA
 	@Override
 	void testInSpecificNamespaceWithoutServiceLabels() {
 
-		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("namespaceA", Map.of(),
+		Fabric8KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("namespaceA", Map.of(),
 				ENDPOINT_SLICES);
 
 		endpointSlice("namespaceA", Map.of(), "podA");
@@ -77,7 +79,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests extends Fabric8EndpointsA
 	@Override
 	void testInAllNamespacesWithServiceLabels() {
 
-		KubernetesCatalogWatch watch = createWatcherInAllNamespacesWithLabels(Map.of("color", "blue"), Set.of(),
+		Fabric8KubernetesCatalogWatch watch = createWatcherInAllNamespacesWithLabels(Map.of("color", "blue"), Set.of(),
 				ENDPOINT_SLICES);
 
 		endpointSlice("namespaceA", Map.of(), "podA");
@@ -94,7 +96,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests extends Fabric8EndpointsA
 	@Override
 	void testInAllNamespacesWithoutServiceLabels() {
 
-		KubernetesCatalogWatch watch = createWatcherInAllNamespacesWithLabels(Map.of(), Set.of(), ENDPOINT_SLICES);
+		Fabric8KubernetesCatalogWatch watch = createWatcherInAllNamespacesWithLabels(Map.of(), Set.of(), ENDPOINT_SLICES);
 
 		endpointSlice("namespaceA", Map.of(), "podA");
 		endpointSlice("namespaceA", Map.of("color", "blue"), "podB");
@@ -112,7 +114,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests extends Fabric8EndpointsA
 	@Override
 	void testAllNamespacesTrueOtherBranchesNotCalled() {
 
-		KubernetesCatalogWatch watch = createWatcherInAllNamespacesWithLabels(Map.of("color", "blue"), Set.of("B"),
+		Fabric8KubernetesCatalogWatch watch = createWatcherInAllNamespacesWithLabels(Map.of("color", "blue"), Set.of("B"),
 				ENDPOINT_SLICES);
 
 		endpointSlice("namespaceA", Map.of(), "podA");
@@ -129,7 +131,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests extends Fabric8EndpointsA
 	@Override
 	void testAllNamespacesFalseNamespacesPresent() {
 
-		KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("namespaceA"),
+		Fabric8KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("namespaceA"),
 				Map.of("color", "blue"), ENDPOINT_SLICES);
 
 		endpointSlice("namespaceA", Map.of(), "podA");
@@ -145,7 +147,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests extends Fabric8EndpointsA
 	@Override
 	void testAllNamespacesFalseNamespacesNotPresent() {
 
-		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("namespaceA", Map.of("color", "blue"),
+		Fabric8KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("namespaceA", Map.of("color", "blue"),
 				ENDPOINT_SLICES);
 
 		endpointSlice("namespaceA", Map.of(), "podA");
@@ -161,7 +163,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests extends Fabric8EndpointsA
 	@Override
 	void testTwoNamespacesOutOfThree() {
 
-		KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("namespaceA", "namespaceB"),
+		Fabric8KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("namespaceA", "namespaceB"),
 				Map.of("color", "blue"), ENDPOINT_SLICES);
 
 		endpointSlice("namespaceA", Map.of(), "podA");

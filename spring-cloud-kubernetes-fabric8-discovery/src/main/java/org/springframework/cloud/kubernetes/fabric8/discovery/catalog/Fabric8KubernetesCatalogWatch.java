@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery;
+package org.springframework.cloud.kubernetes.fabric8.discovery.catalog;
 
 import java.util.List;
 import java.util.function.Function;
@@ -42,11 +42,11 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 /**
  * @author Oleg Vyukov
  */
-public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
+final class Fabric8KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private static final String DISCOVERY_GROUP_VERSION = DISCOVERY_GROUP + "/" + DISCOVERY_VERSION;
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesCatalogWatch.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8KubernetesCatalogWatch.class));
 
 	private final Fabric8CatalogWatchContext context;
 
@@ -56,8 +56,8 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private ApplicationEventPublisher publisher;
 
-	public KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties,
-			KubernetesNamespaceProvider namespaceProvider) {
+	public Fabric8KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties,
+										 KubernetesNamespaceProvider namespaceProvider) {
 		context = new Fabric8CatalogWatchContext(kubernetesClient, properties, namespaceProvider);
 	}
 
@@ -67,7 +67,7 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 	}
 
 	@Scheduled(fixedDelayString = "${spring.cloud.kubernetes.discovery.catalogServicesWatchDelay:30000}")
-	public void catalogServicesWatch() {
+	void catalogServicesWatch() {
 		try {
 
 			List<EndpointNameAndNamespace> currentState = stateGenerator.apply(context);

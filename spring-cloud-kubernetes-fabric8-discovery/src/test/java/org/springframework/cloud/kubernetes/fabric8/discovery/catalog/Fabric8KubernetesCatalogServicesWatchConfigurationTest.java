@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery;
+package org.springframework.cloud.kubernetes.fabric8.discovery.catalog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +29,7 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,7 +42,7 @@ import static org.mockito.Mockito.when;
  * @author Oleg Vyukov
  * @author Tim Ysewyn
  */
-public class KubernetesCatalogServicesWatchConfigurationTest {
+public class Fabric8KubernetesCatalogServicesWatchConfigurationTest {
 
 	private ConfigurableApplicationContext context;
 
@@ -80,7 +81,7 @@ public class KubernetesCatalogServicesWatchConfigurationTest {
 		List<String> envList = new ArrayList<>(Arrays.asList(env));
 		envList.add("spring.cloud.config.enabled=false");
 		this.context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
-				KubernetesClientTestConfiguration.class, KubernetesCatalogWatchAutoConfiguration.class,
+				KubernetesClientTestConfiguration.class, Fabric8KubernetesCatalogWatchAutoConfiguration.class,
 				KubernetesDiscoveryClientAutoConfiguration.class).web(WebApplicationType.NONE)
 						.properties(envList.toArray(new String[0])).run();
 	}

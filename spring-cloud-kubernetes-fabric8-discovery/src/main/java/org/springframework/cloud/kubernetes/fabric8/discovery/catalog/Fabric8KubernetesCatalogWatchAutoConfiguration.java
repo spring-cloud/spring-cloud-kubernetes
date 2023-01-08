@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery;
+package org.springframework.cloud.kubernetes.fabric8.discovery.catalog;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 
@@ -40,14 +40,14 @@ import org.springframework.core.env.Environment;
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter({ Fabric8AutoConfiguration.class })
-public class KubernetesCatalogWatchAutoConfiguration {
+class Fabric8KubernetesCatalogWatchAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnKubernetesCatalogEnabled
-	public KubernetesCatalogWatch kubernetesCatalogWatch(KubernetesClient client,
+	Fabric8KubernetesCatalogWatch kubernetesCatalogWatch(KubernetesClient client,
 			KubernetesDiscoveryProperties properties, Environment environment) {
-		return new KubernetesCatalogWatch(client, properties, new KubernetesNamespaceProvider(environment));
+		return new Fabric8KubernetesCatalogWatch(client, properties, new KubernetesNamespaceProvider(environment));
 	}
 
 }
