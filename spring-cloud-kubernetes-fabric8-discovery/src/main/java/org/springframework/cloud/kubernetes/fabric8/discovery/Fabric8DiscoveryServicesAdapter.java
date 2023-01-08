@@ -73,7 +73,8 @@ final class Fabric8DiscoveryServicesAdapter implements Function<KubernetesClient
 		Predicate<Service> predicate;
 		if (spelExpression == null || spelExpression.isEmpty()) {
 			predicate = service -> true;
-		} else {
+		}
+		else {
 			Expression filterExpr = PARSER.parseExpression(spelExpression);
 			predicate = service -> {
 				Boolean include = filterExpr.getValue(EVALUATION_CONTEXT, service, Boolean.class);
