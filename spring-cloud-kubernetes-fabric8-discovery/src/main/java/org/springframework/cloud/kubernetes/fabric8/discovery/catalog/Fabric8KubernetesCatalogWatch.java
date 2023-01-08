@@ -56,8 +56,8 @@ final class Fabric8KubernetesCatalogWatch implements ApplicationEventPublisherAw
 
 	private ApplicationEventPublisher publisher;
 
-	public Fabric8KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties,
-										 KubernetesNamespaceProvider namespaceProvider) {
+	Fabric8KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties,
+			KubernetesNamespaceProvider namespaceProvider) {
 		context = new Fabric8CatalogWatchContext(kubernetesClient, properties, namespaceProvider);
 	}
 
