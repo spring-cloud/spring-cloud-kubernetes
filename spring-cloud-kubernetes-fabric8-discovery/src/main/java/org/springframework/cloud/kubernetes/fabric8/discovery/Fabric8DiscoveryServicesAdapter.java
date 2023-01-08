@@ -51,10 +51,15 @@ final class Fabric8DiscoveryServicesAdapter implements Function<KubernetesClient
 	private final Predicate<Service> filter;
 
 	Fabric8DiscoveryServicesAdapter(KubernetesClientServicesFunction function,
-									KubernetesDiscoveryProperties properties) {
+			KubernetesDiscoveryProperties properties, Predicate<Service> filter) {
 		this.function = function;
 		this.properties = properties;
-		this.filter = filter();
+		if (filter == null) {
+			this.filter = filter();
+		}
+		else {
+			this.filter = filter;
+		}
 	}
 
 	@Override

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
@@ -57,6 +58,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private final KubernetesDiscoveryProperties properties;
 
+	private final KubernetesClientServicesFunction kubernetesClientServicesFunction;
+
 	private final ServicePortSecureResolver servicePortSecureResolver;
 
 	private final Fabric8DiscoveryServicesAdapter adapter;
@@ -67,19 +70,20 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
 			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
 
-		this(client, kubernetesDiscoveryProperties, kubernetesClientServicesFunction,
+		this(client, kubernetesDiscoveryProperties, kubernetesClientServicesFunction, null,
 				new ServicePortSecureResolver(kubernetesDiscoveryProperties));
 	}
 
 	KubernetesDiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction,
+			KubernetesClientServicesFunction kubernetesClientServicesFunction, Predicate<Service> filter,
 			ServicePortSecureResolver servicePortSecureResolver) {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
-		this.adapter = new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction,
-				kubernetesDiscoveryProperties);
 		this.servicePortSecureResolver = servicePortSecureResolver;
+		this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
+		this.adapter = new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction,
+			kubernetesDiscoveryProperties, filter);
 	}
 
 	public KubernetesClient getClient() {
@@ -286,18 +290,10 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return adapter.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
 	}
 
+	@Deprecated(forRemoval = true)
 	public List<String> getServices(Predicate<Service> filter) {
-		if (properties.namespaces().isEmpty()) {
-			return this.kubernetesClientServicesFunction.apply(this.client).list().getItems().stream().filter(filter)
-				.map(s -> s.getMetadata().getName()).collect(Collectors.toList());
-		}
-		List<String> services = new ArrayList<>();
-		for (String ns : properties.namespaces()) {
-			services.addAll(getClient().services().inNamespace(ns).list().getItems().stream().filter(filter)
-				.map(s -> s.getMetadata().getName()).toList());
-		}
-		return services;
-		return adapter.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
+		return new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction, properties, filter)
+			.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
 	}
 
 	@Override
