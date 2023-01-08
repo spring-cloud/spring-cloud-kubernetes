@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -380,6 +381,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 
 		List<Service> result = adapter.apply(client);
 		Assertions.assertEquals(result.size(), 2);
+		result = result.stream().sorted(Comparator.comparing(x -> x.getMetadata().getName())).toList();
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
 		Assertions.assertEquals(result.get(1).getMetadata().getName(), "serviceB");
