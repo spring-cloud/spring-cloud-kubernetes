@@ -42,7 +42,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 /**
  * @author Oleg Vyukov
  */
-final class Fabric8KubernetesCatalogWatch implements ApplicationEventPublisherAware {
+class Fabric8KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private static final String DISCOVERY_GROUP_VERSION = DISCOVERY_GROUP + "/" + DISCOVERY_VERSION;
 
