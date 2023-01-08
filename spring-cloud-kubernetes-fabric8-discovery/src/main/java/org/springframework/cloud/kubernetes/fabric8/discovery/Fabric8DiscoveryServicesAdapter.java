@@ -51,15 +51,10 @@ final class Fabric8DiscoveryServicesAdapter implements Function<KubernetesClient
 	private final Predicate<Service> filter;
 
 	Fabric8DiscoveryServicesAdapter(KubernetesClientServicesFunction function,
-			KubernetesDiscoveryProperties properties, Predicate<Service> filter) {
+			KubernetesDiscoveryProperties properties) {
 		this.function = function;
 		this.properties = properties;
-		if (filter == null) {
-			this.filter = filter();
-		}
-		else {
-			this.filter = filter;
-		}
+		this.filter = filter();
 	}
 
 	@Override
@@ -73,7 +68,7 @@ final class Fabric8DiscoveryServicesAdapter implements Function<KubernetesClient
 		return function.apply(client).list().getItems().stream().filter(filter).toList();
 	}
 
-	Predicate<Service> filter() {
+	private Predicate<Service> filter() {
 		String spelExpression = properties.filter();
 		Predicate<Service> predicate;
 		if (spelExpression == null || spelExpression.isEmpty()) {

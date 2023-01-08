@@ -58,8 +58,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private final KubernetesDiscoveryProperties properties;
 
-	private final KubernetesClientServicesFunction kubernetesClientServicesFunction;
-
 	private final ServicePortSecureResolver servicePortSecureResolver;
 
 	private final Fabric8DiscoveryServicesAdapter adapter;
@@ -70,20 +68,19 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
 			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
 
-		this(client, kubernetesDiscoveryProperties, kubernetesClientServicesFunction, null,
+		this(client, kubernetesDiscoveryProperties, kubernetesClientServicesFunction,
 				new ServicePortSecureResolver(kubernetesDiscoveryProperties));
 	}
 
 	KubernetesDiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction, Predicate<Service> filter,
+			KubernetesClientServicesFunction kubernetesClientServicesFunction,
 			ServicePortSecureResolver servicePortSecureResolver) {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
 		this.servicePortSecureResolver = servicePortSecureResolver;
-		this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
 		this.adapter = new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction,
-			kubernetesDiscoveryProperties, filter);
+			kubernetesDiscoveryProperties);
 	}
 
 	public KubernetesClient getClient() {
@@ -288,12 +285,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	@Override
 	public List<String> getServices() {
 		return adapter.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
-	}
-
-	@Deprecated(forRemoval = true)
-	public List<String> getServices(Predicate<Service> filter) {
-		return new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction, properties, filter)
-			.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
 	}
 
 	@Override

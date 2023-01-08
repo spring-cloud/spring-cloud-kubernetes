@@ -97,7 +97,7 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 				KubernetesDiscoveryProperties properties,
 				KubernetesClientServicesFunction kubernetesClientServicesFunction) {
 			return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction,
-					null, new ServicePortSecureResolver(properties));
+					new ServicePortSecureResolver(properties));
 		}
 
 	}
