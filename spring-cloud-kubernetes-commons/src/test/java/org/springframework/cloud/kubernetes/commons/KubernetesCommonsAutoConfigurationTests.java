@@ -17,8 +17,6 @@
 package org.springframework.cloud.kubernetes.commons;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -27,21 +25,18 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @author Ryan Baxter
- */
-@ExtendWith(MockitoExtension.class)
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		classes = KubernetesCommonsAutoConfigurationTests.App.class,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.password=mypassword",
 				"spring.cloud.kubernetes.client.proxy-password=myproxypassword" })
-public class KubernetesCommonsAutoConfigurationTests {
+class KubernetesCommonsAutoConfigurationTests {
 
 	@Autowired
 	ConfigurableApplicationContext context;
 
 	@Test
-	public void beansAreCreated() {
+	void beansAreCreated() {
 		assertThat(context.getBeansOfType(KubernetesClientProperties.class)).hasSize(1);
 
 		KubernetesClientProperties properties = context.getBeansOfType(KubernetesClientProperties.class).values()
