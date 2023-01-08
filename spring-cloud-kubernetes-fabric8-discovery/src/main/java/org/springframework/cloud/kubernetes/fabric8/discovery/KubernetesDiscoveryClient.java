@@ -83,7 +83,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		this.servicePortSecureResolver = servicePortSecureResolver;
 		this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
 		this.adapter = new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction,
-			kubernetesDiscoveryProperties, filter);
+				kubernetesDiscoveryProperties, filter);
 	}
 
 	public KubernetesClient getClient() {
@@ -292,8 +292,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Deprecated(forRemoval = true)
 	public List<String> getServices(Predicate<Service> filter) {
-		return new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction, properties, filter)
-			.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
+		return new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction, properties, filter).apply(client)
+				.stream().map(s -> s.getMetadata().getName()).toList();
 	}
 
 	@Override

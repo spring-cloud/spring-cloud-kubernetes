@@ -254,8 +254,8 @@ public class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace("test").resource(service3).create();
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
-				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services,
-				null, new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
+				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services, null,
+				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
 
 		final List<String> services = discoveryClient.getServices();
 
@@ -280,8 +280,8 @@ public class KubernetesDiscoveryClientTest {
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				KubernetesDiscoveryProperties.DEFAULT,
-				client -> client.services().withLabels(Collections.singletonMap("label", "value")),
-				null, new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
+				client -> client.services().withLabels(Collections.singletonMap("label", "value")), null,
+				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
 
 		final List<String> services = discoveryClient.getServices();
 
