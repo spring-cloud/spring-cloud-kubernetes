@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,12 +41,12 @@ import org.springframework.core.env.Environment;
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
-public class KubernetesCatalogWatchAutoConfiguration {
+class KubernetesCatalogWatchAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnKubernetesCatalogEnabled
-	public KubernetesCatalogWatch kubernetesCatalogWatch(CoreV1Api coreV1Api, ApiClient apiClient,
+	KubernetesCatalogWatch kubernetesCatalogWatch(CoreV1Api coreV1Api, ApiClient apiClient,
 			KubernetesDiscoveryProperties properties, Environment environment) {
 		return new KubernetesCatalogWatch(coreV1Api, apiClient, properties,
 				new KubernetesNamespaceProvider(environment));
