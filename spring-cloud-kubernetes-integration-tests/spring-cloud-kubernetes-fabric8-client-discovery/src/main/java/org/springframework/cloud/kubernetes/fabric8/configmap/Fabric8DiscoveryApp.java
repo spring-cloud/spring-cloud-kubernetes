@@ -26,6 +26,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class Fabric8DiscoveryApp {
 
 	public static void main(String[] args) {
+		System.setProperty("spring.main.cloud-platform", "kubernetes");
+		System.setProperty("spring.cloud.kubernetes.client.namespace", "default");
 		SpringApplication.run(Fabric8DiscoveryApp.class, args);
 	}
 

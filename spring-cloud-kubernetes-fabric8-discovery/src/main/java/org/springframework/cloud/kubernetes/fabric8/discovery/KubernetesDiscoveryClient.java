@@ -29,13 +29,13 @@ import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -54,7 +54,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  */
 public class KubernetesDiscoveryClient implements DiscoveryClient {
 
-	private static final Log log = LogFactory.getLog(KubernetesDiscoveryClient.class);
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesDiscoveryClient.class));
 
 	private final KubernetesDiscoveryProperties properties;
 
@@ -161,9 +161,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 							.filter(port -> StringUtils.hasText(port.getName()))
 							.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
 					Map<String, String> portMetadata = getMapWithPrefixedKeys(ports, metadataProps.portsPrefix());
-					if (log.isDebugEnabled()) {
-						log.debug("Adding port metadata: " + portMetadata);
-					}
+					LOG.debug(() -> "Adding port metadata: " + portMetadata);
 					endpointMetadata.putAll(portMetadata);
 				}
 
@@ -204,17 +202,13 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		if (metadataProps.addLabels()) {
 			Map<String, String> labelMetadata = getMapWithPrefixedKeys(service.getMetadata().getLabels(),
 					metadataProps.labelsPrefix());
-			if (log.isDebugEnabled()) {
-				log.debug("Adding label metadata: " + labelMetadata);
-			}
+			LOG.debug(() -> "Adding label metadata: " + labelMetadata);
 			serviceMetadata.putAll(labelMetadata);
 		}
 		if (metadataProps.addAnnotations()) {
 			Map<String, String> annotationMetadata = getMapWithPrefixedKeys(service.getMetadata().getAnnotations(),
 					metadataProps.annotationsPrefix());
-			if (log.isDebugEnabled()) {
-				log.debug("Adding annotation metadata: " + annotationMetadata);
-			}
+			LOG.debug(() -> "Adding annotation metadata: " + annotationMetadata);
 			serviceMetadata.putAll(annotationMetadata);
 		}
 
@@ -240,16 +234,16 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 			if (discoveredPort == -1) {
 				if (StringUtils.hasText(primaryPortName)) {
-					log.warn("Could not find a port named '" + primaryPortName + "', 'https', or 'http' for service '"
+					LOG.warn("Could not find a port named '" + primaryPortName + "', 'https', or 'http' for service '"
 							+ serviceId + "'.");
 				}
 				else {
-					log.warn("Could not find a port named 'https' or 'http' for service '" + serviceId + "'.");
+					LOG.warn("Could not find a port named 'https' or 'http' for service '" + serviceId + "'.");
 				}
-				log.warn(
+				LOG.warn(
 						"Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
-				log.warn("Alternatively name the primary port 'https' or 'http'");
-				log.warn("An incorrect configuration may result in non-deterministic behaviour.");
+				LOG.warn("Alternatively name the primary port 'https' or 'http'");
+				LOG.warn("An incorrect configuration may result in non-deterministic behaviour.");
 				discoveredPort = endpointPorts.get(0).getPort();
 			}
 			return discoveredPort;
@@ -287,13 +281,17 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
-		return adapter.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
+		List<String> services = adapter.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
+		LOG.debug(() -> "returning services : " + services);
+		return services;
 	}
 
 	@Deprecated(forRemoval = true)
 	public List<String> getServices(Predicate<Service> filter) {
-		return new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction, properties, filter).apply(client)
-				.stream().map(s -> s.getMetadata().getName()).toList();
+		List<String> services = new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction, properties,
+				filter).apply(client).stream().map(s -> s.getMetadata().getName()).toList();
+		LOG.debug(() -> "returning services : " + services);
+		return services;
 	}
 
 	@Override

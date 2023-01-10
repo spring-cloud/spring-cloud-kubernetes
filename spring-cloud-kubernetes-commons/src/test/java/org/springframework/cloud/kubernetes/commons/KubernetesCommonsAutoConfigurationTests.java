@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.password=mypassword",
 				"spring.cloud.kubernetes.client.proxy-password=myproxypassword",
 				// so that health indicator is not picked up
-				"spring.cloud.discovery.client.health-indicator.enabled=false"})
+				"spring.cloud.discovery.client.health-indicator.enabled=false" })
 public class KubernetesCommonsAutoConfigurationTests {
 
 	@Autowired

@@ -38,7 +38,7 @@ public class KubernetesDiscoveryClientHealthIndicatorConfiguration {
 
 	@Bean
 	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
-		ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 

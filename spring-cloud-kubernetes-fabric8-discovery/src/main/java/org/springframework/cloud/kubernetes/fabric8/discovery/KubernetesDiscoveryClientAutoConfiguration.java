@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -38,6 +39,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * Auto configuration for discovery clients.
@@ -54,17 +56,21 @@ import org.springframework.core.env.Environment;
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 public class KubernetesDiscoveryClientAutoConfiguration {
 
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesClientServicesFunction.class));
+
 	@Bean
 	public KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties,
 			Environment environment) {
 
 		if (properties.allNamespaces()) {
+			LOG.debug(() -> "searching for services in namespaces : " + properties.namespaces());
 			return (client) -> client.services().inAnyNamespace().withLabels(properties.serviceLabels());
 		}
 
 		return client -> {
 			String namespace = Fabric8Utils.getApplicationNamespace(client, null, "discovery-service",
 					new KubernetesNamespaceProvider(environment));
+			LOG.debug(() -> "searching for services in namespace : " + namespace);
 			return client.services().inNamespace(namespace).withLabels(properties.serviceLabels());
 		};
 	}

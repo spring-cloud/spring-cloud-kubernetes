@@ -55,7 +55,7 @@ public final class KubernetesDiscoveryClientHealthIndicatorInitializer {
 	 * @param inside inside kubernetes or not
 	 * @param pod an actual pod or null, if we are outside kubernetes
 	 */
-	public record RegisteredEventSource(String cloudPlatform, boolean inside, Object pod) {
+	record RegisteredEventSource(String cloudPlatform, boolean inside, Object pod) {
 
 	}
 
