@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.junit.jupiter.api.AfterEach;
@@ -34,42 +33,30 @@ import static org.springframework.cloud.kubernetes.commons.KubernetesNamespacePr
 /**
  * @author Ryan Baxter
  */
-public class KubernetesNamespaceProviderTests {
+class KubernetesNamespaceProviderTests {
 
 	private static final String PATH = "/some/path";
 
 	private MockedStatic<Paths> paths;
 
 	@BeforeEach
-	public void before() {
+	void before() {
 		paths = Mockito.mockStatic(Paths.class);
 	}
 
 	@AfterEach
-	public void after() {
+	void after() {
 		paths.close();
 	}
 
 	@Test
-	public void getNamespace() {
+	void getNamespace() {
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty(NAMESPACE_PROPERTY, "mynamespace");
 		KubernetesNamespaceProvider p1 = new KubernetesNamespaceProvider(environment);
 		assertThat(p1.getNamespace()).isEqualTo("mynamespace");
 		paths.verify(() -> Paths.get(PATH), times(0));
 
-	}
-
-	/**
-	 * <pre>
-	 * 1) serviceAccountNamespace File is present or not
-	 * 2) if the above is present, under what actualPath
-	 * </pre>
-	 */
-	private Path serviceAccountFileResolved(boolean present, String actualPath) {
-		Path path = Mockito.mock(Path.class);
-		paths.when(() -> Paths.get(actualPath)).thenReturn(path);
-		return path;
 	}
 
 }
