@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class LazilyInstantiateTest {
+class LazilyInstantiateTest {
 
 	private static final String TAG = "excluded-from-before";
 
@@ -52,28 +52,22 @@ public class LazilyInstantiateTest {
 
 	@Tag(TAG)
 	@Test
-	public void supplierNotCalledInLazyInstantiateFactoryMethod() {
+	void supplierNotCalledInLazyInstantiateFactoryMethod() {
 		LazilyInstantiate.using(this.mockSupplier);
-
-		// verify
 		verifyNoInteractions(this.mockSupplier);
 	}
 
 	@Test
-	public void factoryReturnsSingletonFromSupplier() {
+	void factoryReturnsSingletonFromSupplier() {
 		LazilyInstantiate<String> lazyStringFactory = LazilyInstantiate.using(this.mockSupplier);
 		String singletonString = lazyStringFactory.get();
-
-		// verify
 		assertThat(singletonString).isEqualTo(SINGLETON);
 	}
 
 	@Test
-	public void factoryOnlyCallsSupplierOnce() {
+	void factoryOnlyCallsSupplierOnce() {
 		LazilyInstantiate<String> lazyStringFactory = LazilyInstantiate.using(this.mockSupplier);
 		lazyStringFactory.get();
-
-		// mock will throw exception if it is called more than once
 		lazyStringFactory.get();
 	}
 
