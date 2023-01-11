@@ -25,7 +25,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		classes = KubernetesCommonsAutoConfigurationTests.App.class,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.password=mypassword",
