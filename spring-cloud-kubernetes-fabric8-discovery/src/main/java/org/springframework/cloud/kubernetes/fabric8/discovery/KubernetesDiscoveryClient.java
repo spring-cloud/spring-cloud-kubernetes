@@ -79,7 +79,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		this.properties = kubernetesDiscoveryProperties;
 		this.servicePortSecureResolver = servicePortSecureResolver;
 		this.adapter = new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction,
-			kubernetesDiscoveryProperties);
+				kubernetesDiscoveryProperties);
 	}
 
 	public KubernetesClient getClient() {
