@@ -27,6 +27,7 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
@@ -83,6 +84,8 @@ class SecretsEventReloadIT {
 	@Test
 	void testSecretReload() throws Exception {
 		configK8sClientIt(Phase.CREATE);
+		assertLogStatement(false, "added configmap informer for namespace");
+		assertLogStatement(true, "added secret informer for namespace");
 		testSecretEventReload();
 	}
 
@@ -119,6 +122,23 @@ class SecretsEventReloadIT {
 		else if (phase.equals(Phase.DELETE)) {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 			util.deleteAndWait(NAMESPACE, null, secret);
+		}
+	}
+
+	/**
+	 * assert that only config map logs are present, not secrets.
+	 */
+	private void assertLogStatement(boolean contains, String log) throws Exception {
+		String appPodName = K3S
+				.execInContainer("kubectl", "get", "pods", "-l",
+						"app=spring-cloud-kubernetes-client-secrets-event-reload", "-o=name", "--no-headers")
+				.getStdout();
+		String allLogs = K3S.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
+		if (contains) {
+			Assertions.assertTrue(allLogs.contains(log));
+		}
+		else {
+			Assertions.assertFalse(allLogs.contains(log));
 		}
 	}
 

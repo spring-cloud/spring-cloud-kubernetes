@@ -25,7 +25,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.cloud.CloudPlatform;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
 import org.springframework.cloud.commons.util.TaskSchedulerWrapper;
@@ -34,6 +33,7 @@ import org.springframework.cloud.context.restart.RestartEndpoint;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingConfigMapChangeDetector;
@@ -65,8 +65,7 @@ import org.springframework.scheduling.TaskScheduler;
 @ConditionalOnKubernetesReloadEnabled
 @ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-		RefreshAutoConfiguration.class })
-@EnableConfigurationProperties(ConfigReloadProperties.class)
+		RefreshAutoConfiguration.class, ConfigReloadPropertiesAutoConfiguration.class })
 @Import(ConfigReloadAutoConfiguration.class)
 public class Fabric8ConfigReloadAutoConfiguration {
 
