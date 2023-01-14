@@ -54,6 +54,7 @@ import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClien
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingSecretsChangeDetector;
@@ -85,7 +86,7 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class, LocalTestConfig.class,
 				ConfigReloadAutoConfiguration.class, RefreshAutoConfiguration.class, EndpointAutoConfiguration.class,
 				InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-				ConfigurationPropertiesBindingPostProcessor.class,
+				ConfigurationPropertiesBindingPostProcessor.class, ConfigReloadPropertiesAutoConfiguration.class,
 				ConfigurationPropertiesRebinderAutoConfiguration.class, KubernetesClientBootstrapConfiguration.class,
 				KubernetesBootstrapConfiguration.class, KubernetesClientConfigReloadAutoConfiguration.class)
 						.web(org.springframework.boot.WebApplicationType.NONE).properties(envArray).run();
