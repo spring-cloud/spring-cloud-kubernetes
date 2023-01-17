@@ -82,6 +82,8 @@ class SecretsEventsReloadIT {
 
 	@Test
 	void test() {
+		assertLogStatement(false, "added configmap informer for namespace");
+		assertLogStatement(true, "added secret informer for namespace");
 		WebClient webClient = builder().baseUrl("localhost/key").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
@@ -125,6 +127,27 @@ class SecretsEventsReloadIT {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 
+	}
+
+	/**
+	 * assert that only config map logs are present, not secrets.
+	 */
+	private void assertLogStatement(boolean contains, String log) {
+		try {
+			String appPodName = K3S.execInContainer("kubectl", "get", "pods", "-l",
+					"app=spring-cloud-kubernetes-fabric8-client-secrets-event-reload", "-o=name", "--no-headers")
+					.getStdout();
+			String allLogs = K3S.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
+			if (contains) {
+				Assertions.assertTrue(allLogs.contains(log));
+			}
+			else {
+				Assertions.assertFalse(allLogs.contains(log));
+			}
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private WebClient.Builder builder() {

@@ -58,8 +58,6 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 	private final KubernetesClient kubernetesClient;
 
-	private final boolean monitorSecrets;
-
 	private final List<SharedIndexInformer<Secret>> informers = new ArrayList<>();
 
 	private final Set<String> namespaces;
@@ -74,7 +72,6 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8SecretsPropertySourceLocator = fabric8SecretsPropertySourceLocator;
 		this.enableReloadFiltering = properties.enableReloadFiltering();
-		monitorSecrets = properties.monitoringSecrets();
 		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "secrets");
 	}
 
@@ -88,25 +85,23 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 	@PostConstruct
 	private void inform() {
-		if (monitorSecrets) {
-			LOG.info("Kubernetes event-based secrets change detector activated");
+		LOG.info("Kubernetes event-based secrets change detector activated");
 
-			namespaces.forEach(namespace -> {
-				SharedIndexInformer<Secret> informer;
-				if (enableReloadFiltering) {
-					informer = kubernetesClient.secrets().inNamespace(namespace)
-							.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true")).inform();
-					LOG.debug("added secret informer for namespace : " + namespace + " with enabled filter");
-				}
-				else {
-					informer = kubernetesClient.secrets().inNamespace(namespace).inform();
-					LOG.debug("added secret informer for namespace : " + namespace);
-				}
+		namespaces.forEach(namespace -> {
+			SharedIndexInformer<Secret> informer;
+			if (enableReloadFiltering) {
+				informer = kubernetesClient.secrets().inNamespace(namespace)
+						.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true")).inform();
+				LOG.debug("added secret informer for namespace : " + namespace + " with enabled filter");
+			}
+			else {
+				informer = kubernetesClient.secrets().inNamespace(namespace).inform();
+				LOG.debug("added secret informer for namespace : " + namespace);
+			}
 
-				informer.addEventHandler(new SecretInformerAwareEventHandler(informer));
-				informers.add(informer);
-			});
-		}
+			informer.addEventHandler(new SecretInformerAwareEventHandler(informer));
+			informers.add(informer);
+		});
 	}
 
 	protected void onEvent(Secret secret) {
