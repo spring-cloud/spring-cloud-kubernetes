@@ -106,6 +106,7 @@ public final class Commons {
 			await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(600)).until(() -> {
 
 				String allLogs = CONTAINER.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
+				LOG.info(allLogs);
 				if (allLogs.contains(left)) {
 					Assertions.assertFalse(allLogs.contains(right));
 					return true;
