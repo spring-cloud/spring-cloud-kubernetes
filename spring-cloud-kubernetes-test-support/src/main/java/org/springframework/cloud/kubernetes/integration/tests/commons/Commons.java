@@ -103,10 +103,12 @@ public final class Commons {
 			String appPodName = CONTAINER
 					.execInContainer("kubectl", "get", "pods", "-l", "app=" + appLabel, "-o=name", "--no-headers")
 					.getStdout();
-			await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(600)).until(() -> {
+			await().pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(180)).until(() -> {
 
 				String allLogs = CONTAINER.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
+				LOG.info("==========================================================================================");
 				LOG.info(allLogs);
+				LOG.info("==========================================================================================");
 				if (allLogs.contains(left)) {
 					Assertions.assertFalse(allLogs.contains(right));
 					return true;
