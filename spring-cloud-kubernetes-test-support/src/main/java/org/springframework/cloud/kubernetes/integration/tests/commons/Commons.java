@@ -34,7 +34,6 @@ import com.github.dockerjava.api.model.Image;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Assertions;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.utility.DockerImageName;
