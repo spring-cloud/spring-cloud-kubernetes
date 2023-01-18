@@ -31,7 +31,10 @@ import com.github.dockerjava.api.command.ListImagesCmd;
 import com.github.dockerjava.api.command.PullImageCmd;
 import com.github.dockerjava.api.command.SaveImageCmd;
 import com.github.dockerjava.api.model.Image;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -50,6 +53,8 @@ import static org.awaitility.Awaitility.await;
  * @author wind57
  */
 public final class Commons {
+
+	private static final Log LOG = LogFactory.getLog(Commons.class);
 
 	private Commons() {
 		throw new AssertionError("No instance provided");
@@ -106,6 +111,7 @@ public final class Commons {
 					Assertions.assertFalse(allLogs.contains(right));
 					return true;
 				}
+				LOG.info("log statement not yet present");
 				return false;
 			});
 		}
