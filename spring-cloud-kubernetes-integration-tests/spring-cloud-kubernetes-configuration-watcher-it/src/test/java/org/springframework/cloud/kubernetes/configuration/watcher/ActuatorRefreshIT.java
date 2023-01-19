@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.time.Duration;
 
-import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
