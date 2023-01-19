@@ -50,7 +50,7 @@ class SecretsEventReloadIT {
 
 	private static final String PROPERTY_URL = "localhost:80/key";
 
-	private static final String K8S_CONFIG_CLIENT_IT_SERVICE_NAME = "spring-cloud-kubernetes-client-secrets-event-reload";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-secrets-event-reload";
 
 	private static final String NAMESPACE = "default";
 
@@ -63,8 +63,8 @@ class SecretsEventReloadIT {
 	@BeforeAll
 	static void setup() throws Exception {
 		K3S.start();
-		Commons.validateImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
+		Commons.validateImage(IMAGE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 		util = new Util(K3S);
 		coreV1Api = new CoreV1Api();
 		util.setUp(NAMESPACE);
@@ -72,7 +72,7 @@ class SecretsEventReloadIT {
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		Commons.cleanUp(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
+		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
 	@AfterEach
@@ -83,6 +83,8 @@ class SecretsEventReloadIT {
 	@Test
 	void testSecretReload() throws Exception {
 		configK8sClientIt(Phase.CREATE);
+		Commons.assertReloadLogStatements("added secret informer for namespace",
+				"added configmap informer for namespace", IMAGE_NAME);
 		testSecretEventReload();
 	}
 

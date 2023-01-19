@@ -57,8 +57,6 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	private final KubernetesClientSecretsPropertySourceLocator propertySourceLocator;
 
-	private final boolean monitorSecrets;
-
 	private final SharedInformerFactory factory;
 
 	private final List<SharedIndexInformer<V1Secret>> informers = new ArrayList<>();
@@ -103,40 +101,37 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		// certificate authorities for the cluster. This results in SSL errors.
 		// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
 		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
-		this.monitorSecrets = properties.monitoringSecrets();
 		this.enableReloadFiltering = properties.enableReloadFiltering();
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "secret");
 	}
 
 	@PostConstruct
 	void inform() {
-		if (monitorSecrets) {
-			LOG.info(() -> "Kubernetes event-based secrets change detector activated");
+		LOG.info(() -> "Kubernetes event-based secrets change detector activated");
 
-			namespaces.forEach(namespace -> {
-				SharedIndexInformer<V1Secret> informer;
-				String filter = null;
+		namespaces.forEach(namespace -> {
+			SharedIndexInformer<V1Secret> informer;
+			String filter = null;
 
-				if (enableReloadFiltering) {
-					filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
-					LOG.debug(() -> "added secret informer for namespace : " + namespace + " with enabled filter");
-				}
-				else {
-					LOG.debug(() -> "added secret informer for namespace : " + namespace);
-				}
+			if (enableReloadFiltering) {
+				filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
+				LOG.debug(() -> "added secret informer for namespace : " + namespace + " with enabled filter");
+			}
+			else {
+				LOG.debug(() -> "added secret informer for namespace : " + namespace);
+			}
 
-				String filterOnInformerLabel = filter;
-				informer = factory.sharedIndexInformerFor(
-						(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(namespace, null, null, null,
-								null, filterOnInformerLabel, null, params.resourceVersion, null, params.timeoutSeconds,
-								params.watch, null),
-						V1Secret.class, V1SecretList.class);
-				informer.addEventHandler(handler);
-				informers.add(informer);
-			});
+			String filterOnInformerLabel = filter;
+			informer = factory.sharedIndexInformerFor(
+					(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(namespace, null, null, null,
+							null, filterOnInformerLabel, null, params.resourceVersion, null, params.timeoutSeconds,
+							params.watch, null),
+					V1Secret.class, V1SecretList.class);
+			informer.addEventHandler(handler);
+			informers.add(informer);
+		});
 
-			factory.startAllRegisteredInformers();
-		}
+		factory.startAllRegisteredInformers();
 	}
 
 	@PreDestroy
