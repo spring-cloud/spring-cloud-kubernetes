@@ -105,12 +105,13 @@ public final class Commons {
 					.getStdout();
 			await().pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(180)).until(() -> {
 
-				String allLogs = CONTAINER.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
-				LOG.info("==========================================================================================");
-				LOG.info(allLogs);
-				LOG.info("==========================================================================================");
-				if (allLogs.contains(left)) {
-					Assertions.assertFalse(allLogs.contains(right));
+				String present = CONTAINER
+						.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'")
+						.getStdout();
+				if (present != null && !present.isBlank()) {
+					String notPresent = CONTAINER.execInContainer("sh", "-c",
+							"kubectl logs " + appPodName.trim() + "| grep -v" + "'" + right + "'").getStdout();
+					Assertions.assertTrue(notPresent == null || notPresent.isBlank());
 					return true;
 				}
 				LOG.info("log statement not yet present");
