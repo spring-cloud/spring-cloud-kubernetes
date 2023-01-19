@@ -23,7 +23,8 @@ import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfi
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
 import org.springframework.cloud.commons.util.TaskSchedulerWrapper;
@@ -34,14 +35,16 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfig
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesAndConfigEnabled;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingSecretsChangeDetector;
+import org.springframework.cloud.kubernetes.commons.config.reload.condition.ConditionalOnConfigMapsReloadEnabled;
 import org.springframework.cloud.kubernetes.commons.config.reload.condition.ConditionalOnKubernetesReloadEnabled;
+import org.springframework.cloud.kubernetes.commons.config.reload.condition.ConditionalOnSecretsReloadEnabled;
 import org.springframework.cloud.kubernetes.commons.config.reload.condition.EventReloadDetectionMode;
 import org.springframework.cloud.kubernetes.commons.config.reload.condition.PollingReloadDetectionMode;
 import org.springframework.context.annotation.Bean;
@@ -55,12 +58,11 @@ import org.springframework.scheduling.TaskScheduler;
  * @author Ryan Baxter
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnKubernetesAndConfigEnabled
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnKubernetesReloadEnabled
 @ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-		RefreshAutoConfiguration.class })
-@EnableConfigurationProperties(ConfigReloadProperties.class)
+		RefreshAutoConfiguration.class, ConfigReloadPropertiesAutoConfiguration.class })
 @Import(ConfigReloadAutoConfiguration.class)
 public class KubernetesClientConfigReloadAutoConfiguration {
 
@@ -72,6 +74,7 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 	 * @return a bean that listen to configuration changes and fire a reload.
 	 */
 	@Bean
+	@ConditionalOnConfigMapsReloadEnabled
 	@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
 	@Conditional(PollingReloadDetectionMode.class)
 	public ConfigurationChangeDetector configMapPropertyChangePollingWatcher(ConfigReloadProperties properties,
@@ -92,6 +95,7 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 	 * @return a bean that listen to configuration changes and fire a reload.
 	 */
 	@Bean
+	@ConditionalOnSecretsReloadEnabled
 	@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
 	@Conditional(PollingReloadDetectionMode.class)
 	public ConfigurationChangeDetector secretsPropertyChangePollingWatcher(ConfigReloadProperties properties,
@@ -112,6 +116,7 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 	 * @return a bean that listen to configMap change events and fire a reload.
 	 */
 	@Bean
+	@ConditionalOnConfigMapsReloadEnabled
 	@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
 	@Conditional(EventReloadDetectionMode.class)
 	public ConfigurationChangeDetector configMapPropertyChangeEventWatcher(ConfigReloadProperties properties,
@@ -132,6 +137,7 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 	 * @return a bean that listen to secrets change events and fire a reload.
 	 */
 	@Bean
+	@ConditionalOnSecretsReloadEnabled
 	@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
 	@Conditional(EventReloadDetectionMode.class)
 	public ConfigurationChangeDetector secretsPropertyChangeEventWatcher(ConfigReloadProperties properties,

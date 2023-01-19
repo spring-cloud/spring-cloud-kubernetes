@@ -57,8 +57,6 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 	private final KubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
 
-	private final boolean monitorConfigMaps;
-
 	private final SharedInformerFactory factory;
 
 	private final List<SharedIndexInformer<V1ConfigMap>> informers = new ArrayList<>();
@@ -103,41 +101,38 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		// certificate authorities for the cluster. This results in SSL errors.
 		// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
 		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
-		this.monitorConfigMaps = properties.monitoringConfigMaps();
 		this.enableReloadFiltering = properties.enableReloadFiltering();
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "configmap");
 	}
 
 	@PostConstruct
 	void inform() {
-		if (monitorConfigMaps) {
-			LOG.info(() -> "Kubernetes event-based configMap change detector activated");
+		LOG.info(() -> "Kubernetes event-based configMap change detector activated");
 
-			namespaces.forEach(namespace -> {
-				SharedIndexInformer<V1ConfigMap> informer;
-				String filter = null;
+		namespaces.forEach(namespace -> {
+			SharedIndexInformer<V1ConfigMap> informer;
+			String filter = null;
 
-				if (enableReloadFiltering) {
-					filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
-					LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with enabled filter");
-				}
-				else {
-					LOG.debug(() -> "added configmap informer for namespace : " + namespace);
-				}
+			if (enableReloadFiltering) {
+				filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
+				LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with enabled filter");
+			}
+			else {
+				LOG.debug(() -> "added configmap informer for namespace : " + namespace);
+			}
 
-				String filterOnInformerLabel = filter;
-				informer = factory
-						.sharedIndexInformerFor(
-								(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null,
-										null, null, null, filterOnInformerLabel, null, params.resourceVersion, null,
-										params.timeoutSeconds, params.watch, null),
-								V1ConfigMap.class, V1ConfigMapList.class);
-				informer.addEventHandler(handler);
-				informers.add(informer);
-			});
+			String filterOnInformerLabel = filter;
+			informer = factory
+					.sharedIndexInformerFor(
+							(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null, null,
+									null, null, filterOnInformerLabel, null, params.resourceVersion, null,
+									params.timeoutSeconds, params.watch, null),
+							V1ConfigMap.class, V1ConfigMapList.class);
+			informer.addEventHandler(handler);
+			informers.add(informer);
+		});
 
-			factory.startAllRegisteredInformers();
-		}
+		factory.startAllRegisteredInformers();
 	}
 
 	@PreDestroy
