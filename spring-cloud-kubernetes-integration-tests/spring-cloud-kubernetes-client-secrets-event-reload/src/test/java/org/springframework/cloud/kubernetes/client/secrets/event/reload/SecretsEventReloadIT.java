@@ -84,7 +84,7 @@ class SecretsEventReloadIT {
 	void testSecretReload() throws Exception {
 		configK8sClientIt(Phase.CREATE);
 		Commons.assertReloadLogStatements("added secret informer for namespace",
-			"added configmap informer for namespace", IMAGE_NAME);
+				"added configmap informer for namespace", IMAGE_NAME);
 		testSecretEventReload();
 	}
 
