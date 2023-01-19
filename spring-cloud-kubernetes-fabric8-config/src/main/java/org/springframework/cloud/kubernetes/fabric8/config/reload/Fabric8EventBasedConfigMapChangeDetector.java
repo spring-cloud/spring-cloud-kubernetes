@@ -58,8 +58,6 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 	private final KubernetesClient kubernetesClient;
 
-	private final boolean monitoringConfigMaps;
-
 	private final List<SharedIndexInformer<ConfigMap>> informers = new ArrayList<>();
 
 	private final Set<String> namespaces;
@@ -74,31 +72,28 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8ConfigMapPropertySourceLocator = fabric8ConfigMapPropertySourceLocator;
 		this.enableReloadFiltering = properties.enableReloadFiltering();
-		monitoringConfigMaps = properties.monitoringConfigMaps();
 		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "configmap");
 	}
 
 	@PostConstruct
 	private void inform() {
-		if (monitoringConfigMaps) {
-			LOG.info("Kubernetes event-based configMap change detector activated");
+		LOG.info("Kubernetes event-based configMap change detector activated");
 
-			namespaces.forEach(namespace -> {
-				SharedIndexInformer<ConfigMap> informer;
-				if (enableReloadFiltering) {
-					informer = kubernetesClient.configMaps().inNamespace(namespace)
-							.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true")).inform();
-					LOG.debug("added configmap informer for namespace : " + namespace + " with enabled filter");
-				}
-				else {
-					informer = kubernetesClient.configMaps().inNamespace(namespace).inform();
-					LOG.debug("added configmap informer for namespace : " + namespace);
-				}
+		namespaces.forEach(namespace -> {
+			SharedIndexInformer<ConfigMap> informer;
+			if (enableReloadFiltering) {
+				informer = kubernetesClient.configMaps().inNamespace(namespace)
+						.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true")).inform();
+				LOG.debug("added configmap informer for namespace : " + namespace + " with enabled filter");
+			}
+			else {
+				informer = kubernetesClient.configMaps().inNamespace(namespace).inform();
+				LOG.debug("added configmap informer for namespace : " + namespace);
+			}
 
-				informer.addEventHandler(new ConfigMapInformerAwareEventHandler(informer));
-				informers.add(informer);
-			});
-		}
+			informer.addEventHandler(new ConfigMapInformerAwareEventHandler(informer));
+			informers.add(informer);
+		});
 	}
 
 	@PreDestroy
