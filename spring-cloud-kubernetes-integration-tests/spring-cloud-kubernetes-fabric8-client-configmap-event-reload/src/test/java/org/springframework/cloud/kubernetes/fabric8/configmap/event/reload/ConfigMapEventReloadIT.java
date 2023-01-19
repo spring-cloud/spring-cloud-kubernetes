@@ -100,8 +100,8 @@ class ConfigMapEventReloadIT {
 	@Test
 	void testInformFromOneNamespaceEventNotTriggered() {
 		manifests("one", Phase.CREATE);
-		assertLogStatement(true, "added configmap informer for namespace");
-		assertLogStatement(false, "added secret informer for namespace");
+		Commons.assertReloadLogStatements("added configmap informer for namespace",
+			"added secret informer for namespace", IMAGE_NAME);
 
 		WebClient webClient = builder().baseUrl("localhost/left").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
@@ -144,8 +144,8 @@ class ConfigMapEventReloadIT {
 	@Test
 	void testInformFromOneNamespaceEventTriggered() {
 		manifests("two", Phase.CREATE);
-		assertLogStatement(true, "added configmap informer for namespace");
-		assertLogStatement(false, "added secret informer for namespace");
+		Commons.assertReloadLogStatements("added configmap informer for namespace",
+			"added secret informer for namespace", IMAGE_NAME);
 
 		// read the value from the right-configmap
 		WebClient webClient = builder().baseUrl("localhost/right").build();
@@ -185,8 +185,8 @@ class ConfigMapEventReloadIT {
 	@Test
 	void testInform() {
 		manifests("three", Phase.CREATE);
-		assertLogStatement(true, "added configmap informer for namespace");
-		assertLogStatement(false, "added secret informer for namespace");
+		Commons.assertReloadLogStatements("added configmap informer for namespace",
+			"added secret informer for namespace", IMAGE_NAME);
 
 		// read the initial value from the right-configmap
 		WebClient rightWebClient = builder().baseUrl("localhost/right").build();
@@ -286,24 +286,6 @@ class ConfigMapEventReloadIT {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 
-	}
-
-	private void assertLogStatement(boolean contains, String log) {
-		try {
-			String appPodName = K3S.execInContainer("kubectl", "get", "pods", "-l",
-					"app=spring-cloud-kubernetes-fabric8-client-configmap-event-reload", "-o=name", "--no-headers")
-					.getStdout();
-			String allLogs = K3S.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
-			if (contains) {
-				Assertions.assertTrue(allLogs.contains(log));
-			}
-			else {
-				Assertions.assertFalse(allLogs.contains(log));
-			}
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	private WebClient.Builder builder() {

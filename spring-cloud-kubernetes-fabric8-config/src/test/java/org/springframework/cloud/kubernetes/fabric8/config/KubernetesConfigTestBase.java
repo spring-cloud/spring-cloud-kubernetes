@@ -46,9 +46,9 @@ public class KubernetesConfigTestBase {
 	protected void setup(Class<?> mockClientConfiguration, String... env) {
 		String[] properties = Stream.concat(Arrays.stream(commonProperties), Arrays.stream(env)).toArray(String[]::new);
 		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class, mockClientConfiguration,
-				BootstrapConfiguration.class, Fabric8ConfigReloadAutoConfiguration.class, ConfigReloadPropertiesAutoConfiguration.class,
-				RefreshAutoConfiguration.class).web(WebApplicationType.NONE)
-						.properties(properties).run();
+				BootstrapConfiguration.class, Fabric8ConfigReloadAutoConfiguration.class,
+				ConfigReloadPropertiesAutoConfiguration.class, RefreshAutoConfiguration.class)
+						.web(WebApplicationType.NONE).properties(properties).run();
 	}
 
 	@AfterEach
