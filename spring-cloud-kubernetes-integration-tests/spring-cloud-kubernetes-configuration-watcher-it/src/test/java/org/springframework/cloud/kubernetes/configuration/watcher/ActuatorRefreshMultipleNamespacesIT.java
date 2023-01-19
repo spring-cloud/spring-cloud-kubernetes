@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.github.tomakehurst.wiremock.client.VerificationException;
@@ -68,7 +69,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 		util = new Util(K3S);
 		util.createNamespace(LEFT_NAMESPACE);
 		util.createNamespace(RIGHT_NAMESPACE);
-		util.setUpClusterWide(DEFAULT_NAMESPACE, Set.of(LEFT_NAMESPACE, RIGHT_NAMESPACE));
+		util.setUpClusterWide(DEFAULT_NAMESPACE, Set.of(DEFAULT_NAMESPACE, LEFT_NAMESPACE, RIGHT_NAMESPACE));
 	}
 
 	@AfterAll
@@ -94,28 +95,35 @@ class ActuatorRefreshMultipleNamespacesIT {
 	 * <pre>
 	 *     - deploy config-watcher in default namespace
 	 *     - deploy wiremock in default namespace (so that we could assert calls to the actuator path)
-	 *     - deploy configmap-left in left namespaces. This event is caught by config-watcher
-	 *       and we assert for it.
-	 *     - deploy configmap-right in right namespaces. This event is caught by config-watcher
-	 * 	     and we assert for it.
-	 *
+	 *     - deploy configmap-left in left namespaces with proper label and "service-wiremock". Because of the
+	 *       label, this will trigger a reload; because of the name this will trigger a reload against that name.
+	 *       This is a http refresh against the actuator.
+	 *     - same as above for the configmap-right.
 	 * </pre>
 	 */
 	@Test
 	void testActuatorRefreshMultipleNamespaces() {
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
-		await().timeout(Duration.ofSeconds(60)).ignoreException(VerificationException.class)
-				.until(() -> WireMock
-						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
-								.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
-						.getResponse().wasConfigured());
+		WireMock
+			.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+				.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)));
 
 		// left-config-map
-		V1ConfigMap leftConfigMap = new V1ConfigMapBuilder().editOrNewMetadata().withName("left-config-map")
-				.endMetadata().addToData("foo", "bar").build();
+		V1ConfigMap leftConfigMap = new V1ConfigMapBuilder().editOrNewMetadata()
+			.withLabels(Map.of("spring.cloud.kubernetes.config", "true"))
+			.withName("service-wiremock").endMetadata().addToData("foo", "bar").build();
 		util.createAndWait(LEFT_NAMESPACE, leftConfigMap, null);
 		await().atMost(Duration.ofSeconds(30)).until(
 				() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh"))).isEmpty());
+		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
+
+		// right-config-map
+		V1ConfigMap rightConfigMap = new V1ConfigMapBuilder().editOrNewMetadata()
+			.withLabels(Map.of("spring.cloud.kubernetes.config", "true"))
+			.withName("service-wiremock").endMetadata().addToData("foo", "bar").build();
+		util.createAndWait(RIGHT_NAMESPACE, rightConfigMap, null);
+		await().atMost(Duration.ofSeconds(30)).until(
+			() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh"))).isEmpty());
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 
 	}
