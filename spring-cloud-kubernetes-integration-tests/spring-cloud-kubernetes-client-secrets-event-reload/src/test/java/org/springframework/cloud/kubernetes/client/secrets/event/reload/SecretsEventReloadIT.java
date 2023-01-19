@@ -27,7 +27,6 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
@@ -51,7 +50,7 @@ class SecretsEventReloadIT {
 
 	private static final String PROPERTY_URL = "localhost:80/key";
 
-	private static final String K8S_CONFIG_CLIENT_IT_SERVICE_NAME = "spring-cloud-kubernetes-client-secrets-event-reload";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-secrets-event-reload";
 
 	private static final String NAMESPACE = "default";
 
@@ -64,8 +63,8 @@ class SecretsEventReloadIT {
 	@BeforeAll
 	static void setup() throws Exception {
 		K3S.start();
-		Commons.validateImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
+		Commons.validateImage(IMAGE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 		util = new Util(K3S);
 		coreV1Api = new CoreV1Api();
 		util.setUp(NAMESPACE);
@@ -73,7 +72,7 @@ class SecretsEventReloadIT {
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		Commons.cleanUp(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
+		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
 	@AfterEach
@@ -84,8 +83,8 @@ class SecretsEventReloadIT {
 	@Test
 	void testSecretReload() throws Exception {
 		configK8sClientIt(Phase.CREATE);
-		assertLogStatement(false, "added configmap informer for namespace");
-		assertLogStatement(true, "added secret informer for namespace");
+		Commons.assertReloadLogStatements("added secret informer for namespace",
+				"added configmap informer for namespace", IMAGE_NAME);
 		testSecretEventReload();
 	}
 
@@ -122,23 +121,6 @@ class SecretsEventReloadIT {
 		else if (phase.equals(Phase.DELETE)) {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 			util.deleteAndWait(NAMESPACE, null, secret);
-		}
-	}
-
-	/**
-	 * assert that only config map logs are present, not secrets.
-	 */
-	private void assertLogStatement(boolean contains, String log) throws Exception {
-		String appPodName = K3S
-				.execInContainer("kubectl", "get", "pods", "-l",
-						"app=spring-cloud-kubernetes-client-secrets-event-reload", "-o=name", "--no-headers")
-				.getStdout();
-		String allLogs = K3S.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
-		if (contains) {
-			Assertions.assertTrue(allLogs.contains(log));
-		}
-		else {
-			Assertions.assertFalse(allLogs.contains(log));
 		}
 	}
 
