@@ -14,6 +14,7 @@ spring:
         monitoring-secrets: true
         strategy: shutdown
         mode: event
+        monitoring-configMaps: false
       secrets:
         enabled: true
         enable-api: true

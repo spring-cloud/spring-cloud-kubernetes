@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,21 +23,24 @@ import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfi
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
 import org.springframework.cloud.commons.util.TaskSchedulerWrapper;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.cloud.context.restart.RestartEndpoint;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesAndConfigEnabled;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingSecretsChangeDetector;
+import org.springframework.cloud.kubernetes.commons.config.reload.condition.ConditionalOnConfigMapsReloadEnabled;
 import org.springframework.cloud.kubernetes.commons.config.reload.condition.ConditionalOnKubernetesReloadEnabled;
+import org.springframework.cloud.kubernetes.commons.config.reload.condition.ConditionalOnSecretsReloadEnabled;
 import org.springframework.cloud.kubernetes.commons.config.reload.condition.EventReloadDetectionMode;
 import org.springframework.cloud.kubernetes.commons.config.reload.condition.PollingReloadDetectionMode;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySource;
@@ -58,12 +61,11 @@ import org.springframework.scheduling.TaskScheduler;
  * @author Kris Iyer
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnKubernetesAndConfigEnabled
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnKubernetesReloadEnabled
 @ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-		RefreshAutoConfiguration.class })
-@EnableConfigurationProperties(ConfigReloadProperties.class)
+		RefreshAutoConfiguration.class, ConfigReloadPropertiesAutoConfiguration.class })
 @Import(ConfigReloadAutoConfiguration.class)
 public class Fabric8ConfigReloadAutoConfiguration {
 
@@ -75,6 +77,7 @@ public class Fabric8ConfigReloadAutoConfiguration {
 	 * @return a bean that listen to configuration changes and fire a reload.
 	 */
 	@Bean
+	@ConditionalOnConfigMapsReloadEnabled
 	@ConditionalOnBean(Fabric8ConfigMapPropertySourceLocator.class)
 	@Conditional(PollingReloadDetectionMode.class)
 	public ConfigurationChangeDetector configMapPropertyChangePollingWatcher(ConfigReloadProperties properties,
@@ -95,6 +98,7 @@ public class Fabric8ConfigReloadAutoConfiguration {
 	 * @return a bean that listen to configuration changes and fire a reload.
 	 */
 	@Bean
+	@ConditionalOnSecretsReloadEnabled
 	@ConditionalOnBean(Fabric8SecretsPropertySourceLocator.class)
 	@Conditional(PollingReloadDetectionMode.class)
 	public ConfigurationChangeDetector secretsPropertyChangePollingWatcher(ConfigReloadProperties properties,
@@ -114,6 +118,7 @@ public class Fabric8ConfigReloadAutoConfiguration {
 	 * @return a bean that listen to configMap change events and fire a reload.
 	 */
 	@Bean
+	@ConditionalOnConfigMapsReloadEnabled
 	@ConditionalOnBean(Fabric8ConfigMapPropertySourceLocator.class)
 	@Conditional(EventReloadDetectionMode.class)
 	public ConfigurationChangeDetector configMapPropertyChangeEventWatcher(ConfigReloadProperties properties,
@@ -133,6 +138,7 @@ public class Fabric8ConfigReloadAutoConfiguration {
 	 * @return a bean that listen to secrets change events and fire a reload.
 	 */
 	@Bean
+	@ConditionalOnSecretsReloadEnabled
 	@ConditionalOnBean(Fabric8SecretsPropertySourceLocator.class)
 	@Conditional(EventReloadDetectionMode.class)
 	public ConfigurationChangeDetector secretsPropertyChangeEventWatcher(ConfigReloadProperties properties,
