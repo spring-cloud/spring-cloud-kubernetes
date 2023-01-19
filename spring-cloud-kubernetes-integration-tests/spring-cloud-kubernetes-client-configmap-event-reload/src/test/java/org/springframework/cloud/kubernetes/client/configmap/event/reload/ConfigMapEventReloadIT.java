@@ -94,6 +94,8 @@ class ConfigMapEventReloadIT {
 	@Test
 	void testInformFromOneNamespaceEventNotTriggered() throws Exception {
 		manifests("one", Phase.CREATE);
+		Commons.assertReloadLogStatements("added configmap informer for namespace",
+				"added secret informer for namespace", IMAGE_NAME);
 
 		WebClient webClient = builder().baseUrl("localhost/left").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
@@ -136,6 +138,8 @@ class ConfigMapEventReloadIT {
 	@Test
 	void testInformFromOneNamespaceEventTriggered() throws Exception {
 		manifests("two", Phase.CREATE);
+		Commons.assertReloadLogStatements("added configmap informer for namespace",
+				"added secret informer for namespace", IMAGE_NAME);
 
 		// read the value from the right-configmap
 		WebClient webClient = builder().baseUrl("localhost/right").build();
@@ -176,6 +180,8 @@ class ConfigMapEventReloadIT {
 	@Test
 	void testInform() throws Exception {
 		manifests("three", Phase.CREATE);
+		Commons.assertReloadLogStatements("added configmap informer for namespace",
+				"added secret informer for namespace", IMAGE_NAME);
 
 		// read the initial value from the right-configmap
 		WebClient rightWebClient = builder().baseUrl("localhost/right").build();
@@ -278,7 +284,6 @@ class ConfigMapEventReloadIT {
 		return Retry.fixedDelay(120, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
-	@SuppressWarnings({ "unchecked", "raw" })
 	private static void replaceConfigMap(V1ConfigMap configMap, String name) throws ApiException {
 		api.replaceNamespacedConfigMap(name, "right", configMap, null, null, null, null);
 	}
