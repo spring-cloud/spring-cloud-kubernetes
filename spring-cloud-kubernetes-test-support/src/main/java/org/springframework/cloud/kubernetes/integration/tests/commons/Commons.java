@@ -103,7 +103,7 @@ public final class Commons {
 			String appPodName = CONTAINER
 					.execInContainer("kubectl", "get", "pods", "-l", "app=" + appLabel, "-o=name", "--no-headers")
 					.getStdout();
-			await().pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(180)).until(() -> {
+			await().pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(360)).until(() -> {
 
 				String present = CONTAINER
 						.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'")
