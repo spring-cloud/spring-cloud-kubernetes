@@ -24,7 +24,10 @@ import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.CallGeneratorParams;
@@ -57,9 +60,11 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	private final KubernetesClientSecretsPropertySourceLocator propertySourceLocator;
 
-	private final SharedInformerFactory factory;
+	private final ApiClient apiClient;
 
 	private final List<SharedIndexInformer<V1Secret>> informers = new ArrayList<>();
+
+	private final List<SharedInformerFactory> factories = new ArrayList<>();
 
 	private final Set<String> namespaces;
 
@@ -69,22 +74,22 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 		@Override
 		public void onAdd(V1Secret secret) {
-			LOG.debug(() -> "Secret " + secret.getMetadata().getName() + " was added in namespace " +
-				secret.getMetadata().getNamespace());
+			LOG.debug(() -> "Secret " + secret.getMetadata().getName() + " was added in namespace "
+					+ secret.getMetadata().getNamespace());
 			onEvent(secret);
 		}
 
 		@Override
 		public void onUpdate(V1Secret oldSecret, V1Secret newSecret) {
-			LOG.debug(() -> "Secret " + newSecret.getMetadata().getName() + " was updated in namespace " +
-				newSecret.getMetadata().getNamespace());
+			LOG.debug(() -> "Secret " + newSecret.getMetadata().getName() + " was updated in namespace "
+					+ newSecret.getMetadata().getNamespace());
 			onEvent(newSecret);
 		}
 
 		@Override
 		public void onDelete(V1Secret secret, boolean deletedFinalStateUnknown) {
-			LOG.debug(() -> "Secret " + secret.getMetadata().getName() + " was deleted in namespace " +
-				secret.getMetadata().getNamespace());
+			LOG.debug(() -> "Secret " + secret.getMetadata().getName() + " was deleted in namespace "
+					+ secret.getMetadata().getNamespace());
 			onEvent(secret);
 		}
 	};
@@ -96,14 +101,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		super(environment, properties, strategy);
 		this.propertySourceLocator = propertySourceLocator;
 		this.coreV1Api = coreV1Api;
-		// We need to pass an APIClient to the SharedInformerFactory because if we use the
-		// default
-		// constructor it will use the configured default APIClient but that may not
-		// contain
-		// an APIClient configured within the cluster and does not contain the necessary
-		// certificate authorities for the cluster. This results in SSL errors.
-		// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
-		this.factory = new SharedInformerFactory(createApiClientForInformerClient());
+		this.apiClient = createApiClientForInformerClient();
 		this.enableReloadFiltering = properties.enableReloadFiltering();
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "secret");
 	}
@@ -114,33 +112,40 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 		namespaces.forEach(namespace -> {
 			SharedIndexInformer<V1Secret> informer;
-			String filter = null;
+			String[] filter = new String[1];
 
 			if (enableReloadFiltering) {
-				filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
-				LOG.debug(() -> "added secret informer for namespace : " + namespace + " with enabled filter");
-			}
-			else {
-				LOG.debug(() -> "added secret informer for namespace : " + namespace);
+				filter[0] = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
 			}
 
-			String filterOnInformerLabel = filter;
+			// We need to pass an APIClient to the SharedInformerFactory because if we use the
+			// default
+			// constructor it will use the configured default APIClient but that may not
+			// contain
+			// an APIClient configured within the cluster and does not contain the necessary
+			// certificate authorities for the cluster. This results in SSL errors.
+			// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
+			SharedInformerFactory factory = new SharedInformerFactory(apiClient);
+			factories.add(factory);
 			informer = factory.sharedIndexInformerFor(
-					(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(namespace, null, null, null,
-							null, filterOnInformerLabel, null, params.resourceVersion, null, params.timeoutSeconds,
-							params.watch, null),
-					V1Secret.class, V1SecretList.class);
+				(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(namespace, null, null, null,
+					null, filter[0], null, params.resourceVersion, null, params.timeoutSeconds, params.watch,
+					null),
+				V1Secret.class, V1SecretList.class);
+
+			LOG.debug(() -> "added secret informer for namespace : " + namespace + " with filter : " + filter[0]);
+
 			informer.addEventHandler(handler);
 			informers.add(informer);
+			factory.startAllRegisteredInformers();
 		});
 
-		factory.startAllRegisteredInformers();
 	}
 
 	@PreDestroy
 	void shutdown() {
 		informers.forEach(SharedIndexInformer::stop);
-		factory.stopAllRegisteredInformers();
+		factories.forEach(SharedInformerFactory::stopAllRegisteredInformers);
 	}
 
 	protected void onEvent(KubernetesObject secret) {

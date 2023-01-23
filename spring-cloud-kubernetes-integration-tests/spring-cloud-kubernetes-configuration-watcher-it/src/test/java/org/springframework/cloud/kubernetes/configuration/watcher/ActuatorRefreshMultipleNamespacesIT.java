@@ -16,7 +16,9 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +28,8 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1EnvVar;
+import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -94,36 +98,90 @@ class ActuatorRefreshMultipleNamespacesIT {
 	 * <pre>
 	 *     - deploy config-watcher in default namespace
 	 *     - deploy wiremock in default namespace (so that we could assert calls to the actuator path)
-	 *     - deploy configmap-left in left namespaces with proper label and "service-wiremock". Because of the
+	 *     - deploy configmap-left in left namespaces with proper label and "service-wiremock" name. Because of the
 	 *       label, this will trigger a reload; because of the name this will trigger a reload against that name.
 	 *       This is a http refresh against the actuator.
 	 *     - same as above for the configmap-right.
 	 * </pre>
 	 */
 	@Test
-	void testActuatorRefreshMultipleNamespaces() {
+	void testConfigMapActuatorRefreshMultipleNamespaces() {
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
-		WireMock
-			.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
 				.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)));
 
 		// left-config-map
 		V1ConfigMap leftConfigMap = new V1ConfigMapBuilder().editOrNewMetadata()
 			.withLabels(Map.of("spring.cloud.kubernetes.config", "true"))
-			.withName("service-wiremock").endMetadata().addToData("foo", "bar").build();
+			.withName("service-wiremock").withNamespace(LEFT_NAMESPACE).endMetadata().addToData("color", "purple").build();
 		util.createAndWait(LEFT_NAMESPACE, leftConfigMap, null);
-		await().atMost(Duration.ofSeconds(30)).until(
-				() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh"))).isEmpty());
-		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 
 		// right-config-map
 		V1ConfigMap rightConfigMap = new V1ConfigMapBuilder().editOrNewMetadata()
 			.withLabels(Map.of("spring.cloud.kubernetes.config", "true"))
-			.withName("service-wiremock").endMetadata().addToData("foo", "bar").build();
+			.withName("service-wiremock").withNamespace(RIGHT_NAMESPACE).endMetadata().addToData("color", "green").build();
 		util.createAndWait(RIGHT_NAMESPACE, rightConfigMap, null);
+
+		// comes from handler::onAdd (and as such from "onEvent")
+		Commons.assertReloadLogStatements("ConfigMap service-wiremock was added in namespace left",
+			"", "spring-cloud-kubernetes-configuration-watcher");
+
+		// comes from handler::onAdd (and as such from "onEvent")
+		Commons.assertReloadLogStatements("ConfigMap service-wiremock was added in namespace right",
+			"", "spring-cloud-kubernetes-configuration-watcher");
+
+		await().atMost(Duration.ofSeconds(30)).until(
+				() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh"))).isEmpty());
+		WireMock.verify(WireMock.exactly(2), WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
+
+		util.deleteAndWait(LEFT_NAMESPACE, leftConfigMap, null);
+		util.deleteAndWait(RIGHT_NAMESPACE, rightConfigMap, null);
+	}
+
+	/**
+	 * <pre>
+	 *     - deploy config-watcher in default namespace
+	 *     - deploy wiremock in default namespace (so that we could assert calls to the actuator path)
+	 *     - deploy secret-left in left namespaces with proper label and "service-wiremock". Because of the
+	 *       label, this will trigger a reload; because of the name this will trigger a reload against that name.
+	 *       This is a http refresh against the actuator.
+	 *     - same as above for the secret-right.
+	 * </pre>
+	 */
+	@Test
+	void testSecretActuatorRefreshMultipleNamespaces() {
+		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
+		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+				.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)));
+
+		// left-secret
+		V1Secret leftSecret = new V1SecretBuilder().editOrNewMetadata()
+			.withLabels(Map.of("spring.cloud.kubernetes.config", "true"))
+			.withName("service-wiremock").withNamespace(LEFT_NAMESPACE).endMetadata().addToData("color",
+				Base64.getEncoder().encode("purple".getBytes(StandardCharsets.UTF_8))).build();
+		util.createAndWait(LEFT_NAMESPACE, null, leftSecret);
+
+		// right-secret
+		V1Secret rightSecret = new V1SecretBuilder().editOrNewMetadata()
+			.withLabels(Map.of("spring.cloud.kubernetes.config", "true"))
+			.withName("service-wiremock").withNamespace(RIGHT_NAMESPACE).endMetadata().addToData("color",
+				Base64.getEncoder().encode("green".getBytes(StandardCharsets.UTF_8))).build();
+		util.createAndWait(RIGHT_NAMESPACE, null, rightSecret);
+
+		// comes from handler::onAdd (and as such from "onEvent")
+		Commons.assertReloadLogStatements("Secret service-wiremock was added in namespace left",
+			"", "spring-cloud-kubernetes-configuration-watcher");
+
+		// comes from handler::onAdd (and as such from "onEvent")
+		Commons.assertReloadLogStatements("Secret service-wiremock was added in namespace right",
+			"", "spring-cloud-kubernetes-configuration-watcher");
+
 		await().atMost(Duration.ofSeconds(30)).until(
 			() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh"))).isEmpty());
-		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
+		WireMock.verify(WireMock.exactly(2), WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
+
+		util.deleteAndWait(LEFT_NAMESPACE, null, leftSecret);
+		util.deleteAndWait(RIGHT_NAMESPACE, null, rightSecret);
 
 	}
 
