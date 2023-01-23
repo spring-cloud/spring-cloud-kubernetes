@@ -92,8 +92,11 @@ class ActuatorRefreshIT {
 	@Test
 	void testActuatorRefresh() {
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
-		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
-				.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)));
+		await().timeout(Duration.ofSeconds(60))
+			.until(() -> WireMock
+				.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+					.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
+				.getResponse().wasConfigured());
 
 		// Create new configmap to trigger controller to signal app to refresh
 		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName("service-wiremock")

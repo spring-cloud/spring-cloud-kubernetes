@@ -116,11 +116,13 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 				filter[0] = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
 			}
 
-			// We need to pass an APIClient to the SharedInformerFactory because if we use the
+			// We need to pass an APIClient to the SharedInformerFactory because if we use
+			// the
 			// default
 			// constructor it will use the configured default APIClient but that may not
 			// contain
-			// an APIClient configured within the cluster and does not contain the necessary
+			// an APIClient configured within the cluster and does not contain the
+			// necessary
 			// certificate authorities for the cluster. This results in SSL errors.
 			// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
 			SharedInformerFactory factory = new SharedInformerFactory(apiClient);

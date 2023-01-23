@@ -107,8 +107,11 @@ class ActuatorRefreshMultipleNamespacesIT {
 	@Test
 	void testConfigMapActuatorRefreshMultipleNamespaces() {
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
-		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
-				.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)));
+		await().timeout(Duration.ofSeconds(60))
+			.until(() -> WireMock
+				.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+					.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
+				.getResponse().wasConfigured());
 
 		// left-config-map
 		V1ConfigMap leftConfigMap = new V1ConfigMapBuilder().editOrNewMetadata()
@@ -151,19 +154,22 @@ class ActuatorRefreshMultipleNamespacesIT {
 	@Test
 	void testSecretActuatorRefreshMultipleNamespaces() {
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
-		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
-				.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)));
+		await().timeout(Duration.ofSeconds(60))
+			.until(() -> WireMock
+				.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+					.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
+				.getResponse().wasConfigured());
 
 		// left-secret
 		V1Secret leftSecret = new V1SecretBuilder().editOrNewMetadata()
-			.withLabels(Map.of("spring.cloud.kubernetes.config", "true"))
+			.withLabels(Map.of("spring.cloud.kubernetes.secret", "true"))
 			.withName("service-wiremock").withNamespace(LEFT_NAMESPACE).endMetadata().addToData("color",
 				Base64.getEncoder().encode("purple".getBytes(StandardCharsets.UTF_8))).build();
 		util.createAndWait(LEFT_NAMESPACE, null, leftSecret);
 
 		// right-secret
 		V1Secret rightSecret = new V1SecretBuilder().editOrNewMetadata()
-			.withLabels(Map.of("spring.cloud.kubernetes.config", "true"))
+			.withLabels(Map.of("spring.cloud.kubernetes.secret", "true"))
 			.withName("service-wiremock").withNamespace(RIGHT_NAMESPACE).endMetadata().addToData("color",
 				Base64.getEncoder().encode("green".getBytes(StandardCharsets.UTF_8))).build();
 		util.createAndWait(RIGHT_NAMESPACE, null, rightSecret);

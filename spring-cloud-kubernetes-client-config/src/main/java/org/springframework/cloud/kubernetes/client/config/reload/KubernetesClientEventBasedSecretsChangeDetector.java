@@ -26,8 +26,6 @@ import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.CallGeneratorParams;
@@ -118,20 +116,22 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 				filter[0] = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
 			}
 
-			// We need to pass an APIClient to the SharedInformerFactory because if we use the
+			// We need to pass an APIClient to the SharedInformerFactory because if we use
+			// the
 			// default
 			// constructor it will use the configured default APIClient but that may not
 			// contain
-			// an APIClient configured within the cluster and does not contain the necessary
+			// an APIClient configured within the cluster and does not contain the
+			// necessary
 			// certificate authorities for the cluster. This results in SSL errors.
 			// See https://github.com/spring-cloud/spring-cloud-kubernetes/issues/885
 			SharedInformerFactory factory = new SharedInformerFactory(apiClient);
 			factories.add(factory);
 			informer = factory.sharedIndexInformerFor(
-				(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(namespace, null, null, null,
-					null, filter[0], null, params.resourceVersion, null, params.timeoutSeconds, params.watch,
-					null),
-				V1Secret.class, V1SecretList.class);
+					(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(namespace, null, null, null,
+							null, filter[0], null, params.resourceVersion, null, params.timeoutSeconds, params.watch,
+							null),
+					V1Secret.class, V1SecretList.class);
 
 			LOG.debug(() -> "added secret informer for namespace : " + namespace + " with filter : " + filter[0]);
 
