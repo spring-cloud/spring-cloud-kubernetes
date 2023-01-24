@@ -103,7 +103,7 @@ public final class Commons {
 			String appPodName = CONTAINER
 					.execInContainer("kubectl", "get", "pods", "-l", "app=" + appLabel, "-o=name", "--no-headers")
 					.getStdout();
-			await().pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(360)).until(() -> {
+			await().pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(180)).until(() -> {
 
 				String present = CONTAINER
 						.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'")
@@ -112,6 +112,7 @@ public final class Commons {
 					String notPresent = CONTAINER.execInContainer("sh", "-c",
 							"kubectl logs " + appPodName.trim() + "| grep -v" + "'" + right + "'").getStdout();
 					Assertions.assertTrue(notPresent == null || notPresent.isBlank());
+					LOG.info("->" + notPresent + "<-");
 					return true;
 				}
 				LOG.info("log statement not yet present");
