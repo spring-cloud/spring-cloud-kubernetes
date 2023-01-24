@@ -112,11 +112,15 @@ public final class Commons {
 						String present = CONTAINER.execInContainer("sh", "-c",
 								"kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'").getStdout();
 						if (present != null && !present.isBlank()) {
-							String notPresent = CONTAINER
-									.execInContainer("sh", "-c",
-											"kubectl logs " + appPodName.trim() + "| grep " + "'" + right + "'")
-									.getStdout();
-							Assertions.assertTrue(notPresent == null || notPresent.isBlank());
+
+							if (!right.isBlank()) {
+								String notPresent = CONTAINER
+										.execInContainer("sh", "-c",
+												"kubectl logs " + appPodName.trim() + "| grep " + "'" + right + "'")
+										.getStdout();
+								Assertions.assertTrue(notPresent == null || notPresent.isBlank());
+							}
+
 							return true;
 						}
 						LOG.info("log statement not yet present");
