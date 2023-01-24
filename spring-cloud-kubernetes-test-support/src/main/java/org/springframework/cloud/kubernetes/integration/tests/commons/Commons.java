@@ -111,6 +111,9 @@ public final class Commons {
 
 						String present = CONTAINER.execInContainer("sh", "-c",
 								"kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'").getStdout();
+						String err = CONTAINER.execInContainer("sh", "-c",
+							"kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'").getStderr();
+						LOG.info("error is : " + err);
 						if (present != null && !present.isBlank()) {
 
 							if (!right.isBlank()) {
