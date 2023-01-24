@@ -106,7 +106,7 @@ public final class Commons {
 					.getStdout();
 			// we issue a pollDelay to let the logs sync in, otherwise the results are not
 			// going to be correctly asserted
-			await().pollDelay(20, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(180))
+			await().pollDelay(20, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(240))
 					.until(() -> {
 
 						String present = CONTAINER.execInContainer("sh", "-c",
