@@ -104,6 +104,7 @@ public final class Commons {
 			String appPodName = CONTAINER
 					.execInContainer("kubectl", "get", "pods", "-l", "app=" + appLabel, "-o=name", "--no-headers")
 					.getStdout();
+			LOG.info("appPodName : ->" + appPodName + "<-");
 			// we issue a pollDelay to let the logs sync in, otherwise the results are not
 			// going to be correctly asserted
 			await().pollDelay(20, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(600))
