@@ -110,12 +110,14 @@ public final class Commons {
 			await().pollDelay(20, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(600))
 					.until(() -> {
 
-						String present = CONTAINER.execInContainer("sh", "-c",
-								"kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'").getStdout();
-						String err = CONTAINER.execInContainer("sh", "-c",
-							"kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'").getStderr();
-						LOG.info("error is : " + err);
-						if (present != null && !present.isBlank()) {
+						Container.ExecResult result = CONTAINER.execInContainer("sh", "-c",
+							"kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'");
+						String error = result.getStderr();
+						String ok = result.getStdout();
+
+						LOG.info("error is : -->" + error + "<--");
+
+						if (ok != null && !ok.isBlank()) {
 
 							if (!right.isBlank()) {
 								String notPresent = CONTAINER
