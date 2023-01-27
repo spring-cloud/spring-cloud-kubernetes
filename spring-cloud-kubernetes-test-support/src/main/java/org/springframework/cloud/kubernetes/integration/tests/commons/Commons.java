@@ -101,9 +101,8 @@ public final class Commons {
 	public static void assertReloadLogStatements(String left, String right, String appLabel) {
 
 		try {
-			String appPodName = CONTAINER
-					.execInContainer("sh", "-c", "kubectl get pods -l app=" + appLabel + " -o=name --no-headers | tr -d '\n'")
-					.getStdout();
+			String appPodName = CONTAINER.execInContainer("sh", "-c",
+					"kubectl get pods -l app=" + appLabel + " -o=name --no-headers | tr -d '\n'").getStdout();
 			LOG.info("appPodName : ->" + appPodName + "<-");
 			// we issue a pollDelay to let the logs sync in, otherwise the results are not
 			// going to be correctly asserted
@@ -111,7 +110,7 @@ public final class Commons {
 					.until(() -> {
 
 						Container.ExecResult result = CONTAINER.execInContainer("sh", "-c",
-							"kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'");
+								"kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'");
 						String error = result.getStderr();
 						String ok = result.getStdout();
 
