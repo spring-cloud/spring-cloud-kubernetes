@@ -533,7 +533,7 @@ public final class Util {
 	}
 
 	private static String labelSelector(Map<String, String> labels) {
-		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining("&"));
+		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining(","));
 	}
 
 	private interface CheckedSupplier<T> {
