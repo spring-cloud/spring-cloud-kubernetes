@@ -23,7 +23,8 @@ import org.springframework.context.annotation.Import;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty("spring.cloud.config.discovery.enabled")
-@Import({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class })
+@Import({ KubernetesClientAutoConfiguration.class, KubernetesInformerDiscoveryConfiguration.class,
+		KubernetesDiscoveryClientHealthIndicatorConfiguration.class })
 public class KubernetesDiscoveryClientConfigClientBootstrapConfiguration {
 
 }
