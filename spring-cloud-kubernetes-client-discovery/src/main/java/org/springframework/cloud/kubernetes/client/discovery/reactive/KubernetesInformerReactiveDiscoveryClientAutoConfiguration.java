@@ -57,9 +57,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
+@ConditionalOnKubernetesDiscoveryEnabled
 @ConditionalOnReactiveDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-@ConditionalOnKubernetesDiscoveryEnabled
 @AutoConfigureBefore({ SimpleReactiveDiscoveryClientAutoConfiguration.class,
 		ReactiveCommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
@@ -85,7 +85,7 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 			KubernetesClientPodUtils podUtils) {
 		ReactiveDiscoveryClientHealthIndicator healthIndicator = new ReactiveDiscoveryClientHealthIndicator(client,
 				properties);
-		InstanceRegisteredEvent event = new InstanceRegisteredEvent(podUtils.currentPod(), null);
+		InstanceRegisteredEvent<?> event = new InstanceRegisteredEvent<>(podUtils.currentPod(), null);
 		healthIndicator.onApplicationEvent(event);
 		return healthIndicator;
 	}
@@ -97,7 +97,7 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 			@KubernetesInformer(apiTypeClass = V1Endpoints.class, apiListTypeClass = V1EndpointsList.class,
 					groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
 							resourcePlural = "endpoints")) })
-	class CatalogSharedInformerFactory extends SharedInformerFactory {
+	static class CatalogSharedInformerFactory extends SharedInformerFactory {
 
 		// TODO: optimization to ease memory pressure from continuous list&watch.
 
