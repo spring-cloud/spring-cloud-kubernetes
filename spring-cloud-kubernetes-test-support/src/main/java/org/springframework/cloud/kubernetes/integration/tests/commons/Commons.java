@@ -26,6 +26,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.github.dockerjava.api.command.ListImagesCmd;
 import com.github.dockerjava.api.command.PullImageCmd;
@@ -100,22 +101,36 @@ public final class Commons {
 	public static void assertReloadLogStatements(String left, String right, String appLabel) {
 
 		try {
-			String appPodName = CONTAINER
-					.execInContainer("kubectl", "get", "pods", "-l", "app=" + appLabel, "-o=name", "--no-headers")
-					.getStdout();
-			await().pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(180)).until(() -> {
+			String appPodName = CONTAINER.execInContainer("sh", "-c",
+					"kubectl get pods -l app=" + appLabel + " -o=name --no-headers | tr -d '\n'").getStdout();
+			LOG.info("appPodName : ->" + appPodName + "<-");
+			// we issue a pollDelay to let the logs sync in, otherwise the results are not
+			// going to be correctly asserted
+			await().pollDelay(20, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(600))
+					.until(() -> {
 
-				String allLogs = CONTAINER.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
-				LOG.info("==========================================================================================");
-				LOG.info(allLogs);
-				LOG.info("==========================================================================================");
-				if (allLogs.contains(left)) {
-					Assertions.assertFalse(allLogs.contains(right));
-					return true;
-				}
-				LOG.info("log statement not yet present");
-				return false;
-			});
+						Container.ExecResult result = CONTAINER.execInContainer("sh", "-c",
+								"kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'");
+						String error = result.getStderr();
+						String ok = result.getStdout();
+
+						LOG.info("error is : -->" + error + "<--");
+
+						if (ok != null && !ok.isBlank()) {
+
+							if (!right.isBlank()) {
+								String notPresent = CONTAINER
+										.execInContainer("sh", "-c",
+												"kubectl logs " + appPodName.trim() + "| grep " + "'" + right + "'")
+										.getStdout();
+								Assertions.assertTrue(notPresent == null || notPresent.isBlank());
+							}
+
+							return true;
+						}
+						LOG.info("log statement not yet present");
+						return false;
+					});
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
