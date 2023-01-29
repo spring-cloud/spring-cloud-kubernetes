@@ -43,8 +43,8 @@ import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIn
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientHealthIndicatorConfiguration;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryConfiguration;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientHealthIndicatorAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -63,7 +63,7 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureBefore({ SimpleReactiveDiscoveryClientAutoConfiguration.class,
 		ReactiveCommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
-		KubernetesInformerDiscoveryConfiguration.class, KubernetesDiscoveryClientHealthIndicatorConfiguration.class })
+		KubernetesInformerDiscoveryAutoConfiguration.class, KubernetesDiscoveryClientHealthIndicatorAutoConfiguration.class })
 public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean

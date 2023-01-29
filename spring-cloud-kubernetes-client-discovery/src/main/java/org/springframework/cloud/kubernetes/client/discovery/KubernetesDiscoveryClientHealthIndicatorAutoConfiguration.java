@@ -50,7 +50,7 @@ import org.springframework.context.annotation.Configuration;
 		// factory
 		KubernetesInformerAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
-public class KubernetesDiscoveryClientHealthIndicatorConfiguration {
+public class KubernetesDiscoveryClientHealthIndicatorAutoConfiguration {
 
 	@Bean
 	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(

@@ -59,7 +59,7 @@ import org.springframework.core.env.Environment;
 		KubernetesInformerAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
-public class KubernetesInformerDiscoveryConfiguration {
+public class KubernetesInformerDiscoveryAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
