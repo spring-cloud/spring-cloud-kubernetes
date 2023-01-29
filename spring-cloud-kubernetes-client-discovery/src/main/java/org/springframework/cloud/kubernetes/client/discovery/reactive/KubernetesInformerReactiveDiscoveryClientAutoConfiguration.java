@@ -63,7 +63,8 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureBefore({ SimpleReactiveDiscoveryClientAutoConfiguration.class,
 		ReactiveCommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
-		KubernetesInformerDiscoveryAutoConfiguration.class, KubernetesDiscoveryClientHealthIndicatorAutoConfiguration.class })
+		KubernetesInformerDiscoveryAutoConfiguration.class,
+		KubernetesDiscoveryClientHealthIndicatorAutoConfiguration.class })
 public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean

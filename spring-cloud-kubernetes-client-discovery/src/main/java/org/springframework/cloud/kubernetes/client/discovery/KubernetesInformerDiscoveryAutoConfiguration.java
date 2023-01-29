@@ -52,8 +52,8 @@ import org.springframework.core.env.Environment;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
-@ConditionalOnBlockingDiscoveryEnabled
 @ConditionalOnKubernetesDiscoveryEnabled
+@ConditionalOnBlockingDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class,
 		// So that CatalogSharedInformerFactory can be processed prior to the default

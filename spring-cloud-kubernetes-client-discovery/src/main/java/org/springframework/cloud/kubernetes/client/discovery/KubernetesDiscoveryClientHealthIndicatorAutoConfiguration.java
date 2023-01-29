@@ -42,8 +42,8 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnDiscoveryEnabled
-@ConditionalOnBlockingDiscoveryEnabled
 @ConditionalOnKubernetesDiscoveryEnabled
+@ConditionalOnBlockingDiscoveryEnabled
 @ConditionalOnDiscoveryHealthIndicatorEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnClass({ HealthIndicator.class })
