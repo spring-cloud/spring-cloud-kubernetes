@@ -1338,10 +1338,10 @@ that setting via `spring.main.cloud-platform`.
 For example, if you need to test some features, but do not want to deploy to a cluster, it is enough to set the:
 `spring.main.cloud-platform=KUBERNETES`. This will make `spring-cloud-kubernetes` act as-if it is deployed in a real cluster.
 
-NOTE:  If you have `spring-cloud-bootstrap-starter` on your classpath or are setting `spring.cloud.bootstrap.enabled=true` then
+NOTE:  If you have `spring-cloud-starter-bootstrap` on your classpath or are setting `spring.cloud.bootstrap.enabled=true` then
 you will have to set `spring.main.cloud-platform` should be set in `bootstrap.{properties|yml}`
 (or the profile specific one).  Also note that these properties: `spring.cloud.kubernetes.config.enabled` and `spring.cloud.kubernetes.secrets.enabled`
-will only take effect when set in `bootstrap.{properties|yml}` when you have `spring-cloud-bootstrap-starter` on your classpath or are setting `spring.cloud.bootstrap.enabled=true`.
+will only take effect when set in `bootstrap.{properties|yml}` when you have `spring-cloud-starter-bootstrap` on your classpath or are setting `spring.cloud.bootstrap.enabled=true`.
 
 === Breaking Changes In 3.0.x
 
