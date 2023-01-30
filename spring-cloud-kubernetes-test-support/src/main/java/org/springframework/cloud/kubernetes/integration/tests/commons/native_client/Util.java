@@ -23,6 +23,7 @@ import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -187,9 +188,16 @@ public final class Util {
 		String deploymentName = deploymentName(deployment);
 		String serviceName = serviceName(service);
 		try {
+
+			Map<String, String> podLabels = appsV1Api.readNamespacedDeployment(deploymentName, namespace, null)
+					.getSpec().getTemplate().getMetadata().getLabels();
+
 			appsV1Api.deleteNamespacedDeployment(deploymentName, namespace, null, null, null, null, null, null);
 			coreV1Api.deleteNamespacedService(serviceName, namespace, null, null, null, null, null, null);
+			coreV1Api.deleteCollectionNamespacedPod(namespace, null, null, null, null, null, labelSelector(podLabels),
+					null, null, null, null, null, null, null);
 			waitForDeploymentToBeDeleted(deploymentName, namespace);
+			waitForDeploymentPodsToBeDeleted(podLabels, namespace);
 
 			if (ingress != null) {
 				String ingressName = ingressName(ingress);
@@ -465,6 +473,22 @@ public final class Util {
 		});
 	}
 
+	private void waitForDeploymentPodsToBeDeleted(Map<String, String> labels, String namespace) {
+		await().timeout(Duration.ofSeconds(90)).until(() -> {
+			try {
+				int currentNumberOfPods = coreV1Api.listNamespacedPod(namespace, null, null, null, null,
+						labelSelector(labels), null, null, null, null, null).getItems().size();
+				return currentNumberOfPods == 0;
+			}
+			catch (ApiException e) {
+				if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+					return true;
+				}
+				throw new RuntimeException(e);
+			}
+		});
+	}
+
 	private void waitForIngressToBeDeleted(String ingressName, String namespace) {
 		await().timeout(Duration.ofSeconds(90)).until(() -> {
 			try {
@@ -506,6 +530,10 @@ public final class Util {
 			}
 			throw new RuntimeException(exception);
 		}
+	}
+
+	private static String labelSelector(Map<String, String> labels) {
+		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining(","));
 	}
 
 	private interface CheckedSupplier<T> {
