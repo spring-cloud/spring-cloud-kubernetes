@@ -16,17 +16,16 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.catalog;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test various conditionals for {@link KubernetesCatalogWatch}
@@ -35,50 +34,58 @@ import org.springframework.context.annotation.Configuration;
  */
 class KubernetesCatalogWatchApplicationContextTests {
 
-	private ConfigurableApplicationContext context;
-
-	@AfterEach
-	void close() {
-		context.close();
-	}
+	private ApplicationContextRunner applicationContextRunner;
 
 	@Test
 	void discoveryEnabledDefault() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false");
-		Assertions.assertEquals(context.getBeanNamesForType(KubernetesCatalogWatchAutoConfiguration.class).length, 1);
+		applicationContextRunner.run(context ->
+			assertThat(context).hasSingleBean(KubernetesCatalogWatchAutoConfiguration.class)
+		);
 	}
 
 	@Test
 	void discoveryEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.enabled=true");
-		Assertions.assertEquals(context.getBeanNamesForType(KubernetesCatalogWatchAutoConfiguration.class).length, 1);
+		applicationContextRunner.run(context ->
+			assertThat(context).hasSingleBean(KubernetesCatalogWatchAutoConfiguration.class)
+		);
 	}
 
 	@Test
 	void discoveryDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.enabled=false");
-		Assertions.assertEquals(context.getBeanNamesForType(KubernetesCatalogWatchAutoConfiguration.class).length, 0);
+		applicationContextRunner.run(context ->
+			assertThat(context).doesNotHaveBean(KubernetesCatalogWatchAutoConfiguration.class)
+		);
 	}
 
 	@Test
 	void kubernetesDiscoveryEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=true");
-		Assertions.assertEquals(context.getBeanNamesForType(KubernetesCatalogWatchAutoConfiguration.class).length, 1);
+		applicationContextRunner.run(context ->
+			assertThat(context).hasSingleBean(KubernetesCatalogWatchAutoConfiguration.class)
+		);
 	}
 
 	@Test
 	void kubernetesDiscoveryDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=false");
-		Assertions.assertEquals(context.getBeanNamesForType(KubernetesCatalogWatchAutoConfiguration.class).length, 0);
+		applicationContextRunner.run(context ->
+			assertThat(context).doesNotHaveBean(KubernetesCatalogWatchAutoConfiguration.class)
+		);
 	}
 
 	private void setup(String... properties) {
-		context = new SpringApplicationBuilder(Config.class, KubernetesCatalogWatchAutoConfiguration.class,
-				KubernetesClientAutoConfiguration.class).web(WebApplicationType.NONE).properties(properties).run();
+		applicationContextRunner = new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(KubernetesCatalogWatchAutoConfiguration.class,
+				KubernetesClientAutoConfiguration.class))
+			.withUserConfiguration(Config.class)
+			.withPropertyValues(properties);
 	}
 
 	@Configuration

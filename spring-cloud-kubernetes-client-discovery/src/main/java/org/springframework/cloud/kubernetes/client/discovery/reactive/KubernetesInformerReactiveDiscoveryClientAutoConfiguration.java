@@ -91,6 +91,12 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 		return healthIndicator;
 	}
 
+	@Bean
+	@ConditionalOnMissingBean
+	public CatalogSharedInformerFactory catalogSharedInformerFactory() {
+		return new CatalogSharedInformerFactory();
+	}
+
 	@KubernetesInformers({
 			@KubernetesInformer(apiTypeClass = V1Service.class, apiListTypeClass = V1ServiceList.class,
 					groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
