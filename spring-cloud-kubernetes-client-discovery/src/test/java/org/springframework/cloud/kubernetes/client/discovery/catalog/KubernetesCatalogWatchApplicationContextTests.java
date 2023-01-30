@@ -39,53 +39,47 @@ class KubernetesCatalogWatchApplicationContextTests {
 	@Test
 	void discoveryEnabledDefault() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false");
-		applicationContextRunner.run(context ->
-			assertThat(context).hasSingleBean(KubernetesCatalogWatchAutoConfiguration.class)
-		);
+		applicationContextRunner
+				.run(context -> assertThat(context).hasSingleBean(KubernetesCatalogWatchAutoConfiguration.class));
 	}
 
 	@Test
 	void discoveryEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.enabled=true");
-		applicationContextRunner.run(context ->
-			assertThat(context).hasSingleBean(KubernetesCatalogWatchAutoConfiguration.class)
-		);
+		applicationContextRunner
+				.run(context -> assertThat(context).hasSingleBean(KubernetesCatalogWatchAutoConfiguration.class));
 	}
 
 	@Test
 	void discoveryDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.enabled=false");
-		applicationContextRunner.run(context ->
-			assertThat(context).doesNotHaveBean(KubernetesCatalogWatchAutoConfiguration.class)
-		);
+		applicationContextRunner
+				.run(context -> assertThat(context).doesNotHaveBean(KubernetesCatalogWatchAutoConfiguration.class));
 	}
 
 	@Test
 	void kubernetesDiscoveryEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=true");
-		applicationContextRunner.run(context ->
-			assertThat(context).hasSingleBean(KubernetesCatalogWatchAutoConfiguration.class)
-		);
+		applicationContextRunner
+				.run(context -> assertThat(context).hasSingleBean(KubernetesCatalogWatchAutoConfiguration.class));
 	}
 
 	@Test
 	void kubernetesDiscoveryDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=false");
-		applicationContextRunner.run(context ->
-			assertThat(context).doesNotHaveBean(KubernetesCatalogWatchAutoConfiguration.class)
-		);
+		applicationContextRunner
+				.run(context -> assertThat(context).doesNotHaveBean(KubernetesCatalogWatchAutoConfiguration.class));
 	}
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(KubernetesCatalogWatchAutoConfiguration.class,
-				KubernetesClientAutoConfiguration.class))
-			.withUserConfiguration(Config.class)
-			.withPropertyValues(properties);
+				.withConfiguration(AutoConfigurations.of(KubernetesCatalogWatchAutoConfiguration.class,
+						KubernetesClientAutoConfiguration.class))
+				.withUserConfiguration(Config.class).withPropertyValues(properties);
 	}
 
 	@Configuration

@@ -101,15 +101,15 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public SpringCloudKubernetesInformerFactoryProcessor discoveryInformerConfigurer(
-		KubernetesNamespaceProvider kubernetesNamespaceProvider, ApiClient apiClient,
-		CatalogSharedInformerFactory sharedInformerFactory, Environment environment) {
+			KubernetesNamespaceProvider kubernetesNamespaceProvider, ApiClient apiClient,
+			CatalogSharedInformerFactory sharedInformerFactory, Environment environment) {
 		// Injecting KubernetesDiscoveryProperties here would cause it to be
 		// initialized too early.
 		// Instead, get the all-namespaces property value from the Environment directly
 		boolean allNamespaces = environment.getProperty("spring.cloud.kubernetes.discovery.all-namespaces",
-			Boolean.class, false);
+				Boolean.class, false);
 		return new SpringCloudKubernetesInformerFactoryProcessor(kubernetesNamespaceProvider, apiClient,
-			sharedInformerFactory, allNamespaces);
+				sharedInformerFactory, allNamespaces);
 	}
 
 }

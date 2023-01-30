@@ -38,88 +38,90 @@ class KubernetesDiscoveryClientHealthIndicatorAutoConfigurationApplicationContex
 	@Test
 	void discoveryEnabledDefault() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false");
-		applicationContextRunner.run(context ->
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class)
-		);
+		applicationContextRunner.run(context -> assertThat(context)
+				.hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class));
 	}
 
 	@Test
 	void discoveryEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.enabled=true");
-		applicationContextRunner.run(context ->
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class)
-		);
+		applicationContextRunner.run(context -> assertThat(context)
+				.hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class));
 	}
 
 	@Test
 	void discoveryDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.enabled=false");
-		applicationContextRunner.run(context ->
-			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class)
-		);
+		applicationContextRunner.run(context -> assertThat(context)
+				.doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class));
 	}
 
 	@Test
 	void kubernetesDiscoveryEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=true");
-		applicationContextRunner.run(context ->
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class)
-		);
+		applicationContextRunner.run(context -> assertThat(context)
+				.hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class));
 	}
 
 	@Test
 	void kubernetesDiscoveryDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=false");
-		applicationContextRunner.run(context ->
-			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class)
-		);
+		applicationContextRunner.run(context -> assertThat(context)
+				.doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class));
 	}
 
 	@Test
 	void kubernetesBlockingDiscoveryEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.blocking.enabled=true");
-		applicationContextRunner.run(context ->
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class)
-		);
+		applicationContextRunner.run(context -> assertThat(context)
+				.hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class));
 	}
 
 	@Test
 	void kubernetesBlockingDiscoveryDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.blocking.enabled=false");
-		applicationContextRunner.run(context ->
-			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class)
-		);
+		applicationContextRunner.run(context -> assertThat(context)
+				.doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class));
 	}
 
 	@Test
 	void kubernetesDiscoveryHealthIndicatorEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.client.health-indicator.enabled=true");
-		applicationContextRunner.run(context ->
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class)
-		);
+		applicationContextRunner.run(context -> assertThat(context)
+				.hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class));
 	}
 
 	@Test
 	void kubernetesDiscoveryHealthIndicatorDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.client.health-indicator.enabled=false");
-		applicationContextRunner.run(context ->
-			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class)
-		);
+		applicationContextRunner.run(context -> assertThat(context)
+				.doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class));
+	}
+
+	/**
+	 * reactive is disabled and should not impact blocking in anyway
+	 */
+	@Test
+	void reactiveDisabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.discovery.reactive.enabled=true");
+		applicationContextRunner.run(context -> assertThat(context)
+				.hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class));
 	}
 
 	private void setup(String... properties) {
-		applicationContextRunner = new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(
-			KubernetesDiscoveryClientHealthIndicatorAutoConfiguration.class,
-			KubernetesClientAutoConfiguration.class
-		)).withPropertyValues(properties);
+		applicationContextRunner = new ApplicationContextRunner().withConfiguration(
+				AutoConfigurations.of(KubernetesDiscoveryClientHealthIndicatorAutoConfiguration.class,
+						KubernetesClientAutoConfiguration.class))
+				.withPropertyValues(properties);
 	}
 
 }

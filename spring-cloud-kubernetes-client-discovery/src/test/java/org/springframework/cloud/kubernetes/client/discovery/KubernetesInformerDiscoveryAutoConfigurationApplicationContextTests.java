@@ -33,7 +33,6 @@ class KubernetesInformerDiscoveryAutoConfigurationApplicationContextTests {
 
 	private ApplicationContextRunner applicationContextRunner;
 
-
 	@Test
 	void discoveryEnabledDefault() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false");
@@ -104,11 +103,9 @@ class KubernetesInformerDiscoveryAutoConfigurationApplicationContextTests {
 	}
 
 	private void setup(String... properties) {
-		applicationContextRunner = new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(
-			KubernetesInformerDiscoveryAutoConfiguration.class,
-			KubernetesClientAutoConfiguration.class
-		))
-			.withPropertyValues(properties);
+		applicationContextRunner = new ApplicationContextRunner().withConfiguration(AutoConfigurations
+				.of(KubernetesInformerDiscoveryAutoConfiguration.class, KubernetesClientAutoConfiguration.class))
+				.withPropertyValues(properties);
 	}
 
 }
