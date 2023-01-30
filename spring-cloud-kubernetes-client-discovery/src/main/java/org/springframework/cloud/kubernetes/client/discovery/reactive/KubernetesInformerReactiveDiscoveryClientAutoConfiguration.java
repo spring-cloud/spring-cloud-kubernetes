@@ -20,12 +20,7 @@ import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1EndpointsList;
 import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceList;
-import io.kubernetes.client.spring.extended.controller.annotation.GroupVersionResource;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformer;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformers;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -43,6 +38,7 @@ import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIn
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
+import org.springframework.cloud.kubernetes.client.discovery.CatalogSharedInformerFactory;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientHealthIndicatorAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
@@ -95,19 +91,6 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 	@ConditionalOnMissingBean
 	public CatalogSharedInformerFactory catalogSharedInformerFactory() {
 		return new CatalogSharedInformerFactory();
-	}
-
-	@KubernetesInformers({
-			@KubernetesInformer(apiTypeClass = V1Service.class, apiListTypeClass = V1ServiceList.class,
-					groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
-							resourcePlural = "services")),
-			@KubernetesInformer(apiTypeClass = V1Endpoints.class, apiListTypeClass = V1EndpointsList.class,
-					groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
-							resourcePlural = "endpoints")) })
-	static class CatalogSharedInformerFactory extends SharedInformerFactory {
-
-		// TODO: optimization to ease memory pressure from continuous list&watch.
-
 	}
 
 }

@@ -21,6 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
+import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
@@ -42,29 +44,88 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
 		});
 	}
 
-//	@Test
-//	void discoveryEnabled() {
-//		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-//			"spring.cloud.discovery.enabled=true");
-//		Assertions.assertEquals(
-//			context.getBeanNamesForType(KubernetesInformerReactiveDiscoveryClient.class).length, 1);
-//	}
-//
-//	@Test
-//	void discoveryDisabled() {
-//		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-//			"spring.cloud.discovery.enabled=false");
-//		Assertions.assertEquals(
-//			context.getBeanNamesForType(KubernetesInformerReactiveDiscoveryClient.class).length, 0);
-//	}
+	@Test
+	void discoveryEnabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+			"spring.cloud.discovery.enabled=true");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
+		});
+	}
+
+	@Test
+	void discoveryDisabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+			"spring.cloud.discovery.enabled=false");
+		applicationContextRunner.run(context -> {
+			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+		});
+	}
+
+	@Test
+	void kubernetesDiscoveryEnabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+			"spring.cloud.kubernetes.discovery.enabled=true");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
+		});
+	}
+
+	@Test
+	void kubernetesDiscoveryDisabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+			"spring.cloud.kubernetes.discovery.enabled=false");
+		applicationContextRunner.run(context -> {
+			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
+		});
+	}
+
+	@Test
+	void kubernetesReactiveDiscoveryEnabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+			"spring.cloud.discovery.reactive.enabled=true");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
+		});
+	}
+
+	@Test
+	void kubernetesReactiveDiscoveryDisabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+			"spring.cloud.discovery.reactive.enabled=false");
+		applicationContextRunner.run(context -> {
+			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+		});
+	}
+
+	/**
+	 * blocking is disabled, and it should not impact reactive in any way.
+	 */
+	@Test
+	void testBlockingDisabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+			"spring.cloud.discovery.blocking.enabled=false");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
+		});
+	}
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(
 				KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
-			KubernetesClientAutoConfiguration.class, KubernetesInformerDiscoveryAutoConfiguration.class))
+			KubernetesClientAutoConfiguration.class, KubernetesInformerDiscoveryAutoConfiguration.class,
+				SimpleReactiveDiscoveryClientAutoConfiguration.class, UtilAutoConfiguration.class))
 			.withPropertyValues(properties);
 	}
 

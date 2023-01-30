@@ -40,6 +40,7 @@ import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -92,19 +93,6 @@ public class KubernetesInformerDiscoveryAutoConfiguration {
 			KubernetesDiscoveryProperties properties) {
 		return new KubernetesInformerDiscoveryClient(kubernetesNamespaceProvider.getNamespace(), sharedInformerFactory,
 				serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
-	}
-
-	@KubernetesInformers({
-			@KubernetesInformer(apiTypeClass = V1Service.class, apiListTypeClass = V1ServiceList.class,
-					groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
-							resourcePlural = "services")),
-			@KubernetesInformer(apiTypeClass = V1Endpoints.class, apiListTypeClass = V1EndpointsList.class,
-					groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
-							resourcePlural = "endpoints")) })
-	static class CatalogSharedInformerFactory extends SharedInformerFactory {
-
-		// TODO: optimization to ease memory pressure from continuous list&watch.
-
 	}
 
 }
