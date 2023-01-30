@@ -27,7 +27,6 @@ import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesCatalogEnabled;
-import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,14 +39,13 @@ import org.springframework.core.env.Environment;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
-@ConditionalOnKubernetesDiscoveryEnabled
+@ConditionalOnKubernetesCatalogEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
 class KubernetesCatalogWatchAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	@ConditionalOnKubernetesCatalogEnabled
 	KubernetesCatalogWatch kubernetesCatalogWatch(CoreV1Api coreV1Api, ApiClient apiClient,
 			KubernetesDiscoveryProperties properties, Environment environment) {
 		return new KubernetesCatalogWatch(coreV1Api, apiClient, properties,

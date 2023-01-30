@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author wind57
  */
-class KubernetesCatalogWatchApplicationContextTests {
+class KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 
 	private ApplicationContextRunner applicationContextRunner;
 
@@ -67,12 +67,13 @@ class KubernetesCatalogWatchApplicationContextTests {
 				.run(context -> assertThat(context).hasSingleBean(KubernetesCatalogWatchAutoConfiguration.class));
 	}
 
+	// disabling discovery has no impact on the catalog watch.
 	@Test
 	void kubernetesDiscoveryDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=false");
 		applicationContextRunner
-				.run(context -> assertThat(context).doesNotHaveBean(KubernetesCatalogWatchAutoConfiguration.class));
+				.run(context -> assertThat(context).hasSingleBean(KubernetesCatalogWatchAutoConfiguration.class));
 	}
 
 	private void setup(String... properties) {
