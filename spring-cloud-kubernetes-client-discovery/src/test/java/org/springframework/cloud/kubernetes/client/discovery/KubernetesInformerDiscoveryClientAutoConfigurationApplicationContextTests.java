@@ -16,11 +16,13 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
+import java.io.StringReader;
+
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.Config;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -30,9 +32,6 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.testcontainers.k3s.K3sContainer;
-
-import java.io.StringReader;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -47,7 +46,6 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 	private ApplicationContextRunner applicationContextRunner;
 
 	private static K3sContainer container;
-
 
 	@AfterAll
 	static void afterAll() {
@@ -177,10 +175,10 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 	}
 
 	private void setup(String... properties) {
-		applicationContextRunner = new ApplicationContextRunner().withConfiguration(AutoConfigurations
-				.of(KubernetesInformerDiscoveryClientAutoConfiguration.class, KubernetesClientAutoConfiguration.class))
-				.withUserConfiguration(ApiClientConfig.class)
-				.withPropertyValues(properties);
+		applicationContextRunner = new ApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
+						KubernetesClientAutoConfiguration.class))
+				.withUserConfiguration(ApiClientConfig.class).withPropertyValues(properties);
 	}
 
 	@Configuration
@@ -194,6 +192,7 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 
 			return Config.fromConfig(new StringReader(container.getKubeConfigYaml()));
 		}
+
 	}
 
 }
