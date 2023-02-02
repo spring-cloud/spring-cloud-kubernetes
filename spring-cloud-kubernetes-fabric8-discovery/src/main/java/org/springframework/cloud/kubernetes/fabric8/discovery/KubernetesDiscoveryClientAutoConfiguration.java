@@ -80,14 +80,14 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 			KubernetesDiscoveryProperties properties,
 			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
 		return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction, null,
-			new ServicePortSecureResolver(properties));
+				new ServicePortSecureResolver(properties));
 	}
 
 	@Bean
 	@ConditionalOnClass({ HealthIndicator.class })
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
-		ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 
