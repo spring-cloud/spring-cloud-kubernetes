@@ -18,7 +18,9 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
@@ -133,6 +135,17 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 		});
 	}
 
+	@Test
+	void kubernetesDiscoveryHealthIndicatorEnabledHealthIndicatorMissing() {
+		setupWithFilteredClassLoader(HealthIndicator.class, "spring.main.cloud-platform=KUBERNETES",
+			"spring.cloud.config.enabled=false", "spring.cloud.discovery.client.health-indicator.enabled=true");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(KubernetesClientServicesFunction.class);
+			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
+		});
+	}
+
 	/**
 	 * reactive is disabled and should not impact blocking in any way
 	 */
@@ -152,6 +165,14 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 				.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientAutoConfiguration.class,
 						Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class))
 				.withPropertyValues(properties);
+	}
+
+	private void setupWithFilteredClassLoader(Class<?> cls, String... properties) {
+		applicationContextRunner = new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientAutoConfiguration.class,
+				Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class))
+			.withClassLoader(new FilteredClassLoader(cls))
+			.withPropertyValues(properties);
 	}
 
 }
