@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.discovery.reactive;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
@@ -144,6 +145,33 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 		});
 	}
 
+	@Test
+	void healthDisabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.discovery.client.health-indicator.enabled=false");
+		applicationContextRunner.run(context -> {
+			// simple from commons
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
+			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+		});
+	}
+
+	@Test
+	void healthEnabledClassNotPresent() {
+		setupWithFilteredClassLoader("org.springframework.boot.actuate.health.ReactiveHealthIndicator",
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.discovery.client.health-indicator.enabled=false");
+		applicationContextRunner.run(context -> {
+			// simple from commons
+			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
+			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+		});
+	}
+
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(
@@ -151,6 +179,15 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 								KubernetesClientAutoConfiguration.class,
 								SimpleReactiveDiscoveryClientAutoConfiguration.class, UtilAutoConfiguration.class))
 				.withPropertyValues(properties);
+	}
+
+	private void setupWithFilteredClassLoader(String name, String... properties) {
+		applicationContextRunner = new ApplicationContextRunner()
+				.withConfiguration(
+						AutoConfigurations.of(KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
+								KubernetesClientAutoConfiguration.class,
+								SimpleReactiveDiscoveryClientAutoConfiguration.class, UtilAutoConfiguration.class))
+				.withClassLoader(new FilteredClassLoader(name)).withPropertyValues(properties);
 	}
 
 }
