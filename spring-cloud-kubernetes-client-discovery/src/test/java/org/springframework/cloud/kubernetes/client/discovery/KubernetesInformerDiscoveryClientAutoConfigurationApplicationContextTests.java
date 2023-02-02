@@ -24,7 +24,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
@@ -159,6 +161,18 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		});
 	}
 
+	@Test
+	void kubernetesDiscoveryHealthIndicatorEnabledHealthIndicatorMissing() {
+		setupWithFilteredClassLoader(HealthIndicator.class, "spring.main.cloud-platform=KUBERNETES",
+				"spring.cloud.config.enabled=false", "spring.cloud.discovery.client.health-indicator.enabled=true");
+		applicationContextRunner.run(context -> {
+			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
+			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
+			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
+			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+		});
+	}
+
 	/**
 	 * reactive is disabled and should not impact blocking in any way
 	 */
@@ -179,6 +193,14 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class))
 				.withUserConfiguration(ApiClientConfig.class).withPropertyValues(properties);
+	}
+
+	private void setupWithFilteredClassLoader(Class<?> cls, String... properties) {
+		applicationContextRunner = new ApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
+						KubernetesClientAutoConfiguration.class))
+				.withClassLoader(new FilteredClassLoader(cls)).withUserConfiguration(ApiClientConfig.class)
+				.withPropertyValues(properties);
 	}
 
 	@Configuration
