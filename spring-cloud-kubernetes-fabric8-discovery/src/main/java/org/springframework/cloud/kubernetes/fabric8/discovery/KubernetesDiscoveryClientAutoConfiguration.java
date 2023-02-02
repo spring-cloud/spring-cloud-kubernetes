@@ -51,6 +51,8 @@ import org.springframework.core.env.Environment;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
+@ConditionalOnKubernetesDiscoveryEnabled
+@ConditionalOnBlockingDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ Fabric8AutoConfiguration.class })
@@ -72,34 +74,21 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		};
 	}
 
-	@ConditionalOnClass({ HealthIndicator.class })
-	@ConditionalOnDiscoveryEnabled
-	@ConditionalOnDiscoveryHealthIndicatorEnabled
-	@Configuration
-	public static class KubernetesDiscoveryClientHealthIndicatorConfiguration {
-
-		@Bean
-		public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
-				ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
-			return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
-		}
-
+	@Bean
+	@ConditionalOnMissingBean
+	public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
+			KubernetesDiscoveryProperties properties,
+			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
+		return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction, null,
+			new ServicePortSecureResolver(properties));
 	}
 
-	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnBlockingDiscoveryEnabled
-	@ConditionalOnKubernetesDiscoveryEnabled
-	public static class KubernetesDiscoveryClientConfiguration {
-
-		@Bean
-		@ConditionalOnMissingBean
-		public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
-				KubernetesDiscoveryProperties properties,
-				KubernetesClientServicesFunction kubernetesClientServicesFunction) {
-			return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction, null,
-					new ServicePortSecureResolver(properties));
-		}
-
+	@Bean
+	@ConditionalOnClass({ HealthIndicator.class })
+	@ConditionalOnDiscoveryHealthIndicatorEnabled
+	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
+		ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 
 }
