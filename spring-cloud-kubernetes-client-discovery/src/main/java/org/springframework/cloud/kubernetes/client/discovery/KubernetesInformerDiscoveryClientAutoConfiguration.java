@@ -23,8 +23,10 @@ import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.spring.extended.controller.config.KubernetesInformerAutoConfiguration;
 
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
@@ -62,6 +64,7 @@ import org.springframework.core.env.Environment;
 public class KubernetesInformerDiscoveryClientAutoConfiguration {
 
 	@Bean
+	@ConditionalOnClass({ HealthIndicator.class })
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
 			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
