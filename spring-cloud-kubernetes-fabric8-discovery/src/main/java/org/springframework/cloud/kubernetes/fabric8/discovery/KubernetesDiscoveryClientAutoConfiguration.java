@@ -60,6 +60,7 @@ import org.springframework.core.env.Environment;
 public class KubernetesDiscoveryClientAutoConfiguration {
 
 	@Bean
+	@ConditionalOnMissingBean
 	public KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties,
 			Environment environment) {
 
