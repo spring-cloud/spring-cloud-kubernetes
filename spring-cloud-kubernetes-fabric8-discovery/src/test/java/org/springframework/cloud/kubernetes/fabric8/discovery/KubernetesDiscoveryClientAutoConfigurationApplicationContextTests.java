@@ -138,7 +138,7 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 	@Test
 	void kubernetesDiscoveryHealthIndicatorEnabledHealthIndicatorMissing() {
 		setupWithFilteredClassLoader(HealthIndicator.class, "spring.main.cloud-platform=KUBERNETES",
-			"spring.cloud.config.enabled=false", "spring.cloud.discovery.client.health-indicator.enabled=true");
+				"spring.cloud.config.enabled=false", "spring.cloud.discovery.client.health-indicator.enabled=true");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientServicesFunction.class);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
@@ -169,10 +169,9 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 
 	private void setupWithFilteredClassLoader(Class<?> cls, String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientAutoConfiguration.class,
-				Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class))
-			.withClassLoader(new FilteredClassLoader(cls))
-			.withPropertyValues(properties);
+				.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientAutoConfiguration.class,
+						Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class))
+				.withClassLoader(new FilteredClassLoader(cls)).withPropertyValues(properties);
 	}
 
 }

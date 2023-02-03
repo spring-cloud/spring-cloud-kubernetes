@@ -22,6 +22,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesCatalogEnabled;
@@ -41,6 +42,7 @@ import org.springframework.core.env.Environment;
 @ConditionalOnKubernetesCatalogEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter({ Fabric8AutoConfiguration.class })
+@EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 public class KubernetesCatalogWatchAutoConfiguration {
 
 	@Bean

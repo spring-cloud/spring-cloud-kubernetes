@@ -36,9 +36,11 @@ import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactive
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesClientServicesFunction;
+import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesClientServicesFunctionProvider;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 /**
  * Auto configuration for reactive discovery client.
@@ -56,6 +58,13 @@ import org.springframework.context.annotation.Configuration;
 		KubernetesDiscoveryClientAutoConfiguration.class })
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 public class KubernetesReactiveDiscoveryClientAutoConfiguration {
+
+	@Bean
+	@ConditionalOnMissingBean
+	public KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties,
+			Environment environment) {
+		return KubernetesClientServicesFunctionProvider.servicesFunction(properties, environment);
+	}
 
 	@Bean
 	@ConditionalOnMissingBean

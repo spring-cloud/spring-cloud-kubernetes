@@ -31,13 +31,11 @@ import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,16 +61,7 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	@ConditionalOnMissingBean
 	public KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties,
 			Environment environment) {
-
-		if (properties.allNamespaces()) {
-			return (client) -> client.services().inAnyNamespace().withLabels(properties.serviceLabels());
-		}
-
-		return client -> {
-			String namespace = Fabric8Utils.getApplicationNamespace(client, null, "discovery-service",
-					new KubernetesNamespaceProvider(environment));
-			return client.services().inNamespace(namespace).withLabels(properties.serviceLabels());
-		};
+		return KubernetesClientServicesFunctionProvider.servicesFunction(properties, environment);
 	}
 
 	@Bean

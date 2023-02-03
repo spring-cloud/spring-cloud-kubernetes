@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.discovery.catalog;
+package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
-import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.discovery.reactive.KubernetesReactiveDiscoveryClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Test various conditionals for {@link KubernetesCatalogWatch}
- *
  * @author wind57
  */
 class KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
@@ -80,8 +78,9 @@ class KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.discovery.reactive.enabled=false");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesCatalogWatch.class);
-			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesInformerDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(KubernetesClientServicesFunction.class);
+			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(KubernetesReactiveDiscoveryClient.class);
 		});
 	}
 
@@ -95,14 +94,16 @@ class KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 				"spring.cloud.kubernetes.discovery.enabled=false");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesCatalogWatch.class);
-			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesInformerDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(KubernetesClientServicesFunction.class);
+			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(KubernetesReactiveDiscoveryClient.class);
 		});
 	}
 
 	private void setup(String... properties) {
-		applicationContextRunner = new ApplicationContextRunner().withConfiguration(AutoConfigurations
-				.of(KubernetesCatalogWatchAutoConfiguration.class, KubernetesClientAutoConfiguration.class))
+		applicationContextRunner = new ApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(KubernetesCatalogWatchAutoConfiguration.class,
+						Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class))
 				.withPropertyValues(properties);
 	}
 
