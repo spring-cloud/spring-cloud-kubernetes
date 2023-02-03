@@ -30,7 +30,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
@@ -59,8 +58,7 @@ import org.springframework.core.env.Environment;
 		// So that CatalogSharedInformerFactory can be processed prior to the default
 		// factory
 		KubernetesInformerAutoConfiguration.class })
-@AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
-@EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
+@AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
 public class KubernetesInformerDiscoveryClientAutoConfiguration {
 
 	@Bean

@@ -191,14 +191,14 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
-						KubernetesClientAutoConfiguration.class))
+						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
 				.withUserConfiguration(ApiClientConfig.class).withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(Class<?> cls, String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
-						KubernetesClientAutoConfiguration.class))
+						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
 				.withClassLoader(new FilteredClassLoader(cls)).withUserConfiguration(ApiClientConfig.class)
 				.withPropertyValues(properties);
 	}
