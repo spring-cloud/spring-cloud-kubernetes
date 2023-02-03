@@ -239,11 +239,11 @@ jobs:
                 -Dmaven.wagon.http.retryHandler.count=3 \
                 -Dskip.build.image=true
 
-      - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v2
-        if: always() # always run even if the previous step fails
-        with:
-          report_paths: '**/surefire-reports/TEST-*.xml'
+#      - name: Publish Test Report
+#        uses: mikepenz/action-junit-report@v2
+#        if: always() # always run even if the previous step fails
+#        with:
+#          report_paths: '**/surefire-reports/TEST-*.xml'
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v2
