@@ -43,7 +43,7 @@ import org.springframework.core.ResolvableType;
 /**
  * @author Ryan Baxter
  */
-class SpringCloudKubernetesInformerFactoryProcessor extends KubernetesInformerFactoryProcessor {
+public class SpringCloudKubernetesInformerFactoryProcessor extends KubernetesInformerFactoryProcessor {
 
 	private static final Logger log = LoggerFactory.getLogger(SpringCloudKubernetesInformerFactoryProcessor.class);
 
@@ -58,7 +58,7 @@ class SpringCloudKubernetesInformerFactoryProcessor extends KubernetesInformerFa
 	private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
 	@Autowired
-	SpringCloudKubernetesInformerFactoryProcessor(KubernetesNamespaceProvider kubernetesNamespaceProvider,
+	public SpringCloudKubernetesInformerFactoryProcessor(KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			ApiClient apiClient, SharedInformerFactory sharedInformerFactory, boolean allNamespaces) {
 		super();
 		this.apiClient = apiClient;

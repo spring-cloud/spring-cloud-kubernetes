@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty("spring.cloud.config.discovery.enabled")
-@Import({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class })
+@Import({ KubernetesClientAutoConfiguration.class, KubernetesInformerDiscoveryClientAutoConfiguration.class })
 public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 
 	private AnnotationConfigApplicationContext context;
@@ -83,13 +83,13 @@ public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 		TestPropertyValues.of(env).applyTo(parent);
 		parent.register(UtilAutoConfiguration.class, PropertyPlaceholderAutoConfiguration.class,
 				EnvironmentKnobbler.class, KubernetesCommonsAutoConfiguration.class,
-				KubernetesClientAutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class,
+				KubernetesClientAutoConfiguration.class, KubernetesInformerDiscoveryClientAutoConfiguration.class,
 				DiscoveryClientConfigServiceBootstrapConfiguration.class, ConfigClientProperties.class);
 		parent.refresh();
 		this.context = new AnnotationConfigApplicationContext();
 		this.context.setParent(parent);
 		this.context.register(PropertyPlaceholderAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-				KubernetesDiscoveryClientAutoConfiguration.class);
+				KubernetesInformerDiscoveryClientAutoConfiguration.class);
 		this.context.refresh();
 	}
 
