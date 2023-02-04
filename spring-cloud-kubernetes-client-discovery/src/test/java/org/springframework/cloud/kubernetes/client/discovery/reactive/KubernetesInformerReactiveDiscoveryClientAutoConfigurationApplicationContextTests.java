@@ -26,6 +26,7 @@ import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactive
 import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.CatalogSharedInformerFactory;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.SpringCloudKubernetesInformerFactoryProcessor;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -174,19 +175,19 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(
-						AutoConfigurations.of(KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
-								KubernetesClientAutoConfiguration.class,
-								SimpleReactiveDiscoveryClientAutoConfiguration.class, UtilAutoConfiguration.class))
+				.withConfiguration(AutoConfigurations.of(
+						KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
+						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
+						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
 				.withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(String name, String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(
-						AutoConfigurations.of(KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
-								KubernetesClientAutoConfiguration.class,
-								SimpleReactiveDiscoveryClientAutoConfiguration.class, UtilAutoConfiguration.class))
+				.withConfiguration(AutoConfigurations.of(
+						KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
+						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
+						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
 				.withClassLoader(new FilteredClassLoader(name)).withPropertyValues(properties);
 	}
 

@@ -1,3 +1,4 @@
 org.springframework.cloud.kubernetes.client.discovery.catalog.KubernetesCatalogWatchAutoConfiguration
 org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClientAutoConfiguration
+org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryPropertiesAutoConfiguration
 org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClientAutoConfiguration
