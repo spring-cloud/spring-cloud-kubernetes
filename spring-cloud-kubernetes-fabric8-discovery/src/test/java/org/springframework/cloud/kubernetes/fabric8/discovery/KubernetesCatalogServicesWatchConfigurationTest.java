@@ -29,6 +29,7 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -81,8 +82,8 @@ public class KubernetesCatalogServicesWatchConfigurationTest {
 		envList.add("spring.cloud.config.enabled=false");
 		this.context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
 				KubernetesClientTestConfiguration.class, KubernetesCatalogWatchAutoConfiguration.class,
-				KubernetesDiscoveryClientAutoConfiguration.class).web(WebApplicationType.NONE)
-						.properties(envList.toArray(new String[0])).run();
+				KubernetesDiscoveryClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class)
+						.web(WebApplicationType.NONE).properties(envList.toArray(new String[0])).run();
 	}
 
 	@Configuration(proxyBeanMethods = false)
