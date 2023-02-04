@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
  */
 public class KubernetesInformerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
 
-	private KubernetesInformerDiscoveryClient kubernetesDiscoveryClient;
+	private final KubernetesInformerDiscoveryClient kubernetesDiscoveryClient;
 
 	public KubernetesInformerReactiveDiscoveryClient(KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
