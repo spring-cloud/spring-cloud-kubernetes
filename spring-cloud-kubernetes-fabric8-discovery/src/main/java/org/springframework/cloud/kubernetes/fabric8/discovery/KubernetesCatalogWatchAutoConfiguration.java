@@ -38,13 +38,13 @@ import org.springframework.core.env.Environment;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
+@ConditionalOnKubernetesCatalogEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter({ Fabric8AutoConfiguration.class })
 public class KubernetesCatalogWatchAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	@ConditionalOnKubernetesCatalogEnabled
 	public KubernetesCatalogWatch kubernetesCatalogWatch(KubernetesClient client,
 			KubernetesDiscoveryProperties properties, Environment environment) {
 		return new KubernetesCatalogWatch(client, properties, new KubernetesNamespaceProvider(environment));
