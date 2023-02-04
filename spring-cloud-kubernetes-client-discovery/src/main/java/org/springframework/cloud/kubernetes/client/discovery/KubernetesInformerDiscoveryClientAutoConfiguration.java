@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,77 +14,69 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.discovery.reactive;
+package org.springframework.cloud.kubernetes.client.discovery;
 
 import io.kubernetes.client.informer.SharedInformer;
-import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.spring.extended.controller.config.KubernetesInformerAutoConfiguration;
 
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
+import org.springframework.cloud.client.CommonsClientAutoConfiguration;
+import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
-import org.springframework.cloud.client.ConditionalOnReactiveDiscoveryEnabled;
-import org.springframework.cloud.client.ReactiveCommonsClientAutoConfiguration;
-import org.springframework.cloud.client.discovery.composite.reactive.ReactiveCompositeDiscoveryClientAutoConfiguration;
-import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
-import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIndicatorProperties;
-import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
-import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
-import org.springframework.cloud.kubernetes.client.discovery.CatalogSharedInformerFactory;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
-import org.springframework.cloud.kubernetes.client.discovery.SpringCloudKubernetesInformerFactoryProcessor;
+import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 /**
- * @author Ryan Baxter
+ * @author wind57
  */
-
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnKubernetesDiscoveryEnabled
-@ConditionalOnReactiveDiscoveryEnabled
+@ConditionalOnBlockingDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-@AutoConfigureBefore({ SimpleReactiveDiscoveryClientAutoConfiguration.class,
-		ReactiveCommonsClientAutoConfiguration.class })
-@AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
-		KubernetesDiscoveryPropertiesAutoConfiguration.class })
-public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
+@AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class,
+		// So that CatalogSharedInformerFactory can be processed prior to the default
+		// factory
+		KubernetesInformerAutoConfiguration.class })
+@AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
+public class KubernetesInformerDiscoveryClientAutoConfiguration {
 
 	@Bean
-	@ConditionalOnClass(name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
+	@ConditionalOnClass({ HealthIndicator.class })
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
-	public ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
-			KubernetesInformerReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties,
-			KubernetesClientPodUtils podUtils) {
-		ReactiveDiscoveryClientHealthIndicator healthIndicator = new ReactiveDiscoveryClientHealthIndicator(client,
-				properties);
-		InstanceRegisteredEvent<?> event = new InstanceRegisteredEvent<>(podUtils.currentPod(), null);
-		healthIndicator.onApplicationEvent(event);
-		return healthIndicator;
+	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	public KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(
-			KubernetesNamespaceProvider kubernetesNamespaceProvider, SharedInformerFactory sharedInformerFactory,
+	public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient(
+			KubernetesNamespaceProvider kubernetesNamespaceProvider, CatalogSharedInformerFactory sharedInformerFactory,
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
 			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
 			KubernetesDiscoveryProperties properties) {
-		return new KubernetesInformerReactiveDiscoveryClient(kubernetesNamespaceProvider, sharedInformerFactory,
+		return new KubernetesInformerDiscoveryClient(kubernetesNamespaceProvider.getNamespace(), sharedInformerFactory,
 				serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
 	}
 
