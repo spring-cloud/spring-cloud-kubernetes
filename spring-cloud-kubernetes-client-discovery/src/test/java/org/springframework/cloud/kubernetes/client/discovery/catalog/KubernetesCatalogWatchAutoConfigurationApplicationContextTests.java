@@ -23,6 +23,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -104,7 +105,8 @@ class KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(KubernetesCatalogWatchAutoConfiguration.class,
-						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
+						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+						KubernetesCommonsAutoConfiguration.class))
 				.withPropertyValues(properties);
 	}
 

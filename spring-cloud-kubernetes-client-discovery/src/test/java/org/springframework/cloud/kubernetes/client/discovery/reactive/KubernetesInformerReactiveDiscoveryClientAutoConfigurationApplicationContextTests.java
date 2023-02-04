@@ -27,6 +27,7 @@ import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.CatalogSharedInformerFactory;
 import org.springframework.cloud.kubernetes.client.discovery.SpringCloudKubernetesInformerFactoryProcessor;
+import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -174,11 +175,11 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 	}
 
 	private void setup(String... properties) {
-		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(
-						KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
+		applicationContextRunner = new ApplicationContextRunner().withConfiguration(
+				AutoConfigurations.of(KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
-						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
+						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+						KubernetesCommonsAutoConfiguration.class))
 				.withPropertyValues(properties);
 	}
 
@@ -187,7 +188,8 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 				.withConfiguration(AutoConfigurations.of(
 						KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
-						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
+						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+						KubernetesCommonsAutoConfiguration.class))
 				.withClassLoader(new FilteredClassLoader(name)).withPropertyValues(properties);
 	}
 
