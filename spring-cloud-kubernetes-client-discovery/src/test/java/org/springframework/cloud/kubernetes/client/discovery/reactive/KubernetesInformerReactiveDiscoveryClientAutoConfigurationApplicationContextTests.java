@@ -26,8 +26,8 @@ import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactive
 import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.CatalogSharedInformerFactory;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.SpringCloudKubernetesInformerFactoryProcessor;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
