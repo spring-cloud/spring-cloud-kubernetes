@@ -21,9 +21,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -85,6 +85,7 @@ class KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 			assertThat(context).doesNotHaveBean(KubernetesInformerDiscoveryClient.class);
 		});
 	}
+
 	/**
 	 * spring.cloud.kubernetes.discovery.enabled is false, but does not influence catalog
 	 * watcher.

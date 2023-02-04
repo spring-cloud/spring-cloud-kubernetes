@@ -26,6 +26,7 @@ import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientAutoConfiguration;
 
@@ -40,7 +41,8 @@ class KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 			.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
 					ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
 					Fabric8AutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class,
-					KubernetesReactiveDiscoveryClientAutoConfiguration.class));
+					KubernetesReactiveDiscoveryClientAutoConfiguration.class,
+					KubernetesDiscoveryPropertiesAutoConfiguration.class));
 
 	@Test
 	void shouldWorkWithDefaults() {

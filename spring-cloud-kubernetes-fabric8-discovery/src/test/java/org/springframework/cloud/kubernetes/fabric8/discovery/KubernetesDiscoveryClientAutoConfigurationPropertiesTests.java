@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -80,7 +81,8 @@ class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 		List<String> envList = new ArrayList<>(Arrays.asList(env));
 		envList.add("spring.cloud.config.enabled=false");
 		this.context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
-				KubernetesClientTestConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class)
+				KubernetesClientTestConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class,
+				KubernetesDiscoveryPropertiesAutoConfiguration.class)
 						.web(org.springframework.boot.WebApplicationType.NONE)
 						.properties(envList.toArray(new String[0])).run();
 	}

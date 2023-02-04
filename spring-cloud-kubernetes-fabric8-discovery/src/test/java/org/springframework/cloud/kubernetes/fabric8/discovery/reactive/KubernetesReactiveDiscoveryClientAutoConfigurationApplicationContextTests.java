@@ -25,6 +25,7 @@ import org.springframework.cloud.client.ReactiveCommonsClientAutoConfiguration;
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesClientServicesFunction;
 
@@ -157,7 +158,8 @@ class KubernetesReactiveDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
 						ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-						Fabric8AutoConfiguration.class, KubernetesReactiveDiscoveryClientAutoConfiguration.class))
+						Fabric8AutoConfiguration.class, KubernetesReactiveDiscoveryClientAutoConfiguration.class,
+						KubernetesDiscoveryPropertiesAutoConfiguration.class))
 				.withPropertyValues(properties);
 	}
 
@@ -165,7 +167,8 @@ class KubernetesReactiveDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
 						ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-						Fabric8AutoConfiguration.class, KubernetesReactiveDiscoveryClientAutoConfiguration.class))
+						Fabric8AutoConfiguration.class, KubernetesReactiveDiscoveryClientAutoConfiguration.class,
+						KubernetesDiscoveryPropertiesAutoConfiguration.class))
 				.withClassLoader(new FilteredClassLoader(name)).withPropertyValues(properties);
 	}
 

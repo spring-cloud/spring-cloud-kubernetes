@@ -24,6 +24,7 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -161,16 +162,17 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 	}
 
 	private void setup(String... properties) {
-		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientAutoConfiguration.class,
-						Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class))
+		applicationContextRunner = new ApplicationContextRunner().withConfiguration(
+				AutoConfigurations.of(KubernetesDiscoveryClientAutoConfiguration.class, Fabric8AutoConfiguration.class,
+						KubernetesCommonsAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
 				.withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(Class<?> cls, String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientAutoConfiguration.class,
-						Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class))
+						Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+						KubernetesDiscoveryPropertiesAutoConfiguration.class))
 				.withClassLoader(new FilteredClassLoader(cls)).withPropertyValues(properties);
 	}
 

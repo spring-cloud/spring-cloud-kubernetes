@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.cloud.kubernetes.fabric8.discovery.reactive.KubernetesReactiveDiscoveryClient;
 
@@ -101,9 +102,9 @@ class KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 	}
 
 	private void setup(String... properties) {
-		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(KubernetesCatalogWatchAutoConfiguration.class,
-						Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class))
+		applicationContextRunner = new ApplicationContextRunner().withConfiguration(
+				AutoConfigurations.of(KubernetesCatalogWatchAutoConfiguration.class, Fabric8AutoConfiguration.class,
+						KubernetesCommonsAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
 				.withPropertyValues(properties);
 	}
 
