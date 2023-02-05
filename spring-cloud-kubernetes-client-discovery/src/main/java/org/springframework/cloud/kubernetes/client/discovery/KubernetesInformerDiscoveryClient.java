@@ -28,7 +28,6 @@ import java.util.stream.Stream;
 
 import io.kubernetes.client.extended.wait.Wait;
 import io.kubernetes.client.informer.SharedInformer;
-import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
@@ -63,8 +62,6 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 	private static final String SECURED_KEY = "secured";
 
-	private final SharedInformerFactory sharedInformerFactory;
-
 	private final Lister<V1Service> serviceLister;
 
 	private final Supplier<Boolean> informersReadyFunc;
@@ -75,13 +72,11 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 
 	private final String namespace;
 
-	public KubernetesInformerDiscoveryClient(String namespace, SharedInformerFactory sharedInformerFactory,
+	public KubernetesInformerDiscoveryClient(String namespace,
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
 			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
 			KubernetesDiscoveryProperties properties) {
 		this.namespace = namespace;
-		this.sharedInformerFactory = sharedInformerFactory;
-
 		this.serviceLister = serviceLister;
 		this.endpointsLister = endpointsLister;
 		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
@@ -234,8 +229,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
-		this.sharedInformerFactory.startAllRegisteredInformers();
+	public void afterPropertiesSet() {
 		if (!Wait.poll(Duration.ofSeconds(1), Duration.ofSeconds(this.properties.cacheLoadingTimeoutSeconds()), () -> {
 			log.info("Waiting for the cache of informers to be fully loaded..");
 			return this.informersReadyFunc.get();

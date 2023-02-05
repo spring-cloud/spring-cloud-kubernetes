@@ -16,13 +16,18 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
+import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformer;
+import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.kubernetes.client.spring.extended.controller.config.KubernetesInformerAutoConfiguration;
 
+import io.kubernetes.client.util.generic.GenericKubernetesApi;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -45,7 +50,10 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
+import org.springframework.core.log.LogAccessor;
+
+import static io.kubernetes.client.util.Namespaces.NAMESPACE_ALL;
+import static io.kubernetes.client.util.Namespaces.NAMESPACE_DEFAULT;
 
 /**
  * @author wind57
@@ -62,6 +70,9 @@ import org.springframework.core.env.Environment;
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
 public class KubernetesInformerDiscoveryClientAutoConfiguration {
 
+	private static final LogAccessor LOG = new LogAccessor(
+		LogFactory.getLog(KubernetesInformerDiscoveryClientAutoConfiguration.class));
+
 	@Bean
 	@ConditionalOnClass({ HealthIndicator.class })
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
@@ -73,32 +84,51 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient(
-			KubernetesNamespaceProvider kubernetesNamespaceProvider, CatalogSharedInformerFactory sharedInformerFactory,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
 			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
 			KubernetesDiscoveryProperties properties) {
-		return new KubernetesInformerDiscoveryClient(kubernetesNamespaceProvider.getNamespace(), sharedInformerFactory,
+		return new KubernetesInformerDiscoveryClient(kubernetesNamespaceProvider.getNamespace(),
 				serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	public CatalogSharedInformerFactory catalogSharedInformerFactory() {
-		return new CatalogSharedInformerFactory();
+	public SharedInformerFactory sharedInformerFactory(ApiClient client) {
+		return new SharedInformerFactory(client);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	public SpringCloudKubernetesInformerFactoryProcessor discoveryInformerConfigurer(
-			KubernetesNamespaceProvider kubernetesNamespaceProvider, ApiClient apiClient,
-			CatalogSharedInformerFactory sharedInformerFactory, Environment environment) {
-		// Injecting KubernetesDiscoveryProperties here would cause it to be
-		// initialized too early.
-		// Instead, get the all-namespaces property value from the Environment directly
-		boolean allNamespaces = environment.getProperty("spring.cloud.kubernetes.discovery.all-namespaces",
-				Boolean.class, false);
-		return new SpringCloudKubernetesInformerFactoryProcessor(kubernetesNamespaceProvider, apiClient,
-				sharedInformerFactory, allNamespaces);
+	public SharedIndexInformer<V1Service> serviceSharedIndexInformer(SharedInformerFactory sharedInformerFactory,
+			ApiClient apiClient, KubernetesNamespaceProvider kubernetesNamespaceProvider,
+			KubernetesDiscoveryProperties discoveryProperties) {
+
+		String namespace;
+		if (discoveryProperties.allNamespaces()) {
+			namespace = NAMESPACE_ALL;
+		}
+		else if (kubernetesNamespaceProvider.getNamespace() == null) {
+			namespace = NAMESPACE_DEFAULT;
+		}
+		else {
+			namespace = kubernetesNamespaceProvider.getNamespace();
+		}
+
+		LOG.debug(() -> "serviceSharedInformer will use namespace : " + namespace);
+
+		GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(
+			V1Service.class, V1ServiceList.class, "", "v1", "services", apiClient);
+
+		return sharedInformerFactory.sharedIndexInformerFor(
+			servicesApi, V1Service.class, 0L, namespace
+		);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public Lister<V1Service> serviceLister(SharedIndexInformer<V1Service> serviceSharedIndexInformer) {
+		return new Lister<>(serviceSharedIndexInformer.getIndexer());
 	}
 
 }
