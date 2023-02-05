@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.catalog;
 
+import io.kubernetes.client.informer.SharedIndexInformer;
+import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.informer.cache.Lister;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -84,6 +87,9 @@ class KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 			assertThat(context).hasSingleBean(KubernetesCatalogWatch.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(SharedInformerFactory.class);
+			assertThat(context).doesNotHaveBean(SharedIndexInformer.class);
+			assertThat(context).doesNotHaveBean(Lister.class);
 		});
 	}
 
