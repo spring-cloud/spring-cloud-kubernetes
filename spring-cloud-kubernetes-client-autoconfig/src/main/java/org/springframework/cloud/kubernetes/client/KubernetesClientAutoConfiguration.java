@@ -40,6 +40,12 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 @AutoConfigureAfter(KubernetesCommonsAutoConfiguration.class)
 public class KubernetesClientAutoConfiguration {
 
+	/**
+	 * this bean will be based on
+	 * {@link org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties}
+	 * in the next major release.
+	 */
+	@Deprecated(forRemoval = true)
 	@Bean
 	@ConditionalOnMissingBean
 	public ApiClient apiClient(Environment environment) {
