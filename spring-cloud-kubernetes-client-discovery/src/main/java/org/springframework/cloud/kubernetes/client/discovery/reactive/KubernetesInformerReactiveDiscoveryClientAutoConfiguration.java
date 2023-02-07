@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.client.discovery.reactive;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
 
@@ -39,15 +38,13 @@ import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIn
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
-import org.springframework.cloud.kubernetes.client.discovery.CatalogSharedInformerFactory;
-import org.springframework.cloud.kubernetes.client.discovery.SpringCloudKubernetesInformerFactoryProcessor;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 /**
  * @author Ryan Baxter
@@ -61,7 +58,7 @@ import org.springframework.core.env.Environment;
 @AutoConfigureBefore({ SimpleReactiveDiscoveryClientAutoConfiguration.class,
 		ReactiveCommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
-		KubernetesDiscoveryPropertiesAutoConfiguration.class })
+		KubernetesDiscoveryPropertiesAutoConfiguration.class, KubernetesInformerAutoConfiguration.class })
 public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean
@@ -86,26 +83,6 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 			KubernetesDiscoveryProperties properties) {
 		return new KubernetesInformerReactiveDiscoveryClient(kubernetesNamespaceProvider, sharedInformerFactory,
 				serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public CatalogSharedInformerFactory catalogSharedInformerFactory() {
-		return new CatalogSharedInformerFactory();
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public SpringCloudKubernetesInformerFactoryProcessor discoveryInformerConfigurer(
-			KubernetesNamespaceProvider kubernetesNamespaceProvider, ApiClient apiClient,
-			CatalogSharedInformerFactory sharedInformerFactory, Environment environment) {
-		// Injecting KubernetesDiscoveryProperties here would cause it to be
-		// initialized too early.
-		// Instead, get the all-namespaces property value from the Environment directly
-		boolean allNamespaces = environment.getProperty("spring.cloud.kubernetes.discovery.all-namespaces",
-				Boolean.class, false);
-		return new SpringCloudKubernetesInformerFactoryProcessor(kubernetesNamespaceProvider, apiClient,
-				sharedInformerFactory, allNamespaces);
 	}
 
 }

@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.reactive;
 
+import io.kubernetes.client.informer.SharedIndexInformer;
+import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.informer.cache.Lister;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -25,8 +28,8 @@ import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscov
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.client.discovery.CatalogSharedInformerFactory;
-import org.springframework.cloud.kubernetes.client.discovery.SpringCloudKubernetesInformerFactoryProcessor;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,8 +51,9 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			// simple from commons and ours
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -61,8 +65,9 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			// simple from commons and ours
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -71,11 +76,11 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.enabled=false");
 		applicationContextRunner.run(context -> {
-			// simple from commons and ours
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(CatalogSharedInformerFactory.class);
-			assertThat(context).doesNotHaveBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).doesNotHaveBean(SharedInformerFactory.class);
+			assertThat(context).doesNotHaveBean(SharedIndexInformer.class);
+			assertThat(context).doesNotHaveBean(Lister.class);
 		});
 	}
 
@@ -87,8 +92,9 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			// simple from commons and ours
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -97,11 +103,12 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=false");
 		applicationContextRunner.run(context -> {
-			// only ours as the "simple" one from commons is not picked-up
+			// only "simple" one from commons, as ours is not picked up
 			assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(CatalogSharedInformerFactory.class);
-			assertThat(context).doesNotHaveBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).doesNotHaveBean(SharedInformerFactory.class);
+			assertThat(context).doesNotHaveBean(SharedIndexInformer.class);
+			assertThat(context).doesNotHaveBean(Lister.class);
 		});
 	}
 
@@ -113,8 +120,9 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			// simple from commons and ours
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -125,8 +133,9 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(CatalogSharedInformerFactory.class);
-			assertThat(context).doesNotHaveBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -141,8 +150,9 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			// simple from commons and ours
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -151,11 +161,11 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.client.health-indicator.enabled=false");
 		applicationContextRunner.run(context -> {
-			// simple from commons
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -165,11 +175,11 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.client.health-indicator.enabled=false");
 		applicationContextRunner.run(context -> {
-			// simple from commons
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -178,7 +188,8 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 				.withConfiguration(AutoConfigurations.of(
 						KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
-						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
+						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+						KubernetesCommonsAutoConfiguration.class, KubernetesInformerAutoConfiguration.class))
 				.withPropertyValues(properties);
 	}
 
@@ -187,7 +198,8 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 				.withConfiguration(AutoConfigurations.of(
 						KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
-						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
+						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+						KubernetesCommonsAutoConfiguration.class, KubernetesInformerAutoConfiguration.class))
 				.withClassLoader(new FilteredClassLoader(name)).withPropertyValues(properties);
 	}
 
