@@ -41,7 +41,8 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 public class KubernetesClientAutoConfiguration {
 
 	/**
-	 * this bean will be based on {@link org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties}
+	 * this bean will be based on
+	 * {@link org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties}
 	 * in the next major release.
 	 */
 	@Deprecated(forRemoval = true)
@@ -52,7 +53,7 @@ public class KubernetesClientAutoConfiguration {
 		// it's too early to inject KubernetesClientProperties here, all its properties
 		// are missing. For the time being work-around with reading from the environment.
 		apiClient.setUserAgent(environment.getProperty("spring.cloud.kubernetes.client.user-agent",
-			KubernetesClientProperties.DEFAULT_USER_AGENT));
+				KubernetesClientProperties.DEFAULT_USER_AGENT));
 		return apiClient;
 	}
 
