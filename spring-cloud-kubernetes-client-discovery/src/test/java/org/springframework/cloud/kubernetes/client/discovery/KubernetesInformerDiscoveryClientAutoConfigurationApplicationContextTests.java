@@ -18,6 +18,9 @@ package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.io.StringReader;
 
+import io.kubernetes.client.informer.SharedIndexInformer;
+import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.Config;
 import org.junit.jupiter.api.AfterAll;
@@ -61,8 +64,9 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -73,8 +77,9 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -85,8 +90,9 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(CatalogSharedInformerFactory.class);
-			assertThat(context).doesNotHaveBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).doesNotHaveBean(SharedInformerFactory.class);
+			assertThat(context).doesNotHaveBean(SharedIndexInformer.class);
+			assertThat(context).doesNotHaveBean(Lister.class);
 		});
 	}
 
@@ -97,8 +103,9 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -109,8 +116,9 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(CatalogSharedInformerFactory.class);
-			assertThat(context).doesNotHaveBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).doesNotHaveBean(SharedInformerFactory.class);
+			assertThat(context).doesNotHaveBean(SharedIndexInformer.class);
+			assertThat(context).doesNotHaveBean(Lister.class);
 		});
 	}
 
@@ -121,8 +129,9 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -133,8 +142,9 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(CatalogSharedInformerFactory.class);
-			assertThat(context).doesNotHaveBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -145,8 +155,9 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -157,8 +168,9 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -169,8 +181,9 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
@@ -184,22 +197,25 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
-			assertThat(context).hasSingleBean(CatalogSharedInformerFactory.class);
-			assertThat(context).hasSingleBean(SpringCloudKubernetesInformerFactoryProcessor.class);
+			assertThat(context).hasSingleBean(SharedInformerFactory.class);
+			assertThat(context).getBeans(SharedIndexInformer.class).hasSize(2);
+			assertThat(context).getBeans(Lister.class).hasSize(2);
 		});
 	}
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
-						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
+						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+						KubernetesInformerAutoConfiguration.class))
 				.withUserConfiguration(ApiClientConfig.class).withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(Class<?> cls, String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
-						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
+						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+						KubernetesInformerAutoConfiguration.class))
 				.withClassLoader(new FilteredClassLoader(cls)).withUserConfiguration(ApiClientConfig.class)
 				.withPropertyValues(properties);
 	}
