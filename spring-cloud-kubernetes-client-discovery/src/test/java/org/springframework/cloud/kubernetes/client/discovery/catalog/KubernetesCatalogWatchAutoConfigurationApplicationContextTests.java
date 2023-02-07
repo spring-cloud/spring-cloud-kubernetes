@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.catalog;
 
+import io.kubernetes.client.informer.SharedIndexInformer;
+import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.informer.cache.Lister;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -23,6 +26,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -83,6 +87,9 @@ class KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 			assertThat(context).hasSingleBean(KubernetesCatalogWatch.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(SharedInformerFactory.class);
+			assertThat(context).doesNotHaveBean(SharedIndexInformer.class);
+			assertThat(context).doesNotHaveBean(Lister.class);
 		});
 	}
 
@@ -104,7 +111,8 @@ class KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(KubernetesCatalogWatchAutoConfiguration.class,
-						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
+						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+						KubernetesCommonsAutoConfiguration.class))
 				.withPropertyValues(properties);
 	}
 
