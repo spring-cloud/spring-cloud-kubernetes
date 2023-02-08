@@ -34,10 +34,10 @@ import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
@@ -55,7 +55,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  * @author Ryan Baxter
  * @author Tim Yysewyn
  */
-public class KubernetesInformerDiscoveryClient implements DiscoveryClient, InitializingBean {
+public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	private static final Log log = LogFactory.getLog(KubernetesInformerDiscoveryClient.class);
 
@@ -233,8 +233,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient, Initi
 				.collect(Collectors.toList());
 	}
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
+	@PostConstruct
+	public void afterPropertiesSet() {
 		this.sharedInformerFactory.startAllRegisteredInformers();
 		if (!Wait.poll(Duration.ofSeconds(1), Duration.ofSeconds(this.properties.cacheLoadingTimeoutSeconds()), () -> {
 			log.info("Waiting for the cache of informers to be fully loaded..");
