@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -35,14 +36,13 @@ import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
 import jakarta.annotation.PostConstruct;
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.util.Assert;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -57,7 +57,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  */
 public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
-	private static final Log log = LogFactory.getLog(KubernetesInformerDiscoveryClient.class);
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesInformerDiscoveryClient.class));
 
 	private static final String PRIMARY_PORT_NAME_LABEL_KEY = "primary-port-name";
 
@@ -91,20 +91,20 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public String description() {
-		return "Kubernetes Client Discovery";
+		return "Fabric8 Kubernetes Client Discovery";
 	}
 
 	@Override
 	public List<ServiceInstance> getInstances(String serviceId) {
-		Assert.notNull(serviceId, "[Assertion failed] - the object argument must not be null");
+		Objects.requireNonNull(serviceId, "serviceId must be provided");
 
 		if (!StringUtils.hasText(namespace) && !properties.allNamespaces()) {
-			log.warn("Namespace is null or empty, this may cause issues looking up services");
+			LOG.warn(() -> "Namespace is null or empty, this may cause issues looking up services");
 		}
 
-		List<V1Service> services = properties.allNamespaces() ? this.serviceLister.list().stream()
+		List<V1Service> services = properties.allNamespaces() ? serviceLister.list().stream()
 				.filter(svc -> serviceId.equals(svc.getMetadata().getName())).toList()
-				: List.of(this.serviceLister.namespace(this.namespace).get(serviceId));
+				: List.of(serviceLister.namespace(namespace).get(serviceId));
 		if (services.size() == 0 || !services.stream().anyMatch(this::matchServiceLabels)) {
 			// no such service present in the cluster
 			return new ArrayList<>();
@@ -114,20 +114,20 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	private Stream<ServiceInstance> getServiceInstanceDetails(V1Service service, String serviceId) {
 		Map<String, String> svcMetadata = new HashMap<>();
-		if (this.properties.metadata() != null) {
-			if (this.properties.metadata().addLabels()) {
+		if (properties.metadata() != null) {
+			if (properties.metadata().addLabels()) {
 				if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
-					String labelPrefix = this.properties.metadata().labelsPrefix() != null
-							? this.properties.metadata().labelsPrefix() : "";
+					String labelPrefix = properties.metadata().labelsPrefix() != null
+							? properties.metadata().labelsPrefix() : "";
 					service.getMetadata().getLabels().entrySet().stream()
 							.filter(e -> e.getKey().startsWith(labelPrefix))
 							.forEach(e -> svcMetadata.put(e.getKey(), e.getValue()));
 				}
 			}
-			if (this.properties.metadata().addAnnotations()) {
+			if (properties.metadata().addAnnotations()) {
 				if (service.getMetadata() != null && service.getMetadata().getAnnotations() != null) {
-					String annotationPrefix = this.properties.metadata().annotationsPrefix() != null
-							? this.properties.metadata().annotationsPrefix() : "";
+					String annotationPrefix = properties.metadata().annotationsPrefix() != null
+							? properties.metadata().annotationsPrefix() : "";
 					service.getMetadata().getAnnotations().entrySet().stream()
 							.filter(e -> e.getKey().startsWith(annotationPrefix))
 							.forEach(e -> svcMetadata.put(e.getKey(), e.getValue()));
@@ -135,7 +135,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 			}
 		}
 
-		V1Endpoints ep = this.endpointsLister.namespace(service.getMetadata().getNamespace())
+		V1Endpoints ep = endpointsLister.namespace(service.getMetadata().getNamespace())
 				.get(service.getMetadata().getName());
 		if (ep == null || ep.getSubsets() == null) {
 			// no available endpoints in the cluster
@@ -147,7 +147,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 			discoveredPrimaryPortName = Optional
 					.ofNullable(service.getMetadata().getLabels().get(PRIMARY_PORT_NAME_LABEL_KEY));
 		}
-		final String primaryPortName = discoveredPrimaryPortName.orElse(this.properties.primaryPortName());
+		final String primaryPortName = discoveredPrimaryPortName.orElse(properties.primaryPortName());
 
 		final boolean secured = isSecured(service);
 
@@ -155,7 +155,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 				.flatMap(subset -> {
 					Map<String, String> metadata = new HashMap<>(svcMetadata);
 					List<CoreV1EndpointPort> endpointPorts = subset.getPorts();
-					if (this.properties.metadata() != null && this.properties.metadata().addPorts()) {
+					if (properties.metadata() != null && properties.metadata().addPorts()) {
 						endpointPorts.forEach(
 								p -> metadata.put(StringUtils.hasText(p.getName()) ? p.getName() : UNSET_PORT_NAME,
 										Integer.toString(p.getPort())));
@@ -164,7 +164,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 					if (addresses == null) {
 						addresses = new ArrayList<>();
 					}
-					if (this.properties.includeNotReadyAddresses()
+					if (properties.includeNotReadyAddresses()
 							&& !CollectionUtils.isEmpty(subset.getNotReadyAddresses())) {
 						addresses.addAll(subset.getNotReadyAddresses());
 					}
@@ -209,16 +209,16 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 			if (discoveredPort == -1) {
 				if (StringUtils.hasText(primaryPortName)) {
-					log.warn("Could not find a port named '" + primaryPortName + "', 'https', or 'http' for service '"
+					LOG.warn(() -> "Could not find a port named '" + primaryPortName + "', 'https', or 'http' for service '"
 							+ serviceId + "'.");
 				}
 				else {
-					log.warn("Could not find a port named 'https' or 'http' for service '" + serviceId + "'.");
+					LOG.warn(() -> "Could not find a port named 'https' or 'http' for service '" + serviceId + "'.");
 				}
-				log.warn(
+				LOG.warn(() ->
 						"Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
-				log.warn("Alternatively name the primary port 'https' or 'http'");
-				log.warn("An incorrect configuration may result in non-deterministic behaviour.");
+				LOG.warn(() -> "Alternatively name the primary port 'https' or 'http'");
+				LOG.warn(() -> "An incorrect configuration may result in non-deterministic behaviour.");
 				discoveredPort = endpointPorts.get(0).getPort();
 			}
 			return discoveredPort;
@@ -227,42 +227,40 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
-		List<V1Service> services = this.properties.allNamespaces() ? this.serviceLister.list()
-				: this.serviceLister.namespace(this.namespace).list();
+		List<V1Service> services = properties.allNamespaces() ? serviceLister.list()
+				: serviceLister.namespace(namespace).list();
 		return services.stream().filter(this::matchServiceLabels).map(s -> s.getMetadata().getName())
 				.collect(Collectors.toList());
 	}
 
 	@PostConstruct
 	public void afterPropertiesSet() {
-		this.sharedInformerFactory.startAllRegisteredInformers();
-		if (!Wait.poll(Duration.ofSeconds(1), Duration.ofSeconds(this.properties.cacheLoadingTimeoutSeconds()), () -> {
-			log.info("Waiting for the cache of informers to be fully loaded..");
-			return this.informersReadyFunc.get();
+		sharedInformerFactory.startAllRegisteredInformers();
+		if (!Wait.poll(Duration.ofSeconds(1), Duration.ofSeconds(properties.cacheLoadingTimeoutSeconds()), () -> {
+			LOG.info(() -> "Waiting for the cache of informers to be fully loaded..");
+			return informersReadyFunc.get();
 		})) {
-			if (this.properties.waitCacheReady()) {
+			if (properties.waitCacheReady()) {
 				throw new IllegalStateException(
 						"Timeout waiting for informers cache to be ready, is the kubernetes service up?");
 			}
 			else {
-				log.warn(
-						"Timeout waiting for informers cache to be ready, ignoring the failure because waitForInformerCacheReady property is false");
+				LOG.warn(
+					() -> "Timeout waiting for informers cache to be ready, ignoring the failure because waitForInformerCacheReady property is false");
 			}
 		}
-		log.info("Cache fully loaded (total " + serviceLister.list().size()
+		LOG.info(() -> "Cache fully loaded (total " + serviceLister.list().size()
 				+ " services) , discovery client is now available");
 	}
 
 	private boolean matchServiceLabels(V1Service service) {
-		if (log.isDebugEnabled()) {
-			log.debug("Kubernetes Service Label Properties:");
-			if (this.properties.serviceLabels() != null) {
-				this.properties.serviceLabels().forEach((key, value) -> log.debug(key + ":" + value));
-			}
-			log.debug("Service " + service.getMetadata().getName() + " labels:");
-			if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
-				service.getMetadata().getLabels().forEach((key, value) -> log.debug(key + ":" + value));
-			}
+		LOG.debug(() -> "Kubernetes Service Label Properties:");
+		if (properties.serviceLabels() != null) {
+			properties.serviceLabels().forEach((key, value) -> LOG.debug(() -> key + ":" + value));
+		}
+		LOG.debug(() -> "Service " + service.getMetadata().getName() + " labels:");
+		if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
+			service.getMetadata().getLabels().forEach((key, value) -> LOG.debug(() -> key + ":" + value));
 		}
 		// safeguard
 		if (service.getMetadata() == null) {
