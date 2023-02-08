@@ -55,7 +55,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  * @author Ryan Baxter
  * @author Tim Yysewyn
  */
-public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
+public final class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	private static final Log log = LogFactory.getLog(KubernetesInformerDiscoveryClient.class);
 
@@ -234,7 +234,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	}
 
 	@PostConstruct
-	public void afterPropertiesSet() {
+	private void afterPropertiesSet() {
 		this.sharedInformerFactory.startAllRegisteredInformers();
 		if (!Wait.poll(Duration.ofSeconds(1), Duration.ofSeconds(this.properties.cacheLoadingTimeoutSeconds()), () -> {
 			log.info("Waiting for the cache of informers to be fully loaded..");
