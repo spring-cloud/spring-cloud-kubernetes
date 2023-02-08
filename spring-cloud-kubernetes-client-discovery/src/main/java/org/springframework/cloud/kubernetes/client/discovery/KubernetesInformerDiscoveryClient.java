@@ -254,25 +254,31 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	}
 
 	private boolean matchServiceLabels(V1Service service) {
-		LOG.debug(() -> "Kubernetes Service Label Properties:");
-		if (properties.serviceLabels() != null) {
-			properties.serviceLabels().forEach((key, value) -> LOG.debug(() -> key + ":" + value));
-		}
-		LOG.debug(() -> "Service " + service.getMetadata().getName() + " labels:");
-		if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
-			service.getMetadata().getLabels().forEach((key, value) -> LOG.debug(() -> key + ":" + value));
-		}
-		// safeguard
-		if (service.getMetadata() == null) {
-			return false;
-		}
-		if (properties.serviceLabels() == null || properties.serviceLabels().isEmpty()) {
+
+		Map<String, String> propertiesServiceLabels = properties.serviceLabels();
+		Map<String, String> serviceLabels = service.getMetadata().getLabels();
+
+		if (propertiesServiceLabels.isEmpty()) {
+			LOG.debug(() -> "service labels from properties are empty, service with name : " + service.getMetadata().getName() + " will match");
 			return true;
 		}
-		return properties.serviceLabels().keySet().stream()
-				.allMatch(k -> service.getMetadata().getLabels() != null
-						&& service.getMetadata().getLabels().containsKey(k)
-						&& service.getMetadata().getLabels().get(k).equals(properties.serviceLabels().get(k)));
+
+//		LOG.debug(() -> "Kubernetes Service Label Properties:");
+//		if (properties.serviceLabels() != null) {
+//			properties.serviceLabels().forEach((key, value) -> LOG.debug(() -> key + ":" + value));
+//		}
+//		LOG.debug(() -> "Service " + service.getMetadata().getName() + " labels:");
+//		if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
+//			service.getMetadata().getLabels().forEach((key, value) -> LOG.debug(() -> key + ":" + value));
+//		}
+//		// safeguard
+//		if (service.getMetadata() == null) {
+//			return false;
+//		}
+//		return properties.serviceLabels().keySet().stream()
+//				.allMatch(k -> service.getMetadata().getLabels() != null
+//						&& service.getMetadata().getLabels().containsKey(k)
+//						&& service.getMetadata().getLabels().get(k).equals(properties.serviceLabels().get(k)));
 	}
 
 }
