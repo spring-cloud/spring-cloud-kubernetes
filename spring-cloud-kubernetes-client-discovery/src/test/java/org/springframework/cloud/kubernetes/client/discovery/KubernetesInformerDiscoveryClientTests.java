@@ -43,14 +43,13 @@ class KubernetesInformerDiscoveryClientTests {
 
 	private static final SharedInformerFactory SHARED_INFORMER_FACTORY = Mockito.mock(SharedInformerFactory.class);
 
-	private static final V1Service SERVICE_1 = new V1Service()
-			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"));
+	private static final V1Service SERVICE_1 = service("test-svc-1", "namespace1", Map.of());
+	private static final V1Service SERVICE_2 = service("test-svc-1", "namespace2", Map.of());
+	private static final V1Service SERVICE_3 = service("test-svc-3", "namespace1", Map.of("spring", "true", "k8s", "true"));
 
-	private static final V1Service SERVICE_2 = new V1Service()
-		.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace2"));
-
-	private static final V1Service SERVICE_3 = new V1Service()
-		.metadata(new V1ObjectMeta().name("test-svc-3").namespace("namespace1").labels(Map.of("spring", "true", "k8s", "true")));
+	private static final V1Endpoints ENDPOINTS_1 = endpoints("test-svc-1", "namespace1");
+	private static final V1Endpoints ENDPOINTS_2 = endpoints("test-svc-1", "namespace2");
+	private static final V1Endpoints ENDPOINTS_3 = endpoints("test-svc-3", "namespace1");
 
 	private static final V1Service testServiceSecuredAnnotation1 = new V1Service()
 			.metadata(
@@ -59,16 +58,6 @@ class KubernetesInformerDiscoveryClientTests {
 
 	private static final V1Service testServiceSecuredLabel1 = new V1Service()
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1").putLabelsItem("secured", "true"));
-
-	private static final V1Endpoints testEndpoints1 = new V1Endpoints()
-			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
-					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
-
-	private static final V1Endpoints testEndpoints2 = new V1Endpoints()
-			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace2"))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
-					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 
 	private static final V1Endpoints testEndpointWithoutReadyAddresses = new V1Endpoints()
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
@@ -101,11 +90,6 @@ class KubernetesInformerDiscoveryClientTests {
 			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().name("tcp1").port(80))
 					.addPortsItem(new CoreV1EndpointPort().name("tcp2").port(443))
 					.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
-
-	private static final V1Endpoints testEndpoints3 = new V1Endpoints()
-			.metadata(new V1ObjectMeta().name("test-svc-3").namespace("namespace1"))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
-					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 
 	@Test
 	void testServiceWithUnsetPortNames() {
@@ -155,7 +139,7 @@ class KubernetesInformerDiscoveryClientTests {
 	@Test
 	void testDiscoveryInstancesWithServiceLabels() {
 		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_1, SERVICE_2, SERVICE_3);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1, testEndpoints3);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1, ENDPOINTS_3);
 
 		Map<String, String> labels = Map.of("k8s", "true", "spring", "true");
 
@@ -174,7 +158,7 @@ class KubernetesInformerDiscoveryClientTests {
 	@Test
 	void testDiscoveryInstancesWithSecuredServiceByAnnotations() {
 		Lister<V1Service> serviceLister = setupServiceLister(testServiceSecuredAnnotation1);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1);
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
@@ -189,7 +173,7 @@ class KubernetesInformerDiscoveryClientTests {
 	@Test
 	void testDiscoveryInstancesWithSecuredServiceByLabels() {
 		Lister<V1Service> serviceLister = setupServiceLister(testServiceSecuredLabel1);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1);
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
@@ -216,7 +200,7 @@ class KubernetesInformerDiscoveryClientTests {
 	@Test
 	void testDiscoveryGetInstanceAllNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_1, SERVICE_2);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1);
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, true);
@@ -231,7 +215,7 @@ class KubernetesInformerDiscoveryClientTests {
 	@Test
 	void testDiscoveryGetInstanceOneNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_1, SERVICE_2);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1);
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, false,
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, true);
@@ -411,7 +395,7 @@ class KubernetesInformerDiscoveryClientTests {
 	@Test
 	void getInstancesShouldReturnInstancesWithTheSameServiceIdFromNamespaces() {
 		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_1, SERVICE_2);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1, testEndpoints2);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1, ENDPOINTS_2);
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
@@ -442,6 +426,17 @@ class KubernetesInformerDiscoveryClientTests {
 			endpointsCache.add(ep);
 		}
 		return endpointsLister;
+	}
+
+	private static V1Service service(String name, String namespace, Map<String, String> labels) {
+		return new V1Service().metadata(new V1ObjectMeta().name(name).namespace(namespace).labels(labels));
+	}
+
+	private static V1Endpoints endpoints(String name, String namespace) {
+		return new V1Endpoints()
+			.metadata(new V1ObjectMeta().name(name).namespace(namespace))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
+				.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 	}
 
 }
