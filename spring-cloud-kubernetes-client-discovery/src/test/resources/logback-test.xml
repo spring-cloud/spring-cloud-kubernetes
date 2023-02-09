@@ -12,4 +12,8 @@
 	<logger name="org.testcontainers" level="INFO"/>
 	<logger name="com.github.dockerjava" level="WARN"/>
 	<logger name="io.fabric8.kubernetes.client" level="ERROR"/>
+
+	<!-- needed for CapturedOutput -->
+	<logger name="org.springframework.cloud.kubernetes.client.discovery" level="DEBUG"/>
+
 </configuration>

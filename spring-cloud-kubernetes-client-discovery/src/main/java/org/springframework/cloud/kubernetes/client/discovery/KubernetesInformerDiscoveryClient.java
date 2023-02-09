@@ -50,6 +50,8 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
 
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.matchesServiceLabels;
+
 /**
  * @author Min Kim
  * @author Ryan Baxter
@@ -105,7 +107,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		List<V1Service> services = properties.allNamespaces() ? serviceLister.list().stream()
 				.filter(svc -> serviceId.equals(svc.getMetadata().getName())).toList()
 				: List.of(serviceLister.namespace(namespace).get(serviceId));
-		if (services.size() == 0 || !services.stream().anyMatch(this::matchServiceLabels)) {
+		if (services.size() == 0 || !services.stream().anyMatch(service -> matchesServiceLabels(service, properties))) {
 			// no such service present in the cluster
 			return new ArrayList<>();
 		}
@@ -229,7 +231,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	public List<String> getServices() {
 		List<V1Service> services = properties.allNamespaces() ? serviceLister.list()
 				: serviceLister.namespace(namespace).list();
-		return services.stream().filter(this::matchServiceLabels).map(s -> s.getMetadata().getName())
+		return services.stream().filter(service -> matchesServiceLabels(service, properties)).map(s -> s.getMetadata().getName())
 				.collect(Collectors.toList());
 	}
 
@@ -251,34 +253,6 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		}
 		LOG.info(() -> "Cache fully loaded (total " + serviceLister.list().size()
 				+ " services) , discovery client is now available");
-	}
-
-	private boolean matchServiceLabels(V1Service service) {
-
-		Map<String, String> propertiesServiceLabels = properties.serviceLabels();
-		Map<String, String> serviceLabels = service.getMetadata().getLabels();
-
-		if (propertiesServiceLabels.isEmpty()) {
-			LOG.debug(() -> "service labels from properties are empty, service with name : " + service.getMetadata().getName() + " will match");
-			return true;
-		}
-
-//		LOG.debug(() -> "Kubernetes Service Label Properties:");
-//		if (properties.serviceLabels() != null) {
-//			properties.serviceLabels().forEach((key, value) -> LOG.debug(() -> key + ":" + value));
-//		}
-//		LOG.debug(() -> "Service " + service.getMetadata().getName() + " labels:");
-//		if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
-//			service.getMetadata().getLabels().forEach((key, value) -> LOG.debug(() -> key + ":" + value));
-//		}
-//		// safeguard
-//		if (service.getMetadata() == null) {
-//			return false;
-//		}
-//		return properties.serviceLabels().keySet().stream()
-//				.allMatch(k -> service.getMetadata().getLabels() != null
-//						&& service.getMetadata().getLabels().containsKey(k)
-//						&& service.getMetadata().getLabels().get(k).equals(properties.serviceLabels().get(k)));
 	}
 
 }
