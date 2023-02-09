@@ -104,8 +104,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 			LOG.warn(() -> "Namespace is null or empty, this may cause issues looking up services");
 		}
 
-		List<V1Service> services = properties.allNamespaces() ? serviceLister.list().stream()
-				.filter(svc -> serviceId.equals(svc.getMetadata().getName())).toList()
+		List<V1Service> services = properties.allNamespaces()
+				? serviceLister.list().stream().filter(svc -> serviceId.equals(svc.getMetadata().getName())).toList()
 				: List.of(serviceLister.namespace(namespace).get(serviceId));
 		if (services.size() == 0 || !services.stream().anyMatch(service -> matchesServiceLabels(service, properties))) {
 			// no such service present in the cluster
@@ -211,14 +211,14 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 			if (discoveredPort == -1) {
 				if (StringUtils.hasText(primaryPortName)) {
-					LOG.warn(() -> "Could not find a port named '" + primaryPortName + "', 'https', or 'http' for service '"
-							+ serviceId + "'.");
+					LOG.warn(() -> "Could not find a port named '" + primaryPortName
+							+ "', 'https', or 'http' for service '" + serviceId + "'.");
 				}
 				else {
 					LOG.warn(() -> "Could not find a port named 'https' or 'http' for service '" + serviceId + "'.");
 				}
-				LOG.warn(() ->
-						"Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
+				LOG.warn(
+						() -> "Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
 				LOG.warn(() -> "Alternatively name the primary port 'https' or 'http'");
 				LOG.warn(() -> "An incorrect configuration may result in non-deterministic behaviour.");
 				discoveredPort = endpointPorts.get(0).getPort();
@@ -248,7 +248,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 			}
 			else {
 				LOG.warn(
-					() -> "Timeout waiting for informers cache to be ready, ignoring the failure because waitForInformerCacheReady property is false");
+						() -> "Timeout waiting for informers cache to be ready, ignoring the failure because waitForInformerCacheReady property is false");
 			}
 		}
 		LOG.info(() -> "Cache fully loaded (total " + serviceLister.list().size()
