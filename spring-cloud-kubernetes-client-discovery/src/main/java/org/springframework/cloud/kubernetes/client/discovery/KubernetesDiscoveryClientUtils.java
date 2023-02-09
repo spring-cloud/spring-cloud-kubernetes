@@ -22,6 +22,7 @@ import java.util.Optional;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.log.LogAccessor;
 
@@ -35,14 +36,16 @@ final class KubernetesDiscoveryClientUtils {
 	private KubernetesDiscoveryClientUtils() {
 
 	}
+
 	static boolean matchesServiceLabels(V1Service service, KubernetesDiscoveryProperties properties) {
 
 		Map<String, String> propertiesServiceLabels = properties.serviceLabels();
-		Map<String, String> serviceLabels = Optional.ofNullable(service.getMetadata())
-			.map(V1ObjectMeta::getLabels).orElse(Map.of());
+		Map<String, String> serviceLabels = Optional.ofNullable(service.getMetadata()).map(V1ObjectMeta::getLabels)
+				.orElse(Map.of());
 
 		if (propertiesServiceLabels.isEmpty()) {
-			LOG.debug(() -> "service labels from properties are empty, service with name : '" + service.getMetadata().getName() + "' will match");
+			LOG.debug(() -> "service labels from properties are empty, service with name : '"
+					+ service.getMetadata().getName() + "' will match");
 			return true;
 		}
 

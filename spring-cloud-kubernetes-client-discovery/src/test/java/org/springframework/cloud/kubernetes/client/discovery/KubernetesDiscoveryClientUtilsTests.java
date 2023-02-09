@@ -27,6 +27,7 @@ import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -49,7 +50,8 @@ class KubernetesDiscoveryClientUtilsTests {
 
 		boolean result = matchesServiceLabels(service, properties);
 		Assertions.assertTrue(result);
-		Assertions.assertTrue(output.getOut().contains("service labels from properties are empty, service with name : 'my-service' will match"));
+		Assertions.assertTrue(output.getOut()
+				.contains("service labels from properties are empty, service with name : 'my-service' will match"));
 	}
 
 	/**
@@ -58,8 +60,8 @@ class KubernetesDiscoveryClientUtilsTests {
 	@Test
 	void testEmptyServiceLabelsFromService(CapturedOutput output) {
 		Map<String, String> propertiesLabels = Map.of("key", "value");
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L, true, "",
-			Set.of(), propertiesLabels, "", null, 0, false);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), propertiesLabels, "", null, 0, false);
 		V1Service service = new V1ServiceBuilder().withMetadata(new V1ObjectMeta().name("my-service")).build();
 
 		boolean result = matchesServiceLabels(service, properties);
@@ -79,9 +81,10 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testOne(CapturedOutput output) {
 		Map<String, String> propertiesLabels = Map.of("a", "b");
 		Map<String, String> serviceLabels = Map.of("a", "b");
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L, true, "",
-			Set.of(), propertiesLabels, "", null, 0, false);
-		V1Service service = new V1ServiceBuilder().withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service")).build();
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+		V1Service service = new V1ServiceBuilder()
+				.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service")).build();
 
 		boolean result = matchesServiceLabels(service, properties);
 		Assertions.assertTrue(result);
@@ -101,9 +104,10 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testTwo(CapturedOutput output) {
 		Map<String, String> propertiesLabels = ordered(Map.of("a", "b", "c", "d"));
 		Map<String, String> serviceLabels = Map.of("a", "b");
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L, true, "",
-			Set.of(), propertiesLabels, "", null, 0, false);
-		V1Service service = new V1ServiceBuilder().withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service")).build();
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+		V1Service service = new V1ServiceBuilder()
+				.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service")).build();
 
 		boolean result = matchesServiceLabels(service, properties);
 		Assertions.assertFalse(result);
@@ -123,9 +127,10 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testThree(CapturedOutput output) {
 		Map<String, String> propertiesLabels = ordered(Map.of("a", "b", "c", "d"));
 		Map<String, String> serviceLabels = ordered(Map.of("a", "b", "c", "d"));
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L, true, "",
-			Set.of(), propertiesLabels, "", null, 0, false);
-		V1Service service = new V1ServiceBuilder().withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service")).build();
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+		V1Service service = new V1ServiceBuilder()
+				.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service")).build();
 
 		boolean result = matchesServiceLabels(service, properties);
 		Assertions.assertTrue(result);
@@ -145,9 +150,10 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testFour(CapturedOutput output) {
 		Map<String, String> propertiesLabels = Map.of("a", "b");
 		Map<String, String> serviceLabels = ordered(Map.of("a", "b", "c", "d"));
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L, true, "",
-			Set.of(), propertiesLabels, "", null, 0, false);
-		V1Service service = new V1ServiceBuilder().withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service")).build();
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+		V1Service service = new V1ServiceBuilder()
+				.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service")).build();
 
 		boolean result = matchesServiceLabels(service, properties);
 		Assertions.assertTrue(result);
@@ -157,13 +163,8 @@ class KubernetesDiscoveryClientUtilsTests {
 
 	// preserve order for testing reasons
 	private Map<String, String> ordered(Map<String, String> input) {
-		return input.entrySet().stream()
-			.sorted(Map.Entry.comparingByKey()).collect(Collectors.toMap(
-				Map.Entry::getKey,
-				Map.Entry::getValue,
-				(left, right) -> left,
-				LinkedHashMap::new
-			));
+		return input.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(
+				Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (left, right) -> left, LinkedHashMap::new));
 	}
 
 }

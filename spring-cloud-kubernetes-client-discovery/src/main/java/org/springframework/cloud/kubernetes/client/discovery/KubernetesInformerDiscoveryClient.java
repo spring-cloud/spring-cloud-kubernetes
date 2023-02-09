@@ -46,11 +46,10 @@ import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.matchesServiceLabels;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
-
-import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.matchesServiceLabels;
 
 /**
  * @author Min Kim
@@ -231,8 +230,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	public List<String> getServices() {
 		List<V1Service> services = properties.allNamespaces() ? serviceLister.list()
 				: serviceLister.namespace(namespace).list();
-		return services.stream().filter(service -> matchesServiceLabels(service, properties)).map(s -> s.getMetadata().getName())
-				.collect(Collectors.toList());
+		return services.stream().filter(service -> matchesServiceLabels(service, properties))
+				.map(s -> s.getMetadata().getName()).collect(Collectors.toList());
 	}
 
 	@PostConstruct
