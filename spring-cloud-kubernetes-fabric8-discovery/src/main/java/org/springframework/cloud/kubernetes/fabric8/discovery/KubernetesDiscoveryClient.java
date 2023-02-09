@@ -52,7 +52,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  * @author Ioannis Canellos
  * @author Tim Ysewyn
  */
-public class KubernetesDiscoveryClient implements DiscoveryClient {
+public final class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private static final Log log = LogFactory.getLog(KubernetesDiscoveryClient.class);
 
@@ -64,7 +64,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private final Fabric8DiscoveryServicesAdapter adapter;
 
-	private KubernetesClient client;
+	private final KubernetesClient client;
 
 	public KubernetesDiscoveryClient(KubernetesClient client,
 			KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
@@ -84,14 +84,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
 		this.adapter = new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction,
 				kubernetesDiscoveryProperties, filter);
-	}
-
-	public KubernetesClient getClient() {
-		return this.client;
-	}
-
-	public void setClient(KubernetesClient client) {
-		this.client = client;
 	}
 
 	@Override
@@ -131,7 +123,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	private List<Endpoints> findEndPointsFilteredByNamespaces(String serviceId) {
 		List<Endpoints> endpoints = new ArrayList<>();
 		for (String ns : properties.namespaces()) {
-			endpoints.addAll(getClient().endpoints().inNamespace(ns).withField("metadata.name", serviceId)
+			endpoints.addAll(client.endpoints().inNamespace(ns).withField("metadata.name", serviceId)
 					.withLabels(properties.serviceLabels()).list().getItems());
 		}
 		return endpoints;
