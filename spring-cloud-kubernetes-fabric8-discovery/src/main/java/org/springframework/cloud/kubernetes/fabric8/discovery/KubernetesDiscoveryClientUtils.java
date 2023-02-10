@@ -21,6 +21,9 @@ import java.util.function.Supplier;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 
+/**
+ * @author wind57
+ */
 final class KubernetesDiscoveryClientUtils {
 
 	private KubernetesDiscoveryClientUtils() {
