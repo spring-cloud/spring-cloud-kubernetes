@@ -97,6 +97,10 @@ final class KubernetesDiscoveryClientUtils {
 		}
 	}
 
+	/**
+	 * take primary-port-name from service label "PRIMARY_PORT_NAME_LABEL_KEY" if it exists,
+	 * otherwise from KubernetesDiscoveryProperties if it exists, otherwise null.
+	 */
 	static String primaryPortName(KubernetesDiscoveryProperties properties, Service service, String serviceId) {
 		String primaryPortNameFromProperties = properties.primaryPortName();
 		Map<String, String> serviceLabels = service.getMetadata().getLabels();
@@ -105,6 +109,11 @@ final class KubernetesDiscoveryClientUtils {
 		String primaryPortName = Optional.ofNullable(
 			Optional.ofNullable(serviceLabels).orElse(Map.of()).get(PRIMARY_PORT_NAME_LABEL_KEY)
 		).orElse(primaryPortNameFromProperties);
+
+		if (primaryPortName == null) {
+			LOG.debug(() -> "did not find a primary-port-name in neither properties nor service labels for service with ID : " + serviceId);
+			return null;
+		}
 
 		LOG.debug(() -> "will use primaryPortName : " + primaryPortName + " for service with ID = " + serviceId);
 		return primaryPortName;
