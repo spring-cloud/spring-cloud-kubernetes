@@ -272,6 +272,22 @@ public final class ConfigUtils {
 	private static void logger(Log logger) {
 		ConfigUtils.logger = logger;
 	}
+	/**
+	 * append prefix to the keys and return a new Map with the new values.
+	 */
+	public static Map<String, String> keysWithPrefix(Map<String, String> map, String prefix) {
+		if (map == null || map.isEmpty()) {
+			return Map.of();
+		}
+
+		if (!StringUtils.hasText(prefix)) {
+			return map;
+		}
+
+		Map<String, String> result = CollectionUtils.newHashMap(map.size());
+		map.forEach((key, value) -> result.put(prefix + key, value));
+		return result;
+	}
 
 	public static final class Prefix {
 
