@@ -60,40 +60,38 @@ final class KubernetesDiscoveryClientUtils {
 		List<EndpointPort> endpointPorts = endpointSubset.getPorts();
 		if (endpointPorts.size() == 1) {
 			int port = endpointPorts.get(0).getPort();
-			LOG.debug(() -> "endpoint ports has a single entry, will return port : " + port);
+			LOG.debug(() -> "endpoint ports has a single entry, using port : " + port);
 			return port;
 		}
 
 		else {
-//			Map<String, Integer> ports = endpointPorts.stream().filter(p -> StringUtils.hasText(p.getName()))
-//				.collect(Collectors.toMap(EndpointPort::getName, EndpointPort::getPort));
-//			// This oneliner is looking for a port with a name equal to the primary port
-//			// name specified in the service label
-//			// or in spring.cloud.kubernetes.discovery.primary-port-name, equal to https,
-//			// or equal to http.
-//			// In case no port has been found return -1 to log a warning and fall back to
-//			// the first port in the list.
-//			int discoveredPort = ports.getOrDefault(primaryPortName,
-//				ports.getOrDefault(HTTPS, ports.getOrDefault(HTTP, -1)));
-//
-//			if (discoveredPort == -1) {
-//				if (StringUtils.hasText(primaryPortName)) {
-//					log.warn("Could not find a port named '" + primaryPortName + "', 'https', or 'http' for service '"
-//						+ serviceId + "'.");
-//				}
-//				else {
-//					log.warn("Could not find a port named 'https' or 'http' for service '" + serviceId + "'.");
-//				}
-//				log.warn(
-//					"Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
-//				log.warn("Alternatively name the primary port 'https' or 'http'");
-//				log.warn("An incorrect configuration may result in non-deterministic behaviour.");
-//				discoveredPort = endpointPorts.get(0).getPort();
-//			}
-//			return discoveredPort;
 
-			//TODO
-			return 0;
+			Optional<Integer> port;
+			String primaryPortName = primaryPortName(properties, service, serviceId);
+
+			Map<String, Integer> existingPorts = endpointPorts.stream()
+				.filter(endpointPort -> StringUtils.hasText(endpointPort.getName()))
+				.collect(Collectors.toMap(EndpointPort::getName, EndpointPort::getPort));
+
+			port = fromMap(existingPorts, primaryPortName, "found primary-port-name (with value: '"
+				+ primaryPortName + "') via properties or service labels to match port");
+			if (port.isPresent()) {
+				return port.get();
+			}
+
+			port = fromMap(existingPorts, HTTPS, "found primary-port-name via 'https' to match port");
+			if (port.isPresent()) {
+				return port.get();
+			}
+
+			port = fromMap(existingPorts, HTTP, "found primary-port-name via 'http' to match port");
+			if (port.isPresent()) {
+				return port.get();
+			}
+
+			logWarnings();
+			return endpointPorts.get(0).getPort();
+
 		}
 	}
 
@@ -117,6 +115,25 @@ final class KubernetesDiscoveryClientUtils {
 
 		LOG.debug(() -> "will use primaryPortName : " + primaryPortName + " for service with ID = " + serviceId);
 		return primaryPortName;
+	}
+
+	private static Optional<Integer> fromMap(Map<String, Integer> existingPorts, String key, String message) {
+		Integer fromPrimaryPortName = existingPorts.get(key);
+		if (fromPrimaryPortName == null) {
+			LOG.debug(() -> "not " + message);
+			return Optional.empty();
+		} else {
+			LOG.debug(() -> message + " : " + fromPrimaryPortName);
+			return Optional.of(fromPrimaryPortName);
+		}
+	}
+
+	private static void logWarnings() {
+		LOG.warn(() -> """
+			Make sure that either the primary-port-name label has been added to the service,
+			or spring.cloud.kubernetes.discovery.primary-port-name has been configured.
+			 Alternatively name the primary port 'https' or 'http'
+			 An incorrect configuration may result in non-deterministic behaviour.""");
 	}
 
 }
