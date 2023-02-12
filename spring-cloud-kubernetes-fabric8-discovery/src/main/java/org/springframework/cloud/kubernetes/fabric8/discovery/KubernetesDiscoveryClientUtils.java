@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Service;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.StringUtils;
@@ -40,8 +41,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  */
 final class KubernetesDiscoveryClientUtils {
 
-	private static final LogAccessor LOG = new LogAccessor(
-		LogFactory.getLog(KubernetesDiscoveryClientUtils.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesDiscoveryClientUtils.class));
 
 	private KubernetesDiscoveryClientUtils() {
 
@@ -70,11 +70,11 @@ final class KubernetesDiscoveryClientUtils {
 			String primaryPortName = primaryPortName(properties, service, serviceId);
 
 			Map<String, Integer> existingPorts = endpointPorts.stream()
-				.filter(endpointPort -> StringUtils.hasText(endpointPort.getName()))
-				.collect(Collectors.toMap(EndpointPort::getName, EndpointPort::getPort));
+					.filter(endpointPort -> StringUtils.hasText(endpointPort.getName()))
+					.collect(Collectors.toMap(EndpointPort::getName, EndpointPort::getPort));
 
-			port = fromMap(existingPorts, primaryPortName, "found primary-port-name (with value: '"
-				+ primaryPortName + "') via properties or service labels to match port");
+			port = fromMap(existingPorts, primaryPortName, "found primary-port-name (with value: '" + primaryPortName
+					+ "') via properties or service labels to match port");
 			if (port.isPresent()) {
 				return port.get();
 			}
@@ -96,20 +96,22 @@ final class KubernetesDiscoveryClientUtils {
 	}
 
 	/**
-	 * take primary-port-name from service label "PRIMARY_PORT_NAME_LABEL_KEY" if it exists,
-	 * otherwise from KubernetesDiscoveryProperties if it exists, otherwise null.
+	 * take primary-port-name from service label "PRIMARY_PORT_NAME_LABEL_KEY" if it
+	 * exists, otherwise from KubernetesDiscoveryProperties if it exists, otherwise null.
 	 */
 	static String primaryPortName(KubernetesDiscoveryProperties properties, Service service, String serviceId) {
 		String primaryPortNameFromProperties = properties.primaryPortName();
 		Map<String, String> serviceLabels = service.getMetadata().getLabels();
 
 		// the value from labels takes precedence over the one from properties
-		String primaryPortName = Optional.ofNullable(
-			Optional.ofNullable(serviceLabels).orElse(Map.of()).get(PRIMARY_PORT_NAME_LABEL_KEY)
-		).orElse(primaryPortNameFromProperties);
+		String primaryPortName = Optional
+				.ofNullable(Optional.ofNullable(serviceLabels).orElse(Map.of()).get(PRIMARY_PORT_NAME_LABEL_KEY))
+				.orElse(primaryPortNameFromProperties);
 
 		if (primaryPortName == null) {
-			LOG.debug(() -> "did not find a primary-port-name in neither properties nor service labels for service with ID : " + serviceId);
+			LOG.debug(
+					() -> "did not find a primary-port-name in neither properties nor service labels for service with ID : "
+							+ serviceId);
 			return null;
 		}
 
@@ -122,7 +124,8 @@ final class KubernetesDiscoveryClientUtils {
 		if (fromPrimaryPortName == null) {
 			LOG.debug(() -> "not " + message);
 			return Optional.empty();
-		} else {
+		}
+		else {
 			LOG.debug(() -> message + " : " + fromPrimaryPortName);
 			return Optional.of(fromPrimaryPortName);
 		}
@@ -130,10 +133,10 @@ final class KubernetesDiscoveryClientUtils {
 
 	private static void logWarnings() {
 		LOG.warn(() -> """
-			Make sure that either the primary-port-name label has been added to the service,
-			or spring.cloud.kubernetes.discovery.primary-port-name has been configured.
-			 Alternatively name the primary port 'https' or 'http'
-			 An incorrect configuration may result in non-deterministic behaviour.""");
+				Make sure that either the primary-port-name label has been added to the service,
+				or spring.cloud.kubernetes.discovery.primary-port-name has been configured.
+				Alternatively name the primary port 'https' or 'http'
+				An incorrect configuration may result in non-deterministic behaviour.""");
 	}
 
 }

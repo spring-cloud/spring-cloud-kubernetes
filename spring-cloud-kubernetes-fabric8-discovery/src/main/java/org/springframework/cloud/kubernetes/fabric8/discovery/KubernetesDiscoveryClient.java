@@ -43,8 +43,8 @@ import org.springframework.util.StringUtils;
 import static java.util.stream.Collectors.toMap;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.subsetsFromEndpoints;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpointsPort;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.subsetsFromEndpoints;
 
 /**
  * Kubernetes implementation of {@link DiscoveryClient}.
@@ -175,7 +175,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				}
 
 				for (EndpointAddress endpointAddress : addresses) {
-					int endpointPort = endpointsPort();
+					int endpointPort = endpointsPort(s, serviceId, properties, service);
 					String instanceId = null;
 					if (endpointAddress.getTargetRef() != null) {
 						instanceId = endpointAddress.getTargetRef().getUid();
