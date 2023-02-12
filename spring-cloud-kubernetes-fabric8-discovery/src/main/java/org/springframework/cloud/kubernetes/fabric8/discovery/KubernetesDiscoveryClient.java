@@ -40,6 +40,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import static java.util.stream.Collectors.toMap;
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
@@ -156,7 +157,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 					Map<String, String> ports = s.getPorts().stream()
 							.filter(port -> StringUtils.hasText(port.getName()))
 							.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
-					Map<String, String> portMetadata = getMapWithPrefixedKeys(ports, metadataProps.portsPrefix());
+					Map<String, String> portMetadata = keysWithPrefix(ports, metadataProps.portsPrefix());
 					if (log.isDebugEnabled()) {
 						log.debug("Adding port metadata: " + portMetadata);
 					}
@@ -198,7 +199,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		final Map<String, String> serviceMetadata = new HashMap<>();
 		KubernetesDiscoveryProperties.Metadata metadataProps = this.properties.metadata();
 		if (metadataProps.addLabels()) {
-			Map<String, String> labelMetadata = getMapWithPrefixedKeys(service.getMetadata().getLabels(),
+			Map<String, String> labelMetadata = keysWithPrefix(service.getMetadata().getLabels(),
 					metadataProps.labelsPrefix());
 			if (log.isDebugEnabled()) {
 				log.debug("Adding label metadata: " + labelMetadata);
@@ -206,7 +207,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			serviceMetadata.putAll(labelMetadata);
 		}
 		if (metadataProps.addAnnotations()) {
-			Map<String, String> annotationMetadata = getMapWithPrefixedKeys(service.getMetadata().getAnnotations(),
+			Map<String, String> annotationMetadata = keysWithPrefix(service.getMetadata().getAnnotations(),
 					metadataProps.annotationsPrefix());
 			if (log.isDebugEnabled()) {
 				log.debug("Adding annotation metadata: " + annotationMetadata);
@@ -260,25 +261,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		}
 
 		return es;
-	}
-
-	// returns a new map that contain all the entries of the original map
-	// but with the keys prefixed
-	// if the prefix is null or empty, the map itself is returned (unchanged of course)
-	private Map<String, String> getMapWithPrefixedKeys(Map<String, String> map, String prefix) {
-		if (map == null) {
-			return new HashMap<>();
-		}
-
-		// when the prefix is empty just return an map with the same entries
-		if (!StringUtils.hasText(prefix)) {
-			return map;
-		}
-
-		final Map<String, String> result = new HashMap<>();
-		map.forEach((k, v) -> result.put(prefix + k, v));
-
-		return result;
 	}
 
 	@Override
