@@ -196,4 +196,30 @@ class ConfigUtilsTests {
 		Assertions.assertEquals(result.data().get("propC"), "C");
 	}
 
+	@Test
+	void testKeysWithPrefixNullMap() {
+		Map<String, String> result = ConfigUtils.keysWithPrefix(null, "");
+		Assertions.assertTrue(result.isEmpty());
+	}
+
+	@Test
+	void testKeysWithPrefixEmptyMap() {
+		Map<String, String> result = ConfigUtils.keysWithPrefix(Map.of(), "");
+		Assertions.assertTrue(result.isEmpty());
+	}
+
+	@Test
+	void testKeysWithPrefixEmptyPrefix() {
+		Map<String, String> result = ConfigUtils.keysWithPrefix(Map.of("a", "b"), "");
+		Assertions.assertFalse(result.isEmpty());
+		Assertions.assertEquals(Map.of("a", "b"), result);
+	}
+
+	@Test
+	void testKeysWithPrefixNonEmptyPrefix() {
+		Map<String, String> result = ConfigUtils.keysWithPrefix(Map.of("a", "b", "c", "d"), "prefix-");
+		Assertions.assertFalse(result.isEmpty());
+		Assertions.assertEquals(Map.of("prefix-a", "b", "prefix-c", "d"), result);
+	}
+
 }
