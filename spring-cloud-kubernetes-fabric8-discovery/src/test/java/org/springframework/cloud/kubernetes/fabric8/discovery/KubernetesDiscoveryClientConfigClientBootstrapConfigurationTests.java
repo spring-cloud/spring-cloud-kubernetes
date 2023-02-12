@@ -48,12 +48,12 @@ class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 	private AnnotationConfigApplicationContext context;
 
 	@AfterEach
-	public void close() {
-		if (this.context != null) {
-			if (this.context.getParent() != null) {
-				((AnnotationConfigApplicationContext) this.context.getParent()).close();
+	void afterEach() {
+		if (context != null) {
+			if (context.getParent() != null) {
+				((AnnotationConfigApplicationContext) context.getParent()).close();
 			}
-			this.context.close();
+			context.close();
 		}
 	}
 
@@ -62,10 +62,10 @@ class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 		setup("server.port=7000", "spring.cloud.config.discovery.enabled=true",
 				"spring.cloud.kubernetes.discovery.enabled:true", "spring.application.name:test",
 				"spring.cloud.config.discovery.service-id:configserver");
-		Assertions.assertEquals(1, this.context.getParent().getBeanNamesForType(DiscoveryClient.class).length);
-		DiscoveryClient client = this.context.getParent().getBean(DiscoveryClient.class);
+		Assertions.assertEquals(1, context.getParent().getBeanNamesForType(DiscoveryClient.class).length);
+		DiscoveryClient client = context.getParent().getBean(DiscoveryClient.class);
 		verify(client, atLeast(2)).getInstances("configserver");
-		ConfigClientProperties locator = this.context.getBean(ConfigClientProperties.class);
+		ConfigClientProperties locator = context.getBean(ConfigClientProperties.class);
 		Assertions.assertEquals("http://fake:8888/", locator.getUri()[0]);
 	}
 
@@ -77,18 +77,18 @@ class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 				KubernetesDiscoveryClientConfigClientBootstrapConfiguration.class,
 				DiscoveryClientConfigServiceBootstrapConfiguration.class, ConfigClientProperties.class);
 		parent.refresh();
-		this.context = new AnnotationConfigApplicationContext();
-		this.context.setParent(parent);
-		this.context.register(PropertyPlaceholderAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+		context = new AnnotationConfigApplicationContext();
+		context.setParent(parent);
+		context.register(PropertyPlaceholderAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
 				KubernetesDiscoveryClientAutoConfiguration.class);
-		this.context.refresh();
+		context.refresh();
 	}
 
 	@Configuration(proxyBeanMethods = false)
 	protected static class EnvironmentKnobbler {
 
 		@Bean
-		public KubernetesDiscoveryClient kubernetesDiscoveryClient() {
+		KubernetesDiscoveryClient kubernetesDiscoveryClient() {
 			KubernetesDiscoveryClient client = mock(KubernetesDiscoveryClient.class);
 			ServiceInstance instance = new DefaultServiceInstance("configserver1", "configserver", "fake", 8888, false);
 			given(client.getInstances("configserver")).willReturn(Collections.singletonList(instance));
