@@ -46,6 +46,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.subsetsFromEndpoints;
 
 /**
  * Kubernetes implementation of {@link DiscoveryClient}.
@@ -104,8 +105,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId, "[Assertion failed] - the object argument must not be null");
 
-		List<EndpointSubsetNS> subsetsNS = this.getEndPointsList(serviceId).stream().map(this::getSubsetsFromEndpoints)
-				.collect(Collectors.toList());
+		List<EndpointSubsetNS> subsetsNS = this.getEndPointsList(serviceId).stream()
+				.map(x -> subsetsFromEndpoints(x, () -> client.getNamespace())).collect(Collectors.toList());
 
 		List<ServiceInstance> instances = new ArrayList<>();
 		if (!subsetsNS.isEmpty()) {
@@ -255,16 +256,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			}
 			return discoveredPort;
 		}
-	}
-
-	private EndpointSubsetNS getSubsetsFromEndpoints(Endpoints endpoints) {
-		// start with the default that comes with the client
-		EndpointSubsetNS es = new EndpointSubsetNS(this.client.getNamespace(), null);
-		if (endpoints != null && endpoints.getSubsets() != null) {
-			es = new EndpointSubsetNS(endpoints.getMetadata().getNamespace(), endpoints.getSubsets());
-		}
-
-		return es;
 	}
 
 	@Override
