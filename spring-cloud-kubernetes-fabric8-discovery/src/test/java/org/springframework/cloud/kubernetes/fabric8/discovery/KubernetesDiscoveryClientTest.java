@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,26 +33,22 @@ import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties.Metadata;
 
-@ExtendWith(SpringExtension.class)
 @EnableKubernetesMockClient(crud = true, https = false)
-public class KubernetesDiscoveryClientTest {
+class KubernetesDiscoveryClientTest {
 
 	private KubernetesClient mockClient;
 
 	@BeforeEach
-	public void setup() {
-
+	void setup() {
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -63,14 +58,13 @@ public class KubernetesDiscoveryClientTest {
 	}
 
 	@AfterEach
-	public void after() {
+	void afterEach() {
 		mockClient.close();
 	}
 
 	@Test
-	public void getInstancesShouldBeAbleToHandleEndpointsSingleAddress() {
-		Map<String, String> labels = new HashMap<>();
-		labels.put("l", "v");
+	void getInstancesShouldBeAbleToHandleEndpointsSingleAddress() {
+		Map<String, String> labels = Map.of("l", "v");
 
 		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
 				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
@@ -84,20 +78,19 @@ public class KubernetesDiscoveryClientTest {
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services, null,
 				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
 
-		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
+		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
 		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
 				.filteredOn(s -> s.getInstanceId().equals("10")).hasSize(1);
 	}
 
 	@Test
-	public void getInstancesShouldBeAbleToHandleEndpointsSingleAddressAndMultiplePorts() {
-		Map<String, String> labels = new HashMap<>();
-		labels.put("l2", "v2");
+	void getInstancesShouldBeAbleToHandleEndpointsSingleAddressAndMultiplePorts() {
+		Map<String, String> labels = Map.of("l2", "v2");
 
 		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
 				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
@@ -111,13 +104,13 @@ public class KubernetesDiscoveryClientTest {
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
-		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true,
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true,
 				60, false, null, Set.of(), labels, "http_tcp", Metadata.DEFAULT, 0, true);
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
 
-		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
+		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
 		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
 				.filteredOn(s -> s.getInstanceId().equals("20")).hasSize(1).filteredOn(s -> 80 == s.getPort())
@@ -125,9 +118,8 @@ public class KubernetesDiscoveryClientTest {
 	}
 
 	@Test
-	public void getEndPointsListTest() {
-		Map<String, String> labels = new HashMap<>();
-		labels.put("l", "v");
+	void getEndPointsListTest() {
+		Map<String, String> labels = Map.of("l", "v");
 
 		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
 				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
@@ -136,20 +128,20 @@ public class KubernetesDiscoveryClientTest {
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 
-		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services, null,
 				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
 
-		final List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
+		List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
 
 		assertThat(result_endpoints).hasSize(1);
 	}
 
 	@Test
-	public void getEndPointsListTestAllNamespaces() {
+	void getEndPointsListTestAllNamespaces() {
 
-		final var namespace1 = "ns1";
-		final var namespace2 = "ns2";
+		String namespace1 = "ns1";
+		String namespace2 = "ns2";
 
 		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace1)
 				.endMetadata().build();
@@ -160,23 +152,23 @@ public class KubernetesDiscoveryClientTest {
 		mockClient.endpoints().inNamespace(namespace1).resource(endPoint1).create();
 		mockClient.endpoints().inNamespace(namespace2).resource(endPoint2).create();
 
-		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true,
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true,
 				60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
-		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
 
-		final List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
+		List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
 
 		assertThat(result_endpoints).hasSize(2);
 	}
 
 	@Test
-	public void getEndPointsListShouldHandleNamespaces() {
+	void getEndPointsListShouldHandleNamespaces() {
 
-		final var namespace1 = "ns1";
-		final var namespace2 = "ns2";
-		final var namespace3 = "ns3";
+		String namespace1 = "ns1";
+		String namespace2 = "ns2";
+		String namespace3 = "ns3";
 
 		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace1)
 				.endMetadata().build();
@@ -189,14 +181,14 @@ public class KubernetesDiscoveryClientTest {
 		mockClient.endpoints().inNamespace(namespace2).resource(endPoint2).create();
 		mockClient.endpoints().inNamespace(namespace3).resource(endPoint3).create();
 
-		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false,
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false,
 				Set.of(namespace1, namespace3), true, 60, false, null, Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
-		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
 
-		final List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
+		List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
 
 		assertThat(result_endpoints).hasSize(2);
 		assertThat(result_endpoints.stream().map(Endpoints::getMetadata).map(ObjectMeta::getNamespace)
@@ -204,9 +196,8 @@ public class KubernetesDiscoveryClientTest {
 	}
 
 	@Test
-	public void getInstancesShouldBeAbleToHandleEndpointsMultipleAddresses() {
-		Map<String, String> labels = new HashMap<>();
-		labels.put("l1", "v1");
+	void getInstancesShouldBeAbleToHandleEndpointsMultipleAddresses() {
+		Map<String, String> labels = Map.of("l1", "v1");
 
 		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
 				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
@@ -222,28 +213,26 @@ public class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace("test").resource(service).create();
 
 		Metadata metadata = new Metadata(false, null, false, null, true, "port.");
-		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true,
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true,
 				60, false, null, Set.of(443, 8443), labels, null, metadata, 0, true);
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
 
-		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
+		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
 		assertThat(instances).hasSize(2).filteredOn(ServiceInstance::isSecure).extracting(ServiceInstance::getHost)
 				.containsOnly("ip1", "ip2");
 	}
 
 	@Test
-	public void getServicesShouldReturnAllServicesWhenNoLabelsAreAppliedToTheClient() {
+	void getServicesShouldReturnAllServicesWhenNoLabelsAreAppliedToTheClient() {
 
 		Map<String, String> service1Labels = Collections.singletonMap("label", "value");
 		Service service1 = new ServiceBuilder().withNewMetadata().withName("s1").withNamespace("test")
 				.withLabels(service1Labels).endMetadata().build();
 
-		Map<String, String> service2Labels = new HashMap<>();
-		service2Labels.put("label", "value");
-		service2Labels.put("label2", "value2");
+		Map<String, String> service2Labels = Map.of("label", "value", "label2", "value2");
 		Service service2 = new ServiceBuilder().withNewMetadata().withName("s2").withNamespace("test")
 				.withLabels(service2Labels).endMetadata().build();
 
@@ -253,47 +242,45 @@ public class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace("test").resource(service2).create();
 		mockClient.services().inNamespace("test").resource(service3).create();
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services, null,
 				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
 
-		final List<String> services = discoveryClient.getServices();
+		List<String> services = discoveryClient.getServices();
 
 		assertThat(services).containsOnly("s1", "s2", "s3");
 	}
 
 	@Test
-	public void getServicesShouldReturnOnlyMatchingServicesWhenLabelsAreAppliedToTheClient() {
+	void getServicesShouldReturnOnlyMatchingServicesWhenLabelsAreAppliedToTheClient() {
 
 		Map<String, String> service1Labels = Collections.singletonMap("label", "value");
 		Service service1 = new ServiceBuilder().withNewMetadata().withName("s1").withNamespace("test")
 				.withLabels(service1Labels).endMetadata().build();
 
-		Map<String, String> service2Labels = new HashMap<>();
-		service2Labels.put("label", "value");
-		service2Labels.put("label2", "value2");
+		Map<String, String> service2Labels = Map.of("label", "value", "label2", "value2");
 		Service service2 = new ServiceBuilder().withNewMetadata().withName("s2").withNamespace("test")
 				.withLabels(service2Labels).endMetadata().build();
 
 		mockClient.services().inNamespace("test").resource(service1).create();
 		mockClient.services().inNamespace("test").resource(service2).create();
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				KubernetesDiscoveryProperties.DEFAULT,
 				client -> client.services().withLabels(Collections.singletonMap("label", "value")), null,
 				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
 
-		final List<String> services = discoveryClient.getServices();
+		List<String> services = discoveryClient.getServices();
 
 		assertThat(services).containsOnly("s1", "s2");
 	}
 
 	@Test
-	public void getServicesShouldReturnServicesInNamespaces() {
+	void getServicesShouldReturnServicesInNamespaces() {
 
-		final var nameSpace1 = "ns1";
-		final var nameSpace2 = "ns2";
-		final var nameSpace3 = "ns3";
+		String nameSpace1 = "ns1";
+		String nameSpace2 = "ns2";
+		String nameSpace3 = "ns3";
 
 		Service service1 = new ServiceBuilder().withNewMetadata().withName("s1").withNamespace(nameSpace1).endMetadata()
 				.build();
@@ -308,20 +295,20 @@ public class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace(nameSpace2).resource(service2).create();
 		mockClient.services().inNamespace(nameSpace3).resource(service3).create();
 
-		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false,
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false,
 				Set.of(nameSpace1, nameSpace2), true, 60, false, null, Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
 
-		final List<String> services = discoveryClient.getServices();
+		List<String> services = discoveryClient.getServices();
 
 		assertThat(services).containsOnly("s1", "s2");
 	}
 
 	@Test
-	public void getInstancesShouldBeAbleToHandleEndpointsFromMultipleNamespaces() {
+	void getInstancesShouldBeAbleToHandleEndpointsFromMultipleNamespaces() {
 		Endpoints endPoints1 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
 				.endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef().withUid("60")
 				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset().build();
@@ -342,13 +329,13 @@ public class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace("test").resource(service1).create();
 		mockClient.services().inNamespace("test2").resource(service2).create();
 
-		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true,
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true,
 				60, false, null, Set.of(), Map.of(), null, Metadata.DEFAULT, 0, true);
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
 
-		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
+		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
 		assertThat(instances).hasSize(2);
 		assertThat(instances).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1);
@@ -362,25 +349,24 @@ public class KubernetesDiscoveryClientTest {
 	}
 
 	@Test
-	public void instanceWithoutPortsShouldBeSkipped() {
+	void instanceWithoutPortsShouldBeSkipped() {
 		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint1").withNamespace("test")
 				.withLabels(Collections.emptyMap()).endMetadata().build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 
-		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services, null,
 				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
 
-		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint1");
+		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint1");
 
 		assertThat(instances).isEmpty();
 	}
 
 	@Test
-	public void getInstancesShouldBeAbleToHandleEndpointsSingleAddressAndMultiplePortsUsingPrimaryPortNameLabel() {
-		Map<String, String> labels = new HashMap<>();
-		labels.put("primary-port-name", "https");
+	void getInstancesShouldBeAbleToHandleEndpointsSingleAddressAndMultiplePortsUsingPrimaryPortNameLabel() {
+		Map<String, String> labels = Map.of("primary-port-name", "https");
 
 		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint2").withNamespace("test")
 				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
@@ -394,13 +380,13 @@ public class KubernetesDiscoveryClientTest {
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
-		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true,
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true,
 				60, false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true);
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
 
-		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint2");
+		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint2");
 
 		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
 				.filteredOn(s -> s.getInstanceId().equals("80")).hasSize(1).filteredOn(s -> 443 == s.getPort())
@@ -408,9 +394,8 @@ public class KubernetesDiscoveryClientTest {
 	}
 
 	@Test
-	public void instanceWithMultiplePortsAndMisconfiguredPrimaryPortNameInLabelWithoutFallbackShouldLogWarning() {
-		Map<String, String> labels = new HashMap<>();
-		labels.put("primary-port-name", "oops");
+	void instanceWithMultiplePortsAndMisconfiguredPrimaryPortNameInLabelWithoutFallbackShouldLogWarning() {
+		Map<String, String> labels = Map.of("primary-port-name", "oops");
 
 		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint3").withNamespace("test")
 				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
@@ -425,13 +410,13 @@ public class KubernetesDiscoveryClientTest {
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
-		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true,
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true,
 				60, false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true);
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
 
-		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint3");
+		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint3");
 
 		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
 				.filteredOn(s -> s.getInstanceId().equals("90")).hasSize(1).filteredOn(s -> 443 == s.getPort())
@@ -439,8 +424,8 @@ public class KubernetesDiscoveryClientTest {
 	}
 
 	@Test
-	public void instanceWithMultiplePortsAndMisconfiguredGenericPrimaryPortNameWithoutFallbackShouldLogWarning() {
-		Map<String, String> labels = new HashMap<>();
+	void instanceWithMultiplePortsAndMisconfiguredGenericPrimaryPortNameWithoutFallbackShouldLogWarning() {
+		Map<String, String> labels = Map.of();
 
 		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint4").withNamespace("test")
 				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
@@ -455,13 +440,13 @@ public class KubernetesDiscoveryClientTest {
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
-		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true,
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true,
 				60, false, null, Set.of(443, 8443), Map.of(), "oops", Metadata.DEFAULT, 0, true);
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
 
-		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint4");
+		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint4");
 
 		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
 				.filteredOn(s -> s.getInstanceId().equals("100")).hasSize(1).filteredOn(s -> 443 == s.getPort())
@@ -469,8 +454,8 @@ public class KubernetesDiscoveryClientTest {
 	}
 
 	@Test
-	public void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedShouldFallBackToHttps() {
-		Map<String, String> labels = new HashMap<>();
+	void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedShouldFallBackToHttps() {
+		Map<String, String> labels = Map.of();
 
 		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
 				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
@@ -484,23 +469,22 @@ public class KubernetesDiscoveryClientTest {
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
-		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true,
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true,
 				60, false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true);
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
 
-		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
+		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
 		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
 				.filteredOn(s -> s.getInstanceId().equals("110")).hasSize(1).filteredOn(s -> 443 == s.getPort())
 				.hasSize(1);
 	}
 
-	//
 	@Test
-	public void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedOrHttpsPortShouldFallBackToHttp() {
-		Map<String, String> labels = new HashMap<>();
+	void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedOrHttpsPortShouldFallBackToHttp() {
+		Map<String, String> labels = Map.of();
 
 		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
 				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
@@ -514,11 +498,11 @@ public class KubernetesDiscoveryClientTest {
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services, null,
 				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
 
-		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
+		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
 		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
 				.filteredOn(s -> s.getInstanceId().equals("120")).hasSize(1).filteredOn(s -> 80 == s.getPort())
@@ -526,8 +510,8 @@ public class KubernetesDiscoveryClientTest {
 	}
 
 	@Test
-	public void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedShouldLogWarning() {
-		Map<String, String> labels = new HashMap<>();
+	void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedShouldLogWarning() {
+		Map<String, String> labels = Map.of();
 
 		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
 				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
@@ -541,13 +525,13 @@ public class KubernetesDiscoveryClientTest {
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
-		final KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true,
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true,
 				60, true, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true);
 
-		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
+		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
 
-		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
+		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
 		// We're returning the first discovered port to not change previous behaviour
 		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
