@@ -44,44 +44,43 @@ import static org.mockito.Mockito.when;
  * @author Tim Ysewyn
  */
 public class Fabric8KubernetesCatalogServicesWatchConfigurationTest {
-
 	private ConfigurableApplicationContext context;
 
 	@AfterEach
 	void close() {
-		if (this.context != null) {
-			this.context.close();
+		if (context != null) {
+			context.close();
 		}
 	}
 
 	@Test
 	void kubernetesCatalogWatchDisabled() {
 		setup("spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false");
-		assertThat(this.context.containsBean("kubernetesCatalogWatch")).isFalse();
+		assertThat(context.containsBean("kubernetesCatalogWatch")).isFalse();
 	}
 
 	@Test
 	void kubernetesCatalogWatchWhenKubernetesDisabled() {
 		setup();
-		assertThat(this.context.containsBean("kubernetesCatalogWatch")).isFalse();
+		assertThat(context.containsBean("kubernetesCatalogWatch")).isFalse();
 	}
 
 	@Test
 	void kubernetesCatalogWatchWhenServiceDiscoveryDisabled() {
 		setup("spring.cloud.discovery.enabled=false");
-		assertThat(this.context.containsBean("kubernetesCatalogWatch")).isFalse();
+		assertThat(context.containsBean("kubernetesCatalogWatch")).isFalse();
 	}
 
 	@Test
 	void kubernetesCatalogWatchDefaultEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.use-endpoint-slices=false");
-		assertThat(this.context.containsBean("kubernetesCatalogWatch")).isTrue();
+		assertThat(context.containsBean("kubernetesCatalogWatch")).isTrue();
 	}
 
 	private void setup(String... env) {
 		List<String> envList = new ArrayList<>(Arrays.asList(env));
 		envList.add("spring.cloud.config.enabled=false");
-		this.context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
+		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
 				KubernetesClientTestConfiguration.class, Fabric8KubernetesCatalogWatchAutoConfiguration.class,
 				KubernetesDiscoveryClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class)
 						.web(WebApplicationType.NONE).properties(envList.toArray(new String[0])).run();
