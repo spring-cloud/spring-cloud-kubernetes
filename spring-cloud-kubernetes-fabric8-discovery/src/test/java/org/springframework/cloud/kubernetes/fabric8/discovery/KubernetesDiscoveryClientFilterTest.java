@@ -42,7 +42,8 @@ class KubernetesDiscoveryClientFilterTest {
 
 	private final KubernetesClientServicesFunction kubernetesClientServicesFunction = KubernetesClient::services;
 
-	private final MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation = Mockito.mock(MixedOperation.class);
+	private final MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation =
+		Mockito.mock(MixedOperation.class);
 
 	@Test
 	public void testFilteredServices() {
