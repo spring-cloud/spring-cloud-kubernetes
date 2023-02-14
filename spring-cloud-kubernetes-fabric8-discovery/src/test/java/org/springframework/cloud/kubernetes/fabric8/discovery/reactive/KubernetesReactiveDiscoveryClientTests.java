@@ -83,9 +83,9 @@ class KubernetesReactiveDiscoveryClientTests {
 	void shouldReturnFluxOfServices() {
 		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
 				.andReturn(200, new ServiceListBuilder().addNewItem().withNewMetadata().withName("s1")
-						.withLabels(Map.of("label", "value")).endMetadata().endItem().addNewItem().withNewMetadata().withName("s2")
-						.withLabels(Map.of("label", "value", "label2", "value2")).endMetadata().endItem().addNewItem().withNewMetadata().withName("s3").endMetadata().endItem()
-						.build())
+						.withLabels(Map.of("label", "value")).endMetadata().endItem().addNewItem().withNewMetadata()
+						.withName("s2").withLabels(Map.of("label", "value", "label2", "value2")).endMetadata().endItem()
+						.addNewItem().withNewMetadata().withName("s3").endMetadata().endItem().build())
 				.once();
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services);
@@ -139,8 +139,9 @@ class KubernetesReactiveDiscoveryClientTests {
 				.withNamespace("test").withLabels(Map.of("label", "value")).endMetadata().endItem().build();
 
 		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("existing-service").withNamespace("test")
-				.withLabels(Map.of("label", "value")).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
-				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset().build();
+				.withLabels(Map.of("label", "value")).endMetadata().addNewSubset().addNewAddress().withIp("ip1")
+				.withNewTargetRef().withUid("uid1").endTargetRef().endAddress()
+				.addNewPort("http", "http_tcp", 80, "TCP").endSubset().build();
 
 		List<Endpoints> endpointsList = new ArrayList<>();
 		endpointsList.add(endPoint);

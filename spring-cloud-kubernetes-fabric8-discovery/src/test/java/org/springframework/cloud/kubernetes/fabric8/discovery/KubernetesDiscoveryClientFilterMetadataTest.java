@@ -79,7 +79,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "lab"), Map.of("l1", "lab"),
-			Map.of(80, "http", 5555, ""));
+				Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -115,7 +115,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
-			Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
+				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -133,7 +133,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
-			Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -151,7 +151,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
-			Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -169,7 +169,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
-			Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -187,7 +187,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
-			Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -205,7 +205,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "la1"),
-			Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));
+				Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
