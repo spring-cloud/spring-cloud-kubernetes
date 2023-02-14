@@ -46,7 +46,7 @@ class KubernetesDiscoveryClientFilterTest {
 			.mock(MixedOperation.class);
 
 	@Test
-	public void testFilteredServices() {
+	void testFilteredServices() {
 		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB");
 		List<Service> services = createSpringBootServiceByName(springBootServiceNames);
 
