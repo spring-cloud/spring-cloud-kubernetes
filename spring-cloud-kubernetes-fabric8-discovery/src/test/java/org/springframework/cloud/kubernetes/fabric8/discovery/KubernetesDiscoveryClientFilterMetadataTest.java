@@ -57,13 +57,16 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
 
-	private final MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation = Mockito.mock(MixedOperation.class);
+	private final MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation = Mockito
+			.mock(MixedOperation.class);
 
-	private final MixedOperation<Endpoints, EndpointsList, Resource<Endpoints>> endpointsOperation = Mockito.mock(MixedOperation.class);
+	private final MixedOperation<Endpoints, EndpointsList, Resource<Endpoints>> endpointsOperation = Mockito
+			.mock(MixedOperation.class);
 
 	private final ServiceResource<Service> serviceResource = Mockito.mock(ServiceResource.class);
 
-	private final FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>> filter = Mockito.mock(FilterWatchListDeletable.class);
+	private final FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>> filter = Mockito
+			.mock(FilterWatchListDeletable.class);
 
 	@Test
 	void testAllExtraMetadataDisabled() {
@@ -94,7 +97,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
-			Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
+				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
