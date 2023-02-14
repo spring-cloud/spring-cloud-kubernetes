@@ -28,26 +28,22 @@ import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class KubernetesDiscoveryClientFilterTest {
+class KubernetesDiscoveryClientFilterTest {
 
-	@Mock
-	private KubernetesClient kubernetesClient;
+	private final KubernetesClient kubernetesClient = Mockito.mock(KubernetesClient.class);
 
 	private final KubernetesClientServicesFunction kubernetesClientServicesFunction = KubernetesClient::services;
 
-	@Mock
-	private MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation;
+	private final MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation = Mockito
+			.mock(MixedOperation.class);
 
 	@Test
 	public void testFilteredServices() {
@@ -78,7 +74,7 @@ public class KubernetesDiscoveryClientFilterTest {
 	}
 
 	@Test
-	public void testFilteredServicesByPrefix() {
+	void testFilteredServicesByPrefix() {
 		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB", "serviceC");
 		List<Service> services = createSpringBootServiceByName(springBootServiceNames);
 
@@ -106,7 +102,7 @@ public class KubernetesDiscoveryClientFilterTest {
 	}
 
 	@Test
-	public void testNoExpression() {
+	void testNoExpression() {
 		List<String> springBootServiceNames = Arrays.asList("serviceA", "serviceB", "serviceC");
 		List<Service> services = createSpringBootServiceByName(springBootServiceNames);
 
@@ -122,7 +118,6 @@ public class KubernetesDiscoveryClientFilterTest {
 
 		List<String> filteredServices = client.getServices();
 
-		System.out.println("Filtered Services: " + filteredServices);
 		assertThat(filteredServices).isEqualTo(springBootServiceNames);
 
 	}
