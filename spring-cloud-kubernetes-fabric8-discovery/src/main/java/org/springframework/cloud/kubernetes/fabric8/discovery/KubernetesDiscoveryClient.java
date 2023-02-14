@@ -193,6 +193,29 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return instances;
 	}
 
+	private Map<String, String> getServiceMetadata(Service service) {
+		final Map<String, String> serviceMetadata = new HashMap<>();
+		KubernetesDiscoveryProperties.Metadata metadataProps = this.properties.metadata();
+		if (metadataProps.addLabels()) {
+			Map<String, String> labelMetadata = keysWithPrefix(service.getMetadata().getLabels(),
+					metadataProps.labelsPrefix());
+			if (log.isDebugEnabled()) {
+				log.debug("Adding label metadata: " + labelMetadata);
+			}
+			serviceMetadata.putAll(labelMetadata);
+		}
+		if (metadataProps.addAnnotations()) {
+			Map<String, String> annotationMetadata = keysWithPrefix(service.getMetadata().getAnnotations(),
+					metadataProps.annotationsPrefix());
+			if (log.isDebugEnabled()) {
+				log.debug("Adding annotation metadata: " + annotationMetadata);
+			}
+			serviceMetadata.putAll(annotationMetadata);
+		}
+
+		return serviceMetadata;
+	}
+
 	@Override
 	public List<String> getServices() {
 		return adapter.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
