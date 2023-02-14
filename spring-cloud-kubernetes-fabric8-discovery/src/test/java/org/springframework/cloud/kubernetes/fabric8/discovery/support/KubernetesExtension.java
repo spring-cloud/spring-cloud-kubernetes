@@ -46,12 +46,12 @@ public class KubernetesExtension implements ParameterResolver, BeforeEachCallbac
 	}
 
 	@Override
-	public void beforeEach(ExtensionContext context) throws Exception {
+	public void beforeEach(ExtensionContext context) {
 		mockServer.before();
 	}
 
 	@Override
-	public void afterEach(ExtensionContext context) throws Exception {
+	public void afterEach(ExtensionContext context) {
 		mockServer.after();
 	}
 
