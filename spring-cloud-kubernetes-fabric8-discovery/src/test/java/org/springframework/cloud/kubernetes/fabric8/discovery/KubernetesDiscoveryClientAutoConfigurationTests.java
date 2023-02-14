@@ -31,12 +31,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 		"spring.cloud.config.enabled=false", "spring.cloud.kubernetes.discovery.use-endpoint-slices=false" })
 class KubernetesDiscoveryClientAutoConfigurationTests {
 
-	@Autowired(required = false)
+	@Autowired
 	private DiscoveryClient discoveryClient;
 
 	@Test
 	void kubernetesDiscoveryClientCreated() {
-		assertThat(this.discoveryClient).isNotNull().isInstanceOf(CompositeDiscoveryClient.class);
+		assertThat(this.discoveryClient).isInstanceOf(CompositeDiscoveryClient.class);
 
 		CompositeDiscoveryClient composite = (CompositeDiscoveryClient) this.discoveryClient;
 		assertThat(composite.getDiscoveryClients().stream().anyMatch(dc -> dc instanceof KubernetesDiscoveryClient))

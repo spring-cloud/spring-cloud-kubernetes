@@ -46,9 +46,9 @@ class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 	private ConfigurableApplicationContext context;
 
 	@AfterEach
-	void close() {
-		if (this.context != null) {
-			this.context.close();
+	void afterEach() {
+		if (context != null) {
+			context.close();
 		}
 	}
 
@@ -56,31 +56,31 @@ class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 	void kubernetesDiscoveryDisabled() {
 		setup("spring.cloud.kubernetes.discovery.enabled=false",
 				"spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false");
-		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
+		assertThat(context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
 	}
 
 	@Test
 	void kubernetesDiscoveryWhenKubernetesDisabled() {
 		setup();
-		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
+		assertThat(context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
 	}
 
 	@Test
 	void kubernetesDiscoveryWhenDiscoveryDisabled() {
 		setup("spring.cloud.discovery.enabled=false");
-		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
+		assertThat(context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
 	}
 
 	@Test
 	void kubernetesDiscoveryDefaultEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES");
-		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class)).hasSize(1);
+		assertThat(context.getBeanNamesForType(KubernetesDiscoveryClient.class)).hasSize(1);
 	}
 
 	private void setup(String... env) {
 		List<String> envList = new ArrayList<>(Arrays.asList(env));
 		envList.add("spring.cloud.config.enabled=false");
-		this.context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
+		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
 				KubernetesClientTestConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class,
 				KubernetesDiscoveryPropertiesAutoConfiguration.class)
 						.web(org.springframework.boot.WebApplicationType.NONE)
