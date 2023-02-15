@@ -44,6 +44,7 @@ import static java.util.stream.Collectors.toMap;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpointsPort;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.subsetsFromEndpoints;
 
 /**
@@ -143,7 +144,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		List<ServiceInstance> instances = new ArrayList<>();
 		if (!subsets.isEmpty()) {
 			final Service service = this.client.services().inNamespace(namespace).withName(serviceId).get();
-			final Map<String, String> serviceMetadata = this.getServiceMetadata(service);
+			final Map<String, String> serviceMetadata = serviceMetadata(serviceId, service, properties);
 			KubernetesDiscoveryProperties.Metadata metadataProps = this.properties.metadata();
 
 			for (EndpointSubset s : subsets) {
@@ -190,29 +191,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		}
 
 		return instances;
-	}
-
-	private Map<String, String> getServiceMetadata(Service service) {
-		final Map<String, String> serviceMetadata = new HashMap<>();
-		KubernetesDiscoveryProperties.Metadata metadataProps = this.properties.metadata();
-		if (metadataProps.addLabels()) {
-			Map<String, String> labelMetadata = keysWithPrefix(service.getMetadata().getLabels(),
-					metadataProps.labelsPrefix());
-			if (log.isDebugEnabled()) {
-				log.debug("Adding label metadata: " + labelMetadata);
-			}
-			serviceMetadata.putAll(labelMetadata);
-		}
-		if (metadataProps.addAnnotations()) {
-			Map<String, String> annotationMetadata = keysWithPrefix(service.getMetadata().getAnnotations(),
-					metadataProps.annotationsPrefix());
-			if (log.isDebugEnabled()) {
-				log.debug("Adding annotation metadata: " + annotationMetadata);
-			}
-			serviceMetadata.putAll(annotationMetadata);
-		}
-
-		return serviceMetadata;
 	}
 
 	@Override
