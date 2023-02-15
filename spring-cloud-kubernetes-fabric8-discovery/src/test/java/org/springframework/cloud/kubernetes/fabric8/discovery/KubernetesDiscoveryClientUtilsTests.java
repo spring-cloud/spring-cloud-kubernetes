@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
@@ -322,6 +323,171 @@ class KubernetesDiscoveryClientUtilsTests {
 		Assertions.assertTrue(output.getOut().contains(
 				"not found primary-port-name (with value: 'three') via properties or service labels to match port"));
 		Assertions.assertTrue(output.getOut().contains("found primary-port-name via 'http' to match port : 8082"));
+	}
+
+	/**
+	 * <pre>
+	 *     - labels are not added
+	 *     - annotations are not added
+	 * </pre>
+	 */
+	@Test
+	void testServiceMetadataEmpty() {
+		boolean addLabels = false;
+		String labelsPrefix = "";
+		boolean addAnnotations = false;
+		String annotationsPrefix = "";
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+				labelsPrefix, addAnnotations, annotationsPrefix, false, "");
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), Map.of(), "", metadata, 0, false);
+		Service service = new ServiceBuilder().build();
+
+		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties);
+		Assertions.assertEquals(result.size(), 0);
+	}
+
+	/**
+	 * <pre>
+	 *     - labels are added without a prefix
+	 *     - annotations are not added
+	 * </pre>
+	 */
+	@Test
+	void testServiceMetadataAddLabelsNoPrefix(CapturedOutput output) {
+		boolean addLabels = true;
+		String labelsPrefix = "";
+		boolean addAnnotations = false;
+		String annotationsPrefix = "";
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+				labelsPrefix, addAnnotations, annotationsPrefix, false, "");
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), Map.of(), "", metadata, 0, false);
+		Service service = new ServiceBuilder()
+				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("a", "b")).build()).build();
+
+		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties);
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result, Map.of("a", "b"));
+		Assertions.assertTrue(output.getOut().contains("Adding labels metadata: {a=b} for serviceId: my-service"));
+	}
+
+	/**
+	 * <pre>
+	 *     - labels are added with prefix
+	 *     - annotations are not added
+	 * </pre>
+	 */
+	@Test
+	void testServiceMetadataAddLabelsWithPrefix(CapturedOutput output) {
+		boolean addLabels = true;
+		String labelsPrefix = "prefix-";
+		boolean addAnnotations = false;
+		String annotationsPrefix = "";
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+				labelsPrefix, addAnnotations, annotationsPrefix, false, "");
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), Map.of(), "", metadata, 0, false);
+		Service service = new ServiceBuilder()
+				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("a", "b", "c", "d")).build()).build();
+
+		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties);
+		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertEquals(result, Map.of("prefix-a", "b", "prefix-c", "d"));
+		// so that result is deterministic in assertion
+		String labels = result.toString();
+		Assertions.assertTrue(
+				output.getOut().contains("Adding labels metadata: " + labels + " for serviceId: my-service"));
+	}
+
+	/**
+	 * <pre>
+	 *     - labels are not added
+	 *     - annotations are added without prefix
+	 * </pre>
+	 */
+	@Test
+	void testServiceMetadataAddAnnotationsNoPrefix(CapturedOutput output) {
+		boolean addLabels = false;
+		String labelsPrefix = "";
+		boolean addAnnotations = true;
+		String annotationsPrefix = "";
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+				labelsPrefix, addAnnotations, annotationsPrefix, false, "");
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), Map.of(), "", metadata, 0, false);
+		Service service = new ServiceBuilder().withMetadata(
+				new ObjectMetaBuilder().withAnnotations(Map.of("aa", "bb")).withLabels(Map.of("a", "b")).build())
+				.build();
+
+		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties);
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result, Map.of("aa", "bb"));
+		Assertions
+				.assertTrue(output.getOut().contains("Adding annotations metadata: {aa=bb} for serviceId: my-service"));
+	}
+
+	/**
+	 * <pre>
+	 *     - labels are not added
+	 *     - annotations are added with prefix
+	 * </pre>
+	 */
+	@Test
+	void testServiceMetadataAddAnnotationsWithPrefixPrefix(CapturedOutput output) {
+		boolean addLabels = false;
+		String labelsPrefix = "";
+		boolean addAnnotations = true;
+		String annotationsPrefix = "prefix-";
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+				labelsPrefix, addAnnotations, annotationsPrefix, false, "");
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), Map.of(), "", metadata, 0, false);
+		Service service = new ServiceBuilder().withMetadata(new ObjectMetaBuilder()
+				.withAnnotations(Map.of("aa", "bb", "cc", "dd")).withLabels(Map.of("a", "b")).build()).build();
+
+		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties);
+		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertEquals(result, Map.of("prefix-aa", "bb", "prefix-cc", "dd"));
+		// so that result is deterministic in assertion
+		String annotations = result.toString();
+		Assertions.assertTrue(
+				output.getOut().contains("Adding annotations metadata: " + annotations + " for serviceId: my-service"));
+	}
+
+	/**
+	 * <pre>
+	 *     - labels are added with prefix
+	 *     - annotations are added with prefix
+	 * </pre>
+	 */
+	@Test
+	void testServiceMetadataAddLabelsAndAnnotationsWithPrefix(CapturedOutput output) {
+		boolean addLabels = true;
+		String labelsPrefix = "label-";
+		boolean addAnnotations = true;
+		String annotationsPrefix = "annotation-";
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+				labelsPrefix, addAnnotations, annotationsPrefix, false, "");
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), Map.of(), "", metadata, 0, false);
+		Service service = new ServiceBuilder().withMetadata(new ObjectMetaBuilder()
+				.withAnnotations(Map.of("aa", "bb", "cc", "dd")).withLabels(Map.of("a", "b", "c", "d")).build())
+				.build();
+
+		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties);
+		Assertions.assertEquals(result.size(), 4);
+		Assertions.assertEquals(result,
+				Map.of("annotation-aa", "bb", "annotation-cc", "dd", "label-a", "b", "label-c", "d"));
+		// so that result is deterministic in assertion
+		String labels = result.entrySet().stream().filter(en -> en.getKey().contains("label"))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).toString();
+		String annotations = result.entrySet().stream().filter(en -> en.getKey().contains("annotation"))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).toString();
+		Assertions.assertTrue(
+				output.getOut().contains("Adding labels metadata: " + labels + " for serviceId: my-service"));
+		Assertions.assertTrue(
+				output.getOut().contains("Adding annotations metadata: " + annotations + " for serviceId: my-service"));
 	}
 
 }
