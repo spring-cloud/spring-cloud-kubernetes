@@ -25,7 +25,11 @@ import java.util.stream.Collectors;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.EndpointsList;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.client.dsl.FilterNested;
+import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -135,6 +139,13 @@ final class KubernetesDiscoveryClientUtils {
 		}
 
 		return serviceMetadata;
+	}
+
+	static List<Endpoints> endpoints(
+			FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> filterNested,
+			KubernetesDiscoveryProperties properties, String serviceId) {
+		return filterNested.withField("metadata.name", serviceId).withLabels(properties.serviceLabels()).endFilter()
+				.list().getItems();
 	}
 
 	private static Optional<Integer> fromMap(Map<String, Integer> existingPorts, String key, String message) {
