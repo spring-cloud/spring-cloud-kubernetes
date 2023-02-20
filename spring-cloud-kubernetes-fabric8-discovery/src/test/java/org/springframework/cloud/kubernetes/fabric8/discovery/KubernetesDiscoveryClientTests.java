@@ -407,6 +407,7 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
 		Assertions.assertEquals(result.size(), 1);
+		System.out.println("1111 ->" + output.getOut() + "<-");
 		Assertions.assertTrue(output.getOut().contains("searching for endpoints in namespaces : [test]"));
 	}
 
