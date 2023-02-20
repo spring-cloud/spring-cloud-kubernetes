@@ -530,13 +530,44 @@ class KubernetesDiscoveryClientUtilsTests {
 			new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build()
 		);
 
-		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties, List.of());
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result, Map.of("prefix-aa", "bb", "prefix-cc", "dd"));
-		// so that result is deterministic in assertion
-		String annotations = result.toString();
+		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties, endpointSubsets);
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result, Map.of("https", "8080"));
 		Assertions.assertTrue(
-			output.getOut().contains("Adding annotations metadata: " + annotations + " for serviceId: my-service"));
+			output.getOut().contains("Adding port metadata: {https=8080} for serviceId : my-service"));
+	}
+
+	/**
+	 * <pre>
+	 *     - ports without prefix are added
+	 * </pre>
+	 */
+	@Test
+	void testServiceMetadataAddPortsWithPrefix(CapturedOutput output) {
+		boolean addLabels = false;
+		String labelsPrefix = "";
+		boolean addAnnotations = false;
+		String annotationsPrefix = "prefix-";
+		boolean addPorts = true;
+		String portsPrefix = "prefix-";
+
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+			labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			true, "", Set.of(), Map.of(), "", metadata, 0, false);
+		Service service = new ServiceBuilder().withMetadata(new ObjectMetaBuilder()
+			.withAnnotations(Map.of("aa", "bb", "cc", "dd")).withLabels(Map.of("a", "b")).build()).build();
+
+		List<EndpointSubset> endpointSubsets = List.of(
+			new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8081).withName("http").build()).build(),
+			new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build()
+		);
+
+		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties, endpointSubsets);
+		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertEquals(result, Map.of("prefix-https", "8080", "prefix-http", "8081"));
+		Assertions.assertTrue(
+			output.getOut().contains("Adding port metadata: {prefix-http=8081, prefix-https=8080} for serviceId : my-service"));
 	}
 
 }
