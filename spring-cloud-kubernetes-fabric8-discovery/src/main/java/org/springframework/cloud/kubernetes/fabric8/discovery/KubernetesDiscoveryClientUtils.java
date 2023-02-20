@@ -143,9 +143,10 @@ final class KubernetesDiscoveryClientUtils {
 		}
 
 		if (metadataProps.addPorts()) {
-			Map<String, String> ports = endpointSubsets.stream().flatMap(endpointSubset -> endpointSubset.getPorts().stream())
-				.filter(port -> StringUtils.hasText(port.getName()))
-				.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
+			Map<String, String> ports = endpointSubsets.stream()
+					.flatMap(endpointSubset -> endpointSubset.getPorts().stream())
+					.filter(port -> StringUtils.hasText(port.getName()))
+					.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
 			Map<String, String> portMetadata = keysWithPrefix(ports, properties.metadata().portsPrefix());
 			LOG.debug(() -> "Adding port metadata: " + portMetadata + " for serviceId : " + serviceId);
 			serviceMetadata.putAll(portMetadata);

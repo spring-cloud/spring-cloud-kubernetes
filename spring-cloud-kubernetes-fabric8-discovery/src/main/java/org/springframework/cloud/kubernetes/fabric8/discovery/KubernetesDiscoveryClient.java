@@ -151,7 +151,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 			List<EndpointAddress> addresses = endpointSubset.getAddresses();
 
-			if (properties.includeNotReadyAddresses() && !CollectionUtils.isEmpty(endpointSubset.getNotReadyAddresses())) {
+			if (properties.includeNotReadyAddresses()
+					&& !CollectionUtils.isEmpty(endpointSubset.getNotReadyAddresses())) {
 				if (addresses == null) {
 					addresses = new ArrayList<>();
 				}
@@ -164,11 +165,12 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				if (endpointAddress.getTargetRef() != null) {
 					instanceId = endpointAddress.getTargetRef().getUid();
 				}
-				instances.add(new DefaultKubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
-					endpointPort, serviceMetadata,
-					servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(endpointPort,
-						service.getMetadata().getName(), service.getMetadata().getLabels(),
-						service.getMetadata().getAnnotations()))));
+				instances
+						.add(new DefaultKubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
+								endpointPort, serviceMetadata,
+								servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(endpointPort,
+										service.getMetadata().getName(), service.getMetadata().getLabels(),
+										service.getMetadata().getAnnotations()))));
 			}
 		}
 
