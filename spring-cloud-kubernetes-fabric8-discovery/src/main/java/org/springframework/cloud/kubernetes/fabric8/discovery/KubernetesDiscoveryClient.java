@@ -36,7 +36,6 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
 
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpoints;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpointsPort;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
@@ -141,17 +140,14 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		List<ServiceInstance> instances = new ArrayList<>();
 
 		Service service = client.services().inNamespace(namespace).withName(serviceId).get();
-		Map<String, String> serviceMetadata = serviceMetadata(serviceId, service, properties, subsets);
+		Map<String, String> serviceMetadata = serviceMetadata(serviceId, service, properties, subsets, namespace);
 
 		for (EndpointSubset endpointSubset : subsets) {
 
-			if (properties.allNamespaces()) {
-				serviceMetadata.put(NAMESPACE_METADATA_KEY, namespace);
-			}
-
 			List<EndpointAddress> addresses = endpointSubset.getAddresses();
 
-			if (properties.includeNotReadyAddresses() && !CollectionUtils.isEmpty(endpointSubset.getNotReadyAddresses())) {
+			if (properties.includeNotReadyAddresses()
+					&& !CollectionUtils.isEmpty(endpointSubset.getNotReadyAddresses())) {
 				if (addresses == null) {
 					addresses = new ArrayList<>();
 				}
@@ -164,11 +160,12 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				if (endpointAddress.getTargetRef() != null) {
 					instanceId = endpointAddress.getTargetRef().getUid();
 				}
-				instances.add(new DefaultKubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
-					endpointPort, serviceMetadata,
-					servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(endpointPort,
-						service.getMetadata().getName(), service.getMetadata().getLabels(),
-						service.getMetadata().getAnnotations()))));
+				instances
+						.add(new DefaultKubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
+								endpointPort, serviceMetadata,
+								servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(endpointPort,
+										service.getMetadata().getName(), service.getMetadata().getLabels(),
+										service.getMetadata().getAnnotations()))));
 			}
 		}
 
