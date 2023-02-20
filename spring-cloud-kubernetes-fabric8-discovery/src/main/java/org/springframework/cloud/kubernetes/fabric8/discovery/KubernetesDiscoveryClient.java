@@ -118,15 +118,17 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		if (properties.allNamespaces()) {
 			LOG.debug(() -> "searching for endpoints in all namespaces");
 			return endpoints(client.endpoints().inAnyNamespace().withNewFilter(), properties, serviceId);
-		} else if (properties.namespaces().isEmpty()) {
+		}
+		else if (properties.namespaces().isEmpty()) {
 			LOG.debug(() -> "searching for endpoints in namespace : " + client.getNamespace());
 			return endpoints(client.endpoints().withNewFilter(), properties, serviceId);
-		} else {
+		}
+		else {
 			LOG.debug(() -> "searching for endpoints in namespaces : " + properties.namespaces());
 			List<Endpoints> endpoints = new ArrayList<>();
 			for (String namespace : properties.namespaces()) {
 				endpoints.addAll(
-					endpoints(client.endpoints().inNamespace(namespace).withNewFilter(), properties, serviceId));
+						endpoints(client.endpoints().inNamespace(namespace).withNewFilter(), properties, serviceId));
 			}
 			return endpoints;
 		}
