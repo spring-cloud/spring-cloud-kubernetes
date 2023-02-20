@@ -36,6 +36,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.StringUtils;
 
+import static java.util.stream.Collectors.toMap;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
@@ -121,8 +122,11 @@ final class KubernetesDiscoveryClientUtils {
 		return primaryPortName;
 	}
 
+	/**
+	 * labels, annotations and ports metadata.
+	 */
 	static Map<String, String> serviceMetadata(String serviceId, Service service,
-			KubernetesDiscoveryProperties properties) {
+			KubernetesDiscoveryProperties properties, List<EndpointSubset> endpointSubsets) {
 		Map<String, String> serviceMetadata = new HashMap<>();
 		KubernetesDiscoveryProperties.Metadata metadataProps = properties.metadata();
 		if (metadataProps.addLabels()) {
@@ -136,6 +140,15 @@ final class KubernetesDiscoveryClientUtils {
 					metadataProps.annotationsPrefix());
 			LOG.debug(() -> "Adding annotations metadata: " + annotationMetadata + " for serviceId: " + serviceId);
 			serviceMetadata.putAll(annotationMetadata);
+		}
+
+		if (metadataProps.addPorts()) {
+			Map<String, String> ports = endpointSubsets.stream().flatMap(endpointSubset -> endpointSubset.getPorts().stream())
+				.filter(port -> StringUtils.hasText(port.getName()))
+				.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
+			Map<String, String> portMetadata = keysWithPrefix(ports, properties.metadata().portsPrefix());
+			LOG.debug(() -> "Adding port metadata: " + portMetadata + " for serviceId : " + serviceId);
+			serviceMetadata.putAll(portMetadata);
 		}
 
 		return serviceMetadata;
