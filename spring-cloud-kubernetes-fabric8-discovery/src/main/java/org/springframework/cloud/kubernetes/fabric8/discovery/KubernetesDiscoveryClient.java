@@ -104,7 +104,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		Objects.requireNonNull(serviceId);
 
 		List<EndpointSubsetNS> subsetsNS = getEndPointsList(serviceId).stream()
-				.map(x -> subsetsFromEndpoints(x, () -> client.getNamespace())).toList();
+				.map(KubernetesDiscoveryClientUtils::subsetsFromEndpoints).toList();
 
 		List<ServiceInstance> instances = new ArrayList<>();
 		if (!subsetsNS.isEmpty()) {
@@ -131,7 +131,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	private List<Endpoints> findEndPointsFilteredByNamespaces(String serviceId) {
 		List<Endpoints> endpoints = new ArrayList<>();
 		for (String ns : properties.namespaces()) {
-			endpoints.addAll(getClient().endpoints().inNamespace(ns).withField("metadata.name", serviceId)
+			endpoints.addAll(client.endpoints().inNamespace(ns).withField("metadata.name", serviceId)
 					.withLabels(properties.serviceLabels()).list().getItems());
 		}
 		return endpoints;

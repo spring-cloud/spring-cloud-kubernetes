@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointPort;
@@ -49,11 +48,8 @@ final class KubernetesDiscoveryClientUtils {
 
 	}
 
-	static EndpointSubsetNS subsetsFromEndpoints(Endpoints endpoints, Supplier<String> clientNamespace) {
-		if (endpoints != null && endpoints.getSubsets() != null) {
-			return new EndpointSubsetNS(endpoints.getMetadata().getNamespace(), endpoints.getSubsets());
-		}
-		return new EndpointSubsetNS(clientNamespace.get(), List.of());
+	static EndpointSubsetNS subsetsFromEndpoints(Endpoints endpoints) {
+		return new EndpointSubsetNS(endpoints.getMetadata().getNamespace(), endpoints.getSubsets());
 	}
 
 	static int endpointsPort(EndpointSubset endpointSubset, String serviceId, KubernetesDiscoveryProperties properties,
