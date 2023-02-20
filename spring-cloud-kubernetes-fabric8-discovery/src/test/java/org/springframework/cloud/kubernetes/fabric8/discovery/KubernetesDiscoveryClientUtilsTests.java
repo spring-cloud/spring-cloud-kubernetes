@@ -60,7 +60,8 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testSubsetsFromEndpointsNonEmptySubsets() {
 		Endpoints endpoints = new EndpointsBuilder().withSubsets((List<EndpointSubset>) null)
 				.withMetadata(new ObjectMetaBuilder().withNamespace("default").build())
-				.withSubsets(new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8080).build()).build())
+				.withSubsets(
+						new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8080).build()).build())
 				.build();
 		EndpointSubsetNS result = KubernetesDiscoveryClientUtils.subsetsFromEndpoints(endpoints);
 		Assertions.assertNotNull(result);
