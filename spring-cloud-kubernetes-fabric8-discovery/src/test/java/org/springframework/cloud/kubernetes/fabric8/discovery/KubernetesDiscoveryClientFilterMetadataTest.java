@@ -33,6 +33,7 @@ import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.FilterNested;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -53,6 +54,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties.Metadata;
 
+@SuppressWarnings("unchecked")
 class KubernetesDiscoveryClientFilterMetadataTest {
 
 	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
@@ -67,6 +69,9 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 	private final FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>> filter = Mockito
 			.mock(FilterWatchListDeletable.class);
+
+	private final FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> filterNested = Mockito
+			.mock(FilterNested.class);
 
 	@Test
 	void testAllExtraMetadataDisabled() {
@@ -218,10 +223,10 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		Service service = new ServiceBuilder().withNewMetadata().withNamespace(namespace).withLabels(labels)
 				.withAnnotations(annotations).endMetadata().withNewSpec().withPorts(getServicePorts(ports)).endSpec()
 				.build();
-		when(this.serviceOperation.withName(serviceId)).thenReturn(this.serviceResource);
-		when(this.serviceResource.get()).thenReturn(service);
-		when(CLIENT.services()).thenReturn(this.serviceOperation);
-		when(CLIENT.services().inNamespace(anyString())).thenReturn(this.serviceOperation);
+		when(serviceOperation.withName(serviceId)).thenReturn(serviceResource);
+		when(serviceResource.get()).thenReturn(service);
+		when(CLIENT.services()).thenReturn(serviceOperation);
+		when(CLIENT.services().inNamespace(anyString())).thenReturn(serviceOperation);
 
 		ObjectMeta objectMeta = new ObjectMeta();
 		objectMeta.setNamespace(namespace);
@@ -229,13 +234,15 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		Endpoints endpoints = new EndpointsBuilder().withMetadata(objectMeta).addNewSubset()
 				.addAllToPorts(getEndpointPorts(ports)).addNewAddress().endAddress().endSubset().build();
 
-		when(CLIENT.endpoints()).thenReturn(this.endpointsOperation);
+		when(CLIENT.endpoints()).thenReturn(endpointsOperation);
+		when(endpointsOperation.withNewFilter()).thenReturn(filterNested);
 
 		EndpointsList endpointsList = new EndpointsList(null, Collections.singletonList(endpoints), null, null);
 		when(filter.list()).thenReturn(endpointsList);
-		when(filter.withLabels(anyMap())).thenReturn(filter);
+		when(filterNested.withLabels(anyMap())).thenReturn(filterNested);
 
-		when(CLIENT.endpoints().withField(eq("metadata.name"), eq(serviceId))).thenReturn(filter);
+		when(filterNested.withField(eq("metadata.name"), eq(serviceId))).thenReturn(filterNested);
+		when(filterNested.endFilter()).thenReturn(filter);
 
 	}
 
