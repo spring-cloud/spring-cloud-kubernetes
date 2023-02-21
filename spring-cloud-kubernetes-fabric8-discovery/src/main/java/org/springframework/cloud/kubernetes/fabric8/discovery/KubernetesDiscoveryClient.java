@@ -42,9 +42,9 @@ import org.springframework.util.StringUtils;
 import static java.util.stream.Collectors.toMap;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpoints;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpointsPort;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.subsetsFromEndpoints;
 
 /**
  * Kubernetes implementation of {@link DiscoveryClient}.
@@ -107,10 +107,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				.map(KubernetesDiscoveryClientUtils::subsetsFromEndpoints).toList();
 
 		List<ServiceInstance> instances = new ArrayList<>();
-		if (!subsetsNS.isEmpty()) {
-			for (EndpointSubsetNS es : subsetsNS) {
-				instances.addAll(getNamespaceServiceInstances(es, serviceId));
-			}
+		for (EndpointSubsetNS es : subsetsNS) {
+			instances.addAll(getNamespaceServiceInstances(es, serviceId));
 		}
 
 		return instances;
@@ -118,23 +116,22 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	public List<Endpoints> getEndPointsList(String serviceId) {
 		if (properties.allNamespaces()) {
-			return client.endpoints().inAnyNamespace().withField("metadata.name", serviceId)
-					.withLabels(properties.serviceLabels()).list().getItems();
+			LOG.debug(() -> "searching for endpoints in all namespaces");
+			return endpoints(client.endpoints().inAnyNamespace().withNewFilter(), properties, serviceId);
 		}
-		if (properties.namespaces().isEmpty()) {
-			return client.endpoints().withField("metadata.name", serviceId).withLabels(properties.serviceLabels())
-					.list().getItems();
+		else if (properties.namespaces().isEmpty()) {
+			LOG.debug(() -> "searching for endpoints in namespace : " + client.getNamespace());
+			return endpoints(client.endpoints().withNewFilter(), properties, serviceId);
 		}
-		return findEndPointsFilteredByNamespaces(serviceId);
-	}
-
-	private List<Endpoints> findEndPointsFilteredByNamespaces(String serviceId) {
-		List<Endpoints> endpoints = new ArrayList<>();
-		for (String ns : properties.namespaces()) {
-			endpoints.addAll(client.endpoints().inNamespace(ns).withField("metadata.name", serviceId)
-					.withLabels(properties.serviceLabels()).list().getItems());
+		else {
+			LOG.debug(() -> "searching for endpoints in namespaces : " + properties.namespaces());
+			List<Endpoints> endpoints = new ArrayList<>();
+			for (String namespace : properties.namespaces()) {
+				endpoints.addAll(
+						endpoints(client.endpoints().inNamespace(namespace).withNewFilter(), properties, serviceId));
+			}
+			return endpoints;
 		}
-		return endpoints;
 	}
 
 	private List<ServiceInstance> getNamespaceServiceInstances(EndpointSubsetNS es, String serviceId) {
