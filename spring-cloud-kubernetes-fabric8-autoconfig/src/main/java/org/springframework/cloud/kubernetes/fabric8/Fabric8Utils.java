@@ -40,8 +40,8 @@ public final class Fabric8Utils {
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8Utils.class));
 
 	/**
-	 * this method does the namespace resolution. Namespace is being searched according to the
-	 * order below.
+	 * this method does the namespace resolution. Namespace is being searched according to
+	 * the order below.
 	 *
 	 * <pre>
 	 *     1. from incoming namespace, which can be null.
