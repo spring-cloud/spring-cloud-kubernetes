@@ -336,6 +336,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		boolean addPorts = false;
 		String portsPrefix = "";
 
+		String namespace = "default";
+
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
@@ -343,8 +345,9 @@ class KubernetesDiscoveryClientUtilsTests {
 		Service service = new ServiceBuilder().build();
 
 		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
-				List.of());
-		Assertions.assertEquals(result.size(), 0);
+				List.of(), namespace);
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result, Map.of("k8s_namespace", "default"));
 	}
 
 	/**
@@ -362,6 +365,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		boolean addPorts = false;
 		String portsPrefix = "";
 
+		String namespace = "default";
+
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
@@ -370,10 +375,12 @@ class KubernetesDiscoveryClientUtilsTests {
 				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("a", "b")).build()).build();
 
 		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
-				List.of());
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result, Map.of("a", "b"));
-		Assertions.assertTrue(output.getOut().contains("Adding labels metadata: {a=b} for serviceId: my-service"));
+				List.of(), namespace);
+		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertEquals(result, Map.of("a", "b", "k8s_namespace", "default"));
+		String labelsMetadata = filterOnK8sNamespace(result);
+		Assertions.assertTrue(
+				output.getOut().contains("Adding labels metadata: " + labelsMetadata + " for serviceId: my-service"));
 	}
 
 	/**
@@ -391,6 +398,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		boolean addPorts = false;
 		String portsPrefix = "";
 
+		String namespace = "default";
+
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
@@ -399,13 +408,13 @@ class KubernetesDiscoveryClientUtilsTests {
 				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("a", "b", "c", "d")).build()).build();
 
 		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
-				List.of());
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result, Map.of("prefix-a", "b", "prefix-c", "d"));
+				List.of(), namespace);
+		Assertions.assertEquals(result.size(), 3);
+		Assertions.assertEquals(result, Map.of("prefix-a", "b", "prefix-c", "d", "k8s_namespace", "default"));
 		// so that result is deterministic in assertion
-		String labels = result.toString();
+		String labelsMetadata = filterOnK8sNamespace(result);
 		Assertions.assertTrue(
-				output.getOut().contains("Adding labels metadata: " + labels + " for serviceId: my-service"));
+				output.getOut().contains("Adding labels metadata: " + labelsMetadata + " for serviceId: my-service"));
 	}
 
 	/**
@@ -423,6 +432,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		boolean addPorts = false;
 		String portsPrefix = "";
 
+		String namespace = "default";
+
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
@@ -432,9 +443,9 @@ class KubernetesDiscoveryClientUtilsTests {
 				.build();
 
 		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
-				List.of());
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result, Map.of("aa", "bb"));
+				List.of(), namespace);
+		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertEquals(result, Map.of("aa", "bb", "k8s_namespace", "default"));
 		Assertions
 				.assertTrue(output.getOut().contains("Adding annotations metadata: {aa=bb} for serviceId: my-service"));
 	}
@@ -454,6 +465,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		boolean addPorts = false;
 		String portsPrefix = "";
 
+		String namespace = "default";
+
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
@@ -462,11 +475,11 @@ class KubernetesDiscoveryClientUtilsTests {
 				.withAnnotations(Map.of("aa", "bb", "cc", "dd")).withLabels(Map.of("a", "b")).build()).build();
 
 		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
-				List.of());
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result, Map.of("prefix-aa", "bb", "prefix-cc", "dd"));
+				List.of(), namespace);
+		Assertions.assertEquals(result.size(), 3);
+		Assertions.assertEquals(result, Map.of("prefix-aa", "bb", "prefix-cc", "dd", "k8s_namespace", "default"));
 		// so that result is deterministic in assertion
-		String annotations = result.toString();
+		String annotations = filterOnK8sNamespace(result);
 		Assertions.assertTrue(
 				output.getOut().contains("Adding annotations metadata: " + annotations + " for serviceId: my-service"));
 	}
@@ -486,6 +499,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		boolean addPorts = false;
 		String portsPrefix = "";
 
+		String namespace = "default";
+
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
@@ -495,10 +510,10 @@ class KubernetesDiscoveryClientUtilsTests {
 				.build();
 
 		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
-				List.of());
-		Assertions.assertEquals(result.size(), 4);
-		Assertions.assertEquals(result,
-				Map.of("annotation-aa", "bb", "annotation-cc", "dd", "label-a", "b", "label-c", "d"));
+				List.of(), namespace);
+		Assertions.assertEquals(result.size(), 5);
+		Assertions.assertEquals(result, Map.of("annotation-aa", "bb", "annotation-cc", "dd", "label-a", "b", "label-c",
+				"d", "k8s_namespace", "default"));
 		// so that result is deterministic in assertion
 		String labels = result.entrySet().stream().filter(en -> en.getKey().contains("label"))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).toString();
@@ -524,6 +539,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		boolean addPorts = true;
 		String portsPrefix = "";
 
+		String namespace = "default";
+
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
@@ -538,9 +555,9 @@ class KubernetesDiscoveryClientUtilsTests {
 						.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
 
 		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
-				endpointSubsets);
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result, Map.of("https", "8080"));
+				endpointSubsets, namespace);
+		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertEquals(result, Map.of("https", "8080", "k8s_namespace", "default"));
 		Assertions
 				.assertTrue(output.getOut().contains("Adding port metadata: {https=8080} for serviceId : my-service"));
 	}
@@ -559,6 +576,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		boolean addPorts = true;
 		String portsPrefix = "prefix-";
 
+		String namespace = "default";
+
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
@@ -573,11 +592,17 @@ class KubernetesDiscoveryClientUtilsTests {
 						.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
 
 		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
-				endpointSubsets);
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result, Map.of("prefix-https", "8080", "prefix-http", "8081"));
+				endpointSubsets, namespace);
+		Assertions.assertEquals(result.size(), 3);
+		Assertions.assertEquals(result,
+				Map.of("prefix-https", "8080", "prefix-http", "8081", "k8s_namespace", "default"));
 		Assertions.assertTrue(output.getOut()
 				.contains("Adding port metadata: {prefix-http=8081, prefix-https=8080} for serviceId : my-service"));
+	}
+
+	private String filterOnK8sNamespace(Map<String, String> result) {
+		return result.entrySet().stream().filter(en -> !en.getKey().contains("k8s_namespace"))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).toString();
 	}
 
 }
