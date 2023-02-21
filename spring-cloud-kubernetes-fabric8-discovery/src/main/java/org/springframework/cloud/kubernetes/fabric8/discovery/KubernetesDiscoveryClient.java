@@ -143,7 +143,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		Map<String, String> serviceMetadata = serviceMetadata(serviceId, service, properties, subsets, namespace);
 
 		for (EndpointSubset endpointSubset : subsets) {
-
 			List<EndpointAddress> addresses = endpointSubset.getAddresses();
 
 			if (properties.includeNotReadyAddresses()
