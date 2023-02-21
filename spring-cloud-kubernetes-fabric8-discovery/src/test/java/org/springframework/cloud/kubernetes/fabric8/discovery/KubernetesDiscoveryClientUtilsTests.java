@@ -47,30 +47,26 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 class KubernetesDiscoveryClientUtilsTests {
 
 	@Test
-	void testSubsetsFromEndpointsNullEndpoints() {
-		EndpointSubsetNS result = KubernetesDiscoveryClientUtils.subsetsFromEndpoints(null, () -> "default");
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.endpointSubset(), List.of());
-		Assertions.assertEquals(result.namespace(), "default");
-	}
-
-	@Test
 	void testSubsetsFromEndpointsEmptySubsets() {
 		Endpoints endpoints = new EndpointsBuilder()
 				.withMetadata(new ObjectMetaBuilder().withNamespace("non-default").build()).build();
-		EndpointSubsetNS result = KubernetesDiscoveryClientUtils.subsetsFromEndpoints(endpoints, () -> "default");
+		EndpointSubsetNS result = KubernetesDiscoveryClientUtils.subsetsFromEndpoints(endpoints);
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result.endpointSubset(), List.of());
 		Assertions.assertEquals(result.namespace(), "non-default");
 	}
 
 	@Test
-	void testSubsetsFromEndpointsNullSubsets() {
+	void testSubsetsFromEndpointsNonEmptySubsets() {
 		Endpoints endpoints = new EndpointsBuilder().withSubsets((List<EndpointSubset>) null)
-				.withMetadata(new ObjectMetaBuilder().withNamespace("non-default").build()).build();
-		EndpointSubsetNS result = KubernetesDiscoveryClientUtils.subsetsFromEndpoints(endpoints, () -> "default");
+				.withMetadata(new ObjectMetaBuilder().withNamespace("default").build())
+				.withSubsets(
+						new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8080).build()).build())
+				.build();
+		EndpointSubsetNS result = KubernetesDiscoveryClientUtils.subsetsFromEndpoints(endpoints);
 		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.endpointSubset(), List.of());
+		Assertions.assertEquals(result.endpointSubset().size(), 1);
+		Assertions.assertEquals(result.endpointSubset().get(0).getPorts().get(0).getPort(), 8080);
 		Assertions.assertEquals(result.namespace(), "default");
 	}
 
