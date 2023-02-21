@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.EndpointAddress;
+import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
 import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
@@ -598,6 +600,83 @@ class KubernetesDiscoveryClientUtilsTests {
 				Map.of("prefix-https", "8080", "prefix-http", "8081", "k8s_namespace", "default"));
 		Assertions.assertTrue(output.getOut()
 				.contains("Adding port metadata: {prefix-http=8081, prefix-https=8080} for serviceId : my-service"));
+	}
+
+	/**
+	 * <pre>
+	 *      - ready addresses are empty
+	 *      - not ready addresses are not included
+	 * </pre>
+	 */
+	@Test
+	void testEmptyAddresses() {
+		boolean includeNotReadyAddresses = false;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder().build();
+		List<EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		Assertions.assertEquals(addresses.size(), 0);
+	}
+
+	/**
+	 * <pre>
+	 *      - ready addresses has two entries
+	 *      - not ready addresses are not included
+	 * </pre>
+	 */
+	@Test
+	void testReadyAddressesOnly() {
+		boolean includeNotReadyAddresses = false;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
+				.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
+						new EndpointAddressBuilder().withHostname("two").build())
+				.build();
+		List<EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		Assertions.assertEquals(addresses.size(), 2);
+	}
+
+	/**
+	 * <pre>
+	 *      - ready addresses has two entries
+	 *      - not ready addresses has a single entry, but we do not take it
+	 * </pre>
+	 */
+	@Test
+	void testReadyAddressesTakenNotReadyAddressesNotTaken() {
+		boolean includeNotReadyAddresses = false;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
+				.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
+						new EndpointAddressBuilder().withHostname("two").build())
+				.withNotReadyAddresses(new EndpointAddressBuilder().withHostname("three").build()).build();
+		List<EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		Assertions.assertEquals(addresses.size(), 2);
+		List<String> hostNames = addresses.stream().map(EndpointAddress::getHostname).sorted().toList();
+		Assertions.assertEquals(hostNames, List.of("one", "two"));
+	}
+
+	/**
+	 * <pre>
+	 *      - ready addresses has two entries
+	 *      - not ready addresses has a single entry, but we do not take it
+	 * </pre>
+	 */
+	@Test
+	void testBothAddressesTaken() {
+		boolean includeNotReadyAddresses = true;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
+				.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
+						new EndpointAddressBuilder().withHostname("two").build())
+				.withNotReadyAddresses(new EndpointAddressBuilder().withHostname("three").build()).build();
+		List<EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		Assertions.assertEquals(addresses.size(), 3);
+		List<String> hostNames = addresses.stream().map(EndpointAddress::getHostname).sorted().toList();
+		Assertions.assertEquals(hostNames, List.of("one", "three", "two"));
 	}
 
 	private String filterOnK8sNamespace(Map<String, String> result) {

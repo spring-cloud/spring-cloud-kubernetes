@@ -34,8 +34,8 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.util.CollectionUtils;
 
+import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.addresses;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpoints;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpointsPort;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
@@ -143,19 +143,10 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		Map<String, String> serviceMetadata = serviceMetadata(serviceId, service, properties, subsets, namespace);
 
 		for (EndpointSubset endpointSubset : subsets) {
-
-			List<EndpointAddress> addresses = endpointSubset.getAddresses();
-
-			if (properties.includeNotReadyAddresses()
-					&& !CollectionUtils.isEmpty(endpointSubset.getNotReadyAddresses())) {
-				if (addresses == null) {
-					addresses = new ArrayList<>();
-				}
-				addresses.addAll(endpointSubset.getNotReadyAddresses());
-			}
-
+			int endpointPort = endpointsPort(endpointSubset, serviceId, properties, service);
+			List<EndpointAddress> addresses = addresses(endpointSubset, properties);
 			for (EndpointAddress endpointAddress : addresses) {
-				int endpointPort = endpointsPort(endpointSubset, serviceId, properties, service);
+
 				String instanceId = null;
 				if (endpointAddress.getTargetRef() != null) {
 					instanceId = endpointAddress.getTargetRef().getUid();
