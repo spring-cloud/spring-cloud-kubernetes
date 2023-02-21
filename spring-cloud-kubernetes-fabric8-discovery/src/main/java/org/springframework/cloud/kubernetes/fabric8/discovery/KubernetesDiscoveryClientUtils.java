@@ -16,12 +16,14 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
@@ -34,6 +36,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import static java.util.stream.Collectors.toMap;
@@ -162,6 +165,21 @@ final class KubernetesDiscoveryClientUtils {
 			KubernetesDiscoveryProperties properties, String serviceId) {
 		return filterNested.withField("metadata.name", serviceId).withLabels(properties.serviceLabels()).endFilter()
 				.list().getItems();
+	}
+
+	static List<EndpointAddress> addresses(EndpointSubset endpointSubset, KubernetesDiscoveryProperties properties) {
+		List<EndpointAddress> addresses = Optional.ofNullable(endpointSubset.getAddresses()).map(ArrayList::new)
+				.orElse(new ArrayList<>());
+
+		if (properties.includeNotReadyAddresses()) {
+			List<EndpointAddress> notReadyAddresses = endpointSubset.getNotReadyAddresses();
+			if (CollectionUtils.isEmpty(notReadyAddresses)) {
+				return addresses;
+			}
+			addresses.addAll(notReadyAddresses);
+		}
+
+		return addresses;
 	}
 
 	private static Optional<Integer> fromMap(Map<String, Integer> existingPorts, String key, String message) {
