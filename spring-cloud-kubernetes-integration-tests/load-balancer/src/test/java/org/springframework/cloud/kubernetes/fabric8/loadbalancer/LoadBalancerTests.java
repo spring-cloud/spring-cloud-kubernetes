@@ -22,18 +22,29 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.web.client.RestTemplate;
 
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@EnableKubernetesMockClient(crud = true, https = false)
 class LoadBalancerTests {
 
+	@Autowired
 	RestTemplate restTemplate;
 
+	@LocalServerPort
 	int randomServerPort;
 
 	static KubernetesClient client;
 
+	@BeforeAll
 	static void setup() {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, client.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -43,6 +54,7 @@ class LoadBalancerTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 	}
 
+	@Test
 	void testLoadBalancerSameNamespace() {
 		createTestData("service-a", "test");
 		String response = restTemplate.getForObject("http://service-a/greeting", String.class);
@@ -50,6 +62,7 @@ class LoadBalancerTests {
 		Assertions.assertEquals("greeting", response);
 	}
 
+	@Test
 	void testLoadBalancerDifferentNamespace() {
 		createTestData("service-b", "b");
 		Assertions.assertThrows(IllegalStateException.class,
