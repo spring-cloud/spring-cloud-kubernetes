@@ -29,6 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.config.SecretsCache;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.util.ObjectUtils;
 
 /**
  * A cache of V1ConfigMap(s) per namespace. Makes sure we read config maps only once from
@@ -81,7 +82,8 @@ public class KubernetesClientSecretsCache implements SecretsCache {
 	}
 
 	private static Map<String, String> transform(Map<String, byte[]> in) {
-		return in.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, en -> new String(en.getValue())));
+		return ObjectUtils.isEmpty(in) ? Map.of()
+				: in.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, en -> new String(en.getValue())));
 	}
 
 }
