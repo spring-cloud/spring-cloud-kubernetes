@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import java.util.Objects;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
