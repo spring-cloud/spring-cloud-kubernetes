@@ -88,7 +88,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).isEmpty();
+		assertThat(instances.get(0).getMetadata()).isEqualTo(Map.of("k8s_namespace", "ns"));
 	}
 
 	@Test
@@ -106,7 +106,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l1", "v1"), entry("l2", "v2"));
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l1", "v1"), entry("l2", "v2"),
+				entry("k8s_namespace", "ns"));
 	}
 
 	@Test
@@ -124,7 +125,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l_l1", "v1"), entry("l_l2", "v2"));
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l_l1", "v1"), entry("l_l2", "v2"),
+				entry("k8s_namespace", "ns"));
 	}
 
 	@Test
@@ -142,7 +144,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a1", "v1"), entry("a2", "v2"));
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a1", "v1"), entry("a2", "v2"),
+				entry("k8s_namespace", "ns"));
 	}
 
 	@Test
@@ -160,7 +163,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "v1"), entry("a_a2", "v2"));
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "v1"), entry("a_a2", "v2"),
+				entry("k8s_namespace", "ns"));
 	}
 
 	@Test
@@ -178,7 +182,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).containsOnly(entry("http", "80"));
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("http", "80"), entry("k8s_namespace", "ns"));
 	}
 
 	@Test
@@ -196,7 +200,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).containsOnly(entry("p_http", "80"));
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("p_http", "80"), entry("k8s_namespace", "ns"));
 	}
 
 	@Test
@@ -215,7 +219,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "an1"), entry("a_a2", "an2"),
-				entry("l_l1", "la1"), entry("p_http", "80"));
+				entry("l_l1", "la1"), entry("p_http", "80"), entry("k8s_namespace", "ns"));
 	}
 
 	private void setupServiceWithLabelsAndAnnotationsAndPorts(String serviceId, String namespace,
