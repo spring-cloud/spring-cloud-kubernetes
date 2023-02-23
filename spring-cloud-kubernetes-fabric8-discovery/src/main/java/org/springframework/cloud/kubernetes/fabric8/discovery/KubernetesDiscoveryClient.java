@@ -105,6 +105,10 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			instances.addAll(getNamespaceServiceInstances(es, serviceId));
 		}
 
+		if (properties.includeExternalNameServices()) {
+			LOG.debug(() -> "will search for 'ExternalName' type of services");
+		}
+
 		return instances;
 	}
 
