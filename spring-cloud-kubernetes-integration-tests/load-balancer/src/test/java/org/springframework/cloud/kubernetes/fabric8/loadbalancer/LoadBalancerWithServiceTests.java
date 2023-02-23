@@ -23,46 +23,28 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.RestTemplate;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
-		"spring.cloud.kubernetes.loadbalancer.enabled=true" })
-@EnableKubernetesMockClient(crud = true, https = false)
 class LoadBalancerWithServiceTests {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LoadBalancerWithServiceTests.class);
 
-	@Autowired
 	RestTemplate restTemplate;
 
-	@LocalServerPort
 	int randomServerPort;
 
-	@MockBean
 	Fabric8ServiceInstanceMapper mapper;
 
 	static KubernetesClient client;
 
-	@BeforeAll
 	static void setup() {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, client.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -73,15 +55,12 @@ class LoadBalancerWithServiceTests {
 
 	}
 
-	@BeforeEach
 	public void before() {
 		KubernetesServiceInstance instance = new KubernetesServiceInstance("serviceinstance", "service", "localhost",
 				randomServerPort, Collections.EMPTY_MAP, false);
 		when(mapper.map(any())).thenReturn(instance);
 	}
 
-	@Test
-	@Ignore
 	void testLoadBalancerSameNamespace() {
 		createTestData("service-a", "test");
 		String response = restTemplate.getForObject("http://service-a/greeting", String.class);
@@ -89,8 +68,6 @@ class LoadBalancerWithServiceTests {
 		Assertions.assertEquals("greeting", response);
 	}
 
-	@Test
-	@Ignore
 	void testLoadBalancerDifferentNamespace() {
 		createTestData("service-b", "b");
 		Assertions.assertThrows(IllegalStateException.class,
