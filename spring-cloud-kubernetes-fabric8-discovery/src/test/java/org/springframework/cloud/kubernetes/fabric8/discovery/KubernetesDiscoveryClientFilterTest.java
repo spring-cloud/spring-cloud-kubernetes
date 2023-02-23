@@ -31,12 +31,16 @@ import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 class KubernetesDiscoveryClientFilterTest {
+
+	private static final KubernetesNamespaceProvider KUBERNETES_NAMESPACE_PROVIDER = namespaceProvider();
 
 	private final KubernetesClient kubernetesClient = Mockito.mock(KubernetesClient.class);
 
@@ -66,7 +70,7 @@ class KubernetesDiscoveryClientFilterTest {
 				false, "metadata.additionalProperties['spring-boot']", Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
-				this.kubernetesClientServicesFunction);
+				this.kubernetesClientServicesFunction, KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<String> filteredServices = client.getServices();
 		assertThat(filteredServices).isEqualTo(springBootServiceNames);
@@ -94,7 +98,7 @@ class KubernetesDiscoveryClientFilterTest {
 				false, "metadata.name.startsWith('service')", Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
-				this.kubernetesClientServicesFunction);
+				this.kubernetesClientServicesFunction, KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<String> filteredServices = client.getServices();
 		assertThat(filteredServices).isEqualTo(springBootServiceNames);
@@ -114,7 +118,7 @@ class KubernetesDiscoveryClientFilterTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, "", Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
-				this.kubernetesClientServicesFunction);
+				this.kubernetesClientServicesFunction, KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<String> filteredServices = client.getServices();
 
@@ -133,6 +137,12 @@ class KubernetesDiscoveryClientFilterTest {
 			serviceCollection.add(service);
 		}
 		return serviceCollection;
+	}
+
+	private static KubernetesNamespaceProvider namespaceProvider() {
+		MockEnvironment environment = new MockEnvironment();
+		environment.setProperty("spring.cloud.kubernetes.client.namespace", "test");
+		return new KubernetesNamespaceProvider(environment);
 	}
 
 }

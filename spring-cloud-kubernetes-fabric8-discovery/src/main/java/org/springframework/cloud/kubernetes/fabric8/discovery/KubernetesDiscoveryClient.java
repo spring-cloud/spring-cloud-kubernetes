@@ -33,8 +33,6 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.addresses;
@@ -49,7 +47,7 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesD
  * @author Ioannis Canellos
  * @author Tim Ysewyn
  */
-public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAware {
+public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesDiscoveryClient.class));
 
@@ -61,23 +59,25 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 
 	private KubernetesClient client;
 
-	private KubernetesNamespaceProvider namespaceProvider;
+	private final KubernetesNamespaceProvider namespaceProvider;
 
 	public KubernetesDiscoveryClient(KubernetesClient client,
 			KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
+			KubernetesClientServicesFunction kubernetesClientServicesFunction,
+			KubernetesNamespaceProvider namespaceProvider) {
 
 		this(client, kubernetesDiscoveryProperties, kubernetesClientServicesFunction,
-				new ServicePortSecureResolver(kubernetesDiscoveryProperties));
+				new ServicePortSecureResolver(kubernetesDiscoveryProperties), namespaceProvider);
 	}
 
 	KubernetesDiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
 			KubernetesClientServicesFunction kubernetesClientServicesFunction,
-			ServicePortSecureResolver servicePortSecureResolver) {
+			ServicePortSecureResolver servicePortSecureResolver, KubernetesNamespaceProvider namespaceProvider) {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
 		this.servicePortSecureResolver = servicePortSecureResolver;
+		this.namespaceProvider = namespaceProvider;
 		this.adapter = new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction,
 				kubernetesDiscoveryProperties);
 	}
@@ -168,9 +168,4 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 		return properties.order();
 	}
 
-	@Deprecated(forRemoval = true)
-	@Override
-	public final void setEnvironment(Environment environment) {
-		namespaceProvider = new KubernetesNamespaceProvider(environment);
-	}
 }

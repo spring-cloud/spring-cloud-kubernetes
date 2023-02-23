@@ -43,8 +43,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
 
 import static java.util.stream.Collectors.toList;
@@ -58,6 +58,8 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 
 @SuppressWarnings("unchecked")
 class KubernetesDiscoveryClientFilterMetadataTest {
+
+	private static final KubernetesNamespaceProvider KUBERNETES_NAMESPACE_PROVIDER = namespaceProvider();
 
 	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
 
@@ -83,8 +85,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
-		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-		discoveryClient.setEnvironment(withClientNamespace());
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
+			KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "lab"), Map.of("l1", "lab"),
 				Map.of(80, "http", 5555, ""));
@@ -102,8 +104,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
-		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-		discoveryClient.setEnvironment(withClientNamespace());
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
+			KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
 				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
@@ -122,8 +124,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
-		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-		discoveryClient.setEnvironment(withClientNamespace());
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
+			KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
 				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
@@ -142,8 +144,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
-		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-		discoveryClient.setEnvironment(withClientNamespace());
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
+			KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -162,8 +164,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
-		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-		discoveryClient.setEnvironment(withClientNamespace());
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
+			KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -182,8 +184,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
-		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-		discoveryClient.setEnvironment(withClientNamespace());
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
+			KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "test", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -201,8 +203,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
-		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-		discoveryClient.setEnvironment(withClientNamespace());
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
+			KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -220,8 +222,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
-		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-		discoveryClient.setEnvironment(withClientNamespace());
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
+			KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "la1"),
 				Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));
@@ -283,10 +285,10 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		}).collect(toList());
 	}
 
-	private static Environment withClientNamespace() {
-		MockEnvironment mockEnvironment = new MockEnvironment();
-		mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", "test");
-		return mockEnvironment;
+	private static KubernetesNamespaceProvider namespaceProvider() {
+		MockEnvironment environment = new MockEnvironment();
+		environment.setProperty("spring.cloud.kubernetes.client.namespace", "test");
+		return new KubernetesNamespaceProvider(environment);
 	}
 
 }

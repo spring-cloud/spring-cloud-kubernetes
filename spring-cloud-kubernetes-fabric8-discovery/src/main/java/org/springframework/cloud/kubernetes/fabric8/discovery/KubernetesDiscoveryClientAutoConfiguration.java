@@ -30,6 +30,7 @@ import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
@@ -67,9 +68,9 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	@ConditionalOnMissingBean
 	public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
 			KubernetesDiscoveryProperties properties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
+			KubernetesClientServicesFunction kubernetesClientServicesFunction, Environment environment) {
 		return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction,
-				new ServicePortSecureResolver(properties));
+				new ServicePortSecureResolver(properties), new KubernetesNamespaceProvider(environment));
 	}
 
 	@Bean

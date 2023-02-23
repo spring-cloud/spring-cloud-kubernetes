@@ -32,6 +32,7 @@ import org.springframework.cloud.client.discovery.composite.reactive.ReactiveCom
 import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIndicatorProperties;
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
@@ -69,8 +70,9 @@ public class KubernetesReactiveDiscoveryClientAutoConfiguration {
 	@ConditionalOnMissingBean
 	public KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(KubernetesClient client,
 			KubernetesDiscoveryProperties properties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
-		return new KubernetesReactiveDiscoveryClient(client, properties, kubernetesClientServicesFunction);
+			KubernetesClientServicesFunction kubernetesClientServicesFunction, Environment environment) {
+		return new KubernetesReactiveDiscoveryClient(client, properties, kubernetesClientServicesFunction,
+			new KubernetesNamespaceProvider(environment));
 	}
 
 	@Bean

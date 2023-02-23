@@ -36,14 +36,18 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
+import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties.Metadata;
 
 @EnableKubernetesMockClient(crud = true, https = false)
 class KubernetesDiscoveryClientTest {
+
+	private static final KubernetesNamespaceProvider KUBERNETES_NAMESPACE_PROVIDER = namespaceProvider();
 
 	private KubernetesClient mockClient;
 
@@ -80,7 +84,7 @@ class KubernetesDiscoveryClientTest {
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services,
-				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
+				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -108,7 +112,7 @@ class KubernetesDiscoveryClientTest {
 				false, null, Set.of(), labels, "http_tcp", Metadata.DEFAULT, 0, true);
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new ServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -130,7 +134,7 @@ class KubernetesDiscoveryClientTest {
 
 		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services,
-				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
+				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
 
@@ -156,7 +160,7 @@ class KubernetesDiscoveryClientTest {
 				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
 		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new ServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
 
@@ -186,7 +190,7 @@ class KubernetesDiscoveryClientTest {
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
 		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new ServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
 
@@ -217,7 +221,7 @@ class KubernetesDiscoveryClientTest {
 				false, null, Set.of(443, 8443), labels, null, metadata, 0, true);
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new ServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -244,7 +248,7 @@ class KubernetesDiscoveryClientTest {
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services,
-				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
+				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<String> services = discoveryClient.getServices();
 
@@ -268,7 +272,7 @@ class KubernetesDiscoveryClientTest {
 		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				KubernetesDiscoveryProperties.DEFAULT,
 				client -> client.services().withLabels(Collections.singletonMap("label", "value")),
-				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
+				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<String> services = discoveryClient.getServices();
 
@@ -300,7 +304,7 @@ class KubernetesDiscoveryClientTest {
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new ServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<String> services = discoveryClient.getServices();
 
@@ -333,7 +337,7 @@ class KubernetesDiscoveryClientTest {
 				false, null, Set.of(), Map.of(), null, Metadata.DEFAULT, 0, true);
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new ServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -357,7 +361,7 @@ class KubernetesDiscoveryClientTest {
 
 		final KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services,
-				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
+				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint1");
 
@@ -384,7 +388,7 @@ class KubernetesDiscoveryClientTest {
 				false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true);
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new ServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint2");
 
@@ -414,7 +418,7 @@ class KubernetesDiscoveryClientTest {
 				false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true);
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new ServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint3");
 
@@ -444,7 +448,7 @@ class KubernetesDiscoveryClientTest {
 				false, null, Set.of(443, 8443), Map.of(), "oops", Metadata.DEFAULT, 0, true);
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new ServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint4");
 
@@ -473,7 +477,7 @@ class KubernetesDiscoveryClientTest {
 				false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true);
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new ServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
@@ -500,7 +504,7 @@ class KubernetesDiscoveryClientTest {
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services,
-				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT));
+				new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
@@ -529,7 +533,7 @@ class KubernetesDiscoveryClientTest {
 				true, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true);
 
 		final DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, new ServicePortSecureResolver(properties));
+				KubernetesClient::services, new ServicePortSecureResolver(properties), KUBERNETES_NAMESPACE_PROVIDER);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
@@ -537,6 +541,12 @@ class KubernetesDiscoveryClientTest {
 		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
 				.filteredOn(s -> s.getInstanceId().equals("130")).hasSize(1).filteredOn(s -> 443 == s.getPort())
 				.hasSize(1);
+	}
+
+	private static KubernetesNamespaceProvider namespaceProvider() {
+		MockEnvironment environment = new MockEnvironment();
+		environment.setProperty("spring.cloud.kubernetes.client.namespace", "test");
+		return new KubernetesNamespaceProvider(environment);
 	}
 
 }

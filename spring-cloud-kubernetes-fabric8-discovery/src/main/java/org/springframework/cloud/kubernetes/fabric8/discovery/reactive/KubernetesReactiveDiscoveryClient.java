@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery.reactive;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
@@ -38,9 +39,9 @@ public class KubernetesReactiveDiscoveryClient implements ReactiveDiscoveryClien
 	private final KubernetesDiscoveryClient kubernetesDiscoveryClient;
 
 	public KubernetesReactiveDiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties properties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
+			KubernetesClientServicesFunction kubernetesClientServicesFunction, KubernetesNamespaceProvider namespaceProvider) {
 		this.kubernetesDiscoveryClient = new KubernetesDiscoveryClient(client, properties,
-				kubernetesClientServicesFunction);
+				kubernetesClientServicesFunction, namespaceProvider);
 	}
 
 	@Override
