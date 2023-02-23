@@ -86,7 +86,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
-			KUBERNETES_NAMESPACE_PROVIDER);
+				KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "lab"), Map.of("l1", "lab"),
 				Map.of(80, "http", 5555, ""));
@@ -105,7 +105,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
-			KUBERNETES_NAMESPACE_PROVIDER);
+				KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
 				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
@@ -125,7 +125,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
-			KUBERNETES_NAMESPACE_PROVIDER);
+				KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
 				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
@@ -145,7 +145,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
-			KUBERNETES_NAMESPACE_PROVIDER);
+				KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -165,7 +165,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
-			KUBERNETES_NAMESPACE_PROVIDER);
+				KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -185,7 +185,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
-			KUBERNETES_NAMESPACE_PROVIDER);
+				KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "test", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -204,7 +204,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
-			KUBERNETES_NAMESPACE_PROVIDER);
+				KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -223,7 +223,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null,
-			KUBERNETES_NAMESPACE_PROVIDER);
+				KUBERNETES_NAMESPACE_PROVIDER);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "la1"),
 				Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));

@@ -69,10 +69,10 @@ public class KubernetesReactiveDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(KubernetesClient client,
-			KubernetesDiscoveryProperties properties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction, Environment environment) {
+			KubernetesDiscoveryProperties properties, KubernetesClientServicesFunction kubernetesClientServicesFunction,
+			Environment environment) {
 		return new KubernetesReactiveDiscoveryClient(client, properties, kubernetesClientServicesFunction,
-			new KubernetesNamespaceProvider(environment));
+				new KubernetesNamespaceProvider(environment));
 	}
 
 	@Bean

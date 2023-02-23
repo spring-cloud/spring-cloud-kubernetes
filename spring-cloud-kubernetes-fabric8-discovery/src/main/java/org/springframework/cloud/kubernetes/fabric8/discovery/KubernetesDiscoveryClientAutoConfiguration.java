@@ -67,8 +67,8 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
-			KubernetesDiscoveryProperties properties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction, Environment environment) {
+			KubernetesDiscoveryProperties properties, KubernetesClientServicesFunction kubernetesClientServicesFunction,
+			Environment environment) {
 		return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction,
 				new ServicePortSecureResolver(properties), new KubernetesNamespaceProvider(environment));
 	}
