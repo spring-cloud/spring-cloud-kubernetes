@@ -31,7 +31,11 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.addresses;
@@ -46,7 +50,7 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesD
  * @author Ioannis Canellos
  * @author Tim Ysewyn
  */
-public class KubernetesDiscoveryClient implements DiscoveryClient {
+public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAware {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesDiscoveryClient.class));
 
@@ -59,6 +63,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	private final Fabric8DiscoveryServicesAdapter adapter;
 
 	private KubernetesClient client;
+
+	private KubernetesNamespaceProvider namespaceProvider;
 
 	public KubernetesDiscoveryClient(KubernetesClient client,
 			KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
@@ -114,8 +120,9 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			return endpoints(client.endpoints().inAnyNamespace().withNewFilter(), properties, serviceId);
 		}
 		else if (properties.namespaces().isEmpty()) {
-			LOG.debug(() -> "searching for endpoints in namespace : " + client.getNamespace());
-			return endpoints(client.endpoints().withNewFilter(), properties, serviceId);
+			String namespace = Fabric8Utils.getApplicationNamespace(client, null, "discovery", namespaceProvider);
+			LOG.debug(() -> "searching for endpoints in namespace : " + namespace);
+			return endpoints(client.endpoints().inNamespace(namespace).withNewFilter(), properties, serviceId);
 		}
 		else {
 			LOG.debug(() -> "searching for endpoints in namespaces : " + properties.namespaces());
@@ -171,4 +178,9 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		return properties.order();
 	}
 
+	@Deprecated(forRemoval = true)
+	@Override
+	public final void setEnvironment(Environment environment) {
+		namespaceProvider = new KubernetesNamespaceProvider(environment);
+	}
 }
