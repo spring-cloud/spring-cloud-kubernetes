@@ -185,18 +185,19 @@ final class KubernetesDiscoveryClientUtils {
 		return addresses;
 	}
 
-	static ServiceInstance serviceInstance(ServicePortSecureResolver servicePortSecureResolver, Service service, EndpointAddress endpointAddress,
-			int endpointPort, String serviceId, Map<String, String> serviceMetadata, String namespace) {
+	static ServiceInstance serviceInstance(ServicePortSecureResolver servicePortSecureResolver, Service service,
+			EndpointAddress endpointAddress, int endpointPort, String serviceId, Map<String, String> serviceMetadata,
+			String namespace) {
 		// instanceId is usually the pod-uid as seen in the .metadata.uid
-		String instanceId = Optional.ofNullable(endpointAddress.getTargetRef())
-			.map(ObjectReference::getUid).orElse(null);
+		String instanceId = Optional.ofNullable(endpointAddress.getTargetRef()).map(ObjectReference::getUid)
+				.orElse(null);
 
-		boolean secured = servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(endpointPort,
-			service.getMetadata().getName(), service.getMetadata().getLabels(),
-			service.getMetadata().getAnnotations()));
+		boolean secured = servicePortSecureResolver
+				.resolve(new ServicePortSecureResolver.Input(endpointPort, service.getMetadata().getName(),
+						service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
 
-		return new DefaultKubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
-			endpointPort, serviceMetadata, secured, namespace, null);
+		return new DefaultKubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(), endpointPort,
+				serviceMetadata, secured, namespace, null);
 	}
 
 	private static Optional<Integer> fromMap(Map<String, Integer> existingPorts, String key, String message) {

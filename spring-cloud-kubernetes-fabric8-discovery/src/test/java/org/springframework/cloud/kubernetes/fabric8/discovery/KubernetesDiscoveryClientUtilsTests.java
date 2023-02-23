@@ -684,14 +684,14 @@ class KubernetesDiscoveryClientUtilsTests {
 	@Test
 	void testServiceInstance() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-			false, "", Set.of(), Map.of(), "", null, 0, false);
+				false, "", Set.of(), Map.of(), "", null, 0, false);
 		ServicePortSecureResolver resolver = new ServicePortSecureResolver(properties);
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 		EndpointAddress address = new EndpointAddressBuilder().withNewTargetRef().withUid("123").endTargetRef()
-			.withIp("127.0.0.1").build();
+				.withIp("127.0.0.1").build();
 
-		ServiceInstance serviceInstance = KubernetesDiscoveryClientUtils.serviceInstance(resolver, service, address, 8080, "my-service",
-			Map.of("a", "b"), "k8s");
+		ServiceInstance serviceInstance = KubernetesDiscoveryClientUtils.serviceInstance(resolver, service, address,
+				8080, "my-service", Map.of("a", "b"), "k8s");
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
 		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
 		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");

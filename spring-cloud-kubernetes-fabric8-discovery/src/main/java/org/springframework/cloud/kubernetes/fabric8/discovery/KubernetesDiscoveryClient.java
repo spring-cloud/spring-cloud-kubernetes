@@ -147,7 +147,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			List<EndpointAddress> addresses = addresses(endpointSubset, properties);
 			for (EndpointAddress endpointAddress : addresses) {
 				ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, service, endpointAddress,
-					endpointPort, serviceId, serviceMetadata, namespace);
+						endpointPort, serviceId, serviceMetadata, namespace);
 				instances.add(serviceInstance);
 			}
 		}
