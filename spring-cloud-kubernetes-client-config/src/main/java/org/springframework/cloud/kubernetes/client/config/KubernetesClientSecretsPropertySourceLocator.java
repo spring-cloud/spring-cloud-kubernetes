@@ -23,9 +23,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.MapPropertySource;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
 
@@ -49,7 +49,7 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 	}
 
 	@Override
-	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment, NormalizedSource source) {
+	protected SecretsPropertySource getPropertySource(ConfigurableEnvironment environment, NormalizedSource source) {
 
 		String normalizedNamespace = source.namespace().orElse(null);
 		String namespace = getApplicationNamespace(normalizedNamespace, source.target(), kubernetesNamespaceProvider);
