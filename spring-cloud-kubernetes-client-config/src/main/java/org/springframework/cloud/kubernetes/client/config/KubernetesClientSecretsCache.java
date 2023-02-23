@@ -82,8 +82,8 @@ public class KubernetesClientSecretsCache implements SecretsCache {
 	}
 
 	private static Map<String, String> transform(Map<String, byte[]> in) {
-		return ObjectUtils.isEmpty(in) ? Map.of() :
-			in.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, en -> new String(en.getValue())));
+		return ObjectUtils.isEmpty(in) ? Map.of()
+				: in.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, en -> new String(en.getValue())));
 	}
 
 }
