@@ -17,14 +17,12 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import java.util.Objects;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Service;
@@ -36,12 +34,8 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
-import static java.util.stream.Collectors.toMap;
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.addresses;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpoints;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpointsPort;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
@@ -132,52 +126,34 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	private List<ServiceInstance> getNamespaceServiceInstances(EndpointSubsetNS es, String serviceId) {
-		String namespace = es.namespace();
+
 		List<EndpointSubset> subsets = es.endpointSubset();
+		if (subsets.isEmpty()) {
+			LOG.debug(() -> "serviceId : " + serviceId + " does not have any subsets");
+			return List.of();
+		}
+
+		String namespace = es.namespace();
 		List<ServiceInstance> instances = new ArrayList<>();
-		if (!subsets.isEmpty()) {
-			Service service = client.services().inNamespace(namespace).withName(serviceId).get();
-			Map<String, String> serviceMetadata = serviceMetadata(serviceId, service, properties);
-			KubernetesDiscoveryProperties.Metadata metadataProps = properties.metadata();
 
-			for (EndpointSubset s : subsets) {
-				// Extend the service metadata map with per-endpoint port information (if
-				// requested)
-				Map<String, String> endpointMetadata = new HashMap<>(serviceMetadata);
-				if (metadataProps.addPorts()) {
-					Map<String, String> ports = s.getPorts().stream()
-							.filter(port -> StringUtils.hasText(port.getName()))
-							.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
-					Map<String, String> portMetadata = keysWithPrefix(ports, metadataProps.portsPrefix());
-					LOG.debug(() -> "Adding port metadata: " + portMetadata);
-					endpointMetadata.putAll(portMetadata);
+		Service service = client.services().inNamespace(namespace).withName(serviceId).get();
+		Map<String, String> serviceMetadata = serviceMetadata(serviceId, service, properties, subsets, namespace);
+
+		for (EndpointSubset endpointSubset : subsets) {
+			int endpointPort = endpointsPort(endpointSubset, serviceId, properties, service);
+			List<EndpointAddress> addresses = addresses(endpointSubset, properties);
+			for (EndpointAddress endpointAddress : addresses) {
+
+				String instanceId = null;
+				if (endpointAddress.getTargetRef() != null) {
+					instanceId = endpointAddress.getTargetRef().getUid();
 				}
-
-				if (properties.allNamespaces()) {
-					endpointMetadata.put(NAMESPACE_METADATA_KEY, namespace);
-				}
-
-				List<EndpointAddress> addresses = s.getAddresses();
-
-				if (properties.includeNotReadyAddresses() && !CollectionUtils.isEmpty(s.getNotReadyAddresses())) {
-					if (addresses == null) {
-						addresses = new ArrayList<>();
-					}
-					addresses.addAll(s.getNotReadyAddresses());
-				}
-
-				for (EndpointAddress endpointAddress : addresses) {
-					int endpointPort = endpointsPort(s, serviceId, properties, service);
-					String instanceId = null;
-					if (endpointAddress.getTargetRef() != null) {
-						instanceId = endpointAddress.getTargetRef().getUid();
-					}
-					instances.add(new DefaultKubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
-							endpointPort, endpointMetadata,
-							servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(endpointPort,
-									service.getMetadata().getName(), service.getMetadata().getLabels(),
-									service.getMetadata().getAnnotations()))));
-				}
+				instances
+						.add(new DefaultKubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
+								endpointPort, serviceMetadata,
+								servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(endpointPort,
+										service.getMetadata().getName(), service.getMetadata().getLabels(),
+										service.getMetadata().getAnnotations()))));
 			}
 		}
 
