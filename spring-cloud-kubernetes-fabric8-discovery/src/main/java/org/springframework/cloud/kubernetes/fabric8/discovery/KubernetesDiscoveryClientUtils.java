@@ -28,12 +28,15 @@ import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
+import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.dsl.FilterNested;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
@@ -180,6 +183,20 @@ final class KubernetesDiscoveryClientUtils {
 		}
 
 		return addresses;
+	}
+
+	static ServiceInstance serviceInstance(ServicePortSecureResolver servicePortSecureResolver, Service service, EndpointAddress endpointAddress,
+			int endpointPort, String serviceId, Map<String, String> serviceMetadata, String namespace) {
+		// instanceId is usually the pod-uid as seen in the .metadata.uid
+		String instanceId = Optional.ofNullable(endpointAddress.getTargetRef())
+			.map(ObjectReference::getUid).orElse(null);
+
+		boolean secured = servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(endpointPort,
+			service.getMetadata().getName(), service.getMetadata().getLabels(),
+			service.getMetadata().getAnnotations()));
+
+		return new DefaultKubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
+			endpointPort, serviceMetadata, secured, namespace, null);
 	}
 
 	private static Optional<Integer> fromMap(Map<String, Integer> existingPorts, String key, String message) {

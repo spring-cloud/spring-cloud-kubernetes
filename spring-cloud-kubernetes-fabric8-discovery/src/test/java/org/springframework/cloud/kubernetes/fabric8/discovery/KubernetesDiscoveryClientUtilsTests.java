@@ -38,6 +38,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
@@ -677,6 +679,31 @@ class KubernetesDiscoveryClientUtilsTests {
 		Assertions.assertEquals(addresses.size(), 3);
 		List<String> hostNames = addresses.stream().map(EndpointAddress::getHostname).sorted().toList();
 		Assertions.assertEquals(hostNames, List.of("one", "three", "two"));
+	}
+
+	@Test
+	void testServiceInstance() {
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			false, "", Set.of(), Map.of(), "", null, 0, false);
+		ServicePortSecureResolver resolver = new ServicePortSecureResolver(properties);
+		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
+		EndpointAddress address = new EndpointAddressBuilder().withNewTargetRef().withUid("123").endTargetRef()
+			.withIp("127.0.0.1").build();
+
+		ServiceInstance serviceInstance = KubernetesDiscoveryClientUtils.serviceInstance(resolver, service, address, 8080, "my-service",
+			Map.of("a", "b"), "k8s");
+		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
+		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
+		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
+		Assertions.assertEquals(defaultInstance.getServiceId(), "my-service");
+		Assertions.assertEquals(defaultInstance.getHost(), "127.0.0.1");
+		Assertions.assertEquals(defaultInstance.getPort(), 8080);
+		Assertions.assertFalse(defaultInstance.isSecure());
+		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "http://127.0.0.1:8080");
+		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
+		Assertions.assertEquals(defaultInstance.getScheme(), "http");
+		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
+		Assertions.assertNull(defaultInstance.getCluster());
 	}
 
 	private String filterOnK8sNamespace(Map<String, String> result) {
