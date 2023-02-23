@@ -31,13 +31,13 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.addresses;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpoints;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpointsPort;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceInstance;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
 
 /**
@@ -146,17 +146,9 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			int endpointPort = endpointsPort(endpointSubset, serviceId, properties, service);
 			List<EndpointAddress> addresses = addresses(endpointSubset, properties);
 			for (EndpointAddress endpointAddress : addresses) {
-
-				String instanceId = null;
-				if (endpointAddress.getTargetRef() != null) {
-					instanceId = endpointAddress.getTargetRef().getUid();
-				}
-				instances
-						.add(new DefaultKubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(),
-								endpointPort, serviceMetadata,
-								servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(endpointPort,
-										service.getMetadata().getName(), service.getMetadata().getLabels(),
-										service.getMetadata().getAnnotations()))));
+				ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, service, endpointAddress,
+						endpointPort, serviceId, serviceMetadata, namespace);
+				instances.add(serviceInstance);
 			}
 		}
 
