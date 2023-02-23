@@ -24,7 +24,6 @@ import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,7 +80,6 @@ class LoadBalancerWithServiceTests {
 	}
 
 	@Test
-	@Ignore
 	void testLoadBalancerSameNamespace() {
 		createTestData("service-a", "test");
 		String response = restTemplate.getForObject("http://service-a/greeting", String.class);
@@ -90,7 +88,6 @@ class LoadBalancerWithServiceTests {
 	}
 
 	@Test
-	@Ignore
 	void testLoadBalancerDifferentNamespace() {
 		createTestData("service-b", "b");
 		Assertions.assertThrows(IllegalStateException.class,
