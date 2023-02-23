@@ -32,6 +32,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.dsl.FilterNested;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import jakarta.annotation.Nullable;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -160,11 +161,23 @@ final class KubernetesDiscoveryClientUtils {
 		return serviceMetadata;
 	}
 
+	/**
+	 * serviceName can be null, in which case the filter for "metadata.name" will not be applied.
+	 */
 	static List<Endpoints> endpoints(
 			FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> filterNested,
-			KubernetesDiscoveryProperties properties, String serviceId) {
-		return filterNested.withField("metadata.name", serviceId).withLabels(properties.serviceLabels()).endFilter()
-				.list().getItems();
+			KubernetesDiscoveryProperties properties, @Nullable String serviceName) {
+
+		FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> partial =
+			filterNested.withLabels(properties.serviceLabels());
+
+		if (serviceName != null) {
+			partial = partial.withField("metadata.name", serviceName);
+		}
+
+		return partial.endFilter().list().getItems();
+
+
 	}
 
 	static List<EndpointAddress> addresses(EndpointSubset endpointSubset, KubernetesDiscoveryProperties properties) {

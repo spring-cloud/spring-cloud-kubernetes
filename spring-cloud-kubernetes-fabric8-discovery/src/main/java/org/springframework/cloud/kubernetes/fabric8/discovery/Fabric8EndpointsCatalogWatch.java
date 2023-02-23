@@ -33,6 +33,8 @@ import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNam
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 
+import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpoints;
+
 /**
  * Implementation that is based on Endpoints.
  *
@@ -50,20 +52,20 @@ final class Fabric8EndpointsCatalogWatch
 
 		if (context.properties().allNamespaces()) {
 			LOG.debug(() -> "discovering endpoints in all namespaces");
-			endpoints = client.endpoints().inAnyNamespace().withLabels(context.properties().serviceLabels()).list()
-					.getItems();
+			endpoints = endpoints(client.endpoints().inAnyNamespace().withNewFilter(), context.properties(), null);
 		}
 		else if (!context.properties().namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering endpoints in " + context.properties().namespaces());
 			List<Endpoints> inner = new ArrayList<>(context.properties().namespaces().size());
-			context.properties().namespaces().forEach(namespace -> inner.addAll(endpoints(context, namespace, client)));
+			context.properties().namespaces().forEach(namespace -> inner.addAll(
+				endpoints(client.endpoints().inNamespace(namespace).withNewFilter(), context.properties(), null)));
 			endpoints = inner;
 		}
 		else {
 			String namespace = Fabric8Utils.getApplicationNamespace(context.kubernetesClient(), null, "catalog-watcher",
 					context.namespaceProvider());
 			LOG.debug(() -> "discovering endpoints in namespace : " + namespace);
-			endpoints = endpoints(context, namespace, client);
+			endpoints = endpoints(client.endpoints().inNamespace(namespace).withNewFilter(), context.properties(), null);
 		}
 
 		/**
@@ -81,11 +83,6 @@ final class Fabric8EndpointsCatalogWatch
 				.map(EndpointAddress::getTargetRef);
 
 		return Fabric8CatalogWatchContext.state(references);
-	}
-
-	private List<Endpoints> endpoints(Fabric8CatalogWatchContext context, String namespace, KubernetesClient client) {
-		return client.endpoints().inNamespace(namespace).withLabels(context.properties().serviceLabels()).list()
-				.getItems();
 	}
 
 }
