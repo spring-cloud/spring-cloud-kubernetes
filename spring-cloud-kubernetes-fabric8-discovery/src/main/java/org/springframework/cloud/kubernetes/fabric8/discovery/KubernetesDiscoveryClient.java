@@ -183,4 +183,5 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 	public final void setEnvironment(Environment environment) {
 		namespaceProvider = new KubernetesNamespaceProvider(environment);
 	}
+
 }
