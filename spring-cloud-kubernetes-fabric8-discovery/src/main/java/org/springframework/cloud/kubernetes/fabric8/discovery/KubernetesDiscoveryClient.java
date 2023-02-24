@@ -33,7 +33,6 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
@@ -107,24 +106,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 	}
 
 	public List<Endpoints> getEndPointsList(String serviceId) {
-		if (properties.allNamespaces()) {
-			LOG.debug(() -> "searching for endpoints in all namespaces");
-			return endpoints(client.endpoints().inAnyNamespace().withNewFilter(), properties, serviceId);
-		}
-		else if (properties.namespaces().isEmpty()) {
-			String namespace = Fabric8Utils.getApplicationNamespace(client, null, "discovery", namespaceProvider);
-			LOG.debug(() -> "searching for endpoints in namespace : " + namespace);
-			return endpoints(client.endpoints().inNamespace(namespace).withNewFilter(), properties, serviceId);
-		}
-		else {
-			LOG.debug(() -> "searching for endpoints in namespaces : " + properties.namespaces());
-			List<Endpoints> endpoints = new ArrayList<>();
-			for (String namespace : properties.namespaces()) {
-				endpoints.addAll(
-						endpoints(client.endpoints().inNamespace(namespace).withNewFilter(), properties, serviceId));
-			}
-			return endpoints;
-		}
+		return endpoints(properties, client, namespaceProvider, "fabric8-discovery", serviceId);
 	}
 
 	private List<ServiceInstance> getNamespaceServiceInstances(EndpointSubsetNS es, String serviceId) {
@@ -175,4 +157,5 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 	public final void setEnvironment(Environment environment) {
 		namespaceProvider = new KubernetesNamespaceProvider(environment);
 	}
+
 }
