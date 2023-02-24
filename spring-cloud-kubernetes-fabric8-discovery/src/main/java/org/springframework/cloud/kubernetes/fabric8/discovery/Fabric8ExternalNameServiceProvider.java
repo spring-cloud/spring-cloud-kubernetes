@@ -36,12 +36,13 @@ final class Fabric8ExternalNameServiceProvider {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8ExternalNameServiceProvider.class));
 
-	private final KubernetesDiscoveryProperties properties = null;
+	private final KubernetesDiscoveryProperties properties;
 
-	private final KubernetesClient client = null;
+	private final KubernetesClient client;
 
-	private Fabric8ExternalNameServiceProvider() {
-
+	Fabric8ExternalNameServiceProvider(KubernetesDiscoveryProperties properties, KubernetesClient client) {
+		this.properties = properties;
+		this.client = client;
 	}
 
 	List<ServiceInstance> externalServiceInstances() {

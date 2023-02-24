@@ -53,6 +53,7 @@ class KubernetesDiscoveryPropertiesTests {
 					assertThat(props.primaryPortName()).isNull();
 					assertThat(props.order()).isZero();
 					assertThat(props.useEndpointSlices()).isFalse();
+					assertThat(props.includeExternalNameServices()).isFalse();
 				});
 	}
 
@@ -64,7 +65,8 @@ class KubernetesDiscoveryPropertiesTests {
 						"spring.cloud.kubernetes.discovery.metadata.labelsPrefix=labelsPrefix",
 						"spring.cloud.kubernetes.discovery.use-endpoint-slices=true",
 						"spring.cloud.kubernetes.discovery.namespaces[0]=ns1",
-						"spring.cloud.kubernetes.discovery.namespaces[1]=ns2")
+						"spring.cloud.kubernetes.discovery.namespaces[1]=ns2",
+						"spring.cloud.kubernetes.discovery.include-external-name-services=true")
 				.run(context -> {
 					KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
 					assertThat(props).isNotNull();
@@ -84,6 +86,7 @@ class KubernetesDiscoveryPropertiesTests {
 					assertThat(props.primaryPortName()).isNull();
 					assertThat(props.order()).isZero();
 					assertThat(props.useEndpointSlices()).isTrue();
+					assertThat(props.includeExternalNameServices()).isTrue();
 				});
 	}
 
