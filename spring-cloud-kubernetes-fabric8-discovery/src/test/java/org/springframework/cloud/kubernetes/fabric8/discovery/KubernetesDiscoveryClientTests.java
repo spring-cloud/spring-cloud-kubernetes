@@ -80,7 +80,7 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("serviceId");
 		Assertions.assertEquals(result.size(), 0);
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in all namespaces"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in all namespaces"));
 	}
 
 	/**
@@ -105,7 +105,7 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
 		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in all namespaces"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in all namespaces"));
 	}
 
 	/**
@@ -130,7 +130,7 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
 		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in all namespaces"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in all namespaces"));
 	}
 
 	/**
@@ -155,7 +155,7 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
 		Assertions.assertEquals(result.size(), 0);
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in all namespaces"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in all namespaces"));
 	}
 
 	/**
@@ -181,7 +181,7 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("service-one");
 		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in all namespaces"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in all namespaces"));
 	}
 
 	/**
@@ -210,7 +210,7 @@ class KubernetesDiscoveryClientTests {
 		Assertions.assertEquals(
 				result.stream().map(Endpoints::getMetadata).map(ObjectMeta::getNamespace).sorted().toList(),
 				List.of("a", "b"));
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in all namespaces"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in all namespaces"));
 	}
 
 	/**
@@ -231,7 +231,7 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("serviceId");
 		Assertions.assertEquals(result.size(), 0);
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in namespace : test"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in namespace : test"));
 	}
 
 	/**
@@ -256,7 +256,7 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
 		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in namespace : test"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in namespace : test"));
 	}
 
 	/**
@@ -281,7 +281,7 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
 		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in namespace : test"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in namespace : test"));
 	}
 
 	/**
@@ -306,7 +306,7 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
 		Assertions.assertEquals(result.size(), 0);
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in namespace : test"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in namespace : test"));
 	}
 
 	/**
@@ -332,7 +332,7 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("service-one");
 		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in namespace : test"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in namespace : test"));
 	}
 
 	/**
@@ -361,7 +361,7 @@ class KubernetesDiscoveryClientTests {
 		Assertions.assertEquals(
 				result.stream().map(Endpoints::getMetadata).map(ObjectMeta::getNamespace).sorted().toList(),
 				List.of("test"));
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in namespace : test"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in namespace : test"));
 	}
 
 	/**
@@ -382,7 +382,7 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("serviceId");
 		Assertions.assertEquals(result.size(), 0);
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in namespaces : [test]"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in namespaces : [test]"));
 	}
 
 	/**
@@ -407,7 +407,7 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
 		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in namespaces : [test]"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in namespaces : [test]"));
 	}
 
 	/**
@@ -435,7 +435,7 @@ class KubernetesDiscoveryClientTests {
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getLabels(), Map.of("color", "blue", "shape", "round"));
-		Assertions.assertTrue(output.getOut().contains("searching for endpoints in namespaces : [a]"));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in namespaces : [a]"));
 	}
 
 	/**
@@ -464,8 +464,7 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
 		Assertions.assertEquals(result.size(), 2);
-		Assertions
-				.assertTrue(output.getOut().contains("searching for endpoints in namespaces : " + namespacesAsString));
+		Assertions.assertTrue(output.getOut().contains("discovering endpoints in namespaces : " + namespacesAsString));
 	}
 
 	private void createEndpoints(String namespace, String name, Map<String, String> labels) {
