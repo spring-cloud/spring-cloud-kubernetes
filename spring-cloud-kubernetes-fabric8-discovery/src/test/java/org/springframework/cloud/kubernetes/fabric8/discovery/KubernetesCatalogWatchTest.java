@@ -28,6 +28,7 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
 import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.FilterNested;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
@@ -73,6 +74,9 @@ class KubernetesCatalogWatchTest {
 	private static final FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>> FILTER_WATCH_LIST_DELETABLE = Mockito
 			.mock(FilterWatchListDeletable.class);
 
+	private static final FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> FILTER_NESTED = Mockito
+			.mock(FilterNested.class);
+
 	private static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
 			.forClass(HeartbeatEvent.class);
 
@@ -103,7 +107,8 @@ class KubernetesCatalogWatchTest {
 
 		createInAllNamespaceWatcher();
 
-		when(MIXED_OPERATION.list()).thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
+		when(FILTER_WATCH_LIST_DELETABLE.list())
+				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
 				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod", "api-pod"));
 
 		kubernetesCatalogWatch.catalogServicesWatch();
@@ -134,7 +139,8 @@ class KubernetesCatalogWatchTest {
 
 		createInAllNamespaceWatcher();
 
-		when(MIXED_OPERATION.list()).thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
+		when(FILTER_WATCH_LIST_DELETABLE.list())
+				.thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
 				.thenReturn(createEndpointsListByServiceName("other-service", "api-service"));
 
 		kubernetesCatalogWatch.catalogServicesWatch();
@@ -169,7 +175,7 @@ class KubernetesCatalogWatchTest {
 
 		createInAllNamespaceWatcher();
 
-		when(MIXED_OPERATION.list())
+		when(FILTER_WATCH_LIST_DELETABLE.list())
 				.thenReturn(createSingleEndpointListWithNamespace("default", "api-pod", "other-pod"));
 
 		kubernetesCatalogWatch.catalogServicesWatch();
@@ -207,7 +213,7 @@ class KubernetesCatalogWatchTest {
 
 		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets();
 
-		when(MIXED_OPERATION.list()).thenReturn(endpoints);
+		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
 
 		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
@@ -241,7 +247,7 @@ class KubernetesCatalogWatchTest {
 		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
 		endpoints.getItems().get(0).getSubsets().get(0).setAddresses(null);
 
-		when(MIXED_OPERATION.list()).thenReturn(endpoints);
+		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
 
 		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
@@ -275,7 +281,7 @@ class KubernetesCatalogWatchTest {
 		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
 		endpoints.getItems().get(0).getSubsets().get(0).getAddresses().get(0).setTargetRef(null);
 
-		when(MIXED_OPERATION.list()).thenReturn(endpoints);
+		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
 
 		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
@@ -360,10 +366,6 @@ class KubernetesCatalogWatchTest {
 
 	private void createInAllNamespaceWatcher() {
 
-		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
-		when(MIXED_OPERATION.inAnyNamespace()).thenReturn(MIXED_OPERATION);
-		when(MIXED_OPERATION.withLabels(Map.of())).thenReturn(MIXED_OPERATION);
-
 		// all-namespaces = true
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, "", Set.of(), Map.of(), "", null, 0, false);
@@ -371,6 +373,14 @@ class KubernetesCatalogWatchTest {
 		kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT, properties, namespaceProvider);
 		kubernetesCatalogWatch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
 		kubernetesCatalogWatch.postConstruct();
+
+		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
+		when(MIXED_OPERATION.inAnyNamespace()).thenReturn(MIXED_OPERATION);
+		when(MIXED_OPERATION.withLabels(Map.of())).thenReturn(MIXED_OPERATION);
+		when(MIXED_OPERATION.withNewFilter()).thenReturn(FILTER_NESTED);
+		when(FILTER_NESTED.withLabels(Map.of())).thenReturn(FILTER_NESTED);
+		when(FILTER_NESTED.endFilter()).thenReturn(FILTER_WATCH_LIST_DELETABLE);
+
 	}
 
 	private void createInSpecificNamespaceWatcher() {
@@ -386,7 +396,9 @@ class KubernetesCatalogWatchTest {
 		when(namespaceProvider.getNamespace()).thenReturn("catalog-watcher-namespace");
 		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
 		when(MIXED_OPERATION.inNamespace("catalog-watcher-namespace")).thenReturn(NON_NAMESPACE_OPERATION);
-		when(NON_NAMESPACE_OPERATION.withLabels(Map.of())).thenReturn(FILTER_WATCH_LIST_DELETABLE);
+		when(NON_NAMESPACE_OPERATION.withNewFilter()).thenReturn(FILTER_NESTED);
+		when(FILTER_NESTED.withLabels(Map.of())).thenReturn(FILTER_NESTED);
+		when(FILTER_NESTED.endFilter()).thenReturn(FILTER_WATCH_LIST_DELETABLE);
 	}
 
 }
