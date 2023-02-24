@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
 import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.FilterNested;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -37,8 +38,10 @@ import jakarta.annotation.Nullable;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -164,22 +167,48 @@ final class KubernetesDiscoveryClientUtils {
 		return serviceMetadata;
 	}
 
+	static List<Endpoints> endpoints(KubernetesDiscoveryProperties properties, KubernetesClient client,
+			KubernetesNamespaceProvider namespaceProvider, String target, @Nullable String serviceName) {
+
+		List<Endpoints> endpoints;
+
+		if (properties.allNamespaces()) {
+			LOG.debug(() -> "discovering endpoints in all namespaces");
+			endpoints = filteredEndpoints(client.endpoints().inAnyNamespace().withNewFilter(), properties, serviceName);
+		}
+		else if (!properties.namespaces().isEmpty()) {
+			LOG.debug(() -> "discovering endpoints in namespaces : " + properties.namespaces());
+			List<Endpoints> inner = new ArrayList<>(properties.namespaces().size());
+			properties.namespaces().forEach(namespace -> inner.addAll(filteredEndpoints(
+					client.endpoints().inNamespace(namespace).withNewFilter(), properties, serviceName)));
+			endpoints = inner;
+		}
+		else {
+			String namespace = Fabric8Utils.getApplicationNamespace(client, null, target, namespaceProvider);
+			LOG.debug(() -> "discovering endpoints in namespace : " + namespace);
+			endpoints = filteredEndpoints(client.endpoints().inNamespace(namespace).withNewFilter(), properties,
+					serviceName);
+		}
+
+		return endpoints;
+	}
+
 	/**
-	 * serviceName can be null, in which case the filter for "metadata.name" will not be applied.
+	 * serviceName can be null, in which case the filter for "metadata.name" will not be
+	 * applied.
 	 */
-	static List<Endpoints> endpoints(
+	static List<Endpoints> filteredEndpoints(
 			FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> filterNested,
 			KubernetesDiscoveryProperties properties, @Nullable String serviceName) {
 
-		FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> partial =
-			filterNested.withLabels(properties.serviceLabels());
+		FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> partial = filterNested
+				.withLabels(properties.serviceLabels());
 
 		if (serviceName != null) {
 			partial = partial.withField("metadata.name", serviceName);
 		}
 
 		return partial.endFilter().list().getItems();
-
 
 	}
 

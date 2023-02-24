@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -26,12 +25,8 @@ import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.ObjectReference;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
-import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpoints;
 
@@ -43,30 +38,10 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesD
 final class Fabric8EndpointsCatalogWatch
 		implements Function<Fabric8CatalogWatchContext, List<EndpointNameAndNamespace>> {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8EndpointsCatalogWatch.class));
-
 	@Override
 	public List<EndpointNameAndNamespace> apply(Fabric8CatalogWatchContext context) {
-		List<Endpoints> endpoints;
-		KubernetesClient client = context.kubernetesClient();
-
-		if (context.properties().allNamespaces()) {
-			LOG.debug(() -> "discovering endpoints in all namespaces");
-			endpoints = endpoints(client.endpoints().inAnyNamespace().withNewFilter(), context.properties(), null);
-		}
-		else if (!context.properties().namespaces().isEmpty()) {
-			LOG.debug(() -> "discovering endpoints in " + context.properties().namespaces());
-			List<Endpoints> inner = new ArrayList<>(context.properties().namespaces().size());
-			context.properties().namespaces().forEach(namespace -> inner.addAll(
-				endpoints(client.endpoints().inNamespace(namespace).withNewFilter(), context.properties(), null)));
-			endpoints = inner;
-		}
-		else {
-			String namespace = Fabric8Utils.getApplicationNamespace(context.kubernetesClient(), null, "catalog-watcher",
-					context.namespaceProvider());
-			LOG.debug(() -> "discovering endpoints in namespace : " + namespace);
-			endpoints = endpoints(client.endpoints().inNamespace(namespace).withNewFilter(), context.properties(), null);
-		}
+		List<Endpoints> endpoints = endpoints(context.properties(), context.kubernetesClient(),
+				context.namespaceProvider(), "catalog-watcher", null);
 
 		/**
 		 * <pre>
