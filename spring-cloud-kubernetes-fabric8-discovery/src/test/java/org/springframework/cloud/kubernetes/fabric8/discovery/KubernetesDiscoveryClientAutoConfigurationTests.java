@@ -39,7 +39,7 @@ class KubernetesDiscoveryClientAutoConfigurationTests {
 		assertThat(this.discoveryClient).isInstanceOf(CompositeDiscoveryClient.class);
 
 		CompositeDiscoveryClient composite = (CompositeDiscoveryClient) this.discoveryClient;
-		assertThat(composite.getDiscoveryClients().stream().anyMatch(dc -> dc instanceof KubernetesDiscoveryClient))
+		assertThat(composite.getDiscoveryClients().stream().anyMatch(dc -> dc instanceof Fabric8KubernetesDiscoveryClient))
 				.isTrue();
 	}
 

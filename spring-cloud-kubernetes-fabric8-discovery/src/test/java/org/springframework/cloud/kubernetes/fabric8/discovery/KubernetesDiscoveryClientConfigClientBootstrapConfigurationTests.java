@@ -74,13 +74,13 @@ class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 		TestPropertyValues.of(env).applyTo(parent);
 		parent.register(UtilAutoConfiguration.class, PropertyPlaceholderAutoConfiguration.class,
 				EnvironmentKnobbler.class, KubernetesCommonsAutoConfiguration.class,
-				KubernetesDiscoveryClientConfigClientBootstrapConfiguration.class,
+				Fabric8KubernetesDiscoveryClientConfigClientBootstrapConfiguration.class,
 				DiscoveryClientConfigServiceBootstrapConfiguration.class, ConfigClientProperties.class);
 		parent.refresh();
 		context = new AnnotationConfigApplicationContext();
 		context.setParent(parent);
 		context.register(PropertyPlaceholderAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-				KubernetesDiscoveryClientAutoConfiguration.class);
+				Fabric8KubernetesDiscoveryClientAutoConfiguration.class);
 		context.refresh();
 	}
 
@@ -88,8 +88,8 @@ class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 	protected static class EnvironmentKnobbler {
 
 		@Bean
-		KubernetesDiscoveryClient kubernetesDiscoveryClient() {
-			KubernetesDiscoveryClient client = mock(KubernetesDiscoveryClient.class);
+        Fabric8KubernetesDiscoveryClient kubernetesDiscoveryClient() {
+			Fabric8KubernetesDiscoveryClient client = mock(Fabric8KubernetesDiscoveryClient.class);
 			ServiceInstance instance = new DefaultServiceInstance("configserver1", "configserver", "fake", 8888, false);
 			given(client.getInstances("configserver")).willReturn(Collections.singletonList(instance));
 			return client;

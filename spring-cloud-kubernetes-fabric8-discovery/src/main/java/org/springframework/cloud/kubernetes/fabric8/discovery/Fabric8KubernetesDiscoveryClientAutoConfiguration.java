@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -30,6 +31,7 @@ import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
@@ -40,6 +42,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+
+import java.util.function.Predicate;
 
 /**
  * Auto configuration for discovery clients.
@@ -53,29 +57,25 @@ import org.springframework.core.env.Environment;
 @ConditionalOnBlockingDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
-@AutoConfigureAfter({ Fabric8AutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
-public class KubernetesDiscoveryClientAutoConfiguration {
+@AutoConfigureAfter({ Fabric8AutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+	Fabric8DiscoveryClientPredicateAutoConfiguration.class})
+class Fabric8KubernetesDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties,
-			Environment environment) {
-		return KubernetesClientServicesFunctionProvider.servicesFunction(properties, environment);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
-			KubernetesDiscoveryProperties properties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
-		return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction, null,
-				new ServicePortSecureResolver(properties));
+	Fabric8KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
+			KubernetesDiscoveryProperties properties, Predicate<Service> predicate, Environment environment) {
+		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(properties);
+		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
+		return new Fabric8KubernetesDiscoveryClient(
+			client, properties, servicePortSecureResolver, namespaceProvider, predicate
+		);
 	}
 
 	@Bean
 	@ConditionalOnClass({ HealthIndicator.class })
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
-	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
+	KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
 			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}

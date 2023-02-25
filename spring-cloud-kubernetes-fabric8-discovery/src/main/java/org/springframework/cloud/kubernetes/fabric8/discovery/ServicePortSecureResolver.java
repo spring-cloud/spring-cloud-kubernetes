@@ -24,7 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.log.LogAccessor;
 
-class ServicePortSecureResolver {
+final class ServicePortSecureResolver {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(ServicePortSecureResolver.class));
 
@@ -83,12 +83,7 @@ class ServicePortSecureResolver {
 	record Input(Integer port, String serviceName, Map<String, String> serviceLabels,
 			Map<String, String> serviceAnnotations) {
 
-		// used only for testing
-		Input(Integer port, String serviceName) {
-			this(port, serviceName, null, null);
-		}
-
-		Input(Integer port, String serviceName, Map<String, String> serviceLabels,
+		public Input(Integer port, String serviceName, Map<String, String> serviceLabels,
 				Map<String, String> serviceAnnotations) {
 			this.port = port;
 			this.serviceName = serviceName;

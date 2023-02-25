@@ -33,15 +33,14 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
 
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.addresses;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpoints;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpointsPort;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceInstance;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.addresses;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpoints;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpointsPort;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.serviceInstance;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.serviceMetadata;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.services;
 
 /**
  * Kubernetes implementation of {@link DiscoveryClient}.
@@ -49,48 +48,31 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesD
  * @author Ioannis Canellos
  * @author Tim Ysewyn
  */
-public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAware {
+final class Fabric8KubernetesDiscoveryClient implements DiscoveryClient {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesDiscoveryClient.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8KubernetesDiscoveryClient.class));
 
 	private final KubernetesDiscoveryProperties properties;
 
-	private final KubernetesClientServicesFunction kubernetesClientServicesFunction;
-
 	private final ServicePortSecureResolver servicePortSecureResolver;
 
-	private final Fabric8DiscoveryServicesAdapter adapter;
+	private final KubernetesClient client;
 
-	private KubernetesClient client;
+	private final KubernetesNamespaceProvider namespaceProvider;
 
-	private KubernetesNamespaceProvider namespaceProvider;
+	private final Predicate<Service> predicate;
 
-	public KubernetesDiscoveryClient(KubernetesClient client,
+	Fabric8KubernetesDiscoveryClient(KubernetesClient client,
 			KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
-
-		this(client, kubernetesDiscoveryProperties, kubernetesClientServicesFunction, null,
-				new ServicePortSecureResolver(kubernetesDiscoveryProperties));
-	}
-
-	KubernetesDiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction, Predicate<Service> filter,
-			ServicePortSecureResolver servicePortSecureResolver) {
+			ServicePortSecureResolver servicePortSecureResolver,
+			KubernetesNamespaceProvider namespaceProvider,
+			Predicate<Service> predicate) {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
 		this.servicePortSecureResolver = servicePortSecureResolver;
-		this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
-		this.adapter = new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction,
-				kubernetesDiscoveryProperties, filter);
-	}
-
-	public KubernetesClient getClient() {
-		return this.client;
-	}
-
-	public void setClient(KubernetesClient client) {
-		this.client = client;
+		this.namespaceProvider = namespaceProvider;
+		this.predicate = predicate;
 	}
 
 	@Override
@@ -103,7 +85,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 		Objects.requireNonNull(serviceId);
 
 		List<EndpointSubsetNS> subsetsNS = getEndPointsList(serviceId).stream()
-				.map(KubernetesDiscoveryClientUtils::subsetsFromEndpoints).toList();
+				.map(Fabric8KubernetesDiscoveryClientUtils::subsetsFromEndpoints).toList();
 
 		List<ServiceInstance> instances = new ArrayList<>();
 		for (EndpointSubsetNS es : subsetsNS) {
@@ -146,24 +128,13 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 
 	@Override
 	public List<String> getServices() {
-		return adapter.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
-	}
-
-	@Deprecated(forRemoval = true)
-	public List<String> getServices(Predicate<Service> filter) {
-		return new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction, properties, filter).apply(client)
-				.stream().map(s -> s.getMetadata().getName()).toList();
+		return services(properties, client, namespaceProvider, predicate, "fabric8 discovery")
+			.stream().map(service -> service.getMetadata().getName()).toList();
 	}
 
 	@Override
 	public int getOrder() {
 		return properties.order();
-	}
-
-	@Deprecated(forRemoval = true)
-	@Override
-	public final void setEnvironment(Environment environment) {
-		namespaceProvider = new KubernetesNamespaceProvider(environment);
 	}
 
 }

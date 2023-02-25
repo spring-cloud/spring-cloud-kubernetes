@@ -42,21 +42,21 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 /**
  * @author Oleg Vyukov
  */
-public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
+final class Fabric8KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private static final String DISCOVERY_GROUP_VERSION = DISCOVERY_GROUP + "/" + DISCOVERY_VERSION;
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesCatalogWatch.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8KubernetesCatalogWatch.class));
 
 	private final Fabric8CatalogWatchContext context;
 
 	private Function<Fabric8CatalogWatchContext, List<EndpointNameAndNamespace>> stateGenerator;
 
-	private volatile List<EndpointNameAndNamespace> catalogEndpointsState = null;
+	private volatile List<EndpointNameAndNamespace> catalogEndpointsState;
 
 	private ApplicationEventPublisher publisher;
 
-	public KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties,
+	public Fabric8KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties,
 			KubernetesNamespaceProvider namespaceProvider) {
 		context = new Fabric8CatalogWatchContext(kubernetesClient, properties, namespaceProvider);
 	}
@@ -67,7 +67,7 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 	}
 
 	@Scheduled(fixedDelayString = "${spring.cloud.kubernetes.discovery.catalogServicesWatchDelay:30000}")
-	public void catalogServicesWatch() {
+	void catalogServicesWatch() {
 		try {
 
 			List<EndpointNameAndNamespace> currentState = stateGenerator.apply(context);

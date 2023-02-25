@@ -20,7 +20,7 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 
-import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClient;
+import org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,9 +31,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class Fabric8DiscoveryController {
 
-	private final KubernetesDiscoveryClient discoveryClient;
+	private final Fabric8KubernetesDiscoveryClient discoveryClient;
 
-	public Fabric8DiscoveryController(KubernetesDiscoveryClient discoveryClient) {
+	public Fabric8DiscoveryController(Fabric8KubernetesDiscoveryClient discoveryClient) {
 		this.discoveryClient = discoveryClient;
 	}
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery.reactive;
+package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +28,8 @@ import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
-import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesReactiveDiscoveryClientAutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,8 +41,8 @@ class KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
 					ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-					Fabric8AutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class,
-					KubernetesReactiveDiscoveryClientAutoConfiguration.class,
+					Fabric8AutoConfiguration.class, Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
+					Fabric8KubernetesReactiveDiscoveryClientAutoConfiguration.class,
 					KubernetesDiscoveryPropertiesAutoConfiguration.class));
 
 	@Test
