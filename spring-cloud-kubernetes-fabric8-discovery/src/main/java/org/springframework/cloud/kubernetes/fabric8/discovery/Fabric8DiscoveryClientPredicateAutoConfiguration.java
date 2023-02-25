@@ -40,8 +40,7 @@ import java.util.function.Predicate;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
-@ConditionalOnKubernetesDiscoveryEnabled
-@ConditionalOnBlockingDiscoveryEnabled
+@ConditionalOnBlockingOrReactiveEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter(KubernetesDiscoveryPropertiesAutoConfiguration.class)
 class Fabric8DiscoveryClientPredicateAutoConfiguration {

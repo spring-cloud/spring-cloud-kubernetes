@@ -47,7 +47,8 @@ class KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 
 	@Test
 	void shouldWorkWithDefaults() {
-		contextRunner.withPropertyValues("spring.main.cloud-platform=KUBERNETES").run(context -> {
+		contextRunner.withPropertyValues("spring.main.cloud-platform=KUBERNETES")
+			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class)).run(context -> {
 			assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
 			assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
 		});
@@ -100,6 +101,7 @@ class KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 	@Test
 	void worksWithoutActuator() {
 		contextRunner.withPropertyValues("spring.main.cloud-platform=KUBERNETES")
+				.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class))
 				.withClassLoader(new FilteredClassLoader("org.springframework.boot.actuate")).run(context -> {
 					assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
 					assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);

@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Conditional;
 
 /**
  * Conditional that is resolved to active when either
- * {@link ConditionalOnBlockingOrReactiveEnabled} or
+ * {@link ConditionalOnBlockingDiscoveryEnabled} or
  * {@link ConditionalOnReactiveDiscoveryEnabled} matches.
  *
  * @author wind57
