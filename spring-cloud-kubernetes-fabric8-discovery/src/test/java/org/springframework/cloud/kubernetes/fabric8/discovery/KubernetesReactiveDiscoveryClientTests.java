@@ -54,6 +54,11 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 @EnableKubernetesMockClient(crud = true, https = false)
 class KubernetesReactiveDiscoveryClientTests {
 
+	private static final ServicePortSecureResolver SERVICE_PORT_SECURE_RESOLVER =
+		new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
+
+	private static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = new KubernetesNamespaceProvider(mockEnvironment());
+
 	private static KubernetesMockServer kubernetesServer;
 
 	private static KubernetesClient kubernetesClient;
@@ -76,10 +81,8 @@ class KubernetesReactiveDiscoveryClientTests {
 
 	@Test
 	void verifyDefaults() {
-		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
-		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment());
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, servicePortSecureResolver, namespaceProvider,
+			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
 			x -> true
 		);
 		ReactiveDiscoveryClient client = new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
@@ -95,10 +98,8 @@ class KubernetesReactiveDiscoveryClientTests {
 						.withName("s2").withLabels(Map.of("label", "value", "label2", "value2")).endMetadata().endItem()
 						.addNewItem().withNewMetadata().withName("s3").endMetadata().endItem().build())
 				.once();
-		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
-		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment());
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, servicePortSecureResolver, namespaceProvider,
+			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
 			x -> true
 		);
 		ReactiveDiscoveryClient client = new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
@@ -111,10 +112,8 @@ class KubernetesReactiveDiscoveryClientTests {
 		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
 				.andReturn(200, new ServiceListBuilder().build()).once();
 
-		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
-		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment());
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, servicePortSecureResolver, namespaceProvider,
+			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
 			x -> true
 		);
 		ReactiveDiscoveryClient client = new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
@@ -128,10 +127,8 @@ class KubernetesReactiveDiscoveryClientTests {
 				.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dnonexistent-service")
 				.andReturn(200, new EndpointsBuilder().build()).once();
 
-		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
-		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment());
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, servicePortSecureResolver, namespaceProvider,
+			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
 			x -> true
 		);
 
@@ -151,10 +148,8 @@ class KubernetesReactiveDiscoveryClientTests {
 				.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dexisting-service")
 				.andReturn(200, new EndpointsBuilder().build()).once();
 
-		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
-		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment());
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, servicePortSecureResolver, namespaceProvider,
+			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
 			x -> true
 		);
 
@@ -186,10 +181,8 @@ class KubernetesReactiveDiscoveryClientTests {
 		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services/existing-service")
 				.andReturn(200, services.getItems().get(0)).once();
 
-		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
-		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment());
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, servicePortSecureResolver, namespaceProvider,
+			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
 			x -> true
 		);
 
@@ -225,10 +218,8 @@ class KubernetesReactiveDiscoveryClientTests {
 						.withLabels(Map.of("label", "value")).endMetadata().build())
 				.once();
 
-		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
-		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment());
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, servicePortSecureResolver, namespaceProvider,
+			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
 			x -> true
 		);
 
@@ -264,10 +255,8 @@ class KubernetesReactiveDiscoveryClientTests {
 						.withLabels(Map.of("label", "value")).endMetadata().build())
 				.once();
 
-		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
-		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment());
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, servicePortSecureResolver, namespaceProvider,
+			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
 			x -> true
 		);
 
@@ -299,12 +288,10 @@ class KubernetesReactiveDiscoveryClientTests {
 						.withLabels(Map.of("label", "value")).endMetadata().build())
 				.once();
 
-		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
-		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment());
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 			false, null, Set.of(), Map.of(), "https_tcp", Metadata.DEFAULT, 0, true);
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, properties, servicePortSecureResolver, namespaceProvider,
+			kubernetesClient, properties, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
 			x -> true
 		);
 
@@ -313,7 +300,7 @@ class KubernetesReactiveDiscoveryClientTests {
 		StepVerifier.create(instances).expectNextCount(1).expectComplete().verify();
 	}
 
-	private Environment mockEnvironment() {
+	private static Environment mockEnvironment() {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", "test");
 		return mockEnvironment;

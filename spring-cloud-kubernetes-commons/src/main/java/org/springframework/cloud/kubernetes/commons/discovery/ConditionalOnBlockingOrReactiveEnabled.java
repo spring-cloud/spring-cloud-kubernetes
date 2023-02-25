@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.discovery;
+package org.springframework.cloud.kubernetes.commons.discovery;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
