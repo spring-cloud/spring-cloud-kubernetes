@@ -68,42 +68,41 @@ class KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 		applicationContextRunner.run(context -> assertThat(context).hasSingleBean(Fabric8KubernetesCatalogWatch.class));
 	}
 
-//	/**
-//	 * both blocking and reactive configs are disabled, should not influence catalog
-//	 * watcher in any way.
-//	 */
-//	@Test
-//	void disableBlockingAndReactive() {
-//		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-//				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.discovery.reactive.enabled=false");
-//		applicationContextRunner.run(context -> {
-//			assertThat(context).hasSingleBean(Fabric8KubernetesCatalogWatch.class);
-//			assertThat(context).doesNotHaveBean(KubernetesClientServicesFunction.class);
-//			assertThat(context).doesNotHaveBean(Fabric8KubernetesDiscoveryClient.class);
-//			assertThat(context).doesNotHaveBean(Fabric8KubernetesReactiveDiscoveryClient.class);
-//		});
-//	}
-//
-//	/**
-//	 * spring.cloud.kubernetes.discovery.enabled is false, but does not influence catalog
-//	 * watcher.
-//	 */
-//	@Test
-//	void disableKubernetesDiscovery() {
-//		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-//				"spring.cloud.kubernetes.discovery.enabled=false");
-//		applicationContextRunner.run(context -> {
-//			assertThat(context).hasSingleBean(Fabric8KubernetesCatalogWatch.class);
-//			assertThat(context).doesNotHaveBean(KubernetesClientServicesFunction.class);
-//			assertThat(context).doesNotHaveBean(Fabric8KubernetesDiscoveryClient.class);
-//			assertThat(context).doesNotHaveBean(Fabric8KubernetesReactiveDiscoveryClient.class);
-//		});
-//	}
+	/**
+	 * both blocking and reactive configs are disabled, should not influence catalog
+	 * watcher in any way.
+	 */
+	@Test
+	void disableBlockingAndReactive() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.discovery.reactive.enabled=false");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(Fabric8KubernetesCatalogWatch.class);
+			assertThat(context).doesNotHaveBean(Fabric8KubernetesDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(Fabric8KubernetesReactiveDiscoveryClient.class);
+		});
+	}
+
+	/**
+	 * spring.cloud.kubernetes.discovery.enabled is false, but does not influence catalog
+	 * watcher.
+	 */
+	@Test
+	void disableKubernetesDiscovery() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.enabled=false");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(Fabric8KubernetesCatalogWatch.class);
+			assertThat(context).doesNotHaveBean(Fabric8KubernetesDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(Fabric8KubernetesReactiveDiscoveryClient.class);
+		});
+	}
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner().withConfiguration(
 				AutoConfigurations.of(Fabric8KubernetesCatalogWatchAutoConfiguration.class, Fabric8AutoConfiguration.class,
-						KubernetesCommonsAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
+						KubernetesCommonsAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+						Fabric8DiscoveryClientPredicateAutoConfiguration.class))
 				.withPropertyValues(properties);
 	}
 

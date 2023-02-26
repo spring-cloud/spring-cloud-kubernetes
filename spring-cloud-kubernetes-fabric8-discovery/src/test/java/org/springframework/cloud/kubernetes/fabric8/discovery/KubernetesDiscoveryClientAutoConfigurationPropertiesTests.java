@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
@@ -82,8 +83,8 @@ class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 		envList.add("spring.cloud.config.enabled=false");
 		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
 				KubernetesClientTestConfiguration.class, Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
-				KubernetesDiscoveryPropertiesAutoConfiguration.class)
-						.web(org.springframework.boot.WebApplicationType.NONE)
+				KubernetesDiscoveryPropertiesAutoConfiguration.class, Fabric8DiscoveryClientPredicateAutoConfiguration.class)
+						.web(WebApplicationType.NONE)
 						.properties(envList.toArray(new String[0])).run();
 	}
 

@@ -35,102 +35,107 @@ import org.mockito.Mockito;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
+import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
+
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.services;
 
 /**
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-class Fabric8DiscoveryServicesAdapterTests {
+class Fabric8DiscoveryFilterTests {
 
-//	private static KubernetesClient client;
-//
-//	private static MockedStatic<Fabric8Utils> utils;
-//
-//	@BeforeEach
-//	void beforeEach() {
-//		utils = Mockito.mockStatic(Fabric8Utils.class);
-//	}
-//
-//	@AfterEach
-//	void afterEach() {
-//		client.services().inAnyNamespace().delete();
-//		utils.close();
-//	}
-//
-//	/**
-//	 * <pre>
-//	 *     - all-namespaces = true
-//	 *     - labels = {}
-//	 *     - filter = null
-//	 *
-//	 *     - serviceA exists in namespaceA with labels = {color=red}
-//	 *     - serviceB exists in namespaceB with labels = {color=blue}
-//	 *
-//	 *     - we get both services as a result.
-//	 * </pre>
-//	 */
-//	@Test
-//	void testAllNamespacesWithoutLabelsWithoutFilter() {
-//		boolean allNamespaces = true;
-//		Map<String, String> labels = Map.of();
-//		String spelFilter = null;
-//
-//		MockEnvironment environment = new MockEnvironment();
-//
-//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-//				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false);
-//
-//		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
-//				new Fabric8KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
-//				null);
-//
-//		service("namespaceA", "serviceA", Map.of("color", "red"));
-//		service("namespaceB", "serviceB", Map.of("color", "blue"));
-//
-//		List<Service> result = adapter.apply(client);
-//		Assertions.assertEquals(result.size(), 2);
-//		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
-//		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
-//		Assertions.assertEquals(result.get(1).getMetadata().getName(), "serviceB");
-//		Assertions.assertEquals(result.get(1).getMetadata().getNamespace(), "namespaceB");
-//	}
-//
-//	/**
-//	 * <pre>
-//	 *     - all-namespaces = true
-//	 *     - labels = {color=red}
-//	 *     - filter = null
-//	 *
-//	 *     - serviceA exists in namespaceA with labels = {color=red}
-//	 *     - serviceB exists in namespaceB with labels = {color=blue}
-//	 *
-//	 *     - we get only serviceA as a result.
-//	 * </pre>
-//	 */
-//	@Test
-//	void testAllNamespacesWithLabelsWithoutFilter() {
-//		boolean allNamespaces = true;
-//		Map<String, String> labels = Map.of("color", "red");
-//		String spelFilter = null;
-//
-//		MockEnvironment environment = new MockEnvironment();
-//
-//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-//				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false);
-//
-//		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
-//				new Fabric8KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
-//				null);
-//
-//		service("namespaceA", "serviceA", Map.of("color", "red"));
-//		service("namespaceB", "serviceB", Map.of("color", "blue"));
-//
-//		List<Service> result = adapter.apply(client);
-//		Assertions.assertEquals(result.size(), 1);
-//		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
-//		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
-//	}
+	private static final ServicePortSecureResolver SERVICE_PORT_SECURE_RESOLVER =
+		new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
+
+	private static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = new KubernetesNamespaceProvider(mockEnvironment());
+
+	private static KubernetesClient client;
+
+	private static MockedStatic<Fabric8Utils> utils;
+
+	@BeforeEach
+	void beforeEach() {
+		utils = Mockito.mockStatic(Fabric8Utils.class);
+	}
+
+	@AfterEach
+	void afterEach() {
+		client.services().inAnyNamespace().delete();
+		utils.close();
+	}
+
+	/**
+	 * <pre>
+	 *     - all-namespaces = true
+	 *     - labels = {}
+	 *     - filter = null
+	 *
+	 *     - serviceA exists in namespaceA with labels = {color=red}
+	 *     - serviceB exists in namespaceB with labels = {color=blue}
+	 *
+	 *     - we get both services as a result.
+	 * </pre>
+	 */
+	@Test
+	void testAllNamespacesWithoutLabelsWithoutFilter() {
+		boolean allNamespaces = true;
+		Map<String, String> labels = Map.of();
+		String spelFilter = null;
+
+		MockEnvironment environment = new MockEnvironment();
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
+				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false);
+
+		List<Service> result = services(properties, client, NAMESPACE_PROVIDER, spelFilter, "dummy-target");
+
+		service("namespaceA", "serviceA", Map.of("color", "red"));
+		service("namespaceB", "serviceB", Map.of("color", "blue"));
+
+		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
+		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
+		Assertions.assertEquals(result.get(1).getMetadata().getName(), "serviceB");
+		Assertions.assertEquals(result.get(1).getMetadata().getNamespace(), "namespaceB");
+	}
+
+	/**
+	 * <pre>
+	 *     - all-namespaces = true
+	 *     - labels = {color=red}
+	 *     - filter = null
+	 *
+	 *     - serviceA exists in namespaceA with labels = {color=red}
+	 *     - serviceB exists in namespaceB with labels = {color=blue}
+	 *
+	 *     - we get only serviceA as a result.
+	 * </pre>
+	 */
+	@Test
+	void testAllNamespacesWithLabelsWithoutFilter() {
+		boolean allNamespaces = true;
+		Map<String, String> labels = Map.of("color", "red");
+		String spelFilter = null;
+
+		MockEnvironment environment = new MockEnvironment();
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
+				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false);
+
+		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
+				new Fabric8KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
+				null);
+
+		service("namespaceA", "serviceA", Map.of("color", "red"));
+		service("namespaceB", "serviceB", Map.of("color", "blue"));
+
+		List<Service> result = adapter.apply(client);
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
+		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
+	}
 //
 //	/**
 //	 * <pre>
@@ -469,11 +474,17 @@ class Fabric8DiscoveryServicesAdapterTests {
 //		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 //		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
 //	}
-//
-//	private void service(String namespace, String name, Map<String, String> labels) {
-//		client.services().inNamespace(namespace)
-//				.resource(new ServiceBuilder().withNewMetadata().withName(name).withLabels(labels).and().build())
-//				.create();
-//	}
+
+	private void service(String namespace, String name, Map<String, String> labels) {
+		client.services().inNamespace(namespace)
+				.resource(new ServiceBuilder().withNewMetadata().withName(name).withLabels(labels).and().build())
+				.create();
+	}
+
+	private static Environment mockEnvironment() {
+		MockEnvironment environment = new MockEnvironment();
+		environment.setProperty("spring.cloud.kubernetes.client.namespace", "test");
+		return environment;
+	}
 
 }

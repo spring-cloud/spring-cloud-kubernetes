@@ -85,7 +85,8 @@ class KubernetesDiscoveryClientFilterTest {
 				false, "metadata.additionalProperties['spring-boot']", Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(kubernetesClient, properties,
-				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
 
 		List<String> filteredServices = client.getServices();
 		assertThat(filteredServices).isEqualTo(springBootServiceNames);
@@ -106,14 +107,19 @@ class KubernetesDiscoveryClientFilterTest {
 
 		ServiceList serviceList = new ServiceList();
 		serviceList.setItems(services);
-		when(serviceOperation.list()).thenReturn(serviceList);
 		when(kubernetesClient.services()).thenReturn(serviceOperation);
+		when(serviceOperation.inNamespace(Mockito.anyString())).thenReturn(serviceOperation);
+		when(serviceOperation.withNewFilter()).thenReturn(filterNested);
+		when(filterNested.withLabels(Mockito.anyMap())).thenReturn(filterNested);
+		when(filterNested.endFilter()).thenReturn(filter);
+		when(filter.list()).thenReturn(serviceList);
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, "metadata.name.startsWith('service')", Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(kubernetesClient, properties,
-			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
 
 		List<String> filteredServices = client.getServices();
 		assertThat(filteredServices).isEqualTo(springBootServiceNames);
@@ -127,13 +133,18 @@ class KubernetesDiscoveryClientFilterTest {
 
 		ServiceList serviceList = new ServiceList();
 		serviceList.setItems(services);
-		when(serviceOperation.list()).thenReturn(serviceList);
 		when(kubernetesClient.services()).thenReturn(serviceOperation);
+		when(serviceOperation.inNamespace(Mockito.anyString())).thenReturn(serviceOperation);
+		when(serviceOperation.withNewFilter()).thenReturn(filterNested);
+		when(filterNested.withLabels(Mockito.anyMap())).thenReturn(filterNested);
+		when(filterNested.endFilter()).thenReturn(filter);
+		when(filter.list()).thenReturn(serviceList);
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, "", Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(kubernetesClient, properties,
-			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
 
 		List<String> filteredServices = client.getServices();
 

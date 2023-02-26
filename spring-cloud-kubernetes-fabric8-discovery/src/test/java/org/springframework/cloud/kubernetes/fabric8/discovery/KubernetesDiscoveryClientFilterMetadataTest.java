@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
@@ -59,234 +60,247 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 @SuppressWarnings("unchecked")
 class KubernetesDiscoveryClientFilterMetadataTest {
 
-//	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
-//
-//	private final MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation = Mockito
-//			.mock(MixedOperation.class);
-//
-//	private final MixedOperation<Endpoints, EndpointsList, Resource<Endpoints>> endpointsOperation = Mockito
-//			.mock(MixedOperation.class);
-//
-//	private final ServiceResource<Service> serviceResource = Mockito.mock(ServiceResource.class);
-//
-//	private final FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>> filter = Mockito
-//			.mock(FilterWatchListDeletable.class);
-//
-//	private final FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> filterNested = Mockito
-//			.mock(FilterNested.class);
-//
-//	@Test
-//	void testAllExtraMetadataDisabled() {
-//		String serviceId = "s";
-//
-//		Metadata metadata = new Metadata(false, null, false, null, false, null);
-//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-//				false, null, Set.of(), Map.of(), null, metadata, 0, true);
-//
-//		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-//		discoveryClient.setEnvironment(withClientNamespace());
-//
-//		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "lab"), Map.of("l1", "lab"),
-//				Map.of(80, "http", 5555, ""));
-//
-//		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
-//		assertThat(instances).hasSize(1);
-//		assertThat(instances.get(0).getMetadata()).isEqualTo(Map.of("k8s_namespace", "ns"));
-//	}
-//
-//	@Test
-//	void testLabelsEnabled() {
-//		String serviceId = "s";
-//
-//		Metadata metadata = new Metadata(true, null, false, null, false, null);
-//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-//				false, null, Set.of(), Map.of(), null, metadata, 0, true);
-//
-//		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-//		discoveryClient.setEnvironment(withClientNamespace());
-//
-//		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
-//				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
-//
-//		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
-//		assertThat(instances).hasSize(1);
-//		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l1", "v1"), entry("l2", "v2"),
-//				entry("k8s_namespace", "ns"));
-//	}
-//
-//	@Test
-//	void testLabelsEnabledWithPrefix() {
-//		String serviceId = "s";
-//
-//		Metadata metadata = new Metadata(true, "l_", false, null, false, null);
-//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-//				false, null, Set.of(), Map.of(), null, metadata, 0, true);
-//
-//		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-//		discoveryClient.setEnvironment(withClientNamespace());
-//
-//		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
-//				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
-//
-//		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
-//		assertThat(instances).hasSize(1);
-//		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l_l1", "v1"), entry("l_l2", "v2"),
-//				entry("k8s_namespace", "ns"));
-//	}
-//
-//	@Test
-//	void testAnnotationsEnabled() {
-//		String serviceId = "s";
-//
-//		Metadata metadata = new Metadata(false, null, true, null, false, null);
-//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-//				false, null, Set.of(), Map.of(), null, metadata, 0, true);
-//
-//		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-//		discoveryClient.setEnvironment(withClientNamespace());
-//
-//		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
-//				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
-//
-//		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
-//		assertThat(instances).hasSize(1);
-//		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a1", "v1"), entry("a2", "v2"),
-//				entry("k8s_namespace", "ns"));
-//	}
-//
-//	@Test
-//	void testAnnotationsEnabledWithPrefix() {
-//		String serviceId = "s";
-//
-//		Metadata metadata = new Metadata(false, null, true, "a_", false, null);
-//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-//				false, null, Set.of(), Map.of(), null, metadata, 0, true);
-//
-//		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-//		discoveryClient.setEnvironment(withClientNamespace());
-//
-//		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
-//				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
-//
-//		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
-//		assertThat(instances).hasSize(1);
-//		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "v1"), entry("a_a2", "v2"),
-//				entry("k8s_namespace", "ns"));
-//	}
-//
-//	@Test
-//	void testPortsEnabled() {
-//		String serviceId = "s";
-//
-//		Metadata metadata = new Metadata(false, null, false, null, true, null);
-//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-//				false, null, Set.of(), Map.of(), null, metadata, 0, true);
-//
-//		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-//		discoveryClient.setEnvironment(withClientNamespace());
-//
-//		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "test", Map.of("l1", "v1"),
-//				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
-//
-//		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
-//		assertThat(instances).hasSize(1);
-//		assertThat(instances.get(0).getMetadata()).containsOnly(entry("http", "80"), entry("k8s_namespace", "test"));
-//	}
-//
-//	@Test
-//	void testPortsEnabledWithPrefix() {
-//		String serviceId = "s";
-//
-//		Metadata metadata = new Metadata(false, null, false, null, true, "p_");
-//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-//				false, null, Set.of(), Map.of(), null, metadata, 0, true);
-//
-//		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-//		discoveryClient.setEnvironment(withClientNamespace());
-//
-//		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
-//				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
-//
-//		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
-//		assertThat(instances).hasSize(1);
-//		assertThat(instances.get(0).getMetadata()).containsOnly(entry("p_http", "80"), entry("k8s_namespace", "ns"));
-//	}
-//
-//	@Test
-//	void testLabelsAndAnnotationsAndPortsEnabledWithPrefix() {
-//		String serviceId = "s";
-//
-//		Metadata metadata = new Metadata(true, "l_", true, "a_", true, "p_");
-//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-//				false, null, Set.of(), Map.of(), null, metadata, 0, true);
-//
-//		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(CLIENT, properties, a -> null);
-//		discoveryClient.setEnvironment(withClientNamespace());
-//
-//		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "la1"),
-//				Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));
-//
-//		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
-//		assertThat(instances).hasSize(1);
-//		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "an1"), entry("a_a2", "an2"),
-//				entry("l_l1", "la1"), entry("p_http", "80"), entry("k8s_namespace", "ns"));
-//	}
-//
-//	private void setupServiceWithLabelsAndAnnotationsAndPorts(String serviceId, String namespace,
-//			Map<String, String> labels, Map<String, String> annotations, Map<Integer, String> ports) {
-//		Service service = new ServiceBuilder().withNewMetadata().withNamespace(namespace).withLabels(labels)
-//				.withAnnotations(annotations).endMetadata().withNewSpec().withPorts(getServicePorts(ports)).endSpec()
-//				.build();
-//		when(serviceOperation.withName(serviceId)).thenReturn(serviceResource);
-//		when(serviceResource.get()).thenReturn(service);
-//		when(CLIENT.services()).thenReturn(serviceOperation);
-//		when(CLIENT.services().inNamespace(anyString())).thenReturn(serviceOperation);
-//
-//		ObjectMeta objectMeta = new ObjectMeta();
-//		objectMeta.setNamespace(namespace);
-//
-//		Endpoints endpoints = new EndpointsBuilder().withMetadata(objectMeta).addNewSubset()
-//				.addAllToPorts(getEndpointPorts(ports)).addNewAddress().endAddress().endSubset().build();
-//
-//		when(CLIENT.endpoints()).thenReturn(endpointsOperation);
-//		when(endpointsOperation.inNamespace(Mockito.anyString())).thenReturn(endpointsOperation);
-//		when(endpointsOperation.withNewFilter()).thenReturn(filterNested);
-//
-//		EndpointsList endpointsList = new EndpointsList(null, Collections.singletonList(endpoints), null, null);
-//		when(filter.list()).thenReturn(endpointsList);
-//		when(filterNested.withLabels(anyMap())).thenReturn(filterNested);
-//
-//		when(filterNested.withField(eq("metadata.name"), eq(serviceId))).thenReturn(filterNested);
-//		when(filterNested.endFilter()).thenReturn(filter);
-//
-//	}
-//
-//	private List<ServicePort> getServicePorts(Map<Integer, String> ports) {
-//		return ports.entrySet().stream().map(e -> {
-//			ServicePortBuilder servicePortBuilder = new ServicePortBuilder();
-//			servicePortBuilder.withPort(e.getKey());
-//			if (!Strings.isNullOrEmpty(e.getValue())) {
-//				servicePortBuilder.withName(e.getValue());
-//			}
-//			return servicePortBuilder.build();
-//		}).collect(toList());
-//	}
-//
-//	private List<EndpointPort> getEndpointPorts(Map<Integer, String> ports) {
-//		return ports.entrySet().stream().map(e -> {
-//			EndpointPortBuilder endpointPortBuilder = new EndpointPortBuilder();
-//			endpointPortBuilder.withPort(e.getKey());
-//			if (!Strings.isNullOrEmpty(e.getValue())) {
-//				endpointPortBuilder.withName(e.getValue());
-//			}
-//			return endpointPortBuilder.build();
-//		}).collect(toList());
-//	}
-//
-//	private static Environment withClientNamespace() {
-//		MockEnvironment mockEnvironment = new MockEnvironment();
-//		mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", "test");
-//		return mockEnvironment;
-//	}
+	private static final ServicePortSecureResolver SERVICE_PORT_SECURE_RESOLVER =
+		new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
+
+	private static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = new KubernetesNamespaceProvider(mockEnvironment());
+
+	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
+
+	private final MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation = Mockito
+			.mock(MixedOperation.class);
+
+	private final MixedOperation<Endpoints, EndpointsList, Resource<Endpoints>> endpointsOperation = Mockito
+			.mock(MixedOperation.class);
+
+	private final ServiceResource<Service> serviceResource = Mockito.mock(ServiceResource.class);
+
+	private final FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>> filter = Mockito
+			.mock(FilterWatchListDeletable.class);
+
+	private final FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> filterNested = Mockito
+			.mock(FilterNested.class);
+
+	@Test
+	void testAllExtraMetadataDisabled() {
+		String serviceId = "s";
+
+		Metadata metadata = new Metadata(false, null, false, null, false, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+
+		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
+			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "lab"), Map.of("l1", "lab"),
+				Map.of(80, "http", 5555, ""));
+
+		List<ServiceInstance> instances = client.getInstances(serviceId);
+		assertThat(instances).hasSize(1);
+		assertThat(instances.get(0).getMetadata()).isEqualTo(Map.of("k8s_namespace", "ns"));
+	}
+
+	@Test
+	void testLabelsEnabled() {
+		String serviceId = "s";
+
+		Metadata metadata = new Metadata(true, null, false, null, false, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+
+		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
+			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
+				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
+
+		List<ServiceInstance> instances = client.getInstances(serviceId);
+		assertThat(instances).hasSize(1);
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l1", "v1"), entry("l2", "v2"),
+				entry("k8s_namespace", "ns"));
+	}
+
+	@Test
+	void testLabelsEnabledWithPrefix() {
+		String serviceId = "s";
+
+		Metadata metadata = new Metadata(true, "l_", false, null, false, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+
+		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
+			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
+				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
+
+		List<ServiceInstance> instances = client.getInstances(serviceId);
+		assertThat(instances).hasSize(1);
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l_l1", "v1"), entry("l_l2", "v2"),
+				entry("k8s_namespace", "ns"));
+	}
+
+	@Test
+	void testAnnotationsEnabled() {
+		String serviceId = "s";
+
+		Metadata metadata = new Metadata(false, null, true, null, false, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+
+		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
+			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
+				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+
+		List<ServiceInstance> instances = client.getInstances(serviceId);
+		assertThat(instances).hasSize(1);
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a1", "v1"), entry("a2", "v2"),
+				entry("k8s_namespace", "ns"));
+	}
+
+	@Test
+	void testAnnotationsEnabledWithPrefix() {
+		String serviceId = "s";
+
+		Metadata metadata = new Metadata(false, null, true, "a_", false, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+
+		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
+			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
+				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+
+		List<ServiceInstance> instances = client.getInstances(serviceId);
+		assertThat(instances).hasSize(1);
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "v1"), entry("a_a2", "v2"),
+				entry("k8s_namespace", "ns"));
+	}
+
+	@Test
+	void testPortsEnabled() {
+		String serviceId = "s";
+
+		Metadata metadata = new Metadata(false, null, false, null, true, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+
+		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
+			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "test", Map.of("l1", "v1"),
+				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+
+		List<ServiceInstance> instances = client.getInstances(serviceId);
+		assertThat(instances).hasSize(1);
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("http", "80"), entry("k8s_namespace", "test"));
+	}
+
+	@Test
+	void testPortsEnabledWithPrefix() {
+		String serviceId = "s";
+
+		Metadata metadata = new Metadata(false, null, false, null, true, "p_");
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+
+		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
+			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
+				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+
+		List<ServiceInstance> instances = client.getInstances(serviceId);
+		assertThat(instances).hasSize(1);
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("p_http", "80"), entry("k8s_namespace", "ns"));
+	}
+
+	@Test
+	void testLabelsAndAnnotationsAndPortsEnabledWithPrefix() {
+		String serviceId = "s";
+
+		Metadata metadata = new Metadata(true, "l_", true, "a_", true, "p_");
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+
+		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
+			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+
+		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "la1"),
+				Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));
+
+		List<ServiceInstance> instances = client.getInstances(serviceId);
+		assertThat(instances).hasSize(1);
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "an1"), entry("a_a2", "an2"),
+				entry("l_l1", "la1"), entry("p_http", "80"), entry("k8s_namespace", "ns"));
+	}
+
+	private void setupServiceWithLabelsAndAnnotationsAndPorts(String serviceId, String namespace,
+			Map<String, String> labels, Map<String, String> annotations, Map<Integer, String> ports) {
+		Service service = new ServiceBuilder().withNewMetadata().withNamespace(namespace).withLabels(labels)
+				.withAnnotations(annotations).endMetadata().withNewSpec().withPorts(getServicePorts(ports)).endSpec()
+				.build();
+		when(serviceOperation.withName(serviceId)).thenReturn(serviceResource);
+		when(serviceResource.get()).thenReturn(service);
+		when(CLIENT.services()).thenReturn(serviceOperation);
+		when(CLIENT.services().inNamespace(anyString())).thenReturn(serviceOperation);
+
+		ObjectMeta objectMeta = new ObjectMeta();
+		objectMeta.setNamespace(namespace);
+
+		Endpoints endpoints = new EndpointsBuilder().withMetadata(objectMeta).addNewSubset()
+				.addAllToPorts(getEndpointPorts(ports)).addNewAddress().endAddress().endSubset().build();
+
+		when(CLIENT.endpoints()).thenReturn(endpointsOperation);
+		when(endpointsOperation.inNamespace(Mockito.anyString())).thenReturn(endpointsOperation);
+		when(endpointsOperation.withNewFilter()).thenReturn(filterNested);
+
+		EndpointsList endpointsList = new EndpointsList(null, Collections.singletonList(endpoints), null, null);
+		when(filter.list()).thenReturn(endpointsList);
+		when(filterNested.withLabels(anyMap())).thenReturn(filterNested);
+
+		when(filterNested.withField(eq("metadata.name"), eq(serviceId))).thenReturn(filterNested);
+		when(filterNested.endFilter()).thenReturn(filter);
+
+	}
+
+	private List<ServicePort> getServicePorts(Map<Integer, String> ports) {
+		return ports.entrySet().stream().map(e -> {
+			ServicePortBuilder servicePortBuilder = new ServicePortBuilder();
+			servicePortBuilder.withPort(e.getKey());
+			if (!Strings.isNullOrEmpty(e.getValue())) {
+				servicePortBuilder.withName(e.getValue());
+			}
+			return servicePortBuilder.build();
+		}).collect(toList());
+	}
+
+	private List<EndpointPort> getEndpointPorts(Map<Integer, String> ports) {
+		return ports.entrySet().stream().map(e -> {
+			EndpointPortBuilder endpointPortBuilder = new EndpointPortBuilder();
+			endpointPortBuilder.withPort(e.getKey());
+			if (!Strings.isNullOrEmpty(e.getValue())) {
+				endpointPortBuilder.withName(e.getValue());
+			}
+			return endpointPortBuilder.build();
+		}).collect(toList());
+	}
+
+	private static Environment mockEnvironment() {
+		MockEnvironment environment = new MockEnvironment();
+		environment.setProperty("spring.cloud.kubernetes.client.namespace", "test");
+		return environment;
+	}
 
 }
