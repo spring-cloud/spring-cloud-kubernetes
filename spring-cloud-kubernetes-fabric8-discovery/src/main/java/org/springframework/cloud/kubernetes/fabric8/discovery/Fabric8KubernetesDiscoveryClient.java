@@ -48,7 +48,7 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8Kube
  * @author Ioannis Canellos
  * @author Tim Ysewyn
  */
-final class Fabric8KubernetesDiscoveryClient implements DiscoveryClient {
+public final class Fabric8KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8KubernetesDiscoveryClient.class));
 
