@@ -47,7 +47,7 @@ class Fabric8KubernetesCatalogWatchAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	Fabric8KubernetesCatalogWatch kubernetesCatalogWatch(KubernetesClient client,
-        	KubernetesDiscoveryProperties properties, Environment environment) {
+			KubernetesDiscoveryProperties properties, Environment environment) {
 		return new Fabric8KubernetesCatalogWatch(client, properties, new KubernetesNamespaceProvider(environment));
 	}
 

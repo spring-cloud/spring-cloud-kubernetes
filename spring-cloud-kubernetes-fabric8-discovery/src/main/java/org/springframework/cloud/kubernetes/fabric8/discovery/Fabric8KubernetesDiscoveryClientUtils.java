@@ -63,7 +63,8 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  */
 final class Fabric8KubernetesDiscoveryClientUtils {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8KubernetesDiscoveryClientUtils.class));
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(Fabric8KubernetesDiscoveryClientUtils.class));
 
 	private Fabric8KubernetesDiscoveryClientUtils() {
 
@@ -184,14 +185,15 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		else if (!properties.namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering services in namespaces : " + properties.namespaces());
 			List<Service> inner = new ArrayList<>(properties.namespaces().size());
-			properties.namespaces().forEach(namespace -> inner.addAll(filteredServices(
-				client.services().inNamespace(namespace).withNewFilter(), properties, predicate)));
+			properties.namespaces().forEach(namespace -> inner.addAll(
+					filteredServices(client.services().inNamespace(namespace).withNewFilter(), properties, predicate)));
 			services = inner;
 		}
 		else {
 			String namespace = Fabric8Utils.getApplicationNamespace(client, null, target, namespaceProvider);
 			LOG.debug(() -> "discovering services in namespace : " + namespace);
-			services = filteredServices(client.services().inNamespace(namespace).withNewFilter(), properties, predicate);
+			services = filteredServices(client.services().inNamespace(namespace).withNewFilter(), properties,
+					predicate);
 		}
 
 		return services;
@@ -204,19 +206,23 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 
 		if (properties.allNamespaces()) {
 			LOG.debug(() -> "discovering endpoint slices in all namespaces");
-			endpointSlices = filteredEndpointSlices(client.discovery().v1().endpointSlices().inAnyNamespace().withNewFilter(), properties);
+			endpointSlices = filteredEndpointSlices(
+					client.discovery().v1().endpointSlices().inAnyNamespace().withNewFilter(), properties);
 		}
 		else if (!properties.namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering endpoint slices in namespaces : " + properties.namespaces());
 			List<EndpointSlice> inner = new ArrayList<>(properties.namespaces().size());
-			properties.namespaces().forEach(namespace -> inner.addAll(filteredEndpointSlices(
-				client.discovery().v1().endpointSlices().inNamespace(namespace).withNewFilter(), properties)));
+			properties.namespaces()
+					.forEach(namespace -> inner.addAll(filteredEndpointSlices(
+							client.discovery().v1().endpointSlices().inNamespace(namespace).withNewFilter(),
+							properties)));
 			endpointSlices = inner;
 		}
 		else {
 			String namespace = Fabric8Utils.getApplicationNamespace(client, null, target, namespaceProvider);
 			LOG.debug(() -> "discovering endpoint slices in namespace : " + namespace);
-			endpointSlices = filteredEndpointSlices(client.discovery().v1().endpointSlices().inNamespace(namespace).withNewFilter(), properties);
+			endpointSlices = filteredEndpointSlices(
+					client.discovery().v1().endpointSlices().inNamespace(namespace).withNewFilter(), properties);
 		}
 
 		return endpointSlices;
@@ -298,22 +304,22 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	}
 
 	private static List<EndpointSlice> filteredEndpointSlices(
-		FilterNested<FilterWatchListDeletable<EndpointSlice, EndpointSliceList, Resource<EndpointSlice>>> filterNested,
-		KubernetesDiscoveryProperties properties) {
+			FilterNested<FilterWatchListDeletable<EndpointSlice, EndpointSliceList, Resource<EndpointSlice>>> filterNested,
+			KubernetesDiscoveryProperties properties) {
 
 		FilterNested<FilterWatchListDeletable<EndpointSlice, EndpointSliceList, Resource<EndpointSlice>>> partial = filterNested
-			.withLabels(properties.serviceLabels());
+				.withLabels(properties.serviceLabels());
 
 		return partial.endFilter().list().getItems();
 
 	}
 
 	private static List<Service> filteredServices(
-		FilterNested<FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>>> filterNested,
-		KubernetesDiscoveryProperties properties, Predicate<Service> predicate) {
+			FilterNested<FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>>> filterNested,
+			KubernetesDiscoveryProperties properties, Predicate<Service> predicate) {
 
 		FilterNested<FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>>> partial = filterNested
-			.withLabels(properties.serviceLabels());
+				.withLabels(properties.serviceLabels());
 
 		return partial.endFilter().list().getItems().stream().filter(predicate).toList();
 

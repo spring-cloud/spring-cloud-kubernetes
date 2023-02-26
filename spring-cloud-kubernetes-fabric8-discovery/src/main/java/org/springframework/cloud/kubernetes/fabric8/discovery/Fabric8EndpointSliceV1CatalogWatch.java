@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.discovery.v1.Endpoint;
 import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSlice;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
+
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpointSlices;
 
 /**
@@ -38,7 +39,7 @@ final class Fabric8EndpointSliceV1CatalogWatch
 	@Override
 	public List<EndpointNameAndNamespace> apply(Fabric8CatalogWatchContext context) {
 		List<EndpointSlice> endpointSlices = endpointSlices(context.properties(), context.kubernetesClient(),
-			context.namespaceProvider(), "catalog-watcher");
+				context.namespaceProvider(), "catalog-watcher");
 
 		Stream<ObjectReference> references = endpointSlices.stream().map(EndpointSlice::getEndpoints)
 				.flatMap(List::stream).map(Endpoint::getTargetRef);

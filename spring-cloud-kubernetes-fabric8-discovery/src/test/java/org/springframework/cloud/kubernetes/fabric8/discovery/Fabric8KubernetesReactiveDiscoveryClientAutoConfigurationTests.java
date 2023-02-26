@@ -46,10 +46,11 @@ class Fabric8KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 	@Test
 	void shouldWorkWithDefaults() {
 		contextRunner.withPropertyValues("spring.main.cloud-platform=KUBERNETES")
-			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class)).run(context -> {
-			assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
-			assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
-		});
+				.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+				.run(context -> {
+					assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
+					assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
+				});
 	}
 
 	@Test

@@ -88,7 +88,7 @@ class Fabric8KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 	protected static class EnvironmentKnobbler {
 
 		@Bean
-        Fabric8KubernetesDiscoveryClient kubernetesDiscoveryClient() {
+		Fabric8KubernetesDiscoveryClient kubernetesDiscoveryClient() {
 			Fabric8KubernetesDiscoveryClient client = mock(Fabric8KubernetesDiscoveryClient.class);
 			ServiceInstance instance = new DefaultServiceInstance("configserver1", "configserver", "fake", 8888, false);
 			given(client.getInstances("configserver")).willReturn(Collections.singletonList(instance));

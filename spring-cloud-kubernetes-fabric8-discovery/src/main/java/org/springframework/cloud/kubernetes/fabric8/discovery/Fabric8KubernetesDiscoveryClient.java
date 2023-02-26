@@ -64,8 +64,7 @@ final class Fabric8KubernetesDiscoveryClient implements DiscoveryClient {
 
 	Fabric8KubernetesDiscoveryClient(KubernetesClient client,
 			KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
-			ServicePortSecureResolver servicePortSecureResolver,
-			KubernetesNamespaceProvider namespaceProvider,
+			ServicePortSecureResolver servicePortSecureResolver, KubernetesNamespaceProvider namespaceProvider,
 			Predicate<Service> predicate) {
 
 		this.client = client;
@@ -128,8 +127,8 @@ final class Fabric8KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
-		return services(properties, client, namespaceProvider, predicate, "fabric8 discovery")
-			.stream().map(service -> service.getMetadata().getName()).toList();
+		return services(properties, client, namespaceProvider, predicate, "fabric8 discovery").stream()
+				.map(service -> service.getMetadata().getName()).toList();
 	}
 
 	@Override

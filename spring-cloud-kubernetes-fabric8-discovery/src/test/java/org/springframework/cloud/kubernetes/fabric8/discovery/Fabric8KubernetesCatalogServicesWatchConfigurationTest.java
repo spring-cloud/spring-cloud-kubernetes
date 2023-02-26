@@ -82,9 +82,10 @@ class Fabric8KubernetesCatalogServicesWatchConfigurationTest {
 		envList.add("spring.cloud.config.enabled=false");
 		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
 				KubernetesClientTestConfiguration.class, Fabric8KubernetesCatalogWatchAutoConfiguration.class,
-				Fabric8KubernetesDiscoveryClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-				Fabric8DiscoveryClientPredicateAutoConfiguration.class)
-						.web(WebApplicationType.NONE).properties(envList.toArray(new String[0])).run();
+				Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
+				KubernetesDiscoveryPropertiesAutoConfiguration.class,
+				Fabric8DiscoveryClientPredicateAutoConfiguration.class).web(WebApplicationType.NONE)
+						.properties(envList.toArray(new String[0])).run();
 	}
 
 	@Configuration(proxyBeanMethods = false)

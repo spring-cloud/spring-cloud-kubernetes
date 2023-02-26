@@ -68,7 +68,8 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 		APIGroupList groupList = new APIGroupListBuilder().build();
 		mockServer.expect().withPath("/apis").andReturn(200, groupList).always();
 
-		Fabric8KubernetesCatalogWatch watch = new Fabric8KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
+		Fabric8KubernetesCatalogWatch watch = new Fabric8KubernetesCatalogWatch(mockClient, properties,
+				NAMESPACE_PROVIDER);
 		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class, watch::postConstruct);
 		Assertions.assertEquals("EndpointSlices are not supported on the cluster", ex.getMessage());
 	}
@@ -94,7 +95,8 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 		APIResourceList apiResourceList = new APIResourceListBuilder().build();
 		mockServer.expect().withPath("/apis/discovery.k8s.io/v1").andReturn(200, apiResourceList).always();
 
-		Fabric8KubernetesCatalogWatch watch = new Fabric8KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
+		Fabric8KubernetesCatalogWatch watch = new Fabric8KubernetesCatalogWatch(mockClient, properties,
+				NAMESPACE_PROVIDER);
 		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class, watch::postConstruct);
 		Assertions.assertEquals("EndpointSlices are not supported on the cluster", ex.getMessage());
 	}
@@ -107,7 +109,8 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 	void testEndpointsSupport() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, "", Set.of(), Map.of(), "", null, 0, false);
-		Fabric8KubernetesCatalogWatch watch = new Fabric8KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
+		Fabric8KubernetesCatalogWatch watch = new Fabric8KubernetesCatalogWatch(mockClient, properties,
+				NAMESPACE_PROVIDER);
 
 		Assertions.assertEquals(Fabric8EndpointsCatalogWatch.class, watch.stateGenerator().getClass());
 	}
@@ -120,7 +123,8 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 	void testEndpointSlicesSupport() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, "", Set.of(), Map.of(), "", null, 0, true);
-		Fabric8KubernetesCatalogWatch watch = new Fabric8KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
+		Fabric8KubernetesCatalogWatch watch = new Fabric8KubernetesCatalogWatch(mockClient, properties,
+				NAMESPACE_PROVIDER);
 
 		GroupVersionForDiscovery forDiscovery = new GroupVersionForDiscoveryBuilder()
 				.withGroupVersion("discovery.k8s.io/v1").build();

@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.function.Predicate;
+
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
@@ -41,8 +43,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-import java.util.function.Predicate;
-
 /**
  * Auto configuration for reactive discovery client.
  *
@@ -66,9 +66,8 @@ class Fabric8KubernetesReactiveDiscoveryClientAutoConfiguration {
 			KubernetesDiscoveryProperties properties, Predicate<Service> predicate, Environment environment) {
 		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(properties);
 		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
-		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			client, properties, servicePortSecureResolver, namespaceProvider, predicate
-		);
+		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(client,
+				properties, servicePortSecureResolver, namespaceProvider, predicate);
 		return new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
 	}
 
@@ -76,7 +75,7 @@ class Fabric8KubernetesReactiveDiscoveryClientAutoConfiguration {
 	@ConditionalOnClass(name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
-		Fabric8KubernetesReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties) {
+			Fabric8KubernetesReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties) {
 		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
 	}
 

@@ -16,15 +16,17 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.Optional;
+import java.util.function.Predicate;
+
 import io.fabric8.kubernetes.api.model.Service;
+
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
-import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnBlockingOrReactiveEnabled;
-import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -32,9 +34,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
-
-import java.util.Optional;
-import java.util.function.Predicate;
 
 /**
  * @author wind57
@@ -51,7 +50,7 @@ class Fabric8DiscoveryClientPredicateAutoConfiguration {
 	Predicate<Service> predicate(KubernetesDiscoveryProperties properties) {
 		SpelExpressionParser parser = new SpelExpressionParser();
 		SimpleEvaluationContext evaluationContext = SimpleEvaluationContext.forReadOnlyDataBinding()
-			.withInstanceMethods().build();
+				.withInstanceMethods().build();
 
 		String spelExpression = properties.filter();
 		Predicate<Service> predicate;

@@ -44,10 +44,11 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings("unchecked")
 class Fabric8KubernetesDiscoveryClientFilterTest {
 
-	private static final ServicePortSecureResolver SERVICE_PORT_SECURE_RESOLVER =
-		new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
+	private static final ServicePortSecureResolver SERVICE_PORT_SECURE_RESOLVER = new ServicePortSecureResolver(
+			KubernetesDiscoveryProperties.DEFAULT);
 
-	private static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = new KubernetesNamespaceProvider(mockEnvironment());
+	private static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = new KubernetesNamespaceProvider(
+			mockEnvironment());
 
 	private final KubernetesClient kubernetesClient = Mockito.mock(KubernetesClient.class);
 
@@ -118,8 +119,8 @@ class Fabric8KubernetesDiscoveryClientFilterTest {
 				false, "metadata.name.startsWith('service')", Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(kubernetesClient, properties,
-			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
 
 		List<String> filteredServices = client.getServices();
 		assertThat(filteredServices).isEqualTo(springBootServiceNames);
@@ -143,8 +144,8 @@ class Fabric8KubernetesDiscoveryClientFilterTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, "", Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(kubernetesClient, properties,
-			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
 
 		List<String> filteredServices = client.getServices();
 

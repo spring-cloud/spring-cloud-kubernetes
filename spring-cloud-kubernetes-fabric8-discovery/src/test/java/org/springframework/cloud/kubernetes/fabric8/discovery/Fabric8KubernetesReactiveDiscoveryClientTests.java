@@ -34,15 +34,15 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.core.env.Environment;
-import org.springframework.mock.env.MockEnvironment;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.core.env.Environment;
+import org.springframework.mock.env.MockEnvironment;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,10 +54,11 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 @EnableKubernetesMockClient(crud = true, https = false)
 class Fabric8KubernetesReactiveDiscoveryClientTests {
 
-	private static final ServicePortSecureResolver SERVICE_PORT_SECURE_RESOLVER =
-		new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
+	private static final ServicePortSecureResolver SERVICE_PORT_SECURE_RESOLVER = new ServicePortSecureResolver(
+			KubernetesDiscoveryProperties.DEFAULT);
 
-	private static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = new KubernetesNamespaceProvider(mockEnvironment());
+	private static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = new KubernetesNamespaceProvider(
+			mockEnvironment());
 
 	private static KubernetesMockServer kubernetesServer;
 
@@ -82,9 +83,8 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 	@Test
 	void verifyDefaults() {
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			x -> true
-		);
+				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
+				NAMESPACE_PROVIDER, x -> true);
 		ReactiveDiscoveryClient client = new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
 		assertThat(client.description()).isEqualTo("Kubernetes Reactive Discovery Client");
 		assertThat(client.getOrder()).isEqualTo(ReactiveDiscoveryClient.DEFAULT_ORDER);
@@ -99,9 +99,8 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 						.addNewItem().withNewMetadata().withName("s3").endMetadata().endItem().build())
 				.once();
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			x -> true
-		);
+				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
+				NAMESPACE_PROVIDER, x -> true);
 		ReactiveDiscoveryClient client = new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
 		Flux<String> services = client.getServices();
 		StepVerifier.create(services).expectNext("s1", "s2", "s3").expectComplete().verify();
@@ -113,9 +112,8 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 				.andReturn(200, new ServiceListBuilder().build()).once();
 
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			x -> true
-		);
+				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
+				NAMESPACE_PROVIDER, x -> true);
 		ReactiveDiscoveryClient client = new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
 		Flux<String> services = client.getServices();
 		StepVerifier.create(services).expectNextCount(0).expectComplete().verify();
@@ -128,9 +126,8 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 				.andReturn(200, new EndpointsBuilder().build()).once();
 
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			x -> true
-		);
+				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
+				NAMESPACE_PROVIDER, x -> true);
 
 		ReactiveDiscoveryClient client = new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
 		Flux<ServiceInstance> instances = client.getInstances("nonexistent-service");
@@ -149,9 +146,8 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 				.andReturn(200, new EndpointsBuilder().build()).once();
 
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			x -> true
-		);
+				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
+				NAMESPACE_PROVIDER, x -> true);
 
 		ReactiveDiscoveryClient client = new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");
@@ -182,11 +178,10 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 				.andReturn(200, services.getItems().get(0)).once();
 
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			x -> true
-		);
+				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
+				NAMESPACE_PROVIDER, x -> true);
 
-		//Metadata metadata = new Metadata(false, null, false, null, true, "port.");
+		// Metadata metadata = new Metadata(false, null, false, null, true, "port.");
 		ReactiveDiscoveryClient client = new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");
 		StepVerifier.create(instances).expectNextCount(1).expectComplete().verify();
@@ -219,9 +214,8 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 				.once();
 
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			x -> true
-		);
+				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
+				NAMESPACE_PROVIDER, x -> true);
 
 		ReactiveDiscoveryClient client = new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");
@@ -256,9 +250,8 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 				.once();
 
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			x -> true
-		);
+				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
+				NAMESPACE_PROVIDER, x -> true);
 
 		ReactiveDiscoveryClient client = new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");
@@ -289,11 +282,9 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 				.once();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-			false, null, Set.of(), Map.of(), "https_tcp", Metadata.DEFAULT, 0, true);
+				false, null, Set.of(), Map.of(), "https_tcp", Metadata.DEFAULT, 0, true);
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
-			kubernetesClient, properties, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			x -> true
-		);
+				kubernetesClient, properties, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
 
 		ReactiveDiscoveryClient client = new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");

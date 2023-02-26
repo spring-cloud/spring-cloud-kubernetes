@@ -60,10 +60,11 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 @SuppressWarnings("unchecked")
 class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 
-	private static final ServicePortSecureResolver SERVICE_PORT_SECURE_RESOLVER =
-		new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);
+	private static final ServicePortSecureResolver SERVICE_PORT_SECURE_RESOLVER = new ServicePortSecureResolver(
+			KubernetesDiscoveryProperties.DEFAULT);
 
-	private static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = new KubernetesNamespaceProvider(mockEnvironment());
+	private static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = new KubernetesNamespaceProvider(
+			mockEnvironment());
 
 	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
 
@@ -90,8 +91,8 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
-			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "lab"), Map.of("l1", "lab"),
 				Map.of(80, "http", 5555, ""));
@@ -110,8 +111,8 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
-			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
 				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
@@ -131,8 +132,8 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
-			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
 				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
@@ -152,8 +153,8 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
-			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -173,8 +174,8 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
-			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -194,8 +195,8 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
-			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "test", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -214,8 +215,8 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
-			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -234,8 +235,8 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true);
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
-			SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-			new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
+				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "la1"),
 				Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));

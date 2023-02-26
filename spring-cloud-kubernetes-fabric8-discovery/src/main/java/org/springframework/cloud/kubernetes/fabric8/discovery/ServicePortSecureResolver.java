@@ -83,7 +83,7 @@ final class ServicePortSecureResolver {
 	record Input(Integer port, String serviceName, Map<String, String> serviceLabels,
 			Map<String, String> serviceAnnotations) {
 
-		public Input(Integer port, String serviceName, Map<String, String> serviceLabels,
+		Input(Integer port, String serviceName, Map<String, String> serviceLabels,
 				Map<String, String> serviceAnnotations) {
 			this.port = port;
 			this.serviceName = serviceName;

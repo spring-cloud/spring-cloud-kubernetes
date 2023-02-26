@@ -57,18 +57,18 @@ class ServicePortSecureResolverTest {
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
 
 		assertThat(secureResolver.resolve(new ServicePortSecureResolver.Input(null, "dummy", Map.of(), Map.of())))
-			.isFalse();
+				.isFalse();
 		assertThat(secureResolver.resolve(new ServicePortSecureResolver.Input(8080, "dummy", Map.of(), Map.of())))
-			.isFalse();
+				.isFalse();
 		assertThat(secureResolver.resolve(new ServicePortSecureResolver.Input(1234, "dummy", Map.of(), Map.of())))
-			.isFalse();
+				.isFalse();
 
 		assertThat(secureResolver.resolve(new ServicePortSecureResolver.Input(443, "dummy", Map.of(), Map.of())))
-			.isTrue();
+				.isTrue();
 		assertThat(secureResolver.resolve(new ServicePortSecureResolver.Input(8443, "dummy", Map.of(), Map.of())))
-			.isTrue();
+				.isTrue();
 		assertThat(secureResolver.resolve(new ServicePortSecureResolver.Input(12345, "dummy", Map.of(), Map.of())))
-			.isTrue();
+				.isTrue();
 	}
 
 	@Test

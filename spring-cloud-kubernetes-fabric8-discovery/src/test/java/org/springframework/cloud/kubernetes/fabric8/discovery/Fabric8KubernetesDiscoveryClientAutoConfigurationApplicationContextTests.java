@@ -151,9 +151,10 @@ class Fabric8KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 	}
 
 	private void setup(String... properties) {
-		applicationContextRunner = new ApplicationContextRunner().withConfiguration(
-				AutoConfigurations.of(Fabric8KubernetesDiscoveryClientAutoConfiguration.class, Fabric8AutoConfiguration.class,
-						KubernetesCommonsAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+		applicationContextRunner = new ApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
+						Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+						KubernetesDiscoveryPropertiesAutoConfiguration.class,
 						Fabric8DiscoveryClientPredicateAutoConfiguration.class))
 				.withPropertyValues(properties);
 	}
