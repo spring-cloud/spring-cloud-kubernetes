@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
  * @author Oleg Vyukov
  * @author Tim Ysewyn
  */
-class KubernetesCatalogServicesWatchConfigurationTest {
+class Fabric8KubernetesCatalogServicesWatchConfigurationTest {
 
 	private ConfigurableApplicationContext context;
 

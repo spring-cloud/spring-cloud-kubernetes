@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
  * @author Ryan Dawson
  * @author Tim Ysewyn
  */
-class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
+class Fabric8KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 
 	private ConfigurableApplicationContext context;
 

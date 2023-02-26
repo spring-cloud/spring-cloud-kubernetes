@@ -28,15 +28,13 @@ import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
-import org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesReactiveDiscoveryClientAutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Tim Ysewyn
  */
-class KubernetesReactiveDiscoveryClientAutoConfigurationTests {
+class Fabric8KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,

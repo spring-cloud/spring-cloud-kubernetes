@@ -48,7 +48,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  * @author wind57
  */
 @ExtendWith(OutputCaptureExtension.class)
-class KubernetesDiscoveryClientUtilsTests {
+class Fabric8KubernetesDiscoveryClientUtilsTests {
 
 	@Test
 	void testSubsetsFromEndpointsEmptySubsets() {

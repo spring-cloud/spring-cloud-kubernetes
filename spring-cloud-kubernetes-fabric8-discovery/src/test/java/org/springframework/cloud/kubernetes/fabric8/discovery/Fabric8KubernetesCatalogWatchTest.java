@@ -54,7 +54,7 @@ import static org.mockito.Mockito.when;
  * @author Oleg Vyukov
  */
 @SuppressWarnings({ "unchecked" })
-class KubernetesCatalogWatchTest {
+class Fabric8KubernetesCatalogWatchTest {
 
 	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
 

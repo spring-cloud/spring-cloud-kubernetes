@@ -43,7 +43,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Zhanwei Wang
  */
-class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
+class Fabric8KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 
 	private AnnotationConfigApplicationContext context;
 

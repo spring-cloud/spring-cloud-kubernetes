@@ -52,7 +52,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  * @author Tim Ysewyn
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-class KubernetesReactiveDiscoveryClientTests {
+class Fabric8KubernetesReactiveDiscoveryClientTests {
 
 	private static final ServicePortSecureResolver SERVICE_PORT_SECURE_RESOLVER =
 		new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);

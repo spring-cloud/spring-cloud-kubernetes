@@ -58,7 +58,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties.Metadata;
 
 @SuppressWarnings("unchecked")
-class KubernetesDiscoveryClientFilterMetadataTest {
+class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 
 	private static final ServicePortSecureResolver SERVICE_PORT_SECURE_RESOLVER =
 		new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);

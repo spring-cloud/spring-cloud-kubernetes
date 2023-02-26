@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author wind57
  */
-class KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
+class Fabric8KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 
 	private ApplicationContextRunner applicationContextRunner;
 

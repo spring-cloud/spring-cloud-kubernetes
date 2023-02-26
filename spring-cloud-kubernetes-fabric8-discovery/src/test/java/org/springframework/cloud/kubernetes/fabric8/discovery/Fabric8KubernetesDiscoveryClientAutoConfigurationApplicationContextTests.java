@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author wind57
  */
-class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
+class Fabric8KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 
 	private ApplicationContextRunner applicationContextRunner;
 

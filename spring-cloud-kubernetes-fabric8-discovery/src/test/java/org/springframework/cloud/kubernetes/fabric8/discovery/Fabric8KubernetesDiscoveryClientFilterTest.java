@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
-class KubernetesDiscoveryClientFilterTest {
+class Fabric8KubernetesDiscoveryClientFilterTest {
 
 	private static final ServicePortSecureResolver SERVICE_PORT_SECURE_RESOLVER =
 		new ServicePortSecureResolver(KubernetesDiscoveryProperties.DEFAULT);

@@ -42,7 +42,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
  */
 @EnableKubernetesMockClient(crud = true, https = false)
 @ExtendWith(OutputCaptureExtension.class)
-class KubernetesDiscoveryClientTests {
+class Fabric8KubernetesDiscoveryClientTests {
 
 	private static KubernetesClient client;
 
