@@ -174,7 +174,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 		namespaceProvider = new KubernetesNamespaceProvider(environment);
 	}
 
-	private Predicate<Service> filter() {
+	Predicate<Service> filter() {
 		String spelExpression = properties.filter();
 		Predicate<Service> predicate;
 		if (spelExpression == null || spelExpression.isEmpty()) {

@@ -35,13 +35,19 @@ import org.mockito.Mockito;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
+import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
+
+import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.services;
 
 /**
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-class Fabric8DiscoveryServicesAdapterTests {
+class Fabric8DiscoveryFilterTests {
+
+	private static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = new KubernetesNamespaceProvider(
+		mockEnvironment());
 
 	private static KubernetesClient client;
 
@@ -74,21 +80,16 @@ class Fabric8DiscoveryServicesAdapterTests {
 	void testAllNamespacesWithoutLabelsWithoutFilter() {
 		boolean allNamespaces = true;
 		Map<String, String> labels = Map.of();
-		String spelFilter = null;
-
-		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
-
-		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
-				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
-				null);
+			true, 60L, false, null, Set.of(), labels, null, null, 0, false, false);
 
 		service("namespaceA", "serviceA", Map.of("color", "red"));
 		service("namespaceB", "serviceB", Map.of("color", "blue"));
 
-		List<Service> result = adapter.apply(client);
+		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
+			new KubernetesDiscoveryClient(null, properties, null, null, null).filter(), null, "dummy-target");
+
 		Assertions.assertEquals(result.size(), 2);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -112,21 +113,15 @@ class Fabric8DiscoveryServicesAdapterTests {
 	void testAllNamespacesWithLabelsWithoutFilter() {
 		boolean allNamespaces = true;
 		Map<String, String> labels = Map.of("color", "red");
-		String spelFilter = null;
-
-		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
-
-		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
-				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
-				null);
+			true, 60L, false, null, Set.of(), labels, null, null, 0, false, false);
 
 		service("namespaceA", "serviceA", Map.of("color", "red"));
 		service("namespaceB", "serviceB", Map.of("color", "blue"));
 
-		List<Service> result = adapter.apply(client);
+		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
+			new KubernetesDiscoveryClient(null, properties, null, null, null).filter(), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -153,19 +148,14 @@ class Fabric8DiscoveryServicesAdapterTests {
 				#root.metadata.namespace matches "^.+A$"
 				""";
 
-		MockEnvironment environment = new MockEnvironment();
-
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
-
-		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
-				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
-				null);
+			true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
 
 		service("namespaceA", "serviceA", Map.of("color", "red"));
 		service("namespaceB", "serviceB", Map.of("color", "blue"));
 
-		List<Service> result = adapter.apply(client);
+		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
+			new KubernetesDiscoveryClient(null, properties, null, null, null).filter(), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -193,20 +183,15 @@ class Fabric8DiscoveryServicesAdapterTests {
 				#root.metadata.namespace matches "^namespace[A|B]$"
 				""";
 
-		MockEnvironment environment = new MockEnvironment();
-
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
-
-		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
-				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
-				null);
+			true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
 
 		service("namespaceA", "serviceA", Map.of("color", "red"));
 		service("namespaceB", "serviceB", Map.of("color", "blue"));
 		service("namespaceC", "serviceC", Map.of("color", "purple"));
 
-		List<Service> result = adapter.apply(client);
+		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
+			new KubernetesDiscoveryClient(null, properties, null, null, null).filter(), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 2);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -230,25 +215,19 @@ class Fabric8DiscoveryServicesAdapterTests {
 	void testSpecificNamespaceWithoutLabelsWithoutFilter() {
 		boolean allNamespaces = false;
 		Map<String, String> labels = Map.of();
-		String spelFilter = null;
-
-		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
-
-		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
-				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
-				null);
+			true, 60L, false, null, Set.of(), labels, null, null, 0, false, false);
 
 		utils.when(() -> Fabric8Utils.getApplicationNamespace(Mockito.any(KubernetesClient.class),
 				Mockito.nullable(String.class), Mockito.anyString(), Mockito.any(KubernetesNamespaceProvider.class)))
-				.thenReturn("namespaceA");
+			.thenReturn("namespaceA");
 
 		service("namespaceA", "serviceA", Map.of("color", "red"));
 		service("namespaceB", "serviceB", Map.of("color", "blue"));
 
-		List<Service> result = adapter.apply(client);
+		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
+			new KubernetesDiscoveryClient(null, properties, null, null, null).filter(), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -272,26 +251,20 @@ class Fabric8DiscoveryServicesAdapterTests {
 	void testSpecificNamespaceWithLabelsWithoutFilter() {
 		boolean allNamespaces = false;
 		Map<String, String> labels = Map.of("color", "purple");
-		String spelFilter = null;
-
-		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
-
-		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
-				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
-				null);
+			true, 60L, false, null, Set.of(), labels, null, null, 0, false, false);
 
 		utils.when(() -> Fabric8Utils.getApplicationNamespace(Mockito.any(KubernetesClient.class),
 				Mockito.nullable(String.class), Mockito.anyString(), Mockito.any(KubernetesNamespaceProvider.class)))
-				.thenReturn("namespaceA");
+			.thenReturn("namespaceA");
 
 		service("namespaceA", "serviceA", Map.of("color", "red"));
 		service("namespaceA", "serviceB", Map.of("color", "purple"));
 		service("namespaceC", "serviceC", Map.of("color", "purple"));
 
-		List<Service> result = adapter.apply(client);
+		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
+			new KubernetesDiscoveryClient(null, properties, null, null, null).filter(), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceB");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -321,24 +294,19 @@ class Fabric8DiscoveryServicesAdapterTests {
 							#root.metadata.labels.containsKey("number")
 				""".stripLeading();
 
-		MockEnvironment environment = new MockEnvironment();
-
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
-
-		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
-				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
-				null);
+			true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
 
 		utils.when(() -> Fabric8Utils.getApplicationNamespace(Mockito.any(KubernetesClient.class),
 				Mockito.nullable(String.class), Mockito.anyString(), Mockito.any(KubernetesNamespaceProvider.class)))
-				.thenReturn("namespaceA");
+			.thenReturn("namespaceA");
 
 		service("namespaceA", "serviceA", Map.of("color", "red", "number", "1"));
 		service("namespaceA", "serviceB", Map.of("color", "purple", "cycle", "create"));
 		service("namespaceC", "serviceC", Map.of("color", "purple", "number", "1"));
 
-		List<Service> result = adapter.apply(client);
+		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
+			new KubernetesDiscoveryClient(null, properties, null, null, null).filter(), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -364,22 +332,16 @@ class Fabric8DiscoveryServicesAdapterTests {
 		boolean allNamespaces = false;
 		Set<String> someNamespaces = Set.of("namespaceA", "namespaceB");
 		Map<String, String> labels = Map.of();
-		String spelFilter = null;
-
-		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces,
-				someNamespaces, true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
-
-		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
-				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
-				null);
+			someNamespaces, true, 60L, false, null, Set.of(), labels, null, null, 0, false, false);
 
 		service("namespaceA", "serviceA", Map.of());
 		service("namespaceB", "serviceB", Map.of());
 		service("namespaceC", "serviceC", Map.of());
 
-		List<Service> result = adapter.apply(client);
+		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
+			new KubernetesDiscoveryClient(null, properties, null, null, null).filter(), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 2);
 		result = result.stream().sorted(Comparator.comparing(x -> x.getMetadata().getName())).toList();
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
@@ -409,20 +371,15 @@ class Fabric8DiscoveryServicesAdapterTests {
 		Map<String, String> labels = Map.of("color", "purple");
 		String spelFilter = null;
 
-		MockEnvironment environment = new MockEnvironment();
-
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces,
-				someNamespaces, true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
-
-		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
-				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
-				null);
+			someNamespaces, true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
 
 		service("namespaceA", "serviceA", Map.of("color", "purple"));
 		service("namespaceB", "serviceB", Map.of("color", "red"));
 		service("namespaceC", "serviceC", Map.of("color", "purple"));
 
-		List<Service> result = adapter.apply(client);
+		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
+			new KubernetesDiscoveryClient(null, properties, null, null, null).filter(), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -451,20 +408,15 @@ class Fabric8DiscoveryServicesAdapterTests {
 							#root.metadata.labels.containsKey("number")
 				""".stripLeading();
 
-		MockEnvironment environment = new MockEnvironment();
-
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces,
-				someNamespaces, true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
-
-		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
-				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
-				null);
+			someNamespaces, true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false);
 
 		service("namespaceA", "serviceA", Map.of("color", "purple", "number", "1"));
 		service("namespaceB", "serviceB", Map.of("color", "purple", "cycle", "create"));
 		service("namespaceC", "serviceC", Map.of("color", "purple", "number", "1"));
 
-		List<Service> result = adapter.apply(client);
+		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
+			new KubernetesDiscoveryClient(null, properties, null, null, null).filter(), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -472,8 +424,14 @@ class Fabric8DiscoveryServicesAdapterTests {
 
 	private void service(String namespace, String name, Map<String, String> labels) {
 		client.services().inNamespace(namespace)
-				.resource(new ServiceBuilder().withNewMetadata().withName(name).withLabels(labels).and().build())
-				.create();
+			.resource(new ServiceBuilder().withNewMetadata().withName(name).withLabels(labels).and().build())
+			.create();
+	}
+
+	private static Environment mockEnvironment() {
+		MockEnvironment environment = new MockEnvironment();
+		environment.setProperty("spring.cloud.kubernetes.client.namespace", "test");
+		return environment;
 	}
 
 }
