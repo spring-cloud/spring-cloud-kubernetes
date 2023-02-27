@@ -59,7 +59,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private static final SimpleEvaluationContext EVALUATION_CONTEXT = SimpleEvaluationContext.forReadOnlyDataBinding()
-		.withInstanceMethods().build();
+			.withInstanceMethods().build();
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesDiscoveryClient.class));
 
@@ -113,10 +113,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 			instances.addAll(getNamespaceServiceInstances(es, serviceId));
 		}
 
-		if (properties.includeExternalNameServices()) {
-			LOG.debug(() -> "will search for 'ExternalName' type of services");
-		}
-
 		return instances;
 	}
 
@@ -153,14 +149,14 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 
 	@Override
 	public List<String> getServices() {
-		return services(properties, client, namespaceProvider, filter(), null, "fabric8-discovery")
-			.stream().map(s -> s.getMetadata().getName()).toList();
+		return services(properties, client, namespaceProvider, filter(), null, "fabric8-discovery").stream()
+				.map(s -> s.getMetadata().getName()).toList();
 	}
 
 	@Deprecated(forRemoval = true)
 	public List<String> getServices(Predicate<Service> filter) {
-		return services(properties, client, namespaceProvider, filter, null, "fabric8-discovery")
-			.stream().map(s -> s.getMetadata().getName()).toList();
+		return services(properties, client, namespaceProvider, filter, null, "fabric8-discovery").stream()
+				.map(s -> s.getMetadata().getName()).toList();
 	}
 
 	@Override
