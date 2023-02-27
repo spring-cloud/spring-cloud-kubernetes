@@ -43,6 +43,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.ExternalNameServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
@@ -162,7 +163,9 @@ final class KubernetesDiscoveryClientUtils {
 					.filter(port -> StringUtils.hasText(port.getName()))
 					.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
 			Map<String, String> portMetadata = keysWithPrefix(ports, properties.metadata().portsPrefix());
-			LOG.debug(() -> "Adding port metadata: " + portMetadata + " for serviceId : " + serviceId);
+			if (!portMetadata.isEmpty()) {
+				LOG.debug(() -> "Adding port metadata: " + portMetadata + " for serviceId : " + serviceId);
+			}
 			serviceMetadata.putAll(portMetadata);
 		}
 
@@ -228,6 +231,14 @@ final class KubernetesDiscoveryClientUtils {
 		}
 
 		return addresses;
+	}
+
+	static ServiceInstance externalNameServiceInstance(Service service, String serviceId,
+			Map<String, String> serviceMetadata) {
+		DefaultKubernetesServiceInstance defaultKubernetesServiceInstance = new DefaultKubernetesServiceInstance(
+				service.getMetadata().getUid(), serviceId, service.getSpec().getExternalName(), -1, serviceMetadata,
+				false, service.getMetadata().getNamespace(), null);
+		return new ExternalNameServiceInstance(defaultKubernetesServiceInstance);
 	}
 
 	static ServiceInstance serviceInstance(ServicePortSecureResolver servicePortSecureResolver, Service service,
