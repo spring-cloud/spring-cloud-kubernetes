@@ -64,7 +64,7 @@ class KubernetesDiscoveryClientFilterTest {
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, "metadata.additionalProperties['spring-boot']", Set.of(), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false);
 		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
 				this.kubernetesClientServicesFunction);
 
@@ -92,7 +92,7 @@ class KubernetesDiscoveryClientFilterTest {
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, "metadata.name.startsWith('service')", Set.of(), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false);
 		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
 				this.kubernetesClientServicesFunction);
 
@@ -112,7 +112,7 @@ class KubernetesDiscoveryClientFilterTest {
 		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				false, "", Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false);
 		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
 				this.kubernetesClientServicesFunction);
 

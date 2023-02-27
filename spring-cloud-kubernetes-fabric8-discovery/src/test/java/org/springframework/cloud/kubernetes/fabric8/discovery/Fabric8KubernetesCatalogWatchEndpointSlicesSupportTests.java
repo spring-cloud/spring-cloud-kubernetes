@@ -63,7 +63,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 	@Test
 	void testEndpointSlicesEnabledButNotSupportedViaApiGroups() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, true);
+				false, "", Set.of(), Map.of(), "", null, 0, true, false);
 
 		APIGroupList groupList = new APIGroupListBuilder().build();
 		mockServer.expect().withPath("/apis").andReturn(200, groupList).always();
@@ -83,7 +83,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 	@Test
 	void testEndpointSlicesEnabledButNotSupportedViaApiVersions() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, true);
+				false, "", Set.of(), Map.of(), "", null, 0, true, false);
 
 		GroupVersionForDiscovery forDiscovery = new GroupVersionForDiscoveryBuilder()
 				.withGroupVersion("discovery.k8s.io/v1").build();
@@ -106,7 +106,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 	@Test
 	void testEndpointsSupport() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, false);
+				false, "", Set.of(), Map.of(), "", null, 0, false, false);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
 
 		Assertions.assertEquals(Fabric8EndpointsCatalogWatch.class, watch.stateGenerator().getClass());
@@ -119,7 +119,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 	@Test
 	void testEndpointSlicesSupport() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, true);
+				false, "", Set.of(), Map.of(), "", null, 0, true, false);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
 
 		GroupVersionForDiscovery forDiscovery = new GroupVersionForDiscoveryBuilder()

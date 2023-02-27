@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
@@ -36,12 +37,16 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
 
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.addresses;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpoints;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpointsPort;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceInstance;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.services;
 
 /**
  * Kubernetes implementation of {@link DiscoveryClient}.
@@ -51,15 +56,16 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesD
  */
 public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAware {
 
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+
+	private static final SimpleEvaluationContext EVALUATION_CONTEXT = SimpleEvaluationContext.forReadOnlyDataBinding()
+		.withInstanceMethods().build();
+
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesDiscoveryClient.class));
 
 	private final KubernetesDiscoveryProperties properties;
 
-	private final KubernetesClientServicesFunction kubernetesClientServicesFunction;
-
 	private final ServicePortSecureResolver servicePortSecureResolver;
-
-	private final Fabric8DiscoveryServicesAdapter adapter;
 
 	private KubernetesClient client;
 
@@ -80,9 +86,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
 		this.servicePortSecureResolver = servicePortSecureResolver;
-		this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
-		this.adapter = new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction,
-				kubernetesDiscoveryProperties, filter);
 	}
 
 	public KubernetesClient getClient() {
@@ -150,13 +153,14 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 
 	@Override
 	public List<String> getServices() {
-		return adapter.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
+		return services(properties, client, namespaceProvider, filter(), null, "fabric8-discovery")
+			.stream().map(s -> s.getMetadata().getName()).toList();
 	}
 
 	@Deprecated(forRemoval = true)
 	public List<String> getServices(Predicate<Service> filter) {
-		return new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction, properties, filter).apply(client)
-				.stream().map(s -> s.getMetadata().getName()).toList();
+		return services(properties, client, namespaceProvider, filter, null, "fabric8-discovery")
+			.stream().map(s -> s.getMetadata().getName()).toList();
 	}
 
 	@Override
@@ -168,6 +172,22 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 	@Override
 	public final void setEnvironment(Environment environment) {
 		namespaceProvider = new KubernetesNamespaceProvider(environment);
+	}
+
+	private Predicate<Service> filter() {
+		String spelExpression = properties.filter();
+		Predicate<Service> predicate;
+		if (spelExpression == null || spelExpression.isEmpty()) {
+			predicate = service -> true;
+		}
+		else {
+			Expression filterExpr = PARSER.parseExpression(spelExpression);
+			predicate = service -> {
+				Boolean include = filterExpr.getValue(EVALUATION_CONTEXT, service, Boolean.class);
+				return Optional.ofNullable(include).orElse(false);
+			};
+		}
+		return predicate;
 	}
 
 }

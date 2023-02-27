@@ -81,7 +81,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		Metadata metadata = new Metadata(false, null, false, null, false, null);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 		discoveryClient.setEnvironment(withClientNamespace());
@@ -100,7 +100,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		Metadata metadata = new Metadata(true, null, false, null, false, null);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 		discoveryClient.setEnvironment(withClientNamespace());
@@ -120,7 +120,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		Metadata metadata = new Metadata(true, "l_", false, null, false, null);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 		discoveryClient.setEnvironment(withClientNamespace());
@@ -140,7 +140,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		Metadata metadata = new Metadata(false, null, true, null, false, null);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 		discoveryClient.setEnvironment(withClientNamespace());
@@ -160,7 +160,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		Metadata metadata = new Metadata(false, null, true, "a_", false, null);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 		discoveryClient.setEnvironment(withClientNamespace());
@@ -180,7 +180,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		Metadata metadata = new Metadata(false, null, false, null, true, null);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 		discoveryClient.setEnvironment(withClientNamespace());
@@ -199,7 +199,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		Metadata metadata = new Metadata(false, null, false, null, true, "p_");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 		discoveryClient.setEnvironment(withClientNamespace());
@@ -218,7 +218,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		Metadata metadata = new Metadata(true, "l_", true, "a_", true, "p_");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(CLIENT, properties, a -> null);
 		discoveryClient.setEnvironment(withClientNamespace());

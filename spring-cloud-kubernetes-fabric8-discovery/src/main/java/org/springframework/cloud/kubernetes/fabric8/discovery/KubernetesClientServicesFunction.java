@@ -40,8 +40,11 @@ import io.fabric8.kubernetes.client.dsl.ServiceResource;
  *
  * See KubernetesDiscoveryClientAutoConfiguration.servicesFunction
  *
+ * @deprecated this is not used internally anymore and will be removed in a future release.
+ *
  * @author Georgios Andrianakis
  */
+@Deprecated(forRemoval = true)
 public interface KubernetesClientServicesFunction
 		extends Function<KubernetesClient, FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>>> {
 

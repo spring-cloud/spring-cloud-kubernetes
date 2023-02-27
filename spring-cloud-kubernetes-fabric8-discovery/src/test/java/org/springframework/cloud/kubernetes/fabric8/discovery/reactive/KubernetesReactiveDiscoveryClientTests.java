@@ -253,7 +253,7 @@ class KubernetesReactiveDiscoveryClientTests {
 				.once();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), "https_tcp", Metadata.DEFAULT, 0, true);
+				false, null, Set.of(), Map.of(), "https_tcp", Metadata.DEFAULT, 0, true, false);
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient, properties,
 				KubernetesClient::services);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");
