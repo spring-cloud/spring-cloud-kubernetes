@@ -246,29 +246,29 @@ final class KubernetesDiscoveryClientUtils {
 	}
 
 	static List<Service> services(KubernetesDiscoveryProperties properties, KubernetesClient client,
-			KubernetesNamespaceProvider namespaceProvider, Predicate<Service> predicate, String serviceName,
-			String target) {
+			KubernetesNamespaceProvider namespaceProvider, Predicate<Service> predicate,
+			Map<String, String> fieldFilters, String target) {
 
 		List<Service> services;
 
 		if (properties.allNamespaces()) {
 			LOG.debug(() -> "discovering services in all namespaces");
 			services = filteredServices(client.services().inAnyNamespace().withNewFilter(), properties, predicate,
-					serviceName);
+					fieldFilters);
 		}
 		else if (!properties.namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering services in namespaces : " + properties.namespaces());
 			List<Service> inner = new ArrayList<>(properties.namespaces().size());
 			properties.namespaces().forEach(
 					namespace -> inner.addAll(filteredServices(client.services().inNamespace(namespace).withNewFilter(),
-							properties, predicate, serviceName)));
+							properties, predicate, fieldFilters)));
 			services = inner;
 		}
 		else {
 			String namespace = Fabric8Utils.getApplicationNamespace(client, null, target, namespaceProvider);
 			LOG.debug(() -> "discovering services in namespace : " + namespace);
 			services = filteredServices(client.services().inNamespace(namespace).withNewFilter(), properties, predicate,
-					serviceName);
+					fieldFilters);
 		}
 
 		return services;
@@ -279,13 +279,14 @@ final class KubernetesDiscoveryClientUtils {
 	 */
 	private static List<Service> filteredServices(
 			FilterNested<FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>>> filterNested,
-			KubernetesDiscoveryProperties properties, Predicate<Service> predicate, @Nullable String serviceName) {
+			KubernetesDiscoveryProperties properties, Predicate<Service> predicate,
+			@Nullable Map<String, String> fieldFilters) {
 
 		FilterNested<FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>>> partial = filterNested
 				.withLabels(properties.serviceLabels());
 
-		if (serviceName != null) {
-			partial = partial.withField("metadata.name", serviceName);
+		if (fieldFilters != null) {
+			partial = partial.withFields(fieldFilters);
 		}
 
 		return partial.endFilter().list().getItems().stream().filter(predicate).toList();

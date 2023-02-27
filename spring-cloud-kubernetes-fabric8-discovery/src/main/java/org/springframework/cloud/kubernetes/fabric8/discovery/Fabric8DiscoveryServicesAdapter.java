@@ -42,7 +42,7 @@ final class Fabric8DiscoveryServicesAdapter implements Function<KubernetesClient
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private static final SimpleEvaluationContext EVALUATION_CONTEXT = SimpleEvaluationContext.forReadOnlyDataBinding()
-		.withInstanceMethods().build();
+			.withInstanceMethods().build();
 
 	private final KubernetesClientServicesFunction function;
 
@@ -67,7 +67,7 @@ final class Fabric8DiscoveryServicesAdapter implements Function<KubernetesClient
 		if (!properties.namespaces().isEmpty()) {
 			List<Service> services = new ArrayList<>();
 			properties.namespaces().forEach(namespace -> services.addAll(client.services().inNamespace(namespace)
-				.withLabels(properties.serviceLabels()).list().getItems().stream().filter(filter).toList()));
+					.withLabels(properties.serviceLabels()).list().getItems().stream().filter(filter).toList()));
 			return services;
 		}
 		return function.apply(client).list().getItems().stream().filter(filter).toList();

@@ -82,7 +82,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 		this.servicePortSecureResolver = servicePortSecureResolver;
 		this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
 		this.adapter = new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction,
-			kubernetesDiscoveryProperties, filter);
+				kubernetesDiscoveryProperties, filter);
 	}
 
 	public KubernetesClient getClient() {
@@ -112,6 +112,10 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 
 		if (properties.includeExternalNameServices()) {
 			LOG.debug(() -> "will search for 'ExternalName' type of services");
+		}
+
+		if (properties.includeExternalNameServices()) {
+			LOG.debug(() -> "Searching for 'ExternalName' type of services");
 		}
 
 		return instances;
@@ -156,7 +160,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 	@Deprecated(forRemoval = true)
 	public List<String> getServices(Predicate<Service> filter) {
 		return new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction, properties, filter).apply(client)
-			.stream().map(s -> s.getMetadata().getName()).toList();
+				.stream().map(s -> s.getMetadata().getName()).toList();
 	}
 
 	@Override

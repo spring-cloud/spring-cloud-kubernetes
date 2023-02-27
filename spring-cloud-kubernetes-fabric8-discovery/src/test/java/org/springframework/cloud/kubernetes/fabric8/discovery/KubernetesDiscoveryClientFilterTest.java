@@ -26,33 +26,24 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.FilterNested;
-import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.core.env.Environment;
-import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings("unchecked")
 class KubernetesDiscoveryClientFilterTest {
 
 	private final KubernetesClient kubernetesClient = Mockito.mock(KubernetesClient.class);
 
+	private final KubernetesClientServicesFunction kubernetesClientServicesFunction = KubernetesClient::services;
+
 	private final MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation = Mockito
 			.mock(MixedOperation.class);
-
-	private final FilterNested<FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>>> filterNested = Mockito
-			.mock(FilterNested.class);
-
-	private final FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>> filter = Mockito
-			.mock(FilterWatchListDeletable.class);
 
 	@Test
 	void testFilteredServices() {
@@ -68,20 +59,14 @@ class KubernetesDiscoveryClientFilterTest {
 
 		ServiceList serviceList = new ServiceList();
 		serviceList.setItems(services);
-		when(kubernetesClient.services()).thenReturn(serviceOperation);
-		when(serviceOperation.inNamespace(Mockito.anyString())).thenReturn(serviceOperation);
-		when(serviceOperation.withNewFilter()).thenReturn(filterNested);
-		when(filterNested.withLabels(Mockito.anyMap())).thenReturn(filterNested);
-		when(filterNested.endFilter()).thenReturn(filter);
-		when(filter.list()).thenReturn(serviceList);
+		when(this.serviceOperation.list()).thenReturn(serviceList);
+		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, "metadata.additionalProperties['spring-boot']", Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false);
-
-		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(kubernetesClient, properties, null, null,
-				null);
-		client.setEnvironment(mockEnvironment());
+		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
+				this.kubernetesClientServicesFunction);
 
 		List<String> filteredServices = client.getServices();
 		assertThat(filteredServices).isEqualTo(springBootServiceNames);
@@ -102,19 +87,14 @@ class KubernetesDiscoveryClientFilterTest {
 
 		ServiceList serviceList = new ServiceList();
 		serviceList.setItems(services);
-		when(kubernetesClient.services()).thenReturn(serviceOperation);
-		when(serviceOperation.inNamespace(Mockito.anyString())).thenReturn(serviceOperation);
-		when(serviceOperation.withNewFilter()).thenReturn(filterNested);
-		when(filterNested.withLabels(Mockito.anyMap())).thenReturn(filterNested);
-		when(filterNested.endFilter()).thenReturn(filter);
-		when(filter.list()).thenReturn(serviceList);
+		when(this.serviceOperation.list()).thenReturn(serviceList);
+		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, "metadata.name.startsWith('service')", Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false);
-		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(kubernetesClient, properties, null, null,
-				null);
-		client.setEnvironment(mockEnvironment());
+		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
+				this.kubernetesClientServicesFunction);
 
 		List<String> filteredServices = client.getServices();
 		assertThat(filteredServices).isEqualTo(springBootServiceNames);
@@ -128,18 +108,13 @@ class KubernetesDiscoveryClientFilterTest {
 
 		ServiceList serviceList = new ServiceList();
 		serviceList.setItems(services);
-		when(kubernetesClient.services()).thenReturn(serviceOperation);
-		when(serviceOperation.inNamespace(Mockito.anyString())).thenReturn(serviceOperation);
-		when(serviceOperation.withNewFilter()).thenReturn(filterNested);
-		when(filterNested.withLabels(Mockito.anyMap())).thenReturn(filterNested);
-		when(filterNested.endFilter()).thenReturn(filter);
-		when(filter.list()).thenReturn(serviceList);
+		when(this.serviceOperation.list()).thenReturn(serviceList);
+		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, "", Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false);
-		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(kubernetesClient, properties, null, null,
-				null);
-		client.setEnvironment(mockEnvironment());
+		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
+				this.kubernetesClientServicesFunction);
 
 		List<String> filteredServices = client.getServices();
 
@@ -158,12 +133,6 @@ class KubernetesDiscoveryClientFilterTest {
 			serviceCollection.add(service);
 		}
 		return serviceCollection;
-	}
-
-	private static Environment mockEnvironment() {
-		MockEnvironment environment = new MockEnvironment();
-		environment.setProperty("spring.cloud.kubernetes.client.namespace", "test");
-		return environment;
 	}
 
 }

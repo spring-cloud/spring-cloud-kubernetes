@@ -22,6 +22,7 @@ import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.AfterEach;
@@ -85,7 +86,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 		service("serviceA", "A", Map.of());
 		service("serviceB", "B", Map.of());
 
-		List<Service> result = services(properties, client, null, x -> true, "serviceA", "fabric8-discovery");
+		List<Service> result = services(properties, client, null, x -> true, Map.of("metadata.name", "serviceA"),
+				"fabric8-discovery");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 	}
@@ -156,7 +158,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 		service("serviceB", "B", Map.of());
 		service("serviceC", "C", Map.of());
 
-		List<Service> result = services(properties, client, null, x -> true, "serviceA", "fabric8-discovery");
+		List<Service> result = services(properties, client, null, x -> true, Map.of("metadata.name", "serviceA"),
+				"fabric8-discovery");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 	}
@@ -230,8 +233,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 		service("serviceA", "A", Map.of());
 		service("serviceB", "A", Map.of());
 
-		List<Service> result = services(properties, client, namespaceProvider("A"), x -> true, "serviceA",
-				"fabric8-discovery");
+		List<Service> result = services(properties, client, namespaceProvider("A"), x -> true,
+				Map.of("metadata.name", "serviceA"), "fabric8-discovery");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 	}
@@ -258,6 +261,23 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 				x -> x.getMetadata().getLabels().equals(Map.of("letter", "b")), null, "fabric8-discovery");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceB");
+	}
+
+	@Test
+	void testExternalName() {
+		Service service = new ServiceBuilder()
+				.withSpec(new ServiceSpecBuilder().withType("ExternalName").withExternalName("k8s-spring").build())
+				.withNewMetadata().withName("external-name-service").and().build();
+		client.services().inNamespace("test").resource(service).create();
+
+		boolean allNamespaces = false;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
+				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false);
+
+		List<Service> result = services(properties, client, namespaceProvider("test"),
+				x -> x.getSpec().getType().equals("ExternalName"), Map.of(), "fabric8-discovery");
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result.get(0).getMetadata().getName(), "external-name-service");
 	}
 
 	private void service(String name, String namespace, Map<String, String> labels) {
