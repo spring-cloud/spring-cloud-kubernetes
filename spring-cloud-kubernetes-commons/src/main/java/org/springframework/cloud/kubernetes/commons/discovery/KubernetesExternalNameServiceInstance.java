@@ -23,7 +23,7 @@ import org.springframework.cloud.client.ServiceInstance;
 
 /**
  * Type of {@link org.springframework.cloud.client.ServiceInstance} when
- * "spec.type=ServiceInstance".
+ * "spec.type=ExternalName".
  *
  * @author wind57
  */
