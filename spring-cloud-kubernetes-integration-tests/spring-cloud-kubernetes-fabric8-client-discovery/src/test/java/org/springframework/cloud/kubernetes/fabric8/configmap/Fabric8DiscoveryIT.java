@@ -114,15 +114,18 @@ class Fabric8DiscoveryIT {
 
 				}).retryWhen(retrySpec()).block();
 
+		KubernetesExternalNameServiceInstance result = serviceInstances.get(0);
+
 		Assertions.assertEquals(serviceInstances.size(), 1);
-		Assertions.assertEquals(serviceInstances.get(0).getServiceId(), "external-name-service");
-		Assertions.assertNotNull(serviceInstances.get(0).getInstanceId());
-		Assertions.assertEquals(serviceInstances.get(0).getHost(), "spring.io");
-		Assertions.assertEquals(serviceInstances.get(0).getPort(), -1);
-		Assertions.assertEquals(serviceInstances.get(0).getMetadata(), Map.of("k8s_namespace", "default"));
-		Assertions.assertFalse(serviceInstances.get(0).isSecure());
-		Assertions.assertEquals(serviceInstances.get(0).getUri().toASCIIString(), "spring.io");
-		Assertions.assertNull(serviceInstances.get(0).getScheme());
+		Assertions.assertEquals(result.getServiceId(), "external-name-service");
+		Assertions.assertNotNull(result.getInstanceId());
+		Assertions.assertEquals(result.getHost(), "spring.io");
+		Assertions.assertEquals(result.getPort(), -1);
+		Assertions.assertEquals(result.getMetadata(), Map.of("k8s_namespace", "default"));
+		Assertions.assertFalse(result.isSecure());
+		Assertions.assertEquals(result.getUri().toASCIIString(), "spring.io");
+		Assertions.assertNull(result.getScheme());
+		Assertions.assertEquals(result.type(), "ExternalName");
 	}
 
 	private static void manifests(Phase phase) {
