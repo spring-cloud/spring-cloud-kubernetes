@@ -37,6 +37,7 @@ class KubernetesExternalNameServiceInstanceTests {
 		Assertions.assertEquals(instance.getMetadata(), Map.of("a", "b"));
 		Assertions.assertNull(instance.getScheme());
 		Assertions.assertEquals(instance.getUri().toASCIIString(), "spring.io");
+		Assertions.assertEquals(instance.type(), "ExternalName");
 	}
 
 }
