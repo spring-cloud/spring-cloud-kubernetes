@@ -27,16 +27,17 @@ import org.springframework.cloud.client.ServiceInstance;
  *
  * @author wind57
  */
-public record ExternalNameServiceInstance(DefaultKubernetesServiceInstance defaultInstance) implements ServiceInstance {
+public record KubernetesExternalNameServiceInstance(String serviceId, String host, String instanceId,
+		Map<String, String> metadata) implements ServiceInstance {
 
 	@Override
 	public String getServiceId() {
-		return defaultInstance().serviceId();
+		return serviceId;
 	}
 
 	@Override
 	public String getHost() {
-		return defaultInstance.getHost();
+		return host;
 	}
 
 	@Override
@@ -51,15 +52,20 @@ public record ExternalNameServiceInstance(DefaultKubernetesServiceInstance defau
 
 	@Override
 	public URI getUri() {
-		return URI.create(defaultInstance().getHost());
+		return URI.create(host);
 	}
 
 	@Override
 	public Map<String, String> getMetadata() {
-		return defaultInstance.metadata();
+		return metadata;
+	}
+
+	public String getInstanceId() {
+		return instanceId;
 	}
 
 	public String type() {
 		return "ExternalName";
 	}
+
 }

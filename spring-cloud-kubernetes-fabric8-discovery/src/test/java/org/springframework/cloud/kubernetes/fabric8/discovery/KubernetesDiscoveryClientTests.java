@@ -39,8 +39,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.commons.discovery.ExternalNameServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesExternalNameServiceInstance;
 
 /**
  * @author wind57
@@ -65,6 +65,7 @@ class KubernetesDiscoveryClientTests {
 	@AfterEach
 	void afterEach() {
 		client.endpoints().inAnyNamespace().delete();
+		client.services().inAnyNamespace().delete();
 	}
 
 	/**
@@ -519,7 +520,8 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		Assertions.assertEquals(result.size(), 1);
-		ExternalNameServiceInstance externalNameServiceInstance = (ExternalNameServiceInstance) result.get(0);
+		KubernetesExternalNameServiceInstance externalNameServiceInstance = (KubernetesExternalNameServiceInstance) result
+				.get(0);
 		Assertions.assertEquals(externalNameServiceInstance.getServiceId(), "blue-service");
 		Assertions.assertEquals(externalNameServiceInstance.getHost(), "k8s-spring-b");
 		Assertions.assertEquals(externalNameServiceInstance.getPort(), -1);

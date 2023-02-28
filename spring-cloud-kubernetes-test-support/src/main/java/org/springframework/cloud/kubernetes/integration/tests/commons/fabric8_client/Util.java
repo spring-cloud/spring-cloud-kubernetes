@@ -74,24 +74,29 @@ public final class Util {
 	 * tight as possible, providing reasonable defaults.
 	 *
 	 */
-	public void createAndWait(String namespace, String name, Deployment deployment, Service service,
+	public void createAndWait(String namespace, String name, @Nullable Deployment deployment, Service service,
 			@Nullable Ingress ingress, boolean changeVersion) {
 		try {
 
-			String imageFromDeployment = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
-			if (changeVersion) {
-				deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
-						.setImage(imageFromDeployment + ":" + pomVersion());
-			}
-			else {
-				String[] image = imageFromDeployment.split(":", 2);
-				pullImage(image[0], image[1], container);
-				loadImage(image[0], image[1], name, container);
+			if (deployment != null) {
+				String imageFromDeployment = deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
+						.getImage();
+				if (changeVersion) {
+					deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
+							.setImage(imageFromDeployment + ":" + pomVersion());
+				}
+				else {
+					String[] image = imageFromDeployment.split(":", 2);
+					pullImage(image[0], image[1], container);
+					loadImage(image[0], image[1], name, container);
+				}
+
+				client.apps().deployments().inNamespace(namespace).resource(deployment).create();
+				waitForDeployment(namespace, deployment);
 			}
 
-			client.apps().deployments().inNamespace(namespace).resource(deployment).create();
 			client.services().inNamespace(namespace).resource(service).create();
-			waitForDeployment(namespace, deployment);
+
 			if (ingress != null) {
 				client.network().v1().ingresses().inNamespace(namespace).resource(ingress).create();
 				waitForIngress(namespace, ingress);
@@ -116,11 +121,16 @@ public final class Util {
 		}
 	}
 
-	public void deleteAndWait(String namespace, Deployment deployment, Service service, @Nullable Ingress ingress) {
+	public void deleteAndWait(String namespace, @Nullable Deployment deployment, Service service,
+			@Nullable Ingress ingress) {
 		try {
-			client.apps().deployments().inNamespace(namespace).resource(deployment).delete();
+
+			if (deployment != null) {
+				client.apps().deployments().inNamespace(namespace).resource(deployment).delete();
+				waitForDeploymentToBeDeleted(namespace, deployment);
+			}
+
 			client.services().inNamespace(namespace).resource(service).delete();
-			waitForDeploymentToBeDeleted(namespace, deployment);
 
 			if (ingress != null) {
 				client.network().v1().ingresses().inNamespace(namespace).resource(ingress).delete();

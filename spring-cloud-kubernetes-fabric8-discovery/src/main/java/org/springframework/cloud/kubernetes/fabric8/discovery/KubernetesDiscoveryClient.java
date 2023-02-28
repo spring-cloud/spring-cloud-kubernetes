@@ -47,7 +47,7 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesD
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.services;
 
 /**
- * Kubernetes implementation of {@link DiscoveryClient}.
+ * Fabric8 Kubernetes implementation of {@link DiscoveryClient}.
  *
  * @author Ioannis Canellos
  * @author Tim Ysewyn

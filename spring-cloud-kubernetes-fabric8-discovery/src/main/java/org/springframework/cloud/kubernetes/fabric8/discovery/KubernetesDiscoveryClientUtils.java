@@ -43,8 +43,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
-import org.springframework.cloud.kubernetes.commons.discovery.ExternalNameServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesExternalNameServiceInstance;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
@@ -235,10 +235,8 @@ final class KubernetesDiscoveryClientUtils {
 
 	static ServiceInstance externalNameServiceInstance(Service service, String serviceId,
 			Map<String, String> serviceMetadata) {
-		DefaultKubernetesServiceInstance defaultKubernetesServiceInstance = new DefaultKubernetesServiceInstance(
-				service.getMetadata().getUid(), serviceId, service.getSpec().getExternalName(), -1, serviceMetadata,
-				false, service.getMetadata().getNamespace(), null);
-		return new ExternalNameServiceInstance(defaultKubernetesServiceInstance);
+		return new KubernetesExternalNameServiceInstance(serviceId, service.getSpec().getExternalName(),
+				service.getMetadata().getUid(), serviceMetadata);
 	}
 
 	static ServiceInstance serviceInstance(ServicePortSecureResolver servicePortSecureResolver, Service service,
