@@ -43,6 +43,8 @@ import static org.springframework.cloud.client.discovery.DiscoveryClient.DEFAULT
  * @param primaryPortName If set then the port with a given name is used as primary when
  * multiple ports are defined for a service.
  * @param useEndpointSlices use EndpointSlice instead of Endpoints
+ * @param includeExternalNameServices should the discovery also search for services that
+ * have "type: ExternalName" in their spec.
  */
 // @formatter:off
 @ConfigurationProperties("spring.cloud.kubernetes.discovery")
@@ -56,14 +58,16 @@ public record KubernetesDiscoveryProperties(
 		@DefaultValue Map<String, String> serviceLabels, String primaryPortName,
 		@DefaultValue Metadata metadata,
 		@DefaultValue("" + DEFAULT_ORDER) int order,
-		boolean useEndpointSlices) {
+		boolean useEndpointSlices,
+		boolean includeExternalNameServices) {
 // @formatter:on
 
 	/**
 	 * Default instance.
 	 */
 	public static final KubernetesDiscoveryProperties DEFAULT = new KubernetesDiscoveryProperties(true, false, Set.of(),
-			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false,
+			false);
 
 	/**
 	 * @param addLabels include labels as metadata

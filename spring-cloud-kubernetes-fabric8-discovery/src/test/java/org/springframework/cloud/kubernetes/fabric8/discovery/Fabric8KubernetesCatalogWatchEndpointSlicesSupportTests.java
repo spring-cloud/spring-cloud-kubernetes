@@ -63,7 +63,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 	@Test
 	void testEndpointSlicesEnabledButNotSupportedViaApiGroups() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, true);
+				false, "", Set.of(), Map.of(), "", null, 0, true, false);
 
 		APIGroupList groupList = new APIGroupListBuilder().build();
 		mockServer.expect().withPath("/apis").andReturn(200, groupList).always();
@@ -84,7 +84,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 	@Test
 	void testEndpointSlicesEnabledButNotSupportedViaApiVersions() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, true);
+				false, "", Set.of(), Map.of(), "", null, 0, true, false);
 
 		GroupVersionForDiscovery forDiscovery = new GroupVersionForDiscoveryBuilder()
 				.withGroupVersion("discovery.k8s.io/v1").build();
@@ -108,7 +108,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 	@Test
 	void testEndpointsSupport() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, false);
+				false, "", Set.of(), Map.of(), "", null, 0, false, false);
 		Fabric8KubernetesCatalogWatch watch = new Fabric8KubernetesCatalogWatch(mockClient, properties,
 				NAMESPACE_PROVIDER);
 
@@ -122,7 +122,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 	@Test
 	void testEndpointSlicesSupport() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, true);
+				false, "", Set.of(), Map.of(), "", null, 0, true, false);
 		Fabric8KubernetesCatalogWatch watch = new Fabric8KubernetesCatalogWatch(mockClient, properties,
 				NAMESPACE_PROVIDER);
 

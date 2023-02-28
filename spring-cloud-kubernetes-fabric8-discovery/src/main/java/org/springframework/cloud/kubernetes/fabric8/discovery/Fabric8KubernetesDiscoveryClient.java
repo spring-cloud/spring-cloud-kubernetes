@@ -35,15 +35,17 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.log.LogAccessor;
 
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.addresses;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpoints;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpointsPort;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.externalNameServiceInstance;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.serviceInstance;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.serviceMetadata;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.services;
 
 /**
- * Kubernetes implementation of {@link DiscoveryClient}.
+ * Fabric8 Kubernetes implementation of {@link DiscoveryClient}.
  *
  * @author Ioannis Canellos
  * @author Tim Ysewyn
@@ -91,6 +93,20 @@ public final class Fabric8KubernetesDiscoveryClient implements DiscoveryClient {
 			instances.addAll(getNamespaceServiceInstances(es, serviceId));
 		}
 
+		if (properties.includeExternalNameServices()) {
+			LOG.debug(() -> "Searching for 'ExternalName' type of services with serviceId : " + serviceId);
+			List<Service> services = services(properties, client, namespaceProvider,
+					s -> s.getSpec().getType().equals(EXTERNAL_NAME), Map.of("metadata.name", serviceId),
+					"fabric8-discovery");
+			for (Service service : services) {
+				Map<String, String> serviceMetadata = serviceMetadata(serviceId, service, properties, List.of(),
+						service.getMetadata().getNamespace());
+				ServiceInstance externalNameServiceInstance = externalNameServiceInstance(service, serviceId,
+						serviceMetadata);
+				instances.add(externalNameServiceInstance);
+			}
+		}
+
 		return instances;
 	}
 
@@ -127,7 +143,7 @@ public final class Fabric8KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
-		return services(properties, client, namespaceProvider, predicate, "fabric8 discovery").stream()
+		return services(properties, client, namespaceProvider, predicate, null, "fabric8 discovery").stream()
 				.map(service -> service.getMetadata().getName()).toList();
 	}
 

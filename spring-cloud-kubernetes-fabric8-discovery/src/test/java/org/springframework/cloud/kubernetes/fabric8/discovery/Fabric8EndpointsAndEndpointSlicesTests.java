@@ -238,7 +238,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 		boolean allNamespaces = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices);
+				true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices, false);
 		Fabric8KubernetesCatalogWatch watch = new Fabric8KubernetesCatalogWatch(mockClient(), properties,
 				NAMESPACE_PROVIDER);
 
@@ -260,7 +260,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces,
-				Set.of(namespace), true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices);
+				Set.of(namespace), true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices, false);
 		Fabric8KubernetesCatalogWatch watch = new Fabric8KubernetesCatalogWatch(mockClient(), properties,
 				NAMESPACE_PROVIDER);
 
@@ -280,7 +280,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 		// all-namespaces = false
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, namespaces, true, 60,
-				false, "", Set.of(), labels, "", null, 0, false);
+				false, "", Set.of(), labels, "", null, 0, false, false);
 		Fabric8KubernetesCatalogWatch watch = new Fabric8KubernetesCatalogWatch(mockClient(), properties,
 				NAMESPACE_PROVIDER);
 
@@ -305,7 +305,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		Endpoints endpoints = new EndpointsBuilder()
 				.withMetadata(new ObjectMetaBuilder().withLabels(labels).withName("endpoints-" + podName).build())
 				.withSubsets(List.of(endpointSubset)).build();
-		mockClient().endpoints().inNamespace(namespace).create(endpoints);
+		mockClient().endpoints().inNamespace(namespace).resource(endpoints).create();
 	}
 
 	static void endpointSlice(String namespace, Map<String, String> labels, String podName) {

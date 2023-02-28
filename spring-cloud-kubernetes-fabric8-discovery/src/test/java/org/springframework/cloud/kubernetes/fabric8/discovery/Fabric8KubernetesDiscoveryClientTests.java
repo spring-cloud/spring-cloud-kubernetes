@@ -24,6 +24,9 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -35,7 +38,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesExternalNameServiceInstance;
 
 /**
  * @author wind57
@@ -60,6 +65,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 	@AfterEach
 	void afterEach() {
 		client.endpoints().inAnyNamespace().delete();
+		client.services().inAnyNamespace().delete();
 	}
 
 	/**
@@ -75,7 +81,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of();
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -101,7 +107,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -127,7 +133,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -153,7 +159,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -180,7 +186,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -207,7 +213,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -232,7 +238,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of();
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -258,7 +264,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -284,7 +290,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -310,7 +316,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -337,7 +343,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -364,7 +370,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -389,7 +395,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of("test");
 		Map<String, String> serviceLabels = Map.of();
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -415,7 +421,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of("test");
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -443,7 +449,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of("a");
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
@@ -474,13 +480,73 @@ class Fabric8KubernetesDiscoveryClientTests {
 		String namespacesAsString = namespaces.toString();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
 		Assertions.assertEquals(result.size(), 2);
 		Assertions.assertTrue(output.getOut().contains("discovering endpoints in namespaces : " + namespacesAsString));
+	}
+
+	/**
+	 * <pre>
+	 *     - two services are present in two namespaces [a, b]
+	 *     - both are returned
+	 * </pre>
+	 */
+	@Test
+	void testGetServicesWithExternalNameService() {
+		Service nonExternalNameService = new ServiceBuilder()
+				.withSpec(new ServiceSpecBuilder().withType("ClusterIP").build()).withNewMetadata()
+				.withName("blue-service").withNamespace("a").endMetadata().build();
+		client.services().inNamespace("a").resource(nonExternalNameService).create();
+
+		Service externalNameService = new ServiceBuilder()
+				.withSpec(new ServiceSpecBuilder().withType("ExternalName").withExternalName("k8s-spring").build())
+				.withNewMetadata().withName("blue-service").withNamespace("b").endMetadata().build();
+		client.services().inNamespace("b").resource(externalNameService).create();
+
+		// last argument is irrelevant, as getServices does not care about that flag
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of("a", "b"), true,
+				60L, false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false,
+				false);
+
+		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
+				null, null, x -> true);
+		List<String> result = discoveryClient.getServices();
+		Assertions.assertEquals(result.size(), 2);
+		// this looks weird at the moment, but there is an issue that will fix this
+		Assertions.assertEquals(result.get(0), "blue-service");
+		Assertions.assertEquals(result.get(1), "blue-service");
+	}
+
+	@Test
+	void testExternalNameService() {
+		Service externalNameService = new ServiceBuilder()
+				.withSpec(new ServiceSpecBuilder().withType("ExternalName").withExternalName("k8s-spring-b").build())
+				.withNewMetadata().withLabels(Map.of("label-key", "label-value")).withAnnotations(Map.of("abc", "def"))
+				.withName("blue-service").withNamespace("b").endMetadata().build();
+		client.services().inNamespace("b").resource(externalNameService).create();
+
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true,
+				"labels-prefix-", true, "annotations-prefix-", true, "ports-prefix");
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of("a", "b"), true,
+				60L, false, "", Set.of(), Map.of(), "", metadata, 0, false, true);
+
+		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
+				null, null, null);
+		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
+		Assertions.assertEquals(result.size(), 1);
+		KubernetesExternalNameServiceInstance externalNameServiceInstance = (KubernetesExternalNameServiceInstance) result
+				.get(0);
+		Assertions.assertEquals(externalNameServiceInstance.getServiceId(), "blue-service");
+		Assertions.assertEquals(externalNameServiceInstance.getHost(), "k8s-spring-b");
+		Assertions.assertEquals(externalNameServiceInstance.getPort(), -1);
+		Assertions.assertFalse(externalNameServiceInstance.isSecure());
+		Assertions.assertEquals(externalNameServiceInstance.getUri().toASCIIString(), "k8s-spring-b");
+		Assertions.assertEquals(externalNameServiceInstance.getMetadata(), Map.of("k8s_namespace", "b",
+				"labels-prefix-label-key", "label-value", "annotations-prefix-abc", "def"));
 	}
 
 	private void createEndpoints(String namespace, String name, Map<String, String> labels) {

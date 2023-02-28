@@ -84,11 +84,10 @@ class Fabric8KubernetesDiscoveryClientFilterTest {
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, "metadata.additionalProperties['spring-boot']", Set.of(), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false);
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(kubernetesClient, properties,
 				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
 				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
-
 		List<String> filteredServices = client.getServices();
 		assertThat(filteredServices).isEqualTo(springBootServiceNames);
 
@@ -117,11 +116,10 @@ class Fabric8KubernetesDiscoveryClientFilterTest {
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, "metadata.name.startsWith('service')", Set.of(), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false);
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(kubernetesClient, properties,
 				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
 				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
-
 		List<String> filteredServices = client.getServices();
 		assertThat(filteredServices).isEqualTo(springBootServiceNames);
 
@@ -142,7 +140,7 @@ class Fabric8KubernetesDiscoveryClientFilterTest {
 		when(filter.list()).thenReturn(serviceList);
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				false, "", Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false);
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(kubernetesClient, properties,
 				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
 				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));

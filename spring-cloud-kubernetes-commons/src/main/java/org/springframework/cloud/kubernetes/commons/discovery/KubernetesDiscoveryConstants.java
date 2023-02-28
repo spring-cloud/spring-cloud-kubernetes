@@ -67,4 +67,9 @@ public final class KubernetesDiscoveryConstants {
 	 */
 	public static final String ENDPOINT_SLICE = "EndpointSlice";
 
+	/**
+	 * ExternalName type of service.
+	 */
+	public static final String EXTERNAL_NAME = "ExternalName";
+
 }

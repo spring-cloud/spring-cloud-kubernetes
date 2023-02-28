@@ -282,7 +282,7 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 				.once();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), "https_tcp", Metadata.DEFAULT, 0, true);
+				false, null, Set.of(), Map.of(), "https_tcp", Metadata.DEFAULT, 0, true, false);
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
 				kubernetesClient, properties, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
 
