@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import static org.springframework.cloud.client.discovery.DiscoveryClient.DEFAULT_ORDER;
@@ -61,6 +62,21 @@ public record KubernetesDiscoveryProperties(
 		boolean useEndpointSlices,
 		boolean includeExternalNameServices) {
 // @formatter:on
+
+	@ConstructorBinding
+	public KubernetesDiscoveryProperties {
+
+	}
+
+	public KubernetesDiscoveryProperties(@DefaultValue("true") boolean enabled, boolean allNamespaces,
+			@DefaultValue Set<String> namespaces, @DefaultValue("true") boolean waitCacheReady,
+			@DefaultValue("60") long cacheLoadingTimeoutSeconds, boolean includeNotReadyAddresses, String filter,
+			@DefaultValue({ "443", "8443" }) Set<Integer> knownSecurePorts,
+			@DefaultValue Map<String, String> serviceLabels, String primaryPortName, @DefaultValue Metadata metadata,
+			@DefaultValue("" + DEFAULT_ORDER) int order, boolean useEndpointSlices) {
+		this(enabled, allNamespaces, namespaces, waitCacheReady, cacheLoadingTimeoutSeconds, includeNotReadyAddresses,
+				filter, knownSecurePorts, serviceLabels, primaryPortName, metadata, order, useEndpointSlices, false);
+	}
 
 	/**
 	 * Default instance.
