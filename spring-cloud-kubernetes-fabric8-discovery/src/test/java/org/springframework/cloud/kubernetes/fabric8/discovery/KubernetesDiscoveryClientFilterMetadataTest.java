@@ -32,6 +32,7 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.FilterNested;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
@@ -91,7 +92,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).isEqualTo(Map.of("k8s_namespace", "ns"));
+		assertThat(instances.get(0).getMetadata()).isEqualTo(Map.of("k8s_namespace", "ns", "type", "ClusterIP"));
 	}
 
 	@Test
@@ -111,7 +112,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l1", "v1"), entry("l2", "v2"),
-				entry("k8s_namespace", "ns"));
+				entry("k8s_namespace", "ns"), entry("type", "ClusterIP"));
 	}
 
 	@Test
@@ -131,7 +132,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("l_l1", "v1"), entry("l_l2", "v2"),
-				entry("k8s_namespace", "ns"));
+				entry("k8s_namespace", "ns"), entry("type", "ClusterIP"));
 	}
 
 	@Test
@@ -151,7 +152,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a1", "v1"), entry("a2", "v2"),
-				entry("k8s_namespace", "ns"));
+				entry("k8s_namespace", "ns"), entry("type", "ClusterIP"));
 	}
 
 	@Test
@@ -171,7 +172,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "v1"), entry("a_a2", "v2"),
-				entry("k8s_namespace", "ns"));
+				entry("k8s_namespace", "ns"), entry("type", "ClusterIP"));
 	}
 
 	@Test
@@ -190,7 +191,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).containsOnly(entry("http", "80"), entry("k8s_namespace", "test"));
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("http", "80"), entry("k8s_namespace", "test"),
+				entry("type", "ClusterIP"));
 	}
 
 	@Test
@@ -209,7 +211,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).containsOnly(entry("p_http", "80"), entry("k8s_namespace", "ns"));
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("p_http", "80"), entry("k8s_namespace", "ns"),
+				entry("type", "ClusterIP"));
 	}
 
 	@Test
@@ -229,14 +232,15 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "an1"), entry("a_a2", "an2"),
-				entry("l_l1", "la1"), entry("p_http", "80"), entry("k8s_namespace", "ns"));
+				entry("l_l1", "la1"), entry("p_http", "80"), entry("k8s_namespace", "ns"), entry("type", "ClusterIP"));
 	}
 
 	private void setupServiceWithLabelsAndAnnotationsAndPorts(String serviceId, String namespace,
 			Map<String, String> labels, Map<String, String> annotations, Map<Integer, String> ports) {
-		Service service = new ServiceBuilder().withNewMetadata().withNamespace(namespace).withLabels(labels)
-				.withAnnotations(annotations).endMetadata().withNewSpec().withPorts(getServicePorts(ports)).endSpec()
-				.build();
+		Service service = new ServiceBuilder()
+				.withSpec(new ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(ports)).build())
+				.withNewMetadata().withNamespace(namespace).withLabels(labels).withAnnotations(annotations)
+				.endMetadata().build();
 		when(serviceOperation.withName(serviceId)).thenReturn(serviceResource);
 		when(serviceResource.get()).thenReturn(service);
 		when(CLIENT.services()).thenReturn(serviceOperation);

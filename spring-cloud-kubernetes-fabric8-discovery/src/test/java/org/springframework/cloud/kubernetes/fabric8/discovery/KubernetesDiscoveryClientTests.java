@@ -39,8 +39,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesExternalNameServiceInstance;
 
 /**
  * @author wind57
@@ -520,15 +520,14 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		Assertions.assertEquals(result.size(), 1);
-		KubernetesExternalNameServiceInstance externalNameServiceInstance = (KubernetesExternalNameServiceInstance) result
-				.get(0);
+		DefaultKubernetesServiceInstance externalNameServiceInstance = (DefaultKubernetesServiceInstance) result.get(0);
 		Assertions.assertEquals(externalNameServiceInstance.getServiceId(), "blue-service");
 		Assertions.assertEquals(externalNameServiceInstance.getHost(), "k8s-spring-b");
 		Assertions.assertEquals(externalNameServiceInstance.getPort(), -1);
 		Assertions.assertFalse(externalNameServiceInstance.isSecure());
 		Assertions.assertEquals(externalNameServiceInstance.getUri().toASCIIString(), "k8s-spring-b");
 		Assertions.assertEquals(externalNameServiceInstance.getMetadata(), Map.of("k8s_namespace", "b",
-				"labels-prefix-label-key", "label-value", "annotations-prefix-abc", "def"));
+				"labels-prefix-label-key", "label-value", "annotations-prefix-abc", "def", "type", "ExternalName"));
 	}
 
 	private void createEndpoints(String namespace, String name, Map<String, String> labels) {

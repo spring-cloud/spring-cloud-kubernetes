@@ -44,7 +44,6 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesExternalNameServiceInstance;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
@@ -56,6 +55,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SERVICE_TYPE;
 
 /**
  * @author wind57
@@ -170,6 +170,7 @@ final class KubernetesDiscoveryClientUtils {
 		}
 
 		serviceMetadata.put(NAMESPACE_METADATA_KEY, namespace);
+		serviceMetadata.put(SERVICE_TYPE, service.getSpec().getType());
 		return serviceMetadata;
 	}
 
@@ -233,25 +234,28 @@ final class KubernetesDiscoveryClientUtils {
 		return addresses;
 	}
 
-	static ServiceInstance externalNameServiceInstance(Service service, String serviceId,
-			Map<String, String> serviceMetadata) {
-		return new KubernetesExternalNameServiceInstance(serviceId, service.getSpec().getExternalName(),
-				service.getMetadata().getUid(), serviceMetadata);
-	}
-
-	static ServiceInstance serviceInstance(ServicePortSecureResolver servicePortSecureResolver, Service service,
-			EndpointAddress endpointAddress, int endpointPort, String serviceId, Map<String, String> serviceMetadata,
-			String namespace) {
+	static ServiceInstance serviceInstance(@Nullable ServicePortSecureResolver servicePortSecureResolver,
+			Service service, @Nullable EndpointAddress endpointAddress, int endpointPort, String serviceId,
+			Map<String, String> serviceMetadata, String namespace) {
 		// instanceId is usually the pod-uid as seen in the .metadata.uid
-		String instanceId = Optional.ofNullable(endpointAddress.getTargetRef()).map(ObjectReference::getUid)
-				.orElse(null);
+		String instanceId = Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
+				.map(ObjectReference::getUid).orElseGet(() -> service.getMetadata().getUid());
 
-		boolean secured = servicePortSecureResolver
-				.resolve(new ServicePortSecureResolver.Input(endpointPort, service.getMetadata().getName(),
-						service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
+		boolean secured;
+		if (servicePortSecureResolver == null) {
+			secured = false;
+		}
+		else {
+			secured = servicePortSecureResolver
+					.resolve(new ServicePortSecureResolver.Input(endpointPort, service.getMetadata().getName(),
+							service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
+		}
 
-		return new DefaultKubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(), endpointPort,
-				serviceMetadata, secured, namespace, null);
+		String host = Optional.ofNullable(endpointAddress).map(EndpointAddress::getIp)
+				.orElseGet(() -> service.getSpec().getExternalName());
+
+		return new DefaultKubernetesServiceInstance(instanceId, serviceId, host, endpointPort, serviceMetadata, secured,
+				namespace, null);
 	}
 
 	static List<Service> services(KubernetesDiscoveryProperties properties, KubernetesClient client,

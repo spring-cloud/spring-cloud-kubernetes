@@ -72,4 +72,9 @@ public final class KubernetesDiscoveryConstants {
 	 */
 	public static final String EXTERNAL_NAME = "ExternalName";
 
+	/**
+	 * Type of the service.
+	 */
+	public static final String SERVICE_TYPE = "type";
+
 }

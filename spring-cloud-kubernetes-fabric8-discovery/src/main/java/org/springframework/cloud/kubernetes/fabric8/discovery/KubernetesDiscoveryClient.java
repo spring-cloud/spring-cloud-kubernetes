@@ -41,7 +41,6 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.addresses;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpoints;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpointsPort;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.externalNameServiceInstance;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceInstance;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.services;
@@ -121,8 +120,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 			for (Service service : services) {
 				Map<String, String> serviceMetadata = serviceMetadata(serviceId, service, properties, List.of(),
 						service.getMetadata().getNamespace());
-				ServiceInstance externalNameServiceInstance = externalNameServiceInstance(service, serviceId,
-						serviceMetadata);
+				ServiceInstance externalNameServiceInstance = serviceInstance(null, service, null, -1, serviceId,
+						serviceMetadata, service.getMetadata().getNamespace());
 				instances.add(externalNameServiceInstance);
 			}
 		}
