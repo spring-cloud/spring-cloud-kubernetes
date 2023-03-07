@@ -38,7 +38,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesExternalNameServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
@@ -108,23 +108,22 @@ class Fabric8DiscoveryIT {
 	void testExternalNameServiceInstance() {
 
 		WebClient client = builder().baseUrl("localhost/service-instances/external-name-service").build();
-		List<KubernetesExternalNameServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<KubernetesExternalNameServiceInstance>>() {
+		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
 				}).retryWhen(retrySpec()).block();
 
-		KubernetesExternalNameServiceInstance result = serviceInstances.get(0);
+		DefaultKubernetesServiceInstance result = serviceInstances.get(0);
 
 		Assertions.assertEquals(serviceInstances.size(), 1);
 		Assertions.assertEquals(result.getServiceId(), "external-name-service");
 		Assertions.assertNotNull(result.getInstanceId());
 		Assertions.assertEquals(result.getHost(), "spring.io");
 		Assertions.assertEquals(result.getPort(), -1);
-		Assertions.assertEquals(result.getMetadata(), Map.of("k8s_namespace", "default"));
+		Assertions.assertEquals(result.getMetadata(), Map.of("k8s_namespace", "default", "type", "ExternalName"));
 		Assertions.assertFalse(result.isSecure());
 		Assertions.assertEquals(result.getUri().toASCIIString(), "spring.io");
-		Assertions.assertNull(result.getScheme());
-		Assertions.assertEquals(result.type(), "ExternalName");
+		Assertions.assertEquals(result.getScheme(), "http");
 	}
 
 	private static void manifests(Phase phase) {
