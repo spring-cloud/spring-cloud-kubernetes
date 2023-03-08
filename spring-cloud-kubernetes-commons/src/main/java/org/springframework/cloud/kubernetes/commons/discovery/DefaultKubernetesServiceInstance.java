@@ -102,6 +102,10 @@ public record DefaultKubernetesServiceInstance(String instanceId, String service
 	}
 
 	private URI createUri(String scheme, String host, int port) {
+		// assume ExternalName type of service
+		if (port == -1) {
+			return URI.create(host);
+		}
 		return URI.create(scheme + "://" + host + ":" + port);
 	}
 }
