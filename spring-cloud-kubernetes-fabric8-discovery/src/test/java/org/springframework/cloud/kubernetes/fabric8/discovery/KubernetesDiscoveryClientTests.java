@@ -81,7 +81,7 @@ class KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of();
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("serviceId");
@@ -106,7 +106,7 @@ class KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
@@ -131,7 +131,7 @@ class KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
@@ -156,7 +156,7 @@ class KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
@@ -182,7 +182,7 @@ class KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("service-one");
@@ -208,7 +208,7 @@ class KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("service-one");
@@ -257,7 +257,7 @@ class KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
@@ -307,7 +307,7 @@ class KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
@@ -359,7 +359,7 @@ class KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("service-one");
@@ -408,7 +408,7 @@ class KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of("test");
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
@@ -435,7 +435,7 @@ class KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of("a");
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
@@ -493,8 +493,7 @@ class KubernetesDiscoveryClientTests {
 
 		// last argument is irrelevant, as getServices does not care about that flag
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of("a", "b"), true,
-				60L, false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false,
-				false);
+				60L, false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<String> result = discoveryClient.getServices();

@@ -106,7 +106,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testPrimaryPortNameFoundInProperties(CapturedOutput output) {
 		String primaryPortName = "https";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false);
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
 		String result = KubernetesDiscoveryClientUtils.primaryPortName(properties, service, "abc");
@@ -148,7 +148,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		String primaryPortName = "https";
 		Map<String, String> labels = Map.of(PRIMARY_PORT_NAME_LABEL_KEY, "http");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false);
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
 		Service service = new ServiceBuilder().withMetadata(new ObjectMetaBuilder().withLabels(labels).build()).build();
 
 		String result = KubernetesDiscoveryClientUtils.primaryPortName(properties, service, "abc");
@@ -220,7 +220,7 @@ class KubernetesDiscoveryClientUtilsTests {
 
 		String primaryPortName = "three";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false);
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
 
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
@@ -254,7 +254,7 @@ class KubernetesDiscoveryClientUtilsTests {
 
 		String primaryPortName = "two";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false);
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
 
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
@@ -313,7 +313,7 @@ class KubernetesDiscoveryClientUtilsTests {
 
 		String primaryPortName = "three";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false);
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
 
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
@@ -641,7 +641,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testReadyAddressesOnly() {
 		boolean includeNotReadyAddresses = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
 				.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
 						new EndpointAddressBuilder().withHostname("two").build())
@@ -681,7 +681,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testBothAddressesTaken() {
 		boolean includeNotReadyAddresses = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
 				.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
 						new EndpointAddressBuilder().withHostname("two").build())

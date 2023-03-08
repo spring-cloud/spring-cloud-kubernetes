@@ -209,7 +209,7 @@ class KubernetesInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_NOT_READY_ADDRESS);
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, false,
-				Set.of(), true, 60, true, null, Set.of(), Map.of(), null, null, 0, true, false);
+				Set.of(), true, 60, true, null, Set.of(), Map.of(), null, null, 0, true);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient("namespace1",
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
@@ -414,7 +414,7 @@ class KubernetesInformerDiscoveryClientTests {
 
 	private static KubernetesDiscoveryProperties properties(boolean allNamespaces, Map<String, String> labels) {
 		return new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(), true, 60, false, null, Set.of(),
-				labels, null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false);
+				labels, null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 	}
 
 }

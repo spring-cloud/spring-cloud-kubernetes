@@ -238,7 +238,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 		boolean allNamespaces = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices, false);
+				true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient(), properties, NAMESPACE_PROVIDER);
 
 		if (endpointSlices) {
@@ -259,7 +259,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces,
-				Set.of(namespace), true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices, false);
+				Set.of(namespace), true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient(), properties, NAMESPACE_PROVIDER);
 
 		if (endpointSlices) {
@@ -278,7 +278,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 		// all-namespaces = false
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, namespaces, true, 60,
-				false, "", Set.of(), labels, "", null, 0, false, false);
+				false, "", Set.of(), labels, "", null, 0, false);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient(), properties, NAMESPACE_PROVIDER);
 
 		if (endpointSlices) {

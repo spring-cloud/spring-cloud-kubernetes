@@ -60,7 +60,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	void testServicesAllNamespacesNoFilters() {
 		boolean allNamespaces = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false);
 		service("serviceA", "A", Map.of());
 		service("serviceB", "B", Map.of());
 
@@ -82,7 +82,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	void testServicesAllNamespacesNameFilter() {
 		boolean allNamespaces = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false);
 		service("serviceA", "A", Map.of());
 		service("serviceB", "B", Map.of());
 
@@ -104,7 +104,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	void testServicesAllNamespacesPredicateFilter() {
 		boolean allNamespaces = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false);
 		service("serviceA", "A", Map.of("letter", "a"));
 		service("serviceB", "B", Map.of("letter", "b"));
 
@@ -128,7 +128,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	void testServicesSelectiveNamespacesNoFilters() {
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces,
-				Set.of("A", "B"), true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false);
+				Set.of("A", "B"), true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false);
 		service("serviceA", "A", Map.of());
 		service("serviceB", "B", Map.of());
 		service("serviceC", "C", Map.of());
@@ -153,7 +153,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	void testServicesSelectiveNamespacesNameFilter() {
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces,
-				Set.of("A", "B"), true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false);
+				Set.of("A", "B"), true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false);
 		service("serviceA", "A", Map.of());
 		service("serviceB", "B", Map.of());
 		service("serviceC", "C", Map.of());
@@ -178,7 +178,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	void testServicesSelectiveNamespacesPredicateFilter() {
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces,
-				Set.of("A", "B"), true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false);
+				Set.of("A", "B"), true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false);
 		service("serviceA", "A", Map.of("letter", "a"));
 		service("serviceB", "B", Map.of("letter", "b"));
 		service("serviceC", "C", Map.of("letter", "c"));
@@ -204,7 +204,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	void testServicesNamespaceProviderNoFilters() {
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false);
 		service("serviceA", "A", Map.of());
 		service("serviceB", "B", Map.of());
 		service("serviceC", "C", Map.of());
@@ -229,7 +229,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	void testServicesNamespaceProviderNameFilter() {
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false);
 		service("serviceA", "A", Map.of());
 		service("serviceB", "A", Map.of());
 
@@ -253,7 +253,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	void testServicesNamespaceProviderPredicateFilter() {
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false);
 		service("serviceA", "A", Map.of("letter", "a"));
 		service("serviceB", "A", Map.of("letter", "b"));
 
@@ -272,7 +272,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false);
+				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false);
 
 		List<Service> result = services(properties, client, namespaceProvider("test"),
 				x -> x.getSpec().getType().equals("ExternalName"), Map.of(), "fabric8-discovery");

@@ -107,7 +107,7 @@ class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace("test").resource(service).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, null, Set.of(), labels, "http_tcp", Metadata.DEFAULT, 0, true, false);
+				false, null, Set.of(), labels, "http_tcp", Metadata.DEFAULT, 0, true);
 
 		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
@@ -155,7 +155,7 @@ class KubernetesDiscoveryClientTest {
 		mockClient.endpoints().inNamespace(namespace2).resource(endPoint2).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
+				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
@@ -185,7 +185,7 @@ class KubernetesDiscoveryClientTest {
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false,
 				Set.of(namespace1, namespace3), true, 60, false, null, Set.of(), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
@@ -216,7 +216,7 @@ class KubernetesDiscoveryClientTest {
 
 		Metadata metadata = new Metadata(false, null, false, null, true, "port.");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, null, Set.of(443, 8443), labels, null, metadata, 0, true, false);
+				false, null, Set.of(443, 8443), labels, null, metadata, 0, true);
 
 		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
@@ -299,7 +299,7 @@ class KubernetesDiscoveryClientTest {
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false,
 				Set.of(nameSpace1, nameSpace2), true, 60, false, null, Set.of(), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
 		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
@@ -334,7 +334,7 @@ class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace("test2").resource(service2).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, Metadata.DEFAULT, 0, true, false);
+				false, null, Set.of(), Map.of(), null, Metadata.DEFAULT, 0, true);
 
 		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
@@ -386,7 +386,7 @@ class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace("test").resource(service).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true, false);
+				false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true);
 
 		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
@@ -417,7 +417,7 @@ class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace("test").resource(service).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true, false);
+				false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true);
 
 		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
@@ -448,7 +448,7 @@ class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace("test").resource(service).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(443, 8443), Map.of(), "oops", Metadata.DEFAULT, 0, true, false);
+				false, null, Set.of(443, 8443), Map.of(), "oops", Metadata.DEFAULT, 0, true);
 
 		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
@@ -478,7 +478,7 @@ class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace("test").resource(service).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true, false);
+				false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true);
 
 		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
@@ -536,7 +536,7 @@ class KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace("test").resource(service).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				true, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true, false);
+				true, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true);
 
 		DiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
