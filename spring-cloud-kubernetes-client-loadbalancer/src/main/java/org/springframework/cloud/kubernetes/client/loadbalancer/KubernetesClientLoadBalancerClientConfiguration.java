@@ -36,8 +36,8 @@ public class KubernetesClientLoadBalancerClientConfiguration {
 	ServiceInstanceListSupplier kubernetesServicesListSupplier(Environment environment, CoreV1Api coreV1Api,
 			KubernetesClientServiceInstanceMapper mapper, KubernetesDiscoveryProperties discoveryProperties,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, ConfigurableApplicationContext context) {
-		return ServiceInstanceListSupplier.builder().withBase(new KubernetesClientServicesListSupplier(environment, mapper, discoveryProperties, coreV1Api,
-				kubernetesNamespaceProvider)).withCaching().build(context);
+		return ServiceInstanceListSupplier.builder().withBase(new KubernetesClientServicesListSupplier(environment,
+				mapper, discoveryProperties, coreV1Api, kubernetesNamespaceProvider)).withCaching().build(context);
 	}
 
 }
