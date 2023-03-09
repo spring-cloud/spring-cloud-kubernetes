@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -82,8 +83,8 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 
-		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
-				.withLabels(labels).endMetadata().build();
+		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+				.withNewMetadata().withName("endpoint").withNamespace("test").withLabels(labels).endMetadata().build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -107,8 +108,9 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 
-		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
-				.withLabels(labels).withAnnotations(labels).endMetadata().build();
+		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+				.withNewMetadata().withName("endpoint").withNamespace("test").withLabels(labels).withAnnotations(labels)
+				.endMetadata().build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -217,8 +219,8 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 
-		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
-				.withLabels(labels).endMetadata().build();
+		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+				.withNewMetadata().withName("endpoint").withNamespace("test").withLabels(labels).endMetadata().build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -327,10 +329,12 @@ class Fabric8KubernetesDiscoveryClientTest {
 		mockClient.endpoints().inNamespace("test").resource(endPoints1).create();
 		mockClient.endpoints().inNamespace("test2").resource(endPoints2).create();
 
-		Service service1 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
+		Service service1 = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+				.withNewMetadata().withName("endpoint").withNamespace("test")
 				.withLabels(Collections.singletonMap("l", "v")).endMetadata().build();
 
-		Service service2 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace("test2")
+		Service service2 = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+				.withNewMetadata().withName("endpoint").withNamespace("test2")
 				.withLabels(Collections.singletonMap("l", "v")).endMetadata().build();
 
 		mockClient.services().inNamespace("test").resource(service1).create();
@@ -381,8 +385,9 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint1).create();
 
-		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint2").withNamespace("test")
-				.withLabels(labels).withAnnotations(labels).endMetadata().build();
+		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+				.withNewMetadata().withName("endpoint2").withNamespace("test").withLabels(labels)
+				.withAnnotations(labels).endMetadata().build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -411,8 +416,9 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint1).create();
 
-		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint3").withNamespace("test")
-				.withLabels(labels).withAnnotations(labels).endMetadata().build();
+		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+				.withNewMetadata().withName("endpoint3").withNamespace("test").withLabels(labels)
+				.withAnnotations(labels).endMetadata().build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -441,8 +447,9 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint1).create();
 
-		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint4").withNamespace("test")
-				.withLabels(labels).withAnnotations(labels).endMetadata().build();
+		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+				.withNewMetadata().withName("endpoint4").withNamespace("test").withLabels(labels)
+				.withAnnotations(labels).endMetadata().build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -470,8 +477,9 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint1).create();
 
-		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
-				.withLabels(labels).withAnnotations(labels).endMetadata().build();
+		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+				.withNewMetadata().withName("endpoint5").withNamespace("test").withLabels(labels)
+				.withAnnotations(labels).endMetadata().build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -499,8 +507,9 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint1).create();
 
-		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
-				.withLabels(labels).withAnnotations(labels).endMetadata().build();
+		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+				.withNewMetadata().withName("endpoint5").withNamespace("test").withLabels(labels)
+				.withAnnotations(labels).endMetadata().build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -525,8 +534,9 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint1).create();
 
-		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
-				.withLabels(labels).withAnnotations(labels).endMetadata().build();
+		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+				.withNewMetadata().withName("endpoint5").withNamespace("test").withLabels(labels)
+				.withAnnotations(labels).endMetadata().build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
