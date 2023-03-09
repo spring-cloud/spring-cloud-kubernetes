@@ -37,7 +37,9 @@ public class Fabric8LoadBalancerClientConfiguration {
 	ServiceInstanceListSupplier kubernetesServicesListSupplier(Environment environment,
 			KubernetesClient kubernetesClient, Fabric8ServiceInstanceMapper mapper,
 			KubernetesDiscoveryProperties discoveryProperties, ConfigurableApplicationContext context) {
-		return ServiceInstanceListSupplier.builder().withBase(new Fabric8ServicesListSupplier(environment, kubernetesClient, mapper, discoveryProperties)).withCaching().build(context);
+		return ServiceInstanceListSupplier.builder()
+				.withBase(new Fabric8ServicesListSupplier(environment, kubernetesClient, mapper, discoveryProperties))
+				.withCaching().build(context);
 	}
 
 }
