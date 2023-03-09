@@ -1,0 +1,7 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: external-name-service
+spec:
+  type: ExternalName
+  externalName: spring.io

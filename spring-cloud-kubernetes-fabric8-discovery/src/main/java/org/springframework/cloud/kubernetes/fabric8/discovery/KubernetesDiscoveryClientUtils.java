@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
@@ -30,10 +31,12 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
 import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.FilterNested;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import jakarta.annotation.Nullable;
 import org.apache.commons.logging.LogFactory;
 
@@ -52,6 +55,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SERVICE_TYPE;
 
 /**
  * @author wind57
@@ -159,11 +163,14 @@ final class KubernetesDiscoveryClientUtils {
 					.filter(port -> StringUtils.hasText(port.getName()))
 					.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
 			Map<String, String> portMetadata = keysWithPrefix(ports, properties.metadata().portsPrefix());
-			LOG.debug(() -> "Adding port metadata: " + portMetadata + " for serviceId : " + serviceId);
+			if (!portMetadata.isEmpty()) {
+				LOG.debug(() -> "Adding port metadata: " + portMetadata + " for serviceId : " + serviceId);
+			}
 			serviceMetadata.putAll(portMetadata);
 		}
 
 		serviceMetadata.put(NAMESPACE_METADATA_KEY, namespace);
+		serviceMetadata.put(SERVICE_TYPE, service.getSpec().getType());
 		return serviceMetadata;
 	}
 
@@ -227,19 +234,76 @@ final class KubernetesDiscoveryClientUtils {
 		return addresses;
 	}
 
-	static ServiceInstance serviceInstance(ServicePortSecureResolver servicePortSecureResolver, Service service,
-			EndpointAddress endpointAddress, int endpointPort, String serviceId, Map<String, String> serviceMetadata,
-			String namespace) {
+	static ServiceInstance serviceInstance(@Nullable ServicePortSecureResolver servicePortSecureResolver,
+			Service service, @Nullable EndpointAddress endpointAddress, int endpointPort, String serviceId,
+			Map<String, String> serviceMetadata, String namespace) {
 		// instanceId is usually the pod-uid as seen in the .metadata.uid
-		String instanceId = Optional.ofNullable(endpointAddress.getTargetRef()).map(ObjectReference::getUid)
-				.orElse(null);
+		String instanceId = Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
+				.map(ObjectReference::getUid).orElseGet(() -> service.getMetadata().getUid());
 
-		boolean secured = servicePortSecureResolver
-				.resolve(new ServicePortSecureResolver.Input(endpointPort, service.getMetadata().getName(),
-						service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
+		boolean secured;
+		if (servicePortSecureResolver == null) {
+			secured = false;
+		}
+		else {
+			secured = servicePortSecureResolver
+					.resolve(new ServicePortSecureResolver.Input(endpointPort, service.getMetadata().getName(),
+							service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
+		}
 
-		return new DefaultKubernetesServiceInstance(instanceId, serviceId, endpointAddress.getIp(), endpointPort,
-				serviceMetadata, secured, namespace, null);
+		String host = Optional.ofNullable(endpointAddress).map(EndpointAddress::getIp)
+				.orElseGet(() -> service.getSpec().getExternalName());
+
+		return new DefaultKubernetesServiceInstance(instanceId, serviceId, host, endpointPort, serviceMetadata, secured,
+				namespace, null);
+	}
+
+	static List<Service> services(KubernetesDiscoveryProperties properties, KubernetesClient client,
+			KubernetesNamespaceProvider namespaceProvider, Predicate<Service> predicate,
+			Map<String, String> fieldFilters, String target) {
+
+		List<Service> services;
+
+		if (properties.allNamespaces()) {
+			LOG.debug(() -> "discovering services in all namespaces");
+			services = filteredServices(client.services().inAnyNamespace().withNewFilter(), properties, predicate,
+					fieldFilters);
+		}
+		else if (!properties.namespaces().isEmpty()) {
+			LOG.debug(() -> "discovering services in namespaces : " + properties.namespaces());
+			List<Service> inner = new ArrayList<>(properties.namespaces().size());
+			properties.namespaces().forEach(
+					namespace -> inner.addAll(filteredServices(client.services().inNamespace(namespace).withNewFilter(),
+							properties, predicate, fieldFilters)));
+			services = inner;
+		}
+		else {
+			String namespace = Fabric8Utils.getApplicationNamespace(client, null, target, namespaceProvider);
+			LOG.debug(() -> "discovering services in namespace : " + namespace);
+			services = filteredServices(client.services().inNamespace(namespace).withNewFilter(), properties, predicate,
+					fieldFilters);
+		}
+
+		return services;
+	}
+
+	/**
+	 * serviceName can be null, in which case, such a filter will not be applied.
+	 */
+	private static List<Service> filteredServices(
+			FilterNested<FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>>> filterNested,
+			KubernetesDiscoveryProperties properties, Predicate<Service> predicate,
+			@Nullable Map<String, String> fieldFilters) {
+
+		FilterNested<FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>>> partial = filterNested
+				.withLabels(properties.serviceLabels());
+
+		if (fieldFilters != null) {
+			partial = partial.withFields(fieldFilters);
+		}
+
+		return partial.endFilter().list().getItems().stream().filter(predicate).toList();
+
 	}
 
 	private static Optional<Integer> fromMap(Map<String, Integer> existingPorts, String key, String message) {
