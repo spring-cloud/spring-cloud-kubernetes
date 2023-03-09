@@ -21,7 +21,8 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
@@ -32,11 +33,11 @@ public class KubernetesClientLoadBalancerClientConfiguration {
 
 	@Bean
 	@ConditionalOnProperty(name = "spring.cloud.kubernetes.loadbalancer.mode", havingValue = "SERVICE")
-	KubernetesServicesListSupplier kubernetesServicesListSupplier(Environment environment, CoreV1Api coreV1Api,
+	ServiceInstanceListSupplier kubernetesServicesListSupplier(Environment environment, CoreV1Api coreV1Api,
 			KubernetesClientServiceInstanceMapper mapper, KubernetesDiscoveryProperties discoveryProperties,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		return new KubernetesClientServicesListSupplier(environment, mapper, discoveryProperties, coreV1Api,
-				kubernetesNamespaceProvider);
+			KubernetesNamespaceProvider kubernetesNamespaceProvider, ConfigurableApplicationContext context) {
+		return ServiceInstanceListSupplier.builder().withBase(new KubernetesClientServicesListSupplier(environment,
+				mapper, discoveryProperties, coreV1Api, kubernetesNamespaceProvider)).withCaching().build(context);
 	}
 
 }
