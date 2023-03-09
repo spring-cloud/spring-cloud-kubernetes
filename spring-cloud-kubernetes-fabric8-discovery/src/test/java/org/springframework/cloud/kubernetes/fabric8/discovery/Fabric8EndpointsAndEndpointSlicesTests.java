@@ -302,7 +302,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		Endpoints endpoints = new EndpointsBuilder()
 				.withMetadata(new ObjectMetaBuilder().withLabels(labels).withName("endpoints-" + podName).build())
 				.withSubsets(List.of(endpointSubset)).build();
-		mockClient().endpoints().inNamespace(namespace).create(endpoints);
+		mockClient().endpoints().inNamespace(namespace).resource(endpoints).create();
 	}
 
 	static void endpointSlice(String namespace, Map<String, String> labels, String podName) {

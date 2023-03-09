@@ -37,14 +37,16 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
 
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.addresses;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpoints;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpointsPort;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceInstance;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.services;
 
 /**
- * Kubernetes implementation of {@link DiscoveryClient}.
+ * Fabric8 Kubernetes implementation of {@link DiscoveryClient}.
  *
  * @author Ioannis Canellos
  * @author Tim Ysewyn
@@ -108,6 +110,20 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 		List<ServiceInstance> instances = new ArrayList<>();
 		for (EndpointSubsetNS es : subsetsNS) {
 			instances.addAll(getNamespaceServiceInstances(es, serviceId));
+		}
+
+		if (properties.includeExternalNameServices()) {
+			LOG.debug(() -> "Searching for 'ExternalName' type of services with serviceId : " + serviceId);
+			List<Service> services = services(properties, client, namespaceProvider,
+					s -> s.getSpec().getType().equals(EXTERNAL_NAME), Map.of("metadata.name", serviceId),
+					"fabric8-discovery");
+			for (Service service : services) {
+				Map<String, String> serviceMetadata = serviceMetadata(serviceId, service, properties, List.of(),
+						service.getMetadata().getNamespace());
+				ServiceInstance externalNameServiceInstance = serviceInstance(null, service, null, -1, serviceId,
+						serviceMetadata, service.getMetadata().getNamespace());
+				instances.add(externalNameServiceInstance);
+			}
 		}
 
 		return instances;

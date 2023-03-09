@@ -20,6 +20,7 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,6 +46,11 @@ public class Fabric8DiscoveryController {
 	@GetMapping("/endpoints/{serviceId}")
 	public List<Endpoints> getEndPointsList(@PathVariable("serviceId") String serviceId) {
 		return discoveryClient.getEndPointsList(serviceId);
+	}
+
+	@GetMapping("/service-instances/{serviceId}")
+	public List<ServiceInstance> serviceInstances(@PathVariable("serviceId") String serviceId) {
+		return discoveryClient.getInstances(serviceId);
 	}
 
 }

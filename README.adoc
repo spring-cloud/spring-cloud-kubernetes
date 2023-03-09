@@ -112,6 +112,8 @@ This client lets you query Kubernetes endpoints (see https://kubernetes.io/docs/
 A service is typically exposed by the Kubernetes API server as a collection of endpoints that represent `http` and `https` addresses and that a client can
 access from a Spring Boot application running as a pod.
 
+DiscoveryClient can also find services of type `ExternalName` (see https://kubernetes.io/docs/concepts/services-networking/service/#externalname[ExternalName services]). At the moment, external name support type of services is only available if the following property  `spring.cloud.kubernetes.discovery.include-external-name-services` is set to `true` and only in the `fabric8` implementation. In a later release, support will be added for the kubernetes native client also.
+
 This is something that you get for free by adding the following dependency inside your project:
 
 ====
@@ -217,6 +219,8 @@ WARNING:  The last option may result in non-deterministic behaviour.
 Please make sure to configure your service and/or application accordingly.
 
 By default all of the ports and their names will be added to the metadata of the `ServiceInstance`.
+
+As said before, if you want to get the list of `ServiceInstance` to also include the `ExternalName` type services, you need to enable that support via: `spring.cloud.kubernetes.discovery.include-external-name-services=true`. As such, when calling `DiscoveryClient::getInstances` those will be returned also. You can distinguish between `ExternalName` and any other types by inspecting `ServiceInstance::getMetadata` and lookup for a field called `type`. This will be the type of the service returned : `ExternalName`/`ClusterIP`, etc.
 
 If, for any reason, you need to disable the `DiscoveryClient`, you can set the following property in `application.properties`:
 

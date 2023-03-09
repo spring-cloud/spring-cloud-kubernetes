@@ -62,6 +62,7 @@
 |spring.cloud.kubernetes.discovery.cache-loading-timeout-seconds | `+++60+++` | 
 |spring.cloud.kubernetes.discovery.enabled | `+++true+++` | 
 |spring.cloud.kubernetes.discovery.filter |  | 
+|spring.cloud.kubernetes.discovery.include-external-name-services | `+++false+++` | 
 |spring.cloud.kubernetes.discovery.include-not-ready-addresses | `+++false+++` | 
 |spring.cloud.kubernetes.discovery.known-secure-ports | `+++[443, 8443]+++` | 
 |spring.cloud.kubernetes.discovery.metadata.add-annotations | `+++true+++` | 
