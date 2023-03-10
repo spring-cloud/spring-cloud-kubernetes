@@ -74,7 +74,7 @@ class Fabric8ConfigMapIT {
 
 	@Test
 	void test() {
-		WebClient client = builder().baseUrl("localhost/key1").build();
+		WebClient client = builder().baseUrl("http://localhost/key1").build();
 
 		String result = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
