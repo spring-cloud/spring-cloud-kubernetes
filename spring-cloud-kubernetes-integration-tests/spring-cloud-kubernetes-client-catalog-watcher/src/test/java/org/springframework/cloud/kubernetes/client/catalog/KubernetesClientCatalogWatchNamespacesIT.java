@@ -133,7 +133,7 @@ public class KubernetesClientCatalogWatchNamespacesIT {
 	 */
 	private void test() {
 
-		WebClient client = builder().baseUrl("localhost/result").build();
+		WebClient client = builder().baseUrl("http://localhost/result").build();
 		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[4];
 		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(List.class, EndpointNameAndNamespace.class);
 

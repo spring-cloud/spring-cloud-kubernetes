@@ -109,7 +109,7 @@ class Fabric8IstioIT {
 
 	@Test
 	void test() {
-		WebClient client = builder().baseUrl("localhost/profiles").build();
+		WebClient client = builder().baseUrl("http://localhost/profiles").build();
 
 		@SuppressWarnings("unchecked")
 		List<String> result = client.method(HttpMethod.GET).retrieve().bodyToMono(List.class).retryWhen(retrySpec())
