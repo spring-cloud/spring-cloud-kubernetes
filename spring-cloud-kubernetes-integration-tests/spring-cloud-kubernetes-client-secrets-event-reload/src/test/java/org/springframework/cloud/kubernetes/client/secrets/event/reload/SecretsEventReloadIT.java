@@ -48,7 +48,7 @@ import static org.awaitility.Awaitility.await;
  */
 class SecretsEventReloadIT {
 
-	private static final String PROPERTY_URL = "localhost:80/key";
+	private static final String PROPERTY_URL = "http://localhost:80/key";
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-secrets-event-reload";
 
