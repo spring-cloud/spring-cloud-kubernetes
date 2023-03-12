@@ -51,6 +51,7 @@ import org.springframework.util.StringUtils;
 
 import static java.util.stream.Collectors.toMap;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
@@ -236,7 +237,7 @@ final class KubernetesDiscoveryClientUtils {
 
 	static ServiceInstance serviceInstance(@Nullable ServicePortSecureResolver servicePortSecureResolver,
 			Service service, @Nullable EndpointAddress endpointAddress, int endpointPort, String serviceId,
-			Map<String, String> serviceMetadata, String namespace) {
+			Map<String, String> serviceMetadata, String namespace, KubernetesDiscoveryProperties properties) {
 		// instanceId is usually the pod-uid as seen in the .metadata.uid
 		String instanceId = Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
 				.map(ObjectReference::getUid).orElseGet(() -> service.getMetadata().getUid());
@@ -253,6 +254,16 @@ final class KubernetesDiscoveryClientUtils {
 
 		String host = Optional.ofNullable(endpointAddress).map(EndpointAddress::getIp)
 				.orElseGet(() -> service.getSpec().getExternalName());
+
+//		if (!EXTERNAL_NAME.equals(serviceMetadata.get(SERVICE_TYPE))) {
+//			if (properties.metadata().addPodLabels() || properties.metadata().addPodAnnotations()) {
+//				String podName = Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
+//					.filter(objectReference -> "Pod".equals(objectReference.getKind()))
+//					.map(ObjectReference::getName)
+//					.orElse(null);
+//
+//			}
+//		}
 
 		return new DefaultKubernetesServiceInstance(instanceId, serviceId, host, endpointPort, serviceMetadata, secured,
 				namespace, null);

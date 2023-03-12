@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.discovery;
 
+import java.util.Map;
+
 import org.springframework.cloud.client.ServiceInstance;
 
 /**
@@ -28,5 +30,13 @@ sealed public interface KubernetesServiceInstance extends ServiceInstance permit
 	String getNamespace();
 
 	String getCluster();
+
+	default Map<String, String> podLabels() {
+		return Map.of();
+	}
+
+	default Map<String, String> podAnnotations() {
+		return Map.of();
+	}
 
 }
