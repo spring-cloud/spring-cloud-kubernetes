@@ -1,0 +1,17 @@
+name: run fabric8 istio integration test
+description: run fabric8 istio integration test
+runs:
+  using: "composite"
+  steps:
+    - name: run fabric8 istio integration test
+      shell: bash
+      run: |
+        
+        cd spring-cloud-kubernetes-test-support
+        .././mvnw clean install
+        cd ..
+        
+        docker load -i /tmp/docker/images/spring-cloud-kubernetes-fabric8-istio-it.tar
+        cd spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-istio-it/
+        ../.././mvnw clean install -Dskip.build.image=true
+        cd ../..

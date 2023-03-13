@@ -1,0 +1,9 @@
+name: setup project
+description: setup project
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-java@v2
+      with:
+        distribution: 'temurin'
+        java-version: '8'

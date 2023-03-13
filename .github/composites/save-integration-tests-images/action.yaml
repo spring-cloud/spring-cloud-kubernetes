@@ -1,0 +1,20 @@
+name: save integration tests docker images
+description: save integration tests docker images
+runs:
+  using: "composite"
+  steps:
+    - name: save integration tests docker images
+      shell: bash
+      run: |
+        mkdir -p /tmp/docker/images
+        TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+        cd spring-cloud-kubernetes-integration-tests
+        while read integ_test; do
+          docker save -o /tmp/docker/images/${integ_test}.tar docker.io/springcloud/${integ_test}:$TAG
+        done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q \
+                        | grep -v 'spring-cloud-kubernetes-integration-tests' \
+                        | grep -v 'spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps' \
+                        | grep -v 'spring-cloud-kubernetes-client-configuration-watcher-configmap-test-app' \
+                        | grep -v 'spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps' \
+                        | grep -v 'spring-cloud-kubernetes-client-configuration-watcher-secrets-test-app' )
+        cd ..
