@@ -21,11 +21,11 @@ jobs:
 
       - name: setup project
         uses: ./.github/workflows/composites/setup-jdk17
-        if: env.BRANCH_NAME == 'main'
+        if: env.BASE_BRANCH_NAME == 'main'
 
       - name: setup project
         uses: ./.github/workflows/composites/setup-jdk1.8
-        if: env.BRANCH_NAME == '2.1.x'
+        if: env.BASE_BRANCH_NAME == '2.1.x'
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
