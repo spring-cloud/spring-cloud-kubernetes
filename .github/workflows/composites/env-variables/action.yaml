@@ -7,6 +7,7 @@ runs:
       shell: bash
       run: |
         echo "test : -> $GITHUB_REF"
+        echo "test2 : -> $GITHUB_REF_NAME"
         echo "BRANCH_NAME=$(echo $GITHUB_HEAD_REF)" >> $GITHUB_ENV
         echo "BASE_BRANCH_NAME=$(echo $GITHUB_BASE_REF)" >> $GITHUB_ENV
         echo "DOCKER_IMAGES_KEY=$(echo $GITHUB_RUN_ID)" >> $GITHUB_ENV
