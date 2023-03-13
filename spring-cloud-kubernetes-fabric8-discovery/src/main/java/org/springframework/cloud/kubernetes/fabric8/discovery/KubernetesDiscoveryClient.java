@@ -305,7 +305,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	public List<String> getServices(Predicate<Service> filter) {
 		return this.kubernetesClientServicesFunction.apply(this.client).list().getItems().stream().filter(filter)
-				.map(s -> s.getMetadata().getName()).collect(Collectors.toList());
+				.map(s -> s.getMetadata().getName()).distinct().collect(Collectors.toList());
 	}
 
 	@Override
