@@ -307,11 +307,11 @@ final class KubernetesDiscoveryClientUtils {
 							.ofNullable(client.pods().inNamespace(namespace).withName(podName).get())
 							.map(Pod::getMetadata).orElse(new ObjectMeta());
 					Map<String, Map<String, String>> result = new HashMap<>();
-					if (properties.metadata().addPodLabels()) {
+					if (properties.metadata().addPodLabels() && !metadata.getLabels().isEmpty()) {
 						result.put("labels", metadata.getLabels());
 					}
 
-					if (properties.metadata().addPodAnnotations()) {
+					if (properties.metadata().addPodAnnotations() && !metadata.getAnnotations().isEmpty()) {
 						result.put("annotations", metadata.getAnnotations());
 					}
 

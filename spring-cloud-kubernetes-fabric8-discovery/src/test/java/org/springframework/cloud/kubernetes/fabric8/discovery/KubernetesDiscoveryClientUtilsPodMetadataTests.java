@@ -141,9 +141,9 @@ class KubernetesDiscoveryClientUtilsPodMetadataTests {
 		Map<String, Map<String, String>> result = podMetadata(client, serviceMetadata, properties, endpointAddress,
 				namespace);
 		Assertions.assertEquals(result.get("labels"), Map.of("label-key", "label-value"));
-		Assertions.assertEquals(result.get("annotations"), Map.of());
+		Assertions.assertNull(result.get("annotations"));
 		Assertions.assertTrue(output.getOut().contains(
-				"adding podMetadata : PodMetadata[podLabels={label-key=label-value}, podAnnotations={}] from pod : my-pod"));
+				"adding podMetadata : {labels={label-key=label-value}} from pod : my-pod"));
 	}
 
 	/**
@@ -172,10 +172,10 @@ class KubernetesDiscoveryClientUtilsPodMetadataTests {
 
 		Map<String, Map<String, String>> result = podMetadata(client, serviceMetadata, properties, endpointAddress,
 				namespace);
-		Assertions.assertEquals(result.get("labels"), Map.of());
+		Assertions.assertNull(result.get("labels"));
 		Assertions.assertEquals(result.get("annotations"), Map.of("annotation-key", "annotation-value"));
 		Assertions.assertTrue(output.getOut().contains(
-				"adding podMetadata : PodMetadata[podLabels={}, podAnnotations={annotation-key=annotation-value}] from pod : my-pod"));
+				"adding podMetadata : {annotations={annotation-key=annotation-value}} from pod : my-pod"));
 	}
 
 	/**
@@ -207,7 +207,7 @@ class KubernetesDiscoveryClientUtilsPodMetadataTests {
 		Assertions.assertEquals(result.get("labels"), Map.of("label-key", "label-value"));
 		Assertions.assertEquals(result.get("annotations"), Map.of("annotation-key", "annotation-value"));
 		Assertions.assertTrue(output.getOut().contains(
-				"adding podMetadata : PodMetadata[podLabels={label-key=label-value}, podAnnotations={annotation-key=annotation-value}] from pod : my-pod"));
+				"adding podMetadata : {annotations={annotation-key=annotation-value}, labels={label-key=label-value}} from pod : my-pod"));
 	}
 
 }
