@@ -20,14 +20,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.ReactiveHealthContributorRegistry;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.kubernetes.fabric8.config.example.App;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
-
-import static org.hamcrest.Matchers.containsString;
 
 /**
  * @author wind57
@@ -44,14 +42,15 @@ class EnabledHealthTest {
 	@Autowired
 	private ReactiveHealthContributorRegistry registry;
 
-	@Value("${local.server.port}")
+	@LocalManagementPort
 	private int port;
 
 	@Test
 	void healthEndpointShouldContainKubernetes() {
+
 		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
-				.value(containsString("kubernetes"));
+				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
+				.jsonPath("components.kubernetes").exists();
 
 		Assertions.assertNotNull(registry.getContributor("kubernetes"),
 				"reactive kubernetes contributor must be present when 'management.health.kubernetes.enabled=true'");

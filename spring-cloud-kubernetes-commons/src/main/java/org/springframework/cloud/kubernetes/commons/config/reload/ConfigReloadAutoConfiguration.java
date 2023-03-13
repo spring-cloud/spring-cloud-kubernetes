@@ -63,27 +63,25 @@ public class ConfigReloadAutoConfiguration {
 	@ConditionalOnMissingBean
 	public ConfigurationUpdateStrategy configurationUpdateStrategy(ConfigReloadProperties properties,
 			ConfigurableApplicationContext ctx, Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
-		String strategyName = properties.getStrategy().name();
-		switch (properties.getStrategy()) {
-		case RESTART_CONTEXT:
-			restarter.orElseThrow(() -> new AssertionError("Restart endpoint is not enabled"));
-			return new ConfigurationUpdateStrategy(strategyName, () -> {
-				wait(properties);
-				restarter.get().restart();
-			});
-		case REFRESH:
-			return new ConfigurationUpdateStrategy(strategyName, refresher::refresh);
-		case SHUTDOWN:
-			return new ConfigurationUpdateStrategy(strategyName, () -> {
+		String strategyName = properties.strategy().name();
+		return switch (properties.strategy()) {
+			case RESTART_CONTEXT -> {
+				restarter.orElseThrow(() -> new AssertionError("Restart endpoint is not enabled"));
+				yield new ConfigurationUpdateStrategy(strategyName, () -> {
+					wait(properties);
+					restarter.get().restart();
+				});
+			}
+			case REFRESH -> new ConfigurationUpdateStrategy(strategyName, refresher::refresh);
+			case SHUTDOWN -> new ConfigurationUpdateStrategy(strategyName, () -> {
 				wait(properties);
 				ctx.close();
 			});
-		}
-		throw new IllegalStateException("Unsupported configuration update strategy: " + strategyName);
+		};
 	}
 
 	private static void wait(ConfigReloadProperties properties) {
-		long waitMillis = ThreadLocalRandom.current().nextLong(properties.getMaxWaitForRestart().toMillis());
+		long waitMillis = ThreadLocalRandom.current().nextLong(properties.maxWaitForRestart().toMillis());
 		try {
 			Thread.sleep(waitMillis);
 		}

@@ -31,12 +31,15 @@ import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 /**
  * Auto configuration for discovery clients.
@@ -46,64 +49,35 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
+@ConditionalOnKubernetesDiscoveryEnabled
+@ConditionalOnBlockingDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
-@AutoConfigureAfter({ Fabric8AutoConfiguration.class })
+@AutoConfigureAfter({ Fabric8AutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
 public class KubernetesDiscoveryClientAutoConfiguration {
 
 	@Bean
-	public KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties) {
-		if (properties.getServiceLabels().isEmpty()) {
-			if (properties.isAllNamespaces()) {
-				return (client) -> client.services().inAnyNamespace();
-			}
-			else {
-				return KubernetesClient::services;
-			}
-		}
-		else {
-			if (properties.isAllNamespaces()) {
-				return (client) -> client.services().inAnyNamespace().withLabels(properties.getServiceLabels());
-			}
-			else {
-				return (client) -> client.services().withLabels(properties.getServiceLabels());
-			}
-		}
+	@ConditionalOnMissingBean
+	public KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties,
+			Environment environment) {
+		return KubernetesClientServicesFunctionProvider.servicesFunction(properties, environment);
 	}
 
 	@Bean
-	public KubernetesDiscoveryProperties getKubernetesDiscoveryProperties() {
-		return new KubernetesDiscoveryProperties();
+	@ConditionalOnMissingBean
+	public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
+			KubernetesDiscoveryProperties properties,
+			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
+		return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction, null,
+				new ServicePortSecureResolver(properties));
 	}
 
+	@Bean
 	@ConditionalOnClass({ HealthIndicator.class })
-	@ConditionalOnDiscoveryEnabled
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
-	@Configuration
-	public static class KubernetesDiscoveryClientHealthIndicatorConfiguration {
-
-		@Bean
-		public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
-				ApplicationEventPublisher applicationEventPublisher, PodUtils podUtils) {
-			return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
-		}
-
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnBlockingDiscoveryEnabled
-	@ConditionalOnKubernetesDiscoveryEnabled
-	public static class KubernetesDiscoveryClientConfiguration {
-
-		@Bean
-		@ConditionalOnMissingBean
-		public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
-				KubernetesDiscoveryProperties properties,
-				KubernetesClientServicesFunction kubernetesClientServicesFunction) {
-			return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction,
-					new ServicePortSecureResolver(properties));
-		}
-
+	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 
 }

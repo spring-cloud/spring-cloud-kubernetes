@@ -66,6 +66,11 @@ public class NamedConfigMapWithProfileConfigurationStub {
 
 	public static void stubData() {
 
+		// "one" and "oneFromK8s" also prove the fact that the right order is preserved:
+		// first non-profile based
+		// and only after profile based sources. Thus, properties from "one" are
+		// overridden by the ones from "oneFromK8s".
+		// We have a test that asserts this.
 		V1ConfigMap one = new V1ConfigMapBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-one").withNamespace("spring-k8s").build())
 				.addToData(Collections.singletonMap("one.property", "one")).build();

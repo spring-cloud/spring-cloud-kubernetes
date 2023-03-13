@@ -32,7 +32,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -47,7 +46,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -88,13 +86,8 @@ public class KubernetesClientLoadBalancerServiceModeTests {
 		assertThat(resp).isEqualTo("hello");
 	}
 
-	@RestController
 	@SpringBootApplication
 	static class App {
-
-		public static void main(String[] args) {
-			SpringApplication.run(App.class, args);
-		}
 
 		@Bean
 		public ApiClient apiClient() {

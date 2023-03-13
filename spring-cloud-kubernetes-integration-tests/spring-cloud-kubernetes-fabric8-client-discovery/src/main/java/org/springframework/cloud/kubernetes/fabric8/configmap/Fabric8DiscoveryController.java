@@ -18,8 +18,12 @@ package org.springframework.cloud.kubernetes.fabric8.configmap;
 
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.Endpoints;
+
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -37,6 +41,16 @@ public class Fabric8DiscoveryController {
 	@GetMapping("/services")
 	public List<String> allServices() {
 		return discoveryClient.getServices();
+	}
+
+	@GetMapping("/endpoints/{serviceId}")
+	public List<Endpoints> getEndPointsList(@PathVariable("serviceId") String serviceId) {
+		return discoveryClient.getEndPointsList(serviceId);
+	}
+
+	@GetMapping("/service-instances/{serviceId}")
+	public List<ServiceInstance> serviceInstances(@PathVariable("serviceId") String serviceId) {
+		return discoveryClient.getInstances(serviceId);
 	}
 
 }

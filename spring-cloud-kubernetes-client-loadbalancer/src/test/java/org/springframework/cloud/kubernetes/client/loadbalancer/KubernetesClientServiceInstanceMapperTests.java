@@ -26,6 +26,7 @@ import io.kubernetes.client.openapi.models.V1ServicePortBuilder;
 import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
@@ -40,9 +41,8 @@ class KubernetesClientServiceInstanceMapperTests {
 	@Test
 	void basicMap() {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
-				kubernetesDiscoveryProperties);
+				KubernetesDiscoveryProperties.DEFAULT);
 
 		V1Service service = new V1ServiceBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("database").withUid("0").withResourceVersion("0")
@@ -56,7 +56,7 @@ class KubernetesClientServiceInstanceMapperTests {
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put("org.springframework.cloud", "true");
 		metadata.put("beta", "true");
-		KubernetesServiceInstance result = new KubernetesServiceInstance("0", "database",
+		DefaultKubernetesServiceInstance result = new DefaultKubernetesServiceInstance("0", "database",
 				"database.default.svc.cluster.local", 80, metadata, false);
 		assertThat(serviceInstance).isEqualTo(result);
 	}
@@ -65,9 +65,8 @@ class KubernetesClientServiceInstanceMapperTests {
 	void multiportMap() {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		loadBalancerProperties.setPortName("https");
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
-				kubernetesDiscoveryProperties);
+				KubernetesDiscoveryProperties.DEFAULT);
 
 		V1Service service = new V1ServiceBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("database").withUid("0").withResourceVersion("0")
@@ -79,7 +78,7 @@ class KubernetesClientServiceInstanceMapperTests {
 				.build();
 
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
-		KubernetesServiceInstance result = new KubernetesServiceInstance("0", "database",
+		DefaultKubernetesServiceInstance result = new DefaultKubernetesServiceInstance("0", "database",
 				"database.default.svc.cluster.local", 443, new HashMap(), true);
 		assertThat(serviceInstance).isEqualTo(result);
 	}

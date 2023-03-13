@@ -19,13 +19,11 @@ package org.springframework.cloud.kubernetes.client.config;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
-import org.springframework.boot.BootstrapRegistry.InstanceSupplier;
 import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.logging.DeferredLogFactory;
-import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableConfigMapPropertySourceLocator;
@@ -38,6 +36,7 @@ import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource
 import org.springframework.core.env.Environment;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.kubernetesApiClient;
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.registerSingle;
 
 /**
  * @author Ryan Baxter
@@ -52,97 +51,52 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
 			Profiles profiles, KubernetesConfigDataLocationResolver.PropertyHolder propertyHolder,
 			KubernetesNamespaceProvider namespaceProvider) {
+		KubernetesClientProperties kubernetesClientProperties = propertyHolder.kubernetesClientProperties();
 		ConfigMapConfigProperties configMapProperties = propertyHolder.configMapConfigProperties();
 		SecretsConfigProperties secretsProperties = propertyHolder.secretsProperties();
 
 		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
-		ApiClient apiClient = kubernetesApiClient();
-		bootstrapContext.registerIfAbsent(ApiClient.class, InstanceSupplier.of(apiClient));
-		bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
-				.registerSingleton("configDataApiClient", event.getBootstrapContext().get(ApiClient.class)));
+		CoreV1Api coreV1Api = registerClientAndCoreV1Api(bootstrapContext, kubernetesClientProperties);
 
-		CoreV1Api coreV1Api = coreApi(apiClient);
-		bootstrapContext.registerIfAbsent(CoreV1Api.class, InstanceSupplier.of(coreV1Api));
-		bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
-				.registerSingleton("configCoreV1Api", event.getBootstrapContext().get(CoreV1Api.class)));
-
-		if (isRetryEnabled(configMapProperties, secretsProperties)) {
-			registerRetryBeans(configMapProperties, secretsProperties, bootstrapContext, coreV1Api, namespaceProvider);
-		}
-		else {
-			if (configMapProperties.isEnabled()) {
-				KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator = new KubernetesClientConfigMapPropertySourceLocator(
-						coreV1Api, configMapProperties, namespaceProvider);
-				bootstrapContext.registerIfAbsent(ConfigMapPropertySourceLocator.class,
-						InstanceSupplier.of(configMapPropertySourceLocator));
-				bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
-						.registerSingleton("configDataConfigMapPropertySourceLocator",
-								event.getBootstrapContext().get(ConfigMapPropertySourceLocator.class)));
-			}
-
-			if (secretsProperties.isEnabled()) {
-				KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator = new KubernetesClientSecretsPropertySourceLocator(
-						coreV1Api, namespaceProvider, secretsProperties);
-				bootstrapContext.registerIfAbsent(SecretsPropertySourceLocator.class,
-						InstanceSupplier.of(secretsPropertySourceLocator));
-				bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
-						.registerSingleton("configDataSecretsPropertySourceLocator",
-								event.getBootstrapContext().get(SecretsPropertySourceLocator.class)));
-			}
-		}
-	}
-
-	private void registerRetryBeans(ConfigMapConfigProperties configMapProperties,
-			SecretsConfigProperties secretsProperties, ConfigurableBootstrapContext bootstrapContext,
-			CoreV1Api coreV1Api, KubernetesNamespaceProvider namespaceProvider) {
-		if (configMapProperties.isEnabled()) {
+		if (configMapProperties != null && configMapProperties.enabled()) {
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator = new KubernetesClientConfigMapPropertySourceLocator(
 					coreV1Api, configMapProperties, namespaceProvider);
 			if (isRetryEnabledForConfigMap(configMapProperties)) {
 				configMapPropertySourceLocator = new ConfigDataRetryableConfigMapPropertySourceLocator(
-						configMapPropertySourceLocator, configMapProperties);
+						configMapPropertySourceLocator, configMapProperties, new KubernetesClientConfigMapsCache());
 			}
 
-			bootstrapContext.registerIfAbsent(ConfigMapPropertySourceLocator.class,
-					InstanceSupplier.of(configMapPropertySourceLocator));
-			bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory().registerSingleton(
-					"configDataConfigMapPropertySourceLocator",
-					event.getBootstrapContext().get(ConfigMapPropertySourceLocator.class)));
+			registerSingle(bootstrapContext, ConfigMapPropertySourceLocator.class, configMapPropertySourceLocator,
+					"configDataConfigMapPropertySourceLocator");
 		}
 
-		if (secretsProperties.isEnabled()) {
+		if (secretsProperties != null && secretsProperties.enabled()) {
 			SecretsPropertySourceLocator secretsPropertySourceLocator = new KubernetesClientSecretsPropertySourceLocator(
 					coreV1Api, namespaceProvider, secretsProperties);
 			if (isRetryEnabledForSecrets(secretsProperties)) {
 				secretsPropertySourceLocator = new ConfigDataRetryableSecretsPropertySourceLocator(
-						secretsPropertySourceLocator, secretsProperties);
+						secretsPropertySourceLocator, secretsProperties, new KubernetesClientSecretsCache());
 			}
 
-			bootstrapContext.registerIfAbsent(SecretsPropertySourceLocator.class,
-					InstanceSupplier.of(secretsPropertySourceLocator));
-			bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory().registerSingleton(
-					"configDataSecretsPropertySourceLocator",
-					event.getBootstrapContext().get(SecretsPropertySourceLocator.class)));
+			registerSingle(bootstrapContext, SecretsPropertySourceLocator.class, secretsPropertySourceLocator,
+					"configDataSecretsPropertySourceLocator");
 		}
 	}
 
-	protected ApiClient apiClient(KubernetesClientProperties properties) {
+	private CoreV1Api registerClientAndCoreV1Api(ConfigurableBootstrapContext bootstrapContext,
+			KubernetesClientProperties kubernetesClientProperties) {
 		ApiClient apiClient = kubernetesApiClient();
-		apiClient.setUserAgent(properties.getUserAgent());
-		return apiClient;
-	}
+		apiClient.setUserAgent(kubernetesClientProperties.userAgent());
+		registerSingle(bootstrapContext, ApiClient.class, apiClient, "configDataApiClient");
 
-	protected CoreV1Api coreApi(ApiClient apiClient) {
-		return new CoreV1Api(apiClient);
+		CoreV1Api coreV1Api = new CoreV1Api(apiClient);
+		registerSingle(bootstrapContext, CoreV1Api.class, coreV1Api, "configCoreV1Api");
+
+		return coreV1Api;
 	}
 
 	protected KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {
 		return new KubernetesNamespaceProvider(environment);
-	}
-
-	protected KubernetesClientPodUtils kubernetesPodUtils(CoreV1Api client,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		return new KubernetesClientPodUtils(client, kubernetesNamespaceProvider.getNamespace());
 	}
 
 }

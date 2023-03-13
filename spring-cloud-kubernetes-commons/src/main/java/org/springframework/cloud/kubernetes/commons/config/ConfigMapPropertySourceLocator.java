@@ -25,7 +25,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,10 +51,23 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 
 	private static final Log LOG = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
 
+	private final ConfigMapCache cache;
+
 	protected final ConfigMapConfigProperties properties;
 
+	/**
+	 * This constructor is deprecated, and we do not use it anymore internally. It will be
+	 * removed in the next major release.
+	 */
+	@Deprecated(forRemoval = true)
 	public ConfigMapPropertySourceLocator(ConfigMapConfigProperties properties) {
 		this.properties = properties;
+		this.cache = new ConfigMapCache.NOOPCache();
+	}
+
+	public ConfigMapPropertySourceLocator(ConfigMapConfigProperties properties, ConfigMapCache cache) {
+		this.properties = properties;
+		this.cache = cache;
 	}
 
 	protected abstract MapPropertySource getMapPropertySource(NormalizedSource normalizedSource,
@@ -66,7 +78,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 		if (environment instanceof ConfigurableEnvironment env) {
 
 			CompositePropertySource composite = new CompositePropertySource("composite-configmap");
-			if (this.properties.isEnableApi()) {
+			if (this.properties.enableApi()) {
 				Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources(environment));
 				LOG.debug("Config Map normalized sources : " + sources);
 				sources.forEach(s -> composite.addFirstPropertySource(getMapPropertySource(s, env)));
@@ -74,6 +86,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 
 			addPropertySourcesFromPaths(environment, composite);
 
+			cache.discardAll();
 			return composite;
 		}
 		return null;
@@ -85,7 +98,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	}
 
 	private void addPropertySourcesFromPaths(Environment environment, CompositePropertySource composite) {
-		Set<String> uniquePaths = new LinkedHashSet<>(properties.getPaths());
+		Set<String> uniquePaths = new LinkedHashSet<>(properties.paths());
 		uniquePaths.stream().map(Paths::get).filter(p -> {
 			boolean exists = Files.exists(p);
 			if (!exists) {
@@ -99,7 +112,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 				LOG.warn("Configured input path: " + p + " will be ignored because it is not a regular file");
 			}
 			return regular;
-		}).collect(Collectors.toList()).forEach(p -> {
+		}).toList().forEach(p -> {
 			try {
 				String content = new String(Files.readAllBytes(p)).trim();
 				String filename = p.toAbsolutePath().toString().toLowerCase();

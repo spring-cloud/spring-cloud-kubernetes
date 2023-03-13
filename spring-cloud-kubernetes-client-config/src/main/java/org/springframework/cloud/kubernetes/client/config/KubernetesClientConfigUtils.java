@@ -16,25 +16,23 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
-import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.core.env.Environment;
-import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
 
 /**
  * @author Ryan Baxter
@@ -51,41 +49,16 @@ public final class KubernetesClientConfigUtils {
 	}
 
 	/**
-	 * this method does the namespace resolution for both config map and secrets
-	 * implementations. It tries these places to find the namespace:
-	 *
-	 * <pre>
-	 *     1. from a normalized source (which can be null)
-	 *     2. from a property 'spring.cloud.kubernetes.client.namespace', if such is present
-	 *     3. from a String residing in a file denoted by `spring.cloud.kubernetes.client.serviceAccountNamespacePath`
-	 * 	      property, if such is present
-	 * 	   4. from a String residing in `/var/run/secrets/kubernetes.io/serviceaccount/namespace` file,
-	 * 	  	  if such is present (kubernetes default path)
-	 * </pre>
-	 *
-	 * If any of the above fail, we throw a NamespaceResolutionFailedException.
-	 * @param namespace normalized namespace
-	 * @param configurationTarget Config Map/Secret
-	 * @param provider the provider which computes the namespace
-	 * @return application namespace
-	 * @throws NamespaceResolutionFailedException when namespace could not be resolved
+	 * finds namespaces to be used for the event based reloading.
 	 */
-	static String getApplicationNamespace(String namespace, String configurationTarget,
-			KubernetesNamespaceProvider provider) {
-		if (StringUtils.hasText(namespace)) {
-			LOG.debug(configurationTarget + " namespace from normalized source or passed directly : " + namespace);
-			return namespace;
+	public static Set<String> namespaces(KubernetesNamespaceProvider provider, ConfigReloadProperties properties,
+			String target) {
+		Set<String> namespaces = properties.namespaces();
+		if (namespaces.isEmpty()) {
+			namespaces = Set.of(getApplicationNamespace(null, target, provider));
 		}
-
-		if (provider != null) {
-			String providerNamespace = provider.getNamespace();
-			if (StringUtils.hasText(providerNamespace)) {
-				LOG.debug(configurationTarget + " namespace from provider : " + namespace);
-				return providerNamespace;
-			}
-		}
-
-		throw new NamespaceResolutionFailedException("unresolved namespace");
+		LOG.debug("informer namespaces : " + namespaces);
+		return namespaces;
 	}
 
 	/**
@@ -98,16 +71,13 @@ public final class KubernetesClientConfigUtils {
 	 *     6. gather all the names of the secrets (from 4) + data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer secretsDataByLabels(CoreV1Api client, String namespace, Map<String, String> labels,
-			Environment environment, Set<String> profiles) {
-		List<V1Secret> secrets = secretsSearch(client, namespace);
-		if (ConfigUtils.noSources(secrets, namespace)) {
+	static MultipleSourcesContainer secretsDataByLabels(CoreV1Api coreV1Api, String namespace,
+			Map<String, String> labels, Environment environment, Set<String> profiles) {
+		List<StrippedSourceContainer> strippedSecrets = strippedSecrets(coreV1Api, namespace);
+		if (strippedSecrets.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
-
-		List<StrippedSourceContainer> strippedSources = strippedSecrets(secrets);
-		return ConfigUtils.processLabeledData(strippedSources, environment, labels, namespace, profiles, DECODE);
-
+		return ConfigUtils.processLabeledData(strippedSecrets, environment, labels, namespace, profiles, DECODE);
 	}
 
 	/**
@@ -120,16 +90,13 @@ public final class KubernetesClientConfigUtils {
 	 *     6. gather all the names of the config maps (from 4) + data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer configMapsDataByLabels(CoreV1Api client, String namespace,
+	static MultipleSourcesContainer configMapsDataByLabels(CoreV1Api coreV1Api, String namespace,
 			Map<String, String> labels, Environment environment, Set<String> profiles) {
-
-		List<V1ConfigMap> configMaps = configMapsSearch(client, namespace);
-		if (ConfigUtils.noSources(configMaps, namespace)) {
+		List<StrippedSourceContainer> strippedConfigMaps = strippedConfigMaps(coreV1Api, namespace);
+		if (strippedConfigMaps.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
-
-		List<StrippedSourceContainer> strippedSources = strippedConfigMaps(configMaps);
-		return ConfigUtils.processLabeledData(strippedSources, environment, labels, namespace, profiles, DECODE);
+		return ConfigUtils.processLabeledData(strippedConfigMaps, environment, labels, namespace, profiles, DECODE);
 	}
 
 	/**
@@ -140,16 +107,13 @@ public final class KubernetesClientConfigUtils {
 	 *     4. gather all the names of the secrets + decoded data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer secretsDataByName(CoreV1Api client, String namespace, Set<String> sourceNames,
-			Environment environment) {
-		List<V1Secret> secrets = secretsSearch(client, namespace);
-		if (ConfigUtils.noSources(secrets, namespace)) {
+	static MultipleSourcesContainer secretsDataByName(CoreV1Api coreV1Api, String namespace,
+			LinkedHashSet<String> sourceNames, Environment environment) {
+		List<StrippedSourceContainer> strippedSecrets = strippedSecrets(coreV1Api, namespace);
+		if (strippedSecrets.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
-
-		List<StrippedSourceContainer> strippedSources = strippedSecrets(secrets);
-		return ConfigUtils.processNamedData(strippedSources, environment, sourceNames, namespace, DECODE);
-
+		return ConfigUtils.processNamedData(strippedSecrets, environment, sourceNames, namespace, DECODE);
 	}
 
 	/**
@@ -160,52 +124,30 @@ public final class KubernetesClientConfigUtils {
 	 *     4. gather all the names of the config maps + data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer configMapsDataByName(CoreV1Api client, String namespace, Set<String> sourceNames,
-			Environment environment) {
-		List<V1ConfigMap> configMaps = configMapsSearch(client, namespace);
-		if (ConfigUtils.noSources(configMaps, namespace)) {
+	static MultipleSourcesContainer configMapsDataByName(CoreV1Api coreV1Api, String namespace,
+			LinkedHashSet<String> sourceNames, Environment environment) {
+		List<StrippedSourceContainer> strippedConfigMaps = strippedConfigMaps(coreV1Api, namespace);
+		if (strippedConfigMaps.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
-
-		List<StrippedSourceContainer> strippedSources = strippedConfigMaps(configMaps);
-		return ConfigUtils.processNamedData(strippedSources, environment, sourceNames, namespace, DECODE);
-
+		return ConfigUtils.processNamedData(strippedConfigMaps, environment, sourceNames, namespace, DECODE);
 	}
 
-	private static List<V1Secret> secretsSearch(CoreV1Api client, String namespace) {
-		LOG.debug("Loading all secrets in namespace '" + namespace + "'");
-		try {
-			return client.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
-					.getItems();
+	private static List<StrippedSourceContainer> strippedConfigMaps(CoreV1Api coreV1Api, String namespace) {
+		List<StrippedSourceContainer> strippedConfigMaps = KubernetesClientConfigMapsCache.byNamespace(coreV1Api,
+				namespace);
+		if (strippedConfigMaps.isEmpty()) {
+			LOG.debug("No configmaps in namespace '" + namespace + "'");
 		}
-		catch (ApiException apiException) {
-			throw new RuntimeException(apiException.getResponseBody(), apiException);
+		return strippedConfigMaps;
+	}
+
+	private static List<StrippedSourceContainer> strippedSecrets(CoreV1Api coreV1Api, String namespace) {
+		List<StrippedSourceContainer> strippedSecrets = KubernetesClientSecretsCache.byNamespace(coreV1Api, namespace);
+		if (strippedSecrets.isEmpty()) {
+			LOG.debug("No configmaps in namespace '" + namespace + "'");
 		}
-	}
-
-	private static List<V1ConfigMap> configMapsSearch(CoreV1Api client, String namespace) {
-		LOG.debug("Loading all config maps in namespace '" + namespace + "'");
-		try {
-			return client.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null, null)
-					.getItems();
-		}
-		catch (ApiException apiException) {
-			throw new RuntimeException(apiException.getResponseBody(), apiException);
-		}
-	}
-
-	private static List<StrippedSourceContainer> strippedSecrets(List<V1Secret> secrets) {
-		return secrets.stream().map(secret -> new StrippedSourceContainer(secret.getMetadata().getLabels(),
-				secret.getMetadata().getName(), transform(secret.getData()))).collect(Collectors.toList());
-	}
-
-	private static List<StrippedSourceContainer> strippedConfigMaps(List<V1ConfigMap> configMaps) {
-		return configMaps.stream().map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
-				configMap.getMetadata().getName(), configMap.getData())).collect(Collectors.toList());
-	}
-
-	private static Map<String, String> transform(Map<String, byte[]> in) {
-		return in.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, en -> new String(en.getValue())));
+		return strippedSecrets;
 	}
 
 }

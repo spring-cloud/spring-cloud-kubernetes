@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.kubernetes.fabric8.istio;
 
+import io.fabric8.istio.client.DefaultIstioClient;
+import io.fabric8.istio.client.IstioClient;
 import io.fabric8.kubernetes.client.Config;
-import me.snowdrop.istio.client.DefaultIstioClient;
-import me.snowdrop.istio.client.IstioClient;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

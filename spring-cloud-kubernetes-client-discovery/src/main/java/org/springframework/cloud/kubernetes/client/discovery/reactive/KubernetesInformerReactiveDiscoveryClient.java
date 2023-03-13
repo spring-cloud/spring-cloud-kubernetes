@@ -27,7 +27,6 @@ import reactor.core.scheduler.Schedulers;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.util.Assert;
@@ -37,17 +36,7 @@ import org.springframework.util.Assert;
  */
 public class KubernetesInformerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
 
-	private KubernetesInformerDiscoveryClient kubernetesDiscoveryClient;
-
-	@Deprecated
-	public KubernetesInformerReactiveDiscoveryClient(KubernetesClientProperties kubernetesClientProperties,
-			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
-			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
-			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
-		this.kubernetesDiscoveryClient = new KubernetesInformerDiscoveryClient(
-				kubernetesClientProperties.getNamespace(), sharedInformerFactory, serviceLister, endpointsLister,
-				serviceInformer, endpointsInformer, properties);
-	}
+	private final KubernetesInformerDiscoveryClient kubernetesDiscoveryClient;
 
 	public KubernetesInformerReactiveDiscoveryClient(KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,

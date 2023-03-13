@@ -1,0 +1,2 @@
+org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration
+org.springframework.cloud.kubernetes.client.KubernetesClientActuatorConfiguration

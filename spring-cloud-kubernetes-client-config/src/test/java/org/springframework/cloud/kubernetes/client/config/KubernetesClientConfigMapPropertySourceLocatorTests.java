@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.client.config;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -34,10 +35,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -96,8 +97,8 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
-		configMapConfigProperties.setName("bootstrap-640");
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
+				Map.of(), true, "bootstrap-640", null, false, false, false, RetryProperties.DEFAULT);
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", "default");
 		PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
@@ -111,15 +112,12 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
-		configMapConfigProperties.setName("fake-name");
-		ConfigMapConfigProperties.Source source = new ConfigMapConfigProperties.Source();
-		source.setName("bootstrap-640");
-		source.setNamespace("default");
-		List<ConfigMapConfigProperties.Source> sources = Collections.singletonList(source);
-		configMapConfigProperties.setSources(sources);
-		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
-		kubernetesClientProperties.setNamespace("dev");
+
+		ConfigMapConfigProperties.Source source = new ConfigMapConfigProperties.Source("bootstrap-640", "default",
+				Collections.emptyMap(), null, null, null);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+				List.of(source), Map.of(), true, "fake-name", null, false, false, false, RetryProperties.DEFAULT);
+
 		PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment())).locate(ENV);
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
@@ -138,10 +136,10 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
-		configMapConfigProperties.setName("bootstrap-640");
-		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
-		kubernetesClientProperties.setNamespace(""); // empty on purpose
+
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
+				Map.of(), true, "bootstrap-640", null, false, false, false, RetryProperties.DEFAULT);
+
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
 				new KubernetesNamespaceProvider(new MockEnvironment())).locate(ENV))
 						.isInstanceOf(NamespaceResolutionFailedException.class);
@@ -159,10 +157,8 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
-		configMapConfigProperties.setName("bootstrap-640");
-		KubernetesClientProperties kubernetesClientProperties = new KubernetesClientProperties();
-		kubernetesClientProperties.setNamespace(""); // empty on purpose
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
+				Map.of(), true, "bootstrap-640", null, false, false, false, RetryProperties.DEFAULT);
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
 				new KubernetesNamespaceProvider(ENV)).locate(ENV))
 						.isInstanceOf(NamespaceResolutionFailedException.class);
@@ -174,10 +170,8 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
-		configMapConfigProperties.setName("bootstrap-640");
-		configMapConfigProperties.setNamespace("default");
-		configMapConfigProperties.setFailFast(true);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
+				Map.of(), true, "bootstrap-640", "default", false, false, true, RetryProperties.DEFAULT);
 
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -192,10 +186,8 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 				.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties();
-		configMapConfigProperties.setName("bootstrap-640");
-		configMapConfigProperties.setNamespace("default");
-		configMapConfigProperties.setFailFast(false);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
+				Map.of(), true, "bootstrap-640", "default", false, false, false, RetryProperties.DEFAULT);
 
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));

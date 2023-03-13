@@ -18,14 +18,16 @@ package org.springframework.cloud.kubernetes.fabric8.configmap;
 
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -36,9 +38,11 @@ import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Fabric8Utils;
-import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -54,17 +58,7 @@ class Fabric8DiscoveryIT {
 
 	private static KubernetesClient client;
 
-	private static String deploymentName;
-
-	private static String serviceName;
-
-	private static String ingressName;
-
-	private static String mockServiceName;
-
-	private static String mockDeploymentName;
-
-	private static String mockDeploymentImage;
+	private static Util util;
 
 	private static final K3sContainer K3S = Commons.container();
 
@@ -74,127 +68,95 @@ class Fabric8DiscoveryIT {
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
-		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
-		client = new DefaultKubernetesClient(config);
-		Fabric8Utils.setUp(client, NAMESPACE);
+		util = new Util(K3S);
+		client = util.client();
 
-		deployManifests();
-		deployMockManifests();
+		util.setUp(NAMESPACE);
+
+		manifests(Phase.CREATE);
+		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE);
 	}
 
 	@AfterAll
 	static void after() throws Exception {
-		deleteManifests();
+		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE);
+		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
-		Commons.cleanUpDownloadedImage(mockDeploymentImage);
+	}
+
+	/**
+	 * KubernetesDiscoveryClient::getServices call must include the external-name-service
+	 * also.
+	 */
+	@Test
+	void testAllServices() {
+		WebClient client = builder().baseUrl("http://localhost/services").build();
+
+		List<String> result = client.method(HttpMethod.GET).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+
+				}).retryWhen(retrySpec()).block();
+
+		Assertions.assertEquals(result.size(), 4);
+		Assertions.assertTrue(result.contains("kubernetes"));
+		Assertions.assertTrue(result.contains("spring-cloud-kubernetes-fabric8-client-discovery"));
+		Assertions.assertTrue(result.contains("service-wiremock"));
+		Assertions.assertTrue(result.contains("external-name-service"));
 	}
 
 	@Test
-	void test() {
-		WebClient client = builder().baseUrl("localhost/services").build();
+	void testExternalNameServiceInstance() {
 
-		@SuppressWarnings("unchecked")
-		List<String> result = (List<String>) client.method(HttpMethod.GET).retrieve().bodyToMono(List.class)
-				.retryWhen(retrySpec()).block();
+		WebClient client = builder().baseUrl("http://localhost/service-instances/external-name-service").build();
+		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-		Assertions.assertEquals(result.size(), 3);
-		Assertions.assertTrue(result.contains("kubernetes"));
-		Assertions.assertTrue(result.contains("spring-cloud-kubernetes-fabric8-client-discovery"));
-		Assertions.assertTrue(result.contains("servicea-wiremock"));
+				}).retryWhen(retrySpec()).block();
+
+		DefaultKubernetesServiceInstance result = serviceInstances.get(0);
+
+		Assertions.assertEquals(serviceInstances.size(), 1);
+		Assertions.assertEquals(result.getServiceId(), "external-name-service");
+		Assertions.assertNotNull(result.getInstanceId());
+		Assertions.assertEquals(result.getHost(), "spring.io");
+		Assertions.assertEquals(result.getPort(), -1);
+		Assertions.assertEquals(result.getMetadata(), Map.of("k8s_namespace", "default", "type", "ExternalName"));
+		Assertions.assertFalse(result.isSecure());
+		Assertions.assertEquals(result.getUri().toASCIIString(), "spring.io");
+		Assertions.assertEquals(result.getScheme(), "http");
 	}
 
-	private static void deleteManifests() {
+	private static void manifests(Phase phase) {
 
-		try {
+		InputStream deploymentStream = util.inputStream("fabric8-discovery-deployment.yaml");
+		InputStream serviceStream = util.inputStream("fabric8-discovery-service.yaml");
+		InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
+		InputStream externalNameServiceInputStream = util.inputStream("external-name-service.yaml");
 
-			client.apps().deployments().inNamespace(NAMESPACE).withName(deploymentName).delete();
-			client.services().inNamespace(NAMESPACE).withName(serviceName).delete();
-			client.network().v1().ingresses().inNamespace(NAMESPACE).withName(ingressName).delete();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
 
-			client.services().inNamespace(NAMESPACE).withName(mockServiceName).delete();
-			client.apps().deployments().inNamespace(NAMESPACE).withName(mockDeploymentName).delete();
+		List<EnvVar> existing = new ArrayList<>(
+				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
+		existing.add(new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_INCLUDEEXTERNALNAMESERVICES")
+				.withValue("true").build());
+		existing.add(
+				new EnvVarBuilder().withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY")
+						.withValue("DEBUG").build());
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
 
+		Service service = client.services().load(serviceStream).get();
+		Service externalNameService = client.services().load(externalNameServiceInputStream).get();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
+
+		if (phase.equals(Phase.CREATE)) {
+			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, null, null, externalNameService, null, false);
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-	}
-
-	private static void deployManifests() {
-
-		try {
-
-			Deployment deployment = client.apps().deployments().load(getDeployment()).get();
-
-			String version = K8SUtils.getPomVersion();
-			String currentImage = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
-			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(currentImage + ":" + version);
-
-			client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
-			deploymentName = deployment.getMetadata().getName();
-
-			Service service = client.services().load(getService()).get();
-			serviceName = service.getMetadata().getName();
-			client.services().inNamespace(NAMESPACE).create(service);
-
-			Ingress ingress = client.network().v1().ingresses().load(getIngress()).get();
-			ingressName = ingress.getMetadata().getName();
-			client.network().v1().ingresses().inNamespace(NAMESPACE).create(ingress);
-
-			Fabric8Utils.waitForDeployment(client, "spring-cloud-kubernetes-fabric8-client-discovery-deployment",
-					NAMESPACE, 2, 600);
-
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+		else {
+			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			util.deleteAndWait(NAMESPACE, null, externalNameService, null);
 		}
 
-	}
-
-	private static void deployMockManifests() {
-
-		try {
-
-			Deployment deployment = client.apps().deployments().load(getMockDeployment()).get();
-			String[] image = K8SUtils.getImageFromDeployment(deployment).split(":");
-			Commons.pullImage(image[0], image[1], K3S);
-			Commons.loadImage(image[0], image[1], "wiremock", K3S);
-			client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
-			mockDeploymentName = deployment.getMetadata().getName();
-			mockDeploymentImage = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
-
-			Service service = client.services().load(getMockService()).get();
-			mockServiceName = service.getMetadata().getName();
-			client.services().inNamespace(NAMESPACE).create(service);
-
-			Fabric8Utils.waitForDeployment(client, "servicea-wiremock-deployment", NAMESPACE, 2, 600);
-
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-	}
-
-	private static InputStream getService() {
-		return Fabric8Utils.inputStream("fabric8-discovery-service.yaml");
-	}
-
-	private static InputStream getDeployment() {
-		return Fabric8Utils.inputStream("fabric8-discovery-deployment.yaml");
-	}
-
-	private static InputStream getIngress() {
-		return Fabric8Utils.inputStream("fabric8-discovery-ingress.yaml");
-	}
-
-	private static InputStream getMockService() {
-		return Fabric8Utils.inputStream("wiremock/fabric8-discovery-wiremock-service.yaml");
-	}
-
-	private static InputStream getMockDeployment() {
-		return Fabric8Utils.inputStream("wiremock/fabric8-discovery-wiremock-deployment.yaml");
 	}
 
 	private WebClient.Builder builder() {

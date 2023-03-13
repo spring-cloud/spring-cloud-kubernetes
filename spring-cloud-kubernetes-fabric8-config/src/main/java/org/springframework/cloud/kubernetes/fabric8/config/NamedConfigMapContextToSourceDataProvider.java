@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.Set;
+import java.util.LinkedHashSet;
 import java.util.function.Supplier;
 
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
@@ -50,7 +50,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 
 			return new NamedSourceData() {
 				@Override
-				public MultipleSourcesContainer dataSupplier(Set<String> sourceNames) {
+				public MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames) {
 					return Fabric8ConfigUtils.configMapsDataByName(context.client(), context.namespace(), sourceNames,
 							context.environment());
 				}

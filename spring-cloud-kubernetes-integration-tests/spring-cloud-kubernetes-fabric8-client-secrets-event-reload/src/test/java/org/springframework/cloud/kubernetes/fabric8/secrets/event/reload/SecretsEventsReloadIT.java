@@ -28,10 +28,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.base.HasMetadataOperation;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -42,8 +39,8 @@ import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Fabric8Utils;
-import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -61,13 +58,7 @@ class SecretsEventsReloadIT {
 
 	private static KubernetesClient client;
 
-	private static String deploymentName;
-
-	private static String serviceName;
-
-	private static String ingressName;
-
-	private static String secretName;
+	private static Util util;
 
 	private static final K3sContainer K3S = Commons.container();
 
@@ -76,22 +67,24 @@ class SecretsEventsReloadIT {
 		K3S.start();
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
-		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
-		client = new DefaultKubernetesClient(config);
-		Fabric8Utils.setUp(client, NAMESPACE);
-		deployManifests();
+
+		util = new Util(K3S);
+		client = util.client();
+		util.setUp(NAMESPACE);
+		manifests(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void after() throws Exception {
-		deleteManifests();
+		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
-	@SuppressWarnings({ "raw", "unchecked" })
 	@Test
 	void test() {
-		WebClient webClient = builder().baseUrl("localhost/key").build();
+		Commons.assertReloadLogStatements("added secret informer for namespace",
+				"added configmap informer for namespace", IMAGE_NAME);
+		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
@@ -106,81 +99,34 @@ class SecretsEventsReloadIT {
 						Base64.getEncoder().encodeToString("from.properties.key=after-change".getBytes())))
 				.build();
 
-		// the weird cast comes from :
-		// https://github.com/fabric8io/kubernetes-client/issues/2445
-		((HasMetadataOperation) client.secrets().inNamespace("default").withName("event-reload"))
-				.createOrReplace(secret);
+		client.secrets().inNamespace("default").resource(secret).createOrReplace();
 
 		await().timeout(Duration.ofSeconds(120)).until(() -> webClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("after-change"));
 
 	}
 
-	private static void deleteManifests() {
+	private static void manifests(Phase phase) {
 
-		try {
+		InputStream deploymentStream = util.inputStream("deployment.yaml");
+		InputStream serviceStream = util.inputStream("service.yaml");
+		InputStream ingressStream = util.inputStream("ingress.yaml");
+		InputStream secretStream = util.inputStream("secret.yaml");
 
-			client.secrets().inNamespace(NAMESPACE).withName(secretName).delete();
-			client.apps().deployments().inNamespace(NAMESPACE).withName(deploymentName).delete();
-			client.services().inNamespace(NAMESPACE).withName(serviceName).delete();
-			client.network().v1().ingresses().inNamespace(NAMESPACE).withName(ingressName).delete();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
+		Service service = client.services().load(serviceStream).get();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
+		Secret secret = client.secrets().load(secretStream).get();
 
+		if (phase.equals(Phase.CREATE)) {
+			util.createAndWait(NAMESPACE, null, secret);
+			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-	}
-
-	private static void deployManifests() {
-
-		try {
-
-			Secret configMap = client.secrets().load(getSecret()).get();
-			secretName = configMap.getMetadata().getName();
-			client.secrets().create(configMap);
-
-			Deployment deployment = client.apps().deployments().load(getDeployment()).get();
-
-			String version = K8SUtils.getPomVersion();
-			String currentImage = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
-			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(currentImage + ":" + version);
-
-			client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
-			deploymentName = deployment.getMetadata().getName();
-
-			Service service = client.services().load(getService()).get();
-			serviceName = service.getMetadata().getName();
-			client.services().inNamespace(NAMESPACE).create(service);
-
-			Ingress ingress = client.network().v1().ingresses().load(getIngress()).get();
-			ingressName = ingress.getMetadata().getName();
-			client.network().v1().ingresses().inNamespace(NAMESPACE).create(ingress);
-
-			Fabric8Utils.waitForDeployment(client,
-					"spring-cloud-kubernetes-fabric8-client-secrets-deployment-event-reload", NAMESPACE, 2, 600);
-
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+		else {
+			util.deleteAndWait(NAMESPACE, null, secret);
+			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 
-	}
-
-	private static InputStream getService() {
-		return Fabric8Utils.inputStream("service.yaml");
-	}
-
-	private static InputStream getDeployment() {
-		return Fabric8Utils.inputStream("deployment.yaml");
-	}
-
-	private static InputStream getIngress() {
-		return Fabric8Utils.inputStream("ingress.yaml");
-	}
-
-	private static InputStream getSecret() {
-		return Fabric8Utils.inputStream("secret.yaml");
 	}
 
 	private WebClient.Builder builder() {

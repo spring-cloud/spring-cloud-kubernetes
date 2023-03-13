@@ -50,10 +50,10 @@ public class Fabric8PodReadinessWatcherTest {
 	private KubernetesClient mockKubernetesClient;
 
 	@Mock
-	private MixedOperation<Pod, PodList, PodResource<Pod>> mockPodsOperation;
+	private MixedOperation<Pod, PodList, PodResource> mockPodsOperation;
 
 	@Mock
-	private PodResource<Pod> mockPodResource;
+	private PodResource mockPodResource;
 
 	@Mock
 	private Pod mockPod;

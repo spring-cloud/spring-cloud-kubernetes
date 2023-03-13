@@ -75,14 +75,14 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 	}
 
 	@Override
-	public Boolean isInsideKubernetes() {
+	public boolean isInsideKubernetes() {
 		return currentPod().get() != null;
 	}
 
 	private V1Pod internalGetPod() {
 		try {
 			if (isServiceHostEnvVarPresent() && isHostNameEnvVarPresent() && isServiceAccountFound()) {
-				return client.readNamespacedPod(hostName, namespace, null, null, null);
+				return client.readNamespacedPod(hostName, namespace, null);
 			}
 		}
 		catch (Throwable t) {

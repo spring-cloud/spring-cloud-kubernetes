@@ -5,15 +5,13 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-kubernetes-controllers</artifactId>
-		<version>3.0.0-SNAPSHOT</version>
+		<version>3.0.2-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-kubernetes-configuration-watcher</artifactId>
 
 	<properties>
-		<jib.version>1.8.0</jib.version>
-		<base.image>openjdk:8u222-slim</base.image>
 		<docker.registry.organization>springcloud</docker.registry.organization>
 		<plexus-archiver.version>4.1.0</plexus-archiver.version>
 	</properties>
@@ -21,15 +19,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-kubernetes-fabric8-config</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-kubernetes-fabric8-all</artifactId>
+			<artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -52,12 +42,20 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+			<!-- In favor of mockito-inline -->
+			<exclusions>
+				<exclusion>
+					<groupId>org.mockito</groupId>
+					<artifactId>mockito-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-		<!--<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-contract-stub-runner</artifactId>
+		<dependency>
+			<groupId>com.github.tomakehurst</groupId>
+			<artifactId>wiremock-jre8-standalone</artifactId>
 			<scope>test</scope>
-		</dependency>-->
+		</dependency>
+
 		<dependency>
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-test</artifactId>
@@ -71,6 +69,11 @@
 		<dependency>
 			<groupId>org.junit.vintage</groupId>
 			<artifactId>junit-vintage-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-inline</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -88,9 +91,20 @@
 				</configuration>
 				<executions>
 					<execution>
+						<id>build-image</id>
+						<configuration>
+							<skip>${skip.build.image}</skip>
+						</configuration>
 						<phase>package</phase>
 						<goals>
 							<goal>build-image</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>repackage</id>
+						<phase>package</phase>
+						<goals>
+							<goal>repackage</goal>
 						</goals>
 					</execution>
 				</executions>
@@ -137,39 +151,6 @@
 			<properties>
 				<env.IMAGE>springcloud/${project.artifactId}:${project.version}</env.IMAGE>
 			</properties>
-		</profile>
-		<profile>
-			<id>jib</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.google.cloud.tools</groupId>
-						<artifactId>jib-maven-plugin</artifactId>
-						<version>${jib.version}</version>
-						<configuration>
-							<from>
-								<image>${base.image}</image>
-							</from>
-							<to>
-								<image>spring-cloud/${project.artifactId}</image>
-							</to>
-							<container>
-								<user>nobody:nogroup</user>
-								<environment>
-								</environment>
-							</container>
-						</configuration>
-						<executions>
-							<execution>
-								<phase>package</phase>
-								<goals>
-									<goal>dockerBuild</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
 		</profile>
 	</profiles>
 

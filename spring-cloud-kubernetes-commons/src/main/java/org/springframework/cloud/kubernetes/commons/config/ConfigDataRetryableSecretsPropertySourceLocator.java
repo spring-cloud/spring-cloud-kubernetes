@@ -20,7 +20,6 @@ import java.util.Collection;
 
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
-import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.retry.support.RetryTemplate;
 
@@ -31,17 +30,32 @@ import org.springframework.retry.support.RetryTemplate;
  */
 public class ConfigDataRetryableSecretsPropertySourceLocator extends SecretsPropertySourceLocator {
 
-	private RetryTemplate retryTemplate;
+	private final RetryTemplate retryTemplate;
 
 	private SecretsPropertySourceLocator secretsPropertySourceLocator;
 
+	/**
+	 * This constructor is deprecated, and we do not use it anymore internally. It will be
+	 * removed in the next major release.
+	 */
+	@Deprecated(forRemoval = true)
 	public ConfigDataRetryableSecretsPropertySourceLocator(SecretsPropertySourceLocator propertySourceLocator,
 			SecretsConfigProperties secretsConfigProperties) {
 		super(secretsConfigProperties);
 		this.secretsPropertySourceLocator = propertySourceLocator;
-		this.retryTemplate = RetryTemplate.builder().maxAttempts(properties.getRetry().getMaxAttempts())
-				.exponentialBackoff(properties.getRetry().getInitialInterval(), properties.getRetry().getMultiplier(),
-						properties.getRetry().getMaxInterval())
+		this.retryTemplate = RetryTemplate.builder().maxAttempts(properties.retry().maxAttempts())
+				.exponentialBackoff(properties.retry().initialInterval(), properties.retry().multiplier(),
+						properties.retry().maxInterval())
+				.build();
+	}
+
+	public ConfigDataRetryableSecretsPropertySourceLocator(SecretsPropertySourceLocator propertySourceLocator,
+			SecretsConfigProperties secretsConfigProperties, SecretsCache cache) {
+		super(secretsConfigProperties, cache);
+		this.secretsPropertySourceLocator = propertySourceLocator;
+		this.retryTemplate = RetryTemplate.builder().maxAttempts(properties.retry().maxAttempts())
+				.exponentialBackoff(properties.retry().initialInterval(), properties.retry().multiplier(),
+						properties.retry().maxInterval())
 				.build();
 	}
 
@@ -56,7 +70,7 @@ public class ConfigDataRetryableSecretsPropertySourceLocator extends SecretsProp
 	}
 
 	@Override
-	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment,
+	protected SecretsPropertySource getPropertySource(ConfigurableEnvironment environment,
 			NormalizedSource normalizedSource) {
 		return this.secretsPropertySourceLocator.getPropertySource(environment, normalizedSource);
 	}

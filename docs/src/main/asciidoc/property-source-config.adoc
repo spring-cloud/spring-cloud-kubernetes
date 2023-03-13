@@ -10,7 +10,7 @@ Currently you can not specify a ConfigMap or Secret to load using `spring.config
 will load a ConfigMap and/or Secret based on the `spring.application.name` property.  If `spring.application.name` is not set it will
 load a ConfigMap and/or Secret with the name `application`.
 
-If you would like to load Kubernetes `PropertySource`s during the bootstrap phase like it worked prior to the 3.0.x release
+If you would like to load Kubernetes ``PropertySource``s during the bootstrap phase like it worked prior to the 3.0.x release
 you can either add `spring-cloud-starter-bootstrap` to your application's classpath or set `spring.cloud.bootstrap.enabled=true`
 as an environment variable.
 
@@ -868,6 +868,8 @@ The reload feature of Spring Cloud Kubernetes is able to trigger an application 
 `Secret` changes.
 
 By default, this feature is disabled. You can enable it by using the `spring.cloud.kubernetes.reload.enabled=true` configuration property (for example, in the `application.properties` file).
+Please notice that this will enable monitoring of configmaps only (i.e.: `spring.cloud.kubernetes.reload.monitoring-config-maps` will be set to `true`).
+If you want to enable monitoring of secrets, this must be done explicitly via : `spring.cloud.kubernetes.reload.monitoring-secrets=true`.
 
 The following levels of reload are supported (by setting the `spring.cloud.kubernetes.reload.strategy` property):
 
@@ -953,6 +955,7 @@ field of the `@ConfigurationProperties` annotation are detected and reflected in
 The full example is available in https://github.com/spring-cloud/spring-cloud-kubernetes/tree/main/spring-cloud-kubernetes-examples/kubernetes-reload-example[`spring-cloud-kubernetes-reload-example`].
 
 The reload feature supports two operating modes:
+
 * Event (default): Watches for changes in config maps or secrets by using the Kubernetes API (web socket).
 Any event produces a re-check on the configuration and, in case of changes, a reload.
 The `view` role on the service account is required in order to listen for config map changes. A higher level role (such as `edit`) is required for secrets
@@ -962,6 +965,57 @@ You can configure the polling period by using the `spring.cloud.kubernetes.reloa
 It requires the same role as the monitored property source.
 This means, for example, that using polling on file-mounted secret sources does not require particular privileges.
 
+[[namespace-label-filtering]]
+=== Reload namespace and label filtering
+By default, a namespace chosen using the steps outlined in <<namespace-resolution,Namespace resolution>> will be used to listen to changes
+in configmaps and secrets. i.e.: if you do not tell reload what namespaces and configmaps/secrets to watch for,
+it will watch all configmaps/secrets from the namespace that will be computed using the above algorithm.
+
+On the other hand, you can define a more fine-grained approach. For example, you can specify the namespaces where
+changes will be monitored:
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: event-reload
+  cloud:
+    kubernetes:
+      reload:
+        enabled: true
+        strategy: shutdown
+        mode: event
+        namespaces:
+          - my-namespace
+----
+====
+
+Such a configuration will make the app watch changes only in the `my-namespace` namespace. Mind that this will
+watch _all_ configmaps/secrets (depending on which one you enable). If you want an even more fine-grained approach,
+you can enable "label-filtering". First we need to enable such support via : `enable-reload-filtering: true`
+
+====
+[source,yaml]
+----
+spring:
+  application:
+    name: event-reload
+  cloud:
+    kubernetes:
+      reload:
+        enabled: true
+        strategy: shutdown
+        mode: event
+        namespaces:
+          - my-namespaces
+        monitoring-config-maps: true
+        enable-reload-filtering: true
+----
+====
+
+What this will do, is watch configmaps/secrets that only have the `spring.cloud.kubernetes.config.informer.enabled: true` label.
+
 .Properties:
 [options="header,footer"]
 |===
@@ -969,11 +1023,14 @@ This means, for example, that using polling on file-mounted secret sources does 
 | `spring.cloud.kubernetes.reload.enabled`                 | `Boolean` | `false`                      | Enables monitoring of property sources and configuration reload
 | `spring.cloud.kubernetes.reload.monitoring-config-maps`  | `Boolean` | `true`                       | Allow monitoring changes in config maps
 | `spring.cloud.kubernetes.reload.monitoring-secrets`      | `Boolean` | `false`                      | Allow monitoring changes in secrets
-| `spring.cloud.kubernetes.reload.strategy`               | `Enum`    | `refresh`                    | The strategy to use when firing a reload (`refresh`, `restart_context`, or `shutdown`)
+| `spring.cloud.kubernetes.reload.strategy`                | `Enum`    | `refresh`                    | The strategy to use when firing a reload (`refresh`, `restart_context`, or `shutdown`)
 | `spring.cloud.kubernetes.reload.mode`                    | `Enum`    | `event`                      | Specifies how to listen for changes in property sources (`event` or `polling`)
 | `spring.cloud.kubernetes.reload.period`                  | `Duration`| `15s`                        | The period for verifying changes when using the `polling` strategy
+| `spring.cloud.kubernetes.reload.namespaces`              | `String[]`|                              | namespaces where we should watch for changes
+| `spring.cloud.kubernetes.reload.enable-reload-filtering` | `String`  |                              | enabled labeled filtering for reload functionality
 |===
 
 Notes:
+
 * You should not use properties under `spring.cloud.kubernetes.reload` in config maps or secrets. Changing such properties at runtime may lead to unexpected results.
 * Deleting a property or the whole config map does not restore the original state of the beans when you use the `refresh` level.

@@ -18,17 +18,20 @@ package org.springframework.cloud.kubernetes.client.loadbalancer.it;
 
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,13 +41,11 @@ import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Fabric8Utils;
-import org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author wind57
@@ -57,17 +58,7 @@ public class Fabric8ClientLoadbalancerIT {
 
 	private static KubernetesClient client;
 
-	private static String deploymentName;
-
-	private static String serviceName;
-
-	private static String ingressName;
-
-	private static String mockServiceName;
-
-	private static String mockDeploymentName;
-
-	private static String mockIngressName;
+	private static Util util;
 
 	private static final K3sContainer K3S = Commons.container();
 
@@ -77,9 +68,9 @@ public class Fabric8ClientLoadbalancerIT {
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
-		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
-		client = new DefaultKubernetesClient(config);
-		Fabric8Utils.setUp(client, NAMESPACE);
+		util = new Util(K3S);
+		client = util.client();
+		util.setUp(NAMESPACE);
 	}
 
 	@AfterAll
@@ -89,181 +80,77 @@ public class Fabric8ClientLoadbalancerIT {
 
 	@BeforeEach
 	void beforeEach() {
-		deployMockManifests();
+		util.wiremock(NAMESPACE, "/", Phase.CREATE);
 	}
 
 	@AfterEach
-	void after() {
-		deleteManifests();
+	void afterEach() {
+		util.wiremock(NAMESPACE, "/", Phase.DELETE);
 	}
 
 	@Test
 	void testLoadBalancerServiceMode() {
 
-		deployServiceManifests();
+		manifests("SERVICE", Phase.CREATE);
 
-		WebClient client = builder().baseUrl("localhost/loadbalancer-it/servicea").build();
+		WebClient client = builder().baseUrl("http://localhost/loadbalancer-it/servicea").build();
 
 		@SuppressWarnings("unchecked")
 		Map<String, String> mapResult = (Map<String, String>) client.method(HttpMethod.GET).retrieve()
 				.bodyToMono(Map.class).retryWhen(retrySpec()).block();
 
-		assertThat(mapResult.containsKey("mappings")).isTrue();
-		assertThat(mapResult.containsKey("meta")).isTrue();
+		Assertions.assertTrue(mapResult.containsKey("mappings"));
+		Assertions.assertTrue(mapResult.containsKey("meta"));
+
+		manifests("SERVICE", Phase.DELETE);
 
 	}
 
 	@Test
 	public void testLoadBalancerPodMode() {
 
-		deployPodManifests();
+		manifests("POD", Phase.CREATE);
 
-		WebClient client = builder().baseUrl("localhost/loadbalancer-it/servicea").build();
+		WebClient client = builder().baseUrl("http://localhost/loadbalancer-it/servicea").build();
 
 		@SuppressWarnings("unchecked")
 		Map<String, String> mapResult = (Map<String, String>) client.method(HttpMethod.GET).retrieve()
 				.bodyToMono(Map.class).retryWhen(retrySpec()).block();
 
-		assertThat(mapResult.containsKey("mappings")).isTrue();
-		assertThat(mapResult.containsKey("meta")).isTrue();
+		Assertions.assertTrue(mapResult.containsKey("mappings"));
+		Assertions.assertTrue(mapResult.containsKey("meta"));
+
+		manifests("SERVICE", Phase.DELETE);
 
 	}
 
-	private static void deleteManifests() {
+	private static void manifests(String type, Phase phase) {
 
-		try {
+		InputStream deploymentStream = util
+				.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-deployment.yaml");
+		InputStream serviceStream = util
+				.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-service.yaml");
+		InputStream ingressStream = util
+				.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-ingress.yaml");
 
-			client.apps().deployments().inNamespace(NAMESPACE).withName(deploymentName).delete();
-			client.services().inNamespace(NAMESPACE).withName(serviceName).delete();
-			client.network().v1().ingresses().inNamespace(NAMESPACE).withName(ingressName).delete();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
+		List<EnvVar> envVars = new ArrayList<>(
+				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
+		EnvVar activeProfileProperty = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_LOADBALANCER_MODE")
+				.withValue(type).build();
+		envVars.add(activeProfileProperty);
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-			client.services().inNamespace(NAMESPACE).withName(mockServiceName).delete();
-			client.apps().deployments().inNamespace(NAMESPACE).withName(mockDeploymentName).delete();
-			client.network().v1().ingresses().inNamespace(NAMESPACE).withName(mockIngressName).delete();
+		Service service = client.services().load(serviceStream).get();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
 
+		if (phase.equals(Phase.CREATE)) {
+			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-	}
-
-	private static void deployServiceManifests() {
-
-		try {
-
-			Deployment deployment = client.apps().deployments().load(getServiceDeployment()).get();
-
-			String version = K8SUtils.getPomVersion();
-			String currentImage = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
-			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(currentImage + ":" + version);
-
-			client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
-			deploymentName = deployment.getMetadata().getName();
-
-			Service service = client.services().load(getService()).get();
-			serviceName = service.getMetadata().getName();
-			client.services().inNamespace(NAMESPACE).create(service);
-
-			Ingress ingress = client.network().v1().ingresses().load(getIngress()).get();
-			ingressName = ingress.getMetadata().getName();
-			client.network().v1().ingresses().inNamespace(NAMESPACE).create(ingress);
-
-			Fabric8Utils.waitForDeployment(client, "spring-cloud-kubernetes-fabric8-client-loadbalancer-deployment",
-					NAMESPACE, 2, 600);
-
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+		else {
+			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 
-	}
-
-	private static void deployPodManifests() {
-
-		try {
-
-			Deployment deployment = client.apps().deployments().load(getPodDeployment()).get();
-
-			String version = K8SUtils.getPomVersion();
-			String currentImage = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
-			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(currentImage + ":" + version);
-
-			client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
-			deploymentName = deployment.getMetadata().getName();
-
-			Service service = client.services().load(getService()).get();
-			serviceName = service.getMetadata().getName();
-			client.services().inNamespace(NAMESPACE).create(service);
-
-			Ingress ingress = client.network().v1().ingresses().load(getIngress()).get();
-			ingressName = ingress.getMetadata().getName();
-			client.network().v1().ingresses().inNamespace(NAMESPACE).create(ingress);
-
-			Fabric8Utils.waitForDeployment(client, "spring-cloud-kubernetes-fabric8-client-loadbalancer-deployment",
-					NAMESPACE, 2, 600);
-
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-	}
-
-	private static void deployMockManifests() {
-
-		try {
-
-			Deployment deployment = client.apps().deployments().load(getMockDeployment()).get();
-			String[] image = K8SUtils.getImageFromDeployment(deployment).split(":");
-			Commons.pullImage(image[0], image[1], K3S);
-			Commons.loadImage(image[0], image[1], "wiremock", K3S);
-			client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
-			mockDeploymentName = deployment.getMetadata().getName();
-
-			Service service = client.services().load(getMockService()).get();
-			mockServiceName = service.getMetadata().getName();
-			client.services().inNamespace(NAMESPACE).create(service);
-
-			Ingress ingress = client.network().v1().ingresses().load(getMockIngress()).get();
-			mockIngressName = ingress.getMetadata().getName();
-
-			Fabric8Utils.waitForDeployment(client, "servicea-wiremock-deployment", NAMESPACE, 2, 600);
-			Fabric8Utils.waitForEndpoint(client, "servicea-wiremock", NAMESPACE, 2, 600);
-
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-	}
-
-	private static InputStream getIngress() {
-		return Fabric8Utils.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-ingress.yaml");
-	}
-
-	private static InputStream getService() {
-		return Fabric8Utils.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-service.yaml");
-	}
-
-	private static InputStream getPodDeployment() {
-		return Fabric8Utils.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-pod-deployment.yaml");
-	}
-
-	private static InputStream getServiceDeployment() {
-		return Fabric8Utils.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-service-deployment.yaml");
-	}
-
-	private static InputStream getMockIngress() {
-		return Fabric8Utils.inputStream("wiremock/wiremock-ingress.yaml");
-	}
-
-	private static InputStream getMockService() {
-		return Fabric8Utils.inputStream("wiremock/wiremock-service.yaml");
-	}
-
-	private static InputStream getMockDeployment() {
-		return Fabric8Utils.inputStream("wiremock/wiremock-deployment.yaml");
 	}
 
 	private WebClient.Builder builder() {

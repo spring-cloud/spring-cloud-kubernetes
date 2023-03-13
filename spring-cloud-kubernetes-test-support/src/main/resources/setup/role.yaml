@@ -4,6 +4,6 @@ metadata:
   namespace: default
   name: namespace-reader
 rules:
-  - apiGroups: ["", "extensions", "apps"]
-    resources: ["configmaps", "pods", "services", "endpoints", "secrets"]
+  - apiGroups: ["", "extensions", "apps", "discovery.k8s.io"]
+    resources: ["configmaps", "pods", "services", "endpoints", "secrets", "endpointslices"]
     verbs: ["get", "list", "watch"]

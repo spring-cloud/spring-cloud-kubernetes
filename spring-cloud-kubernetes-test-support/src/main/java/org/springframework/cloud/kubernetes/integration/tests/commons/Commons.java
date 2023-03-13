@@ -17,18 +17,34 @@
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import com.github.dockerjava.api.command.ListImagesCmd;
+import com.github.dockerjava.api.command.PullImageCmd;
+import com.github.dockerjava.api.command.SaveImageCmd;
 import com.github.dockerjava.api.model.Image;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.junit.jupiter.api.Assertions;
+import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.utility.DockerImageName;
 
-import static org.springframework.cloud.kubernetes.integration.tests.commons.K8SUtils.getPomVersion;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
+
+import static org.awaitility.Awaitility.await;
 
 /**
  * A few commons things that can be re-used across clients. This is meant to be used for
@@ -38,14 +54,18 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.K8S
  */
 public final class Commons {
 
+	private static final Log LOG = LogFactory.getLog(Commons.class);
+
 	private Commons() {
 		throw new AssertionError("No instance provided");
 	}
 
+	private static final String KUBERNETES_VERSION_FILE = "META-INF/springcloudkubernetes-version.txt";
+
 	/**
 	 * Rancher version to use for test-containers.
 	 */
-	public static final String RANCHER = "rancher/k3s:v1.21.10-k3s1";
+	public static final String RANCHER = "rancher/k3s:v1.25.4-k3s1";
 
 	/**
 	 * Command to use when starting rancher. Without "server" option, traefik is not
@@ -72,23 +92,69 @@ public final class Commons {
 	}
 
 	public static void loadSpringCloudKubernetesImage(String project, K3sContainer container) throws Exception {
-		loadImage("springcloud/" + project, getPomVersion(), project, container);
+		loadImage("springcloud/" + project, pomVersion(), project, container);
+	}
+
+	/**
+	 * assert that "left" is present and if so, "right" is not.
+	 */
+	public static void assertReloadLogStatements(String left, String right, String appLabel) {
+
+		try {
+			String appPodName = CONTAINER.execInContainer("sh", "-c",
+					"kubectl get pods -l app=" + appLabel + " -o=name --no-headers | tr -d '\n'").getStdout();
+			LOG.info("appPodName : ->" + appPodName + "<-");
+			// we issue a pollDelay to let the logs sync in, otherwise the results are not
+			// going to be correctly asserted
+			await().pollDelay(20, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(600))
+					.until(() -> {
+
+						Container.ExecResult result = CONTAINER.execInContainer("sh", "-c",
+								"kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'");
+						String error = result.getStderr();
+						String ok = result.getStdout();
+
+						LOG.info("error is : -->" + error + "<--");
+
+						if (ok != null && !ok.isBlank()) {
+
+							if (!right.isBlank()) {
+								String notPresent = CONTAINER
+										.execInContainer("sh", "-c",
+												"kubectl logs " + appPodName.trim() + "| grep " + "'" + right + "'")
+										.getStdout();
+								Assertions.assertTrue(notPresent == null || notPresent.isBlank());
+							}
+
+							return true;
+						}
+						LOG.info("log statement not yet present");
+						return false;
+					});
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
 	}
 
 	public static void loadImage(String image, String tag, String tarName, K3sContainer container) throws Exception {
 		// save image
-		InputStream imageStream = container.getDockerClient().saveImageCmd(image).withTag(tag).exec();
+		try (SaveImageCmd saveImageCmd = container.getDockerClient().saveImageCmd(image)) {
+			InputStream imageStream = saveImageCmd.withTag(tag).exec();
 
-		Path imagePath = Paths.get(TEMP_FOLDER + "/" + tarName + ".tar");
-		Files.deleteIfExists(imagePath);
-		Files.copy(imageStream, imagePath);
-		// import image with ctr. this works because TEMP_FOLDER is mounted in the
-		// container
-		container.execInContainer("ctr", "i", "import", TEMP_FOLDER + "/" + tarName + ".tar");
+			Path imagePath = Paths.get(TEMP_FOLDER + "/" + tarName + ".tar");
+			Files.deleteIfExists(imagePath);
+			Files.copy(imageStream, imagePath);
+			// import image with ctr. this works because TEMP_FOLDER is mounted in the
+			// container
+			container.execInContainer("ctr", "i", "import", TEMP_FOLDER + "/" + tarName + ".tar");
+		}
+
 	}
 
 	public static void cleanUp(String image, K3sContainer container) throws Exception {
-		container.execInContainer("crictl", "rmi", "docker.io/springcloud/" + image + ":" + getPomVersion());
+		container.execInContainer("crictl", "rmi", "docker.io/springcloud/" + image + ":" + pomVersion());
 		container.execInContainer("rm", TEMP_FOLDER + "/" + image + ".tar");
 	}
 
@@ -100,16 +166,44 @@ public final class Commons {
 	 * validates that the provided image does exist in the local docker registry.
 	 */
 	public static void validateImage(String image, K3sContainer container) {
-		List<Image> images = container.getDockerClient().listImagesCmd().exec();
-		images.stream()
-				.filter(x -> Arrays.stream(x.getRepoTags() == null ? new String[] {} : x.getRepoTags())
-						.anyMatch(y -> y.contains(image)))
-				.findFirst().orElseThrow(() -> new IllegalArgumentException("Image : " + image + " not build locally. "
-						+ "You need to build it first, and then run the test"));
+		try (ListImagesCmd listImagesCmd = container.getDockerClient().listImagesCmd()) {
+			List<Image> images = listImagesCmd.exec();
+			images.stream()
+					.filter(x -> Arrays.stream(x.getRepoTags() == null ? new String[] {} : x.getRepoTags())
+							.anyMatch(y -> y.contains(image)))
+					.findFirst().orElseThrow(() -> new IllegalArgumentException("Image : " + image
+							+ " not build locally. " + "You need to build it first, and then run the test"));
+		}
 	}
 
 	public static void pullImage(String image, String tag, K3sContainer container) throws InterruptedException {
-		container.getDockerClient().pullImageCmd(image).withTag(tag).start().awaitCompletion();
+		try (PullImageCmd pullImageCmd = container.getDockerClient().pullImageCmd(image)) {
+			pullImageCmd.withTag(tag).start().awaitCompletion();
+		}
+
+	}
+
+	public static String processExecResult(Container.ExecResult execResult) {
+		if (execResult.getExitCode() != 0) {
+			throw new RuntimeException("stdout=" + execResult.getStdout() + "\n" + "stderr=" + execResult.getStderr());
+		}
+
+		return execResult.getStdout();
+	}
+
+	public static String pomVersion() {
+		try (InputStream in = new ClassPathResource(KUBERNETES_VERSION_FILE).getInputStream()) {
+			String version = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
+			if (StringUtils.hasText(version)) {
+				version = version.trim();
+			}
+			return version;
+		}
+		catch (IOException e) {
+			ReflectionUtils.rethrowRuntimeException(e);
+		}
+		// not reachable since exception rethrown at runtime
+		return null;
 	}
 
 	/**

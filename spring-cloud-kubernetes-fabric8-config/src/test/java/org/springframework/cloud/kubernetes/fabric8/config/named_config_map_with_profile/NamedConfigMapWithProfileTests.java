@@ -48,6 +48,9 @@ abstract class NamedConfigMapWithProfileTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
+		// the fact that property names are the same, also tests that we evaluate config
+		// map
+		// properties in order: first non-profile ones and then profile based one
 		Map<String, String> one = Collections.singletonMap("one.property", "one");
 		Map<String, String> oneFromKubernetesProfile = Collections.singletonMap("one.property", "one-from-k8s");
 
@@ -70,7 +73,8 @@ abstract class NamedConfigMapWithProfileTests {
 
 	static void createConfigmap(String name, Map<String, String> data) {
 		mockClient.configMaps().inNamespace("spring-k8s")
-				.create(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build());
+				.resource(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build())
+				.create();
 	}
 
 	/**

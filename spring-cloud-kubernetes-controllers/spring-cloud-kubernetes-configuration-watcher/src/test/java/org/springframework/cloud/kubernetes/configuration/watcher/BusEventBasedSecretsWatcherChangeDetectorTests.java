@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Secret;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,15 +28,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
 
 /**
  * @author Ryan Baxter
@@ -51,10 +53,10 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 			});
 
 	@Mock
-	private KubernetesClient client;
+	private CoreV1Api coreV1Api;
 
 	@Mock
-	private Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator;
+	private KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator;
 
 	@Mock
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
@@ -69,22 +71,22 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 	@BeforeEach
 	void setup() {
 		MockEnvironment mockEnvironment = new MockEnvironment();
-		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties();
+		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
 		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		busProperties = new BusProperties();
-		changeDetector = new BusEventBasedSecretsWatcherChangeDetector(mockEnvironment, configReloadProperties, client,
-				UPDATE_STRATEGY, fabric8SecretsPropertySourceLocator, busProperties,
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
-		changeDetector.setApplicationEventPublisher(applicationEventPublisher);
+		changeDetector = new BusEventBasedSecretsWatcherChangeDetector(coreV1Api, mockEnvironment,
+				ConfigReloadProperties.DEFAULT, UPDATE_STRATEGY, secretsPropertySourceLocator,
+				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
+				threadPoolTaskExecutor, new BusRefreshTrigger(applicationEventPublisher, busProperties.getId()));
 	}
 
 	@Test
 	void triggerRefreshWithSecret() {
-		ObjectMeta objectMeta = new ObjectMeta();
+		V1ObjectMeta objectMeta = new V1ObjectMeta();
 		objectMeta.setName("foo");
-		Secret secret = new Secret();
+		V1Secret secret = new V1Secret();
 		secret.setMetadata(objectMeta);
-		changeDetector.triggerRefresh(secret);
+		changeDetector.triggerRefresh(secret, secret.getMetadata().getName());
 		ArgumentCaptor<RefreshRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
 				.forClass(RefreshRemoteApplicationEvent.class);
 		verify(applicationEventPublisher).publishEvent(argumentCaptor.capture());

@@ -1,0 +1,24 @@
+#logging:
+#  level:
+#    org.springframework: DEBUG
+#
+spring:
+  application:
+    name: spring-cloud-kubernetes-client-configuration-watcher-secret-app-b
+  cloud:
+    bus:
+      refresh:
+        enabled: false
+      enabled: true
+      destination: multiple-apps
+    stream:
+      default-binder: rabbit
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+server:
+  port: 8081

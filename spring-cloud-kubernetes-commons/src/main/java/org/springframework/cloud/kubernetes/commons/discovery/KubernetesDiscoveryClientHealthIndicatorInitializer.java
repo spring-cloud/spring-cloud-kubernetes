@@ -16,33 +16,47 @@
 
 package org.springframework.cloud.kubernetes.commons.discovery;
 
-import org.springframework.beans.factory.InitializingBean;
+import jakarta.annotation.PostConstruct;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * @author Ryan Baxter
  */
-public class KubernetesDiscoveryClientHealthIndicatorInitializer implements InitializingBean {
+public final class KubernetesDiscoveryClientHealthIndicatorInitializer {
 
-	private PodUtils podUtils;
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(KubernetesDiscoveryClientHealthIndicatorInitializer.class));
 
-	private ApplicationEventPublisher applicationEventPublisher;
+	private final PodUtils<?> podUtils;
 
-	public KubernetesDiscoveryClientHealthIndicatorInitializer(PodUtils podUtils,
+	private final ApplicationEventPublisher applicationEventPublisher;
+
+	public KubernetesDiscoveryClientHealthIndicatorInitializer(PodUtils<?> podUtils,
 			ApplicationEventPublisher applicationEventPublisher) {
 		this.podUtils = podUtils;
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
-	public void initialize() {
-		this.applicationEventPublisher.publishEvent(new InstanceRegisteredEvent<>(podUtils.currentPod(), null));
+	@PostConstruct
+	private void postConstruct() {
+		LOG.debug(() -> "publishing InstanceRegisteredEvent");
+		this.applicationEventPublisher.publishEvent(new InstanceRegisteredEvent<>(
+				new RegisteredEventSource("kubernetes", podUtils.isInsideKubernetes(), podUtils.currentPod().get()),
+				null));
 	}
 
-	@Override
-	public void afterPropertiesSet() {
-		this.initialize();
+	/**
+	 * @param cloudPlatform "kubernetes" always
+	 * @param inside inside kubernetes or not
+	 * @param pod an actual pod or null, if we are outside kubernetes
+	 */
+	public record RegisteredEventSource(String cloudPlatform, boolean inside, Object pod) {
+
 	}
 
 }

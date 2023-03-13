@@ -27,7 +27,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.getApplicationNamespace;
+import static org.springframework.cloud.kubernetes.fabric8.Fabric8Utils.getApplicationNamespace;
 
 /**
  * A {@link PropertySourceLocator} that uses config maps.
@@ -45,7 +45,7 @@ public class Fabric8ConfigMapPropertySourceLocator extends ConfigMapPropertySour
 
 	Fabric8ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties,
 			KubernetesNamespaceProvider provider) {
-		super(properties);
+		super(properties, new Fabric8ConfigMapsCache());
 		this.client = client;
 		this.provider = provider;
 	}

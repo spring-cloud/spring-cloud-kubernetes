@@ -22,9 +22,9 @@ import org.springframework.boot.test.context.SpringBootTest;
  * @author Isik Erhan
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = { "spring.cloud.kubernetes.client.namespace=default",
-				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
-				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true" },
+		properties = { "spring.cloud.kubernetes.config.fail-fast=true",
+				"spring.cloud.kubernetes.config.retry.enabled=false", "spring.main.cloud-platform=KUBERNETES",
+				"spring.cloud.bootstrap.enabled=true" },
 		classes = App.class)
 class BootstrapConfigFailFastEnabledButRetryDisabled extends ConfigFailFastEnabledButRetryDisabled {
 

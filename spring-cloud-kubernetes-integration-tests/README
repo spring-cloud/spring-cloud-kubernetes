@@ -1,0 +1,43 @@
+Writing a new integration test should be done with minor things in mind, so that
+tests are picked up by our CI/CD pipeline and work as expected. In particular when you
+define the plugin that builds the image (integrations tests have a docker image build),
+you must name the image with the same name as the module. For example:
+
+
+<plugin>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-maven-plugin</artifactId>
+	<configuration>
+		<imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
+		<imageBuilder>paketobuildpacks/builder</imageBuilder>
+	</configuration>
+	<executions>
+		<execution>
+           <id>build-image</id>
+           <configuration>
+              <skip>${skip.build.image}</skip>
+           </configuration>
+           <phase>package</phase>
+           <goals>
+              <goal>build-image</goal>
+           </goals>
+        </execution>
+        <execution>
+           <id>repackage</id>
+           <phase>package</phase>
+           <goals>
+              <goal>repackage</goal>
+           </goals>
+        </execution>
+	</executions>
+</plugin>
+
+Notice this line:
+
+    <imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
+
+You must follow the same convention.
+
+One more important part in this configuration is : "<skip>${skip.build.image}</skip>".
+We use this setting in the build pipeline where in some stages we skip the image build,
+only to have it build in some latter ones.

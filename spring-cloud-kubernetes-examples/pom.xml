@@ -23,7 +23,7 @@
 	<parent>
 		<artifactId>spring-cloud-kubernetes</artifactId>
 		<groupId>org.springframework.cloud</groupId>
-<version>3.0.0-SNAPSHOT</version>
+		<version>3.0.2-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>spring-cloud-kubernetes-examples</artifactId>
@@ -34,10 +34,7 @@
 	</description>
 
 	<modules>
-		<module>kubernetes-reload-example</module>
-		<module>kubernetes-hello-world-example</module>
 		<module>kubernetes-leader-election-example</module>
-		<module>kubernetes-loadbalancer-example</module>
 	</modules>
 
 	<build>

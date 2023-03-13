@@ -16,14 +16,13 @@
 
 package org.springframework.cloud.kubernetes.client;
 
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.ReactiveHealthContributorRegistry;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.kubernetes.client.example.App;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -33,7 +32,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "management.health.kubernetes.enabled=false", "management.endpoint.health.show-details=always",
-				"management.endpoint.health.show-components=always",
+				"management.endpoint.health.show-components=always", "spring.main.cloud-platform=KUBERNETES",
 				"management.endpoints.web.exposure.include=health" })
 class ActuatorDisabledHealthTest {
 
@@ -43,14 +42,14 @@ class ActuatorDisabledHealthTest {
 	@Autowired
 	private WebTestClient webClient;
 
-	@Value("${local.server.port}")
+	@LocalManagementPort
 	private int port;
 
 	@Test
-	void healthEndpointShouldContainKubernetes() {
+	void healthEndpointShouldNotContainKubernetes() {
 		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.not(Matchers.containsString("kubernetes")));
+				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
+				.jsonPath("components.kubernetes").doesNotExist();
 
 		Assertions.assertNull(registry.getContributor("kubernetes"),
 				"reactive kubernetes contributor must NOT be present when 'management.health.kubernetes.enabled=false'");

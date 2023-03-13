@@ -38,7 +38,7 @@ import org.springframework.cloud.kubernetes.commons.EnvReader;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8PodUtils;
 
 @SuppressWarnings("unchecked")
-public class Fabric8PodUtilsTest {
+class Fabric8PodUtilsTest {
 
 	private static final String KUBERNETES_SERVICE_HOST = Fabric8PodUtils.KUBERNETES_SERVICE_HOST;
 
@@ -62,37 +62,37 @@ public class Fabric8PodUtilsTest {
 
 	private final File certFile = Mockito.mock(File.class);
 
-	private final MixedOperation<Pod, PodList, PodResource<Pod>> mixed = Mockito.mock(MixedOperation.class);
+	private final MixedOperation<Pod, PodList, PodResource> mixed = Mockito.mock(MixedOperation.class);
 
 	private final Pod pod = Mockito.mock(Pod.class);
 
-	private final PodResource<Pod> podResource = Mockito.mock(PodResource.class);
+	private final PodResource podResource = Mockito.mock(PodResource.class);
 
 	private MockedStatic<EnvReader> envReader;
 
 	private MockedStatic<Paths> paths;
 
 	@BeforeEach
-	public void before() {
+	void before() {
 		envReader = Mockito.mockStatic(EnvReader.class);
 		paths = Mockito.mockStatic(Paths.class);
 	}
 
 	@AfterEach
-	public void after() {
+	void after() {
 		envReader.close();
 		paths.close();
 	}
 
 	@Test
-	public void constructorThrowsIllegalArgumentExceptionWhenKubeClientNull() {
+	void constructorThrowsIllegalArgumentExceptionWhenKubeClientNull() {
 		// expect an IllegalArgumentException if KubernetesClient argument is
 		// null
 		Assertions.assertThrows(IllegalArgumentException.class, () -> new Fabric8PodUtils(null));
 	}
 
 	@Test
-	public void serviceHostNotPresent() {
+	void serviceHostNotPresent() {
 		mockHost(null);
 		Fabric8PodUtils util = new Fabric8PodUtils(client);
 		Supplier<Pod> sup = util.currentPod();
@@ -101,7 +101,7 @@ public class Fabric8PodUtilsTest {
 	}
 
 	@Test
-	public void hostnameNotPresent() {
+	void hostnameNotPresent() {
 		mockHost(HOST);
 		mockHostname(null);
 		Fabric8PodUtils util = new Fabric8PodUtils(client);
@@ -111,7 +111,7 @@ public class Fabric8PodUtilsTest {
 	}
 
 	@Test
-	public void serviceAccountPathNotPresent() {
+	void serviceAccountPathNotPresent() {
 		mockTokenPath(false);
 		mockHostname(HOST);
 		mockHostname(POD_HOSTNAME);
@@ -122,7 +122,7 @@ public class Fabric8PodUtilsTest {
 	}
 
 	@Test
-	public void serviceAccountCertPathNotPresent() {
+	void serviceAccountCertPathNotPresent() {
 		mockTokenPath(true);
 		mockCertPath(false);
 		mockHostname(HOST);
@@ -134,7 +134,7 @@ public class Fabric8PodUtilsTest {
 	}
 
 	@Test
-	public void allPresent() {
+	void allPresent() {
 		mockTokenPath(true);
 		mockCertPath(true);
 		mockHost(HOST);

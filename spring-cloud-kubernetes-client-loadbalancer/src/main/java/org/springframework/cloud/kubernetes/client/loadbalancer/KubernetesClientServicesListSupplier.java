@@ -47,15 +47,6 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 
 	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
-	@Deprecated
-	public KubernetesClientServicesListSupplier(Environment environment, KubernetesServiceInstanceMapper mapper,
-			KubernetesDiscoveryProperties discoveryProperties, CoreV1Api coreV1Api,
-			KubernetesClientProperties kubernetesClientProperties) {
-		super(environment, mapper, discoveryProperties);
-		this.coreV1Api = coreV1Api;
-		this.kubernetesClientProperties = kubernetesClientProperties;
-	}
-
 	public KubernetesClientServicesListSupplier(Environment environment, KubernetesServiceInstanceMapper mapper,
 			KubernetesDiscoveryProperties discoveryProperties, CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
@@ -66,16 +57,16 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 
 	private String getNamespace() {
 		return kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
-				: kubernetesClientProperties.getNamespace();
+				: kubernetesClientProperties.namespace();
 	}
 
 	@Override
 	public Flux<List<ServiceInstance>> get() {
 		LOG.info("Getting services with id " + this.getServiceId());
 		List<ServiceInstance> result = new ArrayList<>();
-		List<V1Service> services = null;
+		List<V1Service> services;
 		try {
-			if (discoveryProperties.isAllNamespaces()) {
+			if (discoveryProperties.allNamespaces()) {
 				services = coreV1Api.listServiceForAllNamespaces(null, null, "metadata.name=" + this.getServiceId(),
 						null, null, null, null, null, null, null).getItems();
 			}

@@ -17,12 +17,14 @@
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.FilterWatchListMultiDeletable;
+import io.fabric8.kubernetes.client.dsl.AnyNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
@@ -33,8 +35,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
 import org.springframework.core.env.Environment;
 
@@ -63,19 +65,20 @@ class KubernetesServiceListSupplierTests {
 	ServiceResource<Service> serviceResource;
 
 	@Mock
-	FilterWatchListMultiDeletable<Service, ServiceList> multiDeletable;
+	AnyNamespaceOperation<Service, ServiceList, ServiceResource<Service>> multiDeletable;
 
 	@Test
 	void testPositiveMatch() {
 		when(environment.getProperty("loadbalancer.client.name")).thenReturn("test-service");
-		when(mapper.map(any(Service.class))).thenReturn(new KubernetesServiceInstance("", "", "", 0, null, false));
+		when(mapper.map(any(Service.class)))
+				.thenReturn(new DefaultKubernetesServiceInstance("", "", "", 0, null, false));
 		when(this.client.getNamespace()).thenReturn("test");
 		when(this.client.services()).thenReturn(this.serviceOperation);
 		when(this.serviceOperation.inNamespace("test")).thenReturn(namespaceOperation);
 		when(this.namespaceOperation.withName("test-service")).thenReturn(this.serviceResource);
 		when(this.serviceResource.get()).thenReturn(buildService("test-service", 8080));
 		KubernetesServicesListSupplier supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
-				new KubernetesDiscoveryProperties());
+				KubernetesDiscoveryProperties.DEFAULT);
 		List<ServiceInstance> instances = supplier.get().blockFirst();
 		assert instances != null;
 		Assertions.assertEquals(1, instances.size());
@@ -84,15 +87,17 @@ class KubernetesServiceListSupplierTests {
 	@Test
 	void testPositiveMatchAllNamespaces() {
 		when(environment.getProperty("loadbalancer.client.name")).thenReturn("test-service");
-		when(mapper.map(any(Service.class))).thenReturn(new KubernetesServiceInstance("", "", "", 0, null, false));
+		when(mapper.map(any(Service.class)))
+				.thenReturn(new DefaultKubernetesServiceInstance("", "", "", 0, null, false));
 		when(this.client.services()).thenReturn(this.serviceOperation);
 		when(this.serviceOperation.inAnyNamespace()).thenReturn(this.multiDeletable);
 		when(this.multiDeletable.withField("metadata.name", "test-service")).thenReturn(this.multiDeletable);
 		ServiceList serviceList = new ServiceList();
 		serviceList.getItems().add(buildService("test-service", 8080));
 		when(this.multiDeletable.list()).thenReturn(serviceList);
-		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties();
-		discoveryProperties.setAllNamespaces(true);
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, true, Set.of(),
+				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+				false);
 		KubernetesServicesListSupplier supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
 				discoveryProperties);
 		List<ServiceInstance> instances = supplier.get().blockFirst();

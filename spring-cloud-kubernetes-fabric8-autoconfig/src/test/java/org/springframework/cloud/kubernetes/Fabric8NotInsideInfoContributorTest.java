@@ -16,19 +16,13 @@
 
 package org.springframework.cloud.kubernetes;
 
-import java.util.Map;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.kubernetes.example.App;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -37,21 +31,15 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 		properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=info",
 				"management.endpoint.info.show-details=always", "management.info.kubernetes.enabled=true" })
 @EnableKubernetesMockClient(crud = true, https = false)
-public class Fabric8NotInsideInfoContributorTest {
+class Fabric8NotInsideInfoContributorTest {
 
 	private static KubernetesClient client;
 
 	@Autowired
 	private WebTestClient webClient;
 
-	@Value("${local.server.port}")
+	@LocalManagementPort
 	private int port;
-
-	@Test
-	public void infoEndpointShouldContainKubernetes() {
-		this.webClient.get().uri("http://localhost:{port}/actuator/info", this.port).accept(MediaType.APPLICATION_JSON)
-				.exchange().expectStatus().isOk().expectBody(String.class).value(this::validateInfo);
-	}
 
 	/**
 	 * <pre>
@@ -60,18 +48,10 @@ public class Fabric8NotInsideInfoContributorTest {
 	 *    }
 	 * </pre>
 	 */
-	@SuppressWarnings("unchecked")
-	private void validateInfo(String input) {
-		try {
-			Map<String, Object> map = new ObjectMapper().readValue(input, new TypeReference<Map<String, Object>>() {
-
-			});
-			Map<String, Object> kubernetesProperties = (Map<String, Object>) map.get("kubernetes");
-			Assertions.assertFalse((Boolean) kubernetesProperties.get("inside"));
-		}
-		catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
+	@Test
+	void infoEndpointShouldContainKubernetes() {
+		this.webClient.get().uri("http://localhost:{port}/actuator/info", this.port).accept(MediaType.APPLICATION_JSON)
+				.exchange().expectStatus().isOk().expectBody().jsonPath("kubernetes.inside").isEqualTo("false");
 	}
 
 }

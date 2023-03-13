@@ -19,18 +19,21 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.core.env.Environment;
+import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -164,25 +167,32 @@ public final class ConfigUtils {
 	 * defined order).
 	 */
 	public static MultipleSourcesContainer processNamedData(List<StrippedSourceContainer> strippedSources,
-			Environment environment, Set<String> sourceNames, String namespace, boolean decode) {
+			Environment environment, LinkedHashSet<String> sourceNames, String namespace, boolean decode) {
 
-		Set<String> foundSourceNames = new HashSet<>();
+		Map<String, StrippedSourceContainer> hashByName = strippedSources.stream()
+				.collect(Collectors.toMap(StrippedSourceContainer::name, Function.identity()));
+
+		LinkedHashSet<String> foundSourceNames = new LinkedHashSet<>();
 		Map<String, Object> data = new HashMap<>();
 
-		strippedSources.stream().filter(source -> sourceNames.contains(source.name())).collect(Collectors.toList())
-				.forEach(foundSource -> {
-					String sourceName = foundSource.name();
-					LOG.debug("Found source with name : '" + sourceName + " in namespace: '" + namespace + "'");
-					foundSourceNames.add(sourceName);
-					// see if data is a single yaml/properties file and if it needs
-					// decoding
-					Map<String, String> rawData = foundSource.data();
-					if (decode) {
-						rawData = decodeData(rawData);
-					}
-					data.putAll(SourceDataEntriesProcessor.processAllEntries(rawData == null ? Map.of() : rawData,
-							environment));
-				});
+		// this is an ordered stream, and it means that non-profile based sources will be
+		// processed before profile based sources. This way, we replicate that
+		// "application-dev.yaml"
+		// overrides properties from "application.yaml"
+		sourceNames.forEach(source -> {
+			StrippedSourceContainer stripped = hashByName.get(source);
+			if (stripped != null) {
+				LOG.debug("Found source with name : '" + source + " in namespace: '" + namespace + "'");
+				foundSourceNames.add(source);
+				// see if data is a single yaml/properties file and if it needs decoding
+				Map<String, String> rawData = stripped.data();
+				if (decode) {
+					rawData = decodeData(rawData);
+				}
+				data.putAll(SourceDataEntriesProcessor.processAllEntries(rawData == null ? Map.of() : rawData,
+						environment));
+			}
+		});
 
 		return new MultipleSourcesContainer(foundSourceNames, data);
 	}
@@ -199,16 +209,16 @@ public final class ConfigUtils {
 			boolean decode) {
 
 		// find sources by provided labels
-		List<StrippedSourceContainer> sourcesByLabels = containers.stream().filter(one -> {
+		List<StrippedSourceContainer> byLabels = containers.stream().filter(one -> {
 			Map<String, String> sourceLabels = one.labels();
 			Map<String, String> labelsToSearchAgainst = sourceLabels == null ? Map.of() : sourceLabels;
 			return labelsToSearchAgainst.entrySet().containsAll((labels.entrySet()));
-		}).collect(Collectors.toList());
+		}).toList();
 
-		// compute profile based sources (based on the ones we found by labels)
+		// compute profile based source names (based on the ones we found by labels)
 		List<String> sourceNamesByLabelsWithProfile = new ArrayList<>();
 		if (profiles != null && !profiles.isEmpty()) {
-			for (StrippedSourceContainer one : sourcesByLabels) {
+			for (StrippedSourceContainer one : byLabels) {
 				for (String profile : profiles) {
 					String name = one.name() + "-" + profile;
 					sourceNamesByLabelsWithProfile.add(name);
@@ -219,15 +229,18 @@ public final class ConfigUtils {
 		// once we know sources by labels (and thus their names), we can find out
 		// profiles based sources from the above. This would get all sources
 		// we are interested in.
-		List<StrippedSourceContainer> sourcesToTake = containers.stream()
-				.filter(one -> sourceNamesByLabelsWithProfile.contains(one.name()))
-				.collect(Collectors.toCollection(ArrayList::new));
-		sourcesToTake.addAll(sourcesByLabels);
+		List<StrippedSourceContainer> byProfile = containers.stream()
+				.filter(one -> sourceNamesByLabelsWithProfile.contains(one.name())).toList();
 
-		Set<String> sourceNames = new HashSet<>();
+		// this makes sure that we first have "app" and then "app-dev" in the list
+		List<StrippedSourceContainer> all = new ArrayList<>(byLabels.size() + byProfile.size());
+		all.addAll(byLabels);
+		all.addAll(byProfile);
+
+		LinkedHashSet<String> sourceNames = new LinkedHashSet<>();
 		Map<String, Object> result = new HashMap<>();
 
-		sourcesToTake.forEach(source -> {
+		all.forEach(source -> {
 			String foundSourceName = source.name();
 			LOG.debug("Loaded source with name : '" + foundSourceName + " in namespace: '" + namespace + "'");
 			sourceNames.add(foundSourceName);
@@ -242,17 +255,33 @@ public final class ConfigUtils {
 		return new MultipleSourcesContainer(sourceNames, result);
 	}
 
-	public static boolean noSources(List<?> sources, String namespace) {
-		if (sources == null || sources.isEmpty()) {
-			LOG.debug("No sources in namespace '" + namespace + "'");
-			return true;
-		}
-		return false;
-	}
-
 	private static Map<String, String> decodeData(Map<String, String> data) {
 		Map<String, String> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
 		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));
+		return result;
+	}
+
+	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,
+			String name) {
+		bootstrapContext.registerIfAbsent(cls, BootstrapRegistry.InstanceSupplier.of(instance));
+		bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
+				.registerSingleton(name, event.getBootstrapContext().get(cls)));
+	}
+
+	/**
+	 * append prefix to the keys and return a new Map with the new values.
+	 */
+	public static Map<String, String> keysWithPrefix(Map<String, String> map, String prefix) {
+		if (map == null || map.isEmpty()) {
+			return Map.of();
+		}
+
+		if (!StringUtils.hasText(prefix)) {
+			return map;
+		}
+
+		Map<String, String> result = CollectionUtils.newHashMap(map.size());
+		map.forEach((key, value) -> result.put(prefix + key, value));
 		return result;
 	}
 
@@ -261,7 +290,7 @@ public final class ConfigUtils {
 		/**
 		 * prefix has not been provided.
 		 */
-		public static final Prefix DEFAULT = new Prefix(() -> "");
+		public static final Prefix DEFAULT = new Prefix(() -> "", "DEFAULT");
 
 		/**
 		 * prefix has been enabled, but the actual value will be known later; the value
@@ -270,7 +299,7 @@ public final class ConfigUtils {
 		 */
 		public static final Prefix DELAYED = new Prefix(() -> {
 			throw new IllegalArgumentException("prefix is delayed, needs to be taken elsewhere");
-		});
+		}, "DELAYED");
 
 		/**
 		 * prefix is known at the callsite.
@@ -283,12 +312,19 @@ public final class ConfigUtils {
 
 		private final Supplier<String> prefixProvider;
 
-		private Prefix(Supplier<String> prefixProvider) {
+		private final String name;
+
+		private Prefix(Supplier<String> prefixProvider, String name) {
 			this.prefixProvider = prefixProvider;
+			this.name = name;
 		}
 
 		private static void computeKnown(Supplier<String> supplier) {
-			KNOWN = new Prefix(supplier);
+			KNOWN = new Prefix(supplier, "KNOWN");
+		}
+
+		public String toString() {
+			return new ToStringCreator(this).append("name", name).toString();
 		}
 
 	}

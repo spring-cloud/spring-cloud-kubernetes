@@ -26,6 +26,6 @@ import org.springframework.core.env.Environment;
  *
  * @author wind57
  */
-public final record KubernetesClientConfigContext(CoreV1Api client, NormalizedSource normalizedSource, String namespace,
+public record KubernetesClientConfigContext(CoreV1Api client, NormalizedSource normalizedSource, String namespace,
 		Environment environment) {
 }

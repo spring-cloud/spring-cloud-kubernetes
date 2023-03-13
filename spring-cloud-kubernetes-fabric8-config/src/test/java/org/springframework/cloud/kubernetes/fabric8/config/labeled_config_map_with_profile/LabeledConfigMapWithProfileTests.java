@@ -47,6 +47,11 @@ abstract class LabeledConfigMapWithProfileTests {
 	 *     - configmap with name "color-configmap-k8s", with labels : "{color: not-blue}"
 	 *     - configmap with name "green-configmap-k8s", with labels : "{color: green-k8s}"
 	 *     - configmap with name "green-configmap-prod", with labels : "{color: green-prod}"
+	 *
+	 *     # a test that proves order: first read non-profile based configmaps, thus profile based
+	 *     # configmaps override non-profile ones.
+	 *     - configmap with name "green-purple-configmap", labels "{color: green, shape: round}", data: "{eight: 8}"
+	 *     - configmap with name "green-purple-configmap-k8s", labels "{color: black}", data: "{eight: eight-ish}"
 	 * </pre>
 	 */
 	static void setUpBeforeClass(KubernetesClient mockClient) {
@@ -72,12 +77,12 @@ abstract class LabeledConfigMapWithProfileTests {
 		createConfigMap("green-configmap", greenConfigMap, Collections.singletonMap("color", "green"));
 
 		// is taken because k8s profile is active and "profileSpecificSources=true"
-		Map<String, String> shapeConfigMapK8s = Collections.singletonMap("six", "6");
-		createConfigMap("green-configmap-k8s", shapeConfigMapK8s, Collections.singletonMap("color", "green-k8s"));
+		Map<String, String> greenConfigMapK8s = Collections.singletonMap("six", "6");
+		createConfigMap("green-configmap-k8s", greenConfigMapK8s, Collections.singletonMap("color", "green-k8s"));
 
 		// is taken because prod profile is active and "profileSpecificSources=true"
-		Map<String, String> shapeConfigMapProd = Collections.singletonMap("seven", "7");
-		createConfigMap("green-configmap-prod", shapeConfigMapProd, Collections.singletonMap("color", "green-prod"));
+		Map<String, String> greenConfigMapProd = Collections.singletonMap("seven", "7");
+		createConfigMap("green-configmap-prod", greenConfigMapProd, Collections.singletonMap("color", "green-prod"));
 
 		// not taken
 		Map<String, String> redConfigMap = Collections.singletonMap("three", "3");
@@ -87,11 +92,19 @@ abstract class LabeledConfigMapWithProfileTests {
 		Map<String, String> yellowConfigMap = Collections.singletonMap("four", "4");
 		createConfigMap("yellow-configmap", yellowConfigMap, Collections.singletonMap("color", "not-yellow"));
 
+		// is found by labels
+		Map<String, String> greenPurple = Collections.singletonMap("eight", "8");
+		createConfigMap("green-purple-configmap", greenPurple, Map.of("color", "green", "shape", "round"));
+
+		// is taken and thus overrides the above
+		Map<String, String> greenPurpleK8s = Collections.singletonMap("eight", "eight-ish");
+		createConfigMap("green-purple-configmap-k8s", greenPurpleK8s, Map.of("color", "black"));
+
 	}
 
 	private static void createConfigMap(String name, Map<String, String> data, Map<String, String> labels) {
-		mockClient.configMaps().inNamespace("spring-k8s").create(new ConfigMapBuilder().withNewMetadata().withName(name)
-				.withLabels(labels).endMetadata().addToData(data).build());
+		mockClient.configMaps().inNamespace("spring-k8s").resource(new ConfigMapBuilder().withNewMetadata()
+				.withName(name).withLabels(labels).endMetadata().addToData(data).build()).create();
 	}
 
 	/**
@@ -109,15 +122,16 @@ abstract class LabeledConfigMapWithProfileTests {
 
 	/**
 	 * <pre>
-	 *   this one is taken from : "green-configmap.green-configmap-k8s.green-configmap-prod".
+	 *   this one is taken from : "green-configmap.green-configmap-k8s.green-configmap-prod.green-purple-configmap.green-purple-configmap-k8s".
 	 *   We find "green-configmap" by labels, also "green-configmap-k8s" and "green-configmap-prod" exists,
-	 *   because "includeProfileSpecificSources=true" is set.
+	 *   because "includeProfileSpecificSources=true" is set. Also "green-purple-configmap" and "green-purple-configmap-k8s"
+	 * 	 are found.
 	 * </pre>
 	 */
 	@Test
 	void testGreen() {
 		this.webClient.get().uri("/labeled-configmap/profile/green").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("2#6#7"));
+				.expectBody(String.class).value(Matchers.equalTo("2#6#7#eight-ish"));
 	}
 
 }

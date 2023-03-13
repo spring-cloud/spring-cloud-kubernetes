@@ -73,15 +73,16 @@ abstract class LabeledSecretWithProfileTests {
 
 	/**
 	 * <pre>
-	 *   this one is taken from : "green-secret.green-secret-k8s.green-secret-prod".
+	 *   this one is taken from : "green-purple-secret.green-purple-secret-k8s.green-secret.green-secret-k8s.green-secret-prod".
 	 *   We find "green-secret" by labels, also "green-secrets-k8s" and "green-secrets-prod" exists,
-	 *   because "includeProfileSpecificSources=true" is set.
+	 *   because "includeProfileSpecificSources=true" is set. Also "green-purple-secret" and "green-purple-secret-k8s"
+	 * 	 are found.
 	 * </pre>
 	 */
 	@Test
 	void testGreen() {
 		this.webClient.get().uri("/labeled-secret/profile/green").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("2#6#7"));
+				.expectBody(String.class).value(Matchers.equalTo("2#6#7#eight-ish"));
 	}
 
 }

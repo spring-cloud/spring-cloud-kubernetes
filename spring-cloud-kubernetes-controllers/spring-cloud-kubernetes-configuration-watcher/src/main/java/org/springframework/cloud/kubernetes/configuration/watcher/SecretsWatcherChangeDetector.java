@@ -18,71 +18,49 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import reactor.core.publisher.Mono;
+import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
-import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8EventBasedSecretsChangeDetector;
-import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.SECRET_APPS_ANNOTATION;
+import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.SECRET_LABEL;
 
 /**
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-public abstract class SecretsWatcherChangeDetector extends Fabric8EventBasedSecretsChangeDetector {
-
-	protected Log log = LogFactory.getLog(getClass());
+abstract sealed class SecretsWatcherChangeDetector extends KubernetesClientEventBasedSecretsChangeDetector implements
+		RefreshTrigger permits BusEventBasedSecretsWatcherChangeDetector, HttpBasedSecretsWatchChangeDetector {
 
 	private final ScheduledExecutorService executorService;
 
-	protected ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
+	private final long refreshDelay;
 
-	public SecretsWatcherChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
-			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
+	SecretsWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(environment, properties, kubernetesClient, strategy, fabric8SecretsPropertySourceLocator);
+		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider);
 		this.executorService = Executors.newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(),
 				threadPoolTaskExecutor);
-		this.k8SConfigurationProperties = k8SConfigurationProperties;
+		this.refreshDelay = k8SConfigurationProperties.getRefreshDelay().toMillis();
 	}
-
-	protected boolean isSpringCloudKubernetesSecret(Secret secret) {
-		if (secret.getMetadata() == null || secret.getMetadata().getLabels() == null) {
-			return false;
-		}
-		return Boolean.parseBoolean(
-				secret.getMetadata().getLabels().getOrDefault(k8SConfigurationProperties.getSecretLabel(), "false"));
-	}
-
-	protected abstract Mono<Void> triggerRefresh(Secret secret);
 
 	@Override
-	protected void onEvent(Secret secret) {
-		if (isSpringCloudKubernetesSecret(secret)) {
-			if (log.isDebugEnabled()) {
-				log.debug("Scheduling remote refresh event to be published for Secret " + secret.getMetadata().getName()
-						+ " to be published in " + k8SConfigurationProperties.getRefreshDelay().toMillis()
-						+ " milliseconds");
-			}
-			executorService.schedule(() -> triggerRefresh(secret).subscribe(),
-					k8SConfigurationProperties.getRefreshDelay().toMillis(), TimeUnit.MILLISECONDS);
-		}
-		else {
-			if (log.isDebugEnabled()) {
-				log.debug("Not publishing event. Secret " + secret.getMetadata().getName()
-						+ " does not contain the label " + k8SConfigurationProperties.getSecretLabel());
-			}
-		}
+	protected final void onEvent(KubernetesObject secret) {
+		// this::refreshTrigger is coming from BusEventBasedSecretsWatcherChangeDetector
+		WatcherUtil.onEvent(secret, SECRET_LABEL, SECRET_APPS_ANNOTATION, refreshDelay, executorService, "secret",
+				this::triggerRefresh);
 	}
 
 }

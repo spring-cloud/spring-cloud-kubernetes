@@ -1,6 +1,3 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration,\
-org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadAutoConfiguration
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
 org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration
 

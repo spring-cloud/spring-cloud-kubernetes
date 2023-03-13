@@ -51,6 +51,12 @@ public class Fabric8LeadershipController extends LeadershipController {
 	public synchronized void update() {
 		LOGGER.debug("Checking leader state");
 		ConfigMap configMap = getConfigMap();
+		if (configMap == null && !leaderProperties.isCreateConfigMap()) {
+			LOGGER.warn("ConfigMap '{}' does not exist and leaderProperties.isCreateConfigMap() "
+					+ "is false, cannot acquire leadership", leaderProperties.getConfigMapName());
+			notifyOnFailedToAcquire();
+			return;
+		}
 		Leader leader = extractLeader(configMap);
 
 		if (leader != null && isPodReady(leader.getId())) {
@@ -98,6 +104,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 
 		try {
 			Map<String, String> data = getLeaderData(this.candidate);
+
 			if (configMap == null) {
 				createConfigMap(data);
 			}
@@ -146,7 +153,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 
 		this.kubernetesClient.configMaps()
 				.inNamespace(this.leaderProperties.getNamespace(this.kubernetesClient.getNamespace()))
-				.create(newConfigMap);
+				.resource(newConfigMap).create();
 	}
 
 	private void updateConfigMapEntry(ConfigMap configMap, Map<String, String> newData) {
@@ -168,8 +175,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 	private void updateConfigMap(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
 		this.kubernetesClient.configMaps()
 				.inNamespace(this.leaderProperties.getNamespace(this.kubernetesClient.getNamespace()))
-				.withName(this.leaderProperties.getConfigMapName())
-				.lockResourceVersion(oldConfigMap.getMetadata().getResourceVersion()).replace(newConfigMap);
+				.resource(newConfigMap).lockResourceVersion(oldConfigMap.getMetadata().getResourceVersion()).replace();
 	}
 
 }

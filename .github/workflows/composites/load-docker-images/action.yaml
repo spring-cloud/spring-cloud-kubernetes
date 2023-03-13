@@ -1,0 +1,27 @@
+name: install docker images
+description: load docker images from tar
+runs:
+  using: "composite"
+  steps:
+    - name: load docker images
+      shell: bash
+      run: |
+
+        # get the name of the images to load from children of spring-cloud-kubernetes-controllers
+        cd spring-cloud-kubernetes-controllers
+        while read controller_image; do
+          docker load -i /tmp/docker/images/${controller_image}.tar
+        done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-controllers')
+        cd ..
+
+        # get the name of the images to load from children of spring-cloud-kubernetes-integration-tests
+        cd spring-cloud-kubernetes-integration-tests
+        while read integration_test_image; do
+          docker load -i /tmp/docker/images/${integration_test_image}.tar
+        done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q \
+                        | grep -v 'spring-cloud-kubernetes-integration-tests' \
+                        | grep -v 'spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps' \
+                        | grep -v 'spring-cloud-kubernetes-client-configuration-watcher-configmap-test-app' \
+                        | grep -v 'spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps' \
+                        | grep -v 'spring-cloud-kubernetes-client-configuration-watcher-secrets-test-app' )
+        cd ..

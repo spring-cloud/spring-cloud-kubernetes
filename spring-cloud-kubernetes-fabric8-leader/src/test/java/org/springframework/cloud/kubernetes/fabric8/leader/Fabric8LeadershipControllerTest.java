@@ -17,17 +17,28 @@
 package org.springframework.cloud.kubernetes.fabric8.leader;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gytis Trikleris
@@ -44,7 +55,7 @@ public class Fabric8LeadershipControllerTest {
 	@Mock
 	private LeaderEventPublisher mockLeaderEventPublisher;
 
-	@Mock
+	@Mock(answer = Answers.RETURNS_DEEP_STUBS)
 	private KubernetesClient mockKubernetesClient;
 
 	private Fabric8LeadershipController fabric8LeadershipController;
@@ -58,6 +69,42 @@ public class Fabric8LeadershipControllerTest {
 	@Test
 	public void shouldGetEmptyLocalLeader() {
 		assertThat(this.fabric8LeadershipController.getLocalLeader().isPresent()).isFalse();
+	}
+
+	@ExtendWith(OutputCaptureExtension.class)
+	@Test
+	void whenNonExistentConfigmapAndCreationNotAllowedStopLeadershipAcquire(CapturedOutput output) {
+		// given
+		String testNamespace = "test-namespace";
+		String testConfigmap = "test-configmap";
+		Resource mockResource = Mockito.mock(Resource.class);
+		NonNamespaceOperation mockNonNamespaceOperation = Mockito.mock(NonNamespaceOperation.class);
+
+		Fabric8LeadershipController fabric8LeadershipController = new Fabric8LeadershipController(mockCandidate,
+				mockLeaderProperties, mockLeaderEventPublisher, mockKubernetesClient);
+
+		when(mockLeaderProperties.isCreateConfigMap()).thenReturn(false);
+		when(mockLeaderProperties.isPublishFailedEvents()).thenReturn(true);
+		when(mockLeaderProperties.getConfigMapName()).thenReturn(testConfigmap);
+		when(mockKubernetesClient.getNamespace()).thenReturn(testNamespace);
+		when(mockLeaderProperties.getNamespace(anyString())).thenReturn(testNamespace);
+		when(mockKubernetesClient.configMaps().inNamespace(anyString())).thenReturn(mockNonNamespaceOperation);
+		when(mockNonNamespaceOperation.withName(any())).thenReturn(mockResource);
+		when(mockResource.get()).thenReturn(null);
+
+		// when
+		fabric8LeadershipController.update();
+
+		// then
+		assertThat(output).contains("ConfigMap '" + testConfigmap + "' does not exist "
+				+ "and leaderProperties.isCreateConfigMap() is false, cannot acquire leadership");
+		verify(mockLeaderEventPublisher).publishOnFailedToAcquire(any(), any(), any());
+
+		verify(mockKubernetesClient, never()).pods();
+		verify(mockCandidate, never()).getId();
+		verify(mockLeaderProperties, never()).getLeaderIdPrefix();
+		verify(mockLeaderEventPublisher, never()).publishOnGranted(any(), any(), any());
+		verify(mockLeaderEventPublisher, never()).publishOnRevoked(any(), any(), any());
 	}
 
 }

@@ -37,7 +37,7 @@ class Fabric8UserAgentDefaultConfigurationTests {
 	@Test
 	void testUserAgent() {
 		String userAgent = client.getConfiguration().getUserAgent();
-		assertThat(userAgent).isEqualTo("Spring-Cloud-Kubernetes-Application");
+		assertThat(userAgent).isEqualTo("fabric8-kubernetes-client/6.2.0");
 	}
 
 }

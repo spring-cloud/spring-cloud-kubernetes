@@ -66,7 +66,7 @@ abstract class ConfigMapsMixedTests {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
 				.addToData(data).build();
 
-		mockClient.configMaps().inNamespace("test").create(configMap);
+		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 	}
 
 	@AfterAll

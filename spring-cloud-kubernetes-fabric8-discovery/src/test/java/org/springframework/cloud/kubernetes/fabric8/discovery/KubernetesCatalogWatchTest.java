@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
@@ -27,24 +28,24 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
 import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.FilterNested;
+import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.Mockito;
 
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.ApplicationEventPublisher;
 
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -52,241 +53,241 @@ import static org.mockito.Mockito.when;
 /**
  * @author Oleg Vyukov
  */
-@RunWith(MockitoJUnitRunner.class)
-public class KubernetesCatalogWatchTest {
+@SuppressWarnings({ "unchecked" })
+class KubernetesCatalogWatchTest {
 
-	@Mock
-	private KubernetesDiscoveryProperties properties;
+	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
 
-	@Mock
-	private KubernetesClient kubernetesClient;
+	private final KubernetesNamespaceProvider namespaceProvider = Mockito.mock(KubernetesNamespaceProvider.class);
 
-	@Mock
-	private KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
+	private KubernetesCatalogWatch kubernetesCatalogWatch;
 
-	@Mock
-	private ApplicationEventPublisher applicationEventPublisher;
+	private static final ApplicationEventPublisher APPLICATION_EVENT_PUBLISHER = Mockito
+			.mock(ApplicationEventPublisher.class);
 
-	@Mock
-	private MixedOperation<Endpoints, EndpointsList, Resource<Endpoints>> endpointsOperation;
+	private static final MixedOperation<Endpoints, EndpointsList, Resource<Endpoints>> MIXED_OPERATION = Mockito
+			.mock(MixedOperation.class);
 
-	@Captor
-	private ArgumentCaptor<HeartbeatEvent> heartbeatEventArgumentCaptor;
+	private static final NonNamespaceOperation<Endpoints, EndpointsList, Resource<Endpoints>> NON_NAMESPACE_OPERATION = Mockito
+			.mock(NonNamespaceOperation.class);
 
-	@InjectMocks
-	private KubernetesCatalogWatch underTest;
+	private static final FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>> FILTER_WATCH_LIST_DELETABLE = Mockito
+			.mock(FilterWatchListDeletable.class);
 
-	@Before
-	public void setUp() throws Exception {
-		this.underTest.setApplicationEventPublisher(this.applicationEventPublisher);
+	private static final FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> FILTER_NESTED = Mockito
+			.mock(FilterNested.class);
+
+	private static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
+			.forClass(HeartbeatEvent.class);
+
+	@AfterEach
+	void afterEach() {
+		Mockito.reset(APPLICATION_EVENT_PUBLISHER, CLIENT, MIXED_OPERATION, FILTER_WATCH_LIST_DELETABLE,
+				NON_NAMESPACE_OPERATION);
 	}
 
 	@Test
-	public void testRandomOrderChangePods() throws Exception {
-		when(this.endpointsOperation.list())
+	void testRandomOrderChangePods() {
+
+		createInSpecificNamespaceWatcher();
+
+		when(FILTER_WATCH_LIST_DELETABLE.list())
 				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
 				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod", "api-pod"));
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
-		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(any(HeartbeatEvent.class));
 	}
 
 	@Test
-	public void testRandomOrderChangePodsAllNamespaces() throws Exception {
-		when(this.endpointsOperation.list())
+	void testRandomOrderChangePodsAllNamespaces() {
+
+		createInAllNamespaceWatcher();
+
+		when(FILTER_WATCH_LIST_DELETABLE.list())
 				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
 				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod", "api-pod"));
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
-				.thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
-		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(any(HeartbeatEvent.class));
 	}
 
 	@Test
-	public void testRandomOrderChangeServices() throws Exception {
-		when(this.endpointsOperation.list())
+	void testRandomOrderChangeServices() {
+
+		createInSpecificNamespaceWatcher();
+
+		when(FILTER_WATCH_LIST_DELETABLE.list())
 				.thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
 				.thenReturn(createEndpointsListByServiceName("other-service", "api-service"));
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
-		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(any(HeartbeatEvent.class));
 	}
 
 	@Test
-	public void testRandomOrderChangeServicesAllNamespaces() throws Exception {
-		when(this.endpointsOperation.list())
+	void testRandomOrderChangeServicesAllNamespaces() {
+
+		createInAllNamespaceWatcher();
+
+		when(FILTER_WATCH_LIST_DELETABLE.list())
 				.thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
 				.thenReturn(createEndpointsListByServiceName("other-service", "api-service"));
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
-				.thenReturn(this.endpointsOperation);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
-		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(any(HeartbeatEvent.class));
 	}
 
 	@Test
-	public void testEventBody() throws Exception {
-		when(this.endpointsOperation.list())
-				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
+	void testEventBody() {
 
-		this.underTest.catalogServicesWatch();
+		createInSpecificNamespaceWatcher();
 
-		verify(this.applicationEventPublisher).publishEvent(this.heartbeatEventArgumentCaptor.capture());
+		when(FILTER_WATCH_LIST_DELETABLE.list())
+				.thenReturn(createSingleEndpointListWithNamespace("default", "api-pod", "other-pod"));
 
-		HeartbeatEvent event = this.heartbeatEventArgumentCaptor.getValue();
+		kubernetesCatalogWatch.catalogServicesWatch();
+
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
+
+		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
 		assertThat(event.getValue()).isInstanceOf(List.class);
 
-		List<String> expectedPodsList = Arrays.asList("api-pod", "other-pod");
-		assertThat(event.getValue()).isEqualTo(expectedPodsList);
+		List<EndpointNameAndNamespace> expectedOutput = List.of(new EndpointNameAndNamespace("api-pod", "default"),
+				new EndpointNameAndNamespace("other-pod", "default"));
+		assertThat(event.getValue()).isEqualTo(expectedOutput);
 	}
 
 	@Test
-	public void testEventBodyAllNamespaces() throws Exception {
-		when(this.endpointsOperation.list())
-				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"));
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
-				.thenReturn(this.endpointsOperation);
+	void testEventBodyAllNamespaces() {
 
-		this.underTest.catalogServicesWatch();
+		createInAllNamespaceWatcher();
 
-		verify(this.applicationEventPublisher).publishEvent(this.heartbeatEventArgumentCaptor.capture());
+		when(FILTER_WATCH_LIST_DELETABLE.list())
+				.thenReturn(createSingleEndpointListWithNamespace("default", "api-pod", "other-pod"));
 
-		HeartbeatEvent event = this.heartbeatEventArgumentCaptor.getValue();
+		kubernetesCatalogWatch.catalogServicesWatch();
+
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
+
+		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
 		assertThat(event.getValue()).isInstanceOf(List.class);
 
-		List<String> expectedPodsList = Arrays.asList("api-pod", "other-pod");
-		assertThat(event.getValue()).isEqualTo(expectedPodsList);
+		List<EndpointNameAndNamespace> expectedOutput = List.of(new EndpointNameAndNamespace("api-pod", "default"),
+				new EndpointNameAndNamespace("other-pod", "default"));
+		assertThat(event.getValue()).isEqualTo(expectedOutput);
 	}
 
 	@Test
-	public void testEndpointsWithoutSubsets() {
+	void testEndpointsWithoutSubsets() {
+
+		createInSpecificNamespaceWatcher();
 
 		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets();
 
-		when(this.endpointsOperation.list()).thenReturn(endpoints);
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
+		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
-		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(any(HeartbeatEvent.class));
 	}
 
 	@Test
-	public void testEndpointsWithoutSubsetsAllNamespaces() {
+	void testEndpointsWithoutSubsetsAllNamespaces() {
+
+		createInAllNamespaceWatcher();
 
 		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets();
 
-		when(this.endpointsOperation.list()).thenReturn(endpoints);
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
-				.thenReturn(this.endpointsOperation);
+		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
-		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(any(HeartbeatEvent.class));
 	}
 
 	@Test
-	public void testEndpointsWithoutAddresses() {
+	void testEndpointsWithoutAddresses() {
+
+		createInSpecificNamespaceWatcher();
 
 		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
 		endpoints.getItems().get(0).getSubsets().get(0).setAddresses(null);
 
-		when(this.endpointsOperation.list()).thenReturn(endpoints);
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
+		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
-		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(any(HeartbeatEvent.class));
 	}
 
 	@Test
-	public void testEndpointsWithoutAddressesAllNamespaces() {
+	void testEndpointsWithoutAddressesAllNamespaces() {
+
+		createInAllNamespaceWatcher();
 
 		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
 		endpoints.getItems().get(0).getSubsets().get(0).setAddresses(null);
 
-		when(this.endpointsOperation.list()).thenReturn(endpoints);
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
-				.thenReturn(this.endpointsOperation);
+		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
-		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(any(HeartbeatEvent.class));
 	}
 
 	@Test
-	public void testEndpointsWithoutTargetRefs() {
+	void testEndpointsWithoutTargetRefs() {
+
+		createInSpecificNamespaceWatcher();
 
 		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
 		endpoints.getItems().get(0).getSubsets().get(0).getAddresses().get(0).setTargetRef(null);
 
-		when(this.endpointsOperation.list()).thenReturn(endpoints);
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().withLabels(anyMap())).thenReturn(this.endpointsOperation);
+		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
-		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(any(HeartbeatEvent.class));
 	}
 
 	@Test
-	public void testEndpointsWithoutTargetRefsAllNamespaces() {
+	void testEndpointsWithoutTargetRefsAllNamespaces() {
+
+		createInAllNamespaceWatcher();
 
 		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
 		endpoints.getItems().get(0).getSubsets().get(0).getAddresses().get(0).setTargetRef(null);
 
-		when(this.endpointsOperation.list()).thenReturn(endpoints);
-		when(this.kubernetesClient.endpoints()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace()).thenReturn(this.endpointsOperation);
-		when(this.kubernetesClient.endpoints().inAnyNamespace().withLabels(anyMap()))
-				.thenReturn(this.endpointsOperation);
+		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
 
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
-		this.underTest.catalogServicesWatch();
+		kubernetesCatalogWatch.catalogServicesWatch();
 
-		verify(this.applicationEventPublisher).publishEvent(any(HeartbeatEvent.class));
+		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(any(HeartbeatEvent.class));
 	}
 
 	private EndpointsList createEndpointsListByServiceName(String... serviceNames) {
@@ -315,6 +316,15 @@ public class KubernetesCatalogWatchTest {
 		return endpointsList;
 	}
 
+	private EndpointsList createSingleEndpointListWithNamespace(String namespace, String... podNames) {
+		Endpoints endpoints = new Endpoints();
+		endpoints.setSubsets(createSubsetsWithNamespace(namespace, podNames));
+
+		EndpointsList endpointsList = new EndpointsList();
+		endpointsList.setItems(Collections.singletonList(endpoints));
+		return endpointsList;
+	}
+
 	private Endpoints createEndpointsByPodName(String podName) {
 		Endpoints endpoints = new Endpoints();
 		endpoints.setSubsets(createSubsetsByPodName(podName));
@@ -327,6 +337,12 @@ public class KubernetesCatalogWatchTest {
 		return Collections.singletonList(endpointSubset);
 	}
 
+	private List<EndpointSubset> createSubsetsWithNamespace(String namespace, String... names) {
+		EndpointSubset endpointSubset = new EndpointSubset();
+		endpointSubset.setAddresses(createEndpointAddressWithNamespace(names, namespace));
+		return Collections.singletonList(endpointSubset);
+	}
+
 	private List<EndpointAddress> createEndpointAddressByPodNames(String[] names) {
 		return stream(names).map(name -> {
 			ObjectReference podRef = new ObjectReference();
@@ -334,7 +350,55 @@ public class KubernetesCatalogWatchTest {
 			EndpointAddress endpointAddress = new EndpointAddress();
 			endpointAddress.setTargetRef(podRef);
 			return endpointAddress;
-		}).collect(Collectors.toList());
+		}).toList();
+	}
+
+	private List<EndpointAddress> createEndpointAddressWithNamespace(String[] names, String namespace) {
+		return stream(names).map(name -> {
+			ObjectReference podRef = new ObjectReference();
+			podRef.setName(name);
+			podRef.setNamespace(namespace);
+			EndpointAddress endpointAddress = new EndpointAddress();
+			endpointAddress.setTargetRef(podRef);
+			return endpointAddress;
+		}).toList();
+	}
+
+	private void createInAllNamespaceWatcher() {
+
+		// all-namespaces = true
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
+				false, "", Set.of(), Map.of(), "", null, 0, false);
+
+		kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT, properties, namespaceProvider);
+		kubernetesCatalogWatch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
+		kubernetesCatalogWatch.postConstruct();
+
+		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
+		when(MIXED_OPERATION.inAnyNamespace()).thenReturn(MIXED_OPERATION);
+		when(MIXED_OPERATION.withLabels(Map.of())).thenReturn(MIXED_OPERATION);
+		when(MIXED_OPERATION.withNewFilter()).thenReturn(FILTER_NESTED);
+		when(FILTER_NESTED.withLabels(Map.of())).thenReturn(FILTER_NESTED);
+		when(FILTER_NESTED.endFilter()).thenReturn(FILTER_WATCH_LIST_DELETABLE);
+
+	}
+
+	private void createInSpecificNamespaceWatcher() {
+
+		// all-namespaces = false
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, "", Set.of(), Map.of(), "", null, 0, false);
+
+		kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT, properties, namespaceProvider);
+		kubernetesCatalogWatch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
+		kubernetesCatalogWatch.postConstruct();
+
+		when(namespaceProvider.getNamespace()).thenReturn("catalog-watcher-namespace");
+		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
+		when(MIXED_OPERATION.inNamespace("catalog-watcher-namespace")).thenReturn(NON_NAMESPACE_OPERATION);
+		when(NON_NAMESPACE_OPERATION.withNewFilter()).thenReturn(FILTER_NESTED);
+		when(FILTER_NESTED.withLabels(Map.of())).thenReturn(FILTER_NESTED);
+		when(FILTER_NESTED.endFilter()).thenReturn(FILTER_WATCH_LIST_DELETABLE);
 	}
 
 }

@@ -12,6 +12,8 @@ To achieve this configuration refresh of a Spring Cloud app running on Kubernete
 Kubernetes Configuration Watcher controller into your Kubernetes cluster.
 
 The application is published as a container and is available on https://hub.docker.com/r/springcloud/spring-cloud-kubernetes-configuration-watcher[Docker Hub].
+  However, if you need to customize the config watcher behavior or prefer to build the image yourself you can easily build your own
+image from the https://github.com/spring-cloud/spring-cloud-kubernetes/tree/main/spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configuration-watcher[source code on GitHub] and use that.
 
 Spring Cloud Kubernetes Configuration Watcher can send refresh notifications to applications in two ways.
 
@@ -112,11 +114,32 @@ Spring Cloud Kubernetes Configuration Watcher will react to changes in ConfigMap
 or any Secret with a label of `spring.cloud.kubernetes.secret` with the value `true`.  If the ConfigMap or Secret does not have either of those labels
 or the values of those labels is not `true` then any changes will be ignored.
 
-The labels Spring Cloud Kubernetes Configuration Watcher looks for on ConfigMaps and Secrets can be changed by setting
-`spring.cloud.kubernetes.configuration.watcher.configLabel` and `spring.cloud.kubernetes.configuration.watcher.secretLabel` respectively.
-
 If a change is made to a ConfigMap or Secret with valid labels then Spring Cloud Kubernetes Configuration Watcher will take the name of the ConfigMap or Secret
-and send a notification to the application with that name.
+and send a notification to the application with that name. This might not be enough for your use-case though, you could for example what to:
+
+- bind a config-map to multiple applications, so that a change inside a single configmap triggers a refresh for many services
+- have profile based sources trigger events for your application
+
+For that reasons there is an addition annotation you could specify:
+
+`spring.cloud.kubernetes.configmap.apps` or `spring.cloud.kubernetes.secret.apps`. It takes a String of apps separated by comma,
+that specifies the names of applications that will receive a notification when changes happen in this secret/configmap.
+
+For example:
+
+====
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: example-configmap
+  labels:
+    spring.cloud.kubernetes.config: "true"
+  annotations:
+    spring.cloud.kubernetes.configmap.apps: "app-a, app-b"
+----
+====
 
 ### HTTP Implementation
 

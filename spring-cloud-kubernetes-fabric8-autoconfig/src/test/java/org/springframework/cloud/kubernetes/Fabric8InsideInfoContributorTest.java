@@ -16,22 +16,16 @@
 
 package org.springframework.cloud.kubernetes;
 
-import java.util.Map;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodStatus;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.kubernetes.example.App;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8PodUtils;
 import org.springframework.context.annotation.Bean;
@@ -49,34 +43,13 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=info",
 				"management.endpoint.info.show-details=always", "management.info.kubernetes.enabled=true" })
-public class Fabric8InsideInfoContributorTest {
+class Fabric8InsideInfoContributorTest {
 
 	@Autowired
 	private WebTestClient webClient;
 
-	@Value("${local.server.port}")
+	@LocalManagementPort
 	private int port;
-
-	@Test
-	public void test() {
-		this.webClient.get().uri("http://localhost:{port}/actuator/info", this.port).accept(MediaType.APPLICATION_JSON)
-				.exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Fabric8InsideInfoContributorTest::validateInfo);
-	}
-
-	private static Pod stubPod() {
-
-		PodStatus status = new PodStatus();
-		status.setPodIP("10.1.1.1");
-		status.setHostIP("192.160.10.3");
-
-		PodSpec spec = new PodSpec();
-		spec.setServiceAccountName("serviceAccountName");
-		spec.setNodeName("nodeName");
-
-		return new PodBuilder().withNewMetadata().withName("pod").withNamespace("namespace").endMetadata()
-				.withStatus(status).withSpec(spec).build();
-	}
 
 	/**
 	 * <pre>
@@ -91,26 +64,29 @@ public class Fabric8InsideInfoContributorTest {
 	 *   }
 	 *  </pre>
 	 */
-	@SuppressWarnings("unchecked")
-	private static void validateInfo(String input) {
-		try {
-			Map<String, Object> map = new ObjectMapper().readValue(input, new TypeReference<Map<String, Object>>() {
+	@Test
+	void test() {
+		this.webClient.get().uri("http://localhost:{port}/actuator/info", this.port).accept(MediaType.APPLICATION_JSON)
+				.exchange().expectStatus().isOk().expectBody().jsonPath("kubernetes.nodeName").isEqualTo("nodeName")
+				.jsonPath("kubernetes.podIp").isEqualTo("10.1.1.1").jsonPath("kubernetes.hostIp")
+				.isEqualTo("192.160.10.3").jsonPath("kubernetes.namespace").isEqualTo("namespace")
+				.jsonPath("kubernetes.podName").isEqualTo("pod").jsonPath("kubernetes.serviceAccount")
+				.isEqualTo("serviceAccountName").jsonPath("kubernetes.inside").isEqualTo("true");
 
-			});
-			Map<String, Object> infoProperties = (Map<String, Object>) map.get("kubernetes");
+	}
 
-			Assertions.assertEquals("nodeName", infoProperties.get("nodeName"));
-			Assertions.assertEquals("10.1.1.1", infoProperties.get("podIp"));
-			Assertions.assertEquals("192.160.10.3", infoProperties.get("hostIp"));
-			Assertions.assertEquals("namespace", infoProperties.get("namespace"));
-			Assertions.assertEquals("pod", infoProperties.get("podName"));
-			Assertions.assertEquals("serviceAccountName", infoProperties.get("serviceAccount"));
-			Assertions.assertTrue((Boolean) infoProperties.get("inside"));
+	private static Pod stubPod() {
 
-		}
-		catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
+		PodStatus status = new PodStatus();
+		status.setPodIP("10.1.1.1");
+		status.setHostIP("192.160.10.3");
+
+		PodSpec spec = new PodSpec();
+		spec.setServiceAccountName("serviceAccountName");
+		spec.setNodeName("nodeName");
+
+		return new PodBuilder().withNewMetadata().withName("pod").withNamespace("namespace").endMetadata()
+				.withStatus(status).withSpec(spec).build();
 	}
 
 	@Configuration

@@ -25,8 +25,7 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("k8s")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedSecretWithLabelApp.class,
 		properties = { "spring.cloud.bootstrap.name=named-secret-with-profile", "named.secret.with.profile.stub=true",
-				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true",
-				"spring.cloud.kubernetes.client.namespace=spring-k8s" })
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true" })
 class NamedSecretWithProfileBootstrapTests extends NamedSecretWithProfileTests {
 
 }

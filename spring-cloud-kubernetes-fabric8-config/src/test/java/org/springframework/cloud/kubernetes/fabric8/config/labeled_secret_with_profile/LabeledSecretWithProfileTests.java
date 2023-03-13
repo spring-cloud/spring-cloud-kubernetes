@@ -40,15 +40,21 @@ abstract class LabeledSecretWithProfileTests {
 	@Autowired
 	private WebTestClient webClient;
 
-	/*
-	 * <pre> - secret with name "color-secret", with labels: "{color: blue}" and
-	 * "explicitPrefix: blue" - secret with name "green-secret", with labels:
-	 * "{color: green}" and "explicitPrefix: blue-again" - secret with name "red-secret",
-	 * with labels "{color: not-red}" and "useNameAsPrefix: true" - secret with name
-	 * "yellow-secret" with labels "{color: not-yellow}" and useNameAsPrefix: true -
-	 * secret with name "color-secret-k8s", with labels : "{color: not-blue}" - secret
-	 * with name "green-secret-k8s", with labels : "{color: green-k8s}" - secret with name
-	 * "green-secret-prod", with labels : "{color: green-prod}" </pre>
+	/**
+	 * <pre>
+	 *     - secret with name "color-secret", with labels: "{color: blue}" and "explicitPrefix: blue"
+	 *     - secret with name "green-secret", with labels: "{color: green}" and "explicitPrefix: blue-again"
+	 *     - secret with name "red-secret", with labels "{color: not-red}" and "useNameAsPrefix: true"
+	 *     - secret with name "yellow-secret" with labels "{color: not-yellow}" and useNameAsPrefix: true
+	 *     - secret with name "color-secret-k8s", with labels : "{color: not-blue}"
+	 *     - secret with name "green-secret-k8s", with labels : "{color: green-k8s}"
+	 *     - secret with name "green-secret-prod", with labels : "{color: green-prod}"
+	 *
+	 *     # a test that proves order: first read non-profile based secrets, thus profile based
+	 *     # secrets override non-profile ones.
+	 *     - secret with name "green-purple-secret", labels "{color: green, shape: round}", data: "{eight: 8}"
+	 *     - secret with name "green-purple-secret-k8s", labels "{color: black}", data: "{eight: eight-ish}"
+	 * </pre>
 	 */
 	static void setUpBeforeClass(KubernetesClient mockClient) {
 		LabeledSecretWithProfileTests.mockClient = mockClient;
@@ -95,11 +101,21 @@ abstract class LabeledSecretWithProfileTests {
 				Base64.getEncoder().encodeToString("4".getBytes(StandardCharsets.UTF_8)));
 		createSecret("yellow-secret", yellowSecret, Collections.singletonMap("color", "not-yellow"));
 
+		// is found by labels
+		Map<String, String> greenPurple = Collections.singletonMap("eight",
+				Base64.getEncoder().encodeToString("8".getBytes(StandardCharsets.UTF_8)));
+		createSecret("green-purple-secret", greenPurple, Map.of("color", "green", "shape", "round"));
+
+		// is taken and thus overrides the above
+		Map<String, String> greenPurpleK8s = Collections.singletonMap("eight",
+				Base64.getEncoder().encodeToString("eight-ish".getBytes(StandardCharsets.UTF_8)));
+		createSecret("green-purple-secret-k8s", greenPurpleK8s, Map.of("color", "black"));
+
 	}
 
 	private static void createSecret(String name, Map<String, String> data, Map<String, String> labels) {
-		mockClient.secrets().inNamespace("spring-k8s").create(new SecretBuilder().withNewMetadata().withName(name)
-				.withLabels(labels).endMetadata().addToData(data).build());
+		mockClient.secrets().inNamespace("spring-k8s").resource(new SecretBuilder().withNewMetadata().withName(name)
+				.withLabels(labels).endMetadata().addToData(data).build()).create();
 	}
 
 	/**
@@ -117,15 +133,16 @@ abstract class LabeledSecretWithProfileTests {
 
 	/**
 	 * <pre>
-	 *   this one is taken from : "green-secret.green-secret-k8s.green-secret-prod".
+	 *   this one is taken from : "green-purple-secret.green-purple-secret-k8s.green-secret.green-secret-k8s.green-secret-prod".
 	 *   We find "green-secret" by labels, also "green-secrets-k8s" and "green-secrets-prod" exists,
-	 *   because "includeProfileSpecificSources=true" is set.
+	 *   because "includeProfileSpecificSources=true" is set. Also "green-purple-secret" and "green-purple-secret-k8s"
+	 * 	 are found.
 	 * </pre>
 	 */
 	@Test
 	void testGreen() {
 		this.webClient.get().uri("/labeled-secret/profile/green").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("2#6#7"));
+				.expectBody(String.class).value(Matchers.equalTo("2#6#7#eight-ish"));
 	}
 
 }

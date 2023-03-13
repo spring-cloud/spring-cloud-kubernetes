@@ -1,0 +1,14 @@
+# build a lightweight project so that dependencies for the
+# maven-surefire-plugin are downloaded and thus cached also
+
+name: build fabric8 istio project
+description: build fabric8 istio projects
+runs:
+  using: "composite"
+  steps:
+    - name: build fabric8 istio project
+      shell: bash
+      run: |
+        cd spring-cloud-kubernetes-fabric8-istio
+        .././mvnw -s ../.settings.xml clean install -U
+        cd ..

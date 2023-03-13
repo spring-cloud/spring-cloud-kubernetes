@@ -74,7 +74,7 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 	}
 
 	@Override
-	public Boolean isInsideKubernetes() {
+	public boolean isInsideKubernetes() {
 		return currentPod().get() != null;
 	}
 

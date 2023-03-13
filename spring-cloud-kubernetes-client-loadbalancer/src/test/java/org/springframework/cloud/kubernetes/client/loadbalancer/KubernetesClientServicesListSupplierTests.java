@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -42,8 +43,8 @@ import reactor.test.StepVerifier;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.mock.env.MockEnvironment;
@@ -116,12 +117,11 @@ class KubernetesClientServicesListSupplierTests {
 		env.setProperty(LoadBalancerClientFactory.PROPERTY_NAME, "service1");
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties();
 		CoreV1Api coreV1Api = new CoreV1Api();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(
-				new KubernetesLoadBalancerProperties(), kubernetesDiscoveryProperties);
+				new KubernetesLoadBalancerProperties(), KubernetesDiscoveryProperties.DEFAULT);
 		KubernetesClientServicesListSupplier listSupplier = new KubernetesClientServicesListSupplier(env, mapper,
-				kubernetesDiscoveryProperties, coreV1Api, kubernetesNamespaceProvider);
+				KubernetesDiscoveryProperties.DEFAULT, coreV1Api, kubernetesNamespaceProvider);
 
 		stubFor(get(urlMatching("^/api/v1/namespaces/default/services.*"))
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SERVICE_LIST))));
@@ -131,7 +131,7 @@ class KubernetesClientServicesListSupplierTests {
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put("org.springframework.cloud", "true");
 		metadata.put("beta", "true");
-		KubernetesServiceInstance service1 = new KubernetesServiceInstance("0", "service1",
+		DefaultKubernetesServiceInstance service1 = new DefaultKubernetesServiceInstance("0", "service1",
 				"service1.default.svc.cluster.local", 80, metadata, false);
 		List<ServiceInstance> services = new ArrayList<>();
 		services.add(service1);
@@ -145,8 +145,9 @@ class KubernetesClientServicesListSupplierTests {
 		env.setProperty(LoadBalancerClientFactory.PROPERTY_NAME, "service1");
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties();
-		kubernetesDiscoveryProperties.setAllNamespaces(true);
+		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
+				Set.of(), true, 60, false, null, Set.of(), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 		CoreV1Api coreV1Api = new CoreV1Api();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(
 				new KubernetesLoadBalancerProperties(), kubernetesDiscoveryProperties);
@@ -161,9 +162,9 @@ class KubernetesClientServicesListSupplierTests {
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put("org.springframework.cloud", "true");
 		metadata.put("beta", "true");
-		KubernetesServiceInstance service1 = new KubernetesServiceInstance("0", "service1",
+		DefaultKubernetesServiceInstance service1 = new DefaultKubernetesServiceInstance("0", "service1",
 				"service1.default.svc.cluster.local", 80, metadata, false);
-		KubernetesServiceInstance service2 = new KubernetesServiceInstance("1", "service1",
+		DefaultKubernetesServiceInstance service2 = new DefaultKubernetesServiceInstance("1", "service1",
 				"service1.test.svc.cluster.local", 80, new HashMap<>(), false);
 		List<ServiceInstance> services = new ArrayList<>();
 		services.add(service1);

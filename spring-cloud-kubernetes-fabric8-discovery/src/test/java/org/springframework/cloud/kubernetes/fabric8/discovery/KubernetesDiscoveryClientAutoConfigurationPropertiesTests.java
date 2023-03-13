@@ -22,12 +22,13 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,47 +41,48 @@ import static org.mockito.Mockito.when;
  * @author Ryan Dawson
  * @author Tim Ysewyn
  */
-public class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
+class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 
 	private ConfigurableApplicationContext context;
 
-	@After
-	public void close() {
-		if (this.context != null) {
-			this.context.close();
+	@AfterEach
+	void afterEach() {
+		if (context != null) {
+			context.close();
 		}
 	}
 
 	@Test
-	public void kubernetesDiscoveryDisabled() throws Exception {
+	void kubernetesDiscoveryDisabled() {
 		setup("spring.cloud.kubernetes.discovery.enabled=false",
 				"spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false");
-		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
+		assertThat(context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
 	}
 
 	@Test
-	public void kubernetesDiscoveryWhenKubernetesDisabled() throws Exception {
+	void kubernetesDiscoveryWhenKubernetesDisabled() {
 		setup();
-		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
+		assertThat(context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
 	}
 
 	@Test
-	public void kubernetesDiscoveryWhenDiscoveryDisabled() throws Exception {
+	void kubernetesDiscoveryWhenDiscoveryDisabled() {
 		setup("spring.cloud.discovery.enabled=false");
-		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
+		assertThat(context.getBeanNamesForType(KubernetesDiscoveryClient.class)).isEmpty();
 	}
 
 	@Test
-	public void kubernetesDiscoveryDefaultEnabled() throws Exception {
+	void kubernetesDiscoveryDefaultEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES");
-		assertThat(this.context.getBeanNamesForType(KubernetesDiscoveryClient.class)).hasSize(1);
+		assertThat(context.getBeanNamesForType(KubernetesDiscoveryClient.class)).hasSize(1);
 	}
 
 	private void setup(String... env) {
 		List<String> envList = new ArrayList<>(Arrays.asList(env));
 		envList.add("spring.cloud.config.enabled=false");
-		this.context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
-				KubernetesClientTestConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class)
+		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
+				KubernetesClientTestConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class,
+				KubernetesDiscoveryPropertiesAutoConfiguration.class)
 						.web(org.springframework.boot.WebApplicationType.NONE)
 						.properties(envList.toArray(new String[0])).run();
 	}
@@ -93,8 +95,9 @@ public class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 			return mock(KubernetesClient.class);
 		}
 
+		@SuppressWarnings("unchecked")
 		@Bean
-		PodUtils podUtils() {
+		PodUtils<?> podUtils() {
 			PodUtils<Pod> podPodUtils = mock(PodUtils.class);
 			when(podPodUtils.currentPod()).thenReturn(() -> mock(Pod.class));
 			return podPodUtils;

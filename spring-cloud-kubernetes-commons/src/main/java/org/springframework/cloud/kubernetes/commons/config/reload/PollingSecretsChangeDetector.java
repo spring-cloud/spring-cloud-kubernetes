@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config.reload;
 
+import java.time.Duration;
 import java.util.List;
 
 import jakarta.annotation.PostConstruct;
@@ -27,6 +28,10 @@ import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
+
+import static org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil.changed;
+import static org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil.findPropertySources;
+import static org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil.locateMapPropertySources;
 
 /**
  * A change detector that periodically retrieves secrets and fires a reload when something
@@ -57,15 +62,15 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 		this.propertySourceLocator = propertySourceLocator;
 		this.propertySourceClass = propertySourceClass;
 		this.taskExecutor = taskExecutor;
-		this.period = properties.getPeriod().toMillis();
-		this.monitorSecrets = properties.isMonitoringSecrets();
+		this.period = properties.period().toMillis();
+		this.monitorSecrets = properties.monitoringSecrets();
 	}
 
 	@PostConstruct
 	private void init() {
 		log.info("Kubernetes polling secrets change detector activated");
-		PeriodicTrigger trigger = new PeriodicTrigger(period);
-		trigger.setInitialDelay(period);
+		PeriodicTrigger trigger = new PeriodicTrigger(Duration.ofMillis(period));
+		trigger.setInitialDelay(Duration.ofMillis(period));
 		taskExecutor.schedule(this::executeCycle, trigger);
 	}
 
@@ -76,8 +81,9 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 			log.debug("Polling for changes in secrets");
 			List<MapPropertySource> currentSecretSources = locateMapPropertySources(this.propertySourceLocator,
 					this.environment);
-			if (currentSecretSources != null && !currentSecretSources.isEmpty()) {
-				List<? extends MapPropertySource> propertySources = findPropertySources(this.propertySourceClass);
+			if (!currentSecretSources.isEmpty()) {
+				List<? extends MapPropertySource> propertySources = findPropertySources(propertySourceClass,
+						environment);
 				changedSecrets = changed(currentSecretSources, propertySources);
 			}
 		}

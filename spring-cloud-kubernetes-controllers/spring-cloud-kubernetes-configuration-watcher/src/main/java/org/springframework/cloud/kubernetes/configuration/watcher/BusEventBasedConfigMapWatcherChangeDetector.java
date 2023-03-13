@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,53 +16,39 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.bus.BusProperties;
-import org.springframework.cloud.bus.event.PathDestinationFactory;
-import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-public class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatcherChangeDetector
-		implements ApplicationEventPublisherAware {
+final class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMapWatcherChangeDetector {
 
-	private ApplicationEventPublisher applicationEventPublisher;
+	private final BusRefreshTrigger busRefreshTrigger;
 
-	private final BusProperties busProperties;
-
-	public BusEventBasedConfigMapWatcherChangeDetector(AbstractEnvironment environment,
-			ConfigReloadProperties properties, KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
-			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator, BusProperties busProperties,
+	BusEventBasedConfigMapWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(environment, properties, kubernetesClient, strategy, fabric8ConfigMapPropertySourceLocator,
+			ThreadPoolTaskExecutor threadPoolTaskExecutor, BusRefreshTrigger busRefreshTrigger) {
+		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider,
 				k8SConfigurationProperties, threadPoolTaskExecutor);
-
-		this.busProperties = busProperties;
+		this.busRefreshTrigger = busRefreshTrigger;
 	}
 
 	@Override
-	protected Mono<Void> triggerRefresh(ConfigMap configMap) {
-		this.applicationEventPublisher.publishEvent(new RefreshRemoteApplicationEvent(configMap, busProperties.getId(),
-				new PathDestinationFactory().getDestination(configMap.getMetadata().getName())));
-		return Mono.empty();
-	}
-
-	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.applicationEventPublisher = applicationEventPublisher;
+	public Mono<Void> triggerRefresh(KubernetesObject configMap, String appName) {
+		return busRefreshTrigger.triggerRefresh(configMap, appName);
 	}
 
 }
