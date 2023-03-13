@@ -104,7 +104,7 @@ class Fabric8DiscoveryPodMetadataIT {
 				}).retryWhen(retrySpec()).block();
 
 		DefaultKubernetesServiceInstance withCustomLabel = serviceInstances.stream()
-				.filter(x -> x.podMetadata().get("annotations").isEmpty()).toList().get(0);
+				.filter(x -> x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty()).toList().get(0);
 		Assertions.assertEquals(withCustomLabel.getServiceId(), "busybox-service");
 		Assertions.assertNotNull(withCustomLabel.getInstanceId());
 		Assertions.assertNotNull(withCustomLabel.getHost());
@@ -114,7 +114,7 @@ class Fabric8DiscoveryPodMetadataIT {
 				.anyMatch(x -> x.getKey().equals("custom-label") && x.getValue().equals("custom-label-value")));
 
 		DefaultKubernetesServiceInstance withCustomAnnotation = serviceInstances.stream()
-				.filter(x -> !x.podMetadata().get("annotations").isEmpty()).toList().get(0);
+				.filter(x -> !x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty()).toList().get(0);
 		Assertions.assertEquals(withCustomAnnotation.getServiceId(), "busybox-service");
 		Assertions.assertNotNull(withCustomAnnotation.getInstanceId());
 		Assertions.assertNotNull(withCustomAnnotation.getHost());

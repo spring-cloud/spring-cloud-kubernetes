@@ -142,8 +142,8 @@ class KubernetesDiscoveryClientUtilsPodMetadataTests {
 				namespace);
 		Assertions.assertEquals(result.get("labels"), Map.of("label-key", "label-value"));
 		Assertions.assertNull(result.get("annotations"));
-		Assertions.assertTrue(output.getOut().contains(
-				"adding podMetadata : {labels={label-key=label-value}} from pod : my-pod"));
+		Assertions.assertTrue(
+				output.getOut().contains("adding podMetadata : {labels={label-key=label-value}} from pod : my-pod"));
 	}
 
 	/**
@@ -174,8 +174,8 @@ class KubernetesDiscoveryClientUtilsPodMetadataTests {
 				namespace);
 		Assertions.assertNull(result.get("labels"));
 		Assertions.assertEquals(result.get("annotations"), Map.of("annotation-key", "annotation-value"));
-		Assertions.assertTrue(output.getOut().contains(
-				"adding podMetadata : {annotations={annotation-key=annotation-value}} from pod : my-pod"));
+		Assertions.assertTrue(output.getOut()
+				.contains("adding podMetadata : {annotations={annotation-key=annotation-value}} from pod : my-pod"));
 	}
 
 	/**
