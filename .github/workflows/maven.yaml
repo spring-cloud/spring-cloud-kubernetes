@@ -2,9 +2,9 @@ name: github-workflow
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 2.1.x ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, 2.1.x ]
 
 jobs:
   build:
