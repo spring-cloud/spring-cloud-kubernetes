@@ -31,11 +31,7 @@ sealed public interface KubernetesServiceInstance extends ServiceInstance permit
 
 	String getCluster();
 
-	default Map<String, String> podLabels() {
-		return Map.of();
-	}
-
-	default Map<String, String> podAnnotations() {
+	default Map<String, Map<String, String>> podMetadata() {
 		return Map.of();
 	}
 

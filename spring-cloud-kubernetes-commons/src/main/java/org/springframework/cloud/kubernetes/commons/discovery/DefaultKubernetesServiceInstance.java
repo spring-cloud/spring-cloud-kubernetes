@@ -35,8 +35,8 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  * @param cluster the cluster the service resides in.
  */
 public record DefaultKubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
-		Map<String, String> metadata, boolean secure, String namespace, String cluster, Map<String, String> podLabels,
-		Map<String, String> podAnnotations) implements KubernetesServiceInstance {
+		Map<String, String> metadata, boolean secure, String namespace, String cluster,
+		Map<String, Map<String, String>> podMetadata) implements KubernetesServiceInstance {
 
 	/**
 	 * @param instanceId the id of the instance.
@@ -48,12 +48,12 @@ public record DefaultKubernetesServiceInstance(String instanceId, String service
 	 */
 	public DefaultKubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
 			Map<String, String> metadata, boolean secure) {
-		this(instanceId, serviceId, host, port, metadata, secure, null, null, Map.of(), Map.of());
+		this(instanceId, serviceId, host, port, metadata, secure, null, null, Map.of());
 	}
 
 	public DefaultKubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
 			Map<String, String> metadata, boolean secure, String namespace, String cluster) {
-		this(instanceId, serviceId, host, port, metadata, secure, namespace, cluster, Map.of(), Map.of());
+		this(instanceId, serviceId, host, port, metadata, secure, namespace, cluster, Map.of());
 	}
 
 	@Override
@@ -107,13 +107,8 @@ public record DefaultKubernetesServiceInstance(String instanceId, String service
 	}
 
 	@Override
-	public Map<String, String> podLabels() {
-		return podLabels;
-	}
-
-	@Override
-	public Map<String, String> podAnnotations() {
-		return podAnnotations;
+	public Map<String, Map<String, String>> podMetadata() {
+		return podMetadata;
 	}
 
 	private URI createUri(String scheme, String host, int port) {

@@ -46,7 +46,6 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.PodMetadata;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
@@ -259,10 +258,11 @@ final class KubernetesDiscoveryClientUtils {
 		String host = Optional.ofNullable(endpointAddress).map(EndpointAddress::getIp)
 				.orElseGet(() -> service.getSpec().getExternalName());
 
-		PodMetadata podMetadata = podMetadata(client, serviceMetadata, properties, endpointAddress, namespace);
+		Map<String, Map<String, String>> podMetadata = podMetadata(client, serviceMetadata, properties, endpointAddress,
+				namespace);
 
 		return new DefaultKubernetesServiceInstance(instanceId, serviceId, host, endpointPort, serviceMetadata, secured,
-				namespace, null, podMetadata.podLabels(), podMetadata.podAnnotations());
+				namespace, null, podMetadata);
 	}
 
 	static List<Service> services(KubernetesDiscoveryProperties properties, KubernetesClient client,
@@ -294,7 +294,7 @@ final class KubernetesDiscoveryClientUtils {
 		return services;
 	}
 
-	static PodMetadata podMetadata(KubernetesClient client, Map<String, String> serviceMetadata,
+	static Map<String, Map<String, String>> podMetadata(KubernetesClient client, Map<String, String> serviceMetadata,
 			KubernetesDiscoveryProperties properties, EndpointAddress endpointAddress, String namespace) {
 		if (!EXTERNAL_NAME.equals(serviceMetadata.get(SERVICE_TYPE))) {
 			if (properties.metadata().addPodLabels() || properties.metadata().addPodAnnotations()) {
@@ -306,25 +306,23 @@ final class KubernetesDiscoveryClientUtils {
 					ObjectMeta metadata = Optional
 							.ofNullable(client.pods().inNamespace(namespace).withName(podName).get())
 							.map(Pod::getMetadata).orElse(new ObjectMeta());
-					Map<String, String> podLabels = Map.of();
-					Map<String, String> podAnnotations = Map.of();
+					Map<String, Map<String, String>> result = new HashMap<>();
 					if (properties.metadata().addPodLabels()) {
-						podLabels = metadata.getLabels();
+						result.put("labels", metadata.getLabels());
 					}
 
 					if (properties.metadata().addPodAnnotations()) {
-						podAnnotations = metadata.getAnnotations();
+						result.put("annotations", metadata.getAnnotations());
 					}
 
-					PodMetadata podMetadata = new PodMetadata(podLabels, podAnnotations);
-					LOG.debug(() -> "adding podMetadata : " + podMetadata + " from pod : " + podName);
-					return podMetadata;
+					LOG.debug(() -> "adding podMetadata : " + result + " from pod : " + podName);
+					return result;
 				}
 
 			}
 		}
 
-		return PodMetadata.EMPTY;
+		return Map.of();
 	}
 
 	/**

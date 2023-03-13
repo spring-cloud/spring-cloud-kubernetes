@@ -33,7 +33,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.PodMetadata;
 
 import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.podMetadata;
 
@@ -66,9 +65,9 @@ class KubernetesDiscoveryClientUtilsPodMetadataTests {
 		EndpointAddress endpointAddress = new EndpointAddressBuilder().build();
 		String namespace = "default";
 
-		PodMetadata result = podMetadata(client, serviceMetadata, properties, endpointAddress, namespace);
-		Assertions.assertEquals(result.podLabels(), Map.of());
-		Assertions.assertEquals(result.podAnnotations(), Map.of());
+		Map<String, Map<String, String>> result = podMetadata(client, serviceMetadata, properties, endpointAddress,
+				namespace);
+		Assertions.assertEquals(result, Map.of());
 	}
 
 	/**
@@ -87,9 +86,9 @@ class KubernetesDiscoveryClientUtilsPodMetadataTests {
 		EndpointAddress endpointAddress = new EndpointAddressBuilder().build();
 		String namespace = "default";
 
-		PodMetadata result = podMetadata(client, serviceMetadata, properties, endpointAddress, namespace);
-		Assertions.assertEquals(result.podLabels(), Map.of());
-		Assertions.assertEquals(result.podAnnotations(), Map.of());
+		Map<String, Map<String, String>> result = podMetadata(client, serviceMetadata, properties, endpointAddress,
+				namespace);
+		Assertions.assertEquals(result, Map.of());
 	}
 
 	/**
@@ -110,9 +109,9 @@ class KubernetesDiscoveryClientUtilsPodMetadataTests {
 				.withTargetRef(new ObjectReferenceBuilder().withKind("Pod").withName(podName).build()).build();
 		String namespace = "default";
 
-		PodMetadata result = podMetadata(client, serviceMetadata, properties, endpointAddress, namespace);
-		Assertions.assertEquals(result.podLabels(), Map.of());
-		Assertions.assertEquals(result.podAnnotations(), Map.of());
+		Map<String, Map<String, String>> result = podMetadata(client, serviceMetadata, properties, endpointAddress,
+				namespace);
+		Assertions.assertEquals(result, Map.of());
 	}
 
 	/**
@@ -139,9 +138,10 @@ class KubernetesDiscoveryClientUtilsPodMetadataTests {
 						.withAnnotations(Map.of("annotation-key", "annotation-value")).and().build())
 				.create();
 
-		PodMetadata result = podMetadata(client, serviceMetadata, properties, endpointAddress, namespace);
-		Assertions.assertEquals(result.podLabels(), Map.of("label-key", "label-value"));
-		Assertions.assertEquals(result.podAnnotations(), Map.of());
+		Map<String, Map<String, String>> result = podMetadata(client, serviceMetadata, properties, endpointAddress,
+				namespace);
+		Assertions.assertEquals(result.get("labels"), Map.of("label-key", "label-value"));
+		Assertions.assertEquals(result.get("annotations"), Map.of());
 		Assertions.assertTrue(output.getOut().contains(
 				"adding podMetadata : PodMetadata[podLabels={label-key=label-value}, podAnnotations={}] from pod : my-pod"));
 	}
@@ -170,9 +170,10 @@ class KubernetesDiscoveryClientUtilsPodMetadataTests {
 						.withAnnotations(Map.of("annotation-key", "annotation-value")).and().build())
 				.create();
 
-		PodMetadata result = podMetadata(client, serviceMetadata, properties, endpointAddress, namespace);
-		Assertions.assertEquals(result.podLabels(), Map.of());
-		Assertions.assertEquals(result.podAnnotations(), Map.of("annotation-key", "annotation-value"));
+		Map<String, Map<String, String>> result = podMetadata(client, serviceMetadata, properties, endpointAddress,
+				namespace);
+		Assertions.assertEquals(result.get("labels"), Map.of());
+		Assertions.assertEquals(result.get("annotations"), Map.of("annotation-key", "annotation-value"));
 		Assertions.assertTrue(output.getOut().contains(
 				"adding podMetadata : PodMetadata[podLabels={}, podAnnotations={annotation-key=annotation-value}] from pod : my-pod"));
 	}
@@ -201,9 +202,10 @@ class KubernetesDiscoveryClientUtilsPodMetadataTests {
 						.withAnnotations(Map.of("annotation-key", "annotation-value")).and().build())
 				.create();
 
-		PodMetadata result = podMetadata(client, serviceMetadata, properties, endpointAddress, namespace);
-		Assertions.assertEquals(result.podLabels(), Map.of("label-key", "label-value"));
-		Assertions.assertEquals(result.podAnnotations(), Map.of("annotation-key", "annotation-value"));
+		Map<String, Map<String, String>> result = podMetadata(client, serviceMetadata, properties, endpointAddress,
+				namespace);
+		Assertions.assertEquals(result.get("labels"), Map.of("label-key", "label-value"));
+		Assertions.assertEquals(result.get("annotations"), Map.of("annotation-key", "annotation-value"));
 		Assertions.assertTrue(output.getOut().contains(
 				"adding podMetadata : PodMetadata[podLabels={label-key=label-value}, podAnnotations={annotation-key=annotation-value}] from pod : my-pod"));
 	}

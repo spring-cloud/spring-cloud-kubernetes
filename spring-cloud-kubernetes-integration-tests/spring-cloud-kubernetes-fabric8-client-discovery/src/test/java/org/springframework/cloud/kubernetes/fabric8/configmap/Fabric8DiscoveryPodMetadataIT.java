@@ -104,23 +104,23 @@ class Fabric8DiscoveryPodMetadataIT {
 				}).retryWhen(retrySpec()).block();
 
 		DefaultKubernetesServiceInstance withCustomLabel = serviceInstances.stream()
-				.filter(x -> x.podAnnotations().isEmpty()).toList().get(0);
+				.filter(x -> x.podMetadata().get("annotations").isEmpty()).toList().get(0);
 		Assertions.assertEquals(withCustomLabel.getServiceId(), "busybox-service");
 		Assertions.assertNotNull(withCustomLabel.getInstanceId());
 		Assertions.assertNotNull(withCustomLabel.getHost());
 		Assertions.assertEquals(withCustomLabel.getMetadata(),
 				Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
-		Assertions.assertTrue(withCustomLabel.podLabels().entrySet().stream()
+		Assertions.assertTrue(withCustomLabel.podMetadata().get("labels").entrySet().stream()
 				.anyMatch(x -> x.getKey().equals("custom-label") && x.getValue().equals("custom-label-value")));
 
 		DefaultKubernetesServiceInstance withCustomAnnotation = serviceInstances.stream()
-				.filter(x -> !x.podAnnotations().isEmpty()).toList().get(0);
+				.filter(x -> !x.podMetadata().get("annotations").isEmpty()).toList().get(0);
 		Assertions.assertEquals(withCustomAnnotation.getServiceId(), "busybox-service");
 		Assertions.assertNotNull(withCustomAnnotation.getInstanceId());
 		Assertions.assertNotNull(withCustomAnnotation.getHost());
 		Assertions.assertEquals(withCustomAnnotation.getMetadata(),
 				Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
-		Assertions.assertTrue(withCustomAnnotation.podAnnotations().entrySet().stream().anyMatch(
+		Assertions.assertTrue(withCustomAnnotation.podMetadata().get("annotations").entrySet().stream().anyMatch(
 				x -> x.getKey().equals("custom-annotation") && x.getValue().equals("custom-annotation-value")));
 	}
 

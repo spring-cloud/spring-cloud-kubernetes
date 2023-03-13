@@ -44,8 +44,7 @@ class KubernetesServiceInstanceTests {
 		assertThat(instance.getScheme()).isEqualTo("https");
 		assertThat(instance.getNamespace()).isEqualTo("spring-k8s");
 		assertThat(instance.getCluster()).isNull();
-		assertThat(instance.podLabels()).isEqualTo(Map.of());
-		assertThat(instance.podAnnotations()).isEqualTo(Map.of());
+		assertThat(instance.podMetadata()).isEqualTo(Map.of());
 	}
 
 	@Test
@@ -63,14 +62,14 @@ class KubernetesServiceInstanceTests {
 		assertThat(instance.getScheme()).isEqualTo("https");
 		assertThat(instance.getNamespace()).isEqualTo("spring-k8s");
 		assertThat(instance.getCluster()).isEqualTo("cluster");
-		assertThat(instance.podLabels()).isEqualTo(Map.of());
-		assertThat(instance.podAnnotations()).isEqualTo(Map.of());
+		assertThat(instance.podMetadata()).isEqualTo(Map.of());
 	}
 
 	@Test
 	void testThirdConstructor() {
 		DefaultKubernetesServiceInstance instance = new DefaultKubernetesServiceInstance("instanceId", "serviceId",
-				"host", 8080, Map.of("a", "b"), true, "spring-k8s", "cluster", Map.of("a", "b"), Map.of("c", "d"));
+				"host", 8080, Map.of("a", "b"), true, "spring-k8s", "cluster",
+				Map.of("labels", Map.of("a", "b"), "annotations", Map.of("c", "d")));
 
 		assertThat(instance.getInstanceId()).isEqualTo("instanceId");
 		assertThat(instance.getServiceId()).isEqualTo("serviceId");
@@ -82,8 +81,8 @@ class KubernetesServiceInstanceTests {
 		assertThat(instance.getScheme()).isEqualTo("https");
 		assertThat(instance.getNamespace()).isEqualTo("spring-k8s");
 		assertThat(instance.getCluster()).isEqualTo("cluster");
-		assertThat(instance.podLabels()).isEqualTo(Map.of("a", "b"));
-		assertThat(instance.podAnnotations()).isEqualTo(Map.of("c", "d"));
+		assertThat(instance.podMetadata())
+				.isEqualTo(Map.of("labels", Map.of("a", "b"), "annotations", Map.of("c", "d")));
 	}
 
 	@Test
