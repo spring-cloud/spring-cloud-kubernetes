@@ -30,7 +30,7 @@ runs:
         PLAIN_TEST_CLASSNAMES=''
         baseBranch=$BASE_BRANCH
         if [[ $baseBranch == "2.1.x" ]]; then
-          find . -name '*.java'
+          find . -name '*.java' | grep 'src/test/java' | grep -v 'Fabric8IstioIT' | xargs grep -l '@Test'
           PLAIN_TEST_CLASSNAMES=($(find . -name '*.java' \
                         | grep 'src/test/java' \
                         | grep -v 'Fabric8IstioIT' \
