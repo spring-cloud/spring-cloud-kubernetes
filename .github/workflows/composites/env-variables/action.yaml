@@ -30,7 +30,25 @@ runs:
         PLAIN_TEST_CLASSNAMES=''
         baseBranch=$BASE_BRANCH
         if [[ $baseBranch == "2.1.x" ]]; then
-          echo '2.1.x'
+          PLAIN_TEST_CLASSNAMES=($(find . -name '*.java' \
+                        | grep 'src/test/java' \
+                        | grep -v 'Fabric8IstioIT' \
+                        | xargs grep -l '@Test' \
+                        | xargs grep -L 'abstract class' \
+                        | sed 's/.*src.test.java.//g' \
+                        | sed 's@/@.@g' \
+                        | sed 's/.\{5\}$//' \
+                        | tr '\n' ' '))
         else
-          echo 'other'
+          PLAIN_TEST_CLASSNAMES=($(find . -name '*.java' \
+                        | grep 'src/test/java' \
+                        | grep -v 'Fabric8IstioIT' \
+                        | xargs grep -l '@Test' \
+                        | xargs grep -L 'abstract class' \
+                        | sed 's/.*src.test.java.//g' \
+                        | sed 's@/@.@g' \
+                        | sed 's/.\{5\}$//' \
+                        | tr '\n' ' '))
         fi
+        
+        echo $PLAIN_TEST_CLASSNAMES
