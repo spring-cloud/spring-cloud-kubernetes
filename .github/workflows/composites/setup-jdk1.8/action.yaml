@@ -7,3 +7,8 @@ runs:
       with:
         distribution: 'temurin'
         java-version: '8'
+
+    - name: test step
+      shell: bash
+      run: |
+        ls -l /
