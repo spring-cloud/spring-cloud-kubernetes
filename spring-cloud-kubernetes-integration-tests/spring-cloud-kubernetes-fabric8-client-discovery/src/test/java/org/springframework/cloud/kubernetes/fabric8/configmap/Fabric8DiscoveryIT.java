@@ -90,7 +90,7 @@ class Fabric8DiscoveryIT {
 	 */
 	@Test
 	void testAllServices() {
-		WebClient client = builder().baseUrl("localhost/services").build();
+		WebClient client = builder().baseUrl("http://localhost/services").build();
 
 		List<String> result = client.method(HttpMethod.GET).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
@@ -107,7 +107,7 @@ class Fabric8DiscoveryIT {
 	@Test
 	void testExternalNameServiceInstance() {
 
-		WebClient client = builder().baseUrl("localhost/service-instances/external-name-service").build();
+		WebClient client = builder().baseUrl("http://localhost/service-instances/external-name-service").build();
 		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 

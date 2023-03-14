@@ -55,9 +55,9 @@ import static org.awaitility.Awaitility.await;
  */
 class ConfigMapAndSecretIT {
 
-	private static final String PROPERTY_URL = "localhost:80/myProperty";
+	private static final String PROPERTY_URL = "http://localhost:80/myProperty";
 
-	private static final String SECRET_URL = "localhost:80/mySecret";
+	private static final String SECRET_URL = "http://localhost:80/mySecret";
 
 	private static final String K8S_CONFIG_CLIENT_IT_SERVICE_NAME = "spring-cloud-kubernetes-client-config-it";
 
