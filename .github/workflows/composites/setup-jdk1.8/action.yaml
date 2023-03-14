@@ -11,5 +11,6 @@ runs:
     - name: test step
       shell: bash
       run: |
-        ls -l /
         mkdir -p /tmp/docker/images
+        TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+        cd spring-cloud-kubernetes-integration-tests
