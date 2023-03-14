@@ -28,7 +28,8 @@ runs:
       run: |
         echo  "base_branch : $BASE_BRANCH"
         PLAIN_TEST_CLASSNAMES=''
-        if [ $BASE_BRANCH = "2.1.x" ]; then
+        baseBranch=$BASE_BRANCH
+        if [ $baseBranch = "2.1.x" ]; then
 #          PLAIN_TEST_CLASSNAMES=($(find . -name '*.java' \
 #               | grep 'src/test/java' \
 #               | grep -v 'Fabric8IstioIT' \
