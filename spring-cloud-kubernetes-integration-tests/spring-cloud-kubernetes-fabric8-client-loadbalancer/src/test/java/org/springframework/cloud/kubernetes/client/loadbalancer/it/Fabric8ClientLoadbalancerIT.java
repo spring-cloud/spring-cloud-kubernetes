@@ -93,7 +93,7 @@ public class Fabric8ClientLoadbalancerIT {
 
 		manifests("SERVICE", Phase.CREATE);
 
-		WebClient client = builder().baseUrl("localhost/loadbalancer-it/servicea").build();
+		WebClient client = builder().baseUrl("http://localhost/loadbalancer-it/servicea").build();
 
 		@SuppressWarnings("unchecked")
 		Map<String, String> mapResult = (Map<String, String>) client.method(HttpMethod.GET).retrieve()
@@ -111,7 +111,7 @@ public class Fabric8ClientLoadbalancerIT {
 
 		manifests("POD", Phase.CREATE);
 
-		WebClient client = builder().baseUrl("localhost/loadbalancer-it/servicea").build();
+		WebClient client = builder().baseUrl("http://localhost/loadbalancer-it/servicea").build();
 
 		@SuppressWarnings("unchecked")
 		Map<String, String> mapResult = (Map<String, String>) client.method(HttpMethod.GET).retrieve()

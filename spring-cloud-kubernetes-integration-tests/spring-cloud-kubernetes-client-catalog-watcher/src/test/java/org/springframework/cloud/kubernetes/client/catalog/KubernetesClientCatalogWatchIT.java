@@ -113,7 +113,7 @@ class KubernetesClientCatalogWatchIT {
 	 */
 	private void test() {
 
-		WebClient client = builder().baseUrl("localhost/result").build();
+		WebClient client = builder().baseUrl("http://localhost/result").build();
 		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[2];
 		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(List.class, EndpointNameAndNamespace.class);
 
