@@ -27,7 +27,7 @@ runs:
       shell: bash
       run: |
         echo  "base_branch : $BASE_BRANCH"
-        PLAIN_TEST_CLASSNAMES=()
+        declare -a PLAIN_TEST_CLASSNAMES=()
         baseBranch=$BASE_BRANCH
         if [[ $baseBranch == "2.1.x" ]]; then
           PLAIN_TEST_CLASSNAMES=($(find . -name '*.java' \
