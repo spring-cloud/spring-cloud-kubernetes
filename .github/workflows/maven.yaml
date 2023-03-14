@@ -271,7 +271,10 @@ jobs:
           
             if [[ $baseBranch == "2.1.x" ]]; then
           
-              ./mvnw -s .settings.xml -pl '!spring-cloud-kubernetes-examples' -pl '!spring-cloud-kubernetes-integration-tests' \
+              ./mvnw -s .settings.xml -pl '-:kubernetes-leader-election-example' -pl '-:kubernetes-hello-world-example' \
+              -pl '-:kubernetes-reload-example' -pl '-:kubernetes-loadbalancer-example' \
+              -pl '-:spring-cloud-kubernetes-configserver' -pl '-:spring-cloud-kubernetes-configuration-watcher' \
+              -pl '-:spring-cloud-kubernetes-discoveryserver' \
               -DtestsToRun=${TEST_ARG[@]} \
               -e clean install \
               -U -P sonar -nsu --batch-mode \

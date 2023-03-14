@@ -26,7 +26,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-kubernetes-example-reload</artifactId>
+	<artifactId>kubernetes-reload-example</artifactId>
 
 	<name>Spring Cloud Kubernetes :: Examples :: Reload ConfigMap</name>
 	<description>Example demonstrating how to use the configuration reload feature.
