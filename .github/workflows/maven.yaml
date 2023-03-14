@@ -274,7 +274,7 @@ jobs:
               ./mvnw -s .settings.xml -pl '!spring-cloud-kubernetes-examples' \
               -DtestsToRun=${TEST_ARG[@]} \
               -e clean install \
-              -U -P sonar -nsu --batch-mode -T1C \
+              -U -P sonar -nsu --batch-mode \
               -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
               -Dhttp.keepAlive=false \
               -Dmaven.wagon.http.pool=false \
@@ -286,7 +286,7 @@ jobs:
               ./mvnw -s .settings.xml \
               -DtestsToRun=${TEST_ARG[@]} \
               -e clean install \
-              -U -P sonar -nsu --batch-mode -T1C \
+              -U -P sonar -nsu --batch-mode \
               -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
               -Dhttp.keepAlive=false \
               -Dmaven.wagon.http.pool=false \
