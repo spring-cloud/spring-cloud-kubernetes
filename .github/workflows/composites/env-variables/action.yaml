@@ -27,11 +27,9 @@ runs:
       shell: bash
       run: |
         echo  "base_branch : $BASE_BRANCH"
-        PLAIN_TEST_CLASSNAMES=''
+        PLAIN_TEST_CLASSNAMES=()
         baseBranch=$BASE_BRANCH
         if [[ $baseBranch == "2.1.x" ]]; then
-          find . -name '*.java' | grep 'src/test/java' | grep -v 'Fabric8IstioIT' | xargs grep -l '@Test' | xargs grep -L 'abstract class' | sed 's/.*src.test.java.//g' \
-              | sed 's/.\{5\}$//' | tr '\n' ' ')
           PLAIN_TEST_CLASSNAMES=($(find . -name '*.java' \
                         | grep 'src/test/java' \
                         | grep -v 'Fabric8IstioIT' \
