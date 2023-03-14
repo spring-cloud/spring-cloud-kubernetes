@@ -53,5 +53,3 @@ runs:
                         | sed 's/.\{5\}$//' \
                         | tr '\n' ' '))
         fi
-        
-        #echo $PLAIN_TEST_CLASSNAMES
