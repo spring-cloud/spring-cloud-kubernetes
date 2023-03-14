@@ -28,7 +28,7 @@ runs:
       run: |
         echo  "base_branch : $BASE_BRANCH"
         PLAIN_TEST_CLASSNAMES=''
-        if [[ $BASE_BRANCH == '2.1.x' ]]; then
+#        if [[ $BASE_BRANCH == '2.1.x' ]]; then
 #          PLAIN_TEST_CLASSNAMES=($(find . -name '*.java' \
 #               | grep 'src/test/java' \
 #               | grep -v 'Fabric8IstioIT' \
@@ -38,9 +38,9 @@ runs:
 #               | sed 's@/@.@g' \
 #               | sed 's/.\{5\}$//' \
 #               | tr '\n' ' '))
-             PLAIN_TEST_CLASSNAMES='2.1.x'
-        else
-             PLAIN_TEST_CLASSNAMES='other'
-        fi
-        
-        echo $PLAIN_TEST_CLASSNAMES
+#             PLAIN_TEST_CLASSNAMES='2.1.x'
+#        else
+#             PLAIN_TEST_CLASSNAMES='other'
+#        fi
+#
+#        echo $PLAIN_TEST_CLASSNAMES
