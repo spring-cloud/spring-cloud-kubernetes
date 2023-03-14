@@ -40,10 +40,10 @@ runs:
 #               | sed 's/.\{5\}$//' \
 #               | tr '\n' ' '))
              #PLAIN_TEST_CLASSNAMES='2.1.x'
-             echo '2.1.x'
+          echo '2.1.x'
         else
              #PLAIN_TEST_CLASSNAMES='other'
-             echo 'other'
+          echo 'other'
         fi
         
         #echo $PLAIN_TEST_CLASSNAMES
