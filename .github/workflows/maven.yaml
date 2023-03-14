@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TESTCONTAINERS_REUSE_ENABLE: false
+    outputs:
+      jdk_17_branch: ${{ steps.jdk_17.outputs.triggered }}
     steps:
 
       - name: checkout project
@@ -20,6 +22,7 @@ jobs:
         uses: ./.github/workflows/composites/env-variables
 
       - name: setup project jdk-17
+        id: jdk_17
         uses: ./.github/workflows/composites/setup-jdk17
         if: env.BASE_BRANCH == 'main'
 
@@ -63,10 +66,11 @@ jobs:
 
   # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
   # Otherwise, (since we use static ports) there might be two instances starting at the same time, and ports might conflict
+  # This does not run on '2.1.x' branch.
   fabric8_istio_integration_test:
     needs: build
     runs-on: ubuntu-latest
-    if: env.BASE_BRANCH == 'main'
+    if: needs.deploy.outputs.jdk_17_branch == 'true'
 
     steps:
       - name: checkout project
