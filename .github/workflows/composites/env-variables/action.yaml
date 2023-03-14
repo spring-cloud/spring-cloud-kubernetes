@@ -41,8 +41,6 @@ runs:
                         | sed 's/.\{5\}$//' \
                         | tr '\n' ' '
         
-          #PLAIN_TEST_CLASSNAMES=($(find . -name '*.java'))
-        else
           PLAIN_TEST_CLASSNAMES=($(find . -name '*.java' \
                         | grep 'src/test/java' \
                         | grep -v 'Fabric8IstioIT' \
