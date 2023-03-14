@@ -51,4 +51,4 @@ runs:
                         | tr '\n' ' '))
         fi
         
-        echo $PLAIN_TEST_CLASSNAMES
+        #echo $PLAIN_TEST_CLASSNAMES
