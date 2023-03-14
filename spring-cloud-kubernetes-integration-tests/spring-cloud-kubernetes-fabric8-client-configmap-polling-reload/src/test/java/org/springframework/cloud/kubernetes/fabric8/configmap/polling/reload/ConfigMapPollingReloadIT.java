@@ -80,7 +80,7 @@ class ConfigMapPollingReloadIT {
 
 	@Test
 	void test() {
-		WebClient webClient = builder().baseUrl("localhost/key").build();
+		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
