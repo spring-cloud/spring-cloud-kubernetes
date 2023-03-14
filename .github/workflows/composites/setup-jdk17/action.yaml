@@ -1,5 +1,5 @@
-name: setup project
-description: setup project
+name: setup project with jdk-17
+description: setup project with jdk-17
 runs:
   using: "composite"
   steps:
