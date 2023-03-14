@@ -19,11 +19,11 @@ jobs:
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
-      - name: setup project
+      - name: setup project jdk-17
         uses: ./.github/workflows/composites/setup-jdk17
         if: env.BASE_BRANCH == 'main'
 
-      - name: setup project
+      - name: setup project jdk-8
         uses: ./.github/workflows/composites/setup-jdk1.8
         if: env.BASE_BRANCH == '2.1.x'
 
