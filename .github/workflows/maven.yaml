@@ -35,30 +35,38 @@ jobs:
 
       - name: build with skip tests and skip images
         run: ./mvnw -T 1C -s .settings.xml clean install -U -DskipTests -Dskip.build.image=true
+        if: env.BASE_BRANCH == 'main'
 
       - name: build controllers project
         uses: ./.github/workflows/composites/build-controllers-project
+        if: env.BASE_BRANCH == 'main'
 
       - name: build integration tests project
         uses: ./.github/workflows/composites/build-integration-tests-project
+        if: env.BASE_BRANCH == 'main'
 
       - name: save controller docker images
         uses: ./.github/workflows/composites/save-controller-images
+        if: env.BASE_BRANCH == 'main'
 
       - name: save integration tests docker images
         uses: ./.github/workflows/composites/save-integration-tests-images
+        if: env.BASE_BRANCH == 'main'
 
       - name: echo saved images
         uses: ./.github/workflows/composites/echo-saved-images
+        if: env.BASE_BRANCH == 'main'
 
       - name: upload docker images
         uses: ./.github/workflows/composites/upload-docker-images
+        if: env.BASE_BRANCH == 'main'
 
   # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
   # Otherwise, (since we use static ports) there might be two instances starting at the same time, and ports might conflict
   fabric8_istio_integration_test:
     needs: build
     runs-on: ubuntu-latest
+    if: env.BASE_BRANCH == 'main'
 
     steps:
       - name: checkout project
