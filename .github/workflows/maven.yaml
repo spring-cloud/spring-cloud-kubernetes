@@ -112,20 +112,27 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v2
 
-      - name: setup project
-        uses: ./.github/workflows/composites/setup
-
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
+
+      - name: setup project jdk-17
+        uses: ./.github/workflows/composites/setup-jdk17
+        if: env.BASE_BRANCH == 'main'
+
+      - name: setup project jdk-8
+        uses: ./.github/workflows/composites/setup-jdk1.8
+        if: env.BASE_BRANCH == '2.1.x'
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
 
       - name: download docker images
         uses: ./.github/workflows/composites/download-docker-images
+        if: env.BASE_BRANCH == 'main'
 
       - name: load docker images into local repo
         uses: ./.github/workflows/composites/load-docker-images
+        if: env.BASE_BRANCH == 'main'
 
       - name: run tests
         env:
