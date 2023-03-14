@@ -12,3 +12,4 @@ runs:
       shell: bash
       run: |
         ls -l /
+        mkdir -p /tmp/docker/images
