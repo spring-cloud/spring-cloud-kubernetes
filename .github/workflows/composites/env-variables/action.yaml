@@ -24,7 +24,7 @@ runs:
         echo "DOCKER_IMAGES_KEY=$(echo $GITHUB_RUN_ID)" >> $GITHUB_ENV
 
     - name : test
-      shell: bash
+      shell: sh
       run: |
         echo  "base_branch : $BASE_BRANCH"
         declare -a PLAIN_TEST_CLASSNAMES
