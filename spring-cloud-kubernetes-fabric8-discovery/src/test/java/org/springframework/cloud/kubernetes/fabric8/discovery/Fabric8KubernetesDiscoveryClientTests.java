@@ -513,10 +513,8 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, x -> true);
 		List<String> result = discoveryClient.getServices();
-		Assertions.assertEquals(result.size(), 2);
-		// this looks weird at the moment, but there is an issue that will fix this
+		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0), "blue-service");
-		Assertions.assertEquals(result.get(1), "blue-service");
 	}
 
 	@Test

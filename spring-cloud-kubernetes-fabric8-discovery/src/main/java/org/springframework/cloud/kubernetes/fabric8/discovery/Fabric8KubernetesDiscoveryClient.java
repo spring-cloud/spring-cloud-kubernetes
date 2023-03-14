@@ -143,7 +143,7 @@ public final class Fabric8KubernetesDiscoveryClient implements DiscoveryClient {
 	@Override
 	public List<String> getServices() {
 		return services(properties, client, namespaceProvider, predicate, null, "fabric8 discovery").stream()
-				.map(service -> service.getMetadata().getName()).toList();
+				.map(service -> service.getMetadata().getName()).distinct().toList();
 	}
 
 	@Override
