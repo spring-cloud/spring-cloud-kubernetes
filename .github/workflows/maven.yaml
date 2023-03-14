@@ -268,17 +268,32 @@ jobs:
             TEST_ARG=$(echo ${sliced_array[@]} | sed 's/ /,/g')
 
             echo "will run tests : ${TEST_ARG[@]}"
-
-            ./mvnw -s .settings.xml \
-                -DtestsToRun=${TEST_ARG[@]} \
-                -e clean install \
-                -U -P sonar -nsu --batch-mode \
-                -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-                -Dhttp.keepAlive=false \
-                -Dmaven.wagon.http.pool=false \
-                -Dmaven.wagon.http.retryHandler.class=standard \
-                -Dmaven.wagon.http.retryHandler.count=3 \
-                -Dskip.build.image=true
+          
+            if [[ $baseBranch == "2.1.x" ]]; then
+          
+              ./mvnw -s .settings.xml -pl '!spring-cloud-kubernetes-examples' \
+              -DtestsToRun=${TEST_ARG[@]} \
+              -e clean install \
+              -U -P sonar -nsu --batch-mode -T1C \
+              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+              -Dhttp.keepAlive=false \
+              -Dmaven.wagon.http.pool=false \
+              -Dmaven.wagon.http.retryHandler.class=standard \
+              -Dmaven.wagon.http.retryHandler.count=3 \
+              -Dskip.build.image=true
+          
+            else 
+              ./mvnw -s .settings.xml \
+              -DtestsToRun=${TEST_ARG[@]} \
+              -e clean install \
+              -U -P sonar -nsu --batch-mode -T1C \
+              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+              -Dhttp.keepAlive=false \
+              -Dmaven.wagon.http.pool=false \
+              -Dmaven.wagon.http.retryHandler.class=standard \
+              -Dmaven.wagon.http.retryHandler.count=3 \
+              -Dskip.build.image=true          
+            fi
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v2
