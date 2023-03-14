@@ -94,7 +94,7 @@ class Fabric8DiscoveryNamespaceFilterIT {
 
 	@Test
 	void test() {
-		WebClient clientServices = builder().baseUrl("localhost/services").build();
+		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
 
 		@SuppressWarnings("unchecked")
 		List<String> services = (List<String>) clientServices.method(HttpMethod.GET).retrieve().bodyToMono(List.class)
@@ -103,7 +103,7 @@ class Fabric8DiscoveryNamespaceFilterIT {
 		Assertions.assertEquals(services.size(), 1);
 		Assertions.assertTrue(services.contains("service-wiremock"));
 
-		WebClient clientEndpoints = builder().baseUrl("localhost/endpoints/service-wiremock").build();
+		WebClient clientEndpoints = builder().baseUrl("http://localhost/endpoints/service-wiremock").build();
 
 		List<Endpoints> endpoints = clientEndpoints.method(HttpMethod.GET).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<Endpoints>>() {

@@ -49,9 +49,9 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 class ReactiveDiscoveryClientIT {
 
-	private static final String HEALTH_URL = "localhost:80/reactive-discovery-it/actuator/health";
+	private static final String HEALTH_URL = "http://localhost:80/reactive-discovery-it/actuator/health";
 
-	private static final String SERVICES_URL = "localhost:80/reactive-discovery-it/services";
+	private static final String SERVICES_URL = "http://localhost:80/reactive-discovery-it/services";
 
 	private static final String SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME = "spring-cloud-kubernetes-client-reactive-discoveryclient-it";
 

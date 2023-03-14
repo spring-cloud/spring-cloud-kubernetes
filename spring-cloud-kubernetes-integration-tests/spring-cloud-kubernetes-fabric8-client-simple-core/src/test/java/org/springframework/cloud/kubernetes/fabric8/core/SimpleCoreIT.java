@@ -76,7 +76,7 @@ class SimpleCoreIT {
 
 	@Test
 	void test() {
-		WebClient client = builder().baseUrl("localhost/message").build();
+		WebClient client = builder().baseUrl("http://localhost/message").build();
 
 		String result = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();

@@ -84,7 +84,7 @@ class SecretsEventsReloadIT {
 	void test() {
 		Commons.assertReloadLogStatements("added secret informer for namespace",
 				"added configmap informer for namespace", IMAGE_NAME);
-		WebClient webClient = builder().baseUrl("localhost/key").build();
+		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
