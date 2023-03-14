@@ -103,7 +103,7 @@ class ConfigMapEventReloadIT {
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
-		WebClient webClient = builder().baseUrl("localhost/left").build();
+		WebClient webClient = builder().baseUrl("http://localhost/left").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
@@ -111,7 +111,7 @@ class ConfigMapEventReloadIT {
 		Assertions.assertEquals("left-initial", result);
 
 		// then read the value from the right-configmap
-		webClient = builder().baseUrl("localhost/right").build();
+		webClient = builder().baseUrl("http://localhost/right").build();
 		result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec()).block();
 		Assertions.assertEquals("right-initial", result);
 
@@ -125,7 +125,7 @@ class ConfigMapEventReloadIT {
 		// wait dummy for 5 seconds
 		LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(5));
 
-		webClient = builder().baseUrl("localhost/left").build();
+		webClient = builder().baseUrl("http://localhost/left").build();
 		result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec()).block();
 		// left configmap has not changed, no restart of app has happened
 		Assertions.assertEquals("left-initial", result);
@@ -148,7 +148,7 @@ class ConfigMapEventReloadIT {
 				"added secret informer for namespace", IMAGE_NAME);
 
 		// read the value from the right-configmap
-		WebClient webClient = builder().baseUrl("localhost/right").build();
+		WebClient webClient = builder().baseUrl("http://localhost/right").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 		Assertions.assertEquals("right-initial", result);
@@ -162,7 +162,7 @@ class ConfigMapEventReloadIT {
 
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
-			WebClient innerWebClient = builder().baseUrl("localhost/right").build();
+			WebClient innerWebClient = builder().baseUrl("http://localhost/right").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 					.retryWhen(retrySpec()).block();
 			resultAfterChange[0] = innerResult;
@@ -189,13 +189,13 @@ class ConfigMapEventReloadIT {
 				"added secret informer for namespace", IMAGE_NAME);
 
 		// read the initial value from the right-configmap
-		WebClient rightWebClient = builder().baseUrl("localhost/right").build();
+		WebClient rightWebClient = builder().baseUrl("http://localhost/right").build();
 		String rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 				.retryWhen(retrySpec()).block();
 		Assertions.assertEquals("right-initial", rightResult);
 
 		// then read the initial value from the right-with-label-configmap
-		WebClient rightWithLabelWebClient = builder().baseUrl("localhost/with-label").build();
+		WebClient rightWithLabelWebClient = builder().baseUrl("http://localhost/with-label").build();
 		String rightWithLabelResult = rightWithLabelWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 				.retryWhen(retrySpec()).block();
 		Assertions.assertEquals("right-with-label-initial", rightWithLabelResult);
@@ -227,7 +227,7 @@ class ConfigMapEventReloadIT {
 		// value
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
-			WebClient innerWebClient = builder().baseUrl("localhost/with-label").build();
+			WebClient innerWebClient = builder().baseUrl("http://localhost/with-label").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 					.retryWhen(retrySpec()).block();
 			resultAfterChange[0] = innerResult;

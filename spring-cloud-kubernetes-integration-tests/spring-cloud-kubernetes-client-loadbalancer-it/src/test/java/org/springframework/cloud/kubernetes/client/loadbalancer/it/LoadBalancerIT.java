@@ -48,7 +48,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 class LoadBalancerIT {
 
-	private static final String SERVICE_URL = "localhost:80/loadbalancer-it/service";
+	private static final String SERVICE_URL = "http://localhost:80/loadbalancer-it/service";
 
 	private static final String SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME = "spring-cloud-kubernetes-client-loadbalancer-it";
 
