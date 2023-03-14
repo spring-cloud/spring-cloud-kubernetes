@@ -162,13 +162,13 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 
 	@Override
 	public List<String> getServices() {
-		return adapter.apply(client).stream().map(s -> s.getMetadata().getName()).toList();
+		return adapter.apply(client).stream().map(s -> s.getMetadata().getName()).distinct().toList();
 	}
 
 	@Deprecated(forRemoval = true)
 	public List<String> getServices(Predicate<Service> filter) {
 		return new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction, properties, filter).apply(client)
-				.stream().map(s -> s.getMetadata().getName()).toList();
+				.stream().map(s -> s.getMetadata().getName()).distinct().toList();
 	}
 
 	@Override

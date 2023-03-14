@@ -497,10 +497,8 @@ class KubernetesDiscoveryClientTests {
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<String> result = discoveryClient.getServices();
-		Assertions.assertEquals(result.size(), 2);
-		// this looks weird at the moment, but there is an issue that will fix this
+		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0), "blue-service");
-		Assertions.assertEquals(result.get(1), "blue-service");
 	}
 
 	@Test
