@@ -94,7 +94,7 @@ jobs:
         uses: ./.github/workflows/composites/fabric8-istio-integration-test
 
   test:
-    needs: [ build ]
+    needs: [ build, fabric8_istio_integration_test ]
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
