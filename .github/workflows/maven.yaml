@@ -39,7 +39,7 @@ jobs:
 
       - name: build controllers project
         uses: ./.github/workflows/composites/build-controllers-project
-        if: env.BASE_BRANCH != 'main'
+        if: env.BASE_BRANCH != '2.1.x'
 
       - name: build integration tests project
         uses: ./.github/workflows/composites/build-integration-tests-project
