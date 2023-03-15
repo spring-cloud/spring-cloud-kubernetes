@@ -71,15 +71,13 @@ jobs:
     steps:
       - name: checkout project
         uses: actions/checkout@v2
-        if: env.BASE_BRANCH != '2.1.x'
-
-      - name: setup project
-        uses: ./.github/workflows/composites/setup
-        if: env.BASE_BRANCH != '2.1.x'
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
-        if: env.BASE_BRANCH != '2.1.x'
+
+      - name: setup project
+        uses: ./.github/workflows/composites/setup-jdk17
+        if: env.BASE_BRANCH == 'main'
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
