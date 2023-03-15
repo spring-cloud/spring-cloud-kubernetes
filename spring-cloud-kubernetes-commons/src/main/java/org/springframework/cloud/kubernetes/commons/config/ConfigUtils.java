@@ -264,8 +264,12 @@ public final class ConfigUtils {
 	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,
 			String name) {
 		bootstrapContext.registerIfAbsent(cls, BootstrapRegistry.InstanceSupplier.of(instance));
-		bootstrapContext.addCloseListener(event -> event.getApplicationContext().getBeanFactory()
-				.registerSingleton(name, event.getBootstrapContext().get(cls)));
+		bootstrapContext.addCloseListener(event -> {
+			if (event.getApplicationContext().getBeanFactory().getSingleton(name) == null) {
+				event.getApplicationContext().getBeanFactory().registerSingleton(name,
+						event.getBootstrapContext().get(cls));
+			}
+		});
 	}
 
 	/**
