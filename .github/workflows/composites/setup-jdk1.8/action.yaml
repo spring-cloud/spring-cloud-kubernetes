@@ -1,0 +1,9 @@
+name: setup project with jdk-8
+description: setup project with jdk-8
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-java@v2
+      with:
+        distribution: 'temurin'
+        java-version: '8'
