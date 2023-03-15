@@ -29,7 +29,9 @@ import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectReference;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -51,6 +53,7 @@ import org.springframework.util.StringUtils;
 
 import static java.util.stream.Collectors.toMap;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
@@ -236,7 +239,8 @@ final class KubernetesDiscoveryClientUtils {
 
 	static ServiceInstance serviceInstance(@Nullable ServicePortSecureResolver servicePortSecureResolver,
 			Service service, @Nullable EndpointAddress endpointAddress, int endpointPort, String serviceId,
-			Map<String, String> serviceMetadata, String namespace) {
+			Map<String, String> serviceMetadata, String namespace, KubernetesDiscoveryProperties properties,
+			KubernetesClient client) {
 		// instanceId is usually the pod-uid as seen in the .metadata.uid
 		String instanceId = Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
 				.map(ObjectReference::getUid).orElseGet(() -> service.getMetadata().getUid());
@@ -254,8 +258,11 @@ final class KubernetesDiscoveryClientUtils {
 		String host = Optional.ofNullable(endpointAddress).map(EndpointAddress::getIp)
 				.orElseGet(() -> service.getSpec().getExternalName());
 
+		Map<String, Map<String, String>> podMetadata = podMetadata(client, serviceMetadata, properties, endpointAddress,
+				namespace);
+
 		return new DefaultKubernetesServiceInstance(instanceId, serviceId, host, endpointPort, serviceMetadata, secured,
-				namespace, null);
+				namespace, null, podMetadata);
 	}
 
 	static List<Service> services(KubernetesDiscoveryProperties properties, KubernetesClient client,
@@ -285,6 +292,37 @@ final class KubernetesDiscoveryClientUtils {
 		}
 
 		return services;
+	}
+
+	static Map<String, Map<String, String>> podMetadata(KubernetesClient client, Map<String, String> serviceMetadata,
+			KubernetesDiscoveryProperties properties, EndpointAddress endpointAddress, String namespace) {
+		if (!EXTERNAL_NAME.equals(serviceMetadata.get(SERVICE_TYPE))) {
+			if (properties.metadata().addPodLabels() || properties.metadata().addPodAnnotations()) {
+				String podName = Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
+						.filter(objectReference -> "Pod".equals(objectReference.getKind()))
+						.map(ObjectReference::getName).orElse(null);
+
+				if (podName != null) {
+					ObjectMeta metadata = Optional
+							.ofNullable(client.pods().inNamespace(namespace).withName(podName).get())
+							.map(Pod::getMetadata).orElse(new ObjectMeta());
+					Map<String, Map<String, String>> result = new HashMap<>();
+					if (properties.metadata().addPodLabels() && !metadata.getLabels().isEmpty()) {
+						result.put("labels", metadata.getLabels());
+					}
+
+					if (properties.metadata().addPodAnnotations() && !metadata.getAnnotations().isEmpty()) {
+						result.put("annotations", metadata.getAnnotations());
+					}
+
+					LOG.debug(() -> "adding podMetadata : " + result + " from pod : " + podName);
+					return result;
+				}
+
+			}
+		}
+
+		return Map.of();
 	}
 
 	/**
