@@ -1,0 +1,23 @@
+{
+  "groups": [
+    {
+      "name": "spring.cloud.kubernetes.discovery",
+      "type": "org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryClientProperties",
+      "sourceType": "org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryClientProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "spring.cloud.kubernetes.discovery.discovery-server-url",
+      "type": "java.lang.String",
+      "sourceType": "org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryClientProperties"
+    },
+    {
+      "name": "spring.cloud.kubernetes.discovery.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryClientProperties",
+      "defaultValue": true
+    }
+  ],
+  "hints": []
+}
