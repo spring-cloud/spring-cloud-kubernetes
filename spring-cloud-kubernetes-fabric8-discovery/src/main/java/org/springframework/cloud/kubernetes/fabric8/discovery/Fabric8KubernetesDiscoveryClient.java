@@ -101,7 +101,7 @@ public final class Fabric8KubernetesDiscoveryClient implements DiscoveryClient {
 				Map<String, String> serviceMetadata = serviceMetadata(serviceId, service, properties, List.of(),
 						service.getMetadata().getNamespace());
 				ServiceInstance externalNameServiceInstance = serviceInstance(null, service, null, -1, serviceId,
-						serviceMetadata, service.getMetadata().getNamespace());
+						serviceMetadata, service.getMetadata().getNamespace(), properties, client);
 				instances.add(externalNameServiceInstance);
 			}
 		}
@@ -132,7 +132,7 @@ public final class Fabric8KubernetesDiscoveryClient implements DiscoveryClient {
 			List<EndpointAddress> addresses = addresses(endpointSubset, properties);
 			for (EndpointAddress endpointAddress : addresses) {
 				ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, service, endpointAddress,
-						endpointPort, serviceId, serviceMetadata, namespace);
+						endpointPort, serviceId, serviceMetadata, namespace, properties, client);
 				instances.add(serviceInstance);
 			}
 		}
