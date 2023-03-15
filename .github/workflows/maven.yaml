@@ -2,9 +2,9 @@ name: github-workflow
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 2.1.x ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, 2.1.x ]
 
 jobs:
   build:
@@ -16,11 +16,17 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v2
 
-      - name: setup project
-        uses: ./.github/workflows/composites/setup
-
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
+
+      - name: setup project jdk-17
+        id: jdk_17
+        uses: ./.github/workflows/composites/setup-jdk17
+        if: env.BASE_BRANCH == 'main'
+
+      - name: setup project jdk-8
+        uses: ./.github/workflows/composites/setup-jdk1.8
+        if: env.BASE_BRANCH == '2.1.x'
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
@@ -33,24 +39,31 @@ jobs:
 
       - name: build controllers project
         uses: ./.github/workflows/composites/build-controllers-project
+        if: env.BASE_BRANCH != '2.1.x'
 
       - name: build integration tests project
         uses: ./.github/workflows/composites/build-integration-tests-project
+        if: env.BASE_BRANCH != '2.1.x'
 
       - name: save controller docker images
         uses: ./.github/workflows/composites/save-controller-images
+        if: env.BASE_BRANCH != '2.1.x'
 
       - name: save integration tests docker images
         uses: ./.github/workflows/composites/save-integration-tests-images
+        if: env.BASE_BRANCH != '2.1.x'
 
       - name: echo saved images
         uses: ./.github/workflows/composites/echo-saved-images
+        if: env.BASE_BRANCH != '2.1.x'
 
       - name: upload docker images
         uses: ./.github/workflows/composites/upload-docker-images
+        if: env.BASE_BRANCH != '2.1.x'
 
   # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
   # Otherwise, (since we use static ports) there might be two instances starting at the same time, and ports might conflict
+  # This does not run on '2.1.x' branch.
   fabric8_istio_integration_test:
     needs: build
     runs-on: ubuntu-latest
@@ -59,23 +72,28 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v2
 
-      - name: setup project
-        uses: ./.github/workflows/composites/setup
-
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
+      - name: setup project
+        uses: ./.github/workflows/composites/setup-jdk17
+        if: env.BASE_BRANCH == 'main'
+
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
+        if: env.BASE_BRANCH != '2.1.x'
 
       - name: download docker images
         uses: ./.github/workflows/composites/download-docker-images
+        if: env.BASE_BRANCH != '2.1.x'
 
       - name: echo saved images
         uses: ./.github/workflows/composites/echo-saved-images
+        if: env.BASE_BRANCH != '2.1.x'
 
       - name: integration test fabric8 istio
         uses: ./.github/workflows/composites/fabric8-istio-integration-test
+        if: env.BASE_BRANCH != '2.1.x'
 
   test:
     needs: [ build, fabric8_istio_integration_test ]
@@ -96,20 +114,27 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v2
 
-      - name: setup project
-        uses: ./.github/workflows/composites/setup
-
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
+
+      - name: setup project jdk-17
+        uses: ./.github/workflows/composites/setup-jdk17
+        if: env.BASE_BRANCH == 'main'
+
+      - name: setup project jdk-8
+        uses: ./.github/workflows/composites/setup-jdk1.8
+        if: env.BASE_BRANCH == '2.1.x'
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
 
       - name: download docker images
         uses: ./.github/workflows/composites/download-docker-images
+        if: env.BASE_BRANCH != '2.1.x'
 
       - name: load docker images into local repo
         uses: ./.github/workflows/composites/load-docker-images
+        if: env.BASE_BRANCH != '2.1.x'
 
       - name: run tests
         env:
@@ -127,16 +152,34 @@ jobs:
             # - drop last ".java"
             # - replace newline with space
             # - replace '\n' with ' '
-
-            PLAIN_TEST_CLASSNAMES=($(find . -name '*.java' \
-                        | grep 'src/test/java' \
-                        | grep -v 'Fabric8IstioIT' \
-                        | xargs grep -l '@Test' \
-                        | xargs grep -L 'abstract class' \
-                        | sed 's/.*src.test.java.//g' \
-                        | sed 's@/@.@g' \
-                        | sed 's/.\{5\}$//' \
-                        | tr '\n' ' '))
+            # exclude all integration tests for branch '2.1.x' via 'grep -v '.*IT.java''
+          
+            echo  "base_branch : $BASE_BRANCH"
+            declare -a PLAIN_TEST_CLASSNAMES
+            baseBranch=$BASE_BRANCH
+            if [[ $baseBranch == "2.1.x" ]]; then
+        
+              PLAIN_TEST_CLASSNAMES=($(find . -name '*.java' \
+                | grep 'src/test/java' \
+                | grep -v 'Fabric8IstioIT' \
+                | grep -v '.*IT.java' \
+                | xargs grep -l '@Test' \
+                | xargs grep -L 'abstract class' \
+                | sed 's/.*src.test.java.//g' \
+                | sed 's@/@.@g' \
+                | sed 's/.\{5\}$//' \
+                | tr '\n' ' '))
+            else
+              PLAIN_TEST_CLASSNAMES=($(find . -name '*.java' \
+                | grep 'src/test/java' \
+                | grep -v 'Fabric8IstioIT' \
+                | xargs grep -l '@Test' \
+                | xargs grep -L 'abstract class' \
+                | sed 's/.*src.test.java.//g' \
+                | sed 's@/@.@g' \
+                | sed 's/.\{5\}$//' \
+                | tr '\n' ' '))
+            fi
 
             # classes that have @Test and are abstract, for example: "LabeledSecretWithPrefixTests"
             # - exclude Fabric8IstionIT
@@ -227,17 +270,35 @@ jobs:
             TEST_ARG=$(echo ${sliced_array[@]} | sed 's/ /,/g')
 
             echo "will run tests : ${TEST_ARG[@]}"
-
-            ./mvnw -s .settings.xml \
-                -DtestsToRun=${TEST_ARG[@]} \
-                -e clean install \
-                -U -P sonar -nsu --batch-mode \
-                -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-                -Dhttp.keepAlive=false \
-                -Dmaven.wagon.http.pool=false \
-                -Dmaven.wagon.http.retryHandler.class=standard \
-                -Dmaven.wagon.http.retryHandler.count=3 \
-                -Dskip.build.image=true
+          
+            if [[ $baseBranch == "2.1.x" ]]; then
+          
+              ./mvnw -s .settings.xml -pl '-:kubernetes-leader-election-example' -pl '-:kubernetes-hello-world-example' \
+              -pl '-:kubernetes-reload-example' -pl '-:kubernetes-loadbalancer-example' \
+              -pl '-:spring-cloud-kubernetes-configserver' -pl '-:spring-cloud-kubernetes-configuration-watcher' \
+              -pl '-:spring-cloud-kubernetes-discoveryserver' \
+              -DtestsToRun=${TEST_ARG[@]} \
+              -e clean install \
+              -U -P sonar -nsu --batch-mode \
+              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+              -Dhttp.keepAlive=false \
+              -Dmaven.wagon.http.pool=false \
+              -Dmaven.wagon.http.retryHandler.class=standard \
+              -Dmaven.wagon.http.retryHandler.count=3 \
+              -Dskip.build.image=true
+          
+            else 
+              ./mvnw -s .settings.xml \
+              -DtestsToRun=${TEST_ARG[@]} \
+              -e clean install \
+              -U -P sonar -nsu --batch-mode \
+              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+              -Dhttp.keepAlive=false \
+              -Dmaven.wagon.http.pool=false \
+              -Dmaven.wagon.http.retryHandler.class=standard \
+              -Dmaven.wagon.http.retryHandler.count=3 \
+              -Dskip.build.image=true          
+            fi
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v2
