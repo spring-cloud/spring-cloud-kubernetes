@@ -9,7 +9,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>kubernetes-hello-world</artifactId>
+	<artifactId>kubernetes-hello-world-example</artifactId>
 	<name>Spring Cloud Kubernetes :: Examples :: Hello World</name>
 	<description>A simple example that demonstrates how to build and test a basic spring
 		cloud kubernetes app

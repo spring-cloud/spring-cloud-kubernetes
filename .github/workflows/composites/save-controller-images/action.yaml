@@ -1,0 +1,15 @@
+name: save controller docker images
+description: save controller docker images
+runs:
+  using: "composite"
+  steps:
+    - name: save controller docker images
+      shell: bash
+      run: |
+        mkdir -p /tmp/docker/images
+        TAG=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+        cd spring-cloud-kubernetes-controllers
+        while read controller_image; do
+          docker save -o /tmp/docker/images/${controller_image}.tar docker.io/springcloud/${controller_image}:$TAG
+        done < <(mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' exec:exec -q | grep -v 'spring-cloud-kubernetes-controllers')
+        cd ..

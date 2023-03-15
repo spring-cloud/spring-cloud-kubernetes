@@ -1,0 +1,24 @@
+name: sets environment variables
+description: sets environment variables
+runs:
+  using: "composite"
+  steps:
+    - name: set env variables
+      shell: bash
+      run: |
+        
+        baseRef=$GITHUB_BASE_REF
+        if [[ ! -z $baseRef ]]; then
+          echo "This is a PR to branch : $baseRef"
+          echo "BASE_BRANCH=$(echo $baseRef)" >> $GITHUB_ENV
+        else 
+          raw=${{ github.ref }}
+          echo "${raw}"
+          branch=${raw##*/}
+          echo "This is a merge to branch : ${branch}"
+          echo "BASE_BRANCH=$(echo ${branch})" >> $GITHUB_ENV
+        fi
+        
+        echo "BRANCH_NAME=$(echo $GITHUB_HEAD_REF)" >> $GITHUB_ENV
+        echo "BASE_BRANCH_NAME=$(echo $GITHUB_BASE_REF)" >> $GITHUB_ENV
+        echo "DOCKER_IMAGES_KEY=$(echo $GITHUB_RUN_ID)" >> $GITHUB_ENV
