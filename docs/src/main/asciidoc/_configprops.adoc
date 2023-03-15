@@ -67,6 +67,8 @@
 |spring.cloud.kubernetes.discovery.known-secure-ports | `+++[443, 8443]+++` | 
 |spring.cloud.kubernetes.discovery.metadata.add-annotations | `+++true+++` | 
 |spring.cloud.kubernetes.discovery.metadata.add-labels | `+++true+++` | 
+|spring.cloud.kubernetes.discovery.metadata.add-pod-annotations | `+++false+++` | 
+|spring.cloud.kubernetes.discovery.metadata.add-pod-labels | `+++false+++` | 
 |spring.cloud.kubernetes.discovery.metadata.add-ports | `+++true+++` | 
 |spring.cloud.kubernetes.discovery.metadata.annotations-prefix |  | 
 |spring.cloud.kubernetes.discovery.metadata.labels-prefix |  | 

@@ -20,19 +20,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
+import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
+import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
+import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
-import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -50,17 +53,6 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 class KubernetesDiscoveryClientTests {
 
 	private static KubernetesClient client;
-
-	@BeforeAll
-	static void setUp() {
-		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, client.getConfiguration().getMasterUrl());
-		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
-		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
-	}
 
 	@AfterEach
 	void afterEach() {
@@ -525,6 +517,44 @@ class KubernetesDiscoveryClientTests {
 		Assertions.assertEquals(externalNameServiceInstance.getUri().toASCIIString(), "k8s-spring-b");
 		Assertions.assertEquals(externalNameServiceInstance.getMetadata(), Map.of("k8s_namespace", "b",
 				"labels-prefix-label-key", "label-value", "annotations-prefix-abc", "def", "type", "ExternalName"));
+	}
+
+	@Test
+	void testPodMetadata() {
+		Service nonExternalNameService = new ServiceBuilder()
+				.withSpec(new ServiceSpecBuilder().withType("ClusterIP").build()).withNewMetadata()
+				.withName("blue-service").withNamespace("a").endMetadata().build();
+		client.services().inNamespace("a").resource(nonExternalNameService).create();
+
+		client.endpoints().inNamespace("a").resource(new EndpointsBuilder()
+				.withMetadata(new ObjectMetaBuilder().withName("blue-service").build())
+				.withSubsets(new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8080).build())
+						.withAddresses(new EndpointAddressBuilder().withIp("127.0.0.1")
+								.withTargetRef(new ObjectReferenceBuilder().withKind("Pod").withName("my-pod").build())
+								.build())
+						.build())
+				.build()).create();
+
+		client.pods().inNamespace("a").resource(new PodBuilder().withMetadata(new ObjectMetaBuilder().withName("my-pod")
+				.withLabels(Map.of("a", "b")).withAnnotations(Map.of("c", "d")).build()).build()).create();
+
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true,
+				"labels-prefix-", true, "annotations-prefix-", true, "ports-prefix", true, true);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of("a", "b"), true,
+				60L, false, "", Set.of(), Map.of(), "", metadata, 0, false, true);
+
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
+		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
+		Assertions.assertEquals(result.size(), 1);
+		DefaultKubernetesServiceInstance serviceInstance = (DefaultKubernetesServiceInstance) result.get(0);
+		Assertions.assertEquals(serviceInstance.getServiceId(), "blue-service");
+		Assertions.assertEquals(serviceInstance.getHost(), "127.0.0.1");
+		Assertions.assertEquals(serviceInstance.getPort(), 8080);
+		Assertions.assertFalse(serviceInstance.isSecure());
+		Assertions.assertEquals(serviceInstance.getUri().toASCIIString(), "http://127.0.0.1:8080");
+		Assertions.assertEquals(serviceInstance.getMetadata(), Map.of("k8s_namespace", "a", "type", "ClusterIP"));
+		Assertions.assertEquals(serviceInstance.podMetadata().get("labels"), Map.of("a", "b"));
+		Assertions.assertEquals(serviceInstance.podMetadata().get("annotations"), Map.of("c", "d"));
 	}
 
 	private void createEndpoints(String namespace, String name, Map<String, String> labels) {
