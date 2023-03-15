@@ -116,6 +116,10 @@ By default all of the ports and their names will be added to the metadata of the
 
 As said before, if you want to get the list of `ServiceInstance` to also include the `ExternalName` type services, you need to enable that support via: `spring.cloud.kubernetes.discovery.include-external-name-services=true`. As such, when calling `DiscoveryClient::getInstances` those will be returned also. You can distinguish between `ExternalName` and any other types by inspecting `ServiceInstance::getMetadata` and lookup for a field called `type`. This will be the type of the service returned : `ExternalName`/`ClusterIP`, etc.
 
+`ServiceInstance` can include the labels and annotations of specific pods from the underlying service instance. To obtain such information, you need to also enable:
+
+`spring.cloud.kubernetes.discovery.metadata.add-pod-labels=true` and/or `spring.cloud.kubernetes.discovery.metadata.add-pod-annotations=true`. At the moment, such functionality is present only in the fabric8 client implementation, but will be added to the kubernetes native client in a later release.
+
 If, for any reason, you need to disable the `DiscoveryClient`, you can set the following property in `application.properties`:
 
 ====

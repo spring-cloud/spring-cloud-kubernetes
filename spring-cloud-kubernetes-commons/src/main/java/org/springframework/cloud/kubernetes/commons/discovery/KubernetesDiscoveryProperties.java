@@ -92,15 +92,30 @@ public record KubernetesDiscoveryProperties(
 	 * @param annotationsPrefix prefix for the annotations
 	 * @param addPorts include ports as metadata
 	 * @param portsPrefix prefix for the ports, by default it is "port."
+	 * @param addPodLabels add pod labels as part of the response.
+	 * @param addPodAnnotations add pod annotations as part of the response.
 	 */
 	public record Metadata(@DefaultValue("true") boolean addLabels, String labelsPrefix,
 			@DefaultValue("true") boolean addAnnotations, String annotationsPrefix,
-			@DefaultValue("true") boolean addPorts, @DefaultValue("port.") String portsPrefix) {
+			@DefaultValue("true") boolean addPorts, @DefaultValue("port.") String portsPrefix, boolean addPodLabels,
+			boolean addPodAnnotations) {
+
+		@ConstructorBinding
+		public Metadata {
+
+		}
+
+		public Metadata(@DefaultValue("true") boolean addLabels, String labelsPrefix,
+				@DefaultValue("true") boolean addAnnotations, String annotationsPrefix,
+				@DefaultValue("true") boolean addPorts, @DefaultValue("port.") String portsPrefix) {
+
+			this(addLabels, labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix, false, false);
+		}
 
 		/**
 		 * Default instance.
 		 */
-		public static final Metadata DEFAULT = new Metadata(true, null, true, null, true, "port.");
+		public static final Metadata DEFAULT = new Metadata(true, null, true, null, true, "port.", false, false);
 
 	}
 
