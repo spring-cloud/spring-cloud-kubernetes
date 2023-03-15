@@ -39,18 +39,24 @@ class KubernetesDiscoveryPropertiesMetadataTests {
 		assertThat(m.annotationsPrefix()).isNull();
 		assertThat(m.addPorts()).isTrue();
 		assertThat(m.portsPrefix()).isEqualTo("port.");
+		assertThat(m.addPodLabels()).isFalse();
+		assertThat(m.addPodAnnotations()).isFalse();
 	}
 
 	@Test
 	void testSpringBindingFields() {
 		new ApplicationContextRunner().withUserConfiguration(Config.class)
-				.withPropertyValues("spring.cloud.kubernetes.discovery.metadata.labelsPrefix=labelsPrefix")
+				.withPropertyValues("spring.cloud.kubernetes.discovery.metadata.labelsPrefix=labelsPrefix",
+						"spring.cloud.kubernetes.discovery.metadata.add-pod-annotations=true",
+						"spring.cloud.kubernetes.discovery.metadata.add-pod-labels=true")
 				.run(context -> {
 					KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
 					assertThat(props).isNotNull();
 					assertThat(props.metadata().labelsPrefix()).isEqualTo("labelsPrefix");
 					assertThat(props.metadata().addPorts()).isTrue();
 					assertThat(props.metadata().portsPrefix()).isEqualTo("port.");
+					assertThat(props.metadata().addPodLabels()).isTrue();
+					assertThat(props.metadata().addPodAnnotations()).isTrue();
 				});
 	}
 

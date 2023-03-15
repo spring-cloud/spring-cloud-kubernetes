@@ -695,14 +695,14 @@ class KubernetesDiscoveryClientUtilsTests {
 	@Test
 	void testServiceInstance() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				false, "", Set.of(), Map.of(), "", null, 0, false, false);
+				false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
 		ServicePortSecureResolver resolver = new ServicePortSecureResolver(properties);
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 		EndpointAddress address = new EndpointAddressBuilder().withNewTargetRef().withUid("123").endTargetRef()
 				.withIp("127.0.0.1").build();
 
 		ServiceInstance serviceInstance = KubernetesDiscoveryClientUtils.serviceInstance(resolver, service, address,
-				8080, "my-service", Map.of("a", "b"), "k8s");
+				8080, "my-service", Map.of("a", "b"), "k8s", properties, null);
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
 		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
 		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
@@ -724,7 +724,7 @@ class KubernetesDiscoveryClientUtilsTests {
 				.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
 
 		ServiceInstance serviceInstance = KubernetesDiscoveryClientUtils.serviceInstance(null, service, null, -1,
-				"my-service", Map.of("a", "b"), "k8s");
+				"my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT, null);
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
 		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
 		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
