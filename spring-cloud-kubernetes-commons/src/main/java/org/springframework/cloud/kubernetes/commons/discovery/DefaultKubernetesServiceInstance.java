@@ -116,6 +116,11 @@ public record DefaultKubernetesServiceInstance(String instanceId, String service
 		if (port == -1) {
 			return URI.create(host);
 		}
+
+		// assume an endpoint without ports
+		if (port == 0) {
+			return URI.create(scheme + "://" + host);
+		}
 		return URI.create(scheme + "://" + host + ":" + port);
 	}
 }
