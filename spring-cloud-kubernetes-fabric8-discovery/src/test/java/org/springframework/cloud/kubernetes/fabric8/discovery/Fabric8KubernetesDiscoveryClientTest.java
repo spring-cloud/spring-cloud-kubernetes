@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -554,10 +555,41 @@ class Fabric8KubernetesDiscoveryClientTest {
 				.hasSize(1);
 	}
 
+	@Test
+	public void instanceWithoutPorts() {
+		Map<String, String> labels = new HashMap<>();
+
+		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
+			.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
+			.withUid("130").endTargetRef().endAddress().endSubset().build();
+
+		mockClient.endpoints().inNamespace("test").create(endPoint1);
+
+		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
+			.withNewMetadata().withName("endpoint5").withNamespace("test").withLabels(labels)
+			.withAnnotations(labels).endMetadata().build();
+
+		mockClient.services().inNamespace("test").create(service);
+
+		final KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
+
+		final DiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(mockClient, properties,
+			new ServicePortSecureResolver(properties), NAMESPACE_PROVIDER, x -> true);
+
+		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
+
+		// We're returning the first discovered port to not change previous behaviour
+		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
+			.filteredOn(s -> s.getUri().toASCIIString().equals("http://ip1"))
+			.filteredOn(s -> s.getInstanceId().equals("130")).hasSize(1).filteredOn(s -> 0 == s.getPort())
+			.hasSize(1);
+	}
+
 	private static Environment mockEnvironment() {
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty("spring.cloud.kubernetes.client.namespace", "test");
 		return environment;
 	}
+
 
 }

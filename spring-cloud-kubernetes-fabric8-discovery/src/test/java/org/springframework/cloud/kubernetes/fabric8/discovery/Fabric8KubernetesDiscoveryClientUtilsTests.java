@@ -992,6 +992,29 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 		Assertions.assertNull(defaultInstance.getCluster());
 	}
 
+	@Test
+	void testNoPortsServiceInstance() {
+		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
+			.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
+
+		EndpointAddress endpointAddress = new EndpointAddressBuilder().withIp("127.0.0.1").build();
+
+		ServiceInstance serviceInstance = Fabric8KubernetesDiscoveryClientUtils.serviceInstance(null, service, endpointAddress,
+			0, "my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT, null);
+		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
+		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
+		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
+		Assertions.assertEquals(defaultInstance.getServiceId(), "my-service");
+		Assertions.assertEquals(defaultInstance.getHost(), "127.0.0.1");
+		Assertions.assertEquals(defaultInstance.getScheme(), "http");
+		Assertions.assertEquals(defaultInstance.getPort(), 0);
+		Assertions.assertFalse(defaultInstance.isSecure());
+		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "http://127.0.0.1");
+		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
+		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
+		Assertions.assertNull(defaultInstance.getCluster());
+	}
+
 	private String filterOnK8sNamespaceAndType(Map<String, String> result) {
 		return result.entrySet().stream().filter(en -> !en.getKey().contains("k8s_namespace"))
 				.filter(en -> !en.getKey().equals("type"))
