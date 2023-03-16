@@ -143,6 +143,10 @@ public class KubernetesServiceInstance implements ServiceInstance {
 	}
 
 	private URI createUri(String scheme, String host, int port) {
+		// assume an endpoint without ports
+		if (port == 0) {
+			return URI.create(scheme + COLON + DSL + host);
+		}
 		return URI.create(scheme + COLON + DSL + host + COLON + port);
 	}
 
