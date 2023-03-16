@@ -159,6 +159,23 @@ class KubernetesDiscoveryClientUtilsTests {
 
 	/**
 	 * <pre>
+	 *     - EndpointSubset has no ports.
+	 * </pre>
+	 */
+	@Test
+	void testEndpointsPortNoPorts(CapturedOutput output) {
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder().build();
+		String serviceId = "spring-k8s";
+		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
+		Service service = new ServiceBuilder().build();
+
+		Integer port = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId, properties, service);
+		Assertions.assertEquals(port, 0);
+		Assertions.assertTrue(output.getOut().contains("no ports found for service : spring-k8s, will return zero"));
+	}
+
+	/**
+	 * <pre>
 	 *     - EndpointSubset has a single entry in getPorts.
 	 * </pre>
 	 */
@@ -735,6 +752,30 @@ class KubernetesDiscoveryClientUtilsTests {
 		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "spring.io");
 		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
 		Assertions.assertEquals(defaultInstance.getScheme(), "http");
+		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
+		Assertions.assertNull(defaultInstance.getCluster());
+	}
+
+	@Test
+	void testNoPortsServiceInstance() {
+		Service service = new ServiceBuilder()
+			.withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
+			.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
+
+		EndpointAddress endpointAddress = new EndpointAddressBuilder().withIp("127.0.0.1").build();
+
+		ServiceInstance serviceInstance = KubernetesDiscoveryClientUtils.serviceInstance(null, service,
+			endpointAddress, 0, "my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT, null);
+		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
+		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
+		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
+		Assertions.assertEquals(defaultInstance.getServiceId(), "my-service");
+		Assertions.assertEquals(defaultInstance.getHost(), "127.0.0.1");
+		Assertions.assertEquals(defaultInstance.getScheme(), "http");
+		Assertions.assertEquals(defaultInstance.getPort(), 0);
+		Assertions.assertFalse(defaultInstance.isSecure());
+		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "http://127.0.0.1");
+		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
 		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
 		Assertions.assertNull(defaultInstance.getCluster());
 	}
