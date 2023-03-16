@@ -218,6 +218,12 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private int findEndpointPort(EndpointSubset s, String serviceId, String primaryPortName) {
 		List<EndpointPort> endpointPorts = s.getPorts();
+
+		if (endpointPorts.size() == 0) {
+			log.debug("no ports found for service : " + serviceId + ", will return zero");
+			return 0;
+		}
+
 		if (endpointPorts.size() == 1) {
 			return endpointPorts.get(0).getPort();
 		}
