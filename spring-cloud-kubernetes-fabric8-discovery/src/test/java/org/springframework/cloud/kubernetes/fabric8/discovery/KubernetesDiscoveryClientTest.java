@@ -560,10 +560,9 @@ class KubernetesDiscoveryClientTest {
 
 		mockClient.endpoints().inNamespace("test").create(endPoint1);
 
-		Service service = new ServiceBuilder()
-			.withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
-				.withNewMetadata().withName("endpoint5").withNamespace("test")
-				.withLabels(labels).withAnnotations(labels).endMetadata().build();
+		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
+				.withNewMetadata().withName("endpoint5").withNamespace("test").withLabels(labels)
+				.withAnnotations(labels).endMetadata().build();
 
 		mockClient.services().inNamespace("test").create(service);
 
