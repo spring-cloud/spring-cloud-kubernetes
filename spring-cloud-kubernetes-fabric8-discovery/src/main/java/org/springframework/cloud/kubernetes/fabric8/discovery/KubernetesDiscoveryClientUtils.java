@@ -79,6 +79,12 @@ final class KubernetesDiscoveryClientUtils {
 			Service service) {
 
 		List<EndpointPort> endpointPorts = endpointSubset.getPorts();
+
+		if (endpointPorts.size() == 0) {
+			LOG.debug(() -> "no ports found for service : " + serviceId + ", will return zero");
+			return 0;
+		}
+
 		if (endpointPorts.size() == 1) {
 			int port = endpointPorts.get(0).getPort();
 			LOG.debug(() -> "endpoint ports has a single entry, using port : " + port);
