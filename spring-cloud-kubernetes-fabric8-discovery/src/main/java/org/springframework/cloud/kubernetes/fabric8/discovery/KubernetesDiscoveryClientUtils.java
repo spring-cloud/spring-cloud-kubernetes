@@ -75,49 +75,49 @@ final class KubernetesDiscoveryClientUtils {
 		return new EndpointSubsetNS(endpoints.getMetadata().getNamespace(), endpoints.getSubsets());
 	}
 
-	static int endpointsPort(EndpointSubset endpointSubset, String serviceId, KubernetesDiscoveryProperties properties,
+	static Fabric8ServicePortData endpointsPort(EndpointSubset endpointSubset, String serviceId, KubernetesDiscoveryProperties properties,
 			Service service) {
 
 		List<EndpointPort> endpointPorts = endpointSubset.getPorts();
 
 		if (endpointPorts.size() == 0) {
 			LOG.debug(() -> "no ports found for service : " + serviceId + ", will return zero");
-			return 0;
+			return new Fabric8ServicePortData(0, "http");
 		}
 
 		if (endpointPorts.size() == 1) {
 			int port = endpointPorts.get(0).getPort();
 			LOG.debug(() -> "endpoint ports has a single entry, using port : " + port);
-			return port;
+			return new Fabric8ServicePortData(0, endpointPorts.get(0).getName());
 		}
 
 		else {
 
-			Optional<Integer> port;
+			Optional<Fabric8ServicePortData> portData;
 			String primaryPortName = primaryPortName(properties, service, serviceId);
 
 			Map<String, Integer> existingPorts = endpointPorts.stream()
 					.filter(endpointPort -> StringUtils.hasText(endpointPort.getName()))
 					.collect(Collectors.toMap(EndpointPort::getName, EndpointPort::getPort));
 
-			port = fromMap(existingPorts, primaryPortName, "found primary-port-name (with value: '" + primaryPortName
+			portData = fromMap(existingPorts, primaryPortName, "found primary-port-name (with value: '" + primaryPortName
 					+ "') via properties or service labels to match port");
-			if (port.isPresent()) {
-				return port.get();
+			if (portData.isPresent()) {
+				return portData.get();
 			}
 
-			port = fromMap(existingPorts, HTTPS, "found primary-port-name via 'https' to match port");
-			if (port.isPresent()) {
-				return port.get();
+			portData = fromMap(existingPorts, HTTPS, "found primary-port-name via 'https' to match port");
+			if (portData.isPresent()) {
+				return portData.get();
 			}
 
-			port = fromMap(existingPorts, HTTP, "found primary-port-name via 'http' to match port");
-			if (port.isPresent()) {
-				return port.get();
+			portData = fromMap(existingPorts, HTTP, "found primary-port-name via 'http' to match port");
+			if (portData.isPresent()) {
+				return portData.get();
 			}
 
 			logWarnings();
-			return endpointPorts.get(0).getPort();
+			return new Fabric8ServicePortData(endpointPorts.get(0).getPort(), endpointPorts.get(0).getName());
 
 		}
 	}
@@ -350,7 +350,7 @@ final class KubernetesDiscoveryClientUtils {
 
 	}
 
-	private static Optional<Integer> fromMap(Map<String, Integer> existingPorts, String key, String message) {
+	private static Optional<Fabric8ServicePortData> fromMap(Map<String, Integer> existingPorts, String key, String message) {
 		Integer fromPrimaryPortName = existingPorts.get(key);
 		if (fromPrimaryPortName == null) {
 			LOG.debug(() -> "not " + message);
@@ -358,7 +358,7 @@ final class KubernetesDiscoveryClientUtils {
 		}
 		else {
 			LOG.debug(() -> message + " : " + fromPrimaryPortName);
-			return Optional.of(fromPrimaryPortName);
+			return Optional.of(new Fabric8ServicePortData(fromPrimaryPortName, key));
 		}
 	}
 

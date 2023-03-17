@@ -148,7 +148,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 		Map<String, String> serviceMetadata = serviceMetadata(serviceId, service, properties, subsets, namespace);
 
 		for (EndpointSubset endpointSubset : subsets) {
-			int endpointPort = endpointsPort(endpointSubset, serviceId, properties, service);
+			//TODO erabii
+			int endpointPort = endpointsPort(endpointSubset, serviceId, properties, service).portNumber();
 			List<EndpointAddress> addresses = addresses(endpointSubset, properties);
 			for (EndpointAddress endpointAddress : addresses) {
 				ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, service, endpointAddress,
