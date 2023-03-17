@@ -169,7 +169,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 		Service service = new ServiceBuilder().build();
 
-		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId, properties, service);
+		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
+				properties, service);
 		Assertions.assertEquals(portData.portNumber(), 0);
 		Assertions.assertEquals(portData.portName(), "http");
 		Assertions.assertTrue(output.getOut().contains("no ports found for service : spring-k8s, will return zero"));
@@ -188,8 +189,9 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 		Service service = new ServiceBuilder().build();
 
-		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId, properties, service);
-		Assertions.assertEquals(portData.portNumber(), 0);
+		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
+				properties, service);
+		Assertions.assertEquals(portData.portNumber(), 8080);
 		Assertions.assertEquals(portData.portName(), "http");
 		Assertions.assertTrue(output.getOut().contains("endpoint ports has a single entry, using port : 8080"));
 	}
@@ -209,7 +211,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
-		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId, properties, service);
+		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
+				properties, service);
 		Assertions.assertEquals(portData.portNumber(), 8080);
 		Assertions.assertNull(portData.portName());
 		Assertions.assertTrue(output.getOut().contains(
@@ -244,7 +247,8 @@ class KubernetesDiscoveryClientUtilsTests {
 
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
-		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId, properties, service);
+		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
+				properties, service);
 		Assertions.assertEquals(portData.portNumber(), 8080);
 		Assertions.assertEquals(portData.portName(), "one");
 		Assertions.assertTrue(
@@ -279,7 +283,8 @@ class KubernetesDiscoveryClientUtilsTests {
 
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
-		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId, properties, service);
+		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
+				properties, service);
 		Assertions.assertEquals(portData.portNumber(), 8081);
 		Assertions.assertEquals(portData.portName(), "two");
 		Assertions.assertTrue(
@@ -309,7 +314,8 @@ class KubernetesDiscoveryClientUtilsTests {
 
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
-		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId, properties, service);
+		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
+				properties, service);
 		Assertions.assertEquals(portData.portNumber(), 8082);
 		Assertions.assertEquals(portData.portName(), "https");
 		Assertions.assertTrue(
@@ -340,7 +346,8 @@ class KubernetesDiscoveryClientUtilsTests {
 
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
-		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId, properties, service);
+		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
+				properties, service);
 		Assertions.assertEquals(portData.portNumber(), 8082);
 		Assertions.assertEquals(portData.portName(), "http");
 		Assertions.assertTrue(

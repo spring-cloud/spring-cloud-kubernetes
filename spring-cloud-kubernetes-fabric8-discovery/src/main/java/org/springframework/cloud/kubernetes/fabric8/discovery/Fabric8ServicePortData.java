@@ -18,8 +18,6 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 /**
  * @author wind57
- * @param portNumber
- * @param portName
  */
 record Fabric8ServicePortData(int portNumber, String portName) {
 }

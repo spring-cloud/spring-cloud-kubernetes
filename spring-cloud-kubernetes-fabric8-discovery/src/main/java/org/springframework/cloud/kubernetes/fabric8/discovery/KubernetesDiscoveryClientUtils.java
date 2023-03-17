@@ -75,8 +75,8 @@ final class KubernetesDiscoveryClientUtils {
 		return new EndpointSubsetNS(endpoints.getMetadata().getNamespace(), endpoints.getSubsets());
 	}
 
-	static Fabric8ServicePortData endpointsPort(EndpointSubset endpointSubset, String serviceId, KubernetesDiscoveryProperties properties,
-			Service service) {
+	static Fabric8ServicePortData endpointsPort(EndpointSubset endpointSubset, String serviceId,
+			KubernetesDiscoveryProperties properties, Service service) {
 
 		List<EndpointPort> endpointPorts = endpointSubset.getPorts();
 
@@ -86,9 +86,10 @@ final class KubernetesDiscoveryClientUtils {
 		}
 
 		if (endpointPorts.size() == 1) {
-			int port = endpointPorts.get(0).getPort();
+			EndpointPort single = endpointPorts.get(0);
+			int port = single.getPort();
 			LOG.debug(() -> "endpoint ports has a single entry, using port : " + port);
-			return new Fabric8ServicePortData(0, endpointPorts.get(0).getName());
+			return new Fabric8ServicePortData(single.getPort(), single.getName());
 		}
 
 		else {
@@ -100,8 +101,8 @@ final class KubernetesDiscoveryClientUtils {
 					.filter(endpointPort -> StringUtils.hasText(endpointPort.getName()))
 					.collect(Collectors.toMap(EndpointPort::getName, EndpointPort::getPort));
 
-			portData = fromMap(existingPorts, primaryPortName, "found primary-port-name (with value: '" + primaryPortName
-					+ "') via properties or service labels to match port");
+			portData = fromMap(existingPorts, primaryPortName, "found primary-port-name (with value: '"
+					+ primaryPortName + "') via properties or service labels to match port");
 			if (portData.isPresent()) {
 				return portData.get();
 			}
@@ -350,7 +351,8 @@ final class KubernetesDiscoveryClientUtils {
 
 	}
 
-	private static Optional<Fabric8ServicePortData> fromMap(Map<String, Integer> existingPorts, String key, String message) {
+	private static Optional<Fabric8ServicePortData> fromMap(Map<String, Integer> existingPorts, String key,
+			String message) {
 		Integer fromPrimaryPortName = existingPorts.get(key);
 		if (fromPrimaryPortName == null) {
 			LOG.debug(() -> "not " + message);
