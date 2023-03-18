@@ -59,6 +59,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SERVICE_TYPE;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.ServicePortSecureResolver.Input;
 
 /**
  * @author wind57
@@ -245,9 +246,9 @@ final class KubernetesDiscoveryClientUtils {
 	}
 
 	static ServiceInstance serviceInstance(@Nullable ServicePortSecureResolver servicePortSecureResolver,
-			Service service, @Nullable EndpointAddress endpointAddress, int endpointPort, String serviceId,
-			Map<String, String> serviceMetadata, String namespace, KubernetesDiscoveryProperties properties,
-			KubernetesClient client) {
+			Service service, @Nullable EndpointAddress endpointAddress, Fabric8ServicePortData portData,
+			String serviceId, Map<String, String> serviceMetadata, String namespace,
+			KubernetesDiscoveryProperties properties, KubernetesClient client) {
 		// instanceId is usually the pod-uid as seen in the .metadata.uid
 		String instanceId = Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
 				.map(ObjectReference::getUid).orElseGet(() -> service.getMetadata().getUid());
@@ -257,9 +258,8 @@ final class KubernetesDiscoveryClientUtils {
 			secured = false;
 		}
 		else {
-			secured = servicePortSecureResolver
-					.resolve(new ServicePortSecureResolver.Input(endpointPort, service.getMetadata().getName(),
-							service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
+			secured = servicePortSecureResolver.resolve(new Input(portData, service.getMetadata().getName(),
+					service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
 		}
 
 		String host = Optional.ofNullable(endpointAddress).map(EndpointAddress::getIp)
@@ -268,8 +268,8 @@ final class KubernetesDiscoveryClientUtils {
 		Map<String, Map<String, String>> podMetadata = podMetadata(client, serviceMetadata, properties, endpointAddress,
 				namespace);
 
-		return new DefaultKubernetesServiceInstance(instanceId, serviceId, host, endpointPort, serviceMetadata, secured,
-				namespace, null, podMetadata);
+		return new DefaultKubernetesServiceInstance(instanceId, serviceId, host, portData.portNumber(), serviceMetadata,
+				secured, namespace, null, podMetadata);
 	}
 
 	static List<Service> services(KubernetesDiscoveryProperties properties, KubernetesClient client,

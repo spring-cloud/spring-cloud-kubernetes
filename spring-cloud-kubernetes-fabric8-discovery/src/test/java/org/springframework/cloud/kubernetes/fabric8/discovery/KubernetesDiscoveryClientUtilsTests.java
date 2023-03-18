@@ -732,8 +732,9 @@ class KubernetesDiscoveryClientUtilsTests {
 		EndpointAddress address = new EndpointAddressBuilder().withNewTargetRef().withUid("123").endTargetRef()
 				.withIp("127.0.0.1").build();
 
+		Fabric8ServicePortData portData = new Fabric8ServicePortData(8080, "http");
 		ServiceInstance serviceInstance = KubernetesDiscoveryClientUtils.serviceInstance(resolver, service, address,
-				8080, "my-service", Map.of("a", "b"), "k8s", properties, null);
+				portData, "my-service", Map.of("a", "b"), "k8s", properties, null);
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
 		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
 		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
@@ -754,7 +755,8 @@ class KubernetesDiscoveryClientUtilsTests {
 				.withSpec(new ServiceSpecBuilder().withExternalName("spring.io").withType("ExternalName").build())
 				.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
 
-		ServiceInstance serviceInstance = KubernetesDiscoveryClientUtils.serviceInstance(null, service, null, -1,
+		Fabric8ServicePortData portData = new Fabric8ServicePortData(-1, "http");
+		ServiceInstance serviceInstance = KubernetesDiscoveryClientUtils.serviceInstance(null, service, null, portData,
 				"my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT, null);
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
 		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
@@ -777,8 +779,9 @@ class KubernetesDiscoveryClientUtilsTests {
 
 		EndpointAddress endpointAddress = new EndpointAddressBuilder().withIp("127.0.0.1").build();
 
+		Fabric8ServicePortData portData = new Fabric8ServicePortData(0, "http");
 		ServiceInstance serviceInstance = KubernetesDiscoveryClientUtils.serviceInstance(null, service, endpointAddress,
-				0, "my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT, null);
+				portData, "my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT, null);
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
 		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
 		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
