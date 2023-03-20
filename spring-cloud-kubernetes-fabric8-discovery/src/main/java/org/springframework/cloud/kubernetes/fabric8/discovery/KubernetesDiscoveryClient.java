@@ -120,8 +120,9 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 			for (Service service : services) {
 				Map<String, String> serviceMetadata = serviceMetadata(serviceId, service, properties, List.of(),
 						service.getMetadata().getNamespace());
-				ServiceInstance externalNameServiceInstance = serviceInstance(null, service, null, -1, serviceId,
-						serviceMetadata, service.getMetadata().getNamespace(), properties, client);
+				ServiceInstance externalNameServiceInstance = serviceInstance(null, service, null,
+						new Fabric8ServicePortData(-1, null), serviceId, serviceMetadata,
+						service.getMetadata().getNamespace(), properties, client);
 				instances.add(externalNameServiceInstance);
 			}
 		}
@@ -148,11 +149,11 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 		Map<String, String> serviceMetadata = serviceMetadata(serviceId, service, properties, subsets, namespace);
 
 		for (EndpointSubset endpointSubset : subsets) {
-			int endpointPort = endpointsPort(endpointSubset, serviceId, properties, service);
+			Fabric8ServicePortData portData = endpointsPort(endpointSubset, serviceId, properties, service);
 			List<EndpointAddress> addresses = addresses(endpointSubset, properties);
 			for (EndpointAddress endpointAddress : addresses) {
 				ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, service, endpointAddress,
-						endpointPort, serviceId, serviceMetadata, namespace, properties, client);
+						portData, serviceId, serviceMetadata, namespace, properties, client);
 				instances.add(serviceInstance);
 			}
 		}
