@@ -45,7 +45,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 
 	@Test
 	void withFilterEmptyInput() {
-		List<Endpoints> result = KubernetesDiscoveryClientUtils.withFilter(List.of(), client, x -> true);
+		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(), client, x -> true);
 		Assertions.assertEquals(result.size(), 0);
 	}
 
@@ -61,7 +61,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 	void withFilterOneEndpointsNoMatchInService() {
 		Endpoints endpoints = createEndpoints("a", "namespace-a");
 		createService("a", "namespace-not-a");
-		List<Endpoints> result = KubernetesDiscoveryClientUtils.withFilter(List.of(endpoints), client, x -> true);
+		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpoints), client, x -> true);
 		Assertions.assertEquals(result.size(), 0);
 	}
 
@@ -77,7 +77,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 	void withFilterOneEndpointsMatchInService() {
 		Endpoints endpoints = createEndpoints("a", "namespace-a");
 		createService("a", "namespace-a");
-		List<Endpoints> result = KubernetesDiscoveryClientUtils.withFilter(List.of(endpoints), client, x -> true);
+		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpoints), client, x -> true);
 		Assertions.assertEquals(result.size(), 1);
 	}
 
@@ -95,7 +95,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		Endpoints endpointsA = createEndpoints("a", "namespace-a");
 		Endpoints endpointsB = createEndpoints("b", "namespace-b");
 		createService("a", "namespace-a");
-		List<Endpoints> result = KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB), client,
+		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB), client,
 				x -> true);
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "a");
@@ -121,7 +121,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		createService("b", "namespace-b");
 		createService("c", "namespace-c");
 
-		List<Endpoints> result = KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB), client,
+		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB), client,
 				x -> true);
 		Assertions.assertEquals(result.size(), 2);
 		result = result.stream().sorted(Comparator.comparing(x -> x.getMetadata().getName())).toList();
@@ -147,7 +147,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		Endpoints endpointsA = createEndpoints("a", "namespace-a");
 		createService("a", "namespace-a");
 
-		List<Endpoints> result = KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA), client,
+		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA), client,
 				x -> x.getMetadata().getNamespace().equals("namespace-a"));
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "a");
@@ -173,7 +173,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		createService("a-1", "default");
 		createService("b-1", "default");
 
-		List<Endpoints> result = KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB, endpointsC),
+		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB, endpointsC),
 				client, x -> x.getMetadata().getName().contains("1"));
 		Assertions.assertEquals(result.size(), 2);
 		result = result.stream().sorted(Comparator.comparing(x -> x.getMetadata().getName())).toList();
@@ -198,7 +198,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		createService("a-1", "default");
 		createService("b-1", "default");
 
-		List<Endpoints> result = KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA), client,
+		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA), client,
 				x -> !x.getMetadata().getName().contains("1"));
 		Assertions.assertEquals(result.size(), 0);
 	}
