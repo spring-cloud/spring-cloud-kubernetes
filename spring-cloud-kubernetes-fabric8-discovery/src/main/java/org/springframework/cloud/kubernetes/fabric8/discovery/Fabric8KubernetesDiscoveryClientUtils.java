@@ -394,7 +394,6 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 
 	}
 
-
 	private static Optional<Fabric8ServicePortData> fromMap(Map<String, Integer> existingPorts, String key,
 			String message) {
 		Integer fromPrimaryPortName = existingPorts.get(key);
