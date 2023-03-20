@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -184,13 +185,15 @@ final class KubernetesDiscoveryClientUtils {
 	}
 
 	static List<Endpoints> endpoints(KubernetesDiscoveryProperties properties, KubernetesClient client,
-			KubernetesNamespaceProvider namespaceProvider, String target, @Nullable String serviceName) {
+			KubernetesNamespaceProvider namespaceProvider, String target, @Nullable String serviceName,
+			Predicate<Service> filter) {
 
 		List<Endpoints> endpoints;
 
 		if (properties.allNamespaces()) {
 			LOG.debug(() -> "discovering endpoints in all namespaces");
-			endpoints = filteredEndpoints(client.endpoints().inAnyNamespace().withNewFilter(), properties, serviceName);
+			endpoints = filteredEndpoints(
+				client.endpoints().inAnyNamespace().withNewFilter(), properties, serviceName);
 		}
 		else if (!properties.namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering endpoints in namespaces : " + properties.namespaces());
@@ -206,7 +209,28 @@ final class KubernetesDiscoveryClientUtils {
 					serviceName);
 		}
 
-		return endpoints;
+		return withFilter(endpoints, client, filter);
+	}
+
+	// see this: https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1182 on why this is needed
+	static List<Endpoints> withFilter(List<Endpoints> initial, KubernetesClient client, Predicate<Service> filter) {
+
+		List<Endpoints> result = new ArrayList<>();
+
+		// group by namespace in order to make a single API call per namespace when retrieving services
+		Map<String, List<Endpoints>> byNamespace = initial.stream()
+			.collect(Collectors.groupingBy(x -> x.getMetadata().getNamespace()));
+
+		for (Map.Entry<String, List<Endpoints>> entry : byNamespace.entrySet()) {
+			Set<String> withFilter = client.services().inNamespace(entry.getKey())
+				.list().getItems().stream().filter(filter)
+				.map(service -> service.getMetadata().getName()).collect(Collectors.toSet());
+
+			result.addAll(entry.getValue().stream().filter(x -> withFilter.contains(x.getMetadata().getName())).toList());
+
+		}
+
+		return result;
 	}
 
 	/**

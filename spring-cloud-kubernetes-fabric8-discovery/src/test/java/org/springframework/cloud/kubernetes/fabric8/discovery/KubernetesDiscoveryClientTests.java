@@ -402,7 +402,8 @@ class KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
 				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false);
 
-		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties,
+			null, x -> true, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertTrue(output.getOut().contains("discovering endpoints in namespaces : [test]"));
