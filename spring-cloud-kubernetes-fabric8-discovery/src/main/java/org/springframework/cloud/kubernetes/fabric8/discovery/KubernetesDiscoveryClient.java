@@ -38,12 +38,12 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.addresses;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpoints;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpointsPort;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceInstance;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.services;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.addresses;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpoints;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpointsPort;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.serviceInstance;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.serviceMetadata;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.services;
 
 /**
  * Fabric8 Kubernetes implementation of {@link DiscoveryClient}.
@@ -105,7 +105,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 		Objects.requireNonNull(serviceId);
 
 		List<EndpointSubsetNS> subsetsNS = getEndPointsList(serviceId).stream()
-				.map(KubernetesDiscoveryClientUtils::subsetsFromEndpoints).toList();
+				.map(Fabric8KubernetesDiscoveryClientUtils::subsetsFromEndpoints).toList();
 
 		List<ServiceInstance> instances = new ArrayList<>();
 		for (EndpointSubsetNS es : subsetsNS) {
