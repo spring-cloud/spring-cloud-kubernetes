@@ -158,7 +158,8 @@ class KubernetesReactiveDiscoveryClientTests {
 		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services/existing-service")
 				.andReturn(200, services.getItems().get(0)).once();
 
-		Metadata metadata = new Metadata(false, null, false, null, true, "port.");
+		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services").andReturn(200, services).once();
+
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services);
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");
@@ -174,7 +175,7 @@ class KubernetesReactiveDiscoveryClientTests {
 								.withSpec(new ServiceSpecBuilder().withType("ExternalName").build()).endItem().build())
 				.once();
 
-		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("existing-service").withNamespace("test")
 				.endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
 				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset().build();
 
@@ -208,7 +209,7 @@ class KubernetesReactiveDiscoveryClientTests {
 								.withSpec(new ServiceSpecBuilder().withType("ExternalName").build()).endItem().build())
 				.once();
 
-		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("existing-service").withNamespace("test")
 				.endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
 				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
 				.addNewPort("https", "https_tcp", 443, "TCP").endSubset().build();
@@ -243,9 +244,9 @@ class KubernetesReactiveDiscoveryClientTests {
 								.withSpec(new ServiceSpecBuilder().withType("ExternalName").build()).endItem().build())
 				.once();
 
-		Endpoints endpoints = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
-				.endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
-				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
+		Endpoints endpoints = new EndpointsBuilder().withNewMetadata().withName("existing-service")
+				.withNamespace("test").endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
+				.withUid("uid1").endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
 				.addNewPort("https", "https_tcp", 443, "TCP").endSubset().build();
 
 		EndpointsList endpointsList = new EndpointsList();

@@ -130,7 +130,7 @@ class KubernetesDiscoveryClientTest {
 				.withUid("30").endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset()
 				.build();
 		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
-			.endMetadata().build();
+				.endMetadata().build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 		mockClient.services().inNamespace("test").resource(service).create();
@@ -158,8 +158,7 @@ class KubernetesDiscoveryClientTest {
 		Service service1 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace1)
 				.endMetadata().build();
 		Service service2 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace2)
-			.endMetadata().build();
-
+				.endMetadata().build();
 
 		mockClient.endpoints().inNamespace(namespace1).resource(endPoint1).create();
 		mockClient.endpoints().inNamespace(namespace2).resource(endPoint2).create();
@@ -192,11 +191,11 @@ class KubernetesDiscoveryClientTest {
 				.endMetadata().build();
 
 		Service service1 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace1)
-			.endMetadata().build();
+				.endMetadata().build();
 		Service service2 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace2)
-			.endMetadata().build();
+				.endMetadata().build();
 		Service service3 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace3)
-			.endMetadata().build();
+				.endMetadata().build();
 
 		mockClient.endpoints().inNamespace(namespace1).resource(endPoint1).create();
 		mockClient.endpoints().inNamespace(namespace2).resource(endPoint2).create();
