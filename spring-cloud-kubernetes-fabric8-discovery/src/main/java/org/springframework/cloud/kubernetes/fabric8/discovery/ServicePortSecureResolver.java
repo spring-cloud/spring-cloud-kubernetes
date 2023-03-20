@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.logging.LogFactory;
@@ -49,23 +50,29 @@ final class ServicePortSecureResolver {
 	 */
 	boolean resolve(Input input) {
 
-		String securedLabelValue = input.serviceLabels().getOrDefault("secured", "false");
 		String serviceName = input.serviceName();
-		Integer port = input.port();
+		Fabric8ServicePortData portData = input.portData();
 
-		if (TRUTHY_STRINGS.contains(securedLabelValue)) {
-			logEntry(serviceName, port, "the service contains a true value for the 'secured' label");
+		Optional<String> securedLabelValue = Optional.ofNullable(input.serviceLabels().get("secured"));
+		if (securedLabelValue.isPresent() && TRUTHY_STRINGS.contains(securedLabelValue.get())) {
+			logEntry(serviceName, portData.portNumber(), "the service contains a true value for the 'secured' label");
 			return true;
 		}
 
-		String securedAnnotationValue = input.serviceAnnotations().getOrDefault("secured", "false");
-		if (TRUTHY_STRINGS.contains(securedAnnotationValue)) {
-			logEntry(serviceName, port, "the service contains a true value for the 'secured' annotation");
+		Optional<String> securedAnnotationValue = Optional.ofNullable(input.serviceAnnotations().get("secured"));
+		if (securedAnnotationValue.isPresent() && TRUTHY_STRINGS.contains(securedAnnotationValue.get())) {
+			logEntry(serviceName, portData.portNumber(),
+					"the service contains a true value for the 'secured' annotation");
 			return true;
 		}
 
-		if (port != null && properties.knownSecurePorts().contains(port)) {
-			logEntry(serviceName, port, "port is known to be a https port");
+		if (properties.knownSecurePorts().contains(portData.portNumber())) {
+			logEntry(serviceName, portData.portNumber(), "port is known to be a https port");
+			return true;
+		}
+
+		if ("https".equalsIgnoreCase(input.portData().portName())) {
+			logEntry(serviceName, portData.portNumber(), "port-name is 'https'");
 			return true;
 		}
 
@@ -80,12 +87,12 @@ final class ServicePortSecureResolver {
 	/**
 	 * @author wind57
 	 */
-	record Input(Integer port, String serviceName, Map<String, String> serviceLabels,
+	record Input(Fabric8ServicePortData portData, String serviceName, Map<String, String> serviceLabels,
 			Map<String, String> serviceAnnotations) {
 
-		Input(Integer port, String serviceName, Map<String, String> serviceLabels,
+		Input(Fabric8ServicePortData portData, String serviceName, Map<String, String> serviceLabels,
 				Map<String, String> serviceAnnotations) {
-			this.port = port;
+			this.portData = portData;
 			this.serviceName = serviceName;
 			this.serviceLabels = serviceLabels == null ? Map.of() : serviceLabels;
 			this.serviceAnnotations = serviceAnnotations == null ? Map.of() : serviceAnnotations;
