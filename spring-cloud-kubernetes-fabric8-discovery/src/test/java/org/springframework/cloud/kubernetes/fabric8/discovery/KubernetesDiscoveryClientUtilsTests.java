@@ -55,7 +55,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testSubsetsFromEndpointsEmptySubsets() {
 		Endpoints endpoints = new EndpointsBuilder()
 				.withMetadata(new ObjectMetaBuilder().withNamespace("non-default").build()).build();
-		EndpointSubsetNS result = KubernetesDiscoveryClientUtils.subsetsFromEndpoints(endpoints);
+		EndpointSubsetNS result = Fabric8KubernetesDiscoveryClientUtils.subsetsFromEndpoints(endpoints);
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result.endpointSubset(), List.of());
 		Assertions.assertEquals(result.namespace(), "non-default");
@@ -68,7 +68,7 @@ class KubernetesDiscoveryClientUtilsTests {
 				.withSubsets(
 						new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8080).build()).build())
 				.build();
-		EndpointSubsetNS result = KubernetesDiscoveryClientUtils.subsetsFromEndpoints(endpoints);
+		EndpointSubsetNS result = Fabric8KubernetesDiscoveryClientUtils.subsetsFromEndpoints(endpoints);
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result.endpointSubset().size(), 1);
 		Assertions.assertEquals(result.endpointSubset().get(0).getPorts().get(0).getPort(), 8080);
@@ -88,7 +88,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
-		String result = KubernetesDiscoveryClientUtils.primaryPortName(properties, service, "abc");
+		String result = Fabric8KubernetesDiscoveryClientUtils.primaryPortName(properties, service, "abc");
 		Assertions.assertNull(result);
 		Assertions.assertTrue(output.getOut().contains(
 				"did not find a primary-port-name in neither properties nor service labels for service with ID : abc"));
@@ -109,7 +109,7 @@ class KubernetesDiscoveryClientUtilsTests {
 				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
-		String result = KubernetesDiscoveryClientUtils.primaryPortName(properties, service, "abc");
+		String result = Fabric8KubernetesDiscoveryClientUtils.primaryPortName(properties, service, "abc");
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result, primaryPortName);
 		Assertions.assertTrue(output.getOut().contains("will use primaryPortName : https for service with ID = abc"));
@@ -129,7 +129,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 		Service service = new ServiceBuilder().withMetadata(new ObjectMetaBuilder().withLabels(labels).build()).build();
 
-		String result = KubernetesDiscoveryClientUtils.primaryPortName(properties, service, "abc");
+		String result = Fabric8KubernetesDiscoveryClientUtils.primaryPortName(properties, service, "abc");
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result, "https");
 		Assertions.assertTrue(output.getOut().contains("will use primaryPortName : https for service with ID = abc"));
@@ -151,7 +151,7 @@ class KubernetesDiscoveryClientUtilsTests {
 				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
 		Service service = new ServiceBuilder().withMetadata(new ObjectMetaBuilder().withLabels(labels).build()).build();
 
-		String result = KubernetesDiscoveryClientUtils.primaryPortName(properties, service, "abc");
+		String result = Fabric8KubernetesDiscoveryClientUtils.primaryPortName(properties, service, "abc");
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result, "http");
 		Assertions.assertTrue(output.getOut().contains("will use primaryPortName : http for service with ID = abc"));
@@ -169,7 +169,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 		Service service = new ServiceBuilder().build();
 
-		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
+		Fabric8ServicePortData portData = Fabric8KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
 				properties, service);
 		Assertions.assertEquals(portData.portNumber(), 0);
 		Assertions.assertEquals(portData.portName(), "http");
@@ -189,7 +189,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 		Service service = new ServiceBuilder().build();
 
-		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
+		Fabric8ServicePortData portData = Fabric8KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
 				properties, service);
 		Assertions.assertEquals(portData.portNumber(), 8080);
 		Assertions.assertEquals(portData.portName(), "http");
@@ -211,7 +211,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
-		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
+		Fabric8ServicePortData portData = Fabric8KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
 				properties, service);
 		Assertions.assertEquals(portData.portNumber(), 8080);
 		Assertions.assertNull(portData.portName());
@@ -247,7 +247,7 @@ class KubernetesDiscoveryClientUtilsTests {
 
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
-		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
+		Fabric8ServicePortData portData = Fabric8KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
 				properties, service);
 		Assertions.assertEquals(portData.portNumber(), 8080);
 		Assertions.assertEquals(portData.portName(), "one");
@@ -283,7 +283,7 @@ class KubernetesDiscoveryClientUtilsTests {
 
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
-		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
+		Fabric8ServicePortData portData = Fabric8KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
 				properties, service);
 		Assertions.assertEquals(portData.portNumber(), 8081);
 		Assertions.assertEquals(portData.portName(), "two");
@@ -314,7 +314,7 @@ class KubernetesDiscoveryClientUtilsTests {
 
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
-		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
+		Fabric8ServicePortData portData = Fabric8KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
 				properties, service);
 		Assertions.assertEquals(portData.portNumber(), 8082);
 		Assertions.assertEquals(portData.portName(), "https");
@@ -346,7 +346,7 @@ class KubernetesDiscoveryClientUtilsTests {
 
 		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
 
-		Fabric8ServicePortData portData = KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
+		Fabric8ServicePortData portData = Fabric8KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
 				properties, service);
 		Assertions.assertEquals(portData.portNumber(), 8082);
 		Assertions.assertEquals(portData.portName(), "http");
@@ -380,7 +380,7 @@ class KubernetesDiscoveryClientUtilsTests {
 				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build()).build();
 
-		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
+		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
 				List.of(), namespace);
 		Assertions.assertEquals(result.size(), 2);
 		Assertions.assertEquals(result, Map.of("k8s_namespace", "default", "type", "ClusterIP"));
@@ -410,7 +410,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
 				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("a", "b")).build()).build();
 
-		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
+		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
 				List.of(), namespace);
 		Assertions.assertEquals(result.size(), 3);
 		Assertions.assertEquals(result, Map.of("a", "b", "k8s_namespace", "default", "type", "ClusterIP"));
@@ -443,7 +443,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
 				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("a", "b", "c", "d")).build()).build();
 
-		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
+		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
 				List.of(), namespace);
 		Assertions.assertEquals(result.size(), 4);
 		Assertions.assertEquals(result,
@@ -480,7 +480,7 @@ class KubernetesDiscoveryClientUtilsTests {
 						.build())
 				.build();
 
-		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
+		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
 				List.of(), namespace);
 		Assertions.assertEquals(result.size(), 3);
 		Assertions.assertEquals(result, Map.of("aa", "bb", "k8s_namespace", "default", "type", "ClusterIP"));
@@ -514,7 +514,7 @@ class KubernetesDiscoveryClientUtilsTests {
 						.withLabels(Map.of("a", "b")).build())
 				.build();
 
-		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
+		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
 				List.of(), namespace);
 		Assertions.assertEquals(result.size(), 4);
 		Assertions.assertEquals(result,
@@ -551,7 +551,7 @@ class KubernetesDiscoveryClientUtilsTests {
 						.withAnnotations(Map.of("aa", "bb", "cc", "dd")).withLabels(Map.of("a", "b", "c", "d")).build())
 				.build();
 
-		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
+		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
 				List.of(), namespace);
 		Assertions.assertEquals(result.size(), 6);
 		Assertions.assertEquals(result, Map.of("annotation-aa", "bb", "annotation-cc", "dd", "label-a", "b", "label-c",
@@ -598,7 +598,7 @@ class KubernetesDiscoveryClientUtilsTests {
 				new EndpointSubsetBuilder()
 						.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
 
-		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
+		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
 				endpointSubsets, namespace);
 		Assertions.assertEquals(result.size(), 3);
 		Assertions.assertEquals(result, Map.of("https", "8080", "k8s_namespace", "default", "type", "ClusterIP"));
@@ -637,7 +637,7 @@ class KubernetesDiscoveryClientUtilsTests {
 				new EndpointSubsetBuilder()
 						.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
 
-		Map<String, String> result = KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
+		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service, properties,
 				endpointSubsets, namespace);
 		Assertions.assertEquals(result.size(), 4);
 		Assertions.assertEquals(result,
@@ -658,7 +658,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder().build();
-		List<EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertEquals(addresses.size(), 0);
 	}
 
@@ -677,7 +677,7 @@ class KubernetesDiscoveryClientUtilsTests {
 				.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
 						new EndpointAddressBuilder().withHostname("two").build())
 				.build();
-		List<EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertEquals(addresses.size(), 2);
 	}
 
@@ -696,7 +696,7 @@ class KubernetesDiscoveryClientUtilsTests {
 				.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
 						new EndpointAddressBuilder().withHostname("two").build())
 				.withNotReadyAddresses(new EndpointAddressBuilder().withHostname("three").build()).build();
-		List<EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertEquals(addresses.size(), 2);
 		List<String> hostNames = addresses.stream().map(EndpointAddress::getHostname).sorted().toList();
 		Assertions.assertEquals(hostNames, List.of("one", "two"));
@@ -717,7 +717,7 @@ class KubernetesDiscoveryClientUtilsTests {
 				.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
 						new EndpointAddressBuilder().withHostname("two").build())
 				.withNotReadyAddresses(new EndpointAddressBuilder().withHostname("three").build()).build();
-		List<EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertEquals(addresses.size(), 3);
 		List<String> hostNames = addresses.stream().map(EndpointAddress::getHostname).sorted().toList();
 		Assertions.assertEquals(hostNames, List.of("one", "three", "two"));
@@ -733,7 +733,7 @@ class KubernetesDiscoveryClientUtilsTests {
 				.withIp("127.0.0.1").build();
 
 		Fabric8ServicePortData portData = new Fabric8ServicePortData(8080, "http");
-		ServiceInstance serviceInstance = KubernetesDiscoveryClientUtils.serviceInstance(resolver, service, address,
+		ServiceInstance serviceInstance = Fabric8KubernetesDiscoveryClientUtils.serviceInstance(resolver, service, address,
 				portData, "my-service", Map.of("a", "b"), "k8s", properties, null);
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
 		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
@@ -756,7 +756,7 @@ class KubernetesDiscoveryClientUtilsTests {
 				.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
 
 		Fabric8ServicePortData portData = new Fabric8ServicePortData(-1, "http");
-		ServiceInstance serviceInstance = KubernetesDiscoveryClientUtils.serviceInstance(null, service, null, portData,
+		ServiceInstance serviceInstance = Fabric8KubernetesDiscoveryClientUtils.serviceInstance(null, service, null, portData,
 				"my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT, null);
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
 		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
@@ -780,7 +780,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		EndpointAddress endpointAddress = new EndpointAddressBuilder().withIp("127.0.0.1").build();
 
 		Fabric8ServicePortData portData = new Fabric8ServicePortData(0, "http");
-		ServiceInstance serviceInstance = KubernetesDiscoveryClientUtils.serviceInstance(null, service, endpointAddress,
+		ServiceInstance serviceInstance = Fabric8KubernetesDiscoveryClientUtils.serviceInstance(null, service, endpointAddress,
 				portData, "my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT, null);
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
 		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
