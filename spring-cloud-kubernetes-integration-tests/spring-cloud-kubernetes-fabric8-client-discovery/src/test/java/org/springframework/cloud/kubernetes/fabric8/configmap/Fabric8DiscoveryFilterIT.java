@@ -36,21 +36,25 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
-import org.springframework.core.ParameterizedTypeReference;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 class Fabric8DiscoveryFilterIT {
+
+	private static final String FILTER_BOTH_NAMESPACES = "#root.metadata.namespace matches '^.*uat$'";
+
+	private static final String FILTER_SINGLE_NAMESPACE = "#root.metadata.namespace matches 'a-uat$'";
 
 	private static final String NAMESPACE_A_UAT = "a-uat";
 
@@ -111,7 +115,7 @@ class Fabric8DiscoveryFilterIT {
 	@Test
 	void filterMatchesBothNamespacesViaThePredicate() {
 
-		manifests(Phase.CREATE, "#root.metadata.namespace matches '^.*uat$'");
+		manifests(Phase.CREATE, FILTER_BOTH_NAMESPACES);
 
 		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
 
@@ -124,14 +128,13 @@ class Fabric8DiscoveryFilterIT {
 
 		WebClient client = builder().baseUrl("http://localhost/service-instances/service-wiremock").build();
 		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()
-			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-			}).retryWhen(retrySpec()).block();
+				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(serviceInstances.size(), 2);
 		List<DefaultKubernetesServiceInstance> sorted = serviceInstances.stream()
-			.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::getNamespace)).toList();
-
+				.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::getNamespace)).toList();
 
 		DefaultKubernetesServiceInstance first = sorted.get(0);
 		Assertions.assertEquals(first.getServiceId(), "service-wiremock");
@@ -139,7 +142,7 @@ class Fabric8DiscoveryFilterIT {
 		Assertions.assertEquals(first.getPort(), 8080);
 		Assertions.assertEquals(first.getNamespace(), "a-uat");
 		Assertions.assertEquals(first.getMetadata(),
-			Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
+				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
 
 		DefaultKubernetesServiceInstance second = sorted.get(1);
 		Assertions.assertEquals(second.getServiceId(), "service-wiremock");
@@ -147,9 +150,9 @@ class Fabric8DiscoveryFilterIT {
 		Assertions.assertEquals(second.getPort(), 8080);
 		Assertions.assertEquals(second.getNamespace(), "b-uat");
 		Assertions.assertEquals(second.getMetadata(),
-			Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "b-uat", "type", "ClusterIP"));
+				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "b-uat", "type", "ClusterIP"));
 
-		manifests(Phase.DELETE, "#root.metadata.namespace matches '^.*uat$'");
+		manifests(Phase.DELETE, FILTER_BOTH_NAMESPACES);
 	}
 
 	/**
@@ -164,22 +167,22 @@ class Fabric8DiscoveryFilterIT {
 	 */
 	@Test
 	void filterMatchesOneNamespaceViaThePredicate() {
-		manifests(Phase.CREATE, "#root.metadata.namespace matches 'a-uat$'");
+		manifests(Phase.CREATE, FILTER_SINGLE_NAMESPACE);
 
 		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
 
 		@SuppressWarnings("unchecked")
 		List<String> services = (List<String>) clientServices.method(HttpMethod.GET).retrieve().bodyToMono(List.class)
-			.retryWhen(retrySpec()).block();
+				.retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(services.size(), 1);
 		Assertions.assertTrue(services.contains("service-wiremock"));
 
 		WebClient client = builder().baseUrl("http://localhost/service-instances/service-wiremock").build();
 		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()
-			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-			}).retryWhen(retrySpec()).block();
+				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(serviceInstances.size(), 1);
 
@@ -189,9 +192,9 @@ class Fabric8DiscoveryFilterIT {
 		Assertions.assertEquals(first.getPort(), 8080);
 		Assertions.assertEquals(first.getNamespace(), "a-uat");
 		Assertions.assertEquals(first.getMetadata(),
-			Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
+				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
 
-		manifests(Phase.DELETE, "#root.metadata.namespace matches 'a-uat$'");
+		manifests(Phase.DELETE, FILTER_SINGLE_NAMESPACE);
 	}
 
 	private static void manifests(Phase phase, String serviceFilter) {
