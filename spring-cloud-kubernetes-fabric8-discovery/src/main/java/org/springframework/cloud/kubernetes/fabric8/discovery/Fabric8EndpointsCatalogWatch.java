@@ -28,7 +28,7 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 
-import static org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientUtils.endpoints;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpoints;
 
 /**
  * Implementation that is based on Endpoints.

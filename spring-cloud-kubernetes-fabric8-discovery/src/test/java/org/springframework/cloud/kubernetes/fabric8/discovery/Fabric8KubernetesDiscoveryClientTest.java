@@ -45,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties.Metadata;
 
 @EnableKubernetesMockClient(crud = true, https = false)
-class KubernetesDiscoveryClientTest {
+class Fabric8KubernetesDiscoveryClientTest {
 
 	private KubernetesClient mockClient;
 
