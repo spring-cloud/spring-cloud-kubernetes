@@ -60,6 +60,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SERVICE_TYPE;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.ServicePortSecureResolver.Input;
 
 /**
  * @author wind57
@@ -76,49 +77,50 @@ final class KubernetesDiscoveryClientUtils {
 		return new EndpointSubsetNS(endpoints.getMetadata().getNamespace(), endpoints.getSubsets());
 	}
 
-	static int endpointsPort(EndpointSubset endpointSubset, String serviceId, KubernetesDiscoveryProperties properties,
-			Service service) {
+	static Fabric8ServicePortData endpointsPort(EndpointSubset endpointSubset, String serviceId,
+			KubernetesDiscoveryProperties properties, Service service) {
 
 		List<EndpointPort> endpointPorts = endpointSubset.getPorts();
 
 		if (endpointPorts.size() == 0) {
 			LOG.debug(() -> "no ports found for service : " + serviceId + ", will return zero");
-			return 0;
+			return new Fabric8ServicePortData(0, "http");
 		}
 
 		if (endpointPorts.size() == 1) {
-			int port = endpointPorts.get(0).getPort();
+			EndpointPort single = endpointPorts.get(0);
+			int port = single.getPort();
 			LOG.debug(() -> "endpoint ports has a single entry, using port : " + port);
-			return port;
+			return new Fabric8ServicePortData(single.getPort(), single.getName());
 		}
 
 		else {
 
-			Optional<Integer> port;
+			Optional<Fabric8ServicePortData> portData;
 			String primaryPortName = primaryPortName(properties, service, serviceId);
 
 			Map<String, Integer> existingPorts = endpointPorts.stream()
 					.filter(endpointPort -> StringUtils.hasText(endpointPort.getName()))
 					.collect(Collectors.toMap(EndpointPort::getName, EndpointPort::getPort));
 
-			port = fromMap(existingPorts, primaryPortName, "found primary-port-name (with value: '" + primaryPortName
-					+ "') via properties or service labels to match port");
-			if (port.isPresent()) {
-				return port.get();
+			portData = fromMap(existingPorts, primaryPortName, "found primary-port-name (with value: '"
+					+ primaryPortName + "') via properties or service labels to match port");
+			if (portData.isPresent()) {
+				return portData.get();
 			}
 
-			port = fromMap(existingPorts, HTTPS, "found primary-port-name via 'https' to match port");
-			if (port.isPresent()) {
-				return port.get();
+			portData = fromMap(existingPorts, HTTPS, "found primary-port-name via 'https' to match port");
+			if (portData.isPresent()) {
+				return portData.get();
 			}
 
-			port = fromMap(existingPorts, HTTP, "found primary-port-name via 'http' to match port");
-			if (port.isPresent()) {
-				return port.get();
+			portData = fromMap(existingPorts, HTTP, "found primary-port-name via 'http' to match port");
+			if (portData.isPresent()) {
+				return portData.get();
 			}
 
 			logWarnings();
-			return endpointPorts.get(0).getPort();
+			return new Fabric8ServicePortData(endpointPorts.get(0).getPort(), endpointPorts.get(0).getName());
 
 		}
 	}
@@ -268,9 +270,9 @@ final class KubernetesDiscoveryClientUtils {
 	}
 
 	static ServiceInstance serviceInstance(@Nullable ServicePortSecureResolver servicePortSecureResolver,
-			Service service, @Nullable EndpointAddress endpointAddress, int endpointPort, String serviceId,
-			Map<String, String> serviceMetadata, String namespace, KubernetesDiscoveryProperties properties,
-			KubernetesClient client) {
+			Service service, @Nullable EndpointAddress endpointAddress, Fabric8ServicePortData portData,
+			String serviceId, Map<String, String> serviceMetadata, String namespace,
+			KubernetesDiscoveryProperties properties, KubernetesClient client) {
 		// instanceId is usually the pod-uid as seen in the .metadata.uid
 		String instanceId = Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
 				.map(ObjectReference::getUid).orElseGet(() -> service.getMetadata().getUid());
@@ -280,9 +282,8 @@ final class KubernetesDiscoveryClientUtils {
 			secured = false;
 		}
 		else {
-			secured = servicePortSecureResolver
-					.resolve(new ServicePortSecureResolver.Input(endpointPort, service.getMetadata().getName(),
-							service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
+			secured = servicePortSecureResolver.resolve(new Input(portData, service.getMetadata().getName(),
+					service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
 		}
 
 		String host = Optional.ofNullable(endpointAddress).map(EndpointAddress::getIp)
@@ -291,8 +292,8 @@ final class KubernetesDiscoveryClientUtils {
 		Map<String, Map<String, String>> podMetadata = podMetadata(client, serviceMetadata, properties, endpointAddress,
 				namespace);
 
-		return new DefaultKubernetesServiceInstance(instanceId, serviceId, host, endpointPort, serviceMetadata, secured,
-				namespace, null, podMetadata);
+		return new DefaultKubernetesServiceInstance(instanceId, serviceId, host, portData.portNumber(), serviceMetadata,
+				secured, namespace, null, podMetadata);
 	}
 
 	static List<Service> services(KubernetesDiscoveryProperties properties, KubernetesClient client,
@@ -374,7 +375,8 @@ final class KubernetesDiscoveryClientUtils {
 
 	}
 
-	private static Optional<Integer> fromMap(Map<String, Integer> existingPorts, String key, String message) {
+	private static Optional<Fabric8ServicePortData> fromMap(Map<String, Integer> existingPorts, String key,
+			String message) {
 		Integer fromPrimaryPortName = existingPorts.get(key);
 		if (fromPrimaryPortName == null) {
 			LOG.debug(() -> "not " + message);
@@ -382,7 +384,7 @@ final class KubernetesDiscoveryClientUtils {
 		}
 		else {
 			LOG.debug(() -> message + " : " + fromPrimaryPortName);
-			return Optional.of(fromPrimaryPortName);
+			return Optional.of(new Fabric8ServicePortData(fromPrimaryPortName, key));
 		}
 	}
 
