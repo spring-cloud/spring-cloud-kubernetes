@@ -66,7 +66,8 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.ServicePort
  */
 final class Fabric8KubernetesDiscoveryClientUtils {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8KubernetesDiscoveryClientUtils.class));
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(Fabric8KubernetesDiscoveryClientUtils.class));
 
 	private Fabric8KubernetesDiscoveryClientUtils() {
 
