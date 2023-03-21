@@ -18,6 +18,8 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
@@ -29,6 +31,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+
 /**
  * @author wind57
  */
@@ -36,6 +40,9 @@ import org.junit.jupiter.api.Test;
 class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 
 	private static KubernetesClient client;
+
+	private static final KubernetesDiscoveryProperties PROPERTIES = new KubernetesDiscoveryProperties(true, true,
+			Set.of(), false, 60L, false, "some", Set.of(), Map.of(), "", null, 0, false);
 
 	@AfterEach
 	void afterEach() {
@@ -45,7 +52,8 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 
 	@Test
 	void withFilterEmptyInput() {
-		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(), client, x -> true);
+		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(), PROPERTIES, client,
+				x -> true);
 		Assertions.assertEquals(result.size(), 0);
 	}
 
@@ -61,8 +69,8 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 	void withFilterOneEndpointsNoMatchInService() {
 		Endpoints endpoints = createEndpoints("a", "namespace-a");
 		createService("a", "namespace-not-a");
-		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpoints), client,
-				x -> true);
+		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpoints), PROPERTIES,
+				client, x -> true);
 		Assertions.assertEquals(result.size(), 0);
 	}
 
@@ -78,8 +86,8 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 	void withFilterOneEndpointsMatchInService() {
 		Endpoints endpoints = createEndpoints("a", "namespace-a");
 		createService("a", "namespace-a");
-		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpoints), client,
-				x -> true);
+		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpoints), PROPERTIES,
+				client, x -> true);
 		Assertions.assertEquals(result.size(), 1);
 	}
 
@@ -98,7 +106,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		Endpoints endpointsB = createEndpoints("b", "namespace-b");
 		createService("a", "namespace-a");
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB),
-				client, x -> true);
+				PROPERTIES, client, x -> true);
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "a");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespace-a");
@@ -124,7 +132,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		createService("c", "namespace-c");
 
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB),
-				client, x -> true);
+				PROPERTIES, client, x -> true);
 		Assertions.assertEquals(result.size(), 2);
 		result = result.stream().sorted(Comparator.comparing(x -> x.getMetadata().getName())).toList();
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "a");
@@ -149,8 +157,8 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		Endpoints endpointsA = createEndpoints("a", "namespace-a");
 		createService("a", "namespace-a");
 
-		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA), client,
-				x -> x.getMetadata().getNamespace().equals("namespace-a"));
+		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA), PROPERTIES,
+				client, x -> x.getMetadata().getNamespace().equals("namespace-a"));
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "a");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespace-a");
@@ -176,7 +184,8 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		createService("b-1", "default");
 
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(
-				List.of(endpointsA, endpointsB, endpointsC), client, x -> x.getMetadata().getName().contains("1"));
+				List.of(endpointsA, endpointsB, endpointsC), PROPERTIES, client,
+				x -> x.getMetadata().getName().contains("1"));
 		Assertions.assertEquals(result.size(), 2);
 		result = result.stream().sorted(Comparator.comparing(x -> x.getMetadata().getName())).toList();
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "a-1");
@@ -200,8 +209,8 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		createService("a-1", "default");
 		createService("b-1", "default");
 
-		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA), client,
-				x -> !x.getMetadata().getName().contains("1"));
+		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA), PROPERTIES,
+				client, x -> !x.getMetadata().getName().contains("1"));
 		Assertions.assertEquals(result.size(), 0);
 	}
 

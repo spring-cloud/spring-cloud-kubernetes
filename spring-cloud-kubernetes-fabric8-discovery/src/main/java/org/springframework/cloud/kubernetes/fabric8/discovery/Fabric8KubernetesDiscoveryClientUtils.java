@@ -211,15 +211,20 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 					serviceName);
 		}
 
-		return withFilter(endpoints, client, filter);
+		return withFilter(endpoints, properties, client, filter);
 	}
 
 	// see https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1182 on why this
 	// is needed
-	static List<Endpoints> withFilter(List<Endpoints> initial, KubernetesClient client, Predicate<Service> filter) {
+	static List<Endpoints> withFilter(List<Endpoints> initial, KubernetesDiscoveryProperties properties,
+			KubernetesClient client, Predicate<Service> filter) {
+
+		if (properties.filter() == null || properties.filter().isBlank()) {
+			LOG.debug(() -> "filter not present");
+			return initial;
+		}
 
 		List<Endpoints> result = new ArrayList<>();
-
 		// group by namespace in order to make a single API call per namespace when
 		// retrieving services
 		Map<String, List<Endpoints>> byNamespace = initial.stream()
