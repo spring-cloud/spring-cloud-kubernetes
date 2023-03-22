@@ -139,14 +139,13 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		// group by namespace in order to make a single API call per namespace when
 		// retrieving services
 		Map<String, List<Endpoints>> byNamespace = endpoints.stream()
-			.collect(Collectors.groupingBy(x -> x.getMetadata().getNamespace()));
+				.collect(Collectors.groupingBy(x -> x.getMetadata().getNamespace()));
 
 		for (Map.Entry<String, List<Endpoints>> entry : byNamespace.entrySet()) {
 			Set<String> withFilter = client.services().inNamespace(entry.getKey()).list().getItems().stream()
-				.filter(filter()).map(service -> service.getMetadata().getName()).collect(Collectors.toSet());
+					.filter(filter()).map(service -> service.getMetadata().getName()).collect(Collectors.toSet());
 
-			result.addAll(
-				entry.getValue().stream().filter(x -> withFilter.contains(x.getMetadata().getName()))
+			result.addAll(entry.getValue().stream().filter(x -> withFilter.contains(x.getMetadata().getName()))
 					.collect(Collectors.toList()));
 
 		}
