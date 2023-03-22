@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -124,11 +125,22 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	public List<Endpoints> getEndPointsList(String serviceId) {
-		return this.properties.isAllNamespaces()
+		List<Endpoints> endpoints = this.properties.isAllNamespaces()
 				? this.client.endpoints().inAnyNamespace().withField("metadata.name", serviceId)
 						.withLabels(properties.getServiceLabels()).list().getItems()
 				: this.client.endpoints().withField("metadata.name", serviceId)
 						.withLabels(properties.getServiceLabels()).list().getItems();
+
+		if (properties.getFilter() == null || properties.getFilter().isEmpty()) {
+			return endpoints;
+		}
+
+		List<Service> services = this.properties.isAllNamespaces()
+			? this.client.services().inAnyNamespace().list().getItems().stream().filter(filter()).collect(Collectors.toList())
+			: this.client.services().list().getItems().stream().filter(filter()).collect(Collectors.toList());
+
+		Set<String> serviceNames =
+
 	}
 
 	private List<ServiceInstance> getNamespaceServiceInstances(EndpointSubsetNS es, String serviceId) {
@@ -291,6 +303,10 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
+		return getServices(filter());
+	}
+
+	private Predicate<Service> filter() {
 		String spelExpression = this.properties.getFilter();
 		Predicate<Service> filteredServices;
 		if (spelExpression == null || spelExpression.isEmpty()) {
@@ -306,7 +322,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				return include;
 			};
 		}
-		return getServices(filteredServices);
+		return filteredServices;
 	}
 
 	public List<String> getServices(Predicate<Service> filter) {
