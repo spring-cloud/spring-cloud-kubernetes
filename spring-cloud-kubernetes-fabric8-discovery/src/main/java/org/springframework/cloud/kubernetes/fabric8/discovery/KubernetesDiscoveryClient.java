@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -124,11 +125,33 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	public List<Endpoints> getEndPointsList(String serviceId) {
-		return this.properties.isAllNamespaces()
+		List<Endpoints> endpoints = this.properties.isAllNamespaces()
 				? this.client.endpoints().inAnyNamespace().withField("metadata.name", serviceId)
 						.withLabels(properties.getServiceLabels()).list().getItems()
 				: this.client.endpoints().withField("metadata.name", serviceId)
 						.withLabels(properties.getServiceLabels()).list().getItems();
+
+		if (properties.getFilter() == null || properties.getFilter().isEmpty()) {
+			return endpoints;
+		}
+
+		List<Endpoints> result = new ArrayList<>();
+		// group by namespace in order to make a single API call per namespace when
+		// retrieving services
+		Map<String, List<Endpoints>> byNamespace = endpoints.stream()
+				.collect(Collectors.groupingBy(x -> x.getMetadata().getNamespace()));
+
+		for (Map.Entry<String, List<Endpoints>> entry : byNamespace.entrySet()) {
+			Set<String> withFilter = client.services().inNamespace(entry.getKey()).list().getItems().stream()
+					.filter(filter()).map(service -> service.getMetadata().getName()).collect(Collectors.toSet());
+
+			result.addAll(entry.getValue().stream().filter(x -> withFilter.contains(x.getMetadata().getName()))
+					.collect(Collectors.toList()));
+
+		}
+
+		return result;
+
 	}
 
 	private List<ServiceInstance> getNamespaceServiceInstances(EndpointSubsetNS es, String serviceId) {
@@ -291,6 +314,10 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
+		return getServices(filter());
+	}
+
+	private Predicate<Service> filter() {
 		String spelExpression = this.properties.getFilter();
 		Predicate<Service> filteredServices;
 		if (spelExpression == null || spelExpression.isEmpty()) {
@@ -306,7 +333,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 				return include;
 			};
 		}
-		return getServices(filteredServices);
+		return filteredServices;
 	}
 
 	public List<String> getServices(Predicate<Service> filter) {
