@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -187,7 +188,8 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	}
 
 	static List<Endpoints> endpoints(KubernetesDiscoveryProperties properties, KubernetesClient client,
-			KubernetesNamespaceProvider namespaceProvider, String target, @Nullable String serviceName) {
+			KubernetesNamespaceProvider namespaceProvider, String target, @Nullable String serviceName,
+			Predicate<Service> filter) {
 
 		List<Endpoints> endpoints;
 
@@ -209,7 +211,35 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 					serviceName);
 		}
 
-		return endpoints;
+		return withFilter(endpoints, properties, client, filter);
+	}
+
+	// see https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1182 on why this
+	// is needed
+	static List<Endpoints> withFilter(List<Endpoints> initial, KubernetesDiscoveryProperties properties,
+			KubernetesClient client, Predicate<Service> filter) {
+
+		if (properties.filter() == null || properties.filter().isBlank()) {
+			LOG.debug(() -> "filter not present");
+			return initial;
+		}
+
+		List<Endpoints> result = new ArrayList<>();
+		// group by namespace in order to make a single API call per namespace when
+		// retrieving services
+		Map<String, List<Endpoints>> byNamespace = initial.stream()
+				.collect(Collectors.groupingBy(x -> x.getMetadata().getNamespace()));
+
+		for (Map.Entry<String, List<Endpoints>> entry : byNamespace.entrySet()) {
+			Set<String> withFilter = client.services().inNamespace(entry.getKey()).list().getItems().stream()
+					.filter(filter).map(service -> service.getMetadata().getName()).collect(Collectors.toSet());
+
+			result.addAll(
+					entry.getValue().stream().filter(x -> withFilter.contains(x.getMetadata().getName())).toList());
+
+		}
+
+		return result;
 	}
 
 	/**

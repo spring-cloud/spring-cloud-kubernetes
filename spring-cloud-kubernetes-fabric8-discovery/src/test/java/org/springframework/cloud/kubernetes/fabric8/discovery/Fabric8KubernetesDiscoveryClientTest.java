@@ -61,7 +61,8 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 	@AfterEach
 	void afterEach() {
-		mockClient.close();
+		mockClient.endpoints().inAnyNamespace().delete();
+		mockClient.services().inAnyNamespace().delete();
 	}
 
 	@Test
@@ -128,8 +129,11 @@ class Fabric8KubernetesDiscoveryClientTest {
 				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
 				.withUid("30").endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset()
 				.build();
+		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
+				.endMetadata().build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
+		mockClient.services().inNamespace("test").resource(service).create();
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services, null,
@@ -148,18 +152,24 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace1)
 				.endMetadata().build();
-
 		Endpoints endPoint2 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace2)
+				.endMetadata().build();
+
+		Service service1 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace1)
+				.endMetadata().build();
+		Service service2 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace2)
 				.endMetadata().build();
 
 		mockClient.endpoints().inNamespace(namespace1).resource(endPoint1).create();
 		mockClient.endpoints().inNamespace(namespace2).resource(endPoint2).create();
+		mockClient.services().inNamespace(namespace1).resource(service1).create();
+		mockClient.services().inNamespace(namespace2).resource(service2).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
-				KubernetesClient::services, null, new ServicePortSecureResolver(properties));
+				KubernetesClient::services, x -> true, new ServicePortSecureResolver(properties));
 
 		List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
 
@@ -180,9 +190,19 @@ class Fabric8KubernetesDiscoveryClientTest {
 		Endpoints endPoint3 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace3)
 				.endMetadata().build();
 
+		Service service1 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace1)
+				.endMetadata().build();
+		Service service2 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace2)
+				.endMetadata().build();
+		Service service3 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace3)
+				.endMetadata().build();
+
 		mockClient.endpoints().inNamespace(namespace1).resource(endPoint1).create();
 		mockClient.endpoints().inNamespace(namespace2).resource(endPoint2).create();
 		mockClient.endpoints().inNamespace(namespace3).resource(endPoint3).create();
+		mockClient.services().inNamespace(namespace1).resource(service1).create();
+		mockClient.services().inNamespace(namespace2).resource(service2).create();
+		mockClient.services().inNamespace(namespace3).resource(service3).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false,
 				Set.of(namespace1, namespace3), true, 60, false, null, Set.of(), Map.of(), null,

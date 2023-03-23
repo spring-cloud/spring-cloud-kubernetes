@@ -25,14 +25,21 @@ import java.util.stream.Collectors;
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.EndpointsList;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.ObjectReference;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceList;
+import io.fabric8.kubernetes.api.model.ServiceListBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.FilterNested;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -92,8 +99,10 @@ class KubernetesCatalogWatchTest {
 		createInSpecificNamespaceWatcher();
 
 		when(FILTER_WATCH_LIST_DELETABLE.list())
-				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
-				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod", "api-pod"));
+				.thenReturn(createSingleEndpointEndpointListByPodName("test", "api-pod", "other-pod"))
+				.thenReturn(createSingleEndpointEndpointListByPodName("test", "other-pod", "api-pod"));
+		mockServicesCall("api-pod", "test");
+		mockServicesCall("other-pod", "test");
 
 		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
@@ -108,8 +117,11 @@ class KubernetesCatalogWatchTest {
 		createInAllNamespaceWatcher();
 
 		when(FILTER_WATCH_LIST_DELETABLE.list())
-				.thenReturn(createSingleEndpointEndpointListByPodName("api-pod", "other-pod"))
-				.thenReturn(createSingleEndpointEndpointListByPodName("other-pod", "api-pod"));
+				.thenReturn(createSingleEndpointEndpointListByPodName("test", "api-pod", "other-pod"))
+				.thenReturn(createSingleEndpointEndpointListByPodName("test", "other-pod", "api-pod"));
+
+		mockServicesCall("api-pod", "test");
+		mockServicesCall("other-pod", "test");
 
 		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
@@ -124,8 +136,10 @@ class KubernetesCatalogWatchTest {
 		createInSpecificNamespaceWatcher();
 
 		when(FILTER_WATCH_LIST_DELETABLE.list())
-				.thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
-				.thenReturn(createEndpointsListByServiceName("other-service", "api-service"));
+				.thenReturn(createEndpointsListByServiceName("test", "api-service", "other-service"))
+				.thenReturn(createEndpointsListByServiceName("test", "other-service", "api-service"));
+		mockServicesCall("api-service", "test");
+		mockServicesCall("other-service", "test");
 
 		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
@@ -140,8 +154,10 @@ class KubernetesCatalogWatchTest {
 		createInAllNamespaceWatcher();
 
 		when(FILTER_WATCH_LIST_DELETABLE.list())
-				.thenReturn(createEndpointsListByServiceName("api-service", "other-service"))
-				.thenReturn(createEndpointsListByServiceName("other-service", "api-service"));
+				.thenReturn(createEndpointsListByServiceName("test", "api-service", "other-service"))
+				.thenReturn(createEndpointsListByServiceName("test", "other-service", "api-service"));
+		mockServicesCall("api-service", "test");
+		mockServicesCall("other-service", "test");
 
 		kubernetesCatalogWatch.catalogServicesWatch();
 		// second execution on shuffleServices
@@ -156,7 +172,9 @@ class KubernetesCatalogWatchTest {
 		createInSpecificNamespaceWatcher();
 
 		when(FILTER_WATCH_LIST_DELETABLE.list())
-				.thenReturn(createSingleEndpointListWithNamespace("default", "api-pod", "other-pod"));
+				.thenReturn(createSingleEndpointListWithNamespace("default", "other-pod", "api-pod", "other-pod"));
+		mockServicesCall("api-pod", "default");
+		mockServicesCall("other-pod", "default");
 
 		kubernetesCatalogWatch.catalogServicesWatch();
 
@@ -176,7 +194,9 @@ class KubernetesCatalogWatchTest {
 		createInAllNamespaceWatcher();
 
 		when(FILTER_WATCH_LIST_DELETABLE.list())
-				.thenReturn(createSingleEndpointListWithNamespace("default", "api-pod", "other-pod"));
+				.thenReturn(createSingleEndpointListWithNamespace("default", "other-pod", "api-pod", "other-pod"));
+		mockServicesCall("api-pod", "default");
+		mockServicesCall("other-pod", "default");
 
 		kubernetesCatalogWatch.catalogServicesWatch();
 
@@ -195,8 +215,8 @@ class KubernetesCatalogWatchTest {
 
 		createInSpecificNamespaceWatcher();
 
-		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets();
-
+		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets("name", "test");
+		mockServicesCall("name", "test");
 		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
 
 		kubernetesCatalogWatch.catalogServicesWatch();
@@ -211,7 +231,8 @@ class KubernetesCatalogWatchTest {
 
 		createInAllNamespaceWatcher();
 
-		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets();
+		EndpointsList endpoints = createSingleEndpointEndpointListWithoutSubsets("name", "test");
+		mockServicesCall("name", "test");
 
 		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
 
@@ -227,7 +248,8 @@ class KubernetesCatalogWatchTest {
 
 		createInSpecificNamespaceWatcher();
 
-		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
+		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("test", "api-pod");
+		mockServicesCall("api-pod", "test");
 		endpoints.getItems().get(0).getSubsets().get(0).setAddresses(null);
 
 		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
@@ -244,7 +266,8 @@ class KubernetesCatalogWatchTest {
 
 		createInAllNamespaceWatcher();
 
-		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
+		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("test", "api-pod");
+		mockServicesCall("api-pod", "test");
 		endpoints.getItems().get(0).getSubsets().get(0).setAddresses(null);
 
 		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
@@ -261,7 +284,8 @@ class KubernetesCatalogWatchTest {
 
 		createInSpecificNamespaceWatcher();
 
-		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
+		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("test", "api-pod");
+		mockServicesCall("api-pod", "test");
 		endpoints.getItems().get(0).getSubsets().get(0).getAddresses().get(0).setTargetRef(null);
 
 		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
@@ -278,7 +302,8 @@ class KubernetesCatalogWatchTest {
 
 		createInAllNamespaceWatcher();
 
-		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("api-pod");
+		EndpointsList endpoints = createSingleEndpointEndpointListByPodName("test", "api-pod");
+		mockServicesCall("api-pod", "test");
 		endpoints.getItems().get(0).getSubsets().get(0).getAddresses().get(0).setTargetRef(null);
 
 		when(FILTER_WATCH_LIST_DELETABLE.list()).thenReturn(endpoints);
@@ -290,34 +315,38 @@ class KubernetesCatalogWatchTest {
 		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(any(HeartbeatEvent.class));
 	}
 
-	private EndpointsList createEndpointsListByServiceName(String... serviceNames) {
-		List<Endpoints> endpoints = stream(serviceNames).map(s -> createEndpointsByPodName(s + "-singlePodUniqueId"))
-				.collect(Collectors.toList());
+	private EndpointsList createEndpointsListByServiceName(String namespace, String... serviceNames) {
+		List<Endpoints> endpoints = stream(serviceNames)
+				.map(s -> createEndpointsByPodName(namespace, s + "-singlePodUniqueId")).collect(Collectors.toList());
 
 		EndpointsList endpointsList = new EndpointsList();
 		endpointsList.setItems(endpoints);
 		return endpointsList;
 	}
 
-	private EndpointsList createSingleEndpointEndpointListWithoutSubsets() {
-		Endpoints endpoints = new Endpoints();
+	private EndpointsList createSingleEndpointEndpointListWithoutSubsets(String name, String namespace) {
+		Endpoints endpoints = new EndpointsBuilder().withNewMetadata().withName(name).withNamespace(namespace)
+				.endMetadata().build();
 
 		EndpointsList endpointsList = new EndpointsList();
 		endpointsList.setItems(Collections.singletonList(endpoints));
 		return endpointsList;
 	}
 
-	private EndpointsList createSingleEndpointEndpointListByPodName(String... podNames) {
+	private EndpointsList createSingleEndpointEndpointListByPodName(String namespace, String... podNames) {
 		Endpoints endpoints = new Endpoints();
 		endpoints.setSubsets(createSubsetsByPodName(podNames));
+		endpoints.setMetadata(new ObjectMetaBuilder().withNamespace(namespace).build());
 
 		EndpointsList endpointsList = new EndpointsList();
 		endpointsList.setItems(Collections.singletonList(endpoints));
 		return endpointsList;
 	}
 
-	private EndpointsList createSingleEndpointListWithNamespace(String namespace, String... podNames) {
-		Endpoints endpoints = new Endpoints();
+	private EndpointsList createSingleEndpointListWithNamespace(String namespace, String endpointsName,
+			String... podNames) {
+		Endpoints endpoints = new EndpointsBuilder().withNewMetadata().withNamespace(namespace).withName(endpointsName)
+				.and().build();
 		endpoints.setSubsets(createSubsetsWithNamespace(namespace, podNames));
 
 		EndpointsList endpointsList = new EndpointsList();
@@ -325,8 +354,8 @@ class KubernetesCatalogWatchTest {
 		return endpointsList;
 	}
 
-	private Endpoints createEndpointsByPodName(String podName) {
-		Endpoints endpoints = new Endpoints();
+	private Endpoints createEndpointsByPodName(String namespace, String podName) {
+		Endpoints endpoints = new EndpointsBuilder().withNewMetadata().withNamespace(namespace).and().build();
 		endpoints.setSubsets(createSubsetsByPodName(podName));
 		return endpoints;
 	}
@@ -399,6 +428,18 @@ class KubernetesCatalogWatchTest {
 		when(NON_NAMESPACE_OPERATION.withNewFilter()).thenReturn(FILTER_NESTED);
 		when(FILTER_NESTED.withLabels(Map.of())).thenReturn(FILTER_NESTED);
 		when(FILTER_NESTED.endFilter()).thenReturn(FILTER_WATCH_LIST_DELETABLE);
+	}
+
+	private void mockServicesCall(String name, String namespace) {
+		MixedOperation<Service, ServiceList, ServiceResource<Service>> mixedOperation = Mockito
+				.mock(MixedOperation.class);
+		NonNamespaceOperation<Service, ServiceList, ServiceResource<Service>> nonNamespaceOperation = Mockito
+				.mock(NonNamespaceOperation.class);
+		when(CLIENT.services()).thenReturn(mixedOperation);
+		when(mixedOperation.inNamespace(namespace)).thenReturn(nonNamespaceOperation);
+		when(nonNamespaceOperation.list()).thenReturn(new ServiceListBuilder().withItems(
+				new ServiceBuilder().withNewMetadata().withName(name).withNamespace(namespace).endMetadata().build())
+				.build());
 	}
 
 }

@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceList;
+import io.fabric8.kubernetes.api.model.ServiceListBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
@@ -245,9 +246,12 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		when(serviceResource.get()).thenReturn(service);
 		when(CLIENT.services()).thenReturn(serviceOperation);
 		when(CLIENT.services().inNamespace(anyString())).thenReturn(serviceOperation);
+		when(serviceOperation.list()).thenReturn(new ServiceListBuilder().withItems(new ServiceBuilder()
+				.withNewMetadata().withName(serviceId).withNamespace(namespace).endMetadata().build()).build());
 
 		ObjectMeta objectMeta = new ObjectMeta();
 		objectMeta.setNamespace(namespace);
+		objectMeta.setName(serviceId);
 
 		Endpoints endpoints = new EndpointsBuilder().withMetadata(objectMeta).addNewSubset()
 				.addAllToPorts(getEndpointPorts(ports)).addNewAddress().endAddress().endSubset().build();

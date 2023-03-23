@@ -41,7 +41,7 @@ final class Fabric8EndpointsCatalogWatch
 	@Override
 	public List<EndpointNameAndNamespace> apply(Fabric8CatalogWatchContext context) {
 		List<Endpoints> endpoints = endpoints(context.properties(), context.kubernetesClient(),
-				context.namespaceProvider(), "catalog-watcher", null);
+				context.namespaceProvider(), "catalog-watcher", null, x -> true);
 
 		/**
 		 * <pre>

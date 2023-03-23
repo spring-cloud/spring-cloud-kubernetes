@@ -131,7 +131,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 	}
 
 	public List<Endpoints> getEndPointsList(String serviceId) {
-		return endpoints(properties, client, namespaceProvider, "fabric8-discovery", serviceId);
+		return endpoints(properties, client, namespaceProvider, "fabric8-discovery", serviceId, adapter.filter());
 	}
 
 	private List<ServiceInstance> getNamespaceServiceInstances(EndpointSubsetNS es, String serviceId) {
