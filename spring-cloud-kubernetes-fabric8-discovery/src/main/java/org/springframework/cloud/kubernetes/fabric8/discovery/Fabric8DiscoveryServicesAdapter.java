@@ -24,8 +24,10 @@ import java.util.function.Predicate;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
@@ -38,6 +40,8 @@ import org.springframework.expression.spel.support.SimpleEvaluationContext;
  * @author wind57
  */
 final class Fabric8DiscoveryServicesAdapter implements Function<KubernetesClient, List<Service>> {
+
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8DiscoveryServicesAdapter.class));
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
@@ -65,6 +69,8 @@ final class Fabric8DiscoveryServicesAdapter implements Function<KubernetesClient
 	@Override
 	public List<Service> apply(KubernetesClient client) {
 		if (!properties.namespaces().isEmpty()) {
+			LOG.debug(() -> "searching in namespaces : " + properties.namespaces() + " with filter : "
+					+ properties.filter());
 			List<Service> services = new ArrayList<>();
 			properties.namespaces().forEach(namespace -> services.addAll(client.services().inNamespace(namespace)
 					.withLabels(properties.serviceLabels()).list().getItems().stream().filter(filter).toList()));

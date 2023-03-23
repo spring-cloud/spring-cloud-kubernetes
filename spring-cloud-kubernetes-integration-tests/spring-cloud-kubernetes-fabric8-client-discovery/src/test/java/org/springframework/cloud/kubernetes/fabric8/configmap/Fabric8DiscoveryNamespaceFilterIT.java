@@ -137,6 +137,8 @@ class Fabric8DiscoveryNamespaceFilterIT {
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
 		else {
+			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).get())
+					.delete();
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 
