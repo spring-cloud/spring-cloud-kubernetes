@@ -111,7 +111,7 @@ public final class Fabric8KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	public List<Endpoints> getEndPointsList(String serviceId) {
-		return endpoints(properties, client, namespaceProvider, "fabric8-discovery", serviceId, adapter.filter());
+		return endpoints(properties, client, namespaceProvider, "fabric8-discovery", serviceId, predicate);
 	}
 
 	private List<ServiceInstance> getNamespaceServiceInstances(EndpointSubsetNS es, String serviceId) {
