@@ -28,6 +28,8 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.discovery.v1.Endpoint;
 import io.fabric8.kubernetes.api.model.discovery.v1.EndpointBuilder;
 import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSlice;
@@ -305,6 +307,14 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		mockClient().endpoints().inNamespace(namespace).resource(endpoints).create();
 	}
 
+	void service(String namespace, Map<String, String> labels, String podName) {
+
+		Service service = new ServiceBuilder()
+				.withMetadata(new ObjectMetaBuilder().withLabels(labels).withName("endpoints-" + podName).build())
+				.build();
+		mockClient().services().inNamespace(namespace).resource(service).create();
+	}
+
 	static void endpointSlice(String namespace, Map<String, String> labels, String podName) {
 
 		Endpoint endpoint = new EndpointBuilder()
@@ -320,7 +330,8 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 	static void invokeAndAssert(KubernetesCatalogWatch watch, List<EndpointNameAndNamespace> state) {
 		watch.catalogServicesWatch();
 
-		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
+		verify(APPLICATION_EVENT_PUBLISHER, Mockito.atLeastOnce())
+				.publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
 
 		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
 		assertThat(event.getValue()).isInstanceOf(List.class);
