@@ -94,6 +94,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 	void testAllNamespacesSingleEndpointsMatchExactLabels(CapturedOutput output) {
 
 		createEndpoints("default", "blue-service", Map.of("color", "blue"));
+		createService("default", "blue-service", Map.of("color", "blue"));
 
 		boolean allNamespaces = true;
 		Set<String> namespaces = Set.of();
@@ -120,6 +121,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 	void testAllNamespacesSingleEndpointsMatchPartialLabels(CapturedOutput output) {
 
 		createEndpoints("default", "blue-service", Map.of("color", "blue", "shape", "round"));
+		createService("default", "blue-service", Map.of("color", "blue", "shape", "round"));
 
 		boolean allNamespaces = true;
 		Set<String> namespaces = Set.of();
@@ -174,6 +176,9 @@ class Fabric8KubernetesDiscoveryClientTests {
 		createEndpoints("default", "service-one", Map.of("color", "blue", "shape", "round"));
 		createEndpoints("default", "service-two", Map.of("color", "blue", "shape", "round"));
 
+		createService("default", "service-one", Map.of("color", "blue", "shape", "round"));
+		createService("default", "service-two", Map.of("color", "blue", "shape", "round"));
+
 		boolean allNamespaces = true;
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
@@ -200,6 +205,9 @@ class Fabric8KubernetesDiscoveryClientTests {
 
 		createEndpoints("a", "service-one", Map.of("color", "blue", "shape", "round"));
 		createEndpoints("b", "service-one", Map.of("color", "blue", "shape", "round"));
+
+		createService("a", "service-one", Map.of("color", "blue", "shape", "round"));
+		createService("b", "service-one", Map.of("color", "blue", "shape", "round"));
 
 		boolean allNamespaces = true;
 		Set<String> namespaces = Set.of();
@@ -251,6 +259,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 	void testClientNamespaceSingleEndpointsMatchExactLabels(CapturedOutput output) {
 
 		createEndpoints("test", "blue-service", Map.of("color", "blue"));
+		createService("test", "blue-service", Map.of("color", "blue"));
 
 		boolean allNamespaces = false;
 		Set<String> namespaces = Set.of();
@@ -277,6 +286,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 	void testClientNamespaceSingleEndpointsMatchPartialLabels(CapturedOutput output) {
 
 		createEndpoints("test", "blue-service", Map.of("color", "blue", "shape", "round"));
+		createService("test", "blue-service", Map.of("color", "blue", "shape", "round"));
 
 		boolean allNamespaces = false;
 		Set<String> namespaces = Set.of();
@@ -331,6 +341,9 @@ class Fabric8KubernetesDiscoveryClientTests {
 		createEndpoints("test", "service-one", Map.of("color", "blue", "shape", "round"));
 		createEndpoints("test", "service-two", Map.of("color", "blue", "shape", "round"));
 
+		createService("test", "service-one", Map.of("color", "blue", "shape", "round"));
+		createService("test", "service-two", Map.of("color", "blue", "shape", "round"));
+
 		boolean allNamespaces = false;
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
@@ -357,6 +370,9 @@ class Fabric8KubernetesDiscoveryClientTests {
 
 		createEndpoints("test", "service-one", Map.of("color", "blue", "shape", "round"));
 		createEndpoints("b", "service-one", Map.of("color", "blue", "shape", "round"));
+
+		createService("test", "service-one", Map.of("color", "blue", "shape", "round"));
+		createService("b", "service-one", Map.of("color", "blue", "shape", "round"));
 
 		boolean allNamespaces = false;
 		Set<String> namespaces = Set.of();
@@ -408,6 +424,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 	void testSelectiveNamespacesSingleEndpointsMatchExactLabels(CapturedOutput output) {
 
 		createEndpoints("test", "blue-service", Map.of("color", "blue"));
+		createService("test", "blue-service", Map.of("color", "blue"));
 
 		boolean allNamespaces = false;
 		Set<String> namespaces = Set.of("test");
@@ -415,8 +432,13 @@ class Fabric8KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
 				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false);
 
+<<<<<<< HEAD
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
 				null, null, null);
+=======
+		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, x -> true,
+				null);
+>>>>>>> main
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertTrue(output.getOut().contains("discovering endpoints in namespaces : [test]"));
@@ -436,6 +458,9 @@ class Fabric8KubernetesDiscoveryClientTests {
 
 		createEndpoints("a", "blue-service", Map.of("color", "blue", "shape", "round"));
 		createEndpoints("b", "blue-service", Map.of("color", "blue", "shape", "rectangle"));
+
+		createService("a", "blue-service", Map.of("color", "blue", "shape", "round"));
+		createService("b", "blue-service", Map.of("color", "blue", "shape", "rectangle"));
 
 		boolean allNamespaces = false;
 		Set<String> namespaces = Set.of("a");
@@ -465,6 +490,9 @@ class Fabric8KubernetesDiscoveryClientTests {
 
 		createEndpoints("a", "blue-service", Map.of("color", "blue"));
 		createEndpoints("b", "blue-service", Map.of("color", "blue"));
+
+		createService("a", "blue-service", Map.of("color", "blue"));
+		createService("b", "blue-service", Map.of("color", "blue"));
 
 		boolean allNamespaces = false;
 		Set<String> namespaces = Set.of("a", "b");
@@ -578,6 +606,13 @@ class Fabric8KubernetesDiscoveryClientTests {
 	private void createEndpoints(String namespace, String name, Map<String, String> labels) {
 		client.endpoints().inNamespace(namespace)
 				.resource(new EndpointsBuilder()
+						.withMetadata(new ObjectMetaBuilder().withName(name).withLabels(labels).build()).build())
+				.create();
+	}
+
+	private void createService(String namespace, String name, Map<String, String> labels) {
+		client.services().inNamespace(namespace)
+				.resource(new ServiceBuilder()
 						.withMetadata(new ObjectMetaBuilder().withName(name).withLabels(labels).build()).build())
 				.create();
 	}

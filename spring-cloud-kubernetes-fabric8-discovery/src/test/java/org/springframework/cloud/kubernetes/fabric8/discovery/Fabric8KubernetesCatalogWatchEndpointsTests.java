@@ -22,6 +22,7 @@ import java.util.Set;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
@@ -38,6 +39,12 @@ class Fabric8KubernetesCatalogWatchEndpointsTests extends Fabric8EndpointsAndEnd
 
 	private static KubernetesClient mockClient;
 
+	@AfterEach
+	void afterEach() {
+		mockClient.endpoints().inAnyNamespace().delete();
+		mockClient.services().inAnyNamespace().delete();
+	}
+
 	@Test
 	@Override
 	void testInSpecificNamespaceWithServiceLabels() {
@@ -50,6 +57,12 @@ class Fabric8KubernetesCatalogWatchEndpointsTests extends Fabric8EndpointsAndEnd
 		endpoints("namespaceA", Map.of("color", "red"), "podC");
 		endpoints("namespaceB", Map.of("color", "blue"), "podD");
 		endpoints("namespaceB", Map.of(), "podE");
+
+		service("namespaceA", Map.of(), "podA");
+		service("namespaceA", Map.of("color", "blue"), "podB");
+		service("namespaceA", Map.of("color", "red"), "podC");
+		service("namespaceB", Map.of("color", "blue"), "podD");
+		service("namespaceB", Map.of(), "podE");
 
 		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("podB", "namespaceA")));
 	}
@@ -66,6 +79,12 @@ class Fabric8KubernetesCatalogWatchEndpointsTests extends Fabric8EndpointsAndEnd
 		endpoints("namespaceA", Map.of("color", "red"), "podC");
 		endpoints("namespaceB", Map.of("color", "blue"), "podD");
 		endpoints("namespaceB", Map.of(), "podE");
+
+		service("namespaceA", Map.of(), "podA");
+		service("namespaceA", Map.of("color", "blue"), "podB");
+		service("namespaceA", Map.of("color", "red"), "podC");
+		service("namespaceB", Map.of("color", "blue"), "podD");
+		service("namespaceB", Map.of(), "podE");
 
 		invokeAndAssert(watch,
 				List.of(new EndpointNameAndNamespace("podA", "namespaceA"),
@@ -86,6 +105,12 @@ class Fabric8KubernetesCatalogWatchEndpointsTests extends Fabric8EndpointsAndEnd
 		endpoints("namespaceB", Map.of("color", "blue"), "podD");
 		endpoints("namespaceB", Map.of(), "podE");
 
+		service("namespaceA", Map.of(), "podA");
+		service("namespaceA", Map.of("color", "blue"), "podB");
+		service("namespaceA", Map.of("color", "red"), "podC");
+		service("namespaceB", Map.of("color", "blue"), "podD");
+		service("namespaceB", Map.of(), "podE");
+
 		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("podB", "namespaceA"),
 				new EndpointNameAndNamespace("podD", "namespaceB")));
 	}
@@ -102,6 +127,12 @@ class Fabric8KubernetesCatalogWatchEndpointsTests extends Fabric8EndpointsAndEnd
 		endpoints("namespaceA", Map.of("color", "red"), "podC");
 		endpoints("namespaceB", Map.of("color", "blue"), "podD");
 		endpoints("namespaceB", Map.of(), "podE");
+
+		service("namespaceA", Map.of(), "podA");
+		service("namespaceA", Map.of("color", "blue"), "podB");
+		service("namespaceA", Map.of("color", "red"), "podC");
+		service("namespaceB", Map.of("color", "blue"), "podD");
+		service("namespaceB", Map.of(), "podE");
 
 		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("podA", "namespaceA"),
 				new EndpointNameAndNamespace("podB", "namespaceA"), new EndpointNameAndNamespace("podC", "namespaceA"),
@@ -122,6 +153,12 @@ class Fabric8KubernetesCatalogWatchEndpointsTests extends Fabric8EndpointsAndEnd
 		endpoints("namespaceB", Map.of("color", "blue"), "podD");
 		endpoints("namespaceB", Map.of(), "podE");
 
+		service("namespaceA", Map.of(), "podA");
+		service("namespaceA", Map.of("color", "blue"), "podB");
+		service("namespaceA", Map.of("color", "red"), "podC");
+		service("namespaceB", Map.of("color", "blue"), "podD");
+		service("namespaceB", Map.of(), "podE");
+
 		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("podB", "namespaceA"),
 				new EndpointNameAndNamespace("podD", "namespaceB")));
 	}
@@ -139,6 +176,12 @@ class Fabric8KubernetesCatalogWatchEndpointsTests extends Fabric8EndpointsAndEnd
 		endpoints("namespaceB", Map.of("color", "blue"), "podD");
 		endpoints("namespaceB", Map.of(), "podE");
 
+		service("namespaceA", Map.of(), "podA");
+		service("namespaceA", Map.of("color", "blue"), "podB");
+		service("namespaceA", Map.of("color", "red"), "podC");
+		service("namespaceB", Map.of("color", "blue"), "podD");
+		service("namespaceB", Map.of(), "podE");
+
 		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("podB", "namespaceA")));
 	}
 
@@ -154,6 +197,12 @@ class Fabric8KubernetesCatalogWatchEndpointsTests extends Fabric8EndpointsAndEnd
 		endpoints("namespaceA", Map.of("color", "red"), "podC");
 		endpoints("namespaceB", Map.of("color", "blue"), "podD");
 		endpoints("namespaceB", Map.of(), "podE");
+
+		service("namespaceA", Map.of(), "podA");
+		service("namespaceA", Map.of("color", "blue"), "podB");
+		service("namespaceA", Map.of("color", "red"), "podC");
+		service("namespaceB", Map.of("color", "blue"), "podD");
+		service("namespaceB", Map.of(), "podE");
 
 		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("podB", "namespaceA")));
 	}
@@ -172,6 +221,14 @@ class Fabric8KubernetesCatalogWatchEndpointsTests extends Fabric8EndpointsAndEnd
 		endpoints("namespaceB", Map.of(), "podE");
 		endpoints("namespaceB", Map.of("color", "blue"), "podF");
 		endpoints("namespaceC", Map.of("color", "blue"), "podO");
+
+		service("namespaceA", Map.of(), "podA");
+		service("namespaceA", Map.of("color", "blue"), "podB");
+		service("namespaceA", Map.of("color", "red"), "podC");
+		service("namespaceB", Map.of("color", "blue"), "podD");
+		service("namespaceB", Map.of(), "podE");
+		service("namespaceB", Map.of("color", "blue"), "podF");
+		service("namespaceC", Map.of("color", "blue"), "podO");
 
 		invokeAndAssert(watch,
 				List.of(new EndpointNameAndNamespace("podB", "namespaceA"),

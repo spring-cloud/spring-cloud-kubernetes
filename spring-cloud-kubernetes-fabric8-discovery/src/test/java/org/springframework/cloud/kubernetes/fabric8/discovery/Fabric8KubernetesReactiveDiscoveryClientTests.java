@@ -179,12 +179,19 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services/existing-service")
 				.andReturn(200, services.getItems().get(0)).once();
 
+<<<<<<< HEAD:spring-cloud-kubernetes-fabric8-discovery/src/test/java/org/springframework/cloud/kubernetes/fabric8/discovery/Fabric8KubernetesReactiveDiscoveryClientTests.java
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
 				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
 				NAMESPACE_PROVIDER, x -> true);
 
 		// Metadata metadata = new Metadata(false, null, false, null, true, "port.");
 		ReactiveDiscoveryClient client = new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
+=======
+		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services").andReturn(200, services).once();
+
+		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient,
+				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services);
+>>>>>>> main:spring-cloud-kubernetes-fabric8-discovery/src/test/java/org/springframework/cloud/kubernetes/fabric8/discovery/reactive/KubernetesReactiveDiscoveryClientTests.java
 		Flux<ServiceInstance> instances = client.getInstances("existing-service");
 		StepVerifier.create(instances).expectNextCount(1).expectComplete().verify();
 	}
@@ -198,7 +205,7 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 								.withSpec(new ServiceSpecBuilder().withType("ExternalName").build()).endItem().build())
 				.once();
 
-		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("existing-service").withNamespace("test")
 				.endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
 				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset().build();
 
@@ -235,7 +242,7 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 								.withSpec(new ServiceSpecBuilder().withType("ExternalName").build()).endItem().build())
 				.once();
 
-		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("existing-service").withNamespace("test")
 				.endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
 				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
 				.addNewPort("https", "https_tcp", 443, "TCP").endSubset().build();
@@ -273,9 +280,9 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 								.withSpec(new ServiceSpecBuilder().withType("ExternalName").build()).endItem().build())
 				.once();
 
-		Endpoints endpoints = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
-				.endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
-				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
+		Endpoints endpoints = new EndpointsBuilder().withNewMetadata().withName("existing-service")
+				.withNamespace("test").endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
+				.withUid("uid1").endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
 				.addNewPort("https", "https_tcp", 443, "TCP").endSubset().build();
 
 		EndpointsList endpointsList = new EndpointsList();
