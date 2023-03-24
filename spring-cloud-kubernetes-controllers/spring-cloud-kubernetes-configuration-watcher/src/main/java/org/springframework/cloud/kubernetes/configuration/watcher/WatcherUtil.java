@@ -104,19 +104,11 @@ final class WatcherUtil {
 	}
 
 	static Map<String, String> labels(KubernetesObject kubernetesObject) {
-		V1ObjectMeta metadata = kubernetesObject.getMetadata();
-		if (metadata == null) {
-			return Map.of();
-		}
-		return Optional.ofNullable(metadata.getLabels()).orElse(Map.of());
+		return Optional.ofNullable(kubernetesObject.getMetadata()).map(V1ObjectMeta::getLabels).orElse(Map.of());
 	}
 
 	static Map<String, String> annotations(KubernetesObject kubernetesObject) {
-		V1ObjectMeta metadata = kubernetesObject.getMetadata();
-		if (metadata == null) {
-			return Map.of();
-		}
-		return Optional.ofNullable(metadata.getAnnotations()).orElse(Map.of());
+		return Optional.ofNullable(kubernetesObject.getMetadata()).map(V1ObjectMeta::getAnnotations).orElse(Map.of());
 	}
 
 	private static void schedule(String type, String appName, long refreshDelay,
