@@ -50,6 +50,8 @@ import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDi
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SECURED;
 
 /**
  * @author Min Kim
@@ -59,10 +61,6 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesInformerDiscoveryClient.class));
-
-	private static final String PRIMARY_PORT_NAME_LABEL_KEY = "primary-port-name";
-
-	private static final String SECURED_KEY = "secured";
 
 	private final SharedInformerFactory sharedInformerFactory;
 
@@ -184,10 +182,10 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	private static boolean isSecured(V1Service service) {
 		Optional<String> securedOpt = Optional.empty();
 		if (service.getMetadata() != null && service.getMetadata().getAnnotations() != null) {
-			securedOpt = Optional.ofNullable(service.getMetadata().getAnnotations().get(SECURED_KEY));
+			securedOpt = Optional.ofNullable(service.getMetadata().getAnnotations().get(SECURED));
 		}
 		if (!securedOpt.isPresent() && service.getMetadata() != null && service.getMetadata().getLabels() != null) {
-			securedOpt = Optional.ofNullable(service.getMetadata().getLabels().get(SECURED_KEY));
+			securedOpt = Optional.ofNullable(service.getMetadata().getLabels().get(SECURED));
 		}
 		return Boolean.parseBoolean(securedOpt.orElse("false"));
 	}

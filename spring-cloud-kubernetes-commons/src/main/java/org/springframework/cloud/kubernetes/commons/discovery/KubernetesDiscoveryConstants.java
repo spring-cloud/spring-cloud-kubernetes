@@ -77,4 +77,9 @@ public final class KubernetesDiscoveryConstants {
 	 */
 	public static final String SERVICE_TYPE = "type";
 
+	/**
+	 * value of the 'secure' label or annotations.
+	 */
+	public static final String SECURED = "secured";
+
 }
