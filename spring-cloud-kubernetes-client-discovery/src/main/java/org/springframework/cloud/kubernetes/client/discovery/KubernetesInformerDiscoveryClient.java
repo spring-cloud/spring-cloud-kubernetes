@@ -226,9 +226,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
-		List<V1Service> services = properties.allNamespaces() ? serviceLister.list()
-				: serviceLister.namespace(namespace).list();
-		return services.stream().filter(service -> matchesServiceLabels(service, properties))
+		return serviceLister.list().stream().filter(service -> matchesServiceLabels(service, properties))
 				.map(s -> s.getMetadata().getName()).collect(Collectors.toList());
 	}
 

@@ -62,6 +62,13 @@ public class KubernetesInformerAutoConfiguration {
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesInformerAutoConfiguration.class));
 
+	private final String namespace;
+
+	public KubernetesInformerAutoConfiguration(KubernetesDiscoveryProperties discoveryProperties,
+		KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+		namespace = namespace(discoveryProperties, kubernetesNamespaceProvider);
+	}
+
 	@Bean
 	@ConditionalOnMissingBean
 	public SharedInformerFactory sharedInformerFactory(ApiClient client) {
@@ -77,8 +84,7 @@ public class KubernetesInformerAutoConfiguration {
 		GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(V1Service.class,
 				V1ServiceList.class, "", "v1", "services", apiClient);
 
-		return sharedInformerFactory.sharedIndexInformerFor(servicesApi, V1Service.class, 0L,
-				namespace(discoveryProperties, kubernetesNamespaceProvider));
+		return sharedInformerFactory.sharedIndexInformerFor(servicesApi, V1Service.class, 0L, namespace);
 	}
 
 	@Bean
@@ -90,20 +96,19 @@ public class KubernetesInformerAutoConfiguration {
 		GenericKubernetesApi<V1Endpoints, V1EndpointsList> servicesApi = new GenericKubernetesApi<>(V1Endpoints.class,
 				V1EndpointsList.class, "", "v1", "endpoints", apiClient);
 
-		return sharedInformerFactory.sharedIndexInformerFor(servicesApi, V1Endpoints.class, 0L,
-				namespace(discoveryProperties, kubernetesNamespaceProvider));
+		return sharedInformerFactory.sharedIndexInformerFor(servicesApi, V1Endpoints.class, 0L, namespace);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(value = V1Service.class, parameterizedContainer = Lister.class)
 	public Lister<V1Service> servicesLister(SharedIndexInformer<V1Service> servicesSharedIndexInformer) {
-		return new Lister<>(servicesSharedIndexInformer.getIndexer());
+		return new Lister<>(servicesSharedIndexInformer.getIndexer()).namespace(namespace);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(value = V1Endpoints.class, parameterizedContainer = Lister.class)
 	public Lister<V1Endpoints> endpointsLister(SharedIndexInformer<V1Endpoints> endpointsSharedIndexInformer) {
-		return new Lister<>(endpointsSharedIndexInformer.getIndexer());
+		return new Lister<>(endpointsSharedIndexInformer.getIndexer()).namespace(namespace);
 	}
 
 	private String namespace(KubernetesDiscoveryProperties discoveryProperties,
