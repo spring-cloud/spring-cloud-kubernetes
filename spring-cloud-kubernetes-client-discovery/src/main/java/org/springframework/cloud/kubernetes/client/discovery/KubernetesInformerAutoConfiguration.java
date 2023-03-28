@@ -48,8 +48,8 @@ import static io.kubernetes.client.util.Namespaces.NAMESPACE_ALL;
 import static io.kubernetes.client.util.Namespaces.NAMESPACE_DEFAULT;
 
 /**
- * This configuration is not used by us internally and will be removed in a future release.
- * Use it at your own risk.
+ * This configuration is not used by us internally and will be removed in a future
+ * release. Use it at your own risk.
  *
  * @author wind57
  */

@@ -27,7 +27,6 @@ import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
@@ -51,7 +50,6 @@ import static io.kubernetes.client.util.Namespaces.NAMESPACE_DEFAULT;
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
 
 /**
- *
  * @author wind57
  */
 @Configuration(proxyBeanMethods = false)
@@ -64,7 +62,7 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 public class KubernetesClientInformerAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
-		LogFactory.getLog(KubernetesClientInformerAutoConfiguration.class));
+			LogFactory.getLog(KubernetesClientInformerAutoConfiguration.class));
 
 	@Bean
 	@ConditionalOnMissingBean
@@ -73,7 +71,8 @@ public class KubernetesClientInformerAutoConfiguration {
 	}
 
 	@Bean
-	public String kubernetesClientNamespace(KubernetesDiscoveryProperties properties, KubernetesNamespaceProvider provider) {
+	public String kubernetesClientNamespace(KubernetesDiscoveryProperties properties,
+			KubernetesNamespaceProvider provider) {
 		String namespace;
 		if (properties.allNamespaces()) {
 			namespace = NAMESPACE_ALL;
@@ -83,8 +82,8 @@ public class KubernetesClientInformerAutoConfiguration {
 				namespace = getApplicationNamespace(null, "kubernetes client discovery", provider);
 			}
 			catch (NamespaceResolutionFailedException ex) {
-				LOG.warn(() -> "failed to resolve namespace, defaulting to :" + NAMESPACE_DEFAULT +
-					". This will fail in a future release.");
+				LOG.warn(() -> "failed to resolve namespace, defaulting to :" + NAMESPACE_DEFAULT
+						+ ". This will fail in a future release.");
 				namespace = NAMESPACE_DEFAULT;
 			}
 		}
@@ -99,9 +98,10 @@ public class KubernetesClientInformerAutoConfiguration {
 			ApiClient apiClient, String kubernetesClientNamespace) {
 
 		GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(V1Service.class,
-			V1ServiceList.class, "", "v1", "services", apiClient);
+				V1ServiceList.class, "", "v1", "services", apiClient);
 
-		return sharedInformerFactory.sharedIndexInformerFor(servicesApi, V1Service.class, 0L, kubernetesClientNamespace);
+		return sharedInformerFactory.sharedIndexInformerFor(servicesApi, V1Service.class, 0L,
+				kubernetesClientNamespace);
 	}
 
 	@Bean
@@ -110,10 +110,10 @@ public class KubernetesClientInformerAutoConfiguration {
 			ApiClient apiClient, String kubernetesClientNamespace) {
 
 		GenericKubernetesApi<V1Endpoints, V1EndpointsList> servicesApi = new GenericKubernetesApi<>(V1Endpoints.class,
-			V1EndpointsList.class, "", "v1", "endpoints", apiClient);
+				V1EndpointsList.class, "", "v1", "endpoints", apiClient);
 
 		return sharedInformerFactory.sharedIndexInformerFor(servicesApi, V1Endpoints.class, 0L,
-			kubernetesClientNamespace);
+				kubernetesClientNamespace);
 	}
 
 	@Bean
