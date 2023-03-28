@@ -38,13 +38,19 @@ import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIn
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
+import org.springframework.cloud.kubernetes.client.discovery.ConditionalOnSelectiveNamespacesDisabled;
+import org.springframework.cloud.kubernetes.client.discovery.ConditionalOnSelectiveNamespacesEnabled;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerSelectiveNamespacesAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 /**
  * @author Ryan Baxter
@@ -58,7 +64,8 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureBefore({ SimpleReactiveDiscoveryClientAutoConfiguration.class,
 		ReactiveCommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
-		KubernetesDiscoveryPropertiesAutoConfiguration.class, KubernetesInformerAutoConfiguration.class })
+		KubernetesDiscoveryPropertiesAutoConfiguration.class, KubernetesInformerAutoConfiguration.class,
+		KubernetesInformerSelectiveNamespacesAutoConfiguration.class })
 public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean
@@ -76,6 +83,7 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	@Conditional(ConditionalOnSelectiveNamespacesDisabled.class)
 	public KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, SharedInformerFactory sharedInformerFactory,
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
@@ -83,6 +91,18 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 			KubernetesDiscoveryProperties properties) {
 		return new KubernetesInformerReactiveDiscoveryClient(kubernetesNamespaceProvider, sharedInformerFactory,
 				serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	@Conditional(ConditionalOnSelectiveNamespacesEnabled.class)
+	public KubernetesInformerReactiveDiscoveryClient selectiveNamespacesKubernetesReactiveDiscoveryClient(
+		KubernetesNamespaceProvider kubernetesNamespaceProvider, List<SharedInformerFactory> sharedInformerFactories,
+		List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
+		List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
+		KubernetesDiscoveryProperties properties) {
+		return new KubernetesInformerReactiveDiscoveryClient(kubernetesNamespaceProvider, sharedInformerFactories,
+			serviceListers, endpointsListers, serviceInformers, endpointsInformers, properties);
 	}
 
 }

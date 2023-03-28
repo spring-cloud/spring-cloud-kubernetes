@@ -62,13 +62,13 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesInformerDiscoveryClient.class));
 
-	private final SharedInformerFactory sharedInformerFactory;
+	private final List<SharedInformerFactory> sharedInformerFactories;
 
-	private final Lister<V1Service> serviceLister;
+	private final List<Lister<V1Service>> serviceListers;
+
+	private final List<Lister<V1Endpoints>> endpointsListers;
 
 	private final Supplier<Boolean> informersReadyFunc;
-
-	private final Lister<V1Endpoints> endpointsLister;
 
 	private final KubernetesDiscoveryProperties properties;
 
@@ -79,18 +79,38 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
 			KubernetesDiscoveryProperties properties) {
 		this.namespace = namespace;
-		this.sharedInformerFactory = sharedInformerFactory;
+		this.sharedInformerFactories = List.of(sharedInformerFactory);
 
-		this.serviceLister = serviceLister;
-		this.endpointsLister = endpointsLister;
+		this.serviceListers = List.of(serviceLister);
+		this.endpointsListers = List.of(endpointsLister);
 		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
+
+		this.properties = properties;
+	}
+
+	public KubernetesInformerDiscoveryClient(String namespace, List<SharedInformerFactory> sharedInformerFactories,
+			List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
+			List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
+			KubernetesDiscoveryProperties properties) {
+		this.namespace = namespace;
+		this.sharedInformerFactories = sharedInformerFactories;
+
+		this.serviceListers = serviceListers;
+		this.endpointsListers = endpointsListers;
+		this.informersReadyFunc = () -> {
+			boolean serviceInformersReady =
+				serviceInformers.stream().map(SharedInformer::hasSynced).reduce(Boolean::logicalAnd).orElse(false);
+			boolean endpointsInformersReady =
+				endpointsInformers.stream().map(SharedInformer::hasSynced).reduce(Boolean::logicalAnd).orElse(false);
+			return serviceInformersReady && endpointsInformersReady;
+		};
 
 		this.properties = properties;
 	}
 
 	@Override
 	public String description() {
-		return "Fabric8 Kubernetes Client Discovery";
+		return "Kubernetes Client Discovery";
 	}
 
 	@Override
@@ -101,9 +121,11 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 			LOG.warn(() -> "Namespace is null or empty, this may cause issues looking up services");
 		}
 
-		List<V1Service> services = properties.allNamespaces()
-				? serviceLister.list().stream().filter(svc -> serviceId.equals(svc.getMetadata().getName())).toList()
-				: List.of(serviceLister.namespace(namespace).get(serviceId));
+		//TODO
+//		List<V1Service> services = properties.allNamespaces()
+//				? serviceLister.list().stream().filter(svc -> serviceId.equals(svc.getMetadata().getName())).toList()
+//				: List.of(serviceLister.namespace(namespace).get(serviceId));
+		List<V1Service> services = null;
 		if (services.size() == 0 || !services.stream().anyMatch(service -> matchesServiceLabels(service, properties))) {
 			// no such service present in the cluster
 			return new ArrayList<>();
@@ -134,8 +156,10 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 			}
 		}
 
-		V1Endpoints ep = endpointsLister.namespace(service.getMetadata().getNamespace())
-				.get(service.getMetadata().getName());
+		//TODO
+//		V1Endpoints ep = endpointsLister.namespace(service.getMetadata().getNamespace())
+//				.get(service.getMetadata().getName());
+		V1Endpoints ep = null;
 		if (ep == null || ep.getSubsets() == null) {
 			// no available endpoints in the cluster
 			return Stream.empty();
@@ -234,22 +258,23 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	@PostConstruct
 	public void afterPropertiesSet() {
-		sharedInformerFactory.startAllRegisteredInformers();
-		if (!Wait.poll(Duration.ofSeconds(1), Duration.ofSeconds(properties.cacheLoadingTimeoutSeconds()), () -> {
-			LOG.info(() -> "Waiting for the cache of informers to be fully loaded..");
-			return informersReadyFunc.get();
-		})) {
-			if (properties.waitCacheReady()) {
-				throw new IllegalStateException(
-						"Timeout waiting for informers cache to be ready, is the kubernetes service up?");
-			}
-			else {
-				LOG.warn(
-						() -> "Timeout waiting for informers cache to be ready, ignoring the failure because waitForInformerCacheReady property is false");
-			}
-		}
-		LOG.info(() -> "Cache fully loaded (total " + serviceLister.list().size()
-				+ " services) , discovery client is now available");
+		//TODO
+//		sharedInformerFactory.startAllRegisteredInformers();
+//		if (!Wait.poll(Duration.ofSeconds(1), Duration.ofSeconds(properties.cacheLoadingTimeoutSeconds()), () -> {
+//			LOG.info(() -> "Waiting for the cache of informers to be fully loaded..");
+//			return informersReadyFunc.get();
+//		})) {
+//			if (properties.waitCacheReady()) {
+//				throw new IllegalStateException(
+//						"Timeout waiting for informers cache to be ready, is the kubernetes service up?");
+//			}
+//			else {
+//				LOG.warn(
+//						() -> "Timeout waiting for informers cache to be ready, ignoring the failure because waitForInformerCacheReady property is false");
+//			}
+//		}
+//		LOG.info(() -> "Cache fully loaded (total " + serviceLister.list().size()
+//				+ " services) , discovery client is now available");
 	}
 
 }

@@ -31,6 +31,8 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.util.Assert;
 
+import java.util.List;
+
 /**
  * @author Ryan Baxter
  */
@@ -45,6 +47,15 @@ public class KubernetesInformerReactiveDiscoveryClient implements ReactiveDiscov
 		this.kubernetesDiscoveryClient = new KubernetesInformerDiscoveryClient(
 				kubernetesNamespaceProvider.getNamespace(), sharedInformerFactory, serviceLister, endpointsLister,
 				serviceInformer, endpointsInformer, properties);
+	}
+
+	public KubernetesInformerReactiveDiscoveryClient(KubernetesNamespaceProvider kubernetesNamespaceProvider,
+			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
+			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
+			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties) {
+		this.kubernetesDiscoveryClient = new KubernetesInformerDiscoveryClient(
+			kubernetesNamespaceProvider.getNamespace(), sharedInformerFactories, serviceListers, endpointsListers,
+			serviceInformers, endpointsInformers, properties);
 	}
 
 	@Override
