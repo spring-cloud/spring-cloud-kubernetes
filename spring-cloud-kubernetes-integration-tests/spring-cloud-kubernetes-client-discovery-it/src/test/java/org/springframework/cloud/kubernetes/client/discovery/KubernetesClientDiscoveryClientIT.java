@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1EnvVar;
@@ -49,9 +50,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * @author wind57
  */
-class KubernetesDiscoveryClientIT {
+class KubernetesClientDiscoveryClientIT {
 
 	private static final String NAMESPACE = "default";
+
+	private static final String NAMESPACE_A = "a";
+
+	private static final String NAMESPACE_B = "b";
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-discovery-it";
 
@@ -66,16 +71,10 @@ class KubernetesDiscoveryClientIT {
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
 		util = new Util(K3S);
-		util.setUp(NAMESPACE);
-
-		manifests(Phase.CREATE);
-		util.busybox(NAMESPACE, Phase.CREATE);
 	}
 
 	@AfterAll
 	static void after() throws Exception {
-		util.busybox(NAMESPACE, Phase.DELETE);
-		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
@@ -85,6 +84,11 @@ class KubernetesDiscoveryClientIT {
 	 */
 	@Test
 	void testSimple() throws Exception {
+
+		// set-up
+		util.setUp(NAMESPACE);
+		manifests(false, Phase.CREATE);
+		util.busybox(NAMESPACE, Phase.CREATE);
 
 		String appPodName = K3S.execInContainer("sh", "-c",
 				"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
@@ -132,9 +136,50 @@ class KubernetesDiscoveryClientIT {
 			}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(busyBoxServiceInstances.size(), 2);
+
+		// clean-up
+		util.busybox(NAMESPACE, Phase.DELETE);
+		manifests(false, Phase.DELETE);
 	}
 
-	private static void manifests(Phase phase) {
+	/**
+	 * <pre>
+	 *     - config server is enabled for all namespaces
+	 *     - wiremock service is deployed in namespace-a
+	 *     - busybox service is deployed in namespace-b
+	 *
+	 *     Our discovery searches in all namespaces, thus finds them both.
+	 * </pre>
+	 */
+	@Test
+	void testAllNamespaces() {
+		util.createNamespace(NAMESPACE_A);
+		util.createNamespace(NAMESPACE_B);
+		util.setUpClusterWideClusterRole(NAMESPACE);
+		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE);
+		util.busybox(NAMESPACE_B, Phase.CREATE);
+		manifests(true, Phase.CREATE);
+
+		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+
+			}).retryWhen(retrySpec()).block();
+		Assertions.assertEquals(servicesResult.size(), 7);
+		Assertions.assertTrue(servicesResult.contains("kubernetes"));
+		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-client-discovery-it"));
+		Assertions.assertTrue(servicesResult.contains("busybox-service"));
+		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
+
+		manifests(true, Phase.DELETE);
+		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE);
+		util.busybox(NAMESPACE_B, Phase.DELETE);
+		util.deleteClusterWideClusterRole(NAMESPACE);
+		util.deleteNamespace(NAMESPACE_A);
+		util.deleteNamespace(NAMESPACE_B);
+	}
+
+	private static void manifests(boolean allNamespaces, Phase phase) {
 		V1Deployment deployment = (V1Deployment) util.yaml("kubernetes-discovery-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("kubernetes-discovery-service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("kubernetes-discovery-ingress.yaml");
@@ -144,6 +189,11 @@ class KubernetesDiscoveryClientIT {
 						.orElse(List.of()));
 		V1EnvVar debugLevel = new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY")
 				.value("DEBUG");
+		if (allNamespaces) {
+			V1EnvVar allNamespacesVar = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES")
+				.value("TRUE");
+			envVars.add(allNamespacesVar);
+		}
 		envVars.add(debugLevel);
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
