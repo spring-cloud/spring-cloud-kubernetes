@@ -155,7 +155,7 @@ class KubernetesClientDiscoveryClientIT {
 	void testAllNamespaces() {
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);
-		util.setUpClusterWideClusterRole(NAMESPACE);
+		util.setUpClusterWideClusterRoleBinding(NAMESPACE);
 		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE);
 		util.busybox(NAMESPACE_B, Phase.CREATE);
 		manifests(true, Phase.CREATE);
@@ -174,7 +174,7 @@ class KubernetesClientDiscoveryClientIT {
 		manifests(true, Phase.DELETE);
 		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE);
 		util.busybox(NAMESPACE_B, Phase.DELETE);
-		util.deleteClusterWideClusterRole(NAMESPACE);
+		util.deleteClusterWideClusterRoleBinding(NAMESPACE);
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
 	}

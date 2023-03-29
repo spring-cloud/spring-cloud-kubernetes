@@ -300,7 +300,7 @@ public final class Util {
 
 	}
 
-	public void setUpClusterWideClusterRole(String serviceAccountNamespace) {
+	public void setUpClusterWideClusterRoleBinding(String serviceAccountNamespace) {
 
 		try {
 			V1ServiceAccount serviceAccount = (V1ServiceAccount) yaml("cluster/service-account.yaml");
@@ -325,7 +325,7 @@ public final class Util {
 
 	}
 
-	public void deleteClusterWideClusterRole(String serviceAccountNamespace) {
+	public void deleteClusterWideClusterRoleBinding(String serviceAccountNamespace) {
 		try {
 			V1ServiceAccount serviceAccount = (V1ServiceAccount) yaml("cluster/service-account.yaml");
 			V1ClusterRole clusterRole = (V1ClusterRole) yaml("cluster/cluster-role.yaml");
