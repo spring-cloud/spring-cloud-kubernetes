@@ -131,6 +131,7 @@ public final class Util {
 			}
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}

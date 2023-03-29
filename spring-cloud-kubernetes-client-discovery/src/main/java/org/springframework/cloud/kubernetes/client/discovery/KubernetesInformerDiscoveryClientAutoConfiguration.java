@@ -66,6 +66,7 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 
+	@Deprecated(forRemoval = true)
 	@Bean
 	@ConditionalOnMissingBean
 	public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient(
@@ -75,6 +76,16 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 			KubernetesDiscoveryProperties properties) {
 		return new KubernetesInformerDiscoveryClient(kubernetesNamespaceProvider.getNamespace(), sharedInformerFactory,
 				serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public KubernetesInformerDiscoveryClient kubernetesClientInformerDiscoveryClient(
+			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
+			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
+			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
+		return new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister,
+				serviceInformer, endpointsInformer, properties);
 	}
 
 }
