@@ -76,6 +76,7 @@ public class KubernetesClientInformerAutoConfiguration {
 		String namespace;
 		if (properties.allNamespaces()) {
 			namespace = NAMESPACE_ALL;
+			LOG.debug(() -> "serviceSharedInformer will use all-namespaces");
 		}
 		else {
 			try {
@@ -86,9 +87,9 @@ public class KubernetesClientInformerAutoConfiguration {
 						+ ". This will fail in a future release.");
 				namespace = NAMESPACE_DEFAULT;
 			}
+			LOG.debug("serviceSharedInformer will use namespace : " + namespace);
 		}
 
-		LOG.debug("serviceSharedInformer will use namespace : " + namespace);
 		return namespace;
 	}
 

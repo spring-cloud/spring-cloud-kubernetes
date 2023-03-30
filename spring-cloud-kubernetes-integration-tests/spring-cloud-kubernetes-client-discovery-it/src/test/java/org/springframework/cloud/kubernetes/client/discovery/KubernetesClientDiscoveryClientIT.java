@@ -83,19 +83,14 @@ class KubernetesClientDiscoveryClientIT {
 	 * explicit namespace and 'default' must be picked-up.
 	 */
 	@Test
-	void testSimple() throws Exception {
+	void testSimple() {
 
 		// set-up
 		util.setUp(NAMESPACE);
-		manifests(false, Phase.CREATE);
+		manifests(false, null, Phase.CREATE);
 		util.busybox(NAMESPACE, Phase.CREATE);
 
-		String appPodName = K3S.execInContainer("sh", "-c",
-				"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
-
-		Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
-		String ok = execResult.getStdout();
-		Assertions.assertTrue(ok.contains("serviceSharedInformer will use namespace : default"));
+		assertLogStatement("serviceSharedInformer will use namespace : default");
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 
@@ -110,12 +105,12 @@ class KubernetesClientDiscoveryClientIT {
 		Assertions.assertTrue(servicesResult.contains("busybox-service"));
 
 		WebClient ourServiceClient = builder()
-			.baseUrl("http://localhost//service-instances/spring-cloud-kubernetes-client-discovery-it").build();
+				.baseUrl("http://localhost//service-instances/spring-cloud-kubernetes-client-discovery-it").build();
 
 		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET).retrieve()
-			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-			}).retryWhen(retrySpec()).block();
+				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(ourServiceInstances.size(), 1);
 
@@ -124,22 +119,22 @@ class KubernetesClientDiscoveryClientIT {
 		Assertions.assertEquals(serviceInstance.getServiceId(), "spring-cloud-kubernetes-client-discovery-it");
 		Assertions.assertNotNull(serviceInstance.getHost());
 		Assertions.assertEquals(serviceInstance.getMetadata(),
-			Map.of("http", "8080", "app", "spring-cloud-kubernetes-client-discovery-it"));
+				Map.of("http", "8080", "app", "spring-cloud-kubernetes-client-discovery-it"));
 		Assertions.assertEquals(serviceInstance.getPort(), 8080);
 		Assertions.assertEquals(serviceInstance.getNamespace(), "default");
 
-		WebClient busyBoxServiceClient = builder()
-			.baseUrl("http://localhost//service-instances/busybox-service").build();
-		List<DefaultKubernetesServiceInstance> busyBoxServiceInstances = busyBoxServiceClient.method(HttpMethod.GET).retrieve()
-			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+		WebClient busyBoxServiceClient = builder().baseUrl("http://localhost//service-instances/busybox-service")
+				.build();
+		List<DefaultKubernetesServiceInstance> busyBoxServiceInstances = busyBoxServiceClient.method(HttpMethod.GET)
+				.retrieve().bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-			}).retryWhen(retrySpec()).block();
+				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(busyBoxServiceInstances.size(), 2);
 
 		// clean-up
 		util.busybox(NAMESPACE, Phase.DELETE);
-		manifests(false, Phase.DELETE);
+		manifests(false, null, Phase.DELETE);
 	}
 
 	/**
@@ -158,20 +153,22 @@ class KubernetesClientDiscoveryClientIT {
 		util.setUpClusterWideClusterRoleBinding(NAMESPACE);
 		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE);
 		util.busybox(NAMESPACE_B, Phase.CREATE);
-		manifests(true, Phase.CREATE);
+		manifests(true, null, Phase.CREATE);
+
+		assertLogStatement("serviceSharedInformer will use all-namespaces");
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
-			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 
-			}).retryWhen(retrySpec()).block();
+				}).retryWhen(retrySpec()).block();
 		Assertions.assertEquals(servicesResult.size(), 7);
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
 		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-client-discovery-it"));
 		Assertions.assertTrue(servicesResult.contains("busybox-service"));
 		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
 
-		manifests(true, Phase.DELETE);
+		manifests(true, null, Phase.DELETE);
 		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE);
 		util.busybox(NAMESPACE_B, Phase.DELETE);
 		util.deleteClusterWideClusterRoleBinding(NAMESPACE);
@@ -179,7 +176,58 @@ class KubernetesClientDiscoveryClientIT {
 		util.deleteNamespace(NAMESPACE_B);
 	}
 
-	private static void manifests(boolean allNamespaces, Phase phase) {
+	/**
+	 * <pre>
+	 *     - config server is enabled for namespace-a
+	 *     - wiremock service is deployed in namespace-a
+	 *     - wiremock service is deployed in namespace-b
+	 *
+	 *     Only service in namespace-a is found.
+	 * </pre>
+	 */
+	@Test
+	void testSpecificNamespace() {
+		util.createNamespace(NAMESPACE_A);
+		util.createNamespace(NAMESPACE_B);
+		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE_A));
+		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE);
+		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE);
+		manifests(false, NAMESPACE_A, Phase.CREATE);
+
+		// first check that wiremock service is present in both namespaces a and b
+		assertServicePresentInNamespaces(List.of("a", "b"), "service-wiremock", "service-wiremock");
+		assertLogStatement("serviceSharedInformer will use namespace : a");
+
+		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+
+				}).retryWhen(retrySpec()).block();
+		Assertions.assertEquals(servicesResult.size(), 1);
+		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
+
+		WebClient wiremockInNamespaceAClient = builder()
+			.baseUrl("http://localhost//service-instances/service-wiremock").build();
+
+		List<DefaultKubernetesServiceInstance> wiremockInNamespaceA = wiremockInNamespaceAClient.method(HttpMethod.GET)
+			.retrieve().bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+
+			}).retryWhen(retrySpec()).block();
+
+		Assertions.assertEquals(wiremockInNamespaceA.size(), 1);
+
+		DefaultKubernetesServiceInstance serviceInstance = wiremockInNamespaceA.get(0);
+		Assertions.assertEquals(serviceInstance.getNamespace(), "a");
+
+		manifests(false, NAMESPACE_A, Phase.DELETE);
+		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE);
+		util.wiremock(NAMESPACE_B, "/wiremock", Phase.DELETE);
+		util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE_A));
+		util.deleteNamespace(NAMESPACE_A);
+		util.deleteNamespace(NAMESPACE_B);
+	}
+
+	private static void manifests(boolean allNamespaces, String clientSpecificNamespace, Phase phase) {
 		V1Deployment deployment = (V1Deployment) util.yaml("kubernetes-discovery-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("kubernetes-discovery-service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("kubernetes-discovery-ingress.yaml");
@@ -191,8 +239,14 @@ class KubernetesClientDiscoveryClientIT {
 				.value("DEBUG");
 		if (allNamespaces) {
 			V1EnvVar allNamespacesVar = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES")
-				.value("TRUE");
+					.value("TRUE");
 			envVars.add(allNamespacesVar);
+		}
+
+		if (clientSpecificNamespace != null) {
+			V1EnvVar clientNamespace = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_CLIENT_NAMESPACE")
+					.value(NAMESPACE_A);
+			envVars.add(clientNamespace);
 		}
 		envVars.add(debugLevel);
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
@@ -211,6 +265,36 @@ class KubernetesClientDiscoveryClientIT {
 
 	private RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+	}
+
+	private void assertLogStatement(String message) {
+		try {
+			String appPodName = K3S.execInContainer("sh", "-c",
+					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+
+			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
+			String ok = execResult.getStdout();
+			Assertions.assertTrue(ok.contains(message));
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+
+	}
+
+	private void assertServicePresentInNamespaces(List<String> namespaces, String value, String serviceName) {
+		namespaces.forEach(x -> {
+			try {
+				String service = K3S.execInContainer("sh", "-c",
+					"kubectl get services -n " + x + " -l app=" + value + " -o=name --no-headers | tr -d '\n'").getStdout();
+				Assertions.assertEquals(service, "service/" + serviceName);
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+
+		});
 	}
 
 }
