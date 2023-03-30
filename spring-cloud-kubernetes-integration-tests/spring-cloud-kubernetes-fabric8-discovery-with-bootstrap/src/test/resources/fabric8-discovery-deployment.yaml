@@ -1,15 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spring-cloud-kubernetes-fabric8-client-discovery-deployment-with-bootstrap
+  name: spring-cloud-kubernetes-fabric8-client-discovery-deployment
 spec:
   selector:
     matchLabels:
-      app: spring-cloud-kubernetes-fabric8-client-discovery-with-bootstrap
+      app: spring-cloud-kubernetes-fabric8-client-discovery
   template:
     metadata:
       labels:
-        app: spring-cloud-kubernetes-fabric8-client-discovery-with-bootstrap
+        app: spring-cloud-kubernetes-fabric8-client-discovery
     spec:
       serviceAccountName: spring-cloud-kubernetes-serviceaccount
       containers:

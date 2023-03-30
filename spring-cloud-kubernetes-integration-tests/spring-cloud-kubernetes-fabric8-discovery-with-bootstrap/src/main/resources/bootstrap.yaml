@@ -13,4 +13,4 @@ spring:
       request-read-timeout: 1000
 logging:
   level:
-    root: TRACE
+    root: DEBUG

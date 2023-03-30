@@ -11,6 +11,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: spring-cloud-kubernetes-fabric8-client-discovery-with-bootstrap
+                name: spring-cloud-kubernetes-fabric8-client-discovery
                 port:
                   number: 8080
