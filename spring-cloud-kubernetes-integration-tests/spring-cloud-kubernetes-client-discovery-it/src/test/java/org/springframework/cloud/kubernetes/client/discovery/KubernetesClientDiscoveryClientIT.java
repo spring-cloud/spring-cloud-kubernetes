@@ -206,13 +206,13 @@ class KubernetesClientDiscoveryClientIT {
 		Assertions.assertEquals(servicesResult.size(), 1);
 		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
 
-		WebClient wiremockInNamespaceAClient = builder()
-			.baseUrl("http://localhost//service-instances/service-wiremock").build();
+		WebClient wiremockInNamespaceAClient = builder().baseUrl("http://localhost//service-instances/service-wiremock")
+				.build();
 
 		List<DefaultKubernetesServiceInstance> wiremockInNamespaceA = wiremockInNamespaceAClient.method(HttpMethod.GET)
-			.retrieve().bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+				.retrieve().bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-			}).retryWhen(retrySpec()).block();
+				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(wiremockInNamespaceA.size(), 1);
 
@@ -287,7 +287,8 @@ class KubernetesClientDiscoveryClientIT {
 		namespaces.forEach(x -> {
 			try {
 				String service = K3S.execInContainer("sh", "-c",
-					"kubectl get services -n " + x + " -l app=" + value + " -o=name --no-headers | tr -d '\n'").getStdout();
+						"kubectl get services -n " + x + " -l app=" + value + " -o=name --no-headers | tr -d '\n'")
+						.getStdout();
 				Assertions.assertEquals(service, "service/" + serviceName);
 			}
 			catch (Exception e) {
