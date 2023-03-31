@@ -25,7 +25,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.log.LogAccessor;
 
-final class ServicePortSecureResolver {
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SECURED;
+
+class ServicePortSecureResolver {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(ServicePortSecureResolver.class));
 
@@ -53,13 +55,13 @@ final class ServicePortSecureResolver {
 		String serviceName = input.serviceName();
 		Fabric8ServicePortData portData = input.portData();
 
-		Optional<String> securedLabelValue = Optional.ofNullable(input.serviceLabels().get("secured"));
+		Optional<String> securedLabelValue = Optional.ofNullable(input.serviceLabels().get(SECURED));
 		if (securedLabelValue.isPresent() && TRUTHY_STRINGS.contains(securedLabelValue.get())) {
 			logEntry(serviceName, portData.portNumber(), "the service contains a true value for the 'secured' label");
 			return true;
 		}
 
-		Optional<String> securedAnnotationValue = Optional.ofNullable(input.serviceAnnotations().get("secured"));
+		Optional<String> securedAnnotationValue = Optional.ofNullable(input.serviceAnnotations().get(SECURED));
 		if (securedAnnotationValue.isPresent() && TRUTHY_STRINGS.contains(securedAnnotationValue.get())) {
 			logEntry(serviceName, portData.portNumber(),
 					"the service contains a true value for the 'secured' annotation");
