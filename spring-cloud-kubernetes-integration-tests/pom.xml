@@ -93,5 +93,6 @@
         <module>spring-cloud-kubernetes-fabric8-client-catalog-watcher</module>
         <module>spring-cloud-kubernetes-client-catalog-watcher</module>
 		<module>spring-cloud-kubernetes-client-discovery-it</module>
+		<module>spring-cloud-kubernetes-fabric8-client-discovery-with-bootstrap</module>
 	</modules>
 </project>
