@@ -18,7 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.discovery.bootstrap;
 
 import java.util.List;
 
-import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClient;
+import org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,9 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class Fabric8DiscoveryBootstrapController {
 
-	private final KubernetesDiscoveryClient discoveryClient;
+	private final Fabric8KubernetesDiscoveryClient discoveryClient;
 
-	public Fabric8DiscoveryBootstrapController(KubernetesDiscoveryClient discoveryClient) {
+	public Fabric8DiscoveryBootstrapController(Fabric8KubernetesDiscoveryClient discoveryClient) {
 		this.discoveryClient = discoveryClient;
 	}
 
