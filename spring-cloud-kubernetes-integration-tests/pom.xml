@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-kubernetes</artifactId>
-		<version>3.0.2-SNAPSHOT</version>
+		<version>3.0.3-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>spring-cloud-kubernetes-integration-tests</artifactId>
@@ -92,5 +92,6 @@
         <module>spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps</module>
         <module>spring-cloud-kubernetes-fabric8-client-catalog-watcher</module>
         <module>spring-cloud-kubernetes-client-catalog-watcher</module>
-    </modules>
+		<module>spring-cloud-kubernetes-fabric8-client-discovery-with-bootstrap</module>
+	</modules>
 </project>
