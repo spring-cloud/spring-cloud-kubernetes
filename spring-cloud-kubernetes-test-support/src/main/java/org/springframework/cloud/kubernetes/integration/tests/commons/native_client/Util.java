@@ -383,9 +383,9 @@ public final class Util {
 		return secret.getMetadata().getName();
 	}
 
-	private void waitForDeployment(String namespace, V1Deployment deployment) {
+	private voidwaitForDeployment(String namespace, V1Deployment deployment) {
 		String deploymentName = deploymentName(deployment);
-		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS)
+		await().pollInterval(Duration.ofSeconds(1)).atMost(900, TimeUnit.SECONDS)
 				.until(() -> isDeploymentReady(deploymentName, namespace));
 	}
 
