@@ -391,7 +391,7 @@ public final class Util {
 
 	private void waitForConfigMap(String namespace, V1ConfigMap configMap, Phase phase) {
 		String configMapName = configMapName(configMap);
-		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
+		await().pollInterval(Duration.ofSeconds(1)).atMost(900, TimeUnit.SECONDS).until(() -> {
 			try {
 				coreV1Api.readNamespacedConfigMap(configMapName, namespace, null);
 				return phase.equals(Phase.CREATE);
