@@ -151,7 +151,14 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	}
 
 	/**
-	 * labels, annotations, ports metadata and namespace metadata.
+	 * This adds the following metadata:
+	 * <pre>
+	 *     - labels (if requested)
+	 *     - annotations (if requested)
+	 *     - ports (if requested)
+	 *     - namespace
+	 *     - service type
+	 * </pre>
 	 */
 	static Map<String, String> serviceMetadata(String serviceId, Service service,
 			KubernetesDiscoveryProperties properties, List<EndpointSubset> endpointSubsets, String namespace) {

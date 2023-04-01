@@ -47,6 +47,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.matchesServiceLabels;
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
@@ -90,7 +91,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public String description() {
-		return "Fabric8 Kubernetes Client Discovery";
+		return "Kubernetes Client Discovery";
 	}
 
 	@Override
@@ -112,27 +113,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	}
 
 	private Stream<ServiceInstance> getServiceInstanceDetails(V1Service service, String serviceId) {
-		Map<String, String> svcMetadata = new HashMap<>();
-		if (properties.metadata() != null) {
-			if (properties.metadata().addLabels()) {
-				if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
-					String labelPrefix = properties.metadata().labelsPrefix() != null
-							? properties.metadata().labelsPrefix() : "";
-					service.getMetadata().getLabels().entrySet().stream()
-							.filter(e -> e.getKey().startsWith(labelPrefix))
-							.forEach(e -> svcMetadata.put(e.getKey(), e.getValue()));
-				}
-			}
-			if (properties.metadata().addAnnotations()) {
-				if (service.getMetadata() != null && service.getMetadata().getAnnotations() != null) {
-					String annotationPrefix = properties.metadata().annotationsPrefix() != null
-							? properties.metadata().annotationsPrefix() : "";
-					service.getMetadata().getAnnotations().entrySet().stream()
-							.filter(e -> e.getKey().startsWith(annotationPrefix))
-							.forEach(e -> svcMetadata.put(e.getKey(), e.getValue()));
-				}
-			}
-		}
+		Map<String, String> serviceMetadata = serviceMetadata(properties, service, serviceId);
 
 		V1Endpoints ep = endpointsLister.namespace(service.getMetadata().getNamespace())
 				.get(service.getMetadata().getName());
@@ -152,7 +133,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 		return ep.getSubsets().stream().filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
 				.flatMap(subset -> {
-					Map<String, String> metadata = new HashMap<>(svcMetadata);
+					Map<String, String> metadata = new HashMap<>(serviceMetadata);
 					List<CoreV1EndpointPort> endpointPorts = subset.getPorts();
 					if (properties.metadata() != null && properties.metadata().addPorts()) {
 						endpointPorts.forEach(
