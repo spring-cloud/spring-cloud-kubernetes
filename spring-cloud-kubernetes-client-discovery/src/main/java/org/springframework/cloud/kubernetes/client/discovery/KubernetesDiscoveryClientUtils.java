@@ -22,12 +22,15 @@ import java.util.Optional;
 
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SERVICE_TYPE;
 
 /**
  * @author wind57
@@ -65,10 +68,11 @@ final class KubernetesDiscoveryClientUtils {
 	}
 
 	/**
-	 * This adds the following metadata:
-	 * <pre>
+	 * This adds the following metadata. <pre>
 	 *     - labels (if requested)
 	 *     - annotations (if requested)
+	 *     - metadata
+	 *     - service type
 	 * </pre>
 	 */
 	static Map<String, String> serviceMetadata(KubernetesDiscoveryProperties properties, V1Service service,
@@ -78,16 +82,21 @@ final class KubernetesDiscoveryClientUtils {
 		KubernetesDiscoveryProperties.Metadata metadataProps = properties.metadata();
 		if (metadataProps.addLabels()) {
 			Map<String, String> labelMetadata = keysWithPrefix(service.getMetadata().getLabels(),
-				metadataProps.labelsPrefix());
+					metadataProps.labelsPrefix());
 			LOG.debug(() -> "Adding labels metadata: " + labelMetadata + " for serviceId: " + serviceId);
 			serviceMetadata.putAll(labelMetadata);
 		}
 		if (metadataProps.addAnnotations()) {
 			Map<String, String> annotationMetadata = keysWithPrefix(service.getMetadata().getAnnotations(),
-				metadataProps.annotationsPrefix());
+					metadataProps.annotationsPrefix());
 			LOG.debug(() -> "Adding annotations metadata: " + annotationMetadata + " for serviceId: " + serviceId);
 			serviceMetadata.putAll(annotationMetadata);
 		}
+
+		serviceMetadata.put(NAMESPACE_METADATA_KEY,
+				Optional.ofNullable(service.getMetadata()).map(V1ObjectMeta::getNamespace).orElse(null));
+		serviceMetadata.put(SERVICE_TYPE,
+				Optional.ofNullable(service.getSpec()).map(V1ServiceSpec::getType).orElse(null));
 
 		return serviceMetadata;
 	}

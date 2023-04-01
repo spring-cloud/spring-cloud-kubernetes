@@ -151,8 +151,7 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	}
 
 	/**
-	 * This adds the following metadata:
-	 * <pre>
+	 * This adds the following metadata. <pre>
 	 *     - labels (if requested)
 	 *     - annotations (if requested)
 	 *     - ports (if requested)
