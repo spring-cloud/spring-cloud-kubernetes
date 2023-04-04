@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap;
+package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.io.InputStream;
 import java.time.Duration;

@@ -73,19 +73,26 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	private final KubernetesDiscoveryProperties properties;
 
-	private final String namespace;
-
+	@Deprecated(forRemoval = true)
 	public KubernetesInformerDiscoveryClient(String namespace, SharedInformerFactory sharedInformerFactory,
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
 			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
 			KubernetesDiscoveryProperties properties) {
-		this.namespace = namespace;
 		this.sharedInformerFactory = sharedInformerFactory;
-
 		this.serviceLister = serviceLister;
 		this.endpointsLister = endpointsLister;
 		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
+		this.properties = properties;
+	}
 
+	public KubernetesInformerDiscoveryClient(SharedInformerFactory sharedInformerFactory,
+			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
+			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
+			KubernetesDiscoveryProperties properties) {
+		this.sharedInformerFactory = sharedInformerFactory;
+		this.serviceLister = serviceLister;
+		this.endpointsLister = endpointsLister;
+		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
 		this.properties = properties;
 	}
 
@@ -98,13 +105,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Objects.requireNonNull(serviceId, "serviceId must be provided");
 
-		if (!StringUtils.hasText(namespace) && !properties.allNamespaces()) {
-			LOG.warn(() -> "Namespace is null or empty, this may cause issues looking up services");
-		}
-
-		List<V1Service> services = properties.allNamespaces()
-				? serviceLister.list().stream().filter(svc -> serviceId.equals(svc.getMetadata().getName())).toList()
-				: List.of(serviceLister.namespace(namespace).get(serviceId));
+		List<V1Service> services = serviceLister.list().stream()
+				.filter(svc -> serviceId.equals(svc.getMetadata().getName())).toList();
 		if (services.size() == 0 || !services.stream().anyMatch(service -> matchesServiceLabels(service, properties))) {
 			// no such service present in the cluster
 			return new ArrayList<>();
@@ -207,10 +209,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
-		List<V1Service> services = properties.allNamespaces() ? serviceLister.list()
-				: serviceLister.namespace(namespace).list();
-		return services.stream().filter(service -> matchesServiceLabels(service, properties))
-				.map(s -> s.getMetadata().getName()).collect(Collectors.toList());
+		return serviceLister.list().stream().filter(service -> matchesServiceLabels(service, properties))
+				.map(s -> s.getMetadata().getName()).distinct().toList();
 	}
 
 	@PostConstruct
