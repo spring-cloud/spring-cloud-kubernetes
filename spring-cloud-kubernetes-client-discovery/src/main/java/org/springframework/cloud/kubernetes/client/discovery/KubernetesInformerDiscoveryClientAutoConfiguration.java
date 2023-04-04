@@ -41,7 +41,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-
 /**
  * @author wind57
  */
@@ -52,10 +51,11 @@ import org.springframework.context.annotation.Import;
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-		KubernetesInformerAutoConfiguration.class })
+		KubernetesClientInformerAutoConfiguration.class })
 @Import(KubernetesDiscoveryClientHealthConfiguration.class)
 public class KubernetesInformerDiscoveryClientAutoConfiguration {
 
+	@Deprecated(forRemoval = true)
 	@Bean
 	@ConditionalOnMissingBean
 	public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient(
@@ -65,6 +65,16 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 			KubernetesDiscoveryProperties properties) {
 		return new KubernetesInformerDiscoveryClient(kubernetesNamespaceProvider.getNamespace(), sharedInformerFactory,
 				serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public KubernetesInformerDiscoveryClient kubernetesClientInformerDiscoveryClient(
+			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
+			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
+			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
+		return new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister,
+				serviceInformer, endpointsInformer, properties);
 	}
 
 }
