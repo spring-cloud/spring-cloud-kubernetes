@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.reactive;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,77 +29,97 @@ import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceSpec;
-import io.kubernetes.client.openapi.models.V1ServiceStatus;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import reactor.test.StepVerifier;
 
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.mock.env.MockEnvironment;
 
+import static io.kubernetes.client.util.Namespaces.NAMESPACE_ALL;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * @author Ryan Baxter
  */
-@RunWith(MockitoJUnitRunner.class)
-public class KubernetesInformerReactiveDiscoveryClientTests {
+class KubernetesInformerReactiveDiscoveryClientTests {
 
-	@Mock
-	private SharedInformerFactory sharedInformerFactory;
+	// default constructor partitions by namespace
+	private Cache<V1Service> serviceCache = new Cache<>();
 
-	private static final V1Service testService1 = new V1Service()
-			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
-			.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1")).status(new V1ServiceStatus());
+	// default constructor partitions by namespace
+	private Cache<V1Endpoints> endpointsCache = new Cache<>();
 
-	private static final V1Service testService2 = new V1Service()
-			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace2"))
-			.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1")).status(new V1ServiceStatus());
+	private static final String NAMESPACE_1 = "namespace1";
 
-	private static final V1Endpoints testEndpoints1 = new V1Endpoints()
-			.metadata(new V1ObjectMeta().name("test-svc-1").namespace("namespace1"))
+	private static final String NAMESPACE_2 = "namespace2";
+
+	private final SharedInformerFactory sharedInformerFactory = Mockito.mock(SharedInformerFactory.class);
+
+	private static final V1Service TEST_SERVICE_1 = new V1Service()
+			.metadata(new V1ObjectMeta().name("test-svc-1").namespace(NAMESPACE_1));
+
+	private static final V1Service TEST_SERVICE_2 = new V1Service()
+			.metadata(new V1ObjectMeta().name("test-svc-2").namespace(NAMESPACE_2));
+
+	// same name as TEST_SERVICE_1, to test distinct
+	private static final V1Service TEST_SERVICE_3 = new V1Service()
+			.metadata(new V1ObjectMeta().name("test-svc-2").namespace(NAMESPACE_2));
+
+	private static final V1Endpoints TEST_ENDPOINTS_1 = new V1Endpoints()
+			.metadata(new V1ObjectMeta().name("test-svc-1").namespace(NAMESPACE_1))
 			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
 					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 
-	@Test
-	public void testDiscoveryGetServicesAllNamespaceShouldWork() {
-		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
-
-		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				new KubernetesNamespaceProvider(new MockEnvironment()), sharedInformerFactory, serviceLister, null,
-				null, null, KubernetesDiscoveryProperties.DEFAULT);
-
-		StepVerifier.create(discoveryClient.getServices())
-				.expectNext(testService1.getMetadata().getName(), testService2.getMetadata().getName()).expectComplete()
-				.verify();
-
+	@AfterEach
+	void afterEach() {
+		serviceCache = new Cache<>();
+		endpointsCache = new Cache<>();
 	}
 
 	@Test
-	public void testDiscoveryGetServicesOneNamespaceShouldWork() {
-		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
+	void testDiscoveryGetServicesAllNamespaceShouldWork() {
+		Lister<V1Service> serviceLister = setupServiceLister(NAMESPACE_ALL, TEST_SERVICE_1, TEST_SERVICE_2,
+				TEST_SERVICE_3);
 
-		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
-		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("namespace1");
+		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
+				Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
+
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, null, null, null,
-				KubernetesDiscoveryProperties.DEFAULT);
+				new KubernetesNamespaceProvider(new MockEnvironment()), sharedInformerFactory, serviceLister, null,
+				null, null, kubernetesDiscoveryProperties);
 
-		StepVerifier.create(discoveryClient.getServices()).expectNext(testService1.getMetadata().getName())
+		StepVerifier.create(discoveryClient.getServices())
+				.expectNext(TEST_SERVICE_1.getMetadata().getName(), TEST_SERVICE_2.getMetadata().getName())
 				.expectComplete().verify();
 
 	}
 
 	@Test
-	public void testDiscoveryGetInstanceAllNamespaceShouldWork() {
-		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
+	void testDiscoveryGetServicesOneNamespaceShouldWork() {
+		Lister<V1Service> serviceLister = setupServiceLister(NAMESPACE_1, TEST_SERVICE_1, TEST_SERVICE_2);
+
+		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
+		when(kubernetesNamespaceProvider.getNamespace()).thenReturn(NAMESPACE_1);
+		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
+				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, null, null, null,
+				KubernetesDiscoveryProperties.DEFAULT);
+
+		StepVerifier.create(discoveryClient.getServices()).expectNext(TEST_SERVICE_1.getMetadata().getName())
+				.expectComplete().verify();
+
+	}
+
+	@Test
+	void testDiscoveryGetInstanceAllNamespaceShouldWork() {
+		Lister<V1Service> serviceLister = setupServiceLister(NAMESPACE_ALL, TEST_SERVICE_1, TEST_SERVICE_2);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(NAMESPACE_1, TEST_ENDPOINTS_1);
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false, false);
@@ -108,45 +128,213 @@ public class KubernetesInformerReactiveDiscoveryClientTests {
 				new KubernetesNamespaceProvider(new MockEnvironment()), sharedInformerFactory, serviceLister,
 				endpointsLister, null, null, kubernetesDiscoveryProperties);
 
-		StepVerifier
-				.create(discoveryClient.getInstances("test-svc-1")).expectNext(new DefaultKubernetesServiceInstance("",
-						"test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false, "namespace1", null))
+		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
+				.expectNext(new DefaultKubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, Map.of(), false,
+						NAMESPACE_1, null))
 				.expectComplete().verify();
 
 	}
 
 	@Test
-	public void testDiscoveryGetInstanceOneNamespaceShouldWork() {
-		Lister<V1Service> serviceLister = setupServiceLister(testService1, testService2);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(testEndpoints1);
+	void testDiscoveryGetInstanceOneNamespaceShouldWork() {
+		Lister<V1Service> serviceLister = setupServiceLister(NAMESPACE_1, TEST_SERVICE_1, TEST_SERVICE_2);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(NAMESPACE_1, TEST_ENDPOINTS_1);
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, false,
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false, false);
 
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
-		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("namespace1");
+		when(kubernetesNamespaceProvider.getNamespace()).thenReturn(NAMESPACE_1);
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, endpointsLister, null, null,
 				kubernetesDiscoveryProperties);
 
-		StepVerifier
-				.create(discoveryClient.getInstances("test-svc-1")).expectNext(new DefaultKubernetesServiceInstance("",
-						"test-svc-1", "2.2.2.2", 8080, new HashMap<>(), false, "namespace1", null))
+		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
+				.expectNext(new DefaultKubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080, Map.of(), false,
+						NAMESPACE_1, null))
 				.expectComplete().verify();
 
 	}
 
-	private Lister<V1Service> setupServiceLister(V1Service... services) {
-		Cache<V1Service> serviceCache = new Cache<>();
-		Lister<V1Service> serviceLister = new Lister<>(serviceCache);
+	/**
+	 * <pre>
+	 *     - all-namespaces = true
+	 *     - service-a in namespace-a exists
+	 *     - service-b in namespace-b exists
+	 *
+	 *     As such, both services are found.
+	 * </pre>
+	 */
+	@Test
+	void testAllNamespacesTwoServicesPresent() {
+		boolean allNamespaces = true;
+		V1Service serviceA = new V1Service().metadata(new V1ObjectMeta().name("service-a").namespace("namespace-a"));
+		V1Service serviceB = new V1Service().metadata(new V1ObjectMeta().name("service-b").namespace("namespace-b"));
+		serviceCache.add(serviceA);
+		serviceCache.add(serviceB);
+
+		Lister<V1Service> serviceLister = new Lister<>(serviceCache).namespace(NAMESPACE_ALL);
+		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true,
+				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
+
+		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
+		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("irrelevant");
+
+		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
+				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, null, null, null,
+				kubernetesDiscoveryProperties);
+
+		List<String> result = discoveryClient.getServices().collectList().block();
+		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertTrue(result.contains("service-a"));
+		Assertions.assertTrue(result.contains("service-b"));
+	}
+
+	/**
+	 * <pre>
+	 *     - all-namespaces = false
+	 *     - service-a in namespace-a exists
+	 *     - service-b in namespace-b exists
+	 *     - service lister exists in namespace-a
+	 *
+	 *     As such, one service is found.
+	 * </pre>
+	 */
+	@Test
+	void testSingleNamespaceTwoServicesPresent() {
+		boolean allNamespaces = false;
+		V1Service serviceA = new V1Service().metadata(new V1ObjectMeta().name("service-a").namespace("namespace-a"));
+		V1Service serviceB = new V1Service().metadata(new V1ObjectMeta().name("service-b").namespace("namespace-b"));
+		serviceCache.add(serviceA);
+		serviceCache.add(serviceB);
+
+		Lister<V1Service> serviceLister = new Lister<>(serviceCache).namespace("namespace-a");
+		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true,
+				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
+
+		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
+		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("irrelevant");
+
+		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
+				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, null, null, null,
+				kubernetesDiscoveryProperties);
+
+		List<String> result = discoveryClient.getServices().collectList().block();
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertTrue(result.contains("service-a"));
+		Assertions.assertFalse(result.contains("service-b"));
+	}
+
+	/**
+	 * <pre>
+	 *     - all-namespaces = true
+	 *     - endpoints-X in namespace-a exists
+	 *     - endpoints-X in namespace-b exists
+	 *
+	 *     As such, both endpoints are found.
+	 * </pre>
+	 */
+	@Test
+	void testAllNamespacesTwoEndpointsPresent() {
+		boolean allNamespaces = true;
+
+		V1Service serviceXNamespaceA = new V1Service()
+				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"));
+		V1Service serviceXNamespaceB = new V1Service()
+				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"));
+		serviceCache.add(serviceXNamespaceA);
+		serviceCache.add(serviceXNamespaceB);
+
+		V1Endpoints endpointsXNamespaceA = new V1Endpoints()
+				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"))
+				.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
+						.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
+		V1Endpoints endpointsXNamespaceB = new V1Endpoints()
+				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"))
+				.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
+						.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
+		endpointsCache.add(endpointsXNamespaceA);
+		endpointsCache.add(endpointsXNamespaceB);
+
+		Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsCache).namespace(NAMESPACE_ALL);
+		Lister<V1Service> serviceLister = new Lister<>(serviceCache).namespace(NAMESPACE_ALL);
+
+		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true,
+				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
+
+		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
+		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("irrelevant");
+
+		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
+				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, endpointsLister, null, null,
+				kubernetesDiscoveryProperties);
+
+		List<ServiceInstance> result = discoveryClient.getInstances("endpoints-x").collectList().block();
+		Assertions.assertEquals(result.size(), 2);
+		List<String> byIp = result.stream().map(ServiceInstance::getHost).sorted().toList();
+		Assertions.assertTrue(byIp.contains("1.1.1.1"));
+		Assertions.assertTrue(byIp.contains("2.2.2.2"));
+	}
+
+	/**
+	 * <pre>
+	 *     - all-namespaces = true
+	 *     - endpoints-X in namespace-a exists
+	 *     - endpoints-X in namespace-b exists
+	 *
+	 *     We search in namespace-a, only. As such, single endpoints is found.
+	 * </pre>
+	 */
+	@Test
+	void testAllSingleTwoEndpointsPresent() {
+		boolean allNamespaces = true;
+
+		V1Service serviceXNamespaceA = new V1Service()
+				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"));
+		V1Service serviceXNamespaceB = new V1Service()
+				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"));
+		serviceCache.add(serviceXNamespaceA);
+		serviceCache.add(serviceXNamespaceB);
+
+		V1Endpoints endpointsXNamespaceA = new V1Endpoints()
+				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"))
+				.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
+						.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
+		V1Endpoints endpointsXNamespaceB = new V1Endpoints()
+				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"))
+				.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
+						.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
+		endpointsCache.add(endpointsXNamespaceA);
+		endpointsCache.add(endpointsXNamespaceB);
+
+		Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsCache).namespace("namespace-a");
+		Lister<V1Service> serviceLister = new Lister<>(serviceCache).namespace("namespace-a");
+
+		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true,
+				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
+
+		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
+		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("irrelevant");
+
+		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
+				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, endpointsLister, null, null,
+				kubernetesDiscoveryProperties);
+
+		List<ServiceInstance> result = discoveryClient.getInstances("endpoints-x").collectList().block();
+		Assertions.assertEquals(result.size(), 1);
+		List<String> byIp = result.stream().map(ServiceInstance::getHost).sorted().toList();
+		Assertions.assertTrue(byIp.contains("1.1.1.1"));
+	}
+
+	private Lister<V1Service> setupServiceLister(String namespace, V1Service... services) {
+		Lister<V1Service> serviceLister = new Lister<>(serviceCache, namespace);
 		for (V1Service svc : services) {
 			serviceCache.add(svc);
 		}
 		return serviceLister;
 	}
 
-	private Lister<V1Endpoints> setupEndpointsLister(V1Endpoints... endpoints) {
-		Cache<V1Endpoints> endpointsCache = new Cache<>();
+	private Lister<V1Endpoints> setupEndpointsLister(String namespace, V1Endpoints... endpoints) {
 		Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsCache);
 		for (V1Endpoints ep : endpoints) {
 			endpointsCache.add(ep);

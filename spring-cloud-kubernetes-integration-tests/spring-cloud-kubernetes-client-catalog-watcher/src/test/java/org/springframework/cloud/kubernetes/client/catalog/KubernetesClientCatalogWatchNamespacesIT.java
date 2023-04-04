@@ -85,6 +85,7 @@ public class KubernetesClientCatalogWatchNamespacesIT {
 
 	@AfterEach
 	void afterEach() {
+		util.deleteClusterWide(NAMESPACE_DEFAULT, Set.of(NAMESPACE_A, NAMESPACE_B));
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
 	}
