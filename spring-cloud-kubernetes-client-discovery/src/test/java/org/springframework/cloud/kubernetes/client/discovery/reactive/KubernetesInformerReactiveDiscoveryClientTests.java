@@ -63,12 +63,10 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 
 	private final SharedInformerFactory sharedInformerFactory = Mockito.mock(SharedInformerFactory.class);
 
-	private static final V1Service TEST_SERVICE_1 = new V1Service()
-			.spec(new V1ServiceSpec().type("ClusterIP"))
+	private static final V1Service TEST_SERVICE_1 = new V1Service().spec(new V1ServiceSpec().type("ClusterIP"))
 			.metadata(new V1ObjectMeta().name("test-svc-1").namespace(NAMESPACE_1));
 
-	private static final V1Service TEST_SERVICE_2 = new V1Service()
-			.spec(new V1ServiceSpec().type("ClusterIP"))
+	private static final V1Service TEST_SERVICE_2 = new V1Service().spec(new V1ServiceSpec().type("ClusterIP"))
 			.metadata(new V1ObjectMeta().name("test-svc-2").namespace(NAMESPACE_2));
 
 	// same name as TEST_SERVICE_1, to test distinct
