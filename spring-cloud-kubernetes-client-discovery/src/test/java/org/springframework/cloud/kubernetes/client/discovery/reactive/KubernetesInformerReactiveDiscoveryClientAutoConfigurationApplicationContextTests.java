@@ -28,7 +28,7 @@ import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscov
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 
@@ -189,7 +189,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 						KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
 						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-						KubernetesCommonsAutoConfiguration.class, KubernetesInformerAutoConfiguration.class))
+						KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class))
 				.withPropertyValues(properties);
 	}
 
@@ -199,7 +199,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 						KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
 						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-						KubernetesCommonsAutoConfiguration.class, KubernetesInformerAutoConfiguration.class))
+						KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class))
 				.withClassLoader(new FilteredClassLoader(name)).withPropertyValues(properties);
 	}
 
