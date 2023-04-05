@@ -32,6 +32,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -100,31 +101,42 @@ class Fabric8DiscoveryBootstrapIT {
 		Assertions.assertTrue(result.contains("service-wiremock"));
 	}
 
-	private static void manifests(Phase phase) {
+	private static void manifests(Phase phase) throws Exception {
 
-		InputStream deploymentStream = util.inputStream("fabric8-discovery-deployment.yaml");
-		InputStream serviceStream = util.inputStream("fabric8-discovery-service.yaml");
-		InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
+		try {
+			InputStream deploymentStream = util.inputStream("fabric8-discovery-deployment.yaml");
+			InputStream serviceStream = util.inputStream("fabric8-discovery-service.yaml");
+			InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
+			Deployment deployment = client.apps().deployments().load(deploymentStream).get();
 
-		List<EnvVar> existing = new ArrayList<>(
-				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
-		existing.add(new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_INCLUDEEXTERNALNAMESERVICES")
-				.withValue("true").build());
-		existing.add(
-				new EnvVarBuilder().withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY")
-						.withValue("DEBUG").build());
-		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
+			List<EnvVar> existing = new ArrayList<>(
+					deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
+			existing.add(new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_INCLUDEEXTERNALNAMESERVICES")
+					.withValue("true").build());
+			existing.add(
+					new EnvVarBuilder().withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY")
+							.withValue("TRACE").build());
+			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
 
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
+			Service service = client.services().load(serviceStream).get();
+			Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
 
-		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			if (phase.equals(Phase.CREATE)) {
+				util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			}
+			else {
+				util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			}
 		}
-		else {
-			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+		catch (Exception e) {
+			String appPodName = K3S.execInContainer("sh", "-c",
+					"kubectl get pods -l app=spring-cloud-kubernetes-fabric8-client-discovery -o=name --no-headers | tr -d '\n'")
+					.getStdout();
+
+			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
+			String ok = execResult.getStdout();
+			System.out.println(ok);
 		}
 
 	}
