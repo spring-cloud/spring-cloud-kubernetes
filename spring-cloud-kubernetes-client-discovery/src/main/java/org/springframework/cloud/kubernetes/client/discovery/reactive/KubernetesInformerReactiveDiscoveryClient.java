@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.reactive;
 
+import java.util.List;
+import java.util.Objects;
+
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
@@ -29,9 +32,6 @@ import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.util.Assert;
-
-import java.util.List;
 
 /**
  * @author Ryan Baxter
@@ -40,6 +40,7 @@ public class KubernetesInformerReactiveDiscoveryClient implements ReactiveDiscov
 
 	private final KubernetesInformerDiscoveryClient kubernetesDiscoveryClient;
 
+	@Deprecated(forRemoval = true)
 	public KubernetesInformerReactiveDiscoveryClient(KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
 			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
@@ -49,13 +50,20 @@ public class KubernetesInformerReactiveDiscoveryClient implements ReactiveDiscov
 				serviceInformer, endpointsInformer, properties);
 	}
 
-	public KubernetesInformerReactiveDiscoveryClient(
-			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
-			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
-			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties) {
-		this.kubernetesDiscoveryClient = new KubernetesInformerDiscoveryClient(
-			sharedInformerFactories, serviceListers, endpointsListers,
-			serviceInformers, endpointsInformers, properties);
+	KubernetesInformerReactiveDiscoveryClient(SharedInformerFactory sharedInformerFactory,
+			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
+			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
+			KubernetesDiscoveryProperties properties) {
+		this.kubernetesDiscoveryClient = new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister,
+				endpointsLister, serviceInformer, endpointsInformer, properties);
+	}
+
+	KubernetesInformerReactiveDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
+			List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
+			List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
+			KubernetesDiscoveryProperties properties) {
+		this.kubernetesDiscoveryClient = new KubernetesInformerDiscoveryClient(sharedInformerFactories, serviceListers,
+				endpointsListers, serviceInformers, endpointsInformers, properties);
 	}
 
 	@Override
@@ -65,7 +73,7 @@ public class KubernetesInformerReactiveDiscoveryClient implements ReactiveDiscov
 
 	@Override
 	public Flux<ServiceInstance> getInstances(String serviceId) {
-		Assert.notNull(serviceId, "[Assertion failed] - the object argument must not be null");
+		Objects.requireNonNull(serviceId, "serviceId must be provided");
 		return Flux.defer(() -> Flux.fromIterable(kubernetesDiscoveryClient.getInstances(serviceId)))
 				.subscribeOn(Schedulers.boundedElastic());
 	}

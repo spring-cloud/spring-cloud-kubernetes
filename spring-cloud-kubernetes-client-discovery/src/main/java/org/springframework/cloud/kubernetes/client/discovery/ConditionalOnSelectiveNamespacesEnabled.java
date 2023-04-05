@@ -23,8 +23,8 @@ import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * Conditional that checks if our discovery is based on selective namespaces,
- * i.e.: 'spring.cloud.kubernetes.discovery.namespaces' is set.
+ * Conditional that checks if our discovery is based on selective namespaces, i.e.:
+ * 'spring.cloud.kubernetes.discovery.namespaces' is set.
  *
  * @author wind57
  */
@@ -33,7 +33,7 @@ public final class ConditionalOnSelectiveNamespacesEnabled implements Condition 
 	@Override
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
 		return Optional.ofNullable(context.getEnvironment().getProperty("spring.cloud.kubernetes.discovery.namespaces"))
-			.map(x -> !x.isEmpty())
-			.orElse(false);
+				.map(x -> !x.isEmpty()).orElse(false);
 	}
+
 }

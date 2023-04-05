@@ -16,15 +16,15 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
+import java.util.Optional;
+
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
-import java.util.Optional;
-
 /**
- * Conditional that checks if our discovery is _not_ based on selective namespaces,
- * i.e.: 'spring.cloud.kubernetes.discovery.namespaces' is not set.
+ * Conditional that checks if our discovery is _not_ based on selective namespaces, i.e.:
+ * 'spring.cloud.kubernetes.discovery.namespaces' is not set.
  *
  * @author wind57
  */
@@ -33,7 +33,7 @@ public final class ConditionalOnSelectiveNamespacesDisabled implements Condition
 	@Override
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
 		return Optional.ofNullable(context.getEnvironment().getProperty("spring.cloud.kubernetes.discovery.namespaces"))
-			.map(String::isEmpty)
-			.orElse(true);
+				.map(String::isEmpty).orElse(true);
 	}
+
 }

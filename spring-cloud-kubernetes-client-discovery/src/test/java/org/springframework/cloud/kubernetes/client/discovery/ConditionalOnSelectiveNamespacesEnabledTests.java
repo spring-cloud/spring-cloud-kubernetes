@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.discovery;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.mock.env.MockEnvironment;
 

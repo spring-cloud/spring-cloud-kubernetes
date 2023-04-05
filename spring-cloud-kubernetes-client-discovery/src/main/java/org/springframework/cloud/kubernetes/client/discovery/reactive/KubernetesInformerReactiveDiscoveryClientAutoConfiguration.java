@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.reactive;
 
+import java.util.List;
+
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
@@ -40,8 +42,8 @@ import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactive
 import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
 import org.springframework.cloud.kubernetes.client.discovery.ConditionalOnSelectiveNamespacesDisabled;
 import org.springframework.cloud.kubernetes.client.discovery.ConditionalOnSelectiveNamespacesEnabled;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerSelectiveNamespacesAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerSelectiveNamespacesAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -49,8 +51,6 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 /**
  * @author Ryan Baxter
@@ -81,6 +81,7 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 		return healthIndicator;
 	}
 
+	@Deprecated(forRemoval = true)
 	@Bean
 	@ConditionalOnMissingBean
 	@Conditional(ConditionalOnSelectiveNamespacesDisabled.class)
@@ -95,14 +96,24 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	@Conditional(ConditionalOnSelectiveNamespacesDisabled.class)
+	KubernetesInformerReactiveDiscoveryClient kubernetesClientReactiveDiscoveryClient(
+			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
+			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
+			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
+		return new KubernetesInformerReactiveDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister,
+				serviceInformer, endpointsInformer, properties);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
 	@Conditional(ConditionalOnSelectiveNamespacesEnabled.class)
 	public KubernetesInformerReactiveDiscoveryClient selectiveNamespacesKubernetesReactiveDiscoveryClient(
-		List<SharedInformerFactory> sharedInformerFactories,
-		List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
-		List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
-		KubernetesDiscoveryProperties properties) {
-		return new KubernetesInformerReactiveDiscoveryClient(sharedInformerFactories,
-			serviceListers, endpointsListers, serviceInformers, endpointsInformers, properties);
+			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
+			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
+			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties) {
+		return new KubernetesInformerReactiveDiscoveryClient(sharedInformerFactories, serviceListers, endpointsListers,
+				serviceInformers, endpointsInformers, properties);
 	}
 
 }

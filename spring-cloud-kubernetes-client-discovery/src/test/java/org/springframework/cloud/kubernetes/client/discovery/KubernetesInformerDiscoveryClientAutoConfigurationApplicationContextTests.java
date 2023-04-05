@@ -22,15 +22,15 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.Config;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
-import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
 import org.testcontainers.k3s.K3sContainer;
 
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -79,7 +79,7 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 	@Test
 	void discoveryEnabledDefaultWithSelectiveNamespaces() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.kubernetes.discovery.namespaces=a,b,c");
+				"spring.cloud.kubernetes.discovery.namespaces=a,b,c");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
@@ -111,7 +111,7 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 	@Test
 	void discoveryEnabledWithSelectiveNamespaces() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.discovery.enabled=true", "spring.cloud.kubernetes.discovery.namespaces=a,b");
+				"spring.cloud.discovery.enabled=true", "spring.cloud.kubernetes.discovery.namespaces=a,b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
@@ -143,7 +143,7 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 	@Test
 	void discoveryDisabledWithSelectiveNamespaces() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.discovery.enabled=false", "spring.cloud.kubernetes.discovery.namespaces=a,b");
+				"spring.cloud.discovery.enabled=false", "spring.cloud.kubernetes.discovery.namespaces=a,b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
@@ -175,7 +175,8 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 	@Test
 	void kubernetesDiscoveryEnabledWithSelectiveNamespaces() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.kubernetes.discovery.enabled=true", "spring.cloud.kubernetes.discovery.namespaces=a,b,c,d");
+				"spring.cloud.kubernetes.discovery.enabled=true",
+				"spring.cloud.kubernetes.discovery.namespaces=a,b,c,d");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
@@ -207,7 +208,8 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 	@Test
 	void kubernetesDiscoveryDisabledWithSelectiveNamespaces() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.kubernetes.discovery.enabled=false", "spring.cloud.kubernetes.discovery.namespaces=a,b,c,d");
+				"spring.cloud.kubernetes.discovery.enabled=false",
+				"spring.cloud.kubernetes.discovery.namespaces=a,b,c,d");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
@@ -239,7 +241,7 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 	@Test
 	void kubernetesDiscoveryBlockingEnabledWithSelectiveNamespaces() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.discovery.blocking.enabled=true", "spring.cloud.kubernetes.discovery.namespaces=a");
+				"spring.cloud.discovery.blocking.enabled=true", "spring.cloud.kubernetes.discovery.namespaces=a");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
@@ -271,7 +273,7 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 	@Test
 	void kubernetesDiscoveryBlockingDisabledWithSelectiveNamespaces() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.kubernetes.discovery.namespaces=a,b");
+				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.kubernetes.discovery.namespaces=a,b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
@@ -303,8 +305,8 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 	@Test
 	void kubernetesDiscoveryHealthIndicatorEnabledWithSelectiveNamespaces() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.discovery.client.health-indicator.enabled=true",
-			"spring.cloud.kubernetes.discovery.namespaces=b");
+				"spring.cloud.discovery.client.health-indicator.enabled=true",
+				"spring.cloud.kubernetes.discovery.namespaces=b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
@@ -336,8 +338,8 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 	@Test
 	void kubernetesDiscoveryHealthIndicatorDisabledWithSelectiveNamespaces() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.discovery.client.health-indicator.enabled=false",
-			"spring.cloud.kubernetes.discovery.namespaces=b");
+				"spring.cloud.discovery.client.health-indicator.enabled=false",
+				"spring.cloud.kubernetes.discovery.namespaces=b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
@@ -369,8 +371,8 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 	@Test
 	void kubernetesDiscoveryHealthIndicatorEnabledHealthIndicatorMissingWithSelectiveNamespaces() {
 		setupWithFilteredClassLoader(HealthIndicator.class, "spring.main.cloud-platform=KUBERNETES",
-			"spring.cloud.config.enabled=false", "spring.cloud.discovery.client.health-indicator.enabled=true",
-			"spring.cloud.kubernetes.discovery.namespaces=a,b,c,d,e");
+				"spring.cloud.config.enabled=false", "spring.cloud.discovery.client.health-indicator.enabled=true",
+				"spring.cloud.kubernetes.discovery.namespaces=a,b,c,d,e");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
@@ -408,7 +410,8 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 	@Test
 	void reactiveDisabledWithSelectiveNamespaces() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.discovery.reactive.enabled=false", "spring.cloud.kubernetes.discovery.namespaces=a,b,c,d,e");
+				"spring.cloud.discovery.reactive.enabled=false",
+				"spring.cloud.kubernetes.discovery.namespaces=a,b,c,d,e");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
@@ -425,12 +428,8 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-<<<<<<< HEAD
-						KubernetesInformerAutoConfiguration.class,
+						KubernetesClientInformerAutoConfiguration.class,
 						KubernetesInformerSelectiveNamespacesAutoConfiguration.class))
-=======
-						KubernetesClientInformerAutoConfiguration.class))
->>>>>>> main
 				.withUserConfiguration(ApiClientConfig.class).withPropertyValues(properties);
 	}
 
@@ -438,12 +437,8 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-<<<<<<< HEAD
-						KubernetesInformerAutoConfiguration.class,
+						KubernetesClientInformerAutoConfiguration.class,
 						KubernetesInformerSelectiveNamespacesAutoConfiguration.class))
-=======
-						KubernetesClientInformerAutoConfiguration.class))
->>>>>>> main
 				.withClassLoader(new FilteredClassLoader(cls)).withUserConfiguration(ApiClientConfig.class)
 				.withPropertyValues(properties);
 	}
