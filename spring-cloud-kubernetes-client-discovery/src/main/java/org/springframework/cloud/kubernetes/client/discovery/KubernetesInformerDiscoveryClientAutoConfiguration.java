@@ -58,7 +58,7 @@ import java.util.List;
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-		KubernetesInformerAutoConfiguration.class, KubernetesInformerSelectiveNamespacesAutoConfiguration.class })
+		KubernetesClientInformerAutoConfiguration.class, KubernetesInformerSelectiveNamespacesAutoConfiguration.class })
 public class KubernetesInformerDiscoveryClientAutoConfiguration {
 
 	@Bean
@@ -69,6 +69,7 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 
+	@Deprecated(forRemoval = true)
 	@Bean
 	@ConditionalOnMissingBean
 	@Conditional(ConditionalOnSelectiveNamespacesDisabled.class)
@@ -83,14 +84,24 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesEnabled.class)
-	public KubernetesInformerDiscoveryClient selectiveNamespacesKubernetesInformerDiscoveryClient(
-		KubernetesNamespaceProvider kubernetesNamespaceProvider, List<SharedInformerFactory> sharedInformerFactory,
-		List<Lister<V1Service>> serviceLister, List<Lister<V1Endpoints>> endpointsLister,
-		List<SharedInformer<V1Service>> serviceInformer, List<SharedInformer<V1Endpoints>> endpointsInformer,
-		KubernetesDiscoveryProperties properties) {
-		return new KubernetesInformerDiscoveryClient(kubernetesNamespaceProvider.getNamespace(), sharedInformerFactory,
-			serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
+	@Conditional(ConditionalOnSelectiveNamespacesDisabled.class)
+	KubernetesInformerDiscoveryClient kubernetesClientInformerDiscoveryClient(
+		SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
+		Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
+		SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
+		return new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister,
+			serviceInformer, endpointsInformer, properties);
 	}
 
+	@Bean
+	@ConditionalOnMissingBean
+	@Conditional(ConditionalOnSelectiveNamespacesEnabled.class)
+	KubernetesInformerDiscoveryClient selectiveNamespacesKubernetesInformerDiscoveryClient(
+		List<SharedInformerFactory> sharedInformerFactories,
+		List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
+		List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
+		KubernetesDiscoveryProperties properties) {
+		return new KubernetesInformerDiscoveryClient(sharedInformerFactories,
+			serviceListers, endpointsListers, serviceInformers, endpointsInformers, properties);
+	}
 }

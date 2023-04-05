@@ -40,8 +40,8 @@ import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactive
 import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
 import org.springframework.cloud.kubernetes.client.discovery.ConditionalOnSelectiveNamespacesDisabled;
 import org.springframework.cloud.kubernetes.client.discovery.ConditionalOnSelectiveNamespacesEnabled;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerSelectiveNamespacesAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -64,7 +64,7 @@ import java.util.List;
 @AutoConfigureBefore({ SimpleReactiveDiscoveryClientAutoConfiguration.class,
 		ReactiveCommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
-		KubernetesDiscoveryPropertiesAutoConfiguration.class, KubernetesInformerAutoConfiguration.class,
+		KubernetesDiscoveryPropertiesAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class,
 		KubernetesInformerSelectiveNamespacesAutoConfiguration.class })
 public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 
@@ -97,11 +97,11 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Conditional(ConditionalOnSelectiveNamespacesEnabled.class)
 	public KubernetesInformerReactiveDiscoveryClient selectiveNamespacesKubernetesReactiveDiscoveryClient(
-		KubernetesNamespaceProvider kubernetesNamespaceProvider, List<SharedInformerFactory> sharedInformerFactories,
+		List<SharedInformerFactory> sharedInformerFactories,
 		List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
 		List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
 		KubernetesDiscoveryProperties properties) {
-		return new KubernetesInformerReactiveDiscoveryClient(kubernetesNamespaceProvider, sharedInformerFactories,
+		return new KubernetesInformerReactiveDiscoveryClient(sharedInformerFactories,
 			serviceListers, endpointsListers, serviceInformers, endpointsInformers, properties);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap;
+package org.springframework.cloud.kubernetes.fabric8.discovery.bootstrap;
 
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -38,7 +37,6 @@ import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
-import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
@@ -50,11 +48,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * @author wind57
  */
-class Fabric8DiscoveryIT {
+class Fabric8DiscoveryBootstrapIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-discovery";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-discovery-with-bootstrap";
 
 	private static KubernetesClient client;
 
@@ -85,11 +83,10 @@ class Fabric8DiscoveryIT {
 	}
 
 	/**
-	 * KubernetesDiscoveryClient::getServices call must include the external-name-service
-	 * also.
+	 * A simple test to discover services.
 	 */
 	@Test
-	void testAllServices() {
+	void testSimple() {
 		WebClient client = builder().baseUrl("http://localhost/services").build();
 
 		List<String> result = client.method(HttpMethod.GET).retrieve()
@@ -97,33 +94,10 @@ class Fabric8DiscoveryIT {
 
 				}).retryWhen(retrySpec()).block();
 
-		Assertions.assertEquals(result.size(), 4);
+		Assertions.assertEquals(result.size(), 3);
 		Assertions.assertTrue(result.contains("kubernetes"));
 		Assertions.assertTrue(result.contains("spring-cloud-kubernetes-fabric8-client-discovery"));
 		Assertions.assertTrue(result.contains("service-wiremock"));
-		Assertions.assertTrue(result.contains("external-name-service"));
-	}
-
-	@Test
-	void testExternalNameServiceInstance() {
-
-		WebClient client = builder().baseUrl("http://localhost/service-instances/external-name-service").build();
-		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
-
-				}).retryWhen(retrySpec()).block();
-
-		DefaultKubernetesServiceInstance result = serviceInstances.get(0);
-
-		Assertions.assertEquals(serviceInstances.size(), 1);
-		Assertions.assertEquals(result.getServiceId(), "external-name-service");
-		Assertions.assertNotNull(result.getInstanceId());
-		Assertions.assertEquals(result.getHost(), "spring.io");
-		Assertions.assertEquals(result.getPort(), -1);
-		Assertions.assertEquals(result.getMetadata(), Map.of("k8s_namespace", "default", "type", "ExternalName"));
-		Assertions.assertFalse(result.isSecure());
-		Assertions.assertEquals(result.getUri().toASCIIString(), "spring.io");
-		Assertions.assertEquals(result.getScheme(), "http");
 	}
 
 	private static void manifests(Phase phase) {
@@ -131,7 +105,6 @@ class Fabric8DiscoveryIT {
 		InputStream deploymentStream = util.inputStream("fabric8-discovery-deployment.yaml");
 		InputStream serviceStream = util.inputStream("fabric8-discovery-service.yaml");
 		InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
-		InputStream externalNameServiceInputStream = util.inputStream("external-name-service.yaml");
 
 		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
 
@@ -145,16 +118,13 @@ class Fabric8DiscoveryIT {
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
 
 		Service service = client.services().load(serviceStream).get();
-		Service externalNameService = client.services().load(externalNameServiceInputStream).get();
 		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
-			util.createAndWait(NAMESPACE, null, null, externalNameService, null, false);
 		}
 		else {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
-			util.deleteAndWait(NAMESPACE, null, externalNameService, null);
 		}
 
 	}

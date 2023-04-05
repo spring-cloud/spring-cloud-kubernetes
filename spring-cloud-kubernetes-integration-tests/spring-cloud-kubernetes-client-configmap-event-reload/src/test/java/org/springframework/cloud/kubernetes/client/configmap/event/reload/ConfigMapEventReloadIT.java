@@ -78,6 +78,7 @@ class ConfigMapEventReloadIT {
 
 	@AfterAll
 	static void afterAll() throws Exception {
+		util.deleteClusterWide(NAMESPACE, Set.of("left", "right"));
 		util.deleteNamespace("left");
 		util.deleteNamespace("right");
 		Commons.cleanUp(IMAGE_NAME, K3S);

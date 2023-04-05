@@ -28,9 +28,13 @@ import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscov
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
+<<<<<<< HEAD
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerSelectiveNamespacesAutoConfiguration;
+=======
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerAutoConfiguration;
+>>>>>>> main
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
@@ -398,8 +402,12 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 						KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
 						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+<<<<<<< HEAD
 						KubernetesInformerSelectiveNamespacesAutoConfiguration.class,
 						KubernetesCommonsAutoConfiguration.class, KubernetesInformerAutoConfiguration.class))
+=======
+						KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class))
+>>>>>>> main
 				.withPropertyValues(properties);
 	}
 
@@ -409,8 +417,12 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 						KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
 						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+<<<<<<< HEAD
 						KubernetesInformerSelectiveNamespacesAutoConfiguration.class,
 						KubernetesCommonsAutoConfiguration.class, KubernetesInformerAutoConfiguration.class))
+=======
+						KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class))
+>>>>>>> main
 				.withClassLoader(new FilteredClassLoader(name)).withPropertyValues(properties);
 	}
 

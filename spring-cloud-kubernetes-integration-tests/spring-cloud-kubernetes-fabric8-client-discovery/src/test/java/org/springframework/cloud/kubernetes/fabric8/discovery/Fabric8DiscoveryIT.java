@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap;
+package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.io.InputStream;
 import java.time.Duration;
@@ -50,7 +50,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * @author wind57
  */
-class Fabric8DiscoveryPodMetadataIT {
+class Fabric8DiscoveryIT {
 
 	private static final String NAMESPACE = "default";
 
@@ -74,54 +74,56 @@ class Fabric8DiscoveryPodMetadataIT {
 		util.setUp(NAMESPACE);
 
 		manifests(Phase.CREATE);
-		util.busybox(NAMESPACE, Phase.CREATE);
+		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE);
 	}
 
 	@AfterAll
 	static void after() throws Exception {
-		util.busybox(NAMESPACE, Phase.DELETE);
+		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE);
 		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
+	/**
+	 * KubernetesDiscoveryClient::getServices call must include the external-name-service
+	 * also.
+	 */
 	@Test
-	void testPodMetadata() throws Exception {
+	void testAllServices() {
+		WebClient client = builder().baseUrl("http://localhost/services").build();
 
-		// find both pods
-		String[] both = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
-				.getStdout().split("\n");
-		// add a label to first pod
-		K3S.execInContainer("sh", "-c",
-				"kubectl label pods " + both[0].split("/")[1] + " custom-label=custom-label-value");
-		// add annotation to the second pod
-		K3S.execInContainer("sh", "-c",
-				"kubectl annotate pods " + both[1].split("/")[1] + " custom-annotation=custom-annotation-value");
+		List<String> result = client.method(HttpMethod.GET).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 
-		WebClient client = builder().baseUrl("http://localhost/service-instances/busybox-service").build();
+				}).retryWhen(retrySpec()).block();
+
+		Assertions.assertEquals(result.size(), 4);
+		Assertions.assertTrue(result.contains("kubernetes"));
+		Assertions.assertTrue(result.contains("spring-cloud-kubernetes-fabric8-client-discovery"));
+		Assertions.assertTrue(result.contains("service-wiremock"));
+		Assertions.assertTrue(result.contains("external-name-service"));
+	}
+
+	@Test
+	void testExternalNameServiceInstance() {
+
+		WebClient client = builder().baseUrl("http://localhost/service-instances/external-name-service").build();
 		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
 				}).retryWhen(retrySpec()).block();
 
-		DefaultKubernetesServiceInstance withCustomLabel = serviceInstances.stream()
-				.filter(x -> x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty()).toList().get(0);
-		Assertions.assertEquals(withCustomLabel.getServiceId(), "busybox-service");
-		Assertions.assertNotNull(withCustomLabel.getInstanceId());
-		Assertions.assertNotNull(withCustomLabel.getHost());
-		Assertions.assertEquals(withCustomLabel.getMetadata(),
-				Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
-		Assertions.assertTrue(withCustomLabel.podMetadata().get("labels").entrySet().stream()
-				.anyMatch(x -> x.getKey().equals("custom-label") && x.getValue().equals("custom-label-value")));
+		DefaultKubernetesServiceInstance result = serviceInstances.get(0);
 
-		DefaultKubernetesServiceInstance withCustomAnnotation = serviceInstances.stream()
-				.filter(x -> !x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty()).toList().get(0);
-		Assertions.assertEquals(withCustomAnnotation.getServiceId(), "busybox-service");
-		Assertions.assertNotNull(withCustomAnnotation.getInstanceId());
-		Assertions.assertNotNull(withCustomAnnotation.getHost());
-		Assertions.assertEquals(withCustomAnnotation.getMetadata(),
-				Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
-		Assertions.assertTrue(withCustomAnnotation.podMetadata().get("annotations").entrySet().stream().anyMatch(
-				x -> x.getKey().equals("custom-annotation") && x.getValue().equals("custom-annotation-value")));
+		Assertions.assertEquals(serviceInstances.size(), 1);
+		Assertions.assertEquals(result.getServiceId(), "external-name-service");
+		Assertions.assertNotNull(result.getInstanceId());
+		Assertions.assertEquals(result.getHost(), "spring.io");
+		Assertions.assertEquals(result.getPort(), -1);
+		Assertions.assertEquals(result.getMetadata(), Map.of("k8s_namespace", "default", "type", "ExternalName"));
+		Assertions.assertFalse(result.isSecure());
+		Assertions.assertEquals(result.getUri().toASCIIString(), "spring.io");
+		Assertions.assertEquals(result.getScheme(), "http");
 	}
 
 	private static void manifests(Phase phase) {
@@ -129,14 +131,13 @@ class Fabric8DiscoveryPodMetadataIT {
 		InputStream deploymentStream = util.inputStream("fabric8-discovery-deployment.yaml");
 		InputStream serviceStream = util.inputStream("fabric8-discovery-service.yaml");
 		InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
+		InputStream externalNameServiceInputStream = util.inputStream("external-name-service.yaml");
 
 		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
 
 		List<EnvVar> existing = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
-		existing.add(new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_ADDPODLABELS")
-				.withValue("true").build());
-		existing.add(new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_ADDPODANNOTATIONS")
+		existing.add(new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_INCLUDEEXTERNALNAMESERVICES")
 				.withValue("true").build());
 		existing.add(
 				new EnvVarBuilder().withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY")
@@ -144,13 +145,16 @@ class Fabric8DiscoveryPodMetadataIT {
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
 
 		Service service = client.services().load(serviceStream).get();
+		Service externalNameService = client.services().load(externalNameServiceInputStream).get();
 		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, null, null, externalNameService, null, false);
 		}
 		else {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			util.deleteAndWait(NAMESPACE, null, externalNameService, null);
 		}
 
 	}

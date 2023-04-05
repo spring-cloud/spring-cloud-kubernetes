@@ -425,8 +425,12 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+<<<<<<< HEAD
 						KubernetesInformerAutoConfiguration.class,
 						KubernetesInformerSelectiveNamespacesAutoConfiguration.class))
+=======
+						KubernetesClientInformerAutoConfiguration.class))
+>>>>>>> main
 				.withUserConfiguration(ApiClientConfig.class).withPropertyValues(properties);
 	}
 
@@ -434,8 +438,12 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 		applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+<<<<<<< HEAD
 						KubernetesInformerAutoConfiguration.class,
 						KubernetesInformerSelectiveNamespacesAutoConfiguration.class))
+=======
+						KubernetesClientInformerAutoConfiguration.class))
+>>>>>>> main
 				.withClassLoader(new FilteredClassLoader(cls)).withUserConfiguration(ApiClientConfig.class)
 				.withPropertyValues(properties);
 	}

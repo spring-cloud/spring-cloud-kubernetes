@@ -49,10 +49,12 @@ import static io.kubernetes.client.util.Namespaces.NAMESPACE_ALL;
 import static io.kubernetes.client.util.Namespaces.NAMESPACE_DEFAULT;
 
 /**
- * Auto-configuration to be used when "spring.cloud.kubernetes.discovery.namespaces" is not defined.
+ * This configuration is not used by us internally and will be removed in a future
+ * release. Use it at your own risk.
  *
  * @author wind57
  */
+@Deprecated(forRemoval = true)
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnKubernetesDiscoveryEnabled
