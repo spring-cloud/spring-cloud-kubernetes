@@ -3,6 +3,8 @@ kind: Service
 metadata:
   labels:
     app: spring-cloud-kubernetes-client-discovery-it
+  annotations:
+    custom-spring-k8s: spring-k8s
   name: spring-cloud-kubernetes-client-discovery-it
 spec:
   ports:
