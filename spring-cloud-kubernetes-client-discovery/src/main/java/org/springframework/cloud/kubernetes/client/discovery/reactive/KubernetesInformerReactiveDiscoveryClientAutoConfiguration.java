@@ -108,7 +108,7 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@Conditional(ConditionalOnSelectiveNamespacesEnabled.class)
-	public KubernetesInformerReactiveDiscoveryClient selectiveNamespacesKubernetesReactiveDiscoveryClient(
+	KubernetesInformerReactiveDiscoveryClient selectiveNamespacesKubernetesReactiveDiscoveryClient(
 			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
 			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
 			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties) {

@@ -37,14 +37,10 @@ import org.mockito.Mockito;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.mock.env.MockEnvironment;
 
 import static io.kubernetes.client.util.Namespaces.NAMESPACE_ALL;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Ryan Baxter
@@ -93,7 +89,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				new KubernetesNamespaceProvider(new MockEnvironment()), sharedInformerFactory, serviceLister, null,
+				sharedInformerFactory, serviceLister, null,
 				null, null, kubernetesDiscoveryProperties);
 
 		StepVerifier.create(discoveryClient.getServices())
@@ -106,10 +102,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 	void testDiscoveryGetServicesOneNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(NAMESPACE_1, TEST_SERVICE_1, TEST_SERVICE_2);
 
-		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
-		when(kubernetesNamespaceProvider.getNamespace()).thenReturn(NAMESPACE_1);
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, null, null, null,
+				sharedInformerFactory, serviceLister, null, null, null,
 				KubernetesDiscoveryProperties.DEFAULT);
 
 		StepVerifier.create(discoveryClient.getServices()).expectNext(TEST_SERVICE_1.getMetadata().getName())
@@ -127,7 +121,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				new KubernetesNamespaceProvider(new MockEnvironment()), sharedInformerFactory, serviceLister,
+				sharedInformerFactory, serviceLister,
 				endpointsLister, null, null, kubernetesDiscoveryProperties);
 
 		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
@@ -147,10 +141,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
-		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
-		when(kubernetesNamespaceProvider.getNamespace()).thenReturn(NAMESPACE_1);
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, endpointsLister, null, null,
+				sharedInformerFactory, serviceLister, endpointsLister, null, null,
 				kubernetesDiscoveryProperties);
 
 		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
@@ -182,11 +174,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true,
 				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
 
-		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
-		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("irrelevant");
-
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, null, null, null,
+				sharedInformerFactory, serviceLister, null, null, null,
 				kubernetesDiscoveryProperties);
 
 		List<String> result = discoveryClient.getServices().collectList().block();
@@ -217,11 +206,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true,
 				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
 
-		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
-		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("irrelevant");
-
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, null, null, null,
+				sharedInformerFactory, serviceLister, null, null, null,
 				kubernetesDiscoveryProperties);
 
 		List<String> result = discoveryClient.getServices().collectList().block();
@@ -268,11 +254,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
-		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
-		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("irrelevant");
-
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, endpointsLister, null, null,
+				sharedInformerFactory, serviceLister, endpointsLister, null, null,
 				kubernetesDiscoveryProperties);
 
 		List<ServiceInstance> result = discoveryClient.getInstances("endpoints-x").collectList().block();
@@ -320,11 +303,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
-		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
-		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("irrelevant");
-
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				kubernetesNamespaceProvider, sharedInformerFactory, serviceLister, endpointsLister, null, null,
+				sharedInformerFactory, serviceLister, endpointsLister, null, null,
 				kubernetesDiscoveryProperties);
 
 		List<ServiceInstance> result = discoveryClient.getInstances("endpoints-x").collectList().block();
