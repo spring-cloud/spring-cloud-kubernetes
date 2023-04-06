@@ -58,7 +58,8 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-		KubernetesClientInformerAutoConfiguration.class, KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class })
+		KubernetesClientInformerAutoConfiguration.class,
+		KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class })
 public class KubernetesInformerDiscoveryClientAutoConfiguration {
 
 	@Bean

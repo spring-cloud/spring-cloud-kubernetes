@@ -79,7 +79,6 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
 			KubernetesDiscoveryProperties properties) {
 		this.sharedInformerFactories = List.of(sharedInformerFactory);
-
 		this.serviceListers = List.of(serviceLister);
 		this.endpointsListers = List.of(endpointsLister);
 		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
