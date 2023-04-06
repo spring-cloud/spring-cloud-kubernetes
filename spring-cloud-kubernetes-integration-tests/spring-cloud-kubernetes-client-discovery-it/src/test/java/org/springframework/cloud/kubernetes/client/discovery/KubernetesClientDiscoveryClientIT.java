@@ -119,8 +119,8 @@ class KubernetesClientDiscoveryClientIT {
 		Assertions.assertEquals(serviceInstance.getServiceId(), "spring-cloud-kubernetes-client-discovery-it");
 		Assertions.assertNotNull(serviceInstance.getHost());
 		Assertions.assertEquals(serviceInstance.getMetadata(),
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it", "custom-spring-k8s", "spring-k8s",
-					"http", "8080", "k8s_namespace", "default", "type", "ClusterIP"));
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it", "custom-spring-k8s", "spring-k8s", "http",
+						"8080", "k8s_namespace", "default", "type", "ClusterIP"));
 		Assertions.assertEquals(serviceInstance.getPort(), 8080);
 		Assertions.assertEquals(serviceInstance.getNamespace(), "default");
 
