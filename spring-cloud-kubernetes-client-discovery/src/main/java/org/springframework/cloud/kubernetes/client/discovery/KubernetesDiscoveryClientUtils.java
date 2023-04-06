@@ -101,11 +101,4 @@ final class KubernetesDiscoveryClientUtils {
 		return serviceMetadata;
 	}
 
-	/**
-	 * What key to use when searching for an endpoints from a {@link io.kubernetes.client.informer.cache.Lister}.
-	 */
-	static String endpointsKey(V1Service service) {
-		return service.getMetadata().getNamespace() + "/" + service.getMetadata().getName();
-	}
-
 }
