@@ -84,12 +84,13 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 	void testDiscoveryGetServicesAllNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(NAMESPACE_ALL, TEST_SERVICE_1, TEST_SERVICE_2,
 				TEST_SERVICE_3);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister("");
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				sharedInformerFactory, serviceLister, null,
+				sharedInformerFactory, serviceLister, endpointsLister,
 				null, null, kubernetesDiscoveryProperties);
 
 		StepVerifier.create(discoveryClient.getServices())
@@ -101,9 +102,10 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 	@Test
 	void testDiscoveryGetServicesOneNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(NAMESPACE_1, TEST_SERVICE_1, TEST_SERVICE_2);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister("");
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				sharedInformerFactory, serviceLister, null, null, null,
+				sharedInformerFactory, serviceLister, endpointsLister, null, null,
 				KubernetesDiscoveryProperties.DEFAULT);
 
 		StepVerifier.create(discoveryClient.getServices()).expectNext(TEST_SERVICE_1.getMetadata().getName())
@@ -164,6 +166,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 	 */
 	@Test
 	void testAllNamespacesTwoServicesPresent() {
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister("");
+
 		boolean allNamespaces = true;
 		V1Service serviceA = new V1Service().metadata(new V1ObjectMeta().name("service-a").namespace("namespace-a"));
 		V1Service serviceB = new V1Service().metadata(new V1ObjectMeta().name("service-b").namespace("namespace-b"));
@@ -175,7 +179,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				sharedInformerFactory, serviceLister, null, null, null,
+				sharedInformerFactory, serviceLister, endpointsLister, null, null,
 				kubernetesDiscoveryProperties);
 
 		List<String> result = discoveryClient.getServices().collectList().block();
@@ -196,6 +200,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 	 */
 	@Test
 	void testSingleNamespaceTwoServicesPresent() {
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister("");
+
 		boolean allNamespaces = false;
 		V1Service serviceA = new V1Service().metadata(new V1ObjectMeta().name("service-a").namespace("namespace-a"));
 		V1Service serviceB = new V1Service().metadata(new V1ObjectMeta().name("service-b").namespace("namespace-b"));
@@ -207,7 +213,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				sharedInformerFactory, serviceLister, null, null, null,
+				sharedInformerFactory, serviceLister, endpointsLister, null, null,
 				kubernetesDiscoveryProperties);
 
 		List<String> result = discoveryClient.getServices().collectList().block();
@@ -247,8 +253,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 		endpointsCache.add(endpointsXNamespaceA);
 		endpointsCache.add(endpointsXNamespaceB);
 
-		Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsCache).namespace(NAMESPACE_ALL);
-		Lister<V1Service> serviceLister = new Lister<>(serviceCache).namespace(NAMESPACE_ALL);
+		Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsCache, NAMESPACE_ALL);
+		Lister<V1Service> serviceLister = new Lister<>(serviceCache, NAMESPACE_ALL);
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true,
 				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null,

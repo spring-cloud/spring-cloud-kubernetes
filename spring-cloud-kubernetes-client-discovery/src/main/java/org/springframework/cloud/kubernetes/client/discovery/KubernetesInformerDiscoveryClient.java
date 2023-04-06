@@ -48,6 +48,7 @@ import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.matchesServiceLabels;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.endpointsKey;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
@@ -106,10 +107,10 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		this.serviceListers = serviceListers;
 		this.endpointsListers = endpointsListers;
 		this.informersReadyFunc = () -> {
-			boolean serviceInformersReady = serviceInformers.stream().map(SharedInformer::hasSynced)
-					.reduce(Boolean::logicalAnd).orElse(false);
-			boolean endpointsInformersReady = endpointsInformers.stream().map(SharedInformer::hasSynced)
-					.reduce(Boolean::logicalAnd).orElse(false);
+			boolean serviceInformersReady = serviceInformers.isEmpty() ||
+				serviceInformers.stream().map(SharedInformer::hasSynced).reduce(Boolean::logicalAnd).orElse(false);
+			boolean endpointsInformersReady = endpointsInformers.isEmpty() ||
+				endpointsInformers.stream().map(SharedInformer::hasSynced).reduce(Boolean::logicalAnd).orElse(false);
 			return serviceInformersReady && endpointsInformersReady;
 		};
 
@@ -126,10 +127,10 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		Objects.requireNonNull(serviceId, "serviceId must be provided");
 
 		List<V1Service> services = serviceListers.stream().flatMap(x -> x.list().stream())
+				.filter(scv -> scv.getMetadata() != null)
 				.filter(svc -> serviceId.equals(svc.getMetadata().getName())).toList();
-		if (services.size() == 0 || !services.stream().anyMatch(service -> matchesServiceLabels(service, properties))) {
-			// no such service present in the cluster
-			return new ArrayList<>();
+		if (services.size() == 0 || services.stream().noneMatch(service -> matchesServiceLabels(service, properties))) {
+			return List.of();
 		}
 		return services.stream().flatMap(s -> getServiceInstanceDetails(s, serviceId)).toList();
 	}
@@ -138,7 +139,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		Map<String, String> serviceMetadata = serviceMetadata(properties, service, serviceId);
 
 		List<V1Endpoints> endpoints = endpointsListers.stream()
-				.map(endpointsLister -> endpointsLister.get(service.getMetadata().getName())).filter(Objects::nonNull)
+				.map(endpointsLister -> endpointsLister.get(endpointsKey(service)))
+				.filter(Objects::nonNull)
 				.filter(ep -> ep.getSubsets() != null).toList();
 
 		Optional<String> discoveredPrimaryPortName = Optional.empty();
