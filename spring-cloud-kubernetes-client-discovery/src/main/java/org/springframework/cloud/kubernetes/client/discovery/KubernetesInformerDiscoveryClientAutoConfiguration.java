@@ -73,7 +73,7 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 	@Deprecated(forRemoval = true)
 	@Bean
 	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesDisabled.class)
+	@Conditional(ConditionalOnSelectiveNamespacesMissing.class)
 	public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient(
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, SharedInformerFactory sharedInformerFactory,
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
@@ -85,7 +85,7 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesDisabled.class)
+	@Conditional(ConditionalOnSelectiveNamespacesMissing.class)
 	KubernetesInformerDiscoveryClient kubernetesClientInformerDiscoveryClient(
 			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
 			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
@@ -96,7 +96,7 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesEnabled.class)
+	@Conditional(ConditionalOnSelectiveNamespacesPresent.class)
 	KubernetesInformerDiscoveryClient selectiveNamespacesKubernetesInformerDiscoveryClient(
 			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
 			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,

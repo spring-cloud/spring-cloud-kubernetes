@@ -28,6 +28,7 @@ import io.kubernetes.client.openapi.models.V1EndpointsList;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -44,6 +45,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * Auto-configuration to be used when "spring.cloud.kubernetes.discovery.namespaces" is
@@ -55,11 +57,14 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnKubernetesDiscoveryEnabled
 @ConditionalOnBlockingOrReactiveEnabled
-@Conditional(ConditionalOnSelectiveNamespacesEnabled.class)
+@Conditional(ConditionalOnSelectiveNamespacesPresent.class)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
 public class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
+
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class));
 
 	// we rely on the order of namespaces to enable listers, as such provide a bean of
 	// namespaces
@@ -67,16 +72,18 @@ public class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public List<String> selectiveNamespaces(KubernetesDiscoveryProperties properties) {
-		return new ArrayList<>(properties.namespaces());
+		List<String> selectiveNamespaces = properties.namespaces().stream().sorted().toList();
+		LOG.debug(() -> "using selective namespaces : " + selectiveNamespaces);
+		return selectiveNamespaces;
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(value = SharedInformerFactory.class, parameterizedContainer = List.class)
 	public List<SharedInformerFactory> sharedInformerFactories(ApiClient apiClient, List<String> selectiveNamespaces) {
 
-		int howMany = selectiveNamespaces.size();
-		List<SharedInformerFactory> sharedInformerFactories = new ArrayList<>(howMany);
-		for (int i = 0; i < howMany; ++i) {
+		int howManyNamespaces = selectiveNamespaces.size();
+		List<SharedInformerFactory> sharedInformerFactories = new ArrayList<>(howManyNamespaces);
+		for (int i = 0; i < howManyNamespaces; ++i) {
 			sharedInformerFactories.add(new SharedInformerFactory(apiClient));
 		}
 		return sharedInformerFactories;
@@ -110,7 +117,9 @@ public class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
 		List<Lister<V1Service>> serviceListers = new ArrayList<>(howManyNamespaces);
 
 		for (int i = 0; i < howManyNamespaces; ++i) {
-			Lister<V1Service> lister = new Lister<>(serviceSharedIndexInformers.get(i).getIndexer());
+			String namespace = selectiveNamespaces.get(i);
+			Lister<V1Service> lister = new Lister<>(serviceSharedIndexInformers.get(i).getIndexer(), namespace);
+			LOG.debug(() -> "registering lister (for services) in namespace : " + namespace);
 			serviceListers.add(lister);
 		}
 

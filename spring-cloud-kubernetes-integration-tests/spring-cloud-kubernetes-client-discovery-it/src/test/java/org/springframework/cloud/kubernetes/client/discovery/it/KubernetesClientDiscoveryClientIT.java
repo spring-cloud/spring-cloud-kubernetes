@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.discovery;
+package org.springframework.cloud.kubernetes.client.discovery.it;
 
 import java.time.Duration;
 import java.util.ArrayList;

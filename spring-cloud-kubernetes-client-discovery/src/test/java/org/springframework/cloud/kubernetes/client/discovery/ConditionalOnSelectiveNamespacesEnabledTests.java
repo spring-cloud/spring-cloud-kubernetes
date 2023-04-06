@@ -28,7 +28,7 @@ import org.springframework.mock.env.MockEnvironment;
  */
 class ConditionalOnSelectiveNamespacesEnabledTests {
 
-	private static final ConditionalOnSelectiveNamespacesEnabled TO_TEST = new ConditionalOnSelectiveNamespacesEnabled();
+	private static final ConditionalOnSelectiveNamespacesPresent TO_TEST = new ConditionalOnSelectiveNamespacesPresent();
 
 	private static final ConditionContext CONDITION_CONTEXT = Mockito.mock(ConditionContext.class);
 

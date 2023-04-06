@@ -251,7 +251,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 			}
 		}
 		LOG.info(() -> "Cache fully loaded (total " + serviceListers.stream().mapToLong(x -> x.list().size()).sum()
-				+ " services) , discovery client is now available");
+				+ " services), discovery client is now available");
 	}
 
 }

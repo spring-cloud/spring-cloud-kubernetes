@@ -40,8 +40,8 @@ import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIn
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
-import org.springframework.cloud.kubernetes.client.discovery.ConditionalOnSelectiveNamespacesDisabled;
-import org.springframework.cloud.kubernetes.client.discovery.ConditionalOnSelectiveNamespacesEnabled;
+import org.springframework.cloud.kubernetes.client.discovery.ConditionalOnSelectiveNamespacesMissing;
+import org.springframework.cloud.kubernetes.client.discovery.ConditionalOnSelectiveNamespacesPresent;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerSelectiveNamespacesAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
@@ -84,7 +84,7 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 	@Deprecated(forRemoval = true)
 	@Bean
 	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesDisabled.class)
+	@Conditional(ConditionalOnSelectiveNamespacesMissing.class)
 	public KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, SharedInformerFactory sharedInformerFactory,
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
@@ -96,7 +96,7 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesDisabled.class)
+	@Conditional(ConditionalOnSelectiveNamespacesMissing.class)
 	KubernetesInformerReactiveDiscoveryClient kubernetesClientReactiveDiscoveryClient(
 			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
 			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
@@ -107,7 +107,7 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesEnabled.class)
+	@Conditional(ConditionalOnSelectiveNamespacesPresent.class)
 	KubernetesInformerReactiveDiscoveryClient selectiveNamespacesKubernetesReactiveDiscoveryClient(
 			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
 			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
