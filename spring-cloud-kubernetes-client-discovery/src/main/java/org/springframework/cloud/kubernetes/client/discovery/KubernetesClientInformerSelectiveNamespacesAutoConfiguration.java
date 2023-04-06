@@ -59,7 +59,7 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
-public class KubernetesInformerSelectiveNamespacesAutoConfiguration {
+public class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
 
 	// we rely on the order of namespaces to enable listers, as such provide a bean of
 	// namespaces

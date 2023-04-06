@@ -429,7 +429,7 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 						KubernetesClientInformerAutoConfiguration.class,
-						KubernetesInformerSelectiveNamespacesAutoConfiguration.class))
+						KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class))
 				.withUserConfiguration(ApiClientConfig.class).withPropertyValues(properties);
 	}
 
@@ -438,7 +438,7 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 						KubernetesClientInformerAutoConfiguration.class,
-						KubernetesInformerSelectiveNamespacesAutoConfiguration.class))
+						KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class))
 				.withClassLoader(new FilteredClassLoader(cls)).withUserConfiguration(ApiClientConfig.class)
 				.withPropertyValues(properties);
 	}
