@@ -21,6 +21,7 @@ import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -45,6 +46,10 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.log.LogAccessor;
+
+import static org.springframework.cloud.kubernetes.commons.KubernetesClientProperties.SERVICE_ACCOUNT_NAMESPACE_PATH;
+import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.getNamespaceFromServiceAccountFile;
 
 /**
  * @author Ryan Baxter
@@ -61,15 +66,23 @@ import org.springframework.context.annotation.Configuration;
 		KubernetesDiscoveryPropertiesAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class })
 public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class));
+
 	@Bean
 	@ConditionalOnClass(name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	public ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
 			KubernetesInformerReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties,
 			KubernetesClientPodUtils podUtils) {
+
+		String currentPodNamespace = getNamespaceFromServiceAccountFile(SERVICE_ACCOUNT_NAMESPACE_PATH);
+		LOG.debug(() -> "registering ReactiveDiscoveryClientHealthIndicator to use namespace : " + currentPodNamespace);
+
 		ReactiveDiscoveryClientHealthIndicator healthIndicator = new ReactiveDiscoveryClientHealthIndicator(client,
 				properties);
-		InstanceRegisteredEvent<?> event = new InstanceRegisteredEvent<>(podUtils.currentPod(), null);
+		InstanceRegisteredEvent<?> event = new InstanceRegisteredEvent<>(podUtils.currentPod(currentPodNamespace),
+				null);
 		healthIndicator.onApplicationEvent(event);
 		return healthIndicator;
 	}

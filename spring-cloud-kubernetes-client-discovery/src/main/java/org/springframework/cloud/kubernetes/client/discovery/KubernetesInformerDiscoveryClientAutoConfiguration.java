@@ -21,6 +21,7 @@ import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -44,6 +45,10 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.log.LogAccessor;
+
+import static org.springframework.cloud.kubernetes.commons.KubernetesClientProperties.SERVICE_ACCOUNT_NAMESPACE_PATH;
+import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.getNamespaceFromServiceAccountFile;
 
 /**
  * @author wind57
@@ -58,12 +63,19 @@ import org.springframework.context.annotation.Configuration;
 		KubernetesClientInformerAutoConfiguration.class })
 public class KubernetesInformerDiscoveryClientAutoConfiguration {
 
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(KubernetesInformerDiscoveryClientAutoConfiguration.class));
+
 	@Bean
 	@ConditionalOnClass({ HealthIndicator.class })
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
 			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
-		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
+		String currentPodNamespace = getNamespaceFromServiceAccountFile(SERVICE_ACCOUNT_NAMESPACE_PATH);
+		LOG.debug(() -> "registering KubernetesDiscoveryClientHealthIndicatorInitializer to use namespace : "
+				+ currentPodNamespace);
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher,
+				currentPodNamespace);
 	}
 
 	@Deprecated(forRemoval = true)

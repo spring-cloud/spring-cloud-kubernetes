@@ -41,10 +41,8 @@ import org.springframework.core.log.LogAccessor;
 final class WatcherUtil {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(WatcherUtil.class));
-
 	private WatcherUtil() {
 	}
-
 	static void onEvent(KubernetesObject kubernetesObject, String label, String annotationName, long refreshDelay,
 			ScheduledExecutorService executorService, String type,
 			BiFunction<KubernetesObject, String, Mono<Void>> triggerRefresh) {

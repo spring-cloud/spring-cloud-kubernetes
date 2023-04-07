@@ -114,6 +114,8 @@ class KubernetesClientDiscoveryClientIT {
 
 		Assertions.assertEquals(ourServiceInstances.size(), 1);
 
+		assertLogStatement("successfully got an InstanceRegisteredEvent");
+
 		DefaultKubernetesServiceInstance serviceInstance = ourServiceInstances.get(0);
 		Assertions.assertNotNull(serviceInstance.getInstanceId());
 		Assertions.assertEquals(serviceInstance.getServiceId(), "spring-cloud-kubernetes-client-discovery-it");
@@ -164,6 +166,9 @@ class KubernetesClientDiscoveryClientIT {
 
 				}).retryWhen(retrySpec()).block();
 		Assertions.assertEquals(servicesResult.size(), 7);
+
+		assertLogStatement("successfully got an InstanceRegisteredEvent");
+
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
 		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-client-discovery-it"));
 		Assertions.assertTrue(servicesResult.contains("busybox-service"));
@@ -190,10 +195,14 @@ class KubernetesClientDiscoveryClientIT {
 	void testSpecificNamespace() {
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);
-		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE_A));
+		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A));
 		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE);
 		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE);
 		manifests(false, NAMESPACE_A, Phase.CREATE);
+
+		assertLogStatement("registering ReactiveDiscoveryClientHealthIndicator to use namespace : default");
+		assertLogStatement(
+				"registering KubernetesDiscoveryClientHealthIndicatorInitializer to use namespace : default");
 
 		// first check that wiremock service is present in both namespaces a and b
 		assertServicePresentInNamespaces(List.of("a", "b"), "service-wiremock", "service-wiremock");
@@ -206,6 +215,8 @@ class KubernetesClientDiscoveryClientIT {
 				}).retryWhen(retrySpec()).block();
 		Assertions.assertEquals(servicesResult.size(), 1);
 		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
+
+		assertLogStatement("successfully got an InstanceRegisteredEvent");
 
 		WebClient wiremockInNamespaceAClient = builder().baseUrl("http://localhost//service-instances/service-wiremock")
 				.build();
@@ -223,7 +234,7 @@ class KubernetesClientDiscoveryClientIT {
 		manifests(false, NAMESPACE_A, Phase.DELETE);
 		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE);
 		util.wiremock(NAMESPACE_B, "/wiremock", Phase.DELETE);
-		util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE_A));
+		util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A));
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
 	}
@@ -238,6 +249,8 @@ class KubernetesClientDiscoveryClientIT {
 						.orElse(List.of()));
 		V1EnvVar debugLevel = new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY")
 				.value("DEBUG");
+		V1EnvVar debugLevelForClient = new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT")
+				.value("DEBUG");
 		if (allNamespaces) {
 			V1EnvVar allNamespacesVar = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES")
 					.value("TRUE");
@@ -250,6 +263,7 @@ class KubernetesClientDiscoveryClientIT {
 			envVars.add(clientNamespace);
 		}
 		envVars.add(debugLevel);
+		envVars.add(debugLevelForClient);
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
 		if (phase.equals(Phase.CREATE)) {

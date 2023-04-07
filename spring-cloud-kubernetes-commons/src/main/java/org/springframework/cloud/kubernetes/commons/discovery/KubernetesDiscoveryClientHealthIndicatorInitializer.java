@@ -36,18 +36,40 @@ public final class KubernetesDiscoveryClientHealthIndicatorInitializer {
 
 	private final ApplicationEventPublisher applicationEventPublisher;
 
+	private final String namespace;
+
 	public KubernetesDiscoveryClientHealthIndicatorInitializer(PodUtils<?> podUtils,
 			ApplicationEventPublisher applicationEventPublisher) {
 		this.podUtils = podUtils;
 		this.applicationEventPublisher = applicationEventPublisher;
+		this.namespace = null;
+	}
+
+	public KubernetesDiscoveryClientHealthIndicatorInitializer(PodUtils<?> podUtils,
+			ApplicationEventPublisher applicationEventPublisher, String namespace) {
+		this.podUtils = podUtils;
+		this.applicationEventPublisher = applicationEventPublisher;
+		this.namespace = namespace;
 	}
 
 	@PostConstruct
 	private void postConstruct() {
 		LOG.debug(() -> "publishing InstanceRegisteredEvent");
-		this.applicationEventPublisher.publishEvent(new InstanceRegisteredEvent<>(
-				new RegisteredEventSource("kubernetes", podUtils.isInsideKubernetes(), podUtils.currentPod().get()),
-				null));
+
+		Object pod;
+		boolean insideKubernetes;
+		if (namespace == null) {
+			pod = podUtils.currentPod().get();
+			insideKubernetes = podUtils.isInsideKubernetes();
+		}
+		else {
+			LOG.debug(() -> "getting pod in namespace : " + namespace);
+			pod = podUtils.currentPod(namespace);
+			insideKubernetes = podUtils.isInsideKubernetes(namespace);
+		}
+
+		this.applicationEventPublisher.publishEvent(
+				new InstanceRegisteredEvent<>(new RegisteredEventSource("kubernetes", insideKubernetes, pod), null));
 	}
 
 	/**

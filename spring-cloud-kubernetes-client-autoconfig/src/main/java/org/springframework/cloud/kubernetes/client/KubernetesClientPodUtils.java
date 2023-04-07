@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client;
 import java.nio.file.Paths;
 import java.util.function.Supplier;
 
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.Config;
@@ -59,7 +60,7 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 
 	public KubernetesClientPodUtils(CoreV1Api client, String namespace) {
 		if (client == null) {
-			throw new IllegalArgumentException("Must provide an instance of KubernetesClient");
+			throw new IllegalArgumentException("Must provide an instance of CoreV1Api");
 		}
 
 		this.client = client;
@@ -75,19 +76,54 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 	}
 
 	@Override
+	public final V1Pod currentPod(String namespace) {
+		return internalGetPod(namespace);
+	}
+
+	@Override
 	public boolean isInsideKubernetes() {
 		return currentPod().get() != null;
+	}
+
+	@Override
+	public final boolean isInsideKubernetes(String namespace) {
+		return currentPod(namespace) != null;
 	}
 
 	private V1Pod internalGetPod() {
 		try {
 			if (isServiceHostEnvVarPresent() && isHostNameEnvVarPresent() && isServiceAccountFound()) {
+				LOG.debug("will search for pod : " + hostName + " in namespace : " + namespace);
 				return client.readNamespacedPod(hostName, namespace, null);
 			}
 		}
 		catch (Throwable t) {
-			LOG.warn("Failed to get pod with name:[" + hostName + "]. You should look into this if things aren't"
-					+ " working as you expect. Are you missing serviceaccount permissions?", t);
+			if (t instanceof ApiException apiException) {
+				LOG.warn("Failure :" + apiException.getResponseBody(), apiException);
+			}
+			else {
+				LOG.warn("Failed to get pod with name:[" + hostName + "]. You should look into this if things aren't"
+						+ " working as you expect. Are you missing serviceaccount permissions?", t);
+			}
+		}
+		return null;
+	}
+
+	private V1Pod internalGetPod(String explicitNamespace) {
+		try {
+			if (isServiceHostEnvVarPresent() && isHostNameEnvVarPresent() && isServiceAccountFound()) {
+				LOG.debug("will search for pod : " + hostName + " in specific namespace : " + explicitNamespace);
+				return client.readNamespacedPod(hostName, explicitNamespace, null);
+			}
+		}
+		catch (Throwable t) {
+			if (t instanceof ApiException apiException) {
+				LOG.warn("Failure :" + apiException.getResponseBody(), apiException);
+			}
+			else {
+				LOG.warn("Failed to get pod with name:[" + hostName + "]. You should look into this if things aren't"
+						+ " working as you expect. Are you missing serviceaccount permissions?", t);
+			}
 		}
 		return null;
 	}

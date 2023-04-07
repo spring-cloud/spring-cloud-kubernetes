@@ -32,8 +32,22 @@ public interface PodUtils<T> {
 	Supplier<T> currentPod();
 
 	/**
+	 * Pod in specific namespace.
+	 */
+	default T currentPod(String namespace) {
+		return null;
+	}
+
+	/**
 	 * @return true if called from within Kubernetes, false otherwise.
 	 */
 	boolean isInsideKubernetes();
+
+	/**
+	 * @return true if called from within Kubernetes, false otherwise.
+	 */
+	default boolean isInsideKubernetes(String namespace) {
+		return false;
+	}
 
 }
