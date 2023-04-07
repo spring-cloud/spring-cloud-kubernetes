@@ -75,8 +75,6 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 	}
 
 	@Deprecated(forRemoval = true)
-	@Bean
-	@ConditionalOnMissingBean
 	public KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, SharedInformerFactory sharedInformerFactory,
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
