@@ -69,7 +69,7 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 			KubernetesClientPodUtils podUtils) {
 		ReactiveDiscoveryClientHealthIndicator healthIndicator = new ReactiveDiscoveryClientHealthIndicator(client,
 				properties);
-		InstanceRegisteredEvent<?> event = new InstanceRegisteredEvent<>(podUtils.currentPod(), null);
+		InstanceRegisteredEvent<?> event = new InstanceRegisteredEvent<>(podUtils.currentPod().get(), null);
 		healthIndicator.onApplicationEvent(event);
 		return healthIndicator;
 	}

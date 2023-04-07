@@ -19,18 +19,25 @@ package org.springframework.cloud.kubernetes.client.discovery.reactive;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Pod;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -190,7 +197,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
 						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 						KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class))
-				.withPropertyValues(properties);
+				.withUserConfiguration(KubernetesClientPodUtilsConfig.class).withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(String name, String... properties) {
@@ -201,6 +208,19 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 						KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class))
 				.withClassLoader(new FilteredClassLoader(name)).withPropertyValues(properties);
+	}
+
+	@TestConfiguration
+	protected static class KubernetesClientPodUtilsConfig {
+
+		@Bean
+		@Primary
+		KubernetesClientPodUtils podUtils() {
+			KubernetesClientPodUtils mock = Mockito.mock(KubernetesClientPodUtils.class);
+			Mockito.when(mock.currentPod()).thenReturn(() -> new V1Pod().metadata(new V1ObjectMeta().name("my-pod")));
+			return mock;
+		}
+
 	}
 
 }

@@ -22,9 +22,12 @@ import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.Config;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -32,6 +35,7 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -208,7 +212,7 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 						KubernetesClientInformerAutoConfiguration.class))
-				.withUserConfiguration(ApiClientConfig.class).withPropertyValues(properties);
+				.withUserConfiguration(TestConfiguration.class).withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(Class<?> cls, String... properties) {
@@ -216,12 +220,12 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
 						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 						KubernetesClientInformerAutoConfiguration.class))
-				.withClassLoader(new FilteredClassLoader(cls)).withUserConfiguration(ApiClientConfig.class)
+				.withClassLoader(new FilteredClassLoader(cls)).withUserConfiguration(TestConfiguration.class)
 				.withPropertyValues(properties);
 	}
 
 	@Configuration
-	static class ApiClientConfig {
+	static class TestConfiguration {
 
 		@Bean
 		@Primary
@@ -230,6 +234,14 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 			container.start();
 
 			return Config.fromConfig(new StringReader(container.getKubeConfigYaml()));
+		}
+
+		@Bean
+		@Primary
+		KubernetesClientPodUtils podUtils() {
+			KubernetesClientPodUtils mock = Mockito.mock(KubernetesClientPodUtils.class);
+			Mockito.when(mock.currentPod()).thenReturn(() -> new V1Pod().metadata(new V1ObjectMeta().name("my-pod")));
+			return mock;
 		}
 
 	}
