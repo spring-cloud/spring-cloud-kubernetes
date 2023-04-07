@@ -64,10 +64,10 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository {
 		try {
 			StandardEnvironment springEnv = new StandardEnvironment();
 			springEnv.setActiveProfiles(profiles);
-			addApplicationConfiguration(environment, springEnv, "application");
 			if (!"application".equalsIgnoreCase(application)) {
 				addApplicationConfiguration(environment, springEnv, application);
 			}
+			addApplicationConfiguration(environment, springEnv, "application");
 			return environment;
 		}
 		catch (Exception e) {
