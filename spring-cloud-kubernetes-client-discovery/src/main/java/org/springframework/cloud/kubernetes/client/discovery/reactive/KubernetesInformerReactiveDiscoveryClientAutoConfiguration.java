@@ -87,12 +87,11 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	KubernetesInformerReactiveDiscoveryClient kubernetesClientReactiveDiscoveryClient(
-		SharedInformerFactory sharedInformerFactory,
-		Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
-		SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
-		KubernetesDiscoveryProperties properties) {
-		return new KubernetesInformerReactiveDiscoveryClient(sharedInformerFactory,
-			serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
+			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
+			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
+			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
+		return new KubernetesInformerReactiveDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister,
+				serviceInformer, endpointsInformer, properties);
 	}
 
 }
