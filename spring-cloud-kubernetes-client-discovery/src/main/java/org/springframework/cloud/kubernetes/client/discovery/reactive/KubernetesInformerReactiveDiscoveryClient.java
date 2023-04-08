@@ -49,13 +49,12 @@ public class KubernetesInformerReactiveDiscoveryClient implements ReactiveDiscov
 				serviceInformer, endpointsInformer, properties);
 	}
 
-	KubernetesInformerReactiveDiscoveryClient(
-			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
-			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
-			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
-		this.kubernetesDiscoveryClient = new KubernetesInformerDiscoveryClient(
-			sharedInformerFactory, serviceLister, endpointsLister,
-			serviceInformer, endpointsInformer, properties);
+	KubernetesInformerReactiveDiscoveryClient(SharedInformerFactory sharedInformerFactory,
+			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
+			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
+			KubernetesDiscoveryProperties properties) {
+		this.kubernetesDiscoveryClient = new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister,
+				endpointsLister, serviceInformer, endpointsInformer, properties);
 	}
 
 	@Override
