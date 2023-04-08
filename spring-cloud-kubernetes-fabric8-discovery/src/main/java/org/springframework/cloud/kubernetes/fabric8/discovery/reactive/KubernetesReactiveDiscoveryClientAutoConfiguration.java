@@ -29,12 +29,14 @@ import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEna
 import org.springframework.cloud.client.ConditionalOnReactiveDiscoveryEnabled;
 import org.springframework.cloud.client.ReactiveCommonsClientAutoConfiguration;
 import org.springframework.cloud.client.discovery.composite.reactive.ReactiveCompositeDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIndicatorProperties;
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.Fabric8PodUtils;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesClientServicesFunction;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesClientServicesFunctionProvider;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientAutoConfiguration;
@@ -76,6 +78,19 @@ public class KubernetesReactiveDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnClass(name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
+	public ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
+			KubernetesReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties,
+			Fabric8PodUtils podUtils) {
+
+		ReactiveDiscoveryClientHealthIndicator healthIndicator = new ReactiveDiscoveryClientHealthIndicator(client,
+				properties);
+		InstanceRegisteredEvent<?> event = new InstanceRegisteredEvent<>(podUtils.currentPod(), null);
+		healthIndicator.onApplicationEvent(event);
+
+		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
+	}
+
+	@Deprecated(forRemoval = true)
 	public ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
 			KubernetesReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties) {
 		return new ReactiveDiscoveryClientHealthIndicator(client, properties);

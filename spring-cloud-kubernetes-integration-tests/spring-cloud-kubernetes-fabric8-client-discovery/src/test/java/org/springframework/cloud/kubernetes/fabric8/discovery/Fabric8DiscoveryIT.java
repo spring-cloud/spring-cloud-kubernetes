@@ -105,6 +105,16 @@ class Fabric8DiscoveryIT {
 	}
 
 	@Test
+	void testAllServicesDisableReactive() {
+		Assertions.fail("TOOD"); // also test EventListener
+	}
+
+	@Test
+	void testAllServicesDisableBlocking() {
+		Assertions.fail("TOOD"); // also test EventListener
+	}
+
+	@Test
 	void testExternalNameServiceInstance() {
 
 		WebClient client = builder().baseUrl("http://localhost/service-instances/external-name-service").build();
