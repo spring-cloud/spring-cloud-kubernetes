@@ -260,4 +260,36 @@ class KubernetesEnvironmentRepositoryTests {
 		});
 	}
 
+	@Test
+	public void testApplicationPropertiesAnSecretsOverride() throws ApiException {
+		CoreV1Api coreApi = mock(CoreV1Api.class);
+		when(coreApi.listNamespacedConfigMap(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
+				eq(null), eq(null), eq(null), eq(null))).thenReturn(CONFIGMAP_DEFAULT_LIST);
+		when(coreApi.listNamespacedSecret(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
+				eq(null), eq(null), eq(null), eq(null))).thenReturn(SECRET_LIST);
+		when(coreApi.listNamespacedConfigMap(eq("dev"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
+				eq(null), eq(null), eq(null), eq(null))).thenReturn(CONFIGMAP_DEV_LIST);
+		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
+		Environment environment = environmentRepository.findOne("stores-dev", "", "");
+		environment.getPropertySources().stream()
+				.filter(propertySource -> propertySource.getName().startsWith("configmap"))
+				.reduce((first, second) -> second).ifPresent(propertySource -> {
+					assertThat(propertySource.getName()).isEqualTo("configmap.application.default");
+				});
+		environment.getPropertySources().stream()
+				.filter(propertySource -> propertySource.getName().startsWith("configmap")).findFirst()
+				.ifPresent(propertySource -> {
+					assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(2);
+					assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(false);
+					assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("b");
+				});
+		environment.getPropertySources().stream()
+				.filter(propertySource -> propertySource.getName().startsWith("secrets")).findFirst()
+				.ifPresent(propertySource -> {
+					assertThat(propertySource.getSource().get("username")).isEqualTo("stores-dev");
+					assertThat(propertySource.getSource().get("password")).isEqualTo("p455w0rd");
+				});
+	}
+
 }
