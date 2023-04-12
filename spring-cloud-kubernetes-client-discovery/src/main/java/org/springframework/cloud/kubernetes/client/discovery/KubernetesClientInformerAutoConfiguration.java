@@ -121,6 +121,7 @@ public class KubernetesClientInformerAutoConfiguration {
 	@ConditionalOnMissingBean(value = V1Service.class, parameterizedContainer = Lister.class)
 	public Lister<V1Service> servicesLister(SharedIndexInformer<V1Service> servicesSharedIndexInformer,
 			String kubernetesClientNamespace) {
+		LOG.debug(() -> "creating Lister<V1Service>");
 		return new Lister<>(servicesSharedIndexInformer.getIndexer(), kubernetesClientNamespace);
 	}
 
