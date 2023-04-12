@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.reactive;
 
+import java.io.StringReader;
+
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
@@ -23,6 +25,7 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.Config;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -38,9 +41,6 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.testcontainers.k3s.K3sContainer;
-
-import java.io.StringReader;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -207,8 +207,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
 						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 						KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class))
-				.withUserConfiguration(ApiClientConfig.class)
-				.withPropertyValues(properties);
+				.withUserConfiguration(ApiClientConfig.class).withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(String name, String... properties) {
@@ -218,8 +217,8 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
 						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 						KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class))
-				.withUserConfiguration(ApiClientConfig.class)
-				.withClassLoader(new FilteredClassLoader(name)).withPropertyValues(properties);
+				.withUserConfiguration(ApiClientConfig.class).withClassLoader(new FilteredClassLoader(name))
+				.withPropertyValues(properties);
 	}
 
 	@Configuration
