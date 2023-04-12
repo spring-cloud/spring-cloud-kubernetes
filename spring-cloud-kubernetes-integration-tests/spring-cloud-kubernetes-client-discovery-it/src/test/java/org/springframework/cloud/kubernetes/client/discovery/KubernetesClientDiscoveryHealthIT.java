@@ -30,7 +30,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.ParameterizedTypeReference;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
@@ -41,6 +40,7 @@ import org.springframework.boot.test.json.BasicJsonTester;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -50,11 +50,9 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 class KubernetesClientDiscoveryHealthIT {
 
-	private static final String REACTIVE_STATUS =
-		"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].status";
+	private static final String REACTIVE_STATUS = "$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].status";
 
-	private static final String BLOCKING_STATUS =
-		"$.components.discoveryComposite.components.discoveryClient.status";
+	private static final String BLOCKING_STATUS = "$.components.discoveryComposite.components.discoveryClient.status";
 
 	private static final String NAMESPACE = "default";
 
@@ -109,8 +107,7 @@ class KubernetesClientDiscoveryHealthIT {
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue(BLOCKING_STATUS)
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(BLOCKING_STATUS)
 				.isEqualTo("UP");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
@@ -118,8 +115,7 @@ class KubernetesClientDiscoveryHealthIT {
 						"$.components.discoveryComposite.components.discoveryClient.details.services")
 				.containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it", "kubernetes");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.doesNotHaveJsonPath(REACTIVE_STATUS);
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(REACTIVE_STATUS);
 
 		manifests(true, false, Phase.DELETE);
 	}
@@ -136,36 +132,35 @@ class KubernetesClientDiscoveryHealthIT {
 		assertLogStatement("publishing InstanceRegisteredEvent");
 		assertLogStatement("Discovery Client has been initialized");
 		assertLogStatement(
-			"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-client-discovery-it");
+				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-client-discovery-it");
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 
 		String healthResult = healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-			.retryWhen(retrySpec()).block();
+				.retryWhen(retrySpec()).block();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
+				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue("$.components.discoveryComposite.components.discoveryClient.status")
-			.isEqualTo("UP");
+				.extractingJsonPathStringValue("$.components.discoveryComposite.components.discoveryClient.status")
+				.isEqualTo("UP");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathArrayValue(
-				"$.components.discoveryComposite.components.discoveryClient.details.services")
-			.containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it", "kubernetes");
+				.extractingJsonPathArrayValue(
+						"$.components.discoveryComposite.components.discoveryClient.details.services")
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it", "kubernetes");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
+				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].status")
-			.isEqualTo("UP");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
+				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].status")
+				.isEqualTo("UP");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathArrayValue(
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
 				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
-			.containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it", "kubernetes");
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it", "kubernetes");
 
 		manifests(false, false, Phase.DELETE);
 	}
@@ -197,26 +192,22 @@ class KubernetesClientDiscoveryHealthIT {
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue(REACTIVE_STATUS)
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(REACTIVE_STATUS)
 				.isEqualTo("UP");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathArrayValue(
-						"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
+				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
 				.containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it", "kubernetes");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.doesNotHaveJsonPath(BLOCKING_STATUS);
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(BLOCKING_STATUS);
 
 		// test for services also:
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/reactive/services").build();
 
-		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve().bodyToMono(
-			new ParameterizedTypeReference<List<String>>() {
-			})
-			.retryWhen(retrySpec()).block();
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertThat(servicesResult).contains("spring-cloud-kubernetes-client-discovery-it");
 		Assertions.assertThat(servicesResult).contains("kubernetes");
