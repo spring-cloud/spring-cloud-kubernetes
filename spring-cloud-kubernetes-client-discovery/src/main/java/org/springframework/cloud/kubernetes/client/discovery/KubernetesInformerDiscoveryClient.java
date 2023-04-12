@@ -238,7 +238,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	}
 
 	@Override
-	public final int getOrder() {
+	public int getOrder() {
 		return properties.order();
 	}
 
