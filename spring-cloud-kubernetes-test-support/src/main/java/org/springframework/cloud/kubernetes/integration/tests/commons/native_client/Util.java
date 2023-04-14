@@ -455,7 +455,7 @@ public final class Util {
 
 	private void waitForDeployment(String namespace, V1Deployment deployment) {
 		String deploymentName = deploymentName(deployment);
-		await().pollInterval(Duration.ofSeconds(1)).atMost(900, TimeUnit.SECONDS)
+		await().pollDelay(Duration.ofSeconds(5)).pollInterval(Duration.ofSeconds(5)).atMost(900, TimeUnit.SECONDS)
 				.until(() -> isDeploymentReady(deploymentName, namespace));
 	}
 
@@ -575,6 +575,7 @@ public final class Util {
 	}
 
 	private boolean isDeploymentReady(String deploymentName, String namespace) throws ApiException {
+		LOG.info("will query deployment status for : " + deploymentName);
 		V1DeploymentList deployments = appsV1Api.listNamespacedDeployment(namespace, null, null, null,
 				"metadata.name=" + deploymentName, null, null, null, null, null, null);
 		if (deployments.getItems().size() < 1) {
