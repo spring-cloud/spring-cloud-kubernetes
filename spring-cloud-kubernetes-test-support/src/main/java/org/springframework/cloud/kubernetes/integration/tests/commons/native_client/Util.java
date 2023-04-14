@@ -575,7 +575,6 @@ public final class Util {
 	}
 
 	private boolean isDeploymentReady(String deploymentName, String namespace) throws ApiException {
-		LOG.info("will query deployment status for : " + deploymentName);
 		V1DeploymentList deployments = appsV1Api.listNamespacedDeployment(namespace, null, null, null,
 				"metadata.name=" + deploymentName, null, null, null, null, null, null);
 		if (deployments.getItems().size() < 1) {
