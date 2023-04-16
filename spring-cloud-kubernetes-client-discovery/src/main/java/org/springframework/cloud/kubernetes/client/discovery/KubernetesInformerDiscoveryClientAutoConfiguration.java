@@ -56,8 +56,6 @@ import org.springframework.context.annotation.Import;
 public class KubernetesInformerDiscoveryClientAutoConfiguration {
 
 	@Deprecated(forRemoval = true)
-	@Bean
-	@ConditionalOnMissingBean
 	public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient(
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, SharedInformerFactory sharedInformerFactory,
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
