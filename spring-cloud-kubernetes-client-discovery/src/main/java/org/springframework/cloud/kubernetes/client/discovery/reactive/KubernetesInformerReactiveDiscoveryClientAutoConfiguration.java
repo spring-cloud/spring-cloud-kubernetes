@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.discovery.reactive;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.logging.LogFactory;
@@ -52,6 +53,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.log.LogAccessor;
 
+import static org.springframework.cloud.kubernetes.commons.KubernetesClientProperties.SERVICE_ACCOUNT_NAMESPACE_PATH;
+import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.getNamespaceFromServiceAccountFile;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource;
 
 /**
@@ -68,6 +71,8 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 @AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
 		KubernetesDiscoveryPropertiesAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class })
 public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
+
+	private static final String CURRENT_NAMESPACE = getNamespaceFromServiceAccountFile(SERVICE_ACCOUNT_NAMESPACE_PATH);
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class));
@@ -95,6 +100,13 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 				serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
 	}
 
+	@Deprecated(forRemoval = true)
+	KubernetesDiscoveryClientHealthIndicatorInitializer reactiveIndicatorInitializer(
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+		LOG.debug(() -> "Will publish InstanceRegisteredEvent from reactive implementation");
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
+	}
+
 	/**
 	 * Post an event so that health indicator is initialized.
 	 */
@@ -102,9 +114,11 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 	@ConditionalOnClass(name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	KubernetesDiscoveryClientHealthIndicatorInitializer reactiveIndicatorInitializer(
-			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+			ApplicationEventPublisher applicationEventPublisher, CoreV1Api coreV1Api) {
+		KubernetesClientPodUtils kubernetesClientPodUtils = new KubernetesClientPodUtils(coreV1Api, CURRENT_NAMESPACE);
 		LOG.debug(() -> "Will publish InstanceRegisteredEvent from reactive implementation");
-		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(kubernetesClientPodUtils,
+				applicationEventPublisher);
 	}
 
 	/**

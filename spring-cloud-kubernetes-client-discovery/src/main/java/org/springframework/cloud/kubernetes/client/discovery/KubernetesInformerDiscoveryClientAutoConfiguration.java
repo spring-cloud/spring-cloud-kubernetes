@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.discovery;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.logging.LogFactory;
@@ -36,6 +37,7 @@ import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
@@ -46,6 +48,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.log.LogAccessor;
+
+import static org.springframework.cloud.kubernetes.commons.KubernetesClientProperties.SERVICE_ACCOUNT_NAMESPACE_PATH;
+import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.getNamespaceFromServiceAccountFile;
 
 /**
  * @author wind57
@@ -60,6 +65,8 @@ import org.springframework.core.log.LogAccessor;
 		KubernetesClientInformerAutoConfiguration.class })
 public class KubernetesInformerDiscoveryClientAutoConfiguration {
 
+	private static final String CURRENT_NAMESPACE = getNamespaceFromServiceAccountFile(SERVICE_ACCOUNT_NAMESPACE_PATH);
+
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesInformerDiscoveryClientAutoConfiguration.class));
 
@@ -73,6 +80,13 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 				serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
 	}
 
+	@Deprecated(forRemoval = true)
+	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+		LOG.debug(() -> "Will publish InstanceRegisteredEvent from blocking implementation");
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
+	}
+
 	/**
 	 * Creation of this bean triggers publishing an InstanceRegisteredEvent. In turn,
 	 * there is the CommonsClientAutoConfiguration::DiscoveryClientHealthIndicator, that
@@ -83,9 +97,11 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 	@ConditionalOnClass({ HealthIndicator.class })
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
-			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+			ApplicationEventPublisher applicationEventPublisher, CoreV1Api coreV1Api) {
+		KubernetesClientPodUtils kubernetesClientPodUtils = new KubernetesClientPodUtils(coreV1Api, CURRENT_NAMESPACE);
 		LOG.debug(() -> "Will publish InstanceRegisteredEvent from blocking implementation");
-		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(kubernetesClientPodUtils,
+				applicationEventPublisher);
 	}
 
 	@Bean

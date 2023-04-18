@@ -31,7 +31,6 @@ import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
@@ -138,11 +137,11 @@ class KubernetesClientDiscoveryClientIT {
 		// enforces this :
 		// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1286
 		WebClient clientForNonExistentService = builder().baseUrl("http://localhost/service-instances/non-existent")
-			.build();
+				.build();
 		List<ServiceInstance> resultForNonExistentService = clientForNonExistentService.method(HttpMethod.GET)
-			.retrieve().bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
+				.retrieve().bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
 
-			}).retryWhen(retrySpec()).block();
+				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(resultForNonExistentService.size(), 0);
 
@@ -211,19 +210,28 @@ class KubernetesClientDiscoveryClientIT {
 	 * </pre>
 	 */
 	@Test
-	@Disabled
-	//TODO will be fixed by this issue : https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1289
 	void testSpecificNamespace() {
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);
-		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE_A));
+		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A));
 		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE);
 		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE);
 		manifests(false, NAMESPACE_A, Phase.CREATE);
 
 		// first check that wiremock service is present in both namespaces a and b
 		assertServicePresentInNamespaces(List.of("a", "b"), "service-wiremock", "service-wiremock");
-		assertLogStatement("serviceSharedInformer will use namespace : a");
+		String podLogs = podLogs();
+		Assertions.assertTrue(podLogs.contains("serviceSharedInformer will use namespace : a"));
+		Assertions.assertTrue(podLogs.contains("reading pod in namespace : default"));
+		Assertions.assertTrue(podLogs.contains("Will publish InstanceRegisteredEvent from blocking implementation"));
+		Assertions.assertTrue(podLogs.contains("Will publish InstanceRegisteredEvent from reactive implementation"));
+
+		// this checks that there are two instances of
+		// 'reading pod in namespace :default'
+		// in logs. One from blocking, and one from reactive.
+		int first = podLogs.indexOf("reading pod in namespace : default");
+		int second = podLogs.indexOf("reading pod in namespace : default", first + 1);
+		Assertions.assertTrue(second > 0);
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
@@ -249,18 +257,18 @@ class KubernetesClientDiscoveryClientIT {
 		// enforces this :
 		// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1286
 		WebClient clientForNonExistentService = builder().baseUrl("http://localhost/service-instances/non-existent")
-			.build();
+				.build();
 		List<ServiceInstance> resultForNonExistentService = clientForNonExistentService.method(HttpMethod.GET)
-			.retrieve().bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
+				.retrieve().bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
 
-			}).retryWhen(retrySpec()).block();
+				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(resultForNonExistentService.size(), 0);
 
 		manifests(false, NAMESPACE_A, Phase.DELETE);
 		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE);
 		util.wiremock(NAMESPACE_B, "/wiremock", Phase.DELETE);
-		util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE_A));
+		util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A));
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
 	}
@@ -275,6 +283,10 @@ class KubernetesClientDiscoveryClientIT {
 						.orElse(List.of()));
 		V1EnvVar debugLevel = new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY")
 				.value("DEBUG");
+
+		V1EnvVar debugLevelClient = new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT")
+				.value("DEBUG");
+
 		if (allNamespaces) {
 			V1EnvVar allNamespacesVar = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES")
 					.value("TRUE");
@@ -287,6 +299,7 @@ class KubernetesClientDiscoveryClientIT {
 			envVars.add(clientNamespace);
 		}
 		envVars.add(debugLevel);
+		envVars.add(debugLevelClient);
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
 		if (phase.equals(Phase.CREATE)) {
@@ -319,6 +332,20 @@ class KubernetesClientDiscoveryClientIT {
 			throw new RuntimeException(e);
 		}
 
+	}
+
+	private String podLogs() {
+		try {
+			String appPodName = K3S.execInContainer("sh", "-c",
+					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+
+			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
+			return execResult.getStdout();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 	private void assertServicePresentInNamespaces(List<String> namespaces, String value, String serviceName) {

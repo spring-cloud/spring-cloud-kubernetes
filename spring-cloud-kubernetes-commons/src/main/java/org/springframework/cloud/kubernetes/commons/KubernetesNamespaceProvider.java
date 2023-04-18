@@ -83,6 +83,7 @@ public class KubernetesNamespaceProvider {
 			}
 
 		}
+		LOG.info("namespace from service account file : " + namespace);
 		return namespace;
 	}
 
