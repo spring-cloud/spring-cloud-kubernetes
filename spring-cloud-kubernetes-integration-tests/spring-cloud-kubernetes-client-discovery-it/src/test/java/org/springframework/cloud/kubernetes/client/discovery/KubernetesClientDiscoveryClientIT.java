@@ -138,11 +138,11 @@ class KubernetesClientDiscoveryClientIT {
 		// enforces this :
 		// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1286
 		WebClient clientForNonExistentService = builder().baseUrl("http://localhost/service-instances/non-existent")
-			.build();
+				.build();
 		List<ServiceInstance> resultForNonExistentService = clientForNonExistentService.method(HttpMethod.GET)
-			.retrieve().bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
+				.retrieve().bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
 
-			}).retryWhen(retrySpec()).block();
+				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(resultForNonExistentService.size(), 0);
 
@@ -249,11 +249,11 @@ class KubernetesClientDiscoveryClientIT {
 		// enforces this :
 		// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1286
 		WebClient clientForNonExistentService = builder().baseUrl("http://localhost/service-instances/non-existent")
-			.build();
+				.build();
 		List<ServiceInstance> resultForNonExistentService = clientForNonExistentService.method(HttpMethod.GET)
-			.retrieve().bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
+				.retrieve().bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
 
-			}).retryWhen(retrySpec()).block();
+				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(resultForNonExistentService.size(), 0);
 
