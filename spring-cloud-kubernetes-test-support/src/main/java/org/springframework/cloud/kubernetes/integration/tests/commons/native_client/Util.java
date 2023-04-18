@@ -458,7 +458,7 @@ public final class Util {
 
 	private void waitForDeployment(String namespace, V1Deployment deployment) {
 		String deploymentName = deploymentName(deployment);
-		await().pollInterval(Duration.ofSeconds(1)).atMost(900, TimeUnit.SECONDS)
+		await().pollDelay(Duration.ofSeconds(5)).pollInterval(Duration.ofSeconds(5)).atMost(900, TimeUnit.SECONDS)
 				.until(() -> isDeploymentReady(deploymentName, namespace));
 	}
 
