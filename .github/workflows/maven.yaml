@@ -142,6 +142,8 @@ jobs:
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
         run: |
 
+            cat ~/.testcontainers.properties
+          
             # - find all tests
             # - exclude Fabric8IstionIT
             # - only take classes that have @Test inside them
