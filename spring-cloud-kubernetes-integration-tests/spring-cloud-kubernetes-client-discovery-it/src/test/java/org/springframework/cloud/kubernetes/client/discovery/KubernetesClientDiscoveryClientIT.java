@@ -212,7 +212,8 @@ class KubernetesClientDiscoveryClientIT {
 	 */
 	@Test
 	@Disabled
-	//TODO will be fixed by this issue : https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1289
+	// TODO will be fixed by this issue :
+	// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1289
 	void testSpecificNamespace() {
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);
