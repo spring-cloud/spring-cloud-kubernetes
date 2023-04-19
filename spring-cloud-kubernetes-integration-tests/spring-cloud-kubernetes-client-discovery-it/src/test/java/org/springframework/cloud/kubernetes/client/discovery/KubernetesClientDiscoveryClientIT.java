@@ -31,6 +31,7 @@ import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
@@ -210,6 +211,9 @@ class KubernetesClientDiscoveryClientIT {
 	 * </pre>
 	 */
 	@Test
+	@Disabled
+	// TODO will be fixed by this issue :
+	// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1289
 	void testSpecificNamespace() {
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);

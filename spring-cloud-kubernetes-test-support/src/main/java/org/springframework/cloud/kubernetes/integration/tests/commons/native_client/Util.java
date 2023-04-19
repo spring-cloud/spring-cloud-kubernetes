@@ -132,6 +132,9 @@ public final class Util {
 			}
 		}
 		catch (Exception e) {
+			if (e instanceof ApiException apiException) {
+				System.out.println(apiException.getResponseBody());
+			}
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
