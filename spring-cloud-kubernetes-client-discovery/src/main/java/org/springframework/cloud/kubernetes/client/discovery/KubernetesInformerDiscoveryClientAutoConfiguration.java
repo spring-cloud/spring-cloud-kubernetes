@@ -21,6 +21,7 @@ import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -44,6 +45,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * @author wind57
@@ -58,13 +60,8 @@ import org.springframework.context.annotation.Configuration;
 		KubernetesClientInformerAutoConfiguration.class })
 public class KubernetesInformerDiscoveryClientAutoConfiguration {
 
-	@Bean
-	@ConditionalOnClass({ HealthIndicator.class })
-	@ConditionalOnDiscoveryHealthIndicatorEnabled
-	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
-			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
-		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
-	}
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(KubernetesInformerDiscoveryClientAutoConfiguration.class));
 
 	@Deprecated(forRemoval = true)
 	public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient(
@@ -74,6 +71,21 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 			KubernetesDiscoveryProperties properties) {
 		return new KubernetesInformerDiscoveryClient(kubernetesNamespaceProvider.getNamespace(), sharedInformerFactory,
 				serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
+	}
+
+	/**
+	 * Creation of this bean triggers publishing an InstanceRegisteredEvent. In turn,
+	 * there is the CommonsClientAutoConfiguration::DiscoveryClientHealthIndicator, that
+	 * implements 'ApplicationListener' that will catch this event. It also registers a
+	 * bean of type DiscoveryClientHealthIndicator via ObjectProvider.
+	 */
+	@Bean
+	@ConditionalOnClass({ HealthIndicator.class })
+	@ConditionalOnDiscoveryHealthIndicatorEnabled
+	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+		LOG.debug(() -> "Will publish InstanceRegisteredEvent from blocking implementation");
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 
 	@Bean

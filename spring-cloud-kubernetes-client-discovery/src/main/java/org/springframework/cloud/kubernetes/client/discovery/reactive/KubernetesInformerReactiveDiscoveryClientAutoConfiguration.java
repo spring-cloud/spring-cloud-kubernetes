@@ -21,6 +21,7 @@ import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -39,12 +40,19 @@ import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscov
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.log.LogAccessor;
+
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource;
 
 /**
  * @author Ryan Baxter
@@ -61,15 +69,18 @@ import org.springframework.context.annotation.Configuration;
 		KubernetesDiscoveryPropertiesAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class })
 public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 
-	@Bean
-	@ConditionalOnClass(name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
-	@ConditionalOnDiscoveryHealthIndicatorEnabled
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class));
+
+	@Deprecated(forRemoval = true)
 	public ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
 			KubernetesInformerReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties,
 			KubernetesClientPodUtils podUtils) {
 		ReactiveDiscoveryClientHealthIndicator healthIndicator = new ReactiveDiscoveryClientHealthIndicator(client,
 				properties);
-		InstanceRegisteredEvent<?> event = new InstanceRegisteredEvent<>(podUtils.currentPod(), null);
+		InstanceRegisteredEvent<RegisteredEventSource> event = new InstanceRegisteredEvent<>(
+				new RegisteredEventSource("kubernetes", podUtils.isInsideKubernetes(), podUtils.currentPod().get()),
+				null);
 		healthIndicator.onApplicationEvent(event);
 		return healthIndicator;
 	}
@@ -84,13 +95,43 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 				serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
 	}
 
+	/**
+	 * Post an event so that health indicator is initialized.
+	 */
+	@Bean
+	@ConditionalOnClass(name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
+	@ConditionalOnDiscoveryHealthIndicatorEnabled
+	KubernetesDiscoveryClientHealthIndicatorInitializer reactiveIndicatorInitializer(
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+		LOG.debug(() -> "Will publish InstanceRegisteredEvent from reactive implementation");
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
+	}
+
+	/**
+	 * unlike the blocking implementation, we need to register the health indicator.
+	 */
+	@Bean
+	@ConditionalOnClass(name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
+	@ConditionalOnDiscoveryHealthIndicatorEnabled
+	ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
+			KubernetesInformerReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties) {
+		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
+	}
+
 	@Bean
 	@ConditionalOnMissingBean
 	KubernetesInformerReactiveDiscoveryClient kubernetesClientReactiveDiscoveryClient(
+			KubernetesInformerDiscoveryClient kubernetesClientInformerDiscoveryClient) {
+		return new KubernetesInformerReactiveDiscoveryClient(kubernetesClientInformerDiscoveryClient);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	KubernetesInformerDiscoveryClient kubernetesClientInformerDiscoveryClient(
 			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
 			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
 			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
-		return new KubernetesInformerReactiveDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister,
+		return new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister,
 				serviceInformer, endpointsInformer, properties);
 	}
 
