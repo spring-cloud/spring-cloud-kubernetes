@@ -50,46 +50,8 @@
 		</dependency>
 
 		<dependency>
-<<<<<<< HEAD
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-kubernetes-test-support</artifactId>
-=======
-			<groupId>io.kubernetes</groupId>
-			<artifactId>client-java</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.kubernetes</groupId>
-			<artifactId>client-java-extended</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.docker-java</groupId>
-			<artifactId>docker-java-core</artifactId>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>com.github.docker-java</groupId>
-			<artifactId>docker-java-transport-httpclient5</artifactId>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
->>>>>>> main
 		</dependency>
 
 	</dependencies>
