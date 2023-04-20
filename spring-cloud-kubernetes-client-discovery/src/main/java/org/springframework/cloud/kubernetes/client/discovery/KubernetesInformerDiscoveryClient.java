@@ -229,9 +229,11 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
-		return serviceListers.stream().flatMap(serviceLister -> serviceLister.list().stream())
+		List<String> services = serviceListers.stream().flatMap(serviceLister -> serviceLister.list().stream())
 				.filter(service -> matchesServiceLabels(service, properties)).map(s -> s.getMetadata().getName())
 				.distinct().toList();
+		LOG.debug(() -> "will return services : " + services);
+		return services;
 	}
 
 	@PostConstruct
@@ -252,6 +254,11 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		}
 		LOG.info(() -> "Cache fully loaded (total " + serviceListers.stream().mapToLong(x -> x.list().size()).sum()
 				+ " services), discovery client is now available");
+	}
+
+	@Override
+	public int getOrder() {
+		return properties.order();
 	}
 
 }
