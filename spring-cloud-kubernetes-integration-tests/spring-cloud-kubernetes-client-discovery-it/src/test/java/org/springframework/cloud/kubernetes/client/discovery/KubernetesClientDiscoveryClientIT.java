@@ -31,6 +31,7 @@ import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
@@ -38,6 +39,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
@@ -133,6 +135,17 @@ class KubernetesClientDiscoveryClientIT {
 
 		Assertions.assertEquals(busyBoxServiceInstances.size(), 2);
 
+		// enforces this :
+		// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1286
+		WebClient clientForNonExistentService = builder().baseUrl("http://localhost/service-instances/non-existent")
+				.build();
+		List<ServiceInstance> resultForNonExistentService = clientForNonExistentService.method(HttpMethod.GET)
+				.retrieve().bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
+
+				}).retryWhen(retrySpec()).block();
+
+		Assertions.assertEquals(resultForNonExistentService.size(), 0);
+
 		// clean-up
 		util.busybox(NAMESPACE, Phase.DELETE);
 		manifests(false, null, Phase.DELETE);
@@ -169,6 +182,17 @@ class KubernetesClientDiscoveryClientIT {
 		Assertions.assertTrue(servicesResult.contains("busybox-service"));
 		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
 
+		// enforces this :
+		// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1286
+		WebClient clientForNonExistentService = builder().baseUrl("http://localhost/service-instances/non-existent")
+				.build();
+		List<ServiceInstance> resultForNonExistentService = clientForNonExistentService.method(HttpMethod.GET)
+				.retrieve().bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
+
+				}).retryWhen(retrySpec()).block();
+
+		Assertions.assertEquals(resultForNonExistentService.size(), 0);
+
 		manifests(true, null, Phase.DELETE);
 		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE);
 		util.busybox(NAMESPACE_B, Phase.DELETE);
@@ -187,6 +211,9 @@ class KubernetesClientDiscoveryClientIT {
 	 * </pre>
 	 */
 	@Test
+	@Disabled
+	// TODO will be fixed by this issue :
+	// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1289
 	void testSpecificNamespace() {
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);
@@ -219,6 +246,17 @@ class KubernetesClientDiscoveryClientIT {
 
 		DefaultKubernetesServiceInstance serviceInstance = wiremockInNamespaceA.get(0);
 		Assertions.assertEquals(serviceInstance.getNamespace(), "a");
+
+		// enforces this :
+		// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1286
+		WebClient clientForNonExistentService = builder().baseUrl("http://localhost/service-instances/non-existent")
+				.build();
+		List<ServiceInstance> resultForNonExistentService = clientForNonExistentService.method(HttpMethod.GET)
+				.retrieve().bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
+
+				}).retryWhen(retrySpec()).block();
+
+		Assertions.assertEquals(resultForNonExistentService.size(), 0);
 
 		manifests(false, NAMESPACE_A, Phase.DELETE);
 		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE);

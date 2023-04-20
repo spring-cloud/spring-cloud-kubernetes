@@ -141,7 +141,7 @@ jobs:
           CURRENT_INDEX: ${{ matrix.current_index }}
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
         run: |
-
+          
             # - find all tests
             # - exclude Fabric8IstionIT
             # - only take classes that have @Test inside them

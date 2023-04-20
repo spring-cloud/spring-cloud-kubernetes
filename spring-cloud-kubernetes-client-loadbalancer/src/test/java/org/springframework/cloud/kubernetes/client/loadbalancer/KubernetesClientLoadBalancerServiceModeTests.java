@@ -30,6 +30,7 @@ import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -128,6 +129,7 @@ public class KubernetesClientLoadBalancerServiceModeTests {
 			// Mock this so the real implementation does not try to connect to the K8S API
 			// Server
 			KubernetesInformerDiscoveryClient client = mock(KubernetesInformerDiscoveryClient.class);
+			Mockito.when(client.getOrder()).thenReturn(0);
 			return client;
 		}
 
