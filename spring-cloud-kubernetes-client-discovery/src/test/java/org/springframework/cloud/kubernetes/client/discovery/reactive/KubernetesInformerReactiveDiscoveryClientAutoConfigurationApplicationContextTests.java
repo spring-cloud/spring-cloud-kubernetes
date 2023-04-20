@@ -16,10 +16,16 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.reactive;
 
+import java.io.StringReader;
+
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.util.Config;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -31,6 +37,10 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfigura
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,6 +53,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationContextTests {
 
 	private ApplicationContextRunner applicationContextRunner;
+
+	private static K3sContainer container;
+
+	@AfterAll
+	static void afterAll() {
+		container.stop();
+	}
 
 	@Test
 	void discoveryEnabledDefault() {
@@ -190,7 +207,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
 						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 						KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class))
-				.withPropertyValues(properties);
+				.withUserConfiguration(ApiClientConfig.class).withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(String name, String... properties) {
@@ -200,7 +217,22 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
 						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 						KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class))
-				.withClassLoader(new FilteredClassLoader(name)).withPropertyValues(properties);
+				.withUserConfiguration(ApiClientConfig.class).withClassLoader(new FilteredClassLoader(name))
+				.withPropertyValues(properties);
+	}
+
+	@Configuration
+	static class ApiClientConfig {
+
+		@Bean
+		@Primary
+		ApiClient apiClient() throws Exception {
+			container = Commons.container();
+			container.start();
+
+			return Config.fromConfig(new StringReader(container.getKubeConfigYaml()));
+		}
+
 	}
 
 }

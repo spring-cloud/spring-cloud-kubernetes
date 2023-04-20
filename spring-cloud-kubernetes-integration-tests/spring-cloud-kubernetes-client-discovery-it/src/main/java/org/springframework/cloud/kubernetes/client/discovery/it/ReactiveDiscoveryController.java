@@ -18,35 +18,31 @@ package org.springframework.cloud.kubernetes.client.discovery.it;
 
 import java.util.List;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author wind57
  */
 @RestController
-public class DiscoveryController {
+public class ReactiveDiscoveryController {
 
-	private final KubernetesInformerDiscoveryClient discoveryClient;
+	private final KubernetesInformerReactiveDiscoveryClient reactiveDiscoveryClient;
 
-	public DiscoveryController(ObjectProvider<KubernetesInformerDiscoveryClient> discoveryClient) {
-		KubernetesInformerDiscoveryClient[] local = new KubernetesInformerDiscoveryClient[1];
-		discoveryClient.ifAvailable(x -> local[0] = x);
-		this.discoveryClient = local[0];
+	public ReactiveDiscoveryController(
+			ObjectProvider<KubernetesInformerReactiveDiscoveryClient> reactiveDiscoveryClient) {
+		KubernetesInformerReactiveDiscoveryClient[] local = new KubernetesInformerReactiveDiscoveryClient[1];
+		reactiveDiscoveryClient.ifAvailable(x -> local[0] = x);
+		this.reactiveDiscoveryClient = local[0];
 	}
 
-	@GetMapping("/services")
-	public List<String> allServices() {
-		return discoveryClient.getServices();
-	}
-
-	@GetMapping("/service-instances/{serviceId}")
-	public List<ServiceInstance> serviceInstances(@PathVariable("serviceId") String serviceId) {
-		return discoveryClient.getInstances(serviceId);
+	@GetMapping("/reactive/services")
+	public Mono<List<String>> allServices() {
+		return reactiveDiscoveryClient.getServices().collectList();
 	}
 
 }
