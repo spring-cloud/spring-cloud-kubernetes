@@ -140,9 +140,9 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesIT {
 		String logs = logs();
 		Assertions.assertTrue(logs.contains("using selective namespaces : [a, b]"));
 		Assertions.assertTrue(
-			logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]"));
+				logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]"));
 		Assertions.assertTrue(
-			logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]"));
+				logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]"));
 		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
 		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : b"));
 		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
@@ -159,9 +159,9 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesIT {
 	}
 
 	/**
-	 * Deploy wiremock in 3 namespaces: default, a, b. Search in selective namespaces
-	 * 'a' and 'b' with blocking enabled and reactive enabled, as such find services and
-	 * its service instances.
+	 * Deploy wiremock in 3 namespaces: default, a, b. Search in selective namespaces 'a'
+	 * and 'b' with blocking enabled and reactive enabled, as such find services and its
+	 * service instances.
 	 */
 	@Test
 	void testTwoNamespacesBothBlockingAndReactive() {
@@ -171,9 +171,9 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesIT {
 		String logs = logs();
 		Assertions.assertTrue(logs.contains("using selective namespaces : [a, b]"));
 		Assertions.assertTrue(
-			logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]"));
+				logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]"));
 		Assertions.assertTrue(
-			logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]"));
+				logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]"));
 		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
 		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : b"));
 		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
@@ -267,8 +267,7 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesIT {
 
 		Assertions.assertEquals(ourServiceInstances.size(), 2);
 		ourServiceInstances = ourServiceInstances.stream()
-			.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::namespace))
-			.toList();
+				.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::namespace)).toList();
 
 		DefaultKubernetesServiceInstance serviceInstanceA = ourServiceInstances.get(0);
 		// we only care about namespace here, as all other fields are tested in various
@@ -303,8 +302,7 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesIT {
 
 		Assertions.assertEquals(ourServiceInstances.size(), 2);
 		ourServiceInstances = ourServiceInstances.stream()
-			.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::namespace))
-			.toList();
+				.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::namespace)).toList();
 
 		DefaultKubernetesServiceInstance serviceInstanceA = ourServiceInstances.get(0);
 		// we only care about namespace here, as all other fields are tested in various
