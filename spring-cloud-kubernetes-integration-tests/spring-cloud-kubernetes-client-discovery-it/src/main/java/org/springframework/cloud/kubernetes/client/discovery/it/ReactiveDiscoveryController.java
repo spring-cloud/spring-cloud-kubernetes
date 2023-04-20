@@ -21,8 +21,10 @@ import java.util.List;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -43,6 +45,11 @@ public class ReactiveDiscoveryController {
 	@GetMapping("/reactive/services")
 	public Mono<List<String>> allServices() {
 		return reactiveDiscoveryClient.getServices().collectList();
+	}
+
+	@GetMapping("reactive/service-instances/{serviceId}")
+	public Mono<List<ServiceInstance>> serviceInstances(@PathVariable("serviceId") String serviceId) {
+		return reactiveDiscoveryClient.getInstances(serviceId).collectList();
 	}
 
 }

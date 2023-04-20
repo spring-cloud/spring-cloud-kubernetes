@@ -48,7 +48,7 @@ public final class ConditionalOnSelectiveNamespacesMissing implements Configurat
 			LOG.debug(() -> "selective namespaces not present");
 		}
 		else {
-			LOG.debug(() -> "found selective namespaces : " + selectiveNamespaces);
+			LOG.debug(() -> "found selective namespaces : " + selectiveNamespaces.stream().sorted().toList());
 		}
 		return selectiveNamespacesMissing;
 	}

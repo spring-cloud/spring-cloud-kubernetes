@@ -45,7 +45,7 @@ public final class ConditionalOnSelectiveNamespacesPresent implements Configurat
 				.bind("spring.cloud.kubernetes.discovery.namespaces", Bindable.setOf(String.class)).orElse(Set.of());
 		boolean selectiveNamespacesPresent = !selectiveNamespaces.isEmpty();
 		if (selectiveNamespacesPresent) {
-			LOG.debug(() -> "found selective namespaces : " + selectiveNamespaces);
+			LOG.debug(() -> "found selective namespaces : " + selectiveNamespaces.stream().sorted().toList());
 		}
 		else {
 			LOG.debug(() -> "selective namespaces not present");

@@ -154,7 +154,9 @@ public class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
 		List<Lister<V1Endpoints>> endpointsListers = new ArrayList<>(howManyNamespaces);
 
 		for (int i = 0; i < howManyNamespaces; ++i) {
+			String namespace = selectiveNamespaces.get(i);
 			Lister<V1Endpoints> lister = new Lister<>(serviceSharedIndexInformers.get(i).getIndexer());
+			LOG.debug(() -> "registering lister (for endpoints) in namespace : " + namespace);
 			endpointsListers.add(lister);
 		}
 

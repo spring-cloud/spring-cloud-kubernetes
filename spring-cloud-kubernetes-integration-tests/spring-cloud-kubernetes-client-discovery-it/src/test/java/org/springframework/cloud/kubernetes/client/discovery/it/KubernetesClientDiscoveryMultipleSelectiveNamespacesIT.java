@@ -29,10 +29,8 @@ import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
@@ -54,6 +52,10 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 class KubernetesClientDiscoveryMultipleSelectiveNamespacesIT {
 
+	private static final String BLOCKING_PUBLISH = "Will publish InstanceRegisteredEvent from blocking implementation";
+
+	private static final String REACTIVE_PUBLISH = "Will publish InstanceRegisteredEvent from reactive implementation";
+
 	private static final String NAMESPACE = "default";
 
 	private static final String NAMESPACE_A = "a";
@@ -73,27 +75,19 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesIT {
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
 		util = new Util(K3S);
-	}
 
-	@AfterAll
-	static void after() throws Exception {
-		Commons.cleanUp(IMAGE_NAME, K3S);
-	}
-
-	@BeforeEach
-	void beforeEach() {
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);
 		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A, NAMESPACE_B));
 		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE);
 		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE);
 		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE);
-		manifests(Phase.CREATE);
 	}
 
-	@AfterEach
-	void afterEach() {
-		manifests(Phase.DELETE);
+	@AfterAll
+	static void afterAll() throws Exception {
+		Commons.cleanUp(IMAGE_NAME, K3S);
+
 		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE);
 		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE);
 		util.wiremock(NAMESPACE_B, "/wiremock", Phase.DELETE);
@@ -103,49 +97,100 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesIT {
 	}
 
 	/**
-	 * Deploy wiremock in 3 namespaces: default, a, b. Search only in selective namespaces
-	 * a and b, as such find a single service and its service instance.
+	 * Deploy wiremock in 3 namespaces: default, a, b. Search in selective namespaces 'a'
+	 * and 'b' with blocking enabled and reactive disabled, as such find services and it's
+	 * instances.
 	 */
 	@Test
-	void testMultiple() {
-		assertLogStatement("using selective namespaces : [a, b]");
+	void testTwoNamespacesBlockingOnly() {
 
-		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
+		manifests(Phase.CREATE, false, true);
 
-		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+		String logs = logs();
+		Assertions.assertTrue(logs.contains("using selective namespaces : [a, b]"));
+		Assertions.assertTrue(
+				logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]"));
+		Assertions.assertTrue(
+				logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]"));
+		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
+		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : b"));
+		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
+		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : b"));
 
-				}).retryWhen(retrySpec()).block();
+		// this tiny checks makes sure that blocking is enabled and reactive is disabled.
+		Assertions.assertTrue(logs.contains(BLOCKING_PUBLISH));
+		Assertions.assertFalse(logs.contains(REACTIVE_PUBLISH));
 
-		// we get just one service here, because name is the same
-		Assertions.assertEquals(servicesResult.size(), 1);
-		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
+		blockingCheck();
 
-		WebClient ourServiceClient = builder().baseUrl("http://localhost//service-instances/service-wiremock").build();
-
-		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
-
-				}).retryWhen(retrySpec()).block();
-
-		Assertions.assertEquals(ourServiceInstances.size(), 2);
-
-		List<DefaultKubernetesServiceInstance> sorted = ourServiceInstances.stream()
-				.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::getNamespace)).toList();
-
-		DefaultKubernetesServiceInstance serviceInstanceA = sorted.get(0);
-		// we only care about namespace here, as all other fields are tested in various
-		// other tests.
-		Assertions.assertEquals(serviceInstanceA.getNamespace(), "a");
-
-		DefaultKubernetesServiceInstance serviceInstanceB = sorted.get(1);
-		// we only care about namespace here, as all other fields are tested in various
-		// other tests.
-		Assertions.assertEquals(serviceInstanceB.getNamespace(), "b");
+		manifests(Phase.DELETE, false, true);
 
 	}
 
-	private static void manifests(Phase phase) {
+	/**
+	 * Deploy wiremock in 3 namespaces: default, a, b. Search in selective namespaces 'a'
+	 * and 'b' with blocking disabled and reactive enabled, as such find services and it's
+	 * instances.
+	 */
+	@Test
+	void testTwoNamespaceReactiveOnly() {
+
+		manifests(Phase.CREATE, true, false);
+
+		String logs = logs();
+		Assertions.assertTrue(logs.contains("using selective namespaces : [a, b]"));
+		Assertions.assertTrue(
+			logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]"));
+		Assertions.assertTrue(
+			logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]"));
+		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
+		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : b"));
+		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
+		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : b"));
+
+		// this tiny checks makes sure that blocking is disabled and reactive is enabled.
+		Assertions.assertFalse(logs.contains(BLOCKING_PUBLISH));
+		Assertions.assertTrue(logs.contains(REACTIVE_PUBLISH));
+
+		reactiveCheck();
+
+		manifests(Phase.DELETE, true, false);
+
+	}
+
+	/**
+	 * Deploy wiremock in 3 namespaces: default, a, b. Search in selective namespaces
+	 * 'a' and 'b' with blocking enabled and reactive enabled, as such find services and
+	 * its service instances.
+	 */
+	@Test
+	void testTwoNamespacesBothBlockingAndReactive() {
+
+		manifests(Phase.CREATE, false, false);
+
+		String logs = logs();
+		Assertions.assertTrue(logs.contains("using selective namespaces : [a, b]"));
+		Assertions.assertTrue(
+			logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]"));
+		Assertions.assertTrue(
+			logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]"));
+		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
+		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : b"));
+		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
+		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : b"));
+
+		// this tiny checks makes sure that blocking is enabled and reactive is enabled.
+		Assertions.assertTrue(logs.contains(BLOCKING_PUBLISH));
+		Assertions.assertTrue(logs.contains(REACTIVE_PUBLISH));
+
+		blockingCheck();
+		reactiveCheck();
+
+		manifests(Phase.DELETE, false, false);
+
+	}
+
+	private static void manifests(Phase phase, boolean disableBlocking, boolean disableReactive) {
 		V1Deployment deployment = (V1Deployment) util.yaml("kubernetes-discovery-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("kubernetes-discovery-service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("kubernetes-discovery-ingress.yaml");
@@ -160,6 +205,18 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesIT {
 		V1EnvVar selectiveNamespaceB = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1")
 				.value(NAMESPACE_B);
 
+		if (disableReactive) {
+			V1EnvVar disableReactiveEnvVar = new V1EnvVar().name("SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED")
+					.value("FALSE");
+			envVars.add(disableReactiveEnvVar);
+		}
+
+		if (disableBlocking) {
+			V1EnvVar disableBlockingEnvVar = new V1EnvVar().name("SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED")
+					.value("FALSE");
+			envVars.add(disableBlockingEnvVar);
+		}
+
 		envVars.add(debugLevel);
 		envVars.add(selectiveNamespaceA);
 		envVars.add(selectiveNamespaceB);
@@ -173,19 +230,91 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesIT {
 		}
 	}
 
-	private void assertLogStatement(String message) {
+	private String logs() {
 		try {
 			String appPodName = K3S.execInContainer("sh", "-c",
 					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
 
 			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
-			String ok = execResult.getStdout();
-			Assertions.assertTrue(ok.contains(message));
+			return execResult.getStdout();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
+	}
+
+	private void reactiveCheck() {
+		WebClient servicesClient = builder().baseUrl("http://localhost/reactive/services").build();
+
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+
+				}).retryWhen(retrySpec()).block();
+
+		// we get two here, but since there is 'distinct' call, only 1 will be reported
+		// but service instances will report 2 nevertheless
+		Assertions.assertEquals(servicesResult.size(), 1);
+		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
+
+		WebClient ourServiceClient = builder().baseUrl("http://localhost/reactive/service-instances/service-wiremock")
+				.build();
+
+		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+
+				}).retryWhen(retrySpec()).block();
+
+		Assertions.assertEquals(ourServiceInstances.size(), 2);
+		ourServiceInstances = ourServiceInstances.stream()
+			.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::namespace))
+			.toList();
+
+		DefaultKubernetesServiceInstance serviceInstanceA = ourServiceInstances.get(0);
+		// we only care about namespace here, as all other fields are tested in various
+		// other tests.
+		Assertions.assertEquals(serviceInstanceA.getNamespace(), "a");
+
+		DefaultKubernetesServiceInstance serviceInstanceB = ourServiceInstances.get(1);
+		// we only care about namespace here, as all other fields are tested in various
+		// other tests.
+		Assertions.assertEquals(serviceInstanceB.getNamespace(), "b");
+	}
+
+	private void blockingCheck() {
+		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
+
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+
+				}).retryWhen(retrySpec()).block();
+
+		// we get two here, but since there is 'distinct' call, only 1 will be reported
+		// but service instances will report 2 nevertheless
+		Assertions.assertEquals(servicesResult.size(), 1);
+		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
+
+		WebClient ourServiceClient = builder().baseUrl("http://localhost/service-instances/service-wiremock").build();
+
+		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+
+				}).retryWhen(retrySpec()).block();
+
+		Assertions.assertEquals(ourServiceInstances.size(), 2);
+		ourServiceInstances = ourServiceInstances.stream()
+			.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::namespace))
+			.toList();
+
+		DefaultKubernetesServiceInstance serviceInstanceA = ourServiceInstances.get(0);
+		// we only care about namespace here, as all other fields are tested in various
+		// other tests.
+		Assertions.assertEquals(serviceInstanceA.getNamespace(), "a");
+
+		DefaultKubernetesServiceInstance serviceInstanceB = ourServiceInstances.get(1);
+		// we only care about namespace here, as all other fields are tested in various
+		// other tests.
+		Assertions.assertEquals(serviceInstanceB.getNamespace(), "b");
 	}
 
 	private WebClient.Builder builder() {
