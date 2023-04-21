@@ -63,13 +63,13 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesInformerDiscoveryClient.class));
 
-	private final SharedInformerFactory sharedInformerFactory;
+	private final List<SharedInformerFactory> sharedInformerFactories;
 
-	private final Lister<V1Service> serviceLister;
+	private final List<Lister<V1Service>> serviceListers;
+
+	private final List<Lister<V1Endpoints>> endpointsListers;
 
 	private final Supplier<Boolean> informersReadyFunc;
-
-	private final Lister<V1Endpoints> endpointsLister;
 
 	private final KubernetesDiscoveryProperties properties;
 
@@ -78,9 +78,9 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
 			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
 			KubernetesDiscoveryProperties properties) {
-		this.sharedInformerFactory = sharedInformerFactory;
-		this.serviceLister = serviceLister;
-		this.endpointsLister = endpointsLister;
+		this.sharedInformerFactories = List.of(sharedInformerFactory);
+		this.serviceListers = List.of(serviceLister);
+		this.endpointsListers = List.of(endpointsLister);
 		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
 		this.properties = properties;
 	}
@@ -89,10 +89,29 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
 			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
 			KubernetesDiscoveryProperties properties) {
-		this.sharedInformerFactory = sharedInformerFactory;
-		this.serviceLister = serviceLister;
-		this.endpointsLister = endpointsLister;
+		this.sharedInformerFactories = List.of(sharedInformerFactory);
+		this.serviceListers = List.of(serviceLister);
+		this.endpointsListers = List.of(endpointsLister);
 		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
+		this.properties = properties;
+	}
+
+	public KubernetesInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
+			List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
+			List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
+			KubernetesDiscoveryProperties properties) {
+		this.sharedInformerFactories = sharedInformerFactories;
+
+		this.serviceListers = serviceListers;
+		this.endpointsListers = endpointsListers;
+		this.informersReadyFunc = () -> {
+			boolean serviceInformersReady = serviceInformers.isEmpty() || serviceInformers.stream()
+					.map(SharedInformer::hasSynced).reduce(Boolean::logicalAnd).orElse(false);
+			boolean endpointsInformersReady = endpointsInformers.isEmpty() || endpointsInformers.stream()
+					.map(SharedInformer::hasSynced).reduce(Boolean::logicalAnd).orElse(false);
+			return serviceInformersReady && endpointsInformersReady;
+		};
+
 		this.properties = properties;
 	}
 
@@ -105,11 +124,11 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Objects.requireNonNull(serviceId, "serviceId must be provided");
 
-		List<V1Service> services = serviceLister.list().stream()
-				.filter(svc -> serviceId.equals(svc.getMetadata().getName())).toList();
-		if (services.size() == 0 || !services.stream().anyMatch(service -> matchesServiceLabels(service, properties))) {
-			// no such service present in the cluster
-			return new ArrayList<>();
+		List<V1Service> services = serviceListers.stream().flatMap(x -> x.list().stream())
+				.filter(scv -> scv.getMetadata() != null).filter(svc -> serviceId.equals(svc.getMetadata().getName()))
+				.toList();
+		if (services.size() == 0 || services.stream().noneMatch(service -> matchesServiceLabels(service, properties))) {
+			return List.of();
 		}
 		return services.stream().flatMap(s -> getServiceInstanceDetails(s, serviceId)).toList();
 	}
@@ -117,12 +136,10 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	private Stream<ServiceInstance> getServiceInstanceDetails(V1Service service, String serviceId) {
 		Map<String, String> serviceMetadata = serviceMetadata(properties, service, serviceId);
 
-		V1Endpoints ep = endpointsLister.namespace(service.getMetadata().getNamespace())
-				.get(service.getMetadata().getName());
-		if (ep == null || ep.getSubsets() == null) {
-			// no available endpoints in the cluster
-			return Stream.empty();
-		}
+		List<V1Endpoints> endpoints = endpointsListers.stream()
+				.map(endpointsLister -> endpointsLister.namespace(service.getMetadata().getNamespace())
+						.get(service.getMetadata().getName()))
+				.filter(Objects::nonNull).filter(ep -> ep.getSubsets() != null).toList();
 
 		Optional<String> discoveredPrimaryPortName = Optional.empty();
 		if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
@@ -133,33 +150,36 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 		final boolean secured = isSecured(service);
 
-		return ep.getSubsets().stream().filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
-				.flatMap(subset -> {
-					Map<String, String> metadata = new HashMap<>(serviceMetadata);
-					List<CoreV1EndpointPort> endpointPorts = subset.getPorts();
-					if (properties.metadata() != null && properties.metadata().addPorts()) {
-						endpointPorts.forEach(
-								p -> metadata.put(StringUtils.hasText(p.getName()) ? p.getName() : UNSET_PORT_NAME,
+		return endpoints.stream()
+				.flatMap(ep -> ep.getSubsets().stream()
+						.filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
+						.flatMap(subset -> {
+							Map<String, String> metadata = new HashMap<>(serviceMetadata);
+							List<CoreV1EndpointPort> endpointPorts = subset.getPorts();
+							if (properties.metadata() != null && properties.metadata().addPorts()) {
+								endpointPorts.forEach(p -> metadata.put(
+										StringUtils.hasText(p.getName()) ? p.getName() : UNSET_PORT_NAME,
 										Integer.toString(p.getPort())));
-					}
-					List<V1EndpointAddress> addresses = subset.getAddresses();
-					if (addresses == null) {
-						addresses = new ArrayList<>();
-					}
-					if (properties.includeNotReadyAddresses()
-							&& !CollectionUtils.isEmpty(subset.getNotReadyAddresses())) {
-						addresses.addAll(subset.getNotReadyAddresses());
-					}
+							}
+							List<V1EndpointAddress> addresses = subset.getAddresses();
+							if (addresses == null) {
+								addresses = new ArrayList<>();
+							}
+							if (properties.includeNotReadyAddresses()
+									&& !CollectionUtils.isEmpty(subset.getNotReadyAddresses())) {
+								addresses.addAll(subset.getNotReadyAddresses());
+							}
 
-					final int port = findEndpointPort(endpointPorts, primaryPortName, serviceId);
-					return addresses.stream()
-							.map(addr -> new DefaultKubernetesServiceInstance(
-									addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
-									addr.getIp(), port, metadata, secured, service.getMetadata().getNamespace(),
-									// TODO find out how to get cluster name possibly from
-									// KubeConfig
-									null));
-				});
+							final int port = findEndpointPort(endpointPorts, primaryPortName, serviceId);
+							return addresses.stream()
+									.map(addr -> new DefaultKubernetesServiceInstance(
+											addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
+											addr.getIp(), port, metadata, secured, service.getMetadata().getNamespace(),
+											// TODO find out how to get cluster name
+											// possibly from
+											// KubeConfig
+											null));
+						}));
 	}
 
 	private static boolean isSecured(V1Service service) {
@@ -209,17 +229,16 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
-		List<String> services = serviceLister.list().stream()
+		List<String> services = serviceListers.stream().flatMap(serviceLister -> serviceLister.list().stream())
 				.filter(service -> matchesServiceLabels(service, properties)).map(s -> s.getMetadata().getName())
 				.distinct().toList();
-
 		LOG.debug(() -> "will return services : " + services);
 		return services;
 	}
 
 	@PostConstruct
 	public void afterPropertiesSet() {
-		sharedInformerFactory.startAllRegisteredInformers();
+		sharedInformerFactories.forEach(SharedInformerFactory::startAllRegisteredInformers);
 		if (!Wait.poll(Duration.ofSeconds(1), Duration.ofSeconds(properties.cacheLoadingTimeoutSeconds()), () -> {
 			LOG.info(() -> "Waiting for the cache of informers to be fully loaded..");
 			return informersReadyFunc.get();
@@ -233,8 +252,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 						() -> "Timeout waiting for informers cache to be ready, ignoring the failure because waitForInformerCacheReady property is false");
 			}
 		}
-		LOG.info(() -> "Cache fully loaded (total " + serviceLister.list().size()
-				+ " services) , discovery client is now available");
+		LOG.info(() -> "Cache fully loaded (total " + serviceListers.stream().mapToLong(x -> x.list().size()).sum()
+				+ " services), discovery client is now available");
 	}
 
 	@Override

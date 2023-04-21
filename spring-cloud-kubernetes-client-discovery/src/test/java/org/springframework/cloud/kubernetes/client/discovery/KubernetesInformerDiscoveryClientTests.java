@@ -95,9 +95,11 @@ class KubernetesInformerDiscoveryClientTests {
 	@Test
 	void testDiscoveryGetServicesAllNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_1, SERVICE_2);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_NO_UNSET_PORT_NAME);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
-				SHARED_INFORMER_FACTORY, serviceLister, null, null, null, KubernetesDiscoveryProperties.DEFAULT);
+				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null,
+				KubernetesDiscoveryProperties.DEFAULT);
 
 		assertThat(discoveryClient.getServices().toArray()).containsOnly(SERVICE_1.getMetadata().getName(),
 				SERVICE_2.getMetadata().getName());
@@ -107,12 +109,13 @@ class KubernetesInformerDiscoveryClientTests {
 	@Test
 	void testDiscoveryWithServiceLabels() {
 		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_1, SERVICE_2, SERVICE_3);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_NO_UNSET_PORT_NAME);
 
 		Map<String, String> labels = Map.of("k8s", "true", "spring", "true");
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = properties(true, labels);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
-				SHARED_INFORMER_FACTORY, serviceLister, null, null, null, kubernetesDiscoveryProperties);
+				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
 
 		assertThat(discoveryClient.getServices().toArray()).containsOnly(SERVICE_3.getMetadata().getName());
 
@@ -164,9 +167,11 @@ class KubernetesInformerDiscoveryClientTests {
 	@Test
 	void testDiscoveryGetServicesOneNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_1, SERVICE_2);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_NO_UNSET_PORT_NAME);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
-				SHARED_INFORMER_FACTORY, serviceLister, null, null, null, KubernetesDiscoveryProperties.DEFAULT);
+				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null,
+				KubernetesDiscoveryProperties.DEFAULT);
 
 		assertThat(discoveryClient.getServices().toArray()).containsOnly(SERVICE_1.getMetadata().getName());
 
