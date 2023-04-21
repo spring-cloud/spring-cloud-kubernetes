@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client;
 import java.nio.file.Paths;
 import java.util.function.Supplier;
 
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.Config;
@@ -82,10 +83,14 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 	private V1Pod internalGetPod() {
 		try {
 			if (isServiceHostEnvVarPresent() && isHostNameEnvVarPresent() && isServiceAccountFound()) {
+				LOG.debug("reading pod in namespace : " + namespace);
 				return client.readNamespacedPod(hostName, namespace, null);
 			}
 		}
 		catch (Throwable t) {
+			if (t instanceof ApiException apiException) {
+				LOG.warn("error reading pod, with error : " + apiException.getResponseBody());
+			}
 			LOG.warn("Failed to get pod with name:[" + hostName + "]. You should look into this if things aren't"
 					+ " working as you expect. Are you missing serviceaccount permissions?", t);
 		}
