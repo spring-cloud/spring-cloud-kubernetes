@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,12 +49,10 @@ public class KubernetesInformerReactiveDiscoveryClient implements ReactiveDiscov
 				serviceInformer, endpointsInformer, properties);
 	}
 
-	KubernetesInformerReactiveDiscoveryClient(SharedInformerFactory sharedInformerFactory,
-			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
-			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
-			KubernetesDiscoveryProperties properties) {
-		this.kubernetesDiscoveryClient = new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister,
-				endpointsLister, serviceInformer, endpointsInformer, properties);
+	// this is either kubernetesClientInformerDiscoveryClient
+	// or selectiveNamespacesKubernetesClientInformerDiscoveryClient
+	KubernetesInformerReactiveDiscoveryClient(KubernetesInformerDiscoveryClient kubernetesDiscoveryClient) {
+		this.kubernetesDiscoveryClient = kubernetesDiscoveryClient;
 	}
 
 	@Override
