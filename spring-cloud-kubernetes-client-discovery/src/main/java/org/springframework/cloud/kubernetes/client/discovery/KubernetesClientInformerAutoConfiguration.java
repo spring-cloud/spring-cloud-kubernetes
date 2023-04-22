@@ -43,6 +43,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKuber
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.log.LogAccessor;
 
@@ -58,6 +59,7 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 @ConditionalOnKubernetesDiscoveryEnabled
 @ConditionalOnBlockingOrReactiveEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+@Conditional(ConditionalOnSelectiveNamespacesMissing.class)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
 public class KubernetesClientInformerAutoConfiguration {
@@ -68,6 +70,7 @@ public class KubernetesClientInformerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public SharedInformerFactory sharedInformerFactory(ApiClient client) {
+		LOG.debug(() -> "registering sharedInformerFactory for non-selective namespaces");
 		return new SharedInformerFactory(client);
 	}
 
