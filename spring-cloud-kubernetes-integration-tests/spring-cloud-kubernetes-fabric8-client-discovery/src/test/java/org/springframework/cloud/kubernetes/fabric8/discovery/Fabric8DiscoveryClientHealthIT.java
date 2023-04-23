@@ -123,68 +123,59 @@ class Fabric8DiscoveryClientHealthIT {
 		manifests(true, false, Phase.DELETE);
 	}
 
-	// /**
-	// * Both blocking and reactive are enabled.
-	// */
-	// @Test
-	// void testDefaultConfiguration() {
-	//
-	// manifests(false, false, Phase.CREATE);
-	//
-	// assertLogStatement("Will publish InstanceRegisteredEvent from blocking
-	// implementation");
-	// assertLogStatement("publishing InstanceRegisteredEvent");
-	// assertLogStatement("Discovery Client has been initialized");
-	// assertLogStatement(
-	// "received InstanceRegisteredEvent from pod with 'app' label value :
-	// spring-cloud-kubernetes-client-discovery-it");
-	//
-	// WebClient healthClient =
-	// builder().baseUrl("http://localhost/actuator/health").build();
-	//
-	// String healthResult =
-	// healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-	// .retryWhen(retrySpec()).block();
-	//
-	// Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-	// .extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
-	//
-	// Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-	// .extractingJsonPathStringValue("$.components.discoveryComposite.components.discoveryClient.status")
-	// .isEqualTo("UP");
-	//
-	// Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-	// .extractingJsonPathArrayValue(
-	// "$.components.discoveryComposite.components.discoveryClient.details.services")
-	// .containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it",
-	// "kubernetes");
-	//
-	// Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-	// .extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
-	//
-	// Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-	// "$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery
-	// Client'].status")
-	// .isEqualTo("UP");
-	//
-	// Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
-	// "$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery
-	// Client'].details.services")
-	// .containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it",
-	// "kubernetes");
-	//
-	// manifests(false, false, Phase.DELETE);
-	// }
-	//
-	// /**
-	// * Reactive is enabled, blocking is disabled. As such,
-	// * KubernetesInformerDiscoveryClientAutoConfiguration::indicatorInitializer will
-	// post
-	// * an InstanceRegisteredEvent.
-	// *
-	// * We assert for logs and call '/health' endpoint to see that blocking discovery
-	// * client was initialized.
-	// */
+	/**
+	 * Both blocking and reactive are enabled.
+	 */
+	@Test
+	void testDefaultConfiguration() {
+
+		manifests(false, false, Phase.CREATE);
+
+		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation");
+		assertLogStatement("publishing InstanceRegisteredEvent");
+		assertLogStatement("Discovery Client has been initialized");
+		assertLogStatement("received InstanceRegisteredEvent from pod with 'app' label value : "
+				+ "spring-cloud-kubernetes-fabric8-client-discovery");
+
+		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
+
+		String healthResult = healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(retrySpec()).block();
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.discoveryComposite.components.discoveryClient.status")
+				.isEqualTo("UP");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathArrayValue(
+						"$.components.discoveryComposite.components.discoveryClient.details.services")
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
+				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].status")
+				.isEqualTo("UP");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
+				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes");
+
+		manifests(false, false, Phase.DELETE);
+	}
+
+	/**
+	 * Reactive is enabled, blocking is disabled. As such,
+	 * KubernetesInformerDiscoveryClientAutoConfiguration::indicatorInitializer will post
+	 * an InstanceRegisteredEvent.
+	 *
+	 * We assert for logs and call '/health' endpoint to see that blocking discovery
+	 * client was initialized.
+	 */
 	// @Test
 	// void testReactiveConfiguration() {
 	//
