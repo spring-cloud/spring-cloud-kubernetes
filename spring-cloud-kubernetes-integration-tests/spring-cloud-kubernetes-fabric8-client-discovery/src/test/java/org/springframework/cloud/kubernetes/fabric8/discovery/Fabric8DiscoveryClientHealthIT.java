@@ -42,6 +42,7 @@ import org.springframework.boot.test.json.BasicJsonTester;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -51,7 +52,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 class Fabric8DiscoveryClientHealthIT {
 
-	private static final String REACTIVE_STATUS = "$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].status";
+	private static final String REACTIVE_STATUS = "$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].status";
 
 	private static final String BLOCKING_STATUS = "$.components.discoveryComposite.components.discoveryClient.status";
 
@@ -158,11 +159,11 @@ class Fabric8DiscoveryClientHealthIT {
 				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].status")
+				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].status")
 				.isEqualTo("UP");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
-				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
+				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
 				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes");
 
 		manifests(false, false, Phase.DELETE);
@@ -176,54 +177,47 @@ class Fabric8DiscoveryClientHealthIT {
 	 * We assert for logs and call '/health' endpoint to see that blocking discovery
 	 * client was initialized.
 	 */
-	// @Test
-	// void testReactiveConfiguration() {
-	//
-	// manifests(false, true, Phase.CREATE);
-	//
-	// assertLogStatement("Will publish InstanceRegisteredEvent from reactive
-	// implementation");
-	// assertLogStatement("publishing InstanceRegisteredEvent");
-	// assertLogStatement("Discovery Client has been initialized");
-	// assertLogStatement(
-	// "received InstanceRegisteredEvent from pod with 'app' label value :
-	// spring-cloud-kubernetes-client-discovery-it");
-	//
-	// WebClient healthClient =
-	// builder().baseUrl("http://localhost/actuator/health").build();
-	//
-	// String healthResult =
-	// healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-	// .retryWhen(retrySpec()).block();
-	//
-	// Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-	// .extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
-	//
-	// Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(REACTIVE_STATUS)
-	// .isEqualTo("UP");
-	//
-	// Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
-	// "$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery
-	// Client'].details.services")
-	// .containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it",
-	// "kubernetes");
-	//
-	// Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(BLOCKING_STATUS);
-	//
-	// // test for services also:
-	//
-	// WebClient servicesClient =
-	// builder().baseUrl("http://localhost/reactive/services").build();
-	//
-	// List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
-	// .bodyToMono(new ParameterizedTypeReference<List<String>>() {
-	// }).retryWhen(retrySpec()).block();
-	//
-	// Assertions.assertThat(servicesResult).contains("spring-cloud-kubernetes-client-discovery-it");
-	// Assertions.assertThat(servicesResult).contains("kubernetes");
-	//
-	// manifests(false, true, Phase.DELETE);
-	// }
+	@Test
+	void testReactiveConfiguration() {
+
+		manifests(false, true, Phase.CREATE);
+
+		assertLogStatement("Will publish InstanceRegisteredEvent from reactive implementation");
+		assertLogStatement("publishing InstanceRegisteredEvent");
+		assertLogStatement("Discovery Client has been initialized");
+		assertLogStatement(
+				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-fabric8-client-discovery");
+
+		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
+
+		String healthResult = healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(retrySpec()).block();
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(REACTIVE_STATUS)
+				.isEqualTo("UP");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
+				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(BLOCKING_STATUS);
+
+		// test for services also:
+
+		WebClient servicesClient = builder().baseUrl("http://localhost/reactive/services").build();
+
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+				}).retryWhen(retrySpec()).block();
+
+		Assertions.assertThat(servicesResult).contains("spring-cloud-kubernetes-fabric8-client-discovery");
+		Assertions.assertThat(servicesResult).contains("kubernetes");
+
+		manifests(false, true, Phase.DELETE);
+	}
 
 	private static void manifests(boolean disableReactive, boolean disableBlocking, Phase phase) {
 
