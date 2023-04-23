@@ -23,7 +23,6 @@ import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -44,7 +43,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.log.LogAccessor;
 
 /**
  * @author wind57
@@ -60,9 +58,6 @@ import org.springframework.core.log.LogAccessor;
 		KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class })
 @Import(KubernetesDiscoveryClientHealthConfiguration.class)
 public class KubernetesInformerDiscoveryClientAutoConfiguration {
-
-	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(KubernetesInformerDiscoveryClientAutoConfiguration.class));
 
 	@Deprecated(forRemoval = true)
 	public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient(

@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.discovery;
 
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
@@ -23,6 +25,7 @@ import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * @author wind57
@@ -30,11 +33,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class KubernetesDiscoveryClientHealthConfiguration {
 
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(KubernetesDiscoveryClientHealthConfiguration.class));
+
 	@Bean
 	@ConditionalOnClass({ HealthIndicator.class })
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
 			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+
+		LOG.debug(() -> "Will publish InstanceRegisteredEvent from blocking implementation");
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 
