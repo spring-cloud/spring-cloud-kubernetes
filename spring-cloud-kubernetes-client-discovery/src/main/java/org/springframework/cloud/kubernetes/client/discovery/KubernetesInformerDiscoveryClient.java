@@ -133,8 +133,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 		List<V1Service> services = serviceListers.stream().flatMap(x -> x.list().stream())
 				.filter(scv -> scv.getMetadata() != null).filter(svc -> serviceId.equals(svc.getMetadata().getName()))
-				.filter(filter)
-				.toList();
+				.filter(filter).toList();
 		if (services.size() == 0 || services.stream().noneMatch(service -> matchesServiceLabels(service, properties))) {
 			return List.of();
 		}
@@ -238,10 +237,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	@Override
 	public List<String> getServices() {
 		List<String> services = serviceListers.stream().flatMap(serviceLister -> serviceLister.list().stream())
-				.filter(service -> matchesServiceLabels(service, properties))
-				.filter(filter)
-				.map(s -> s.getMetadata().getName())
-				.distinct().toList();
+				.filter(service -> matchesServiceLabels(service, properties)).filter(filter)
+				.map(s -> s.getMetadata().getName()).distinct().toList();
 		LOG.debug(() -> "will return services : " + services);
 		return services;
 	}

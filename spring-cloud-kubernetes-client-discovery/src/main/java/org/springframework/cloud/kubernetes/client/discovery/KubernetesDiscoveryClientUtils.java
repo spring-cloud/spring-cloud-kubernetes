@@ -46,7 +46,7 @@ final class KubernetesDiscoveryClientUtils {
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private static final SimpleEvaluationContext EVALUATION_CONTEXT = SimpleEvaluationContext.forReadOnlyDataBinding()
-		.withInstanceMethods().build();
+			.withInstanceMethods().build();
 
 	private KubernetesDiscoveryClientUtils() {
 
