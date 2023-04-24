@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,6 +47,7 @@ import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.filter;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.matchesServiceLabels;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
@@ -73,6 +75,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	private final KubernetesDiscoveryProperties properties;
 
+	private final Predicate<V1Service> filter;
+
 	@Deprecated(forRemoval = true)
 	public KubernetesInformerDiscoveryClient(String namespace, SharedInformerFactory sharedInformerFactory,
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
@@ -83,6 +87,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		this.endpointsListers = List.of(endpointsLister);
 		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
 		this.properties = properties;
+		filter = filter(properties);
 	}
 
 	public KubernetesInformerDiscoveryClient(SharedInformerFactory sharedInformerFactory,
@@ -94,6 +99,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		this.endpointsListers = List.of(endpointsLister);
 		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
 		this.properties = properties;
+		filter = filter(properties);
 	}
 
 	public KubernetesInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
@@ -113,6 +119,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		};
 
 		this.properties = properties;
+		filter = filter(properties);
 	}
 
 	@Override
@@ -126,6 +133,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 		List<V1Service> services = serviceListers.stream().flatMap(x -> x.list().stream())
 				.filter(scv -> scv.getMetadata() != null).filter(svc -> serviceId.equals(svc.getMetadata().getName()))
+				.filter(filter)
 				.toList();
 		if (services.size() == 0 || services.stream().noneMatch(service -> matchesServiceLabels(service, properties))) {
 			return List.of();
@@ -230,7 +238,9 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	@Override
 	public List<String> getServices() {
 		List<String> services = serviceListers.stream().flatMap(serviceLister -> serviceLister.list().stream())
-				.filter(service -> matchesServiceLabels(service, properties)).map(s -> s.getMetadata().getName())
+				.filter(service -> matchesServiceLabels(service, properties))
+				.filter(filter)
+				.map(s -> s.getMetadata().getName())
 				.distinct().toList();
 		LOG.debug(() -> "will return services : " + services);
 		return services;

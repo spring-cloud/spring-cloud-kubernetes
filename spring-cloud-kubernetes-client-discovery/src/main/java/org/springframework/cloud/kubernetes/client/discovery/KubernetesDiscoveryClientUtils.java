@@ -28,6 +28,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
@@ -39,6 +42,11 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 final class KubernetesDiscoveryClientUtils {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesDiscoveryClientUtils.class));
+
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+
+	private static final SimpleEvaluationContext EVALUATION_CONTEXT = SimpleEvaluationContext.forReadOnlyDataBinding()
+		.withInstanceMethods().build();
 
 	private KubernetesDiscoveryClientUtils() {
 
@@ -102,8 +110,22 @@ final class KubernetesDiscoveryClientUtils {
 		return serviceMetadata;
 	}
 
-	static Predicate<V1Service> servicePredicate(KubernetesDiscoveryProperties properties) {
-
+	static Predicate<V1Service> filter(KubernetesDiscoveryProperties properties) {
+		String spelExpression = properties.filter();
+		Predicate<V1Service> predicate;
+		if (spelExpression == null || spelExpression.isEmpty()) {
+			LOG.debug(() -> "filter not defined, returning always true predicate");
+			predicate = service -> true;
+		}
+		else {
+			Expression filterExpr = PARSER.parseExpression(spelExpression);
+			predicate = service -> {
+				Boolean include = filterExpr.getValue(EVALUATION_CONTEXT, service, Boolean.class);
+				return Optional.ofNullable(include).orElse(false);
+			};
+			LOG.debug(() -> "returning predicate based on filter expression: " + spelExpression);
+		}
+		return predicate;
 	}
 
 }
