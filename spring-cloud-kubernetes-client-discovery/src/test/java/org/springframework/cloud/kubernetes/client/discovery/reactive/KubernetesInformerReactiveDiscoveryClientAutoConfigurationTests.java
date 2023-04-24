@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES",
 				"spring.cloud.kubernetes.discovery.cacheLoadingTimeoutSeconds=5", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.discovery.waitCacheReady=false", "spring.main.web-application-type=reactive"})
+				"spring.cloud.kubernetes.discovery.waitCacheReady=false", "spring.main.web-application-type=reactive" })
 class KubernetesInformerReactiveDiscoveryClientAutoConfigurationTests {
 
 	@Autowired
