@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.discovery;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
@@ -99,6 +100,10 @@ final class KubernetesDiscoveryClientUtils {
 				Optional.ofNullable(service.getSpec()).map(V1ServiceSpec::getType).orElse(null));
 
 		return serviceMetadata;
+	}
+
+	static Predicate<V1Service> servicePredicate(KubernetesDiscoveryProperties properties) {
+
 	}
 
 }

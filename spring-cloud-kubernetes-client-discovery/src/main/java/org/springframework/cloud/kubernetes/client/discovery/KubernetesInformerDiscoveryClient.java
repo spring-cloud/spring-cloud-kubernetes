@@ -130,7 +130,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		if (services.size() == 0 || services.stream().noneMatch(service -> matchesServiceLabels(service, properties))) {
 			return List.of();
 		}
-		return services.stream().flatMap(s -> getServiceInstanceDetails(s, serviceId)).toList();
+		return services.stream().flatMap(service -> getServiceInstanceDetails(service, serviceId)).toList();
 	}
 
 	private Stream<ServiceInstance> getServiceInstanceDetails(V1Service service, String serviceId) {
