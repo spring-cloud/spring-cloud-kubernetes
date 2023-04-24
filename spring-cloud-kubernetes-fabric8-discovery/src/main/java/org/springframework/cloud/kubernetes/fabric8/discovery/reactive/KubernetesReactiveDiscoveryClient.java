@@ -45,7 +45,7 @@ public class KubernetesReactiveDiscoveryClient implements ReactiveDiscoveryClien
 
 	@Override
 	public String description() {
-		return "Kubernetes Reactive Discovery Client";
+		return "Fabric8 Kubernetes Reactive Discovery Client";
 	}
 
 	@Override
