@@ -17,16 +17,19 @@
 package org.springframework.cloud.kubernetes.client.secrets.event.reload;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
@@ -75,17 +78,22 @@ class SecretsEventReloadIT {
 		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
-	@AfterEach
-	void after() {
-		configK8sClientIt(Phase.DELETE);
-	}
-
 	@Test
 	void testSecretReload() throws Exception {
-		configK8sClientIt(Phase.CREATE);
+		configK8sClientIt(Phase.CREATE, false);
 		Commons.assertReloadLogStatements("added secret informer for namespace",
 				"added configmap informer for namespace", IMAGE_NAME);
 		testSecretEventReload();
+		configK8sClientIt(Phase.DELETE, false);
+	}
+
+	@Test
+	void testSecretReloadConfigDisabled() throws Exception {
+		configK8sClientIt(Phase.CREATE, true);
+		Commons.assertReloadLogStatements("added secret informer for namespace",
+				"added configmap informer for namespace", IMAGE_NAME);
+		testSecretEventReload();
+		configK8sClientIt(Phase.DELETE, true);
 	}
 
 	void testSecretEventReload() throws Exception {
@@ -108,11 +116,21 @@ class SecretsEventReloadIT {
 						.retryWhen(retrySpec()).block().equals("after-change"));
 	}
 
-	private void configK8sClientIt(Phase phase) {
+	private void configK8sClientIt(Phase phase, boolean configDisabled) {
 		V1Deployment deployment = (V1Deployment) util.yaml("deployment.yaml");
 		V1Service service = (V1Service) util.yaml("service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("ingress.yaml");
 		V1Secret secret = (V1Secret) util.yaml("secret.yaml");
+
+		List<V1EnvVar> envVars = new ArrayList<>(
+				Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
+						.orElse(List.of()));
+
+		if (configDisabled) {
+			V1EnvVar disableConfig = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_CONFIG_ENABLED").value("FALSE");
+			envVars.add(disableConfig);
+			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
+		}
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
