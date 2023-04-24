@@ -99,7 +99,7 @@ class ConfigMapEventReloadIT {
 	 */
 	@Test
 	void testInformFromOneNamespaceEventNotTriggered() {
-		manifests("one", Phase.CREATE);
+		manifests("one", Phase.CREATE, false);
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
@@ -130,7 +130,7 @@ class ConfigMapEventReloadIT {
 		// left configmap has not changed, no restart of app has happened
 		Assertions.assertEquals("left-initial", result);
 
-		manifests("one", Phase.DELETE);
+		manifests("one", Phase.DELETE, false);
 	}
 
 	/**
@@ -143,7 +143,7 @@ class ConfigMapEventReloadIT {
 	 */
 	@Test
 	void testInformFromOneNamespaceEventTriggered() {
-		manifests("two", Phase.CREATE);
+		manifests("two", Phase.CREATE, false);
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
@@ -170,7 +170,7 @@ class ConfigMapEventReloadIT {
 		});
 		Assertions.assertEquals("right-after-change", resultAfterChange[0]);
 
-		manifests("two", Phase.DELETE);
+		manifests("two", Phase.DELETE, false);
 	}
 
 	/**
@@ -184,7 +184,7 @@ class ConfigMapEventReloadIT {
 	 */
 	@Test
 	void testInform() {
-		manifests("three", Phase.CREATE);
+		manifests("three", Phase.CREATE, false);
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
@@ -241,10 +241,51 @@ class ConfigMapEventReloadIT {
 				.block();
 		Assertions.assertEquals("right-after-change", rightResult);
 
-		manifests("three", Phase.DELETE);
+		manifests("three", Phase.DELETE, false);
 	}
 
-	private static void manifests(String activeProfile, Phase phase) {
+	/**
+	 * <pre>
+	 *     - there are two namespaces : left and right
+	 *     - each of the namespaces has one configmap
+	 *     - secrets are disabled
+	 *     - we watch the "right" namespace and make a change in the configmap in the same namespace
+	 *     - as such, event is triggered and we see the updated value
+	 * </pre>
+	 */
+	@Test
+	void testInformFromOneNamespaceEventTriggeredSecretsDisabled() {
+		manifests("two", Phase.CREATE, true);
+		Commons.assertReloadLogStatements("added configmap informer for namespace",
+				"added secret informer for namespace", IMAGE_NAME);
+
+		// read the value from the right-configmap
+		WebClient webClient = builder().baseUrl("http://localhost/right").build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
+		Assertions.assertEquals("right-initial", result);
+
+		// then deploy a new version of right-configmap
+		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
+				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
+				.withData(Map.of("right.value", "right-after-change")).build();
+
+		replaceConfigMap(rightConfigMapAfterChange);
+
+		String[] resultAfterChange = new String[1];
+		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
+			WebClient innerWebClient = builder().baseUrl("http://localhost/right").build();
+			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+					.retryWhen(retrySpec()).block();
+			resultAfterChange[0] = innerResult;
+			return innerResult != null;
+		});
+		Assertions.assertEquals("right-after-change", resultAfterChange[0]);
+
+		manifests("two", Phase.DELETE, true);
+	}
+
+	private static void manifests(String activeProfile, Phase phase, boolean secretsDisabled) {
 
 		InputStream deploymentStream = util.inputStream("deployment.yaml");
 		InputStream serviceStream = util.inputStream("service.yaml");
@@ -260,6 +301,13 @@ class ConfigMapEventReloadIT {
 		EnvVar activeProfileProperty = new EnvVarBuilder().withName("SPRING_PROFILES_ACTIVE").withValue(activeProfile)
 				.build();
 		envVars.add(activeProfileProperty);
+
+		if (secretsDisabled) {
+			EnvVar secretsDisabledEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED")
+					.withValue("FALSE").build();
+			envVars.add(secretsDisabledEnvVar);
+			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
+		}
 
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
