@@ -18,10 +18,14 @@ package org.springframework.cloud.kubernetes.fabric8.secrets.event.reload;
 
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
@@ -71,17 +75,16 @@ class SecretsEventsReloadIT {
 		util = new Util(K3S);
 		client = util.client();
 		util.setUp(NAMESPACE);
-		manifests(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void after() throws Exception {
-		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
 	@Test
-	void test() {
+	void testSimple() {
+		manifests(Phase.CREATE, false);
 		Commons.assertReloadLogStatements("added secret informer for namespace",
 				"added configmap informer for namespace", IMAGE_NAME);
 		WebClient webClient = builder().baseUrl("http://localhost/key").build();
@@ -104,9 +107,39 @@ class SecretsEventsReloadIT {
 		await().timeout(Duration.ofSeconds(120)).until(() -> webClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("after-change"));
 
+		manifests(Phase.DELETE, false);
 	}
 
-	private static void manifests(Phase phase) {
+	@Test
+	void testSimpleConfigMapsDisabled() {
+		manifests(Phase.CREATE, true);
+		Commons.assertReloadLogStatements("added secret informer for namespace",
+				"added configmap informer for namespace", IMAGE_NAME);
+		WebClient webClient = builder().baseUrl("http://localhost/key").build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
+
+		// we first read the initial value from the secret
+		Assertions.assertEquals("initial", result);
+
+		// then deploy a new version of the secret
+		// since we poll and have reload in place, the new property must be visible
+		Secret secret = new SecretBuilder()
+				.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
+				.withData(Map.of("application.properties",
+						Base64.getEncoder().encodeToString("from.properties.key=after-change".getBytes())))
+				.build();
+
+		client.secrets().inNamespace("default").resource(secret).createOrReplace();
+
+		await().timeout(Duration.ofSeconds(120)).until(() -> webClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("after-change"));
+
+		manifests(Phase.DELETE, true);
+
+	}
+
+	private static void manifests(Phase phase, boolean configMapsDisabled) {
 
 		InputStream deploymentStream = util.inputStream("deployment.yaml");
 		InputStream serviceStream = util.inputStream("service.yaml");
@@ -117,6 +150,15 @@ class SecretsEventsReloadIT {
 		Service service = client.services().load(serviceStream).get();
 		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
 		Secret secret = client.secrets().load(secretStream).get();
+
+		if (configMapsDisabled) {
+			List<EnvVar> envVars = new ArrayList<>(
+					deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
+			EnvVar configMapsDisabledEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_CONFIG_ENABLED")
+					.withValue("FALSE").build();
+			envVars.add(configMapsDisabledEnvVar);
+			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
+		}
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, secret);
