@@ -301,7 +301,8 @@ class ConfigMapEventReloadIT {
 							.orElse(List.of()));
 
 			if (secretsDisabled) {
-				V1EnvVar secretsDisabledEnvVar = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED").value("FALSE");
+				V1EnvVar secretsDisabledEnvVar = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED")
+						.value("FALSE");
 				envVars.add(secretsDisabledEnvVar);
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 			}
