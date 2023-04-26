@@ -16,14 +16,20 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
+import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
+import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
+import io.kubernetes.client.util.wait.Wait;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -116,8 +122,7 @@ final class KubernetesDiscoveryClientUtils {
 		if (spelExpression == null || spelExpression.isEmpty()) {
 			LOG.debug(() -> "filter not defined, returning always true predicate");
 			predicate = service -> true;
-		}
-		else {
+		} else {
 			Expression filterExpr = PARSER.parseExpression(spelExpression);
 			predicate = service -> {
 				Boolean include = filterExpr.getValue(EVALUATION_CONTEXT, service, Boolean.class);
@@ -126,6 +131,31 @@ final class KubernetesDiscoveryClientUtils {
 			LOG.debug(() -> "returning predicate based on filter expression: " + spelExpression);
 		}
 		return predicate;
+	}
+
+	static void postConstruct(List<SharedInformerFactory> sharedInformerFactories,
+			KubernetesDiscoveryProperties properties, Supplier<Boolean> informersReadyFunc,
+			List<Lister<V1Service>> serviceListers) {
+
+		sharedInformerFactories.forEach(SharedInformerFactory::startAllRegisteredInformers);
+		if (!Wait.poll(Duration.ofSeconds(1), Duration.ofSeconds(properties.cacheLoadingTimeoutSeconds()), () -> {
+			LOG.info(() -> "Waiting for the cache of informers to be fully loaded..");
+			return informersReadyFunc.get();
+		})) {
+			if (properties.waitCacheReady()) {
+				throw new IllegalStateException(
+					"Timeout waiting for informers cache to be ready, is the kubernetes service up?");
+			}
+			else {
+				LOG.warn(() -> "Timeout waiting for informers cache to be ready, " +
+					"ignoring the failure because waitForInformerCacheReady property is false");
+			}
+		}
+		else {
+			LOG.info(() -> "Cache fully loaded (total " + serviceListers.stream().mapToLong(x -> x.list().size()).sum()
+				+ " services), discovery client is now available");
+		}
+
 	}
 
 }

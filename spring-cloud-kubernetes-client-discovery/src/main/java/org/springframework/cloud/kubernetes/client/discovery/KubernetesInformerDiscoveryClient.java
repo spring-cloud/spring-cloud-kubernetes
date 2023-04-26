@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +27,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.kubernetes.client.extended.wait.Wait;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
@@ -49,6 +47,7 @@ import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.filter;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.matchesServiceLabels;
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.postConstruct;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
@@ -245,22 +244,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	@PostConstruct
 	public void afterPropertiesSet() {
-		sharedInformerFactories.forEach(SharedInformerFactory::startAllRegisteredInformers);
-		if (!Wait.poll(Duration.ofSeconds(1), Duration.ofSeconds(properties.cacheLoadingTimeoutSeconds()), () -> {
-			LOG.info(() -> "Waiting for the cache of informers to be fully loaded..");
-			return informersReadyFunc.get();
-		})) {
-			if (properties.waitCacheReady()) {
-				throw new IllegalStateException(
-						"Timeout waiting for informers cache to be ready, is the kubernetes service up?");
-			}
-			else {
-				LOG.warn(
-						() -> "Timeout waiting for informers cache to be ready, ignoring the failure because waitForInformerCacheReady property is false");
-			}
-		}
-		LOG.info(() -> "Cache fully loaded (total " + serviceListers.stream().mapToLong(x -> x.list().size()).sum()
-				+ " services), discovery client is now available");
+		postConstruct(sharedInformerFactories, properties, informersReadyFunc, serviceListers);
 	}
 
 	@Override
