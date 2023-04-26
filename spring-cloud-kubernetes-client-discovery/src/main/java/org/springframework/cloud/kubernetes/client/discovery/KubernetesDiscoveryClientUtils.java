@@ -122,7 +122,8 @@ final class KubernetesDiscoveryClientUtils {
 		if (spelExpression == null || spelExpression.isEmpty()) {
 			LOG.debug(() -> "filter not defined, returning always true predicate");
 			predicate = service -> true;
-		} else {
+		}
+		else {
 			Expression filterExpr = PARSER.parseExpression(spelExpression);
 			predicate = service -> {
 				Boolean include = filterExpr.getValue(EVALUATION_CONTEXT, service, Boolean.class);
@@ -144,16 +145,16 @@ final class KubernetesDiscoveryClientUtils {
 		})) {
 			if (properties.waitCacheReady()) {
 				throw new IllegalStateException(
-					"Timeout waiting for informers cache to be ready, is the kubernetes service up?");
+						"Timeout waiting for informers cache to be ready, is the kubernetes service up?");
 			}
 			else {
-				LOG.warn(() -> "Timeout waiting for informers cache to be ready, " +
-					"ignoring the failure because waitForInformerCacheReady property is false");
+				LOG.warn(() -> "Timeout waiting for informers cache to be ready, "
+						+ "ignoring the failure because waitForInformerCacheReady property is false");
 			}
 		}
 		else {
 			LOG.info(() -> "Cache fully loaded (total " + serviceListers.stream().mapToLong(x -> x.list().size()).sum()
-				+ " services), discovery client is now available");
+					+ " services), discovery client is now available");
 		}
 
 	}
