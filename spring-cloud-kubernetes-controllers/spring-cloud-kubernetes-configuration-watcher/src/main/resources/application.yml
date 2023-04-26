@@ -6,7 +6,7 @@ spring:
   cloud:
     kubernetes:
       reload:
-        enabled: true
+        enabled: false
         monitoring-secrets: true
         strategy: shutdown
     bus:

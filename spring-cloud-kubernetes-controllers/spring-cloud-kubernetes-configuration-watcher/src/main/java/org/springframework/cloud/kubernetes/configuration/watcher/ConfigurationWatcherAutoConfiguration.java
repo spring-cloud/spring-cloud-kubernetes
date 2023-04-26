@@ -18,13 +18,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
-import org.springframework.boot.actuate.autoconfigure.amqp.RabbitHealthContributorAutoConfiguration;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.bus.BusProperties;
-import org.springframework.cloud.function.context.config.ContextFunctionCatalogAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
@@ -32,10 +26,6 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -44,24 +34,17 @@ import org.springframework.web.reactive.function.client.WebClient;
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-@Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties({ ConfigurationWatcherConfigurationProperties.class })
-@Import({ ConfigurationWatcherAutoConfiguration.RefreshTriggerConfiguration.class })
+@Deprecated(forRemoval = true)
 public class ConfigurationWatcherAutoConfiguration {
 
 	private static final String AMQP = "bus-amqp";
 
 	private static final String KAFKA = "bus-kafka";
 
-	@Bean
-	@ConditionalOnMissingBean
 	public WebClient webClient(WebClient.Builder webClientBuilder) {
 		return webClientBuilder.build();
 	}
 
-	@Bean
-	@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
-	@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
 	public ConfigMapWatcherChangeDetector httpBasedConfigMapWatchChangeDetector(AbstractEnvironment environment,
 			CoreV1Api coreV1Api, KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
@@ -73,9 +56,6 @@ public class ConfigurationWatcherAutoConfiguration {
 				httpRefreshTrigger);
 	}
 
-	@Bean
-	@ConditionalOnMissingBean
-	@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
 	public SecretsWatcherChangeDetector httpBasedSecretsWatchChangeDetector(AbstractEnvironment environment,
 			CoreV1Api coreV1Api, KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
 			KubernetesNamespaceProvider namespaceProvider, ConfigReloadProperties properties,
@@ -87,15 +67,8 @@ public class ConfigurationWatcherAutoConfiguration {
 				httpRefreshTrigger);
 	}
 
-	@Configuration
-	@Profile(AMQP)
-	@Import({ ContextFunctionCatalogAutoConfiguration.class, RabbitHealthContributorAutoConfiguration.class,
-			RefreshTriggerConfiguration.class })
 	static class BusRabbitConfiguration {
 
-		@Bean
-		@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
-		@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
 		public ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(AbstractEnvironment environment,
 				CoreV1Api coreV1Api, KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
 				KubernetesNamespaceProvider kubernetesNamespaceProvider, ConfigReloadProperties properties,
@@ -107,9 +80,6 @@ public class ConfigurationWatcherAutoConfiguration {
 					threadFactory, busRefreshTrigger);
 		}
 
-		@Bean
-		@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
-		@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
 		public SecretsWatcherChangeDetector busSecretsChangeWatcher(AbstractEnvironment environment,
 				CoreV1Api coreV1Api, KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
 				ConfigReloadProperties properties, KubernetesNamespaceProvider kubernetesNamespaceProvider,
@@ -123,14 +93,8 @@ public class ConfigurationWatcherAutoConfiguration {
 
 	}
 
-	@Configuration
-	@Profile(KAFKA)
-	@Import({ ContextFunctionCatalogAutoConfiguration.class, RefreshTriggerConfiguration.class })
 	static class BusKafkaConfiguration {
 
-		@Bean
-		@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
-		@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
 		public ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(AbstractEnvironment environment,
 				CoreV1Api coreV1Api, KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
 				ConfigReloadProperties properties, KubernetesNamespaceProvider namespaceProvider,
@@ -142,9 +106,6 @@ public class ConfigurationWatcherAutoConfiguration {
 					busRefreshTrigger);
 		}
 
-		@Bean
-		@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
-		@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
 		public SecretsWatcherChangeDetector busSecretsChangeWatcher(AbstractEnvironment environment,
 				CoreV1Api coreV1Api, KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
 				ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
@@ -158,19 +119,13 @@ public class ConfigurationWatcherAutoConfiguration {
 
 	}
 
-	@AutoConfiguration
 	static class RefreshTriggerConfiguration {
 
-		@Bean
-		@ConditionalOnMissingBean
-		@Profile({ AMQP, KAFKA })
 		public BusRefreshTrigger busRefreshTrigger(ApplicationEventPublisher applicationEventPublisher,
 				BusProperties busProperties) {
 			return new BusRefreshTrigger(applicationEventPublisher, busProperties.getId());
 		}
 
-		@Bean
-		@ConditionalOnMissingBean
 		public HttpRefreshTrigger httpRefreshTrigger(KubernetesInformerReactiveDiscoveryClient client,
 				ConfigurationWatcherConfigurationProperties properties, WebClient webClient) {
 			return new HttpRefreshTrigger(client, properties, webClient);
