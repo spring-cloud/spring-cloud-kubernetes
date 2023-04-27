@@ -84,9 +84,6 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 			LOG.debug(() -> "Secret " + newSecret.getMetadata().getName() + " was updated in namespace "
 					+ newSecret.getMetadata().getNamespace());
 
-			LOG.debug(() -> "old : " + oldSecret.getData());
-			LOG.debug(() -> "new : " + newSecret.getData());
-
 			if (equals(oldSecret.getData(), newSecret.getData())) {
 				LOG.debug(() -> "data in secret has not changed, will not reload");
 			}
