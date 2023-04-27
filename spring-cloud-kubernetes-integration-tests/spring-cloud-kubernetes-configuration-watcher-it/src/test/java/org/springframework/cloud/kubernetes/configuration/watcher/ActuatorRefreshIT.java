@@ -193,9 +193,8 @@ class ActuatorRefreshIT {
 
 	private String logs() {
 		try {
-			String appPodName = K3S.execInContainer("sh", "-c",
-				"kubectl get pods -l app=" + SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME +
-					" -o=name --no-headers | tr -d '\n'").getStdout();
+			String appPodName = K3S.execInContainer("sh", "-c", "kubectl get pods -l app="
+					+ SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
 
 			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
 			return execResult.getStdout();
