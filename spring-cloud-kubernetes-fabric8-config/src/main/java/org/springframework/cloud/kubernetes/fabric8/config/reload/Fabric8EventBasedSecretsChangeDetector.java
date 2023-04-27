@@ -135,7 +135,7 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 			LOG.debug("Secret " + newSecret.getMetadata().getName() + " was updated in namespace "
 					+ newSecret.getMetadata().getNamespace());
 			if (Objects.equals(oldSecret.getData(), newSecret.getData())) {
-				LOG.debug(() -> "data in configmap has not changed, will not reload");
+				LOG.debug(() -> "data in secret has not changed, will not reload");
 			}
 			else {
 				onEvent(newSecret);

@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap.event.reload;
+package org.springframework.cloud.kubernetes.fabric8.secrets.event.reload;
 
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
@@ -52,19 +52,20 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 
-class DataChangesInConfigMapReloadIT {
+/**
+ * @author wind57
+ */
+class DataChangesInSecretsReloadIT {
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-configmap-event-reload";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-secrets-event-reload";
 
 	private static final String NAMESPACE = "default";
 
-	private static final String LEFT_NAMESPACE = "left";
-
-	private static final K3sContainer K3S = Commons.container();
+	private static KubernetesClient client;
 
 	private static Util util;
 
-	private static KubernetesClient client;
+	private static final K3sContainer K3S = Commons.container();
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -74,73 +75,74 @@ class DataChangesInConfigMapReloadIT {
 
 		util = new Util(K3S);
 		client = util.client();
-
-		util.createNamespace(LEFT_NAMESPACE);
-		util.setUpClusterWide(NAMESPACE, Set.of(LEFT_NAMESPACE));
+		util.setUp(NAMESPACE);
 	}
 
 	@AfterAll
-	static void afterAll() throws Exception {
-		util.deleteNamespace(LEFT_NAMESPACE);
+	static void after() throws Exception {
 		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
 	/**
 	 * <pre>
-	 *     - configMap with no labels and data: left.value = left-initial exists in namespace left
-	 *     - we assert that we can read it correctly first, by invoking localhost/left
+	 *     - secret with no labels and data: left.value = left-initial exists in namespace left
+	 *     - we assert that we can read it correctly first, by invoking localhost/left.
 	 *
-	 *     - then we change the configmap by adding a label, this in turn does not
+	 *     - then we change the secret by adding a label, this in turn does not
 	 *       change the result of localhost/left, because the data has not changed.
 	 *
-	 *     - then we change data inside the config map, and we must see the updated value
+	 *     - then we change data inside the secret, and we must see the updated value.
 	 * </pre>
 	 */
 	@Test
 	void testSimple() {
 		manifests(Phase.CREATE);
-		Commons.assertReloadLogStatements("added configmap informer for namespace",
-				"added secret informer for namespace", IMAGE_NAME);
+		Commons.assertReloadLogStatements("added secret informer for namespace",
+				"added configmap informer for namespace", IMAGE_NAME);
 
-		WebClient webClient = builder().baseUrl("http://localhost/" + LEFT_NAMESPACE).build();
+		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
 		// we first read the initial value from the left-configmap
-		Assertions.assertEquals("left-initial", result);
+		Assertions.assertEquals("initial", result);
 
-		// then deploy a new version of left-configmap, but without changing its data,
+		// then deploy a new version of secret, but without changing its data,
 		// only add a label
-		ConfigMap configMap = new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder()
-				.withLabels(Map.of("new-label", "abc")).withNamespace("left").withName("left-configmap").build())
-				.withData(Map.of("left.value", "left-initial")).build();
+		Secret secret = new SecretBuilder()
+				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("letter", "a")).withNamespace(NAMESPACE)
+						.withName("event-reload").build())
+				.withData(Map.of("application.properties",
+						Base64.getEncoder().encodeToString("from.properties.key=initial".getBytes())))
+				.build();
 
-		replaceConfigMap(configMap);
+		client.secrets().inNamespace(NAMESPACE).resource(secret).createOrReplace();
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
-			WebClient innerWebClient = builder().baseUrl("http://localhost/" + LEFT_NAMESPACE).build();
+			WebClient innerWebClient = builder().baseUrl("http://localhost/key").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 					.retryWhen(retrySpec()).block();
-			return "left-initial".equals(innerResult);
+			return "initial".equals(innerResult);
 		});
 
 		String logs = logs();
-		Assertions.assertTrue(logs.contains("ConfigMap left-configmap was updated in namespace left"));
-		Assertions.assertTrue(logs.contains("data in configmap has not changed, will not reload"));
+		Assertions.assertTrue(logs.contains("Secret event-reload was updated in namespace default"));
+		Assertions.assertTrue(logs.contains("data in secret has not changed, will not reload"));
 
 		// change data
-		configMap = new ConfigMapBuilder()
-				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("new-label", "abc")).withNamespace("left")
-						.withName("left-configmap").build())
-				.withData(Map.of("left.value", "left-after-change")).build();
+		secret = new SecretBuilder()
+				.withMetadata(new ObjectMetaBuilder().withNamespace(NAMESPACE).withName("event-reload").build())
+				.withData(Map.of("application.properties",
+						Base64.getEncoder().encodeToString("from.properties.key=initial-changed".getBytes())))
+				.build();
 
-		replaceConfigMap(configMap);
+		client.secrets().inNamespace(NAMESPACE).resource(secret).createOrReplace();
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
-			WebClient innerWebClient = builder().baseUrl("http://localhost/" + LEFT_NAMESPACE).build();
+			WebClient innerWebClient = builder().baseUrl("http://localhost/key").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 					.retryWhen(retrySpec()).block();
-			return "left-after-change".equals(innerResult);
+			return "initial-changed".equals(innerResult);
 		});
 
 		manifests(Phase.DELETE);
@@ -151,7 +153,7 @@ class DataChangesInConfigMapReloadIT {
 		InputStream deploymentStream = util.inputStream("deployment.yaml");
 		InputStream serviceStream = util.inputStream("service.yaml");
 		InputStream ingressStream = util.inputStream("ingress.yaml");
-		InputStream configmapAsStream = util.inputStream("left-configmap.yaml");
+		InputStream secretAsStream = util.inputStream("secret.yaml");
 
 		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
 
@@ -160,7 +162,7 @@ class DataChangesInConfigMapReloadIT {
 		EnvVar activeProfileProperty = new EnvVarBuilder().withName("SPRING_PROFILES_ACTIVE").withValue("one").build();
 		envVars.add(activeProfileProperty);
 
-		EnvVar secretsDisabledEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED")
+		EnvVar configMapsDisabledEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_CONFIG_ENABLED")
 				.withValue("FALSE").build();
 
 		EnvVar debugLevel = new EnvVarBuilder()
@@ -168,19 +170,19 @@ class DataChangesInConfigMapReloadIT {
 				.build();
 		envVars.add(debugLevel);
 
-		envVars.add(secretsDisabledEnvVar);
+		envVars.add(configMapsDisabledEnvVar);
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
 		Service service = client.services().load(serviceStream).get();
 		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
-		ConfigMap configMap = client.configMaps().load(configmapAsStream).get();
+		Secret secret = client.secrets().load(secretAsStream).get();
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(LEFT_NAMESPACE, configMap, null);
+			util.createAndWait(NAMESPACE, null, secret);
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
 		else {
-			util.deleteAndWait(LEFT_NAMESPACE, configMap, null);
+			util.deleteAndWait(NAMESPACE, null, secret);
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 
@@ -206,10 +208,6 @@ class DataChangesInConfigMapReloadIT {
 
 	private RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(120, Duration.ofSeconds(2)).filter(Objects::nonNull);
-	}
-
-	private static void replaceConfigMap(ConfigMap configMap) {
-		client.configMaps().inNamespace(LEFT_NAMESPACE).resource(configMap).createOrReplace();
 	}
 
 }
