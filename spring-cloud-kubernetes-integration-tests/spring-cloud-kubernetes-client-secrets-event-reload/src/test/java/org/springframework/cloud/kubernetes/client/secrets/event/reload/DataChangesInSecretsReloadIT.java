@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.secrets.event.reload;
+package org.springframework.cloud.kubernetes.client.secrets.event.reload;
 
-import java.io.InputStream;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
-import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1EnvVar;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
+import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1SecretBuilder;
+import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -45,27 +45,24 @@ import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 
-/**
- * @author wind57
- */
 class DataChangesInSecretsReloadIT {
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-secrets-event-reload";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-secrets-event-reload";
 
 	private static final String NAMESPACE = "default";
 
-	private static KubernetesClient client;
+	private static final K3sContainer K3S = Commons.container();
 
 	private static Util util;
 
-	private static final K3sContainer K3S = Commons.container();
+	private static CoreV1Api api;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -74,12 +71,13 @@ class DataChangesInSecretsReloadIT {
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
 		util = new Util(K3S);
-		client = util.client();
-		util.setUp(NAMESPACE);
+		api = new CoreV1Api();
+
+		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE));
 	}
 
 	@AfterAll
-	static void after() throws Exception {
+	static void afterAll() throws Exception {
 		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
@@ -103,15 +101,18 @@ class DataChangesInSecretsReloadIT {
 		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
+
+		// we first read the initial value from the secret
 		Assertions.assertEquals("initial", result);
 
-		Secret secret = new SecretBuilder()
-				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("letter", "a")).withNamespace(NAMESPACE)
+		// then deploy a new version of left-configmap, but without changing its data,
+		// only add a label
+		V1Secret secret = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("new-label", "abc")).withNamespace(NAMESPACE)
 						.withName("event-reload").build())
-				.withData(Map.of("application.properties",
-						Base64.getEncoder().encodeToString("from.properties.key=initial".getBytes())))
-				.build();
-		client.secrets().inNamespace(NAMESPACE).resource(secret).createOrReplace();
+				.withData(Map.of("application.properties", "from.properties.key=initial".getBytes())).build();
+
+		replaceSecret(secret, "event-reload");
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("http://localhost/key").build();
@@ -125,19 +126,18 @@ class DataChangesInSecretsReloadIT {
 		Assertions.assertTrue(logs.contains("data in secret has not changed, will not reload"));
 
 		// change data
-		secret = new SecretBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace(NAMESPACE).withName("event-reload").build())
-				.withData(Map.of("application.properties",
-						Base64.getEncoder().encodeToString("from.properties.key=initial-changed".getBytes())))
-				.build();
+		secret = new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("new-label", "abc")).withNamespace(NAMESPACE)
+						.withName("event-reload").build())
+				.withData(Map.of("application.properties", "from.properties.key=change-initial".getBytes())).build();
 
-		client.secrets().inNamespace(NAMESPACE).resource(secret).createOrReplace();
+		replaceSecret(secret, "event-reload");
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("http://localhost/key").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 					.retryWhen(retrySpec()).block();
-			return "initial-changed".equals(innerResult);
+			return "change-initial".equals(innerResult);
 		});
 
 		manifests(Phase.DELETE);
@@ -145,40 +145,35 @@ class DataChangesInSecretsReloadIT {
 
 	private static void manifests(Phase phase) {
 
-		InputStream deploymentStream = util.inputStream("deployment.yaml");
-		InputStream serviceStream = util.inputStream("service.yaml");
-		InputStream ingressStream = util.inputStream("ingress.yaml");
-		InputStream secretAsStream = util.inputStream("secret.yaml");
+		try {
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
+			V1Secret secret = (V1Secret) util.yaml("secret.yaml");
+			V1Deployment deployment = (V1Deployment) util.yaml("deployment.yaml");
+			V1Service service = (V1Service) util.yaml("service.yaml");
+			V1Ingress ingress = (V1Ingress) util.yaml("ingress.yaml");
 
-		List<EnvVar> envVars = new ArrayList<>(
-				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
-		EnvVar activeProfileProperty = new EnvVarBuilder().withName("SPRING_PROFILES_ACTIVE").withValue("one").build();
-		envVars.add(activeProfileProperty);
+			List<V1EnvVar> envVars = new ArrayList<>(
+					Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
+							.orElse(List.of()));
 
-		EnvVar configMapsDisabledEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_CONFIG_ENABLED")
-				.withValue("FALSE").build();
+			V1EnvVar configDisabledEnvVar = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_CONFIG_ENABLED")
+					.value("FALSE");
+			envVars.add(configDisabledEnvVar);
+			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-		EnvVar debugLevel = new EnvVarBuilder()
-				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD").withName("DEBUG")
-				.build();
-		envVars.add(debugLevel);
+			if (phase.equals(Phase.CREATE)) {
+				util.createAndWait(NAMESPACE, null, secret);
+				util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			}
 
-		envVars.add(configMapsDisabledEnvVar);
-		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
+			if (phase.equals(Phase.DELETE)) {
+				util.deleteAndWait(NAMESPACE, null, secret);
+				util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			}
 
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
-		Secret secret = client.secrets().load(secretAsStream).get();
-
-		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, secret);
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
-		else {
-			util.deleteAndWait(NAMESPACE, null, secret);
-			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+		catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 
 	}
@@ -203,6 +198,15 @@ class DataChangesInSecretsReloadIT {
 
 	private RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(120, Duration.ofSeconds(2)).filter(Objects::nonNull);
+	}
+
+	private static void replaceSecret(V1Secret secret, String name) {
+		try {
+			api.replaceNamespacedSecret(name, NAMESPACE, secret, null, null, null, null);
+		}
+		catch (ApiException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

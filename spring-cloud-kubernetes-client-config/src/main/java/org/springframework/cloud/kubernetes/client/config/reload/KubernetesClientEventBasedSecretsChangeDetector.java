@@ -17,8 +17,9 @@
 package org.springframework.cloud.kubernetes.client.config.reload;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Set;
 
 import io.kubernetes.client.common.KubernetesObject;
@@ -82,7 +83,11 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		public void onUpdate(V1Secret oldSecret, V1Secret newSecret) {
 			LOG.debug(() -> "Secret " + newSecret.getMetadata().getName() + " was updated in namespace "
 					+ newSecret.getMetadata().getNamespace());
-			if (Objects.equals(oldSecret.getData(), newSecret.getData())) {
+
+			LOG.debug(() -> "old : " + oldSecret.getData());
+			LOG.debug(() -> "new : " + newSecret.getData());
+
+			if (equals(oldSecret.getData(), newSecret.getData())) {
 				LOG.debug(() -> "data in secret has not changed, will not reload");
 			}
 			else {
@@ -95,6 +100,21 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 			LOG.debug(() -> "Secret " + secret.getMetadata().getName() + " was deleted in namespace "
 					+ secret.getMetadata().getNamespace());
 			onEvent(secret);
+		}
+
+		private static boolean equals(Map<String, byte[]> left, Map<String, byte[]> right) {
+			if (left.size() != right.size()) {
+				return false;
+			}
+
+			for (Map.Entry<String, byte[]> entry : left.entrySet()) {
+				String key = entry.getKey();
+				byte[] value = entry.getValue();
+				if (!Arrays.equals(value, right.get(key))) {
+					return false;
+				}
+			}
+			return true;
 		}
 	};
 
