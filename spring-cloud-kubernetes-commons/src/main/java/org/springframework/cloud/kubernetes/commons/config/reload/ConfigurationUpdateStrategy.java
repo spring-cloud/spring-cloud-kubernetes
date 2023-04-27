@@ -29,7 +29,7 @@ public record ConfigurationUpdateStrategy(String name, Runnable reloadProcedure)
 	/**
 	 * Strategy that does nothing.
 	 */
-	public static final ConfigurationUpdateStrategy NOOP = new ConfigurationUpdateStrategy("no-no", () -> {
+	public static final ConfigurationUpdateStrategy NOOP = new ConfigurationUpdateStrategy("no-op", () -> {
 
 	});
 
