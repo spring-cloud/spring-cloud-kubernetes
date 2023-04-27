@@ -1,1 +1,2 @@
 org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherAutoConfiguration
+org.springframework.cloud.kubernetes.configuration.watcher.ConfigUpdateStrategyAutoConfiguration
