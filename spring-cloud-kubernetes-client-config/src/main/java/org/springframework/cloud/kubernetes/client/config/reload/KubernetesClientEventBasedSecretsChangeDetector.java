@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.client.config.reload;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import io.kubernetes.client.common.KubernetesObject;
@@ -81,7 +82,12 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		public void onUpdate(V1Secret oldSecret, V1Secret newSecret) {
 			LOG.debug(() -> "Secret " + newSecret.getMetadata().getName() + " was updated in namespace "
 					+ newSecret.getMetadata().getNamespace());
-			onEvent(newSecret);
+			if (Objects.equals(oldSecret.getData(), newSecret.getData())) {
+				LOG.debug(() -> "data in configmap has not changed, will not reload");
+			}
+			else {
+				onEvent(newSecret);
+			}
 		}
 
 		@Override
