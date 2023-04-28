@@ -101,20 +101,20 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 
 	@Test
 	void watch() {
-		GsonBuilder builder = new GsonBuilder();
-		builder.excludeFieldsWithModifiers(Modifier.STATIC, Modifier.TRANSIENT, Modifier.VOLATILE)
-			.registerTypeAdapter(OffsetDateTime.class, new GsonOffsetDateTimeAdapter());
-		Gson gson = builder.create();
 
 		V1Secret dbPassword = new V1Secret().metadata(new V1ObjectMeta().name("db-password"))
 			.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd".getBytes()))
-			.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()));
+			.putDataItem("password", Base64.getEncoder().encode("p455w0rd".getBytes()))
+			.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()))
+			.putDataItem("username", Base64.getEncoder().encode("user".getBytes()));
 		V1SecretList secretList = new V1SecretList().metadata(new V1ListMeta().resourceVersion("0"))
 			.items(List.of(dbPassword));
 
 		V1Secret dbPasswordUpdated = new V1Secret().metadata(new V1ObjectMeta().name("db-password"))
 			.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd2".getBytes()))
-			.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()));
+			.putDataItem("password", Base64.getEncoder().encode("p455w0rd2".getBytes()))
+			.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()))
+			.putDataItem("username", Base64.getEncoder().encode("user".getBytes()));
 		Watch.Response<V1Secret> watchResponse = new Watch.Response<>(EventType.MODIFIED.name(), dbPasswordUpdated);
 
 
@@ -122,7 +122,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 			.inScenario(SCENARIO)
 			.whenScenarioStateIs(STARTED)
 			.withQueryParams(WATCH_FALSE)
-			.willReturn(aResponse().withStatus(200).withBody(gson.toJson(secretList)))
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList)))
 			.willSetStateTo("update"));
 
 		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*"))
@@ -180,27 +180,10 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 			coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider);
 
 		Thread controllerThread = new Thread(changeDetector::inform);
-		controllerThread.setDaemon(true);
+		controllerThread.setDaemon(false);
 		controllerThread.start();
 
 		await().timeout(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(2)).until(() -> howMany[0] >= 4);
-	}
-
-	// This is needed when using JDK17 because GSON uses reflection to construct an
-	// OffsetDateTime but that constructor
-	// is protected.
-	public final static class GsonOffsetDateTimeAdapter extends TypeAdapter<OffsetDateTime> {
-
-		@Override
-		public void write(JsonWriter jsonWriter, OffsetDateTime localDateTime) throws IOException {
-			jsonWriter.value(OffsetDateTime.now().toString());
-		}
-
-		@Override
-		public OffsetDateTime read(JsonReader jsonReader) {
-			return OffsetDateTime.now();
-		}
-
 	}
 
 }
