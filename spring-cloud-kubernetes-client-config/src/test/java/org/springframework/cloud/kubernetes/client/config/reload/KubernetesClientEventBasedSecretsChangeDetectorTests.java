@@ -39,6 +39,7 @@ import io.kubernetes.client.util.Watch;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -167,6 +168,123 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		controllerThread.start();
 
 		await().timeout(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(2)).until(() -> howMany[0] >= 4);
+	}
+
+	/**
+	 * both are null, treat that as no change.
+	 */
+	@Test
+	void equalsOne() {
+		Map<String, byte[]> left = null;
+		Map<String, byte[]> right = null;
+
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertTrue(result);
+	}
+
+	/**
+	 * - left is empty map
+	 * - right is null
+	 *
+	 * treat as equal, that is: no change
+	 */
+	@Test
+	void equalsTwo() {
+		Map<String, byte[]> left = Map.of();
+		Map<String, byte[]> right = null;
+
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertTrue(result);
+	}
+
+	/**
+	 * - left is empty map
+	 * - right is null
+	 *
+	 * treat as equal, that is: no change
+	 */
+	@Test
+	void equalsThree() {
+		Map<String, byte[]> left = Map.of();
+		Map<String, byte[]> right = null;
+
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertTrue(result);
+	}
+
+	/**
+	 * - left is null
+	 * - right is empty map
+	 *
+	 * treat as equal, that is: no change
+	 */
+	@Test
+	void equalsFour() {
+		Map<String, byte[]> left = null;
+		Map<String, byte[]> right = Map.of();
+
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertTrue(result);
+	}
+
+	/**
+	 * - left is empty map
+	 * - right is empty map
+	 *
+	 * treat as equal, that is: no change
+	 */
+	@Test
+	void equalsFive() {
+		Map<String, byte[]> left = Map.of();
+		Map<String, byte[]> right = Map.of();
+
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertTrue(result);
+	}
+
+	/**
+	 * - left is empty map
+	 * - right is [1, b]
+	 *
+	 * treat as non-equal, that is change
+	 */
+	@Test
+	void equalsSix() {
+		Map<String, byte[]> left = Map.of();
+		Map<String, byte[]> right = Map.of("1", "b".getBytes());
+
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertFalse(result);
+	}
+
+	/**
+	 * - left is [1, a]
+	 * - right is [1, b]
+	 *
+	 * treat as non-equal, that is change
+	 */
+	@Test
+	void equalsSeven() {
+		Map<String, byte[]> left = Map.of("1", "a".getBytes());
+		Map<String, byte[]> right = Map.of("1", "b".getBytes());
+
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertFalse(result);
+	}
+
+	/**
+	 * - left is [1, a, 2 aa]
+	 * - right is [1, b, 2, aa]
+	 *
+	 * treat as non-equal, that is change
+	 */
+	@Test
+	void equalsEight() {
+		Map<String, byte[]> left = Map.of("1", "a".getBytes(), "2", "aa".getBytes());
+		Map<String, byte[]> right = Map.of("1", "b".getBytes(), "2", "aa".getBytes());
+
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertFalse(result);
 	}
 
 }
