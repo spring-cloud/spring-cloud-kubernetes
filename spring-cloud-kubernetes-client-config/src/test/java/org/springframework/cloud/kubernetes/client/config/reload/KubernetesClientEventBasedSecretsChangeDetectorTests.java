@@ -62,8 +62,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.awaitility.Awaitility.await;
@@ -75,11 +73,9 @@ import static org.mockito.Mockito.when;
  */
 class KubernetesClientEventBasedSecretsChangeDetectorTests {
 
-	private static final Map<String, StringValuePattern> WATCH_FALSE =
-		Map.of("resourceVersion", equalTo("0"), "watch", equalTo("false"));
+	private static final Map<String, StringValuePattern> WATCH_FALSE = Map.of("watch", equalTo("false"));
 
-	private static final Map<String, StringValuePattern> WATCH_TRUE =
-		Map.of("resourceVersion", equalTo("0"), "watch", equalTo("true"));
+	private static final Map<String, StringValuePattern> WATCH_TRUE = Map.of("watch", equalTo("true"));
 
 	private static final String SCENARIO = "watch";
 
@@ -107,61 +103,57 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 	void watch() {
 		GsonBuilder builder = new GsonBuilder();
 		builder.excludeFieldsWithModifiers(Modifier.STATIC, Modifier.TRANSIENT, Modifier.VOLATILE)
-				.registerTypeAdapter(OffsetDateTime.class, new GsonOffsetDateTimeAdapter());
+			.registerTypeAdapter(OffsetDateTime.class, new GsonOffsetDateTimeAdapter());
 		Gson gson = builder.create();
 
 		V1Secret dbPassword = new V1Secret().metadata(new V1ObjectMeta().name("db-password"))
-				.putDataItem("password", Base64.getEncoder().encode("p455w0rd".getBytes()))
-				.putDataItem("username", Base64.getEncoder().encode("user".getBytes()));
+			.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd".getBytes()))
+			.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()));
+		V1SecretList secretList = new V1SecretList().metadata(new V1ListMeta().resourceVersion("0"))
+			.items(List.of(dbPassword));
 
 		V1Secret dbPasswordUpdated = new V1Secret().metadata(new V1ObjectMeta().name("db-password"))
-				.putDataItem("password", Base64.getEncoder().encode("p455w0rd2".getBytes()))
-				.putDataItem("username", Base64.getEncoder().encode("user".getBytes()));
+			.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd2".getBytes()))
+			.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()));
+		Watch.Response<V1Secret> watchResponse = new Watch.Response<>(EventType.MODIFIED.name(), dbPasswordUpdated);
 
-		V1SecretList secretList = new V1SecretList().metadata(new V1ListMeta().resourceVersion("0"))
-				.items(List.of(dbPassword));
 
-		stubFor(get(urlPathMatching("^/api/v1/namespaces/default/secrets.*"))
-				.inScenario(SCENARIO)
-				.whenScenarioStateIs(STARTED)
-				//.withQueryParams(WATCH_FALSE)
-			.withQueryParam("watch", equalTo("false"))
-				.willReturn(aResponse().withStatus(200).withBody(gson.toJson(secretList)))
-				.willSetStateTo("update"));
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*"))
+			.inScenario(SCENARIO)
+			.whenScenarioStateIs(STARTED)
+			.withQueryParams(WATCH_FALSE)
+			.willReturn(aResponse().withStatus(200).withBody(gson.toJson(secretList)))
+			.willSetStateTo("update"));
 
-//		Watch.Response<V1Secret> watchResponse = new Watch.Response<>(EventType.MODIFIED.name(), dbPasswordUpdated);
-//		stubFor(get(urlPathMatching("/api/v1/namespaces/default/secrets\\\\?resourceVersion=0&watch=false"))
-//				.inScenario(SCENARIO)
-//				.whenScenarioStateIs("update")
-//				.withQueryParams(WATCH_TRUE)
-//				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(watchResponse)))
-//				.willSetStateTo("add"));
-//
-//		stubFor(get(urlPathMatching("/api/v1/namespaces/default/secrets"))
-//				.inScenario(SCENARIO)
-//				.whenScenarioStateIs("add")
-//				.withQueryParams(WATCH_TRUE)
-//				.willReturn(aResponse().withStatus(200)
-//						.withBody(new JSON().serialize(new Watch.Response<>(EventType.ADDED.name(),
-//								new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
-//										.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()))))))
-//				.willSetStateTo("delete"));
-//
-//		stubFor(get(urlPathMatching("/api/v1/namespaces/default/secrets"))
-//				.inScenario(SCENARIO)
-//				.whenScenarioStateIs("delete")
-//				.withQueryParams(WATCH_TRUE)
-//				.willReturn(aResponse().withStatus(200)
-//						.withBody(new JSON().serialize(new Watch.Response<>(EventType.DELETED.name(),
-//								new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
-//										.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()))))))
-//				.willSetStateTo("done"));
-//
-//		stubFor(get(urlPathMatching("/api/v1/namespaces/default/secrets"))
-//				.inScenario(SCENARIO)
-//				.whenScenarioStateIs("done")
-//				.withQueryParams(WATCH_TRUE)
-//				.willReturn(aResponse().withStatus(200)));
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*"))
+			.inScenario(SCENARIO)
+			.whenScenarioStateIs("update")
+			.withQueryParams(WATCH_TRUE)
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(watchResponse)))
+			.willSetStateTo("add"));
+
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*"))
+			.inScenario(SCENARIO)
+			.whenScenarioStateIs("add")
+			.withQueryParams(WATCH_TRUE)
+			.willReturn(aResponse().withStatus(200)
+				.withBody(new JSON().serialize(new Watch.Response<>(EventType.ADDED.name(),
+					new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
+						.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()))))))
+			.willSetStateTo("delete"));
+
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*"))
+			.inScenario(SCENARIO)
+			.whenScenarioStateIs("delete")
+			.withQueryParams(WATCH_TRUE)
+			.willReturn(aResponse().withStatus(200)
+				.withBody(new JSON().serialize(new Watch.Response<>(EventType.DELETED.name(),
+					new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
+						.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()))))))
+			.willSetStateTo("done"));
+
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario("watch").whenScenarioStateIs("done")
+			.withQueryParam("watch", equalTo("true")).willReturn(aResponse().withStatus(200)));
 
 		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		OkHttpClient httpClient = apiClient.getHttpClient().newBuilder().readTimeout(0, TimeUnit.SECONDS).build();
@@ -175,20 +167,20 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		ConfigurationUpdateStrategy strategy = new ConfigurationUpdateStrategy("strategy", run);
 
 		KubernetesMockEnvironment environment = new KubernetesMockEnvironment(
-				mock(KubernetesClientSecretsPropertySource.class)).withProperty("db-password", "p455w0rd");
+			mock(KubernetesClientSecretsPropertySource.class)).withProperty("db-password", "p455w0rd");
 		KubernetesClientSecretsPropertySourceLocator locator = mock(KubernetesClientSecretsPropertySourceLocator.class);
 		when(locator.locate(environment))
-				.thenAnswer(ignoreMe -> new MockPropertySource().withProperty("db-password", "p455w0rd2"));
+			.thenAnswer(ignoreMe -> new MockPropertySource().withProperty("db-password", "p455w0rd2"));
 		ConfigReloadProperties properties = new ConfigReloadProperties(false, false, true,
-				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-				Duration.ofMillis(15000), Set.of(), false, Duration.ofSeconds(2));
+			ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+			Duration.ofMillis(15000), Set.of(), false, Duration.ofSeconds(2));
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 		KubernetesClientEventBasedSecretsChangeDetector changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(
-				coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider);
+			coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider);
 
 		Thread controllerThread = new Thread(changeDetector::inform);
-		controllerThread.setDaemon(false);
+		controllerThread.setDaemon(true);
 		controllerThread.start();
 
 		await().timeout(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(2)).until(() -> howMany[0] >= 4);
