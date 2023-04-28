@@ -26,6 +26,13 @@ import java.util.Objects;
  */
 public record ConfigurationUpdateStrategy(String name, Runnable reloadProcedure) {
 
+	/**
+	 * Strategy that does nothing.
+	 */
+	public static final ConfigurationUpdateStrategy NOOP = new ConfigurationUpdateStrategy("no-op", () -> {
+
+	});
+
 	public ConfigurationUpdateStrategy(String name, Runnable reloadProcedure) {
 		this.name = Objects.requireNonNull(name, "name cannot be null");
 		this.reloadProcedure = Objects.requireNonNull(reloadProcedure, "reloadProcedure cannot be null");
