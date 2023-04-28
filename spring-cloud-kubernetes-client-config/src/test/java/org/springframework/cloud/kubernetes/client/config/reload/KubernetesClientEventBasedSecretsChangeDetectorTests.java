@@ -16,22 +16,16 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
-import java.io.IOException;
-import java.lang.reflect.Modifier;
 import java.time.Duration;
-import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
+import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import io.kubernetes.client.informer.EventType;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.JSON;
@@ -45,6 +39,7 @@ import io.kubernetes.client.util.Watch;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -71,6 +66,12 @@ import static org.mockito.Mockito.when;
  */
 class KubernetesClientEventBasedSecretsChangeDetectorTests {
 
+	private static final Map<String, StringValuePattern> WATCH_FALSE = Map.of("watch", equalTo("false"));
+
+	private static final Map<String, StringValuePattern> WATCH_TRUE = Map.of("watch", equalTo("true"));
+
+	private static final String SCENARIO = "watch";
+
 	private static WireMockServer wireMockServer;
 
 	@BeforeAll
@@ -93,43 +94,45 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 
 	@Test
 	void watch() {
-		GsonBuilder builder = new GsonBuilder();
-		builder.excludeFieldsWithModifiers(Modifier.STATIC, Modifier.TRANSIENT, Modifier.VOLATILE)
-				.registerTypeAdapter(OffsetDateTime.class, new GsonOffsetDateTimeAdapter());
-		Gson gson = builder.create();
 
-		V1Secret dbPassword = new V1Secret().kind("Secret").metadata(new V1ObjectMeta().name("db-password"))
+		V1Secret dbPassword = new V1Secret().metadata(new V1ObjectMeta().name("db-password"))
 				.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd".getBytes()))
-				.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()));
-		V1Secret dbPasswordUpdated = new V1Secret().kind("Secret").metadata(new V1ObjectMeta().name("db-password"))
-				.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd2".getBytes()))
-				.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()));
-		V1SecretList secretList = new V1SecretList().kind("SecretList").metadata(new V1ListMeta().resourceVersion("0"))
+				.putDataItem("password", Base64.getEncoder().encode("p455w0rd".getBytes()))
+				.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()))
+				.putDataItem("username", Base64.getEncoder().encode("user".getBytes()));
+		V1SecretList secretList = new V1SecretList().metadata(new V1ListMeta().resourceVersion("0"))
 				.items(List.of(dbPassword));
 
-		stubFor(get(urlMatching("^/api/v1/namespaces/default/secrets.*")).inScenario("watch")
-				.whenScenarioStateIs(STARTED).withQueryParam("watch", equalTo("false"))
-				.willReturn(aResponse().withStatus(200).withBody(gson.toJson(secretList))).willSetStateTo("update"));
-
+		V1Secret dbPasswordUpdated = new V1Secret().metadata(new V1ObjectMeta().name("db-password"))
+				.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd2".getBytes()))
+				.putDataItem("password", Base64.getEncoder().encode("p455w0rd2".getBytes()))
+				.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()))
+				.putDataItem("username", Base64.getEncoder().encode("user".getBytes()));
 		Watch.Response<V1Secret> watchResponse = new Watch.Response<>(EventType.MODIFIED.name(), dbPasswordUpdated);
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario("watch")
-				.whenScenarioStateIs("update").withQueryParam("watch", equalTo("true"))
+
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario(SCENARIO)
+				.whenScenarioStateIs(STARTED).withQueryParams(WATCH_FALSE)
+				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList)))
+				.willSetStateTo("update"));
+
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario(SCENARIO)
+				.whenScenarioStateIs("update").withQueryParams(WATCH_TRUE)
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(watchResponse)))
 				.willSetStateTo("add"));
 
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario("watch").whenScenarioStateIs("add")
-				.withQueryParam("watch", equalTo("true"))
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario(SCENARIO).whenScenarioStateIs("add")
+				.withQueryParams(WATCH_TRUE)
 				.willReturn(aResponse().withStatus(200)
 						.withBody(new JSON().serialize(new Watch.Response<>(EventType.ADDED.name(),
-								new V1Secret().kind("Secret").metadata(new V1ObjectMeta().name("rabbit-password"))
+								new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
 										.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()))))))
 				.willSetStateTo("delete"));
 
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario("watch")
-				.whenScenarioStateIs("delete").withQueryParam("watch", equalTo("true"))
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario(SCENARIO)
+				.whenScenarioStateIs("delete").withQueryParams(WATCH_TRUE)
 				.willReturn(aResponse().withStatus(200)
 						.withBody(new JSON().serialize(new Watch.Response<>(EventType.DELETED.name(),
-								new V1Secret().kind("Secret").metadata(new V1ObjectMeta().name("rabbit-password"))
+								new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
 										.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()))))))
 				.willSetStateTo("done"));
 
@@ -167,21 +170,121 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		await().timeout(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(2)).until(() -> howMany[0] >= 4);
 	}
 
-	// This is needed when using JDK17 because GSON uses reflection to construct an
-	// OffsetDateTime but that constructor
-	// is protected.
-	public final static class GsonOffsetDateTimeAdapter extends TypeAdapter<OffsetDateTime> {
+	/**
+	 * both are null, treat that as no change.
+	 */
+	@Test
+	void equalsOne() {
+		Map<String, byte[]> left = null;
+		Map<String, byte[]> right = null;
 
-		@Override
-		public void write(JsonWriter jsonWriter, OffsetDateTime localDateTime) throws IOException {
-			jsonWriter.value(OffsetDateTime.now().toString());
-		}
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertTrue(result);
+	}
 
-		@Override
-		public OffsetDateTime read(JsonReader jsonReader) {
-			return OffsetDateTime.now();
-		}
+	/**
+	 * - left is empty map
+	 * - right is null
+	 *
+	 * treat as equal, that is: no change
+	 */
+	@Test
+	void equalsTwo() {
+		Map<String, byte[]> left = Map.of();
+		Map<String, byte[]> right = null;
 
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertTrue(result);
+	}
+
+	/**
+	 * - left is empty map
+	 * - right is null
+	 *
+	 * treat as equal, that is: no change
+	 */
+	@Test
+	void equalsThree() {
+		Map<String, byte[]> left = Map.of();
+		Map<String, byte[]> right = null;
+
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertTrue(result);
+	}
+
+	/**
+	 * - left is null
+	 * - right is empty map
+	 *
+	 * treat as equal, that is: no change
+	 */
+	@Test
+	void equalsFour() {
+		Map<String, byte[]> left = null;
+		Map<String, byte[]> right = Map.of();
+
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertTrue(result);
+	}
+
+	/**
+	 * - left is empty map
+	 * - right is empty map
+	 *
+	 * treat as equal, that is: no change
+	 */
+	@Test
+	void equalsFive() {
+		Map<String, byte[]> left = Map.of();
+		Map<String, byte[]> right = Map.of();
+
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertTrue(result);
+	}
+
+	/**
+	 * - left is empty map
+	 * - right is [1, b]
+	 *
+	 * treat as non-equal, that is change
+	 */
+	@Test
+	void equalsSix() {
+		Map<String, byte[]> left = Map.of();
+		Map<String, byte[]> right = Map.of("1", "b".getBytes());
+
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertFalse(result);
+	}
+
+	/**
+	 * - left is [1, a]
+	 * - right is [1, b]
+	 *
+	 * treat as non-equal, that is change
+	 */
+	@Test
+	void equalsSeven() {
+		Map<String, byte[]> left = Map.of("1", "a".getBytes());
+		Map<String, byte[]> right = Map.of("1", "b".getBytes());
+
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertFalse(result);
+	}
+
+	/**
+	 * - left is [1, a, 2 aa]
+	 * - right is [1, b, 2, aa]
+	 *
+	 * treat as non-equal, that is change
+	 */
+	@Test
+	void equalsEight() {
+		Map<String, byte[]> left = Map.of("1", "a".getBytes(), "2", "aa".getBytes());
+		Map<String, byte[]> right = Map.of("1", "b".getBytes(), "2", "aa".getBytes());
+
+		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
+		Assertions.assertFalse(result);
 	}
 
 }
