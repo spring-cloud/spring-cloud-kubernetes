@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config.reload;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.Secret;
@@ -133,7 +134,12 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 		public void onUpdate(Secret oldSecret, Secret newSecret) {
 			LOG.debug("Secret " + newSecret.getMetadata().getName() + " was updated in namespace "
 					+ newSecret.getMetadata().getNamespace());
-			onEvent(newSecret);
+			if (Objects.equals(oldSecret.getData(), newSecret.getData())) {
+				LOG.debug(() -> "data in secret has not changed, will not reload");
+			}
+			else {
+				onEvent(newSecret);
+			}
 		}
 
 		@Override
