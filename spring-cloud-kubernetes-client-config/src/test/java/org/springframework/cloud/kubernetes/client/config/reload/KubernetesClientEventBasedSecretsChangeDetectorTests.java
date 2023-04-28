@@ -22,11 +22,13 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
@@ -60,6 +62,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.awaitility.Awaitility.await;
@@ -70,6 +74,14 @@ import static org.mockito.Mockito.when;
  * @author Ryan Baxter
  */
 class KubernetesClientEventBasedSecretsChangeDetectorTests {
+
+	private static final Map<String, StringValuePattern> WATCH_FALSE =
+		Map.of("resourceVersion", equalTo("0"), "watch", equalTo("false"));
+
+	private static final Map<String, StringValuePattern> WATCH_TRUE =
+		Map.of("resourceVersion", equalTo("0"), "watch", equalTo("true"));
+
+	private static final String SCENARIO = "watch";
 
 	private static WireMockServer wireMockServer;
 
@@ -98,43 +110,58 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 				.registerTypeAdapter(OffsetDateTime.class, new GsonOffsetDateTimeAdapter());
 		Gson gson = builder.create();
 
-		V1Secret dbPassword = new V1Secret().kind("Secret").metadata(new V1ObjectMeta().name("db-password"))
-				.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd".getBytes()))
-				.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()));
-		V1Secret dbPasswordUpdated = new V1Secret().kind("Secret").metadata(new V1ObjectMeta().name("db-password"))
-				.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd2".getBytes()))
-				.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()));
-		V1SecretList secretList = new V1SecretList().kind("SecretList").metadata(new V1ListMeta().resourceVersion("0"))
+		V1Secret dbPassword = new V1Secret().metadata(new V1ObjectMeta().name("db-password"))
+				.putDataItem("password", Base64.getEncoder().encode("p455w0rd".getBytes()))
+				.putDataItem("username", Base64.getEncoder().encode("user".getBytes()));
+
+		V1Secret dbPasswordUpdated = new V1Secret().metadata(new V1ObjectMeta().name("db-password"))
+				.putDataItem("password", Base64.getEncoder().encode("p455w0rd2".getBytes()))
+				.putDataItem("username", Base64.getEncoder().encode("user".getBytes()));
+
+		V1SecretList secretList = new V1SecretList().metadata(new V1ListMeta().resourceVersion("0"))
 				.items(List.of(dbPassword));
 
-		stubFor(get(urlMatching("^/api/v1/namespaces/default/secrets.*")).inScenario("watch")
-				.whenScenarioStateIs(STARTED).withQueryParam("watch", equalTo("false"))
-				.willReturn(aResponse().withStatus(200).withBody(gson.toJson(secretList))).willSetStateTo("update"));
+		stubFor(get(urlPathMatching("^/api/v1/namespaces/default/secrets.*"))
+				.inScenario(SCENARIO)
+				.whenScenarioStateIs(STARTED)
+				//.withQueryParams(WATCH_FALSE)
+			.withQueryParam("watch", equalTo("false"))
+				.willReturn(aResponse().withStatus(200).withBody(gson.toJson(secretList)))
+				.willSetStateTo("update"));
 
-		Watch.Response<V1Secret> watchResponse = new Watch.Response<>(EventType.MODIFIED.name(), dbPasswordUpdated);
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario("watch")
-				.whenScenarioStateIs("update").withQueryParam("watch", equalTo("true"))
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(watchResponse)))
-				.willSetStateTo("add"));
-
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario("watch").whenScenarioStateIs("add")
-				.withQueryParam("watch", equalTo("true"))
-				.willReturn(aResponse().withStatus(200)
-						.withBody(new JSON().serialize(new Watch.Response<>(EventType.ADDED.name(),
-								new V1Secret().kind("Secret").metadata(new V1ObjectMeta().name("rabbit-password"))
-										.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()))))))
-				.willSetStateTo("delete"));
-
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario("watch")
-				.whenScenarioStateIs("delete").withQueryParam("watch", equalTo("true"))
-				.willReturn(aResponse().withStatus(200)
-						.withBody(new JSON().serialize(new Watch.Response<>(EventType.DELETED.name(),
-								new V1Secret().kind("Secret").metadata(new V1ObjectMeta().name("rabbit-password"))
-										.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()))))))
-				.willSetStateTo("done"));
-
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario("watch").whenScenarioStateIs("done")
-				.withQueryParam("watch", equalTo("true")).willReturn(aResponse().withStatus(200)));
+//		Watch.Response<V1Secret> watchResponse = new Watch.Response<>(EventType.MODIFIED.name(), dbPasswordUpdated);
+//		stubFor(get(urlPathMatching("/api/v1/namespaces/default/secrets\\\\?resourceVersion=0&watch=false"))
+//				.inScenario(SCENARIO)
+//				.whenScenarioStateIs("update")
+//				.withQueryParams(WATCH_TRUE)
+//				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(watchResponse)))
+//				.willSetStateTo("add"));
+//
+//		stubFor(get(urlPathMatching("/api/v1/namespaces/default/secrets"))
+//				.inScenario(SCENARIO)
+//				.whenScenarioStateIs("add")
+//				.withQueryParams(WATCH_TRUE)
+//				.willReturn(aResponse().withStatus(200)
+//						.withBody(new JSON().serialize(new Watch.Response<>(EventType.ADDED.name(),
+//								new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
+//										.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()))))))
+//				.willSetStateTo("delete"));
+//
+//		stubFor(get(urlPathMatching("/api/v1/namespaces/default/secrets"))
+//				.inScenario(SCENARIO)
+//				.whenScenarioStateIs("delete")
+//				.withQueryParams(WATCH_TRUE)
+//				.willReturn(aResponse().withStatus(200)
+//						.withBody(new JSON().serialize(new Watch.Response<>(EventType.DELETED.name(),
+//								new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
+//										.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()))))))
+//				.willSetStateTo("done"));
+//
+//		stubFor(get(urlPathMatching("/api/v1/namespaces/default/secrets"))
+//				.inScenario(SCENARIO)
+//				.whenScenarioStateIs("done")
+//				.withQueryParams(WATCH_TRUE)
+//				.willReturn(aResponse().withStatus(200)));
 
 		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		OkHttpClient httpClient = apiClient.getHttpClient().newBuilder().readTimeout(0, TimeUnit.SECONDS).build();
@@ -161,7 +188,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 				coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider);
 
 		Thread controllerThread = new Thread(changeDetector::inform);
-		controllerThread.setDaemon(true);
+		controllerThread.setDaemon(false);
 		controllerThread.start();
 
 		await().timeout(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(2)).until(() -> howMany[0] >= 4);

@@ -90,6 +90,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 			else {
 				onEvent(newSecret);
 			}
+			//onEvent(newSecret);
 		}
 
 		@Override
