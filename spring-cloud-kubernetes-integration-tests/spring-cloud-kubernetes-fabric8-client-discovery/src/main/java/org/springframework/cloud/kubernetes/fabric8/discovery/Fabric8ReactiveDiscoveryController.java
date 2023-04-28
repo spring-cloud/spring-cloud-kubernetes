@@ -22,7 +22,6 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.fabric8.discovery.reactive.KubernetesReactiveDiscoveryClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,11 +32,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class Fabric8ReactiveDiscoveryController {
 
-	private final KubernetesReactiveDiscoveryClient reactiveDiscoveryClient;
+	private final Fabric8KubernetesReactiveDiscoveryClient reactiveDiscoveryClient;
 
 	public Fabric8ReactiveDiscoveryController(
-			ObjectProvider<KubernetesReactiveDiscoveryClient> reactiveDiscoveryClient) {
-		KubernetesReactiveDiscoveryClient[] local = new KubernetesReactiveDiscoveryClient[1];
+			ObjectProvider<Fabric8KubernetesReactiveDiscoveryClient> reactiveDiscoveryClient) {
+		Fabric8KubernetesReactiveDiscoveryClient[] local = new Fabric8KubernetesReactiveDiscoveryClient[1];
 		reactiveDiscoveryClient.ifAvailable(x -> local[0] = x);
 		this.reactiveDiscoveryClient = local[0];
 	}

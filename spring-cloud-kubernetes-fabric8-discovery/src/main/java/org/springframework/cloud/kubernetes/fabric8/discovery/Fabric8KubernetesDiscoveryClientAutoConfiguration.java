@@ -64,7 +64,7 @@ import org.springframework.core.log.LogAccessor;
 class Fabric8KubernetesDiscoveryClientAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(KubernetesDiscoveryClientAutoConfiguration.class));
+			LogFactory.getLog(Fabric8KubernetesDiscoveryClientAutoConfiguration.class));
 
 	@Bean
 	@ConditionalOnMissingBean
