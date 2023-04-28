@@ -17,17 +17,23 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -71,13 +77,11 @@ class ActuatorRefreshIT {
 
 	@BeforeEach
 	void setup() {
-		configWatcher(Phase.CREATE);
 		util.wiremock(NAMESPACE, "/", Phase.CREATE);
 	}
 
 	@AfterEach
 	void after() {
-		configWatcher(Phase.DELETE);
 		util.wiremock(NAMESPACE, "/", Phase.DELETE);
 	}
 
@@ -91,6 +95,8 @@ class ActuatorRefreshIT {
 	// curl <WIREMOCK_POD_IP>:8080/__admin/mappings
 	@Test
 	void testActuatorRefresh() {
+		configWatcher(Phase.CREATE, false);
+
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
 		await().timeout(Duration.ofSeconds(60))
 				.until(() -> WireMock
@@ -109,13 +115,68 @@ class ActuatorRefreshIT {
 
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 		util.deleteAndWait(NAMESPACE, configMap, null);
+
+		configWatcher(Phase.DELETE, false);
 	}
 
-	private void configWatcher(Phase phase) {
+	/*
+	 * same test as above, but reload is disabled.
+	 */
+	@Test
+	void testActuatorRefreshReloadDisabled() {
+		configWatcher(Phase.CREATE, true);
+
+		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
+		await().timeout(Duration.ofSeconds(60))
+				.until(() -> WireMock
+						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+								.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
+						.getResponse().wasConfigured());
+
+		// Create new configmap to trigger controller to signal app to refresh
+		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName("service-wiremock")
+				.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "bar").build();
+		util.createAndWait(NAMESPACE, configMap, null);
+
+		// Wait a bit before we verify
+		await().atMost(Duration.ofSeconds(30)).until(
+				() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh"))).isEmpty());
+
+		Assertions.assertTrue(logs().contains("creating NOOP strategy because reload is disabled"));
+		// nothing related to 'ConfigReloadUtil' is present in logs
+		// this proves that once we disable reload everything still works
+		Assertions.assertFalse(logs().contains("ConfigReloadUtil"));
+
+		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
+		util.deleteAndWait(NAMESPACE, configMap, null);
+
+		configWatcher(Phase.DELETE, true);
+	}
+
+	private void configWatcher(Phase phase, boolean disableReload) {
 		V1ConfigMap configMap = (V1ConfigMap) util
 				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
 		V1Deployment deployment = (V1Deployment) util
 				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-http-deployment.yaml");
+
+		List<V1EnvVar> envVars = new ArrayList<>(
+				Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
+						.orElse(new ArrayList<>()));
+
+		V1EnvVar commonsDebug = new V1EnvVar()
+				.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD").value("DEBUG");
+		V1EnvVar watcherDebug = new V1EnvVar()
+				.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CONFIGURATION_WATCHER").value("DEBUG");
+
+		envVars.add(commonsDebug);
+		envVars.add(watcherDebug);
+
+		if (disableReload) {
+			V1EnvVar disableReloadEnvVar = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_RELOAD_ENABLED").value("FALSE");
+			envVars.add(disableReloadEnvVar);
+			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
+		}
+
 		V1Service service = (V1Service) util
 				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
 
@@ -128,6 +189,20 @@ class ActuatorRefreshIT {
 			util.deleteAndWait(NAMESPACE, deployment, service, null);
 		}
 
+	}
+
+	private String logs() {
+		try {
+			String appPodName = K3S.execInContainer("sh", "-c", "kubectl get pods -l app="
+					+ SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+
+			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
+			return execResult.getStdout();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 }

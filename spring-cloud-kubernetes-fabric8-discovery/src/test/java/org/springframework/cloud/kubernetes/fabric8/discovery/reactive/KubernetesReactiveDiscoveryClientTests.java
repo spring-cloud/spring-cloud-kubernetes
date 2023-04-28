@@ -76,7 +76,7 @@ class KubernetesReactiveDiscoveryClientTests {
 	void verifyDefaults() {
 		ReactiveDiscoveryClient client = new KubernetesReactiveDiscoveryClient(kubernetesClient,
 				KubernetesDiscoveryProperties.DEFAULT, KubernetesClient::services);
-		assertThat(client.description()).isEqualTo("Kubernetes Reactive Discovery Client");
+		assertThat(client.description()).isEqualTo("Fabric8 Kubernetes Reactive Discovery Client");
 		assertThat(client.getOrder()).isEqualTo(ReactiveDiscoveryClient.DEFAULT_ORDER);
 	}
 
