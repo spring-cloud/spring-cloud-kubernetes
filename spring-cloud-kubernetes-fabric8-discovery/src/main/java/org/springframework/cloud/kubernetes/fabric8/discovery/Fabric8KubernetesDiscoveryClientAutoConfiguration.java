@@ -20,6 +20,7 @@ import java.util.function.Predicate;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -44,6 +45,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * Auto configuration for discovery clients.
@@ -61,6 +63,9 @@ import org.springframework.core.env.Environment;
 		Fabric8DiscoveryClientPredicateAutoConfiguration.class })
 class Fabric8KubernetesDiscoveryClientAutoConfiguration {
 
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(KubernetesDiscoveryClientAutoConfiguration.class));
+
 	@Bean
 	@ConditionalOnMissingBean
 	Fabric8KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
@@ -76,6 +81,7 @@ class Fabric8KubernetesDiscoveryClientAutoConfiguration {
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
 			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+		LOG.debug(() -> "Will publish InstanceRegisteredEvent from blocking implementation");
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 

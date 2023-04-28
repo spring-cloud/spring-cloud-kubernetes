@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -379,6 +381,71 @@ class KubernetesInformerDiscoveryClientTests {
 				new DefaultKubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080,
 						Map.of("<unset>", "8080", "k8s_namespace", "namespace2", "type", "ClusterIP"), false,
 						"namespace2", null));
+	}
+
+	@Test
+	void testBothServicesMatchesFilter() {
+		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_1, SERVICE_3);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1, ENDPOINTS_3);
+
+		String spelFilter = """
+				#root.metadata.namespace matches "^.+1$"
+				""";
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L,
+				false, spelFilter, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
+				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
+
+		assertThat(discoveryClient.getServices()).contains("test-svc-1", "test-svc-3");
+
+		List<ServiceInstance> one = discoveryClient.getInstances("test-svc-1");
+		assertThat(one.get(0).getMetadata().get("k8s_namespace")).isEqualTo("namespace1");
+
+		List<ServiceInstance> two = discoveryClient.getInstances("test-svc-3");
+		assertThat(two.get(0).getMetadata().get("k8s_namespace")).isEqualTo("namespace1");
+
+	}
+
+	@Test
+	void testOneServiceMatchesFilter() {
+		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_1, SERVICE_2);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1, ENDPOINTS_2);
+
+		// without filter, both match
+		String spelFilter = "";
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L,
+				false, spelFilter, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
+				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
+
+		// only one here because of distinct
+		assertThat(discoveryClient.getServices()).contains("test-svc-1");
+
+		List<ServiceInstance> result = discoveryClient.getInstances("test-svc-1").stream()
+				.sorted(Comparator.comparing(res -> res.getMetadata().get("k8s_namespace"))).toList();
+		assertThat(result.get(0).getMetadata().get("k8s_namespace")).isEqualTo("namespace1");
+		assertThat(result.get(1).getMetadata().get("k8s_namespace")).isEqualTo("namespace2");
+
+		// with filter, only one matches
+
+		spelFilter = """
+				#root.metadata.namespace matches "^.+1$"
+				""";
+		properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L, false, spelFilter, Set.of(),
+				Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+		discoveryClient = new KubernetesInformerDiscoveryClient(SHARED_INFORMER_FACTORY, serviceLister, endpointsLister,
+				null, null, properties);
+
+		// only one here because of distinct
+		assertThat(discoveryClient.getServices()).contains("test-svc-1");
+
+		result = discoveryClient.getInstances("test-svc-1").stream()
+				.sorted(Comparator.comparing(res -> res.getMetadata().get("k8s_namespace"))).toList();
+		assertThat(result.size()).isEqualTo(1);
+		assertThat(result.get(0).getMetadata().get("k8s_namespace")).isEqualTo("namespace1");
+
 	}
 
 	private Lister<V1Service> setupServiceLister(V1Service... services) {

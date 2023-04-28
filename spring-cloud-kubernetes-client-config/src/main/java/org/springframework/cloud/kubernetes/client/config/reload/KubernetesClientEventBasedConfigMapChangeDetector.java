@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.client.config.reload;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import io.kubernetes.client.common.KubernetesObject;
@@ -81,7 +82,12 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		public void onUpdate(V1ConfigMap oldConfigMap, V1ConfigMap newConfigMap) {
 			LOG.debug(() -> "ConfigMap " + newConfigMap.getMetadata().getName() + " was updated in namespace "
 					+ newConfigMap.getMetadata().getNamespace());
-			onEvent(newConfigMap);
+			if (Objects.equals(oldConfigMap.getData(), newConfigMap.getData())) {
+				LOG.debug(() -> "data in configmap has not changed, will not reload");
+			}
+			else {
+				onEvent(newConfigMap);
+			}
 		}
 
 		@Override

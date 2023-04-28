@@ -23,13 +23,15 @@ import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfi
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
 import org.springframework.cloud.commons.util.TaskSchedulerWrapper;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.cloud.context.restart.RestartEndpoint;
-import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesAndConfigEnabled;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigMapsOrSecretsEnabled;
 import org.springframework.cloud.kubernetes.commons.config.reload.condition.ConditionalOnKubernetesReloadEnabled;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -41,7 +43,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @author Ryan Baxter
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnKubernetesAndConfigEnabled
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+@ConditionalOnKubernetesConfigMapsOrSecretsEnabled
 @ConditionalOnKubernetesReloadEnabled
 @ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,

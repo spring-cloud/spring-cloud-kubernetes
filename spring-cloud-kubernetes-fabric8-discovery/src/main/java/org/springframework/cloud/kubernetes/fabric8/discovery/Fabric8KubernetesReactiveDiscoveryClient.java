@@ -39,7 +39,7 @@ final class Fabric8KubernetesReactiveDiscoveryClient implements ReactiveDiscover
 
 	@Override
 	public String description() {
-		return "Kubernetes Reactive Discovery Client";
+		return "Fabric8 Kubernetes Reactive Discovery Client";
 	}
 
 	@Override

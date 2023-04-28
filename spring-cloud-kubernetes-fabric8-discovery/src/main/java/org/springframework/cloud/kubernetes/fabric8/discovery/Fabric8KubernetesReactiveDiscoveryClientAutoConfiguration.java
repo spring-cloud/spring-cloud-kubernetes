@@ -20,6 +20,7 @@ import java.util.function.Predicate;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -36,12 +37,16 @@ import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIn
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * Auto configuration for reactive discovery client.
@@ -60,6 +65,9 @@ import org.springframework.core.env.Environment;
 		Fabric8DiscoveryClientPredicateAutoConfiguration.class })
 class Fabric8KubernetesReactiveDiscoveryClientAutoConfiguration {
 
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(Fabric8KubernetesReactiveDiscoveryClientAutoConfiguration.class));
+
 	@Bean
 	@ConditionalOnMissingBean
 	Fabric8KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(KubernetesClient client,
@@ -69,6 +77,18 @@ class Fabric8KubernetesReactiveDiscoveryClientAutoConfiguration {
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(client,
 				properties, servicePortSecureResolver, namespaceProvider, predicate);
 		return new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
+	}
+
+	/**
+	 * Post an event so that health indicator is initialized.
+	 */
+	@Bean
+	@ConditionalOnClass(name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
+	@ConditionalOnDiscoveryHealthIndicatorEnabled
+	KubernetesDiscoveryClientHealthIndicatorInitializer reactiveIndicatorInitializer(
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+		LOG.debug(() -> "Will publish InstanceRegisteredEvent from reactive implementation");
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 
 	@Bean

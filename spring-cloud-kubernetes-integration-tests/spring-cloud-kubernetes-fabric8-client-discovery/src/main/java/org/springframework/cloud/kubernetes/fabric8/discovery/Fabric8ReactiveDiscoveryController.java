@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,11 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.List;
 
-import io.fabric8.kubernetes.api.model.Endpoints;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.fabric8.discovery.reactive.KubernetesReactiveDiscoveryClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,29 +31,25 @@ import org.springframework.web.bind.annotation.RestController;
  * @author wind57
  */
 @RestController
-public class Fabric8DiscoveryController {
+public class Fabric8ReactiveDiscoveryController {
 
-	private final Fabric8KubernetesDiscoveryClient discoveryClient;
+	private final KubernetesReactiveDiscoveryClient reactiveDiscoveryClient;
 
-	public Fabric8DiscoveryController(ObjectProvider<Fabric8KubernetesDiscoveryClient> discoveryClient) {
-		Fabric8KubernetesDiscoveryClient[] local = new Fabric8KubernetesDiscoveryClient[1];
-		discoveryClient.ifAvailable(x -> local[0] = x);
-		this.discoveryClient = local[0];
+	public Fabric8ReactiveDiscoveryController(
+			ObjectProvider<KubernetesReactiveDiscoveryClient> reactiveDiscoveryClient) {
+		KubernetesReactiveDiscoveryClient[] local = new KubernetesReactiveDiscoveryClient[1];
+		reactiveDiscoveryClient.ifAvailable(x -> local[0] = x);
+		this.reactiveDiscoveryClient = local[0];
 	}
 
-	@GetMapping("/services")
-	public List<String> allServices() {
-		return discoveryClient.getServices();
+	@GetMapping("/reactive/services")
+	public Mono<List<String>> allServices() {
+		return reactiveDiscoveryClient.getServices().collectList();
 	}
 
-	@GetMapping("/endpoints/{serviceId}")
-	public List<Endpoints> getEndPointsList(@PathVariable("serviceId") String serviceId) {
-		return discoveryClient.getEndPointsList(serviceId);
-	}
-
-	@GetMapping("/service-instances/{serviceId}")
-	public List<ServiceInstance> serviceInstances(@PathVariable("serviceId") String serviceId) {
-		return discoveryClient.getInstances(serviceId);
+	@GetMapping("/reactive/service-instances/{serviceId}")
+	public Mono<List<ServiceInstance>> serviceInstances(@PathVariable("serviceId") String serviceId) {
+		return reactiveDiscoveryClient.getInstances(serviceId).collectList();
 	}
 
 }

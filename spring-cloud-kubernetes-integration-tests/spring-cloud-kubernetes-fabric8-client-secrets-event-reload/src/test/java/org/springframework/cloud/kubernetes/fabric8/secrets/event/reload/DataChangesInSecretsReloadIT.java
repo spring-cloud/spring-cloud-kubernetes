@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -54,7 +55,7 @@ import static org.awaitility.Awaitility.await;
 /**
  * @author wind57
  */
-class SecretsEventsReloadIT {
+class DataChangesInSecretsReloadIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-secrets-event-reload";
 
@@ -82,83 +83,94 @@ class SecretsEventsReloadIT {
 		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
+	/**
+	 * <pre>
+	 *     - secret with no labels and data: from.properties.key = initial exists in namespace default
+	 *     - we assert that we can read it correctly first, by invoking localhost/key.
+	 *
+	 *     - then we change the secret by adding a label, this in turn does not
+	 *       change the result of localhost/key, because the data has not changed.
+	 *
+	 *     - then we change data inside the secret, and we must see the updated value.
+	 * </pre>
+	 */
 	@Test
 	void testSimple() {
-		manifests(Phase.CREATE, false);
+		manifests(Phase.CREATE);
 		Commons.assertReloadLogStatements("added secret informer for namespace",
 				"added configmap informer for namespace", IMAGE_NAME);
+
 		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
-
-		// we first read the initial value from the secret
 		Assertions.assertEquals("initial", result);
 
-		// then deploy a new version of the secret
-		// since we poll and have reload in place, the new property must be visible
 		Secret secret = new SecretBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
+				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("letter", "a")).withNamespace(NAMESPACE)
+						.withName("event-reload").build())
 				.withData(Map.of("application.properties",
-						Base64.getEncoder().encodeToString("from.properties.key=after-change".getBytes())))
+						Base64.getEncoder().encodeToString("from.properties.key=initial".getBytes())))
+				.build();
+		client.secrets().inNamespace(NAMESPACE).resource(secret).createOrReplace();
+
+		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
+			WebClient innerWebClient = builder().baseUrl("http://localhost/key").build();
+			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+					.retryWhen(retrySpec()).block();
+			return "initial".equals(innerResult);
+		});
+
+		String logs = logs();
+		Assertions.assertTrue(logs.contains("Secret event-reload was updated in namespace default"));
+		Assertions.assertTrue(logs.contains("data in secret has not changed, will not reload"));
+
+		// change data
+		secret = new SecretBuilder()
+				.withMetadata(new ObjectMetaBuilder().withNamespace(NAMESPACE).withName("event-reload").build())
+				.withData(Map.of("application.properties",
+						Base64.getEncoder().encodeToString("from.properties.key=initial-changed".getBytes())))
 				.build();
 
-		client.secrets().inNamespace("default").resource(secret).createOrReplace();
+		client.secrets().inNamespace(NAMESPACE).resource(secret).createOrReplace();
 
-		await().timeout(Duration.ofSeconds(120)).until(() -> webClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("after-change"));
+		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
+			WebClient innerWebClient = builder().baseUrl("http://localhost/key").build();
+			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+					.retryWhen(retrySpec()).block();
+			return "initial-changed".equals(innerResult);
+		});
 
-		manifests(Phase.DELETE, false);
+		manifests(Phase.DELETE);
 	}
 
-	@Test
-	void testSimpleConfigMapsDisabled() {
-		manifests(Phase.CREATE, true);
-		Commons.assertReloadLogStatements("added secret informer for namespace",
-				"added configmap informer for namespace", IMAGE_NAME);
-		WebClient webClient = builder().baseUrl("http://localhost/key").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
-
-		// we first read the initial value from the secret
-		Assertions.assertEquals("initial", result);
-
-		// then deploy a new version of the secret
-		// since we poll and have reload in place, the new property must be visible
-		Secret secret = new SecretBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
-				.withData(Map.of("application.properties",
-						Base64.getEncoder().encodeToString("from.properties.key=after-change".getBytes())))
-				.build();
-
-		client.secrets().inNamespace("default").resource(secret).createOrReplace();
-
-		await().timeout(Duration.ofSeconds(120)).until(() -> webClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("after-change"));
-
-		manifests(Phase.DELETE, true);
-
-	}
-
-	private static void manifests(Phase phase, boolean configMapsDisabled) {
+	private static void manifests(Phase phase) {
 
 		InputStream deploymentStream = util.inputStream("deployment.yaml");
 		InputStream serviceStream = util.inputStream("service.yaml");
 		InputStream ingressStream = util.inputStream("ingress.yaml");
-		InputStream secretStream = util.inputStream("secret.yaml");
+		InputStream secretAsStream = util.inputStream("secret.yaml");
 
 		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
+
+		List<EnvVar> envVars = new ArrayList<>(
+				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
+		EnvVar activeProfileProperty = new EnvVarBuilder().withName("SPRING_PROFILES_ACTIVE").withValue("one").build();
+		envVars.add(activeProfileProperty);
+
+		EnvVar configMapsDisabledEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_CONFIG_ENABLED")
+				.withValue("FALSE").build();
+
+		EnvVar debugLevel = new EnvVarBuilder()
+				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD").withName("DEBUG")
+				.build();
+		envVars.add(debugLevel);
+
+		envVars.add(configMapsDisabledEnvVar);
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
+
 		Service service = client.services().load(serviceStream).get();
 		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
-		Secret secret = client.secrets().load(secretStream).get();
-
-		if (configMapsDisabled) {
-			List<EnvVar> envVars = new ArrayList<>(
-					deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
-			EnvVar configMapsDisabledEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_CONFIG_ENABLED")
-					.withValue("FALSE").build();
-			envVars.add(configMapsDisabledEnvVar);
-			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
-		}
+		Secret secret = client.secrets().load(secretAsStream).get();
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, secret);
@@ -171,12 +183,26 @@ class SecretsEventsReloadIT {
 
 	}
 
+	private String logs() {
+		try {
+			String appPodName = K3S.execInContainer("sh", "-c",
+					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+
+			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
+			return execResult.getStdout();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
 	private WebClient.Builder builder() {
 		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
 	}
 
 	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(120, Duration.ofSeconds(1)).filter(Objects::nonNull);
+		return Retry.fixedDelay(120, Duration.ofSeconds(2)).filter(Objects::nonNull);
 	}
 
 }
