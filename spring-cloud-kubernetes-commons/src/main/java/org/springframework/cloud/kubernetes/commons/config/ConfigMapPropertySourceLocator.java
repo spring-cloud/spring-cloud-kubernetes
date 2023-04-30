@@ -73,10 +73,6 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	protected abstract MapPropertySource getMapPropertySource(NormalizedSource normalizedSource,
 			ConfigurableEnvironment environment);
 
-	protected Class<? extends MapPropertySource> mountedMapPropertySourceType() {
-		return null;
-	}
-
 	@Override
 	public PropertySource<?> locate(Environment environment) {
 		if (environment instanceof ConfigurableEnvironment env) {
@@ -145,7 +141,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 		}
 		else {
 			LOG.debug("will add file-based property source : " + name);
-			composite.addFirstPropertySource(new MapPropertySource(name, map));
+			composite.addFirstPropertySource(new MountConfigMapPropertySource(name, map));
 		}
 	}
 

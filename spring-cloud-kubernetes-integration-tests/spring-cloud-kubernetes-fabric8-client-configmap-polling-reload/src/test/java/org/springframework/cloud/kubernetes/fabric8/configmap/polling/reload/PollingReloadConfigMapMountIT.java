@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -45,6 +46,8 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_cl
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
@@ -76,6 +79,50 @@ class PollingReloadConfigMapMountIT {
 	static void after() throws Exception {
 		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
+	}
+
+	/**
+	 * <pre>
+	 *     - we have "spring.config.import: kubernetes", which means we will 'locate' property sources
+	 *       from config maps.
+	 *     - the property above means that at the moment we will be searching for config maps that only
+	 *       match the application name, in this specific test there is no such config map.
+	 *     - what we will also read, is 'spring.cloud.kubernetes.config.paths', which we have set to
+	 *     	 '/tmp/application.properties'
+	 *       in this test. That is populated by the volumeMounts (see deployment-mount.yaml)
+	 *     - we first assert that we are actually reading the path based source via (1), (2) and (3).
+	 *
+	 *     - we then change the config map content, wait for k8s to pick it up and replace them
+	 *     - out polling will then detect that change, and trigger a reload.
+	 * </pre>
+	 */
+	@Test
+	void test() {
+		String logs = logs();
+		// (1)
+		Assertions.assertTrue(logs.contains("paths property sources : [/tmp/application.properties]"));
+		// (2)
+		Assertions.assertTrue(logs.contains("will add file-based property source : /tmp/application.properties"));
+		// (3)
+		WebClient webClient = builder().baseUrl("http://localhost/key").build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
+
+		// we first read the initial value from the configmap
+		Assertions.assertEquals("as-mount-initial", result);
+
+		// replace data in configmap and wait for k8s to pick it up
+		// our polling will detect that and restart the app
+		InputStream configMapStream = util.inputStream("mount/configmap-mount.yaml");
+		ConfigMap configMap = client.configMaps().load(configMapStream).get();
+		configMap.setData(Map.of("application.properties", "from.properties.key=as-mount-changed"));
+		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
+
+		await().timeout(Duration.ofSeconds(180)).until(() -> webClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("as-mount-changed"));
+
+		System.out.println("done");
+
 	}
 
 	private static void manifests(Phase phase) {
@@ -116,37 +163,6 @@ class PollingReloadConfigMapMountIT {
 			util.deleteAndWait(NAMESPACE, configMap, null);
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
-
-	}
-
-	/**
-	 * <pre>
-	 *     - we have "spring.config.import: kubernetes", which means we will 'locate' property sources
-	 *       from config maps.
-	 *     - the property above means that at the moment we will be searching for config maps that only
-	 *       match the application name, in this specific test there is no such config map.
-	 *     - what we will also read, is 'spring.cloud.kubernetes.config.paths', which we have set to
-	 *     	 '/tmp/application.properties'
-	 *       in this test. That is populated by the volumeMounts (see deployment-mount.yaml).
-	 *
-	 *     - we first assert that we are actually reading the path based source via (1), (2) and (3).
-	 * </pre>
-	 */
-	@Test
-	void test() {
-		String logs = logs();
-		// (1)
-		Assertions.assertTrue(logs.contains("paths property sources : [/tmp/application.properties]"));
-		// (2)
-		Assertions.assertTrue(logs.contains("will add file-based property source : /tmp/application.properties"));
-
-		// (3)
-		WebClient webClient = builder().baseUrl("http://localhost/key").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
-
-		// we first read the initial value from the configmap
-		Assertions.assertEquals("as-mount-initial", result);
 
 	}
 
