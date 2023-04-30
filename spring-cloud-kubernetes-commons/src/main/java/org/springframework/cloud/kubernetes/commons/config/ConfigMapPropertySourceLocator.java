@@ -73,6 +73,10 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	protected abstract MapPropertySource getMapPropertySource(NormalizedSource normalizedSource,
 			ConfigurableEnvironment environment);
 
+	protected Class<? extends MapPropertySource> mountedMapPropertySourceType() {
+		return null;
+	}
+
 	@Override
 	public PropertySource<?> locate(Environment environment) {
 		if (environment instanceof ConfigurableEnvironment env) {
@@ -99,6 +103,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 
 	private void addPropertySourcesFromPaths(Environment environment, CompositePropertySource composite) {
 		Set<String> uniquePaths = new LinkedHashSet<>(properties.paths());
+		LOG.debug("paths property sources : " + uniquePaths);
 		uniquePaths.stream().map(Paths::get).filter(p -> {
 			boolean exists = Files.exists(p);
 			if (!exists) {
@@ -139,6 +144,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 			LOG.warn("Property source: " + name + "will be ignored because no properties could be found");
 		}
 		else {
+			LOG.debug("will add file-based property source : " + name);
 			composite.addFirstPropertySource(new MapPropertySource(name, map));
 		}
 	}
