@@ -596,8 +596,7 @@ spring:
 ```
 
 NOTE:  If you use `spring.cloud.kubernetes.config.paths` or `spring.cloud.kubernetes.secrets.path` the automatic reload
-functionality will not work.  You will need to make a `POST` request to the `/actuator/refresh` endpoint or
-restart/redeploy the application.
+functionality will work only via `POLLING` reload. If that is not an option, you will need to make a `POST` request to the `/actuator/refresh` endpoint or restart/redeploy the application.
 
 [#config-map-fail-fast]
 In some cases, your application may be unable to load some of your `ConfigMaps` using the Kubernetes API.
