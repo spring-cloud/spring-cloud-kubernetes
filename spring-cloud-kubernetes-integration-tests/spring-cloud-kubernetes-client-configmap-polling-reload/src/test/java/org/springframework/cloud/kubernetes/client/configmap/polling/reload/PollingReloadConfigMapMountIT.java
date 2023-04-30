@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap.polling.reload;
+package org.springframework.cloud.kubernetes.client.configmap.polling.reload;
 
-import java.io.InputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1EnvVar;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -42,7 +41,7 @@ import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -54,13 +53,13 @@ import static org.awaitility.Awaitility.await;
  */
 class PollingReloadConfigMapMountIT {
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-configmap-polling-reload";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-configmap-polling-reload";
 
 	private static final String NAMESPACE = "default";
 
 	private static Util util;
 
-	private static KubernetesClient client;
+	private static CoreV1Api coreV1Api;
 
 	private static final K3sContainer K3S = Commons.container();
 
@@ -70,7 +69,7 @@ class PollingReloadConfigMapMountIT {
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 		util = new Util(K3S);
-		client = util.client();
+		coreV1Api = new CoreV1Api();
 		util.setUp(NAMESPACE);
 		manifests(Phase.CREATE);
 	}
@@ -97,7 +96,7 @@ class PollingReloadConfigMapMountIT {
 	 * </pre>
 	 */
 	@Test
-	void test() {
+	void test() throws Exception {
 		String logs = logs();
 		// (1)
 		Assertions.assertTrue(logs.contains("paths property sources : [/tmp/application.properties]"));
@@ -113,10 +112,9 @@ class PollingReloadConfigMapMountIT {
 
 		// replace data in configmap and wait for k8s to pick it up
 		// our polling will detect that and restart the app
-		InputStream configMapStream = util.inputStream("mount/configmap-mount.yaml");
-		ConfigMap configMap = client.configMaps().load(configMapStream).get();
+		V1ConfigMap configMap = (V1ConfigMap) util.yaml("configmap-mount.yaml");
 		configMap.setData(Map.of("application.properties", "from.properties.key=as-mount-changed"));
-		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
+		coreV1Api.replaceNamespacedConfigMap("poll-reload-as-mount", NAMESPACE, configMap, null, null, null, null);
 
 		await().timeout(Duration.ofSeconds(180)).until(() -> webClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("as-mount-changed"));
@@ -125,33 +123,23 @@ class PollingReloadConfigMapMountIT {
 
 	private static void manifests(Phase phase) {
 
-		InputStream deploymentStream = util.inputStream("mount/deployment-mount.yaml");
-		InputStream serviceStream = util.inputStream("service.yaml");
-		InputStream ingressStream = util.inputStream("ingress.yaml");
-		InputStream configMapStream = util.inputStream("mount/configmap-mount.yaml");
+		V1Deployment deployment = (V1Deployment) util.yaml("deployment-mount.yaml");
+		V1Service service = (V1Service) util.yaml("service.yaml");
+		V1Ingress ingress = (V1Ingress) util.yaml("ingress.yaml");
+		V1ConfigMap configMap = (V1ConfigMap) util.yaml("configmap-mount.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
-		ConfigMap configMap = client.configMaps().load(configMapStream).get();
-
-		List<EnvVar> existing = new ArrayList<>(
-				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
-		EnvVar mountActiveProfile = new EnvVarBuilder().withName("SPRING_PROFILES_ACTIVE").withValue("mount").build();
-		EnvVar debugLevelReloadCommons = new EnvVarBuilder()
-				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD").withValue("DEBUG")
-				.build();
-		EnvVar debugLevelConfig = new EnvVarBuilder()
-				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG").withValue("DEBUG")
-				.build();
-		EnvVar debugLevelCommons = new EnvVarBuilder()
-				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS").withValue("DEBUG").build();
-
-		EnvVar disableBootstrap = new EnvVarBuilder().withName("SPRING_CLOUD_BOOTSTRAP_ENABLED").withValue("FALSE")
-				.build();
+		List<V1EnvVar> existing = new ArrayList<>(
+				Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
+						.orElse(new ArrayList<>()));
+		V1EnvVar mountActiveProfile = new V1EnvVar().name("SPRING_PROFILES_ACTIVE").value("mount");
+		V1EnvVar debugLevelReloadCommons = new V1EnvVar()
+				.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD").value("DEBUG");
+		V1EnvVar debugLevelConfig = new V1EnvVar()
+				.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG").value("DEBUG");
+		V1EnvVar debugLevelCommons = new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS")
+				.value("DEBUG");
 
 		existing.add(mountActiveProfile);
-		existing.add(disableBootstrap);
 		existing.add(debugLevelReloadCommons);
 		existing.add(debugLevelCommons);
 		existing.add(debugLevelConfig);

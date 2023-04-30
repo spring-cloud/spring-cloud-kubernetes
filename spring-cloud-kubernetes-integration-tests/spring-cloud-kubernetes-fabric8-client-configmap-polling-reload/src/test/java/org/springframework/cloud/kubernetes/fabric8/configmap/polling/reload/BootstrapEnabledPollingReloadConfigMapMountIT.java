@@ -49,10 +49,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 
-/**
- * @author wind57
- */
-class PollingReloadConfigMapMountIT {
+public class BootstrapEnabledPollingReloadConfigMapMountIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-configmap-polling-reload";
 
@@ -106,7 +103,7 @@ class PollingReloadConfigMapMountIT {
 		// (3)
 		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+			.block();
 
 		// we first read the initial value from the configmap
 		Assertions.assertEquals("as-mount-initial", result);
@@ -119,7 +116,7 @@ class PollingReloadConfigMapMountIT {
 		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
 
 		await().timeout(Duration.ofSeconds(180)).until(() -> webClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("as-mount-changed"));
+			.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("as-mount-changed"));
 
 	}
 
@@ -136,22 +133,22 @@ class PollingReloadConfigMapMountIT {
 		ConfigMap configMap = client.configMaps().load(configMapStream).get();
 
 		List<EnvVar> existing = new ArrayList<>(
-				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
+			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
 		EnvVar mountActiveProfile = new EnvVarBuilder().withName("SPRING_PROFILES_ACTIVE").withValue("mount").build();
 		EnvVar debugLevelReloadCommons = new EnvVarBuilder()
-				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD").withValue("DEBUG")
-				.build();
+			.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD").withValue("DEBUG")
+			.build();
 		EnvVar debugLevelConfig = new EnvVarBuilder()
-				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG").withValue("DEBUG")
-				.build();
+			.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG").withValue("DEBUG")
+			.build();
 		EnvVar debugLevelCommons = new EnvVarBuilder()
-				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS").withValue("DEBUG").build();
+			.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS").withValue("DEBUG").build();
 
-		EnvVar disableBootstrap = new EnvVarBuilder().withName("SPRING_CLOUD_BOOTSTRAP_ENABLED").withValue("FALSE")
-				.build();
+		EnvVar enabledBootstrap = new EnvVarBuilder().withName("SPRING_CLOUD_BOOTSTRAP_ENABLED").withValue("TRUE")
+			.build();
 
 		existing.add(mountActiveProfile);
-		existing.add(disableBootstrap);
+		existing.add(enabledBootstrap);
 		existing.add(debugLevelReloadCommons);
 		existing.add(debugLevelCommons);
 		existing.add(debugLevelConfig);
@@ -179,7 +176,7 @@ class PollingReloadConfigMapMountIT {
 	private String logs() {
 		try {
 			String appPodName = K3S.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+				"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
 
 			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
 			return execResult.getStdout();
@@ -189,5 +186,6 @@ class PollingReloadConfigMapMountIT {
 			throw new RuntimeException(e);
 		}
 	}
+
 
 }
