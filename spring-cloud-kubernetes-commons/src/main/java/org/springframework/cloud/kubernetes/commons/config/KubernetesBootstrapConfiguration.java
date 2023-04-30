@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,14 +38,44 @@ import org.springframework.retry.policy.NeverRetryPolicy;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+@ConditionalOnKubernetesConfigOrSecretsRetryEnabled
+@ConditionalOnClass({ Retryable.class, Aspect.class, AopAutoConfiguration.class })
 @EnableConfigurationProperties({ ConfigMapConfigProperties.class, SecretsConfigProperties.class })
+@EnableRetry(proxyTargetClass = true)
+@Import(AopAutoConfiguration.class)
 public class KubernetesBootstrapConfiguration {
 
-	@ConditionalOnKubernetesConfigOrSecretsRetryEnabled
-	@ConditionalOnClass({ Retryable.class, Aspect.class, AopAutoConfiguration.class })
-	@Configuration(proxyBeanMethods = false)
-	@EnableRetry(proxyTargetClass = true)
-	@Import(AopAutoConfiguration.class)
+	private static RetryOperationsInterceptor retryOperationsInterceptor(RetryProperties retryProperties) {
+		return RetryInterceptorBuilder.stateless().backOffOptions(retryProperties.initialInterval(),
+				retryProperties.multiplier(), retryProperties.maxInterval()).maxAttempts(retryProperties.maxAttempts())
+				.build();
+	}
+
+	@Bean
+	@ConditionalOnKubernetesConfigRetryEnabled
+	RetryOperationsInterceptor kubernetesConfigRetryInterceptor(ConfigMapConfigProperties configProperties) {
+		return retryOperationsInterceptor(configProperties.retry());
+	}
+
+	@Bean("kubernetesConfigRetryInterceptor")
+	@ConditionalOnKubernetesConfigRetryDisabled
+	RetryOperationsInterceptor kubernetesConfigRetryInterceptorNoRetry() {
+		return RetryInterceptorBuilder.stateless().retryPolicy(new NeverRetryPolicy()).build();
+	}
+
+	@Bean
+	@ConditionalOnKubernetesSecretsRetryEnabled
+	RetryOperationsInterceptor kubernetesSecretsRetryInterceptor(SecretsConfigProperties configProperties) {
+		return retryOperationsInterceptor(configProperties.retry());
+	}
+
+	@Bean("kubernetesSecretsRetryInterceptor")
+	@ConditionalOnKubernetesSecretsRetryDisabled
+	RetryOperationsInterceptor kubernetesSecretsRetryInterceptorNoRetry() {
+		return RetryInterceptorBuilder.stateless().retryPolicy(new NeverRetryPolicy()).build();
+	}
+
+	@Deprecated(forRemoval = true)
 	public static class RetryConfiguration {
 
 		public static RetryOperationsInterceptor retryOperationsInterceptor(RetryProperties retryProperties) {
@@ -54,26 +84,18 @@ public class KubernetesBootstrapConfiguration {
 					.maxAttempts(retryProperties.maxAttempts()).build();
 		}
 
-		@Bean
-		@ConditionalOnKubernetesConfigRetryEnabled
 		public RetryOperationsInterceptor kubernetesConfigRetryInterceptor(ConfigMapConfigProperties configProperties) {
 			return retryOperationsInterceptor(configProperties.retry());
 		}
 
-		@Bean("kubernetesConfigRetryInterceptor")
-		@ConditionalOnKubernetesConfigRetryDisabled
 		public RetryOperationsInterceptor kubernetesConfigRetryInterceptorNoRetry() {
 			return RetryInterceptorBuilder.stateless().retryPolicy(new NeverRetryPolicy()).build();
 		}
 
-		@Bean
-		@ConditionalOnKubernetesSecretsRetryEnabled
 		public RetryOperationsInterceptor kubernetesSecretsRetryInterceptor(SecretsConfigProperties configProperties) {
 			return retryOperationsInterceptor(configProperties.retry());
 		}
 
-		@Bean("kubernetesSecretsRetryInterceptor")
-		@ConditionalOnKubernetesSecretsRetryDisabled
 		public RetryOperationsInterceptor kubernetesSecretsRetryInterceptorNoRetry() {
 			return RetryInterceptorBuilder.stateless().retryPolicy(new NeverRetryPolicy()).build();
 		}
