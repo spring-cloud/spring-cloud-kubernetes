@@ -82,11 +82,10 @@ class BootstrapEnabledPollingReloadConfigMapMountIT {
 
 	/**
 	 * <pre>
-	 *     - we have "spring.config.import: kubernetes", which means we will 'locate' property sources
+	 *     - we have bootstrap enabled, which means we will 'locate' property sources
 	 *       from config maps.
-	 *     - the property above means that at the moment we will be searching for config maps that only
-	 *       match the application name, in this specific test there is no such config map.
-	 *     - what we will also read, is 'spring.cloud.kubernetes.config.paths', which we have set to
+	 *     - there are no explicit config maps to search for, but what we will also read,
+	 *     	 is 'spring.cloud.kubernetes.config.paths', which we have set to
 	 *     	 '/tmp/application.properties'
 	 *       in this test. That is populated by the volumeMounts (see deployment-mount.yaml)
 	 *     - we first assert that we are actually reading the path based source via (1), (2) and (3).
