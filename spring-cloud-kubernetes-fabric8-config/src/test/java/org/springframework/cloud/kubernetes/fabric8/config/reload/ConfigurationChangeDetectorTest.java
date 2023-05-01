@@ -16,18 +16,27 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.reload;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.MutablePropertySources;
+import org.springframework.core.env.PropertySource;
+import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -119,6 +128,34 @@ public class ConfigurationChangeDetectorTest {
 		assertThat(changed).isTrue();
 	}
 
+	@Test
+	void testFindPropertySources() {
+		MockEnvironment environment = new MockEnvironment();
+		MutablePropertySources propertySources = environment.getPropertySources();
+		propertySources.addFirst(new OneComposite());
+		propertySources.addFirst(new PlainPropertySource("plain"));
+		propertySources.addFirst(new OneBootstrap(new EnumerablePropertySource<String>("enumerable") {
+			@Override
+			public String[] getPropertyNames() {
+				return new String[0];
+			}
+
+			@Override
+			public Object getProperty(String name) {
+				return null;
+			}
+		}));
+		propertySources.addFirst(new MountConfigMapPropertySource("mounted", Collections.singletonMap("a", "b")));
+
+		ConfigurationChangeDetectorStub local = new ConfigurationChangeDetectorStub(environment, null, null);
+		List<? extends PropertySource> result = local.findPropertySources(PlainPropertySource.class);
+		Assertions.assertEquals(4, result.size());
+		Assertions.assertEquals("b", result.get(0).getProperty("a"));
+		Assertions.assertEquals("plain", result.get(1).getProperty(""));
+		Assertions.assertEquals("from-bootstrap", result.get(2).getProperty(""));
+		Assertions.assertEquals("from-inner-two-composite", result.get(3).getProperty(""));
+	}
+
 	/**
 	 * only needed to test some protected methods it defines
 	 */
@@ -127,6 +164,58 @@ public class ConfigurationChangeDetectorTest {
 		private ConfigurationChangeDetectorStub(ConfigurableEnvironment environment, ConfigReloadProperties properties,
 				ConfigurationUpdateStrategy strategy) {
 			super(environment, properties, strategy);
+		}
+
+	}
+
+	private static final class OneComposite extends CompositePropertySource {
+
+		private OneComposite() {
+			super("one");
+		}
+
+		@Override
+		public Collection<PropertySource<?>> getPropertySources() {
+			return Collections.singletonList(new TwoComposite());
+		}
+
+	}
+
+	private static final class TwoComposite extends CompositePropertySource {
+
+		private TwoComposite() {
+			super("two");
+		}
+
+		@Override
+		public Collection<PropertySource<?>> getPropertySources() {
+			return Collections.singletonList(new PlainPropertySource("from-inner-two-composite"));
+		}
+
+	}
+
+	private static final class PlainPropertySource extends PropertySource<String> {
+
+		private PlainPropertySource(String name) {
+			super(name);
+		}
+
+		@Override
+		public Object getProperty(String name) {
+			return this.name;
+		}
+
+	}
+
+	private static final class OneBootstrap extends BootstrapPropertySource<String> {
+
+		private OneBootstrap(EnumerablePropertySource<String> delegate) {
+			super(delegate);
+		}
+
+		@Override
+		public PropertySource<String> getDelegate() {
+			return new PlainPropertySource("from-bootstrap");
 		}
 
 	}

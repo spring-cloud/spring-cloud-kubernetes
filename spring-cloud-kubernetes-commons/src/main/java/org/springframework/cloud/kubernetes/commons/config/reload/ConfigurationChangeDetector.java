@@ -28,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
@@ -82,8 +83,6 @@ public abstract class ConfigurationChangeDetector {
 
 	public boolean changed(List<? extends MapPropertySource> left, List<? extends MapPropertySource> right) {
 		if (left.size() != right.size()) {
-			this.log.warn("The current number of ConfigMap PropertySources does not match "
-					+ "the ones loaded from the Kubernetes - No reload will take place");
 
 			if (log.isDebugEnabled()) {
 				this.log.debug(String.format("source 1: %d", left.size()));
@@ -92,12 +91,19 @@ public abstract class ConfigurationChangeDetector {
 				this.log.debug(String.format("source 2: %d", right.size()));
 				right.forEach(item -> log.debug(item));
 			}
+			this.log.warn("The current number of ConfigMap PropertySources does not match "
+				+ "the ones loaded from the Kubernetes - No reload will take place");
 			return false;
 		}
 
 		for (int i = 0; i < left.size(); i++) {
 			if (changed(left.get(i), right.get(i))) {
-				return true;
+				MapPropertySource leftPropertySource = left.get(i);
+				MapPropertySource rightPropertySource = right.get(i);
+				if (changed(leftPropertySource, rightPropertySource)) {
+					this.log.debug("found change in : " + leftPropertySource);
+					return true;
+				}
 			}
 		}
 		return false;
@@ -131,8 +137,8 @@ public abstract class ConfigurationChangeDetector {
 
 		LinkedList<PropertySource<?>> sources = toLinkedList(this.environment.getPropertySources());
 		this.log.debug("findPropertySources");
-		this.log.debug(String.format("environment: %s", this.environment));
-		this.log.debug(String.format("environment sources: %s", sources));
+		this.log.debug(String.format("environment from findPropertySources : %s", this.environment));
+		this.log.debug(String.format("environment sources from findPropertySources : %s", sources));
 
 		while (!sources.isEmpty()) {
 			PropertySource<?> source = sources.pop();
@@ -143,14 +149,24 @@ public abstract class ConfigurationChangeDetector {
 			else if (sourceClass.isInstance(source)) {
 				managedSources.add(sourceClass.cast(source));
 			}
+			else if (source instanceof MountConfigMapPropertySource) {
+				// we know that the type is correct here
+				managedSources.add((S) source);
+			}
 			else if (source instanceof BootstrapPropertySource) {
 				PropertySource<?> propertySource = ((BootstrapPropertySource<?>) source).getDelegate();
 				if (sourceClass.isInstance(propertySource)) {
 					sources.add(propertySource);
 				}
+				else if (propertySource instanceof MountConfigMapPropertySource) {
+					// we know that the type is correct here
+					managedSources.add((S) propertySource);
+				}
 			}
 		}
 
+		this.log.debug("findPropertySources : " + managedSources.stream().map(PropertySource::getName)
+			.collect(Collectors.toList()));
 		return managedSources;
 	}
 
@@ -188,8 +204,8 @@ public abstract class ConfigurationChangeDetector {
 		}
 
 		this.log.debug("locateMapPropertySources");
-		this.log.debug(String.format("environment: %s", environment));
-		this.log.debug(String.format("sources: %s", result));
+		this.log.debug(String.format("environment from locateMapPropertySources : %s", environment));
+		this.log.debug(String.format("sources from locateMapPropertySources : %s", result));
 
 		return result;
 	}
