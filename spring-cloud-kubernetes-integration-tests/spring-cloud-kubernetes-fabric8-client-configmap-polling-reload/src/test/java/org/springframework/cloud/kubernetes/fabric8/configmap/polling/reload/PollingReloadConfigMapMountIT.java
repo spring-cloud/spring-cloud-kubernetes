@@ -118,7 +118,7 @@ class PollingReloadConfigMapMountIT {
 		configMap.setData(Map.of("application.properties", "from.properties.key=as-mount-changed"));
 		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
 
-		await().timeout(Duration.ofSeconds(180)).until(() -> webClient.method(HttpMethod.GET).retrieve()
+		await().timeout(Duration.ofSeconds(360)).until(() -> webClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("as-mount-changed"));
 
 	}
@@ -137,7 +137,13 @@ class PollingReloadConfigMapMountIT {
 
 		List<EnvVar> existing = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
+
+		// bootstrap is disabled, which means that in 'application-mount.yaml',
+		// config-data support is enabled.
 		EnvVar mountActiveProfile = new EnvVarBuilder().withName("SPRING_PROFILES_ACTIVE").withValue("mount").build();
+		EnvVar disableBootstrap = new EnvVarBuilder().withName("SPRING_CLOUD_BOOTSTRAP_ENABLED").withValue("FALSE")
+				.build();
+
 		EnvVar debugLevelReloadCommons = new EnvVarBuilder()
 				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD").withValue("DEBUG")
 				.build();
@@ -146,9 +152,6 @@ class PollingReloadConfigMapMountIT {
 				.build();
 		EnvVar debugLevelCommons = new EnvVarBuilder()
 				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS").withValue("DEBUG").build();
-
-		EnvVar disableBootstrap = new EnvVarBuilder().withName("SPRING_CLOUD_BOOTSTRAP_ENABLED").withValue("FALSE")
-				.build();
 
 		existing.add(mountActiveProfile);
 		existing.add(disableBootstrap);

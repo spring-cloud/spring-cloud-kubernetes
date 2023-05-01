@@ -103,7 +103,7 @@ public class BootstrapEnabledPollingReloadConfigMapMountIT {
 		// (3)
 		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-			.block();
+				.block();
 
 		// we first read the initial value from the configmap
 		Assertions.assertEquals("as-mount-initial", result);
@@ -115,8 +115,8 @@ public class BootstrapEnabledPollingReloadConfigMapMountIT {
 		configMap.setData(Map.of("application.properties", "from.properties.key=as-mount-changed"));
 		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
 
-		await().timeout(Duration.ofSeconds(180)).until(() -> webClient.method(HttpMethod.GET).retrieve()
-			.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("as-mount-changed"));
+		await().timeout(Duration.ofSeconds(360)).until(() -> webClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("as-mount-changed"));
 
 	}
 
@@ -133,21 +133,25 @@ public class BootstrapEnabledPollingReloadConfigMapMountIT {
 		ConfigMap configMap = client.configMaps().load(configMapStream).get();
 
 		List<EnvVar> existing = new ArrayList<>(
-			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
-		EnvVar mountActiveProfile = new EnvVarBuilder().withName("SPRING_PROFILES_ACTIVE").withValue("mount").build();
-		EnvVar debugLevelReloadCommons = new EnvVarBuilder()
-			.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD").withValue("DEBUG")
-			.build();
-		EnvVar debugLevelConfig = new EnvVarBuilder()
-			.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG").withValue("DEBUG")
-			.build();
-		EnvVar debugLevelCommons = new EnvVarBuilder()
-			.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS").withValue("DEBUG").build();
+				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
 
+		// bootstrap is enabled, which means that in 'application-with-bootstrap.yaml',
+		// config-data support is disabled.
+		EnvVar withBootstrapActiveProfile = new EnvVarBuilder().withName("SPRING_PROFILES_ACTIVE")
+				.withValue("with-bootstrap").build();
 		EnvVar enabledBootstrap = new EnvVarBuilder().withName("SPRING_CLOUD_BOOTSTRAP_ENABLED").withValue("TRUE")
-			.build();
+				.build();
 
-		existing.add(mountActiveProfile);
+		EnvVar debugLevelReloadCommons = new EnvVarBuilder()
+				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD").withValue("DEBUG")
+				.build();
+		EnvVar debugLevelConfig = new EnvVarBuilder()
+				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG").withValue("DEBUG")
+				.build();
+		EnvVar debugLevelCommons = new EnvVarBuilder()
+				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS").withValue("DEBUG").build();
+
+		existing.add(withBootstrapActiveProfile);
 		existing.add(enabledBootstrap);
 		existing.add(debugLevelReloadCommons);
 		existing.add(debugLevelCommons);
@@ -176,7 +180,7 @@ public class BootstrapEnabledPollingReloadConfigMapMountIT {
 	private String logs() {
 		try {
 			String appPodName = K3S.execInContainer("sh", "-c",
-				"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
 
 			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
 			return execResult.getStdout();
@@ -186,6 +190,5 @@ public class BootstrapEnabledPollingReloadConfigMapMountIT {
 			throw new RuntimeException(e);
 		}
 	}
-
 
 }

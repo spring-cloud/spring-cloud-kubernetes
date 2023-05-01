@@ -26,9 +26,12 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 
+		<!-- not bootstrap starter, because we want to be able to disable bootstrap per-test -->
+		<!-- and ConditionalOnBootstrapEnabled has a @ConditionalOnClass on a Marker -->
+		<!-- that is present in bootstrap-starter, but not in this one -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-bootstrap</artifactId>
+			<artifactId>spring-cloud-starter</artifactId>
 		</dependency>
 
 		<dependency>

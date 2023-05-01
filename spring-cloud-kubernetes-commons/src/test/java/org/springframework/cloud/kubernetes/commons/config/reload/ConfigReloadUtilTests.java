@@ -141,7 +141,8 @@ class ConfigReloadUtilTests {
 		}));
 		propertySources.addFirst(new MountConfigMapPropertySource("mounted", Map.of("a", "b")));
 
-		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class, environment);
+		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
+				environment);
 		Assertions.assertEquals(4, result.size());
 		Assertions.assertEquals("b", result.get(0).getProperty("a"));
 		Assertions.assertEquals("plain", result.get(1).getProperty(""));

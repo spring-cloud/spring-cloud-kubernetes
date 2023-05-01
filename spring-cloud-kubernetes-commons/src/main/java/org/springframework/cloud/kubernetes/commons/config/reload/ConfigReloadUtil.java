@@ -74,8 +74,8 @@ public final class ConfigReloadUtil {
 
 		List<PropertySource<?>> sources = environment.getPropertySources().stream()
 				.collect(Collectors.toCollection(ArrayList::new));
-		LOG.debug(() -> "environment: " + environment);
-		LOG.debug(() -> "environment sources: " + sources);
+		LOG.debug(() -> "environment from findPropertySources: " + environment);
+		LOG.debug(() -> "environment sources from findPropertySources : " + sources);
 
 		while (!sources.isEmpty()) {
 			PropertySource<?> source = sources.remove(0);
@@ -91,8 +91,13 @@ public final class ConfigReloadUtil {
 			}
 			else if (source instanceof BootstrapPropertySource<?> bootstrapPropertySource) {
 				PropertySource<?> propertySource = bootstrapPropertySource.getDelegate();
+				LOG.debug(() -> "bootstrap delegate class : " + propertySource.getClass());
 				if (sourceClass.isInstance(propertySource)) {
 					sources.add(propertySource);
+				}
+				else if (propertySource instanceof MountConfigMapPropertySource mountConfigMapPropertySource) {
+					// we know that the type is correct here
+					managedSources.add((S) mountConfigMapPropertySource);
 				}
 			}
 		}
@@ -129,8 +134,8 @@ public final class ConfigReloadUtil {
 			LOG.debug(() -> "Found property source that cannot be handled: " + propertySource.getClass());
 		}
 
-		LOG.debug(() -> "environment: " + environment);
-		LOG.debug(() -> "sources: " + result);
+		LOG.debug(() -> "environment from locateMapPropertySources : " + environment);
+		LOG.debug(() -> "sources from locateMapPropertySources : " + result);
 
 		return result;
 	}

@@ -51,7 +51,7 @@ import static org.awaitility.Awaitility.await;
 /**
  * @author wind57
  */
-class PollingReloadConfigMapMountIT {
+class BootstrapEnabledPollingReloadConfigMapMountIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-configmap-polling-reload";
 
@@ -132,10 +132,10 @@ class PollingReloadConfigMapMountIT {
 				Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
 						.orElse(new ArrayList<>()));
 
-		// bootstrap is disabled, which means that in 'application-mount.yaml',
-		// config-data support is enabled.
-		V1EnvVar mountActiveProfile = new V1EnvVar().name("SPRING_PROFILES_ACTIVE").value("mount");
-		V1EnvVar disableBootstrap = new V1EnvVar().name("SPRING_CLOUD_BOOTSTRAP_ENABLED").value("FALSE");
+		// bootstrap is enabled, which means that in 'application-with-bootstrap.yaml',
+		// config-data support is disabled.
+		V1EnvVar mountActiveProfile = new V1EnvVar().name("SPRING_PROFILES_ACTIVE").value("with-bootstrap");
+		V1EnvVar disableBootstrap = new V1EnvVar().name("SPRING_CLOUD_BOOTSTRAP_ENABLED").value("TRUE");
 
 		V1EnvVar debugLevelReloadCommons = new V1EnvVar()
 				.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD").value("DEBUG");
