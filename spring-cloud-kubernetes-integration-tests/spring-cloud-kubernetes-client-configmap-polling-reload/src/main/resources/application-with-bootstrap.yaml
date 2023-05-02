@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: poll-reload-mount-boostrap
+  cloud:
+    kubernetes:
+      reload:
+        enabled: true
+        monitoring-config-maps: true
+        strategy: shutdown
+        mode: polling
+        period: 5000
+
