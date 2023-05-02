@@ -1,0 +1,6 @@
+spring:
+  cloud:
+    kubernetes:
+      config:
+        paths:
+          - /tmp/application.properties

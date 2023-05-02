@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.config;
+package org.springframework.cloud.kubernetes.client.configmap.polling.reload;
 
-import java.util.Map;
-
-import org.springframework.core.env.MapPropertySource;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 /**
  * @author wind57
  */
-public final class MountConfigMapPropertySource extends MapPropertySource {
 
-	public MountConfigMapPropertySource(String name, Map<String, Object> source) {
-		super(name, source);
+@SpringBootApplication
+@EnableConfigurationProperties(ConfigMapProperties.class)
+public class ConfigMapApp {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ConfigMapApp.class, args);
 	}
 
 }
