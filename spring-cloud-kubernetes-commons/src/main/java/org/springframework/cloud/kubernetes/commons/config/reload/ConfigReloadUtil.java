@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
@@ -73,8 +74,8 @@ public final class ConfigReloadUtil {
 
 		List<PropertySource<?>> sources = environment.getPropertySources().stream()
 				.collect(Collectors.toCollection(ArrayList::new));
-		LOG.debug(() -> "environment: " + environment);
-		LOG.debug(() -> "environment sources: " + sources);
+		LOG.debug(() -> "environment from findPropertySources: " + environment);
+		LOG.debug(() -> "environment sources from findPropertySources : " + sources);
 
 		while (!sources.isEmpty()) {
 			PropertySource<?> source = sources.remove(0);
@@ -84,14 +85,24 @@ public final class ConfigReloadUtil {
 			else if (sourceClass.isInstance(source)) {
 				managedSources.add(sourceClass.cast(source));
 			}
+			else if (source instanceof MountConfigMapPropertySource mountConfigMapPropertySource) {
+				// we know that the type is correct here
+				managedSources.add((S) mountConfigMapPropertySource);
+			}
 			else if (source instanceof BootstrapPropertySource<?> bootstrapPropertySource) {
 				PropertySource<?> propertySource = bootstrapPropertySource.getDelegate();
+				LOG.debug(() -> "bootstrap delegate class : " + propertySource.getClass());
 				if (sourceClass.isInstance(propertySource)) {
 					sources.add(propertySource);
+				}
+				else if (propertySource instanceof MountConfigMapPropertySource mountConfigMapPropertySource) {
+					// we know that the type is correct here
+					managedSources.add((S) mountConfigMapPropertySource);
 				}
 			}
 		}
 
+		LOG.debug(() -> "findPropertySources : " + managedSources.stream().map(PropertySource::getName).toList());
 		return managedSources;
 	}
 
@@ -123,17 +134,14 @@ public final class ConfigReloadUtil {
 			LOG.debug(() -> "Found property source that cannot be handled: " + propertySource.getClass());
 		}
 
-		LOG.debug(() -> "environment: " + environment);
-		LOG.debug(() -> "sources: " + result);
+		LOG.debug(() -> "environment from locateMapPropertySources : " + environment);
+		LOG.debug(() -> "sources from locateMapPropertySources : " + result);
 
 		return result;
 	}
 
 	static boolean changed(List<? extends MapPropertySource> left, List<? extends MapPropertySource> right) {
 		if (left.size() != right.size()) {
-			LOG.warn(() -> "The current number of ConfigMap PropertySources does not match "
-					+ "the ones loaded from the Kubernetes - No reload will take place");
-
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("left size: " + left.size());
 				left.forEach(item -> LOG.debug(item.toString()));
@@ -141,14 +149,20 @@ public final class ConfigReloadUtil {
 				LOG.debug("right size: " + right.size());
 				right.forEach(item -> LOG.debug(item.toString()));
 			}
+			LOG.warn(() -> "The current number of ConfigMap PropertySources does not match "
+					+ "the ones loaded from Kubernetes - No reload will take place");
 			return false;
 		}
 
 		for (int i = 0; i < left.size(); i++) {
-			if (changed(left.get(i), right.get(i))) {
+			MapPropertySource leftPropertySource = left.get(i);
+			MapPropertySource rightPropertySource = right.get(i);
+			if (changed(leftPropertySource, rightPropertySource)) {
+				LOG.debug(() -> "found change in : " + leftPropertySource);
 				return true;
 			}
 		}
+		LOG.debug(() -> "no changes found, reload will not happen");
 		return false;
 	}
 

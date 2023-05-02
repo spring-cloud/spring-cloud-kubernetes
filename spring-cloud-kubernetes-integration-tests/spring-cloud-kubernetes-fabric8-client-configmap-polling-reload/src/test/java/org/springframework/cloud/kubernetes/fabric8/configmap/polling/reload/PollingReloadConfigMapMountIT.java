@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,8 @@ import java.util.Map;
 import java.util.Objects;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
@@ -36,6 +34,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -53,7 +52,7 @@ import static org.awaitility.Awaitility.await;
 /**
  * @author wind57
  */
-class ConfigMapPollingReloadIT {
+class PollingReloadConfigMapMountIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-configmap-polling-reload";
 
@@ -82,34 +81,54 @@ class ConfigMapPollingReloadIT {
 		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
+	/**
+	 * <pre>
+	 *     - we have "spring.config.import: kubernetes", which means we will 'locate' property sources
+	 *       from config maps.
+	 *     - the property above means that at the moment we will be searching for config maps that only
+	 *       match the application name, in this specific test there is no such config map.
+	 *     - what we will also read, is 'spring.cloud.kubernetes.config.paths', which we have set to
+	 *     	 '/tmp/application.properties'
+	 *       in this test. That is populated by the volumeMounts (see deployment-mount.yaml)
+	 *     - we first assert that we are actually reading the path based source via (1), (2) and (3).
+	 *
+	 *     - we then change the config map content, wait for k8s to pick it up and replace them
+	 *     - our polling will then detect that change, and trigger a reload.
+	 * </pre>
+	 */
 	@Test
 	void test() {
+		String logs = logs();
+		// (1)
+		Assertions.assertTrue(logs.contains("paths property sources : [/tmp/application.properties]"));
+		// (2)
+		Assertions.assertTrue(logs.contains("will add file-based property source : /tmp/application.properties"));
+		// (3)
 		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
 		// we first read the initial value from the configmap
-		Assertions.assertEquals("initial", result);
+		Assertions.assertEquals("as-mount-initial", result);
 
-		// then deploy a new version of configmap
-		// since we poll and have reload in place, the new property must be visible
-		ConfigMap map = new ConfigMapBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("poll-reload").build())
-				.withData(Map.of("application.properties", "from.properties.key=after-change")).build();
+		// replace data in configmap and wait for k8s to pick it up
+		// our polling will detect that and restart the app
+		InputStream configMapStream = util.inputStream("mount/configmap-mount.yaml");
+		ConfigMap configMap = client.configMaps().load(configMapStream).get();
+		configMap.setData(Map.of("application.properties", "from.properties.key=as-mount-changed"));
+		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
 
-		client.configMaps().inNamespace("default").resource(map).createOrReplace();
-
-		await().timeout(Duration.ofSeconds(60)).until(() -> webClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("after-change"));
+		await().timeout(Duration.ofSeconds(360)).until(() -> webClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("as-mount-changed"));
 
 	}
 
 	private static void manifests(Phase phase) {
 
-		InputStream deploymentStream = util.inputStream("deployment.yaml");
+		InputStream deploymentStream = util.inputStream("mount/deployment-mount.yaml");
 		InputStream serviceStream = util.inputStream("service.yaml");
 		InputStream ingressStream = util.inputStream("ingress.yaml");
-		InputStream configMapStream = util.inputStream("configmap.yaml");
+		InputStream configMapStream = util.inputStream("mount/configmap-mount.yaml");
 
 		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
 		Service service = client.services().load(serviceStream).get();
@@ -118,7 +137,27 @@ class ConfigMapPollingReloadIT {
 
 		List<EnvVar> existing = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
-		existing.add(new EnvVarBuilder().withName("SPRING_PROFILES_ACTIVE").withValue("no-mount").build());
+
+		// bootstrap is disabled, which means that in 'application-mount.yaml',
+		// config-data support is enabled.
+		EnvVar mountActiveProfile = new EnvVarBuilder().withName("SPRING_PROFILES_ACTIVE").withValue("mount").build();
+		EnvVar disableBootstrap = new EnvVarBuilder().withName("SPRING_CLOUD_BOOTSTRAP_ENABLED").withValue("FALSE")
+				.build();
+
+		EnvVar debugLevelReloadCommons = new EnvVarBuilder()
+				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD").withValue("DEBUG")
+				.build();
+		EnvVar debugLevelConfig = new EnvVarBuilder()
+				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG").withValue("DEBUG")
+				.build();
+		EnvVar debugLevelCommons = new EnvVarBuilder()
+				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS").withValue("DEBUG").build();
+
+		existing.add(mountActiveProfile);
+		existing.add(disableBootstrap);
+		existing.add(debugLevelReloadCommons);
+		existing.add(debugLevelCommons);
+		existing.add(debugLevelConfig);
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
 
 		if (phase.equals(Phase.CREATE)) {
@@ -138,6 +177,20 @@ class ConfigMapPollingReloadIT {
 
 	private RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(60, Duration.ofSeconds(1)).filter(Objects::nonNull);
+	}
+
+	private String logs() {
+		try {
+			String appPodName = K3S.execInContainer("sh", "-c",
+					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+
+			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
+			return execResult.getStdout();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 }
