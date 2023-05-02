@@ -183,8 +183,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 	}
 
 	/**
-	 * - left is empty map
-	 * - right is null
+	 * - left is empty map - right is null
 	 *
 	 * treat as equal, that is: no change
 	 */
@@ -198,8 +197,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 	}
 
 	/**
-	 * - left is empty map
-	 * - right is null
+	 * - left is empty map - right is null
 	 *
 	 * treat as equal, that is: no change
 	 */
@@ -213,8 +211,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 	}
 
 	/**
-	 * - left is null
-	 * - right is empty map
+	 * - left is null - right is empty map
 	 *
 	 * treat as equal, that is: no change
 	 */
@@ -228,8 +225,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 	}
 
 	/**
-	 * - left is empty map
-	 * - right is empty map
+	 * - left is empty map - right is empty map
 	 *
 	 * treat as equal, that is: no change
 	 */
@@ -243,8 +239,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 	}
 
 	/**
-	 * - left is empty map
-	 * - right is [1, b]
+	 * - left is empty map - right is [1, b]
 	 *
 	 * treat as non-equal, that is change
 	 */
@@ -258,8 +253,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 	}
 
 	/**
-	 * - left is [1, a]
-	 * - right is [1, b]
+	 * - left is [1, a] - right is [1, b]
 	 *
 	 * treat as non-equal, that is change
 	 */
@@ -273,8 +267,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 	}
 
 	/**
-	 * - left is [1, a, 2 aa]
-	 * - right is [1, b, 2, aa]
+	 * - left is [1, a, 2 aa] - right is [1, b, 2, aa]
 	 *
 	 * treat as non-equal, that is change
 	 */
