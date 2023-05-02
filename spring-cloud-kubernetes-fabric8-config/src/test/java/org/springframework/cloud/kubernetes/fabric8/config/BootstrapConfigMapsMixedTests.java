@@ -30,9 +30,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "spring.application.name=" + BootstrapConfigMapsMixedTests.APPLICATION_NAME,
-				"spring.cloud.kubernetes.config.enableApi=true",
-				"spring.cloud.kubernetes.config.paths=" + BootstrapConfigMapsMixedTests.FILE_NAME_FULL_PATH,
-				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true" })
+				"spring.cloud.kubernetes.config.enableApi=true", "spring.main.cloud-platform=KUBERNETES",
+				"spring.cloud.bootstrap.enabled=true" })
 @EnableKubernetesMockClient(crud = true, https = false)
 public class BootstrapConfigMapsMixedTests extends ConfigMapsMixedTests {
 

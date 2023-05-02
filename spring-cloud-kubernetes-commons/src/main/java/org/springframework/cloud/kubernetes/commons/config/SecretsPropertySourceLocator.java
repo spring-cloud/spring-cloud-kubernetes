@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,10 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -82,8 +69,6 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			Set<NormalizedSource> uniqueSources = new HashSet<>(sources);
 			LOG.debug("Secrets normalized sources : " + sources);
 			CompositePropertySource composite = new CompositePropertySource("composite-secrets");
-			// read for secrets mount
-			putPathConfig(composite);
 
 			if (this.properties.enableApi()) {
 				uniqueSources
@@ -109,78 +94,5 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 	protected abstract SecretsPropertySource getPropertySource(ConfigurableEnvironment environment,
 			NormalizedSource normalizedSource);
-
-	protected void putPathConfig(CompositePropertySource composite) {
-
-		LOG.warn("path support is deprecated and will be removed in a future release. Please use spring.config.import");
-
-		this.properties.paths().stream().map(Paths::get).filter(Files::exists).flatMap(x -> {
-			try {
-				return Files.walk(x);
-			}
-			catch (IOException e) {
-				LOG.warn("Error walking properties files", e);
-				return null;
-			}
-		}).filter(Objects::nonNull).filter(Files::isRegularFile).collect(new SecretsPropertySourceCollector())
-				.forEach(composite::addPropertySource);
-	}
-
-	/**
-	 * @author wind57
-	 */
-	private static class SecretsPropertySourceCollector
-			implements Collector<Path, List<SecretsPropertySource>, List<SecretsPropertySource>> {
-
-		@Override
-		public Supplier<List<SecretsPropertySource>> supplier() {
-			return ArrayList::new;
-		}
-
-		@Override
-		public BiConsumer<List<SecretsPropertySource>, Path> accumulator() {
-			return (list, filePath) -> {
-				SecretsPropertySource source = property(filePath);
-				if (source != null) {
-					list.add(source);
-				}
-			};
-		}
-
-		@Override
-		public BinaryOperator<List<SecretsPropertySource>> combiner() {
-			return (left, right) -> {
-				left.addAll(right);
-				return left;
-			};
-		}
-
-		@Override
-		public Function<List<SecretsPropertySource>, List<SecretsPropertySource>> finisher() {
-			return Function.identity();
-		}
-
-		@Override
-		public Set<Characteristics> characteristics() {
-			return EnumSet.of(Characteristics.UNORDERED, Characteristics.IDENTITY_FINISH);
-		}
-
-		private SecretsPropertySource property(Path filePath) {
-
-			String fileName = filePath.getFileName().toString();
-
-			try {
-				String content = new String(Files.readAllBytes(filePath)).trim();
-				String sourceName = fileName.toLowerCase();
-				SourceData sourceData = new SourceData(sourceName, Collections.singletonMap(fileName, content));
-				return new SecretsPropertySource(sourceData);
-			}
-			catch (IOException e) {
-				LOG.warn("Error reading properties file", e);
-				return null;
-			}
-		}
-
-	}
 
 }

@@ -17,29 +17,18 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.assertj.core.util.Lists.newArrayList;
-
 abstract class ConfigMapsMixedTests {
-
-	protected static final String FILES_ROOT_PATH = "/tmp/scktests";
-
-	protected static final String FILE_NAME = "application-path.yaml";
-
-	protected static final String FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/" + FILE_NAME;
 
 	protected static final String APPLICATION_NAME = "configmap-mixed-example";
 
@@ -56,10 +45,6 @@ abstract class ConfigMapsMixedTests {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		Files.createDirectories(Paths.get(FILES_ROOT_PATH));
-		ConfigMapTestUtil.createFileWithContent(FILE_NAME_FULL_PATH,
-				ConfigMapTestUtil.readResourceFile("application-path.yaml"));
-
 		HashMap<String, String> data = new HashMap<>();
 		data.put("bean.morning", "Buenos Dias ConfigMap, %s");
 
@@ -67,29 +52,6 @@ abstract class ConfigMapsMixedTests {
 				.addToData(data).build();
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
-	}
-
-	@AfterAll
-	public static void teardownAfterClass() {
-		newArrayList(FILE_NAME_FULL_PATH, FILES_ROOT_PATH).forEach(fn -> {
-			try {
-				Files.delete(Paths.get(fn));
-			}
-			catch (IOException ignored) {
-			}
-		});
-	}
-
-	@Test
-	public void greetingInputShouldReturnPropertyFromFile() {
-		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Hello ConfigMap, World from path");
-	}
-
-	@Test
-	public void farewellInputShouldReturnPropertyFromFile() {
-		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Bye ConfigMap, World from path");
 	}
 
 	@Test
