@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: poll-reload-as-mount
+  namespace: default
+data:
+  application.properties: |
+    from.properties.key=as-mount-initial
