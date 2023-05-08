@@ -580,7 +580,9 @@ NOTE: You should check the security configuration section. To access config maps
 Kubernetes service accounts, roles and role bindings.
 
 Another option for using `ConfigMap` instances is to mount them into the Pod by running the Spring Cloud Kubernetes application
-and having Spring Cloud Kubernetes read them from the file system. Please note that this feature is deprecated and will be removed in a future release (Use `spring.config.import` instead).
+and having Spring Cloud Kubernetes read them from the file system.
+
+NOTE: This feature is deprecated and will be removed in a future release (Use `spring.config.import` instead).
 This behavior is controlled by the `spring.cloud.kubernetes.config.paths` property. You can use it in
 addition to or instead of the mechanism described earlier.
 `spring.cloud.kubernetes.config.paths` expects a List of full paths to each property file, because directories are not being recursively parsed. For example:
