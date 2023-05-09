@@ -112,6 +112,8 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 	protected void putPathConfig(CompositePropertySource composite) {
 
+		LOG.warn("path support is deprecated and will be removed in a future release. Please use spring.config.import");
+
 		this.properties.paths().stream().map(Paths::get).filter(Files::exists).flatMap(x -> {
 			try {
 				return Files.walk(x);
